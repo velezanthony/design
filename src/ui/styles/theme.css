@@ -1,8 +1,9 @@
 @import 'tailwindcss';
 
-/* El paquete se publica como fuente: Tailwind debe escanear las clases de esta carpeta aunque el
-   consumidor importe el tema desde `node_modules`. */
-@source './';
+/* El paquete se publica como fuente y sus componentes usan utilidades: Tailwind tiene que escanear
+   todo `src/` (no solo esta carpeta), venga el paquete de `node_modules` o de un symlink del
+   workspace, que queda fuera de la raíz del consumidor y su detección automática no lo ve. */
+@source '../../';
 
 /* Tokens. Los neutros son una rampa OKLCH de matiz 195 para compartir el matiz del acento: no los
    cambies por los grises por defecto de Tailwind. Los ratios son contra la superficie de cada
@@ -185,12 +186,26 @@
 
   /* Un encabezado al que se llega desde el índice o un #enlace compartido aterriza con aire por
      encima, no pegado al borde. */
-  & :is(h2, h3) {
+  & :is(h2, h3, h4) {
     scroll-margin-top: 2rem;
   }
 
   & > * + * {
     margin-top: 1.25em;
+  }
+
+  /* En las docs el `# Título` del Markdown ES el título de la página (en el portfolio lo pintaba un
+     componente fuera de `prose`), así que lleva la escala display. */
+  & h1 {
+    font-size: var(--text-display);
+    font-weight: 600;
+    letter-spacing: var(--text-display--letter-spacing);
+    line-height: var(--text-display--line-height);
+    text-wrap: balance;
+  }
+
+  & h1 + * {
+    margin-top: 1em;
   }
 
   & h2 {
@@ -212,6 +227,15 @@
   & h3 {
     margin-top: 2em;
     font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* La referencia de API generada (griffe2md) baja hasta h4: un miembro por encabezado. */
+  & h4 {
+    margin-top: 1.75em;
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
     font-weight: 600;
     line-height: 1.4;
   }

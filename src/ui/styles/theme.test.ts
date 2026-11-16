@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { contrast } from '../../testing/contrast';
@@ -60,9 +62,14 @@ describe('tokens', () => {
     expect(css).toContain(`--container-${name}:`);
   });
 
-  it("importa tailwind y escanea sus propias clases con `@source './'`", () => {
+  it('importa tailwind y escanea todo src/, donde viven los componentes que usan utilidades', () => {
     expect(css).toContain("@import 'tailwindcss';");
-    expect(css).toContain("@source './';");
+    const source = /@source '([^']+)';/.exec(css)?.[1];
+    expect(source).toBeDefined();
+    // Relativa a este fichero: tiene que llegar a src/, no quedarse en src/ui/styles/.
+    const scanned = resolve(dirname(fileURLToPath(import.meta.url)), source!);
+    expect(existsSync(resolve(scanned, 'ui/molecules'))).toBe(true);
+    expect(existsSync(resolve(scanned, 'astro/routes'))).toBe(true);
   });
 });
 

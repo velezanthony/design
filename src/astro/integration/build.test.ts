@@ -210,7 +210,7 @@ describe('#11 layouts y rutas de la Fase 12', () => {
   it('ruta de reserva: contenido original en <div lang>, aviso, noindex y canonical al original', async () => {
     const html = await site.read('es/fallback-demo/index.html');
     expect(html).toContain('<html lang="es"');
-    expect(html).toContain('<div lang="en"');
+    expect(html).toMatch(/<div class="prose" lang="en"/);
     expect(html).toContain('role="note"');
     expect(html).toContain('<meta name="robots" content="noindex"');
     expect(html).toContain('<link rel="canonical" href="https://example.dev/repo/fallback-demo/"');
@@ -419,7 +419,7 @@ describe('#16 políticas de traducción y textos en una build real', () => {
 
   it('fallback: ruta es con aviso, lang del original, noindex y fuera de sitemap (ver #11)', async () => {
     const html = await site.read('es/fallback-demo/index.html');
-    expect(html).toContain('<div lang="en"');
+    expect(html).toMatch(/<div class="prose" lang="en"/);
     expect(metaContent(html, 'robots')).toBe('noindex');
   });
 

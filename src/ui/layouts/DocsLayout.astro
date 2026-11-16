@@ -99,7 +99,9 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
           strings={strings}
         />
       )}
-      <div lang={fallback?.originalLocale}>
+      {/* `.prose` es la utilidad que da estilo al Markdown renderizado (encabezados, código, anclas,
+          admoniciones, pestañas). Va solo en el contenido: el cromo de debajo no la hereda. */}
+      <div class="prose" lang={fallback?.originalLocale}>
         <slot />
       </div>
       <div data-pagefind-ignore>
