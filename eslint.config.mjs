@@ -94,6 +94,25 @@ export default defineConfig(
   ]),
   layer('ui', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
 
+  /* Valores cerrados: nada de `enum` de TypeScript. No es sintaxis borrable y publicamos `.ts` sin
+     build. En su lugar, un objeto `as const` más un tipo derivado:
+
+       export const Kind = { A: 'a', B: 'b' } as const;
+       export type Kind = (typeof Kind)[keyof typeof Kind];  */
+  {
+    files: ['src/**/*.{ts,astro}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'TSEnumDeclaration',
+          message:
+            'Sin `enum`: usa un objeto `as const` y deriva el tipo (`(typeof X)[keyof typeof X]`).',
+        },
+      ],
+    },
+  },
+
   /* El último, para que el formato sea cosa solo de Prettier. */
   prettier,
 );

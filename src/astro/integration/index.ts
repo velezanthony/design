@@ -1,28 +1,29 @@
 import type { AstroIntegration } from 'astro';
+import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
+import type { DocsUserConfig } from '../../core/config/schema';
 import { extendMarkdownProcessor } from '../markdown/processor';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
+import { toAstroError } from './errors';
 import { designFonts } from './fonts';
 import { buildPagefindIndex } from './pagefind';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
 export const INTEGRATION_NAME = '@velezanthony/design';
 
-/** Documento externo: un archivo del repo (p. ej. `../CHANGELOG.md`) servido como página. */
-export interface ExternalDoc {
-  slug: string;
-  /** Relativa a la raíz del proyecto; puede salir con `../`. */
-  file: string;
-}
-
-/* Forma provisional de la config; la sustituye `DocsUserConfig` de `core/config/schema.ts`. */
-export interface DocsConfig {
-  name: string;
-  external?: ExternalDoc[];
-}
+export type { DocsUserConfig };
 
 export interface DocsIntegration extends AstroIntegration {
   /** La config resuelta. Astro la descarta al validar `config.integrations`: ver `defineDocsConfig`. */
-  resolvedConfig: DocsConfig;
+  resolvedConfig: ResolvedConfig;
+}
+
+/** `resolveConfig` con los errores del núcleo traducidos a `AstroError`. */
+export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
+  try {
+    return resolveConfig(config);
+  } catch (error) {
+    throw toAstroError(error, 'La config de `@velezanthony/design` no es válida.');
+  }
 }
 
 /**
@@ -30,10 +31,10 @@ export interface DocsIntegration extends AstroIntegration {
  * `docs()` (astro.config.mjs) y a `docsLoader()` (content.config.ts). Plan B del test #1: Astro
  * descarta las propiedades extra de la integración, así que el loader no puede leerla de ella.
  */
-export const defineDocsConfig = (config: DocsConfig): DocsConfig => config;
+export const defineDocsConfig = (config: DocsUserConfig): DocsUserConfig => config;
 
-export function docs(userConfig: DocsConfig): DocsIntegration {
-  const resolvedConfig = userConfig;
+export function docs(userConfig: DocsUserConfig): DocsIntegration {
+  const resolvedConfig = resolveConfigOrThrow(userConfig);
   return {
     name: INTEGRATION_NAME,
     resolvedConfig,

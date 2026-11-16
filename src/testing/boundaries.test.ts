@@ -6,12 +6,13 @@ import { describe, expect, it } from 'vitest';
    Si alguien relaja una regla de `eslint.config.mjs`, el caso correspondiente deja de fallar. */
 
 const RULE = '@typescript-eslint/no-restricted-imports';
+const NO_ENUM = 'no-restricted-syntax';
 const eslint = new ESLint({ overrideConfigFile: resolve('eslint.config.mjs') });
 
-/** Devuelve cuántas veces salta la regla de fronteras sobre el fragmento. */
-async function violations(filePath: string, code: string): Promise<number> {
+/** Devuelve cuántas veces salta la regla indicada sobre el fragmento. */
+async function violations(filePath: string, code: string, rule = RULE): Promise<number> {
   const [result] = await eslint.lintText(code, { filePath: resolve(filePath) });
-  return result.messages.filter((message) => message.ruleId === RULE).length;
+  return result.messages.filter((message) => message.ruleId === rule).length;
 }
 
 const CORE = 'src/core/content/slug.ts';
@@ -80,6 +81,36 @@ describe('fronteras entre capas', () => {
     '%s',
     async (_name, filePath, code) => {
       expect(await violations(filePath, code)).toBe(0);
+    },
+    30_000,
+  );
+});
+
+/* `enum` de TypeScript no es sintaxis borrable y publicamos `.ts` sin build: los valores cerrados
+   son un objeto `as const` con su tipo derivado. */
+const layers: [string, string][] = [
+  ['core/', CORE],
+  ['client/', CLIENT],
+  ['ui/', UI],
+  ['astro/', ASTRO],
+];
+
+describe('sin enum de TypeScript', () => {
+  it.each(layers)(
+    '%s rechaza `enum` y `const enum`',
+    async (_layer, filePath) => {
+      expect(await violations(filePath, `enum Kind { A, B }`, NO_ENUM)).toBe(1);
+      expect(await violations(filePath, `export const enum Kind { A = 'a' }`, NO_ENUM)).toBe(1);
+    },
+    30_000,
+  );
+
+  it.each(layers)(
+    '%s admite un objeto `as const` con tipo derivado',
+    async (_layer, filePath) => {
+      const code = `export const Kind = { A: 'a', B: 'b' } as const;
+export type Kind = (typeof Kind)[keyof typeof Kind];`;
+      expect(await violations(filePath, code, NO_ENUM)).toBe(0);
     },
     30_000,
   );
