@@ -30,6 +30,12 @@ declare module 'virtual:@velezanthony/design/config' {
     privacyUrl?: string;
     gtmId?: string;
     social?: { github?: string };
+    layout: {
+      sidebar: 'open' | 'collapsed';
+      toc: 'open' | 'collapsed';
+      width: 'reading' | 'full';
+      toggles: boolean;
+    };
     /** Textos de interfaz ya fusionados con los del consumidor, por idioma. */
     strings: Record<string, Record<string, string>>;
     base: string;

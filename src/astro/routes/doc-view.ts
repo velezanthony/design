@@ -1,3 +1,4 @@
+import type { ResolvedLayout } from '../../core/config/layout';
 import { buildAvailability, pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import { fallbackRoutes, resolvePolicies } from '../../core/i18n/translation-policy';
@@ -71,6 +72,7 @@ export interface DocView {
   indexable: boolean;
   baseUrl: string;
   fallback?: { originalLocale: Locale; href: string };
+  layout: ResolvedLayout;
 }
 
 /** Datos de la página que se renderiza, para el layout. */
@@ -134,6 +136,7 @@ export function docView(
     ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
     indexable: !isFallback && !meta.noindex,
     baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
+    layout: cfg.layout,
     ...(isFallback && {
       fallback: { originalLocale: route.contentLocale, href: route.canonical ?? '' },
     }),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defineDocsConfig, docs, MissingTranslation } from './index';
+import { defineDocsConfig, docs, LayoutWidth, MissingTranslation, PanelState } from './index';
 
 describe('API pública de ./integration', () => {
   it('exporta MissingTranslation como objeto de valores', () => {
@@ -17,5 +17,25 @@ describe('API pública de ./integration', () => {
   it('el tipo derivado acepta los valores', () => {
     const value: MissingTranslation = MissingTranslation.OMIT;
     expect(value).toBe('omit');
+  });
+});
+
+describe('API pública de ./integration: layout', () => {
+  it('exporta PanelState y LayoutWidth como objetos de valores', () => {
+    expect(PanelState).toEqual({ OPEN: 'open', COLLAPSED: 'collapsed' });
+    expect(LayoutWidth).toEqual({ READING: 'reading', FULL: 'full' });
+  });
+
+  it('una config con los valores exportados valida y llega resuelta', () => {
+    const config = defineDocsConfig({
+      name: 'T',
+      layout: { sidebar: PanelState.COLLAPSED, toc: PanelState.OPEN, width: LayoutWidth.FULL },
+    });
+    expect(docs(config).resolvedConfig.layout).toEqual({
+      sidebar: 'collapsed',
+      toc: 'open',
+      width: 'full',
+      toggles: true,
+    });
   });
 });

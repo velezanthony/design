@@ -57,7 +57,58 @@
 
   --container-text: 42rem;
 
+  /* La medida del texto con el ancho completo: algo más generosa, sin llegar a líneas ilegibles. */
+  --container-measure-full: 52rem;
+
   --container-page: 80rem;
+}
+
+/* Disposición de las páginas de docs. El estado vive en `<html data-left data-right data-width>`
+   (`client/layout.ts`); aquí solo se traduce a variables. Cada columna lateral plegada se queda en
+   un raíl; el texto conserva su medida y lo ancho (código, tablas, capturas) aprovecha el hueco. */
+:root {
+  --rail: 2.75rem;
+  --col-left: 14rem;
+  --col-right: 14rem;
+  --page-max: var(--container-page);
+  --prose-measure: var(--container-measure);
+  /* Hasta dónde llegan los elementos anchos; la medida más 12rem es lo que ya cabía en la página. */
+  --wide-max: calc(var(--container-measure) + 12rem);
+  /* Cuánto sobresale una captura de la medida, y hasta dónde puede crecer. */
+  --img-bleed: 6rem;
+  --img-max: var(--container-text);
+}
+
+:root[data-width='full'] {
+  --page-max: 100%;
+  --prose-measure: var(--container-measure-full);
+}
+
+/* Con el ancho completo o con una columna plegada hay más sitio: lo ancho ocupa toda la columna y
+   las capturas dejan de sobresalir (llenan la columna en vez de pasarse de ella). La izquierda solo
+   existe desde lg y la derecha desde xl; por debajo, plegarlas no libera nada. */
+:root[data-width='full'] {
+  --wide-max: 100%;
+  --img-bleed: 0rem;
+  --img-max: 100%;
+}
+
+@media (min-width: 64rem) {
+  :root[data-left='collapsed'] {
+    --col-left: var(--rail);
+    --wide-max: 100%;
+    --img-bleed: 0rem;
+    --img-max: 100%;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root[data-right='collapsed'] {
+    --col-right: var(--rail);
+    --wide-max: 100%;
+    --img-bleed: 0rem;
+    --img-max: 100%;
+  }
 }
 
 /* La columna lateral se estrecha entre md y lg, donde empiezan las dos columnas: 14rem deja al
@@ -301,7 +352,26 @@
 }
 
 @utility prose {
-  max-width: var(--container-measure);
+  /* El texto conserva su medida; lo ancho (código, tablas, pestañas, capturas) la desborda hasta
+     `--wide-max`. La caja de `prose` ocupa toda la columna: la medida va en los hijos. */
+  & > * {
+    max-width: var(--prose-measure);
+  }
+
+  & > :is(pre, .docs-code, .docs-tabs, p:has(> img, > .docs-zoom)) {
+    max-width: var(--wide-max);
+  }
+
+  /* La raya sobre cada sección llega hasta donde llegan el código y las tablas: si se quedara en la
+     medida del texto, con columnas plegadas o ancho completo parecería cortada. */
+  & > h2 {
+    max-width: var(--wide-max);
+  }
+
+  /* Su relleno lateral (abajo) ya sobresale 0.75rem por cada lado. */
+  & > .table-scroll {
+    max-width: calc(var(--wide-max) + 1.5rem);
+  }
 
   /* Un encabezado al que se llega desde el índice o un #enlace compartido aterriza con aire por
      encima, no pegado al borde. */
@@ -406,8 +476,11 @@
     padding-inline: 0.75rem;
   }
 
+  /* La tabla mide lo que su contenido (nunca menos que el texto): estirar dos columnas cortas a
+     todo el ancho separa cada valor de su fila. Si no cabe, hace scroll en su `.table-scroll`. */
   & table {
-    width: 100%;
+    width: auto;
+    min-width: min(100%, var(--prose-measure));
     border-collapse: collapse;
     font-size: var(--text-row);
     text-align: left;
@@ -511,8 +584,8 @@
      hace scroll lateral. */
   & img {
     display: block;
-    width: min(calc(100% + 6rem), calc(100vw - 3rem));
-    max-width: var(--container-text);
+    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+    max-width: var(--img-max);
     height: auto;
     border: 1px solid var(--color-rule);
     border-radius: 4px;
@@ -526,8 +599,8 @@
      botón, así que el foco rodea la imagen y no cambia nada de la maquetación. */
   & .docs-zoom {
     @apply block cursor-zoom-in rounded-[4px] p-0;
-    width: min(calc(100% + 6rem), calc(100vw - 3rem));
-    max-width: var(--container-text);
+    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+    max-width: var(--img-max);
   }
 
   & .docs-zoom > img {
@@ -823,6 +896,155 @@
     .docs-nav[open] > .docs-nav-toggle + * {
       margin-top: 0;
     }
+  }
+}
+
+/* Columnas laterales plegables y conmutador de ancho (`DocsLayout`, `PanelToggle`,
+   `TableOfContents`, `DocsHeader`). Desde lg la barra lateral y desde xl el índice se pliegan a un
+   raíl: queda el botón y la etiqueta en vertical, y el panel se aparta (con `inert` desde el
+   cliente). Por debajo manda el «Menú» y nada de esto se ve. */
+@layer components {
+  .docs-panel-head {
+    @apply mb-4 hidden items-center justify-between gap-[0.875rem] lg:flex;
+  }
+
+  .docs-panel-head-right {
+    @apply flex-row-reverse;
+  }
+
+  /* Sin esto, una etiqueta larga empuja el botón fuera de la columna. */
+  .docs-panel-title {
+    @apply min-w-0 truncate;
+  }
+
+  .docs-panel-toggle {
+    @apply grid size-(--rail) shrink-0 cursor-pointer place-items-center rounded-[4px] border border-rule bg-canvas text-muted hover:border-faint hover:text-ink focus-visible:outline-offset-[-3px];
+  }
+
+  .docs-rail-label {
+    @apply mx-auto mt-4 hidden;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  /* El panel conserva su ancho al plegarse: la columna se estrecha y lo recorta, sin recolocar el texto. */
+  @media (min-width: 64rem) {
+    .docs-sidebar {
+      overflow-x: hidden;
+    }
+
+    .docs-sidebar .docs-panel {
+      width: 14rem;
+      /* La barra de scroll de la columna resta ancho: el panel no puede meterse debajo de ella. */
+      max-width: 100%;
+    }
+  }
+
+  .toc .docs-panel {
+    width: 14rem;
+    max-width: 100%;
+  }
+
+  @media (min-width: 64rem) {
+    :root[data-left='collapsed'] .docs-sidebar .docs-panel {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-1rem);
+    }
+
+    :root[data-left='collapsed'] .docs-sidebar .docs-panel-title {
+      display: none;
+    }
+
+    :root[data-left='collapsed'] .docs-sidebar .docs-rail-label {
+      display: block;
+    }
+
+    :root[data-left='collapsed'] .docs-sidebar .docs-panel-toggle svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  @media (min-width: 80rem) {
+    :root[data-right='collapsed'] .toc .docs-panel {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(1rem);
+    }
+
+    :root[data-right='collapsed'] .toc .docs-panel-title {
+      display: none;
+    }
+
+    :root[data-right='collapsed'] .toc .docs-rail-label {
+      display: block;
+    }
+
+    :root[data-right='collapsed'] .toc .docs-panel-toggle svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  /* Lectura / Ancho: dos botones pegados; el activo se invierte con los tokens, así que en oscuro
+     se ve bien sin más. */
+  .docs-width-switch {
+    @apply overflow-hidden rounded-[4px] border border-rule;
+  }
+
+  .docs-width-switch button {
+    @apply inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 label text-muted transition-colors hover:text-ink focus-visible:outline-offset-[-2px] aria-pressed:bg-ink aria-pressed:text-canvas;
+  }
+}
+
+/* Plegada, la columna no tiene nada que desplazar ni que desbordar: sin esto la barra lateral
+   (`overflow-y-auto`, una utilidad) enseñaría su barra de scroll sobre el raíl. Va fuera de las
+   capas para ganar a la utilidad. */
+@media (min-width: 64rem) {
+  :root[data-left='collapsed'] .docs-sidebar {
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root[data-right='collapsed'] .toc {
+    overflow: hidden;
+  }
+}
+
+/* Transiciones de la disposición: la rejilla (`grid-template-columns`) y el ancho de la página se
+   animan entre estados, y el panel se funde y se desliza al apartarse. Con movimiento reducido no
+   hay ninguna. */
+@media (prefers-reduced-motion: no-preference) {
+  .docs-container {
+    transition:
+      max-width 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      grid-template-columns 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .docs-panel {
+    transition:
+      opacity 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s;
+  }
+
+  /* `visibility` espera a que acabe el fundido para ocultar; al desplegar cambia al instante. */
+  :root[data-left='collapsed'] .docs-sidebar .docs-panel,
+  :root[data-right='collapsed'] .toc .docs-panel {
+    transition:
+      opacity 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s linear 350ms;
+  }
+
+  .docs-panel-toggle svg {
+    transition: transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .prose > * {
+    transition: max-width 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
 

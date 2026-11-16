@@ -55,6 +55,18 @@ describe('bootDocs', () => {
     expect(e.doc.querySelector('button.docs-zoom')).toBeNull();
   });
 
+  it('cablea los botones de plegado y de ancho', () => {
+    const e = env(
+      `<button data-layout-toggle="left" aria-controls="nav" data-collapse-label="Plegar" data-expand-label="Desplegar"></button><div id="nav"></div><button data-layout-width="full"></button>`,
+    );
+    bootDocs(e);
+    (e.doc.querySelector('[data-layout-toggle]') as HTMLElement).click();
+    expect(e.doc.documentElement.dataset.left).toBe('collapsed');
+    expect(e.doc.getElementById('nav')!.hasAttribute('inert')).toBe(true);
+    (e.doc.querySelector('[data-layout-width]') as HTMLElement).click();
+    expect(e.doc.documentElement.dataset.width).toBe('full');
+  });
+
   it('sin <main> ni controles no hace nada (ni falla)', () => {
     expect(() => bootDocs(env('<p>x</p>'))).not.toThrow();
   });

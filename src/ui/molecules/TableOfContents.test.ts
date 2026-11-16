@@ -58,3 +58,25 @@ describe('TableOfContents', () => {
     expect((await toc({ headings: [] })).querySelector('nav')).toBeNull();
   });
 });
+
+describe('TableOfContents: raíl plegable', () => {
+  it('sin `toggles` no hay botón ni etiqueta de raíl', async () => {
+    const doc = await toc({});
+    expect(doc.querySelector('button')).toBeNull();
+    expect(doc.querySelector('.docs-rail-label')).toBeNull();
+  });
+
+  it('con `toggles` el botón controla la lista, y el índice conserva su título', async () => {
+    const doc = await toc({ toggles: true, open: false });
+    const button = doc.querySelector('nav button[data-layout-toggle="right"]')!;
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(button.getAttribute('aria-label')).toBe('Desplegar el índice');
+    expect(button.getAttribute('data-collapse-label')).toBe('Plegar el índice');
+    expect(button.getAttribute('data-expand-label')).toBe('Desplegar el índice');
+    expect(
+      doc.getElementById(button.getAttribute('aria-controls')!)!.querySelector('a'),
+    ).not.toBeNull();
+    expect(text(doc.querySelector('.docs-rail-label'))).toBe('Índice');
+    expect(text(doc.querySelector('.docs-panel-title'))).toBe('En esta página');
+  });
+});

@@ -97,3 +97,30 @@ describe('DocsFooter', () => {
     expect(text(doc.querySelector('[data-consent-open]'))).toBe('Cookie preferences');
   });
 });
+
+describe('DocsHeader: ancho de lectura', () => {
+  it('sin `layoutToggles` no hay conmutador', async () => {
+    expect((await header()).querySelector('[data-layout-width]')).toBeNull();
+  });
+
+  it('con `layoutToggles` hay un grupo con dos botones y su nombre accesible', async () => {
+    const doc = await header({ layoutToggles: true, layoutWidth: 'full' });
+    const group = doc.querySelector('header [role="group"][aria-label="Ancho de la página"]')!;
+    const buttons = [...group.querySelectorAll('button[data-layout-width]')];
+    expect(buttons.map((b) => b.getAttribute('data-layout-width'))).toEqual(['reading', 'full']);
+    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
+    expect(buttons.map((b) => text(b))).toEqual(['Lectura', 'Ancho']);
+    for (const button of buttons) expect(button.getAttribute('type')).toBe('button');
+  });
+
+  it('el conmutador no se muestra por debajo de md', async () => {
+    const group = (await header({ layoutToggles: true })).querySelector('[role="group"]')!;
+    expect([...group.classList]).toEqual(expect.arrayContaining(['hidden', 'md:inline-flex']));
+  });
+
+  it('los textos salen del catálogo del idioma', async () => {
+    const doc = await header({ layoutToggles: true, strings: stringsFor('en') });
+    expect(doc.querySelector('[role="group"]')!.getAttribute('aria-label')).toBe('Page width');
+    expect(text(doc.querySelector('[data-layout-width="full"]'))).toBe('Full');
+  });
+});

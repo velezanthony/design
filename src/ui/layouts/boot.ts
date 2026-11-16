@@ -1,6 +1,7 @@
 import { initHeadingAnchors } from '../../client/anchors';
 import { initConsent } from '../../client/consent';
 import { initCopyCode } from '../../client/copy-code';
+import { initLayout, type RailQuery } from '../../client/layout';
 import { swapNotFound } from '../../client/not-found';
 import { initSearch } from '../../client/search';
 import { storageOf } from '../../client/storage';
@@ -19,6 +20,8 @@ export interface BootEnv {
   system: Parameters<typeof initTheme>[0]['system'];
   /** `(prefers-reduced-motion: reduce)`; sin él, las transiciones se permiten. */
   motion?: MotionPreference;
+  /** `(min-width: 64rem)`: desde ahí existe el raíl de los laterales (por debajo, el «Menú»). */
+  rail?: RailQuery;
   clipboard: Pick<Clipboard, 'writeText'> | undefined;
   hostname: string;
   reload: () => void;
@@ -31,6 +34,7 @@ const browserEnv = (): BootEnv => ({
   storage: storageOf('localStorage'),
   system: matchMedia('(prefers-color-scheme: dark)'),
   motion: matchMedia('(prefers-reduced-motion: reduce)'),
+  rail: matchMedia('(min-width: 64rem)'),
   clipboard: navigator.clipboard,
   hostname: location.hostname,
   reload: () => location.reload(),
@@ -38,7 +42,7 @@ const browserEnv = (): BootEnv => ({
 });
 
 /**
- * Cablea todo el cliente de una página de docs: tema, consentimiento, buscadores, pestañas, botón
+ * Cablea todo el cliente de una página de docs: tema, columnas plegables y ancho, consentimiento, buscadores, pestañas, botón
  * de copiar, ampliación de imágenes, anclas de encabezado e índice de contenidos. Cada `init*` ignora lo que la página no
  * tenga. Los textos vienen de `data-*` de `<main>` (el catálogo de la página ya resuelto).
  */
@@ -51,6 +55,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
     colors: themeColors,
     motion: env.motion,
   });
+  initLayout({ doc, storage: env.storage, rail: env.rail });
   initConsent({ doc, storage: env.storage, hostname: env.hostname, reload: env.reload });
   for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
   initTabs(doc, env.motion);

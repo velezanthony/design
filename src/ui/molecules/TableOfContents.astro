@@ -1,13 +1,18 @@
 ---
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import PanelToggle from './PanelToggle.astro';
 
 interface Props {
   /** Encabezados de la página tal como los devuelve `render(entry)`. Se listan h2 y h3. */
   headings: { depth: number; slug: string; text: string }[];
   strings: UiStrings;
+  /** Con el botón que pliega el índice a un raíl (`layout.toggles`). */
+  toggles?: boolean;
+  /** Estado con el que nace el botón; `initLayout` lo corrige con lo guardado. */
+  open?: boolean;
 }
 
-const { headings, strings } = Astro.props;
+const { headings, strings, toggles = false, open = true } = Astro.props;
 const entries = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 const title = t(strings, 'toc.title');
 ---
@@ -19,8 +24,18 @@ const title = t(strings, 'toc.title');
 */}
 {entries.length >= 3 && (
   <nav aria-label={title} class="toc hidden md:sticky md:top-8 md:block">
-    <p class="label mb-3 text-faint">{title}</p>
-    <ol class="space-y-1 border-l border-rule">
+    {toggles ? (
+      <PanelToggle
+        side="right"
+        controls="docs-toc-panel"
+        open={open}
+        strings={strings}
+        title={title}
+      />
+    ) : (
+      <p class="label mb-3 text-faint">{title}</p>
+    )}
+    <ol id="docs-toc-panel" class="docs-panel space-y-1 border-l border-rule">
       {entries.map((entry) => (
         <li>
           <a

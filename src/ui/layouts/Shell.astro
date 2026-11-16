@@ -1,5 +1,7 @@
 ---
+import { layoutBootstrapScript } from '../../client/layout';
 import { themeBootstrapScript } from '../../client/theme';
+import type { ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
 import type { HeadConfig } from '../../core/seo/head';
 import '../styles/theme.css';
@@ -13,16 +15,25 @@ interface Props {
   htmlAttrs?: Record<string, string>;
   /** Oculta `<main>` hasta que la 404 sustituya su cuerpo (ver `NotFoundLayout`). */
   pending?: boolean;
+  /** Columnas y ancho de una página de docs; la 404 no lo pasa y no tiene columnas. */
+  layout?: ResolvedLayout;
 }
 
-const { lang, head, htmlAttrs = {}, pending = false } = Astro.props;
+const { lang, head, htmlAttrs = {}, pending = false, layout } = Astro.props;
+
+/* El estado inicial va en `<html>` desde el servidor (así la config manda también sin JavaScript);
+   el script previo al pintado solo lo pisa con lo que el visitante guardó. */
+const layoutAttrs = layout
+  ? { 'data-left': layout.sidebar, 'data-right': layout.toc, 'data-width': layout.width }
+  : {};
+const layoutScript = layout ? layoutBootstrapScript(layout) : '';
 
 /* Antes del primer pintado, como el tema: sin JavaScript no corre y se ve el idioma por defecto. */
 const pendingScript = "document.documentElement.classList.add('nf-pending');";
 const pendingStyle = 'html.nf-pending main { visibility: hidden; }';
 ---
 
-<html lang={lang} {...htmlAttrs}>
+<html lang={lang} {...htmlAttrs} {...layoutAttrs}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,6 +44,7 @@ const pendingStyle = 'html.nf-pending main { visibility: hidden; }';
     {pending && <style is:inline set:html={pendingStyle} />}
     {pending && <script is:inline set:html={pendingScript} />}
     <script is:inline set:html={themeBootstrapScript(themeColors)} />
+    {layoutScript && <script is:inline set:html={layoutScript} />}
   </head>
   <body>
     <slot />

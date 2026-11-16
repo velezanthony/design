@@ -96,3 +96,36 @@ describe('DocsConfigSchema', () => {
     expect(DocsConfigSchema.safeParse({ name: 'X' }).success).toBe(true);
   });
 });
+
+describe('layout de la config', () => {
+  it('sin `layout` todo queda abierto, en lectura y con conmutadores', () => {
+    expect(resolveConfig({ name: 'X' }).layout).toEqual({
+      sidebar: 'open',
+      toc: 'open',
+      width: 'reading',
+      toggles: true,
+    });
+  });
+
+  it('acepta cada campo y completa el resto con los valores por defecto', () => {
+    expect(
+      resolveConfig({ name: 'X', layout: { sidebar: 'collapsed', width: 'full' } }).layout,
+    ).toEqual({ sidebar: 'collapsed', toc: 'open', width: 'full', toggles: true });
+    expect(
+      resolveConfig({ name: 'X', layout: { toc: 'collapsed', toggles: false } }).layout,
+    ).toEqual({ sidebar: 'open', toc: 'collapsed', width: 'reading', toggles: false });
+  });
+
+  it('un valor desconocido falla con la ruta del campo', () => {
+    const [sidebar] = messages({ name: 'X', layout: { sidebar: 'hidden' } });
+    expect(sidebar).toContain('layout.sidebar');
+    expect(messages({ name: 'X', layout: { width: 'wide' } })[0]).toContain('layout.width');
+    expect(messages({ name: 'X', layout: { toggles: 'yes' } })[0]).toContain('layout.toggles');
+  });
+
+  it('una opción desconocida de `layout` se nombra con su ruta', () => {
+    expect(messages({ name: 'X', layout: { rail: true } })).toEqual([
+      expect.stringContaining('layout.rail'),
+    ]);
+  });
+});

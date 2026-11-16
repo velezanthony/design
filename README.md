@@ -113,6 +113,7 @@ Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`)
 | `favicon`       | Tab icon: a file in `public/` (`'favicon.svg'` or `'/favicon.svg'`, must exist) or an `https://` URL. Default: the package's own icon. See below. |
 | `gtmId`         | Google Tag Manager id. Loaded only after the visitor accepts the consent banner. Requires `privacyUrl`.                         |
 | `privacyUrl`    | Privacy policy link of the banner and footer (`https://...` or a site path).                                                    |
+| `layout`        | Collapsible sidebars and reading / full width: `{ sidebar?, toc?, width?, toggles? }`. See below.                               |
 | `social`        | `{ github }`.                                                                                                                   |
 
 ### `seo`
@@ -151,6 +152,27 @@ Entries are slugs (`'guide/install'`) or groups `{ label, slug?, items }`. The h
 `'index'` (its internal slug is empty). A slug that matches no page, in any language, fails the build
 with one aggregated error naming each of them and its path (`sidebar[2].items[0]`). Pages not listed
 go after the declared ones, by frontmatter `order`, then slug.
+
+### `layout`
+
+```js
+import { LayoutWidth, PanelState } from '@velezanthony/design/integration';
+
+layout: {
+  sidebar: PanelState.OPEN, // 'open' (default) | 'collapsed': initial state of the navigation (lg and up)
+  toc: PanelState.OPEN, // same for "On this page" (xl and up)
+  width: LayoutWidth.READING, // 'reading' (default) | 'full'
+  toggles: true, // false removes every control and ignores what a visitor saved
+}
+```
+
+Each side column has a chevron button that folds it into a 44px rail (a vertical label and the
+button; the panel is `inert` while folded). The header gets a Reading / Full switch (from `md` up).
+In `full` the page and the header bar use the whole window and the text measure grows a little; code,
+tables, tabs and images take the whole column whenever a side is folded or the width is `full`.
+Below `lg` nothing changes: the navigation stays behind the "Menu". The visitor's choice is kept in
+`localStorage` (`docs:layout`) and applied before first paint, so a reload does not jump. Animations
+respect `prefers-reduced-motion`. Unknown values fail validation.
 
 ### `translations`
 

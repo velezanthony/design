@@ -2,6 +2,7 @@ import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
+import { resolveLayout, type ResolvedLayout } from './layout';
 import {
   DocsConfigSchema,
   type ExternalDoc,
@@ -31,6 +32,7 @@ export interface ResolvedConfig {
   privacyUrl?: string;
   gtmId?: string;
   social?: { github?: string };
+  layout: ResolvedLayout;
 }
 
 const DEFAULT_LOCALES = ['en'];
@@ -66,5 +68,6 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },
     ui: config.ui ?? {},
     external: config.external ?? [],
+    layout: resolveLayout(config.layout),
   };
 }

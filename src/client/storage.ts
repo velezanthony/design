@@ -1,6 +1,8 @@
 /* Claves del almacenamiento del navegador, en un solo sitio. Son un contrato con el portfolio:
    si cambian, los visitantes pierden el tema y el consentimiento al saltar de un sitio a otro. */
 export const THEME_KEY = 'theme';
+/** Columnas plegadas y ancho elegidos en la página, un JSON `{ left, right, width }`. */
+export const LAYOUT_KEY = 'docs:layout';
 /** La respuesta del visitante al banner de cookies, en `localStorage`. */
 export const CONSENT_KEY = 'consent';
 

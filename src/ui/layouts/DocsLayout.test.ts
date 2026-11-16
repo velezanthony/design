@@ -180,3 +180,86 @@ describe('DocsLayout: textos de cliente', () => {
     expect(doc.querySelectorAll('script[type="module"]').length).toBeGreaterThan(0);
   });
 });
+
+describe('DocsLayout: columnas plegables y ancho', () => {
+  const layout = (extra: Record<string, unknown> = {}) => ({
+    sidebar: 'open',
+    toc: 'open',
+    width: 'reading',
+    toggles: true,
+    ...extra,
+  });
+
+  it('por defecto: abierto, en lectura, y con los controles', async () => {
+    const doc = await page();
+    const root = doc.documentElement;
+    expect([root.dataset.left, root.dataset.right, root.dataset.width]).toEqual([
+      'open',
+      'open',
+      'reading',
+    ]);
+    expect(doc.querySelector('[data-layout-toggle="left"]')).not.toBeNull();
+    expect(doc.querySelector('[data-layout-toggle="right"]')).not.toBeNull();
+    expect(doc.querySelectorAll('header [data-layout-width]')).toHaveLength(2);
+  });
+
+  it('la config manda sobre el estado inicial de <html>', async () => {
+    const root = (
+      await page({ layout: layout({ sidebar: 'collapsed', toc: 'collapsed', width: 'full' }) })
+    ).documentElement;
+    expect([root.dataset.left, root.dataset.right, root.dataset.width]).toEqual([
+      'collapsed',
+      'collapsed',
+      'full',
+    ]);
+  });
+
+  it('el botón nace con el estado de la config', async () => {
+    const doc = await page({ layout: layout({ sidebar: 'collapsed' }) });
+    const left = doc.querySelector('[data-layout-toggle="left"]')!;
+    expect(left.getAttribute('aria-expanded')).toBe('false');
+    expect(left.getAttribute('aria-label')).toBe('Desplegar la navegación');
+    expect(doc.querySelector('[data-layout-toggle="right"]')!.getAttribute('aria-expanded')).toBe(
+      'true',
+    );
+  });
+
+  it('cada botón controla un panel que existe', async () => {
+    const doc = await page();
+    for (const side of ['left', 'right']) {
+      const id = doc
+        .querySelector(`[data-layout-toggle="${side}"]`)!
+        .getAttribute('aria-controls')!;
+      expect(doc.getElementById(id)).not.toBeNull();
+    }
+  });
+
+  it('el script previo al pintado restaura el estado guardado', async () => {
+    const inline = [...(await page()).querySelectorAll('head script')].find((s) =>
+      s.textContent?.includes('docs:layout'),
+    );
+    expect(inline).toBeDefined();
+  });
+
+  describe('con toggles: false', () => {
+    it('no pinta ningún control, ni etiquetas de raíl', async () => {
+      const doc = await page({ layout: layout({ toggles: false }) });
+      expect(doc.querySelector('[data-layout-toggle]')).toBeNull();
+      expect(doc.querySelector('[data-layout-width]')).toBeNull();
+      expect(doc.querySelector('.docs-rail-label')).toBeNull();
+    });
+
+    it('no emite el script de restauración: el estado guardado se ignora', async () => {
+      const doc = await page({ layout: layout({ toggles: false }) });
+      const inline = [...doc.querySelectorAll('head script')].find((s) =>
+        s.textContent?.includes('docs:layout'),
+      );
+      expect(inline).toBeUndefined();
+    });
+
+    it('la config sigue fijando el estado inicial', async () => {
+      const doc = await page({ layout: layout({ toggles: false, width: 'full' }) });
+      expect(doc.documentElement.dataset.width).toBe('full');
+    });
+  });
+});

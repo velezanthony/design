@@ -1,10 +1,12 @@
 ---
+import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
 import type { SidebarNode } from '../../core/navigation/sidebar';
 import type { HeadConfig } from '../../core/seo/head';
 import EditLink from '../molecules/EditLink.astro';
 import FallbackNotice from '../molecules/FallbackNotice.astro';
+import PanelToggle from '../molecules/PanelToggle.astro';
 import PrevNext from '../molecules/PrevNext.astro';
 import TableOfContents from '../molecules/TableOfContents.astro';
 import BackToTop from '../organisms/BackToTop.astro';
@@ -40,6 +42,8 @@ interface Props {
   year: number;
   /** Solo en una ruta de reserva: el contenido es el del idioma original. */
   fallback?: { originalLocale: Locale; href: string };
+  /** Columnas plegables y ancho; sin él, todo abierto, en lectura y con los controles. */
+  layout?: ResolvedLayout;
 }
 
 const {
@@ -62,6 +66,7 @@ const {
   baseUrl,
   year,
   fallback,
+  layout = DEFAULT_LAYOUT,
 } = Astro.props;
 
 if (gtmId && !privacyUrl) {
@@ -72,32 +77,50 @@ if (gtmId && !privacyUrl) {
 const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': '' };
 ---
 
-<Shell lang={lang} head={head}>
+<Shell lang={lang} head={head} layout={layout}>
   <slot name="head" slot="head" />
-  <DocsHeader siteName={siteName} homeHref={homeHref} lang={lang} hrefs={hrefs} strings={strings}>
+  <DocsHeader
+    siteName={siteName}
+    homeHref={homeHref}
+    lang={lang}
+    hrefs={hrefs}
+    strings={strings}
+    layoutToggles={layout.toggles}
+    layoutWidth={layout.width}
+  >
     <SearchBox strings={strings} baseUrl={baseUrl} compactLabel />
   </DocsHeader>
 
-  <div class="mx-auto grid max-w-(--container-page) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:px-10 xl:grid-cols-[14rem_minmax(0,1fr)_14rem]">
+  <div class="docs-container docs-page mx-auto grid max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:px-10 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
     <aside class="docs-sidebar lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto">
-      {/* En móvil la navegación entera iría antes del contenido: se pliega tras un «Menú». Llega
+      {layout.toggles && (
+        <PanelToggle
+          side="left"
+          controls="docs-nav-panel"
+          open={layout.sidebar === 'open'}
+          strings={strings}
+        />
+      )}
+      <div id="docs-nav-panel" class="docs-panel">
+        {/* En móvil la navegación entera iría antes del contenido: se pliega tras un «Menú». Llega
           abierta (sin JS se ve como siempre) y el script la cierra por debajo de lg antes de pintar;
           desde lg el botón no existe y queda abierta. */}
-      <details class="docs-nav" open data-docs-nav>
-        <summary class="docs-nav-toggle lg:hidden">{t(strings, 'sidebar.toggle')}</summary>
-        <Sidebar nodes={sidebar} current={current} strings={strings} />
-      </details>
-      <script is:inline>
-        (() => {
-          const nav = document.currentScript.previousElementSibling;
-          const wide = matchMedia('(min-width: 64rem)');
-          const sync = () => {
-            nav.open = wide.matches;
-          };
-          sync();
-          wide.addEventListener('change', sync);
-        })();
-      </script>
+        <details class="docs-nav" open data-docs-nav>
+          <summary class="docs-nav-toggle lg:hidden">{t(strings, 'sidebar.toggle')}</summary>
+          <Sidebar nodes={sidebar} current={current} strings={strings} />
+        </details>
+        <script is:inline>
+          (() => {
+            const nav = document.currentScript.previousElementSibling;
+            const wide = matchMedia('(min-width: 64rem)');
+            const sync = () => {
+              nav.open = wide.matches;
+            };
+            sync();
+            wide.addEventListener('change', sync);
+          })();
+        </script>
+      </div>
     </aside>
 
     <main
@@ -130,7 +153,12 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     </main>
 
     <div class="hidden xl:block">
-      <TableOfContents headings={headings} strings={strings} />
+      <TableOfContents
+        headings={headings}
+        strings={strings}
+        toggles={layout.toggles}
+        open={layout.toc === 'open'}
+      />
     </div>
   </div>
 

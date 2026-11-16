@@ -1,5 +1,6 @@
 import { z } from 'astro/zod';
 import { MissingTranslation } from '../i18n/translation-policy';
+import { LayoutWidth, PanelState } from './layout';
 import { defaultStrings, uiKeys, type UiKey } from '../i18n/ui-strings';
 
 /* Texto traducible: una cadena para todos los idiomas o una por idioma. */
@@ -24,6 +25,10 @@ const FaviconSchema = z
 
 /** Valores permitidos de `MissingTranslation` como esquema: zod los lista en el mensaje de error. */
 export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation));
+
+/** Valores permitidos de las columnas laterales y del ancho: zod los lista en el mensaje de error. */
+export const PanelStateSchema = z.enum(Object.values(PanelState));
+export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 
 /** Override de SEO de una página: frontmatter `seo` (nativas) o `external[].seo` (externas). */
 export const PageSeoOverrideSchema = z.strictObject({
@@ -118,6 +123,14 @@ export const DocsConfigSchema = z
       .optional(),
     gtmId: z.string().min(1).optional(),
     social: z.strictObject({ github: z.string().optional() }).optional(),
+    layout: z
+      .strictObject({
+        sidebar: PanelStateSchema.optional(),
+        toc: PanelStateSchema.optional(),
+        width: LayoutWidthSchema.optional(),
+        toggles: z.boolean().optional(),
+      })
+      .optional(),
   })
   .superRefine((config, ctx) => {
     const locales = config.locales ?? ['en'];
