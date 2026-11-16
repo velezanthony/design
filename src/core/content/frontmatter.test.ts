@@ -16,9 +16,14 @@ describe('splitFrontmatter', () => {
     expect(splitFrontmatter('# Hola\n')).toEqual({ yaml: undefined, body: '# Hola\n' });
   });
 
-  it('una regla horizontal al principio sin cierre no es frontmatter', () => {
+  it('un bloque abierto con `---` en la primera línea y sin cierre se señala como sin cerrar', () => {
     const raw = '---\n\ntexto sin cierre';
-    expect(splitFrontmatter(raw)).toEqual({ yaml: undefined, body: raw });
+    expect(splitFrontmatter(raw)).toEqual({ yaml: undefined, body: raw, unclosed: true });
+  });
+
+  it('un bloque bien cerrado y un archivo sin frontmatter no están sin cerrar', () => {
+    expect(splitFrontmatter('---\ntitle: X\n---\n').unclosed).toBeUndefined();
+    expect(splitFrontmatter('# X\n').unclosed).toBeUndefined();
   });
 
   it('acepta CRLF y bloque vacío', () => {

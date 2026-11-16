@@ -1,3 +1,4 @@
+import { AstroError } from 'astro/errors';
 import { fontProviders } from 'astro/config';
 
 /**
@@ -24,3 +25,21 @@ export const designFonts = () => [
     fallbacks: ['ui-monospace', 'monospace'],
   },
 ];
+
+/**
+ * Falla si el consumidor ya declara una fuente con el mismo `cssVariable` que las del diseño: dos
+ * fuentes no pueden compartir variable y Astro no sabría cuál usar. Se avisa con la salida.
+ */
+export function assertNoFontConflict(
+  existing: readonly { cssVariable: string }[] | undefined,
+  ours: readonly { cssVariable: string }[],
+): void {
+  const taken = new Set(ours.map((font) => font.cssVariable));
+  const clash = existing?.find((font) => taken.has(font.cssVariable));
+  if (clash) {
+    throw new AstroError(
+      `La fuente del sitio usa la variable ${clash.cssVariable}, que ya es de \`@velezanthony/design\`.`,
+      `Cambia el \`cssVariable\` de esa fuente en \`fonts\` (el diseño reserva ${[...taken].join(' y ')}).`,
+    );
+  }
+}

@@ -3,6 +3,7 @@ import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import { describe, expect, it, vi } from 'vitest';
 import { docs, INTEGRATION_NAME } from './index';
+import { MissingTranslation } from '../../core/i18n/translation-policy';
 
 const logger = {
   info: vi.fn(),
@@ -11,31 +12,59 @@ const logger = {
 } as unknown as AstroIntegrationLogger;
 
 /** Contexto falso de `astro:config:setup` (la integración principal de Starlight se prueba igual). */
-function setupContext(processor: { name: string }, shikiConfig: object = {}) {
+function setupContext(
+  processor: { name: string },
+  shikiConfig: object = {},
+  overrides: Record<string, unknown> = {},
+) {
   const updateConfig = vi.fn((partial: unknown) => partial);
   const injectTypes = vi.fn();
+  const injectRoute = vi.fn();
+  const integrations: { name: string }[] = [{ name: INTEGRATION_NAME }];
   return {
     updateConfig,
     injectTypes,
+    injectRoute,
+    integrations,
     context: {
       config: {
         base: '/repo',
         site: 'https://x.dev',
+        trailingSlash: 'always',
+        build: { format: 'directory' },
         root: new URL('file:///site/'),
         markdown: { processor, shikiConfig },
+        integrations,
+        ...overrides,
       },
       updateConfig,
       injectTypes,
+      injectRoute,
       logger,
     } as never,
   };
 }
 
-async function runSetup(processor: { name: string }, shikiConfig: object = {}) {
-  const integration = docs({ name: 'x' });
-  const { context, updateConfig } = setupContext(processor, shikiConfig);
-  await integration.hooks['astro:config:setup']?.(context);
-  return { integration, updateConfig };
+async function runSetup(
+  processor: { name: string },
+  shikiConfig: object = {},
+  userConfig: Parameters<typeof docs>[0] = { name: 'x' },
+  overrides: Record<string, unknown> = {},
+) {
+  const integration = docs(userConfig);
+  const setup = setupContext(processor, shikiConfig, overrides);
+  await integration.hooks['astro:config:setup']?.(setup.context);
+  return { integration, ...setup };
+}
+
+/** Datos que la integración registra en el módulo virtual (los lee del plugin de Vite). */
+async function virtualData(userConfig: Parameters<typeof docs>[0], overrides = {}) {
+  const { updateConfig } = await runSetup(satteri(), {}, userConfig, overrides);
+  const partial = updateConfig.mock.calls
+    .map(([p]) => p as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+    .find((p) => p.vite);
+  const source = partial?.vite?.plugins?.[0].load.handler() ?? '';
+  return JSON.parse(source.replace(/^export default /, '').replace(/;$/, ''));
 }
 
 describe('docs(): identidad y config', () => {
@@ -128,5 +157,154 @@ describe('astro:config:setup: Shiki', () => {
   it('no pisa los temas del consumidor (no los incluye en su updateConfig)', async () => {
     const mine = { light: 'min-light', dark: 'min-dark' };
     expect(await shikiOf({ themes: mine })).not.toHaveProperty('themes');
+  });
+});
+
+describe('astro:config:setup: validación', () => {
+  it('sin `site` en la config de Astro falla con un AstroError que lo nombra', async () => {
+    const error = await runSetup(satteri(), {}, { name: 'x' }, { site: undefined }).catch(
+      (e: unknown) => e,
+    );
+    expect(error).toBeInstanceOf(AstroError);
+    expect(error).toMatchObject({
+      message: expect.stringContaining('site'),
+      hint: expect.stringContaining('astro.config'),
+    });
+  });
+
+  /** El título del `AstroError` es genérico; el detalle (campo + motivo) va en la pista. */
+  const hintOf = (build: () => unknown) => {
+    try {
+      build();
+    } catch (error) {
+      expect(error).toBeInstanceOf(AstroError);
+      return (error as AstroError).hint ?? '';
+    }
+    throw new Error('no ha fallado');
+  };
+
+  it('una opción de `ui` mal escrita falla nombrando su ruta legible', () => {
+    const hint = hintOf(() =>
+      docs({ name: 'x', locales: ['en', 'es'], ui: { es: { 'search.placeholdr': 'x' } } } as never),
+    );
+    expect(hint).toContain('ui.es.search.placeholdr');
+  });
+
+  it('un valor cerrado inválido nombra el campo y lista los valores', () => {
+    const hint = hintOf(() => docs({ name: 'x', translations: { missing: 'hide' } } as never));
+    expect(hint).toContain('translations.missing');
+    for (const value of ['link', 'omit', 'fallback']) expect(hint).toContain(value);
+  });
+});
+
+describe('astro:config:setup: módulo virtual', () => {
+  it('serializa la config validada con base, site, trailingSlash y build.format', async () => {
+    const data = await virtualData({ name: 'Docs', locales: ['en', 'es'] });
+    expect(data).toMatchObject({
+      name: 'Docs',
+      locales: ['en', 'es'],
+      defaultLocale: 'en',
+      base: '/repo',
+      site: 'https://x.dev',
+      trailingSlash: 'always',
+      buildFormat: 'directory',
+    });
+    expect(data.translations).toEqual({ missing: MissingTranslation.LINK });
+  });
+
+  it('lleva el catálogo fusionado por idioma, con los textos del consumidor encima', async () => {
+    const data = await virtualData({
+      name: 'x',
+      locales: ['en', 'es'],
+      ui: { es: { 'search.placeholder': 'Buscar aquí' } },
+    });
+    expect(Object.keys(data.strings)).toEqual(['en', 'es']);
+    expect(data.strings.es['search.placeholder']).toBe('Buscar aquí');
+    expect(data.strings.en['search.placeholder']).not.toBe('Buscar aquí');
+    expect(data.strings.es['theme.toggle']).toEqual(expect.any(String));
+  });
+
+  it('un monolingüe solo lleva su idioma y la política base elegida', async () => {
+    const data = await virtualData({
+      name: 'x',
+      translations: { missing: MissingTranslation.FALLBACK },
+    });
+    expect(Object.keys(data.strings)).toEqual(['en']);
+    expect(data.translations.missing).toBe('fallback');
+  });
+
+  it('inyecta los tipos del módulo virtual con injectTypes', async () => {
+    const integration = docs({ name: 'x' });
+    const injectTypes = vi.fn();
+    await integration.hooks['astro:config:done']?.({ injectTypes } as never);
+    expect(injectTypes).toHaveBeenCalledTimes(1);
+    const { filename, content } = injectTypes.mock.calls[0][0] as {
+      filename: string;
+      content: string;
+    };
+    expect(filename).toMatch(/\.d\.ts$/);
+    expect(content).toContain("declare module 'virtual:@velezanthony/design/config'");
+    expect(content).toContain('buildFormat');
+  });
+});
+
+describe('astro:config:setup: fusión de config', () => {
+  it('una fuente del consumidor con el mismo cssVariable falla con un mensaje accionable', async () => {
+    const error = await runSetup(
+      satteri(),
+      {},
+      { name: 'x' },
+      { fonts: [{ name: 'Mine', cssVariable: '--font-plex-sans' }] },
+    ).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AstroError);
+    expect(error).toMatchObject({
+      message: expect.stringContaining('--font-plex-sans'),
+      hint: expect.any(String),
+    });
+  });
+
+  it('una fuente del consumidor con otro cssVariable no es conflicto', async () => {
+    await expect(
+      runSetup(
+        satteri(),
+        {},
+        { name: 'x' },
+        { fonts: [{ name: 'Mine', cssVariable: '--font-m' }] },
+      ),
+    ).resolves.toBeDefined();
+  });
+});
+
+describe('astro:config:setup: rutas inyectadas', () => {
+  const routesOf = async (userConfig: Parameters<typeof docs>[0]) => {
+    const { injectRoute } = await runSetup(satteri(), {}, userConfig);
+    return injectRoute.mock.calls.map(
+      ([route]) => route as { pattern: string; entrypoint: string | URL; prerender?: boolean },
+    );
+  };
+  const entry = (route: { entrypoint: string | URL }) => String(route.entrypoint);
+
+  it('inyecta la página de docs, el sitemap y la 404', async () => {
+    const routes = await routesOf({ name: 'x' });
+    expect(routes.map((r) => r.pattern)).toEqual(['/[...slug]', '/sitemap.xml', '/404']);
+    expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
+    expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
+    expect(entry(routes[2])).toMatch(/routes\/not-found\.astro$/);
+  });
+
+  it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
+    const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
+    expect(routes.map((r) => r.pattern)).toEqual([
+      '/[...slug]',
+      '/sitemap.xml',
+      '/404',
+      '/[locale]/404',
+    ]);
+    expect(entry(routes[3])).toBe(entry(routes[2]));
+  });
+
+  it('todas las rutas se prerenderizan', async () => {
+    const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
+    expect(routes.every((r) => r.prerender === true)).toBe(true);
   });
 });

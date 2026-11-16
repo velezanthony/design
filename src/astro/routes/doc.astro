@@ -1,0 +1,30 @@
+---
+/* Contenedor mínimo de una página de docs (la Fase 12 lo completa con layout, cabecera y SEO).
+   Lee el módulo virtual y `astro:content`; el idioma por defecto va sin prefijo en la URL. */
+import config from 'virtual:@velezanthony/design/config';
+import { getDocs, renderDoc } from './docs-collection';
+
+export async function getStaticPaths() {
+  const entries = await getDocs();
+  return entries.map((entry) => {
+    const { slug, locale } = entry.data;
+    const path = [locale === config.defaultLocale ? '' : locale, slug].filter(Boolean).join('/');
+    return { params: { slug: path || undefined }, props: { entry } };
+  });
+}
+
+const { entry } = Astro.props;
+const { Content } = await renderDoc(entry);
+---
+
+<html lang={entry.data.locale}>
+  <head>
+    <meta charset="utf-8" />
+    <title>{entry.data.title}</title>
+  </head>
+  <body>
+    <main data-pagefind-body>
+      <Content />
+    </main>
+  </body>
+</html>

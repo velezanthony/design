@@ -22,9 +22,9 @@ describe('#1 el loader lee la config de ctx.config.integrations (plan A) o de do
   });
 
   it('genera páginas para los nativos y para el external declarado en docs.config.mjs (plan B)', async () => {
-    expect(await site.read('en/guide/index.html')).toContain('Guide');
+    expect(await site.read('guide/index.html')).toContain('Guide');
     expect(await site.read('es/guide/index.html')).toContain('Guía');
-    expect(await site.read('en/changelog/index.html')).toContain('Changelog');
+    expect(await site.read('changelog/index.html')).toContain('Changelog');
     expect(await site.read('es/changelog/index.html')).toContain('Registro de cambios');
   });
 });
@@ -37,7 +37,7 @@ describe('#2 processor extendido en sitio', () => {
     expect(seen.plugins.at(-1)).toBe('restore-directives');
   });
 
-  it.each(['en/guide', 'es/guide', 'en/changelog', 'es/changelog'])(
+  it.each(['guide', 'es/guide', 'changelog', 'es/changelog'])(
     'en %s (nativo o external) x:y, 12:30, http://a.b y :emoji: salen como texto',
     async (page) => {
       const html = await site.read(`${page}/index.html`);
@@ -56,13 +56,13 @@ describe('#2 processor extendido en sitio', () => {
 
 describe('#3 el plugin recibe fileURL también en los external', () => {
   it('la factoría titula en el idioma del archivo (nativo y external)', async () => {
-    expect(await site.read('en/index/index.html')).toContain(
+    expect(await site.read('index.html')).toContain(
       'data-probe-locale="en" data-probe-file="index.md"',
     );
-    expect(await site.read('es/index/index.html')).toContain(
+    expect(await site.read('es/index.html')).toContain(
       'data-probe-locale="es" data-probe-file="index.es.md"',
     );
-    expect(await site.read('en/changelog/index.html')).toContain(
+    expect(await site.read('changelog/index.html')).toContain(
       'data-probe-locale="en" data-probe-file="CHANGELOG.md"',
     );
     expect(await site.read('es/changelog/index.html')).toContain(
@@ -111,13 +111,13 @@ describe('#4 Pagefind por la API de Node con base', () => {
 
   it('indexa por idioma y las URLs de los resultados llevan la base', async () => {
     expect(await search('es', 'buscable-es')).toEqual(['/repo/es/guide/']);
-    expect(await search('en', 'buscable-en')).toEqual(['/repo/en/guide/']);
+    expect(await search('en', 'buscable-en')).toEqual(['/repo/guide/']);
   });
 });
 
 describe('#5 imágenes relativas de un external bajo base', () => {
   it('la URL emitida empieza por /repo/', async () => {
-    const html = await site.read('en/changelog/index.html');
+    const html = await site.read('changelog/index.html');
     const src = /<img[^>]*src="([^"]+)"/.exec(html)?.[1];
     expect(src).toMatch(/^\/repo\//);
   });
@@ -134,7 +134,7 @@ describe('#6 fuentes por updateConfig', () => {
 
 describe('#7 ids de encabezado github-slugger', () => {
   it('dedupe con -n y acentos conservados', async () => {
-    const html = await site.read('en/guide/index.html');
+    const html = await site.read('guide/index.html');
     expect(html).toContain('id="usage"');
     expect(html).toContain('id="usage-1"');
     expect(html).toContain('id="instalación"');
@@ -155,7 +155,7 @@ describe('#8 plugins de Markdown en una build real', () => {
   });
 
   it('desplegable, alerta IMPORTANT, pestañas y tabla desplazable', async () => {
-    const html = await site.read('en/guide/index.html');
+    const html = await site.read('guide/index.html');
     expect(html).toContain('<details class="admonition" data-kind="tip">');
     expect(html).toContain('data-kind="info"');
     expect(html).toContain('>Important<');
@@ -164,8 +164,40 @@ describe('#8 plugins de Markdown en una build real', () => {
   });
 
   it('django y pycon se resaltan por su alias sin romper la build', async () => {
-    const html = await site.read('en/guide/index.html');
+    const html = await site.read('guide/index.html');
     expect(html.match(/class="astro-code[^"]*"/g)?.length).toBeGreaterThanOrEqual(2);
     expect(html).toContain('--shiki-dark');
+  });
+});
+
+describe('#9 rutas inyectadas bajo base', () => {
+  it('la página de docs existe en /repo/<slug>/ (idioma por defecto sin prefijo) y en /repo/es/<slug>/', async () => {
+    for (const file of ['index.html', 'guide/index.html', 'es/index.html', 'es/guide/index.html']) {
+      expect(await site.read(file)).toContain('<main');
+    }
+  });
+
+  it('sitemap.xml: único, con la base, los alternates por idioma y sin 404', async () => {
+    const xml = await site.read('sitemap.xml');
+    expect(xml).toContain('<loc>https://example.dev/repo/guide/</loc>');
+    expect(xml).toContain('<loc>https://example.dev/repo/es/guide/</loc>');
+    expect(xml).toContain('hreflang="es" href="https://example.dev/repo/es/guide/"');
+    expect(xml).not.toContain('404');
+  });
+
+  it('404.html en la raíz de base y /<locale>/404/ por idioma no por defecto', async () => {
+    expect(await site.read('404.html')).toContain('<main');
+    expect(await site.read('es/404/index.html')).toContain('lang="es"');
+    expect(await site.read('es/404/index.html')).toContain('Página no encontrada');
+    await expect(site.read('en/404/index.html')).rejects.toThrow();
+  });
+});
+
+describe('#10 fusión: el plugin de Vite del consumidor se conserva', () => {
+  it('sigue entre los plugins junto al del módulo virtual', async () => {
+    const seen = await probe();
+    expect(seen.vitePlugins).toEqual(
+      expect.arrayContaining(['consumer-vite-plugin', 'velezanthony-design-virtual-config']),
+    );
   });
 });

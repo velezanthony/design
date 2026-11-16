@@ -1,13 +1,17 @@
+import { readFileSync } from 'node:fs';
 import type { AstroIntegration } from 'astro';
+import { AstroError } from 'astro/errors';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { codeThemes } from '../../ui/styles/code-themes';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
 import { mergeLangAlias } from '../markdown/register';
+import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
+import { addCompanions, COMPANIONS } from './companions';
 import { toAstroError } from './errors';
-import { designFonts } from './fonts';
+import { assertNoFontConflict, designFonts } from './fonts';
 import { buildPagefindIndex } from './pagefind';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
@@ -36,13 +40,29 @@ export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
  */
 export const defineDocsConfig = (config: DocsUserConfig): DocsUserConfig => config;
 
+/** Ruta de un contenedor del paquete (vive en `astro/routes/`, junto a esta carpeta). */
+const route = (file: string) => new URL(`../routes/${file}`, import.meta.url);
+
+/** Los `.d.ts` del módulo virtual, tal cual: `injectTypes` los copia al `.astro/` del consumidor. */
+const virtualTypes = () =>
+  readFileSync(new URL('../virtual/virtual.d.ts', import.meta.url), 'utf8');
+
 export function docs(userConfig: DocsUserConfig): DocsIntegration {
   const resolvedConfig = resolveConfigOrThrow(userConfig);
   return {
     name: INTEGRATION_NAME,
     resolvedConfig,
     hooks: {
-      'astro:config:setup': ({ config, updateConfig, logger }) => {
+      'astro:config:setup': ({ config, updateConfig, injectRoute, logger }) => {
+        if (!config.site) {
+          throw new AstroError(
+            'Falta `site` en la config de Astro.',
+            'Defínelo en astro.config.mjs (`site: "https://tu-dominio.dev"`): lo necesitan el sitemap y las URLs canónicas.',
+          );
+        }
+        const fonts = designFonts();
+        assertNoFontConflict(config.fonts, fonts);
+        addCompanions(config.integrations, INTEGRATION_NAME, COMPANIONS);
         const env = createMarkdownEnv(resolvedConfig, config.root, (message) =>
           logger.warn(message),
         );
@@ -53,18 +73,39 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         const hasThemes = Object.keys(shikiConfig?.themes ?? {}).length > 0;
         updateConfig({
           markdown: { shikiConfig: { langAlias, ...(hasThemes ? {} : { themes: codeThemes }) } },
-          fonts: designFonts(),
+          fonts,
           vite: {
             plugins: [
-              createVirtualConfigPlugin({
-                ...resolvedConfig,
-                base: config.base,
-                site: config.site,
-                trailingSlash: config.trailingSlash,
-              }),
+              createVirtualConfigPlugin(
+                createVirtualData(resolvedConfig, {
+                  base: config.base,
+                  site: config.site,
+                  trailingSlash: config.trailingSlash,
+                  buildFormat: config.build.format,
+                }),
+              ),
             ],
           },
         });
+        injectRoute({ pattern: '/[...slug]', entrypoint: route('doc.astro'), prerender: true });
+        injectRoute({
+          pattern: '/sitemap.xml',
+          entrypoint: route('sitemap.xml.ts'),
+          prerender: true,
+        });
+        injectRoute({ pattern: '/404', entrypoint: route('not-found.astro'), prerender: true });
+        // Un idioma por defecto sin prefijo no tiene `/<idioma>/404/`: solo los demás.
+        if (resolvedConfig.locales.length > 1) {
+          injectRoute({
+            pattern: '/[locale]/404',
+            entrypoint: route('not-found.astro'),
+            prerender: true,
+          });
+        }
+      },
+      // `injectTypes` solo existe en `astro:config:done`, no en `config:setup`.
+      'astro:config:done': ({ injectTypes }) => {
+        injectTypes({ filename: 'virtual.d.ts', content: virtualTypes() });
       },
       'astro:build:done': async ({ dir, logger }) => {
         await buildPagefindIndex(dir, logger);

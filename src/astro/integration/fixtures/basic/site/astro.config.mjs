@@ -11,6 +11,7 @@ export default defineConfig({
   site: 'https://example.dev',
   base: '/repo',
   trailingSlash: 'always',
+  vite: { plugins: [{ name: 'consumer-vite-plugin' }] },
   markdown: { processor: satteri({ mdastPlugins: [probeLocale] }) },
   fonts: [
     { provider: fontProviders.fontsource(), name: 'Consumer Font', cssVariable: '--font-consumer' },
@@ -32,6 +33,7 @@ export default defineConfig({
               ),
               base: config.base,
               trailingSlash: config.trailingSlash,
+              vitePlugins: (config.vite.plugins ?? []).flat().map((p) => p?.name),
               fonts: (config.fonts ?? []).map((f) => f.name),
               directive: processor.options.features.directive,
               plugins: processor.options.mdastPlugins.map((p) => p.name ?? '(factoría)'),

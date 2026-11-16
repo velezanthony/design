@@ -1,6 +1,40 @@
-/* Tipos del módulo virtual que sirve la integración. Mínimo por ahora: la forma real (config
-   validada más `base`, `site`, `trailingSlash` y `build.format`) llega con el plugin Vite. */
+/* Tipos del módulo virtual que sirve la integración (`injectTypes`). Es la config validada, ya con
+   los valores por defecto, más lo de Astro (`base`, `site`, `trailingSlash`, `buildFormat`) y el
+   catálogo de textos fusionado por idioma. Autocontenido: se copia al `.astro/` del consumidor,
+   donde no se puede importar nada del paquete. Solo `astro/routes` y `testing/` lo importan. */
 declare module 'virtual:@velezanthony/design/config' {
-  const config: Record<string, unknown>;
+  type Label = string | Record<string, string>;
+  type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
+
+  const config: {
+    name: string;
+    seo: {
+      titleTemplate: string;
+      description?: Label;
+      image?: { src: string; alt: Label };
+    };
+    locales: string[];
+    defaultLocale: string;
+    translations: { missing: 'link' | 'omit' | 'fallback' };
+    external: {
+      slug: string;
+      file: string;
+      locales?: string[];
+      seo?: { title?: string; description?: Label; noindex?: boolean };
+      translations?: 'link' | 'omit' | 'fallback';
+    }[];
+    sidebar?: SidebarItem[];
+    editUrl?: string;
+    repoRoot?: string;
+    privacyUrl?: string;
+    gtmId?: string;
+    social?: { github?: string };
+    /** Textos de interfaz ya fusionados con los del consumidor, por idioma. */
+    strings: Record<string, Record<string, string>>;
+    base: string;
+    site: string;
+    trailingSlash: 'always' | 'never' | 'ignore';
+    buildFormat: 'directory' | 'file' | 'preserve';
+  };
   export default config;
 }

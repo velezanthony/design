@@ -9,15 +9,20 @@ const FRONTMATTER_CLOSE = /^(---|\.\.\.)[ \t]*$/;
 /**
  * Separa el bloque YAML inicial (`---` … `---`) del cuerpo. El bloque se sustituye por líneas en
  * blanco: así las líneas del cuerpo siguen siendo las del archivo y un enlace roto se señala donde
- * de verdad está. Sin cierre, o si `---` no es la primera línea, no hay frontmatter.
+ * de verdad está. Si `---` no es la primera línea no hay frontmatter. Si lo es pero el bloque no se
+ * cierra, se marca `unclosed`: el loader lo trata como error (casi seguro es un cierre olvidado).
  */
-export function splitFrontmatter(raw: string): { yaml: string | undefined; body: string } {
+export function splitFrontmatter(raw: string): {
+  yaml: string | undefined;
+  body: string;
+  unclosed?: true;
+} {
   if (!FRONTMATTER_OPEN.test(raw)) return { yaml: undefined, body: raw };
   const lines = raw.split('\n');
   const close = lines.findIndex(
     (line, index) => index > 0 && FRONTMATTER_CLOSE.test(line.replace(/\r$/, '')),
   );
-  if (close === -1) return { yaml: undefined, body: raw };
+  if (close === -1) return { yaml: undefined, body: raw, unclosed: true };
   const yaml = lines
     .slice(1, close)
     .map((line) => line.replace(/\r$/, ''))

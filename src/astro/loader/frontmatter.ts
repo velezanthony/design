@@ -12,7 +12,15 @@ export function readFrontmatter(
   raw: string,
   file: string,
 ): { frontmatter: Frontmatter; body: string; errors: DocsError[] } {
-  const { yaml, body } = splitFrontmatter(raw);
+  const { yaml, body, unclosed } = splitFrontmatter(raw);
+  if (unclosed) {
+    const error = new DocsError('El frontmatter está sin cerrar.', {
+      file,
+      line: 1,
+      hint: 'Añade un `---` de cierre tras el último campo, o quita el `---` inicial.',
+    });
+    return { frontmatter: {}, body, errors: [error] };
+  }
   if (yaml === undefined) return { frontmatter: {}, body, errors: [] };
   const document = parseDocument(yaml);
   if (document.errors.length > 0) {
