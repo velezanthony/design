@@ -1,3 +1,7 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
 import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
@@ -33,6 +37,7 @@ function setupContext(
         trailingSlash: 'always',
         build: { format: 'directory' },
         root: new URL('file:///site/'),
+        srcDir: new URL('file:///site/src/'),
         publicDir: new URL('file:///site/public/'),
         markdown: { processor, shikiConfig },
         integrations,
@@ -274,6 +279,29 @@ describe('astro:config:setup: fusión de config', () => {
         { fonts: [{ name: 'Mine', cssVariable: '--font-m' }] },
       ),
     ).resolves.toBeDefined();
+  });
+});
+
+describe('astro:config:setup: páginas del consumidor', () => {
+  it('una `src/pages/index.astro` que pisa la home falla con un mensaje accionable', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'design-setup-'));
+    try {
+      mkdirSync(join(root, 'src/pages'), { recursive: true });
+      writeFileSync(join(root, 'src/pages/index.astro'), '');
+      const error = await runSetup(
+        satteri(),
+        {},
+        { name: 'x' },
+        { srcDir: pathToFileURL(join(root, 'src') + '/') },
+      ).catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(AstroError);
+      expect(error).toMatchObject({
+        message: expect.stringContaining('src/pages/index.astro'),
+        hint: expect.any(String),
+      });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
 

@@ -13,6 +13,7 @@ import { addCompanions, COMPANIONS } from './companions';
 import { toAstroError } from './errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { buildPagefindIndex } from './pagefind';
+import { assertNoRouteCollision } from './route-collisions';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
 export const INTEGRATION_NAME = '@velezanthony/design';
@@ -62,6 +63,11 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
             'Defínelo en astro.config.mjs (`site: "https://tu-dominio.dev"`): lo necesitan el sitemap y las URLs canónicas.',
           );
         }
+        assertNoRouteCollision(
+          new URL('pages/', config.srcDir),
+          resolvedConfig.locales,
+          resolvedConfig.defaultLocale,
+        );
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
         addCompanions(config.integrations, INTEGRATION_NAME, COMPANIONS);
