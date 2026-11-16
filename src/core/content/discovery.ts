@@ -136,6 +136,29 @@ function externalPages(
 }
 
 /**
+ * El idioma por defecto va sin prefijo, así que su página `es/guia` ocuparía `/es/guia/`, la URL de
+ * la página `guia` del idioma `es` (y `es` sería su portada). Se reserva todo prefijo de idioma.
+ */
+function findLocalePrefixCollisions(pages: Page[], cfg: ResolvedConfig): DocsError[] {
+  const prefixes = cfg.locales.filter((locale) => locale !== cfg.defaultLocale);
+  return pages
+    .filter((page) => page.locale === cfg.defaultLocale)
+    .flatMap((page) => {
+      const prefix = prefixes.find((locale) => page.slug.split('/')[0] === locale);
+      if (prefix === undefined) return [];
+      return [
+        new DocsError(
+          `El slug «${page.slug}» de «${page.sourcePath}» empieza por el código de idioma «${prefix}» y colisiona con las URLs de ese idioma (/${prefix}/…).`,
+          {
+            file: page.sourcePath,
+            hint: `Renombra el archivo (el idioma por defecto «${cfg.defaultLocale}» va sin prefijo, y «${prefix}» está reservado para sus traducciones).`,
+          },
+        ),
+      ];
+    });
+}
+
+/**
  * Páginas del sitio a partir de los archivos leídos: nativas por su ruta y externas por la config.
  * Reúne TODOS los fallos (sufijo no configurado, colisión de slugs, archivo ausente, sin título) y
  * los lanza juntos en un único `DocsErrors`.
@@ -151,6 +174,7 @@ export function discoverPages(files: SourceFile[], cfg: ResolvedConfig): Page[] 
       .flatMap((file) => nativePage(file, cfg, errors) ?? []),
     ...cfg.external.flatMap((entry) => externalPages(entry, externalFiles, cfg, errors)),
   ];
+  errors.push(...findLocalePrefixCollisions(pages, cfg));
   errors.push(
     ...findSlugCollisions(
       pages.map((page) => ({ slug: page.slug, locale: page.locale, file: page.sourcePath })),

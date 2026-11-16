@@ -1,0 +1,130 @@
+---
+import type { Locale } from '../../core/i18n/locale';
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import type { SidebarNode } from '../../core/navigation/sidebar';
+import type { HeadConfig } from '../../core/seo/head';
+import EditLink from '../molecules/EditLink.astro';
+import FallbackNotice from '../molecules/FallbackNotice.astro';
+import PrevNext from '../molecules/PrevNext.astro';
+import TableOfContents from '../molecules/TableOfContents.astro';
+import BackToTop from '../organisms/BackToTop.astro';
+import ConsentBanner from '../organisms/ConsentBanner.astro';
+import DocsFooter from '../organisms/DocsFooter.astro';
+import DocsHeader from '../organisms/DocsHeader.astro';
+import SearchBox from '../organisms/SearchBox.astro';
+import Sidebar from '../organisms/Sidebar.astro';
+import Shell from './Shell.astro';
+
+interface Props {
+  lang: Locale;
+  head: HeadConfig[];
+  siteName: string;
+  homeHref: string;
+  /** URL de esta página en cada idioma en que existe. */
+  hrefs: Partial<Record<Locale, string>>;
+  strings: UiStrings;
+  sidebar: SidebarNode[];
+  /** URL de esta página (la entrada de la barra lateral que lleva `aria-current`). */
+  current: string;
+  headings: { depth: number; slug: string; text: string }[];
+  prev?: { label: string; href: string };
+  next?: { label: string; href: string };
+  editUrl?: string;
+  editFile?: string;
+  /** Con `gtmId` es obligatoria: el aviso de consentimiento enlaza a ella. */
+  privacyUrl?: string;
+  gtmId?: string;
+  /** Una página `noindex` o de reserva va fuera del índice de búsqueda. */
+  indexable: boolean;
+  baseUrl: string;
+  year: number;
+  /** Solo en una ruta de reserva: el contenido es el del idioma original. */
+  fallback?: { originalLocale: Locale; href: string };
+}
+
+const {
+  lang,
+  head,
+  siteName,
+  homeHref,
+  hrefs,
+  strings,
+  sidebar,
+  current,
+  headings,
+  prev,
+  next,
+  editUrl,
+  editFile,
+  privacyUrl,
+  gtmId,
+  indexable,
+  baseUrl,
+  year,
+  fallback,
+} = Astro.props;
+
+if (gtmId && !privacyUrl) {
+  throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+}
+
+/* Pagefind solo indexa lo que cuelga de `data-pagefind-body`; lo demás, ni se marca. */
+const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': '' };
+---
+
+<Shell lang={lang} head={head}>
+  <slot name="head" slot="head" />
+  <DocsHeader siteName={siteName} homeHref={homeHref} lang={lang} hrefs={hrefs} strings={strings}>
+    <SearchBox strings={strings} baseUrl={baseUrl} />
+  </DocsHeader>
+
+  <div class="mx-auto grid max-w-(--container-page) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:px-10 xl:grid-cols-[14rem_minmax(0,1fr)_14rem]">
+    <aside class="lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto">
+      <Sidebar nodes={sidebar} current={current} strings={strings} />
+    </aside>
+
+    <main
+      id="main-content"
+      class="min-w-0"
+      {...pagefind}
+      data-copy-label={t(strings, 'copy.label')}
+      data-copied-label={t(strings, 'copy.copied')}
+      data-copy-failed-label={t(strings, 'copy.failed')}
+      data-anchor-label={strings['heading.anchor']}
+    >
+      {fallback && (
+        <FallbackNotice
+          originalLocale={fallback.originalLocale}
+          href={fallback.href}
+          strings={strings}
+        />
+      )}
+      <div lang={fallback?.originalLocale}>
+        <slot />
+      </div>
+      <div data-pagefind-ignore>
+        {editUrl && editFile && <EditLink editUrl={editUrl} file={editFile} strings={strings} />}
+        <PrevNext prev={prev} next={next} strings={strings} />
+      </div>
+    </main>
+
+    <div class="hidden xl:block">
+      <TableOfContents headings={headings} strings={strings} />
+    </div>
+  </div>
+
+  <DocsFooter
+    siteName={siteName}
+    year={year}
+    strings={strings}
+    privacyUrl={privacyUrl}
+    cookieControl={Boolean(gtmId)}
+  />
+  {gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
+  <BackToTop strings={strings} />
+  <script>
+    import { bootDocs } from './boot';
+
+    bootDocs();
+  </script>
+</Shell>

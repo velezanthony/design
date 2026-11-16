@@ -1,0 +1,40 @@
+---
+import { themeBootstrapScript } from '../../client/theme';
+import type { Locale } from '../../core/i18n/locale';
+import type { HeadConfig } from '../../core/seo/head';
+import '../styles/theme.css';
+import { themeColors } from '../styles/theme-colors';
+import Head from './Head.astro';
+
+interface Props {
+  lang: Locale;
+  head: HeadConfig[];
+  /** Atributos extra de `<html>` (los datos de la sustitución de la 404). */
+  htmlAttrs?: Record<string, string>;
+  /** Oculta `<main>` hasta que la 404 sustituya su cuerpo (ver `NotFoundLayout`). */
+  pending?: boolean;
+}
+
+const { lang, head, htmlAttrs = {}, pending = false } = Astro.props;
+
+/* Antes del primer pintado, como el tema: sin JavaScript no corre y se ve el idioma por defecto. */
+const pendingScript = "document.documentElement.classList.add('nf-pending');";
+const pendingStyle = 'html.nf-pending main { visibility: hidden; }';
+---
+
+<html lang={lang} {...htmlAttrs}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Head head={head} />
+    <meta name="theme-color" content={themeColors.light} media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content={themeColors.dark} media="(prefers-color-scheme: dark)" />
+    <slot name="head" />
+    {pending && <style is:inline set:html={pendingStyle} />}
+    {pending && <script is:inline set:html={pendingScript} />}
+    <script is:inline set:html={themeBootstrapScript(themeColors)} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

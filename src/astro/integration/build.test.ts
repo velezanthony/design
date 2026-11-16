@@ -201,3 +201,84 @@ describe('#10 fusión: el plugin de Vite del consumidor se conserva', () => {
     );
   });
 });
+
+describe('#11 layouts y rutas de la Fase 12', () => {
+  const count = (html: string, needle: string) => html.split(needle).length - 1;
+
+  it('página real: lang, head con canonical y hreflang, salto, <main> indexable y barra lateral', async () => {
+    const html = await site.read('es/guide/index.html');
+    expect(html).toContain('<html lang="es"');
+    expect(html).toContain('<link rel="canonical" href="https://example.dev/repo/es/guide/"');
+    expect(html).toContain('hreflang="en" href="https://example.dev/repo/guide/"');
+    expect(html).toContain('href="#main-content"');
+    expect(html).toMatch(/<main[^>]*id="main-content"[^>]*data-pagefind-body/);
+    expect(count(html, 'data-pagefind-body')).toBe(1);
+    expect(html).toContain('aria-current="page"');
+    expect(html).toContain('name="theme-color"');
+  });
+
+  it('edición apunta al archivo del idioma y el banner de consentimiento lleva el contenedor', async () => {
+    const html = await site.read('es/guide/index.html');
+    expect(html).toContain('https://github.com/o/r/edit/main/');
+    expect(html).toContain('guide.es.md');
+    expect(html).toContain('data-gtm-id="GTM-TEST"');
+    expect(html).not.toContain('googletagmanager.com');
+  });
+
+  it('noindex: robots, <main> con data-pagefind-ignore, fuera del sitemap', async () => {
+    const html = await site.read('hidden/index.html');
+    expect(html).toContain('<meta name="robots" content="noindex"');
+    expect(html).not.toContain('data-pagefind-body');
+    expect(html).toMatch(/<main[^>]*data-pagefind-ignore/);
+    expect(await site.read('sitemap.xml')).not.toContain('/repo/hidden/');
+  });
+
+  it('ruta de reserva: contenido original en <div lang>, aviso, noindex y canonical al original', async () => {
+    const html = await site.read('es/fallback-demo/index.html');
+    expect(html).toContain('<html lang="es"');
+    expect(html).toContain('<div lang="en"');
+    expect(html).toContain('role="note"');
+    expect(html).toContain('<meta name="robots" content="noindex"');
+    expect(html).toContain('<link rel="canonical" href="https://example.dev/repo/fallback-demo/"');
+    expect(html).not.toContain('rel="alternate"');
+    expect(html).not.toContain('data-pagefind-body');
+    const xml = await site.read('sitemap.xml');
+    expect(xml).toContain('/repo/fallback-demo/');
+    expect(xml).not.toContain('/repo/es/fallback-demo/');
+    expect(await site.read('fallback-demo/index.html')).toContain('data-pagefind-body');
+  });
+
+  it('404.html: idioma por defecto, plantilla del resto, noindex sin canonical, fuera del índice', async () => {
+    const html = await site.read('404.html');
+    expect(html).toContain('<html lang="en"');
+    expect(html).toContain('<template data-locale="es"');
+    expect(html).toContain('Página no encontrada');
+    expect(html).toContain('nf-pending');
+    expect(html).toContain('<meta name="robots" content="noindex"');
+    expect(html).not.toContain('rel="canonical"');
+    expect(html).not.toContain('data-pagefind-body');
+    expect(html).toMatch(/<main[^>]*data-pagefind-ignore/);
+    expect(html).toContain('data-nf-base="/repo/"');
+  });
+
+  it('404.html: un único script de módulo, que sustituye ANTES de cablear el cliente', async () => {
+    const html = await site.read('404.html');
+    const scripts = [...html.matchAll(/<script type="module"([^>]*)>([\s\S]*?)<\/script>/g)];
+    expect(scripts).toHaveLength(1);
+    const [, attrs, inline] = scripts[0]!;
+    const src = /src="([^"]+)"/.exec(attrs!)?.[1];
+    let code = src ? await site.read(src.replace(/^\/repo\//, '')) : inline!;
+    const chunk = /from"\.\/([^"]+)"/.exec(code)?.[1];
+    if (chunk) code += await site.read(`_astro/${chunk}`);
+    expect(code).toContain('nf-pending');
+    expect(html.indexOf('<script type="module"')).toBeLessThan(html.indexOf('</body>'));
+  });
+
+  it('/es/404/: su idioma directamente, sin plantillas, noindex', async () => {
+    const html = await site.read('es/404/index.html');
+    expect(html).toContain('<html lang="es"');
+    expect(html).not.toContain('<template');
+    expect(html).toContain('<meta name="robots" content="noindex"');
+    expect(html).toMatch(/<main[^>]*data-pagefind-ignore/);
+  });
+});

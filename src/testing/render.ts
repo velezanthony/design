@@ -26,3 +26,14 @@ export const text = (node: Node | { body: Node } | null) => {
   const source = node && 'body' in node ? node.body : node;
   return source?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 };
+
+/** Como `render`, pero para un componente que ES un documento (`<html>…`): se analiza tal cual. */
+export async function renderDocument(
+  component: Component,
+  props: Options['props'] = {},
+  slots: Options['slots'] = {},
+) {
+  container ??= await AstroContainer.create();
+  const html = await container.renderToString(component, { props, slots });
+  return parseHTML(html).document;
+}

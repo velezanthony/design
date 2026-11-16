@@ -1,0 +1,170 @@
+import { describe, expect, it } from 'vitest';
+
+import { resolveConfig } from '../../core/config/resolve';
+import type { DocsUserConfig } from '../../core/config/schema';
+import { createVirtualData } from '../virtual/data';
+import { docRoutes, docView, type DocRoute } from './doc-view';
+import type { DocData } from './pages';
+
+const site = (user: Partial<DocsUserConfig> = {}) =>
+  createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
+    base: '/repo',
+    site: 'https://x.dev',
+    trailingSlash: 'always',
+    buildFormat: 'directory',
+  });
+
+const doc = (slug: string, locale: string, extra: Partial<DocData> = {}): DocData => ({
+  slug,
+  locale,
+  title: `${slug || 'Home'} ${locale}`,
+  sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
+  ...extra,
+});
+
+const all = [
+  doc('', 'en'),
+  doc('', 'es'),
+  doc('guide', 'en'),
+  doc('guide', 'es'),
+  doc('only-en', 'en', { order: 3 }),
+];
+
+const route = (routes: DocRoute[], slug: string, locale: string) =>
+  routes.find((r) => r.slug === slug && r.locale === locale)!;
+
+describe('docRoutes', () => {
+  it('una ruta por página real; el idioma por defecto va sin prefijo y la portada es undefined', () => {
+    const routes = docRoutes(all, site());
+    expect(routes.map((r) => r.param)).toEqual([undefined, 'es', 'guide', 'es/guide', 'only-en']);
+    expect(routes.every((r) => r.kind === 'page')).toBe(true);
+  });
+
+  it('con política link u omit no hay rutas de reserva', () => {
+    expect(docRoutes(all, site()).filter((r) => r.kind === 'fallback')).toHaveLength(0);
+    expect(
+      docRoutes(all, site({ translations: { missing: 'omit' } })).filter(
+        (r) => r.kind === 'fallback',
+      ),
+    ).toHaveLength(0);
+  });
+
+  it('con política fallback: una ruta de reserva por idioma ausente, del contenido original', () => {
+    const routes = docRoutes(all, site({ translations: { missing: 'fallback' } }));
+    const fallback = routes.filter((r) => r.kind === 'fallback');
+    expect(fallback).toHaveLength(1);
+    expect(fallback[0]).toMatchObject({
+      param: 'es/only-en',
+      slug: 'only-en',
+      locale: 'es',
+      contentLocale: 'en',
+      canonical: '/repo/only-en/',
+    });
+  });
+
+  it('sitio monolingüe: sin prefijos ni reservas', () => {
+    const mono = site({ locales: ['en'] });
+    expect(docRoutes([doc('guide', 'en')], mono).map((r) => r.param)).toEqual(['guide']);
+  });
+});
+
+describe('docView: página real', () => {
+  const cfg = site({ editUrl: 'https://github.com/o/r/edit/main', repoRoot: '.' });
+  const view = docView(route(docRoutes(all, cfg), 'guide', 'es'), all, cfg);
+
+  it('idioma, textos del idioma, portada, nombre y base', () => {
+    expect(view.lang).toBe('es');
+    expect(view.strings['skipToContent']).toBe('Saltar al contenido');
+    expect(view.homeHref).toBe('/repo/es/');
+    expect(view.siteName).toBe('Docs');
+    expect(view.baseUrl).toBe('/repo/');
+    expect(view.indexable).toBe(true);
+    expect(view.fallback).toBeUndefined();
+  });
+
+  it('hrefs de cada idioma en que existe y página actual en la barra lateral', () => {
+    expect(view.hrefs).toEqual({ en: '/repo/guide/', es: '/repo/es/guide/' });
+    expect(view.current).toBe('/repo/es/guide/');
+    expect(JSON.stringify(view.sidebar)).toContain('/repo/es/guide/');
+  });
+
+  it('head: título, canonical absoluto, hreflang y og:locale', () => {
+    const find = (tag: string, key: string, value: string) =>
+      view.head.find((h) => h.tag === tag && h.attrs[key] === value);
+    expect(view.head[0]).toMatchObject({ tag: 'title' });
+    expect(find('link', 'rel', 'canonical')!.attrs['href']).toBe('https://x.dev/repo/es/guide/');
+    expect(find('link', 'hreflang', 'en')).toBeDefined();
+    expect(find('meta', 'property', 'og:locale')!.attrs['content']).toBe('es');
+  });
+
+  it('anterior y siguiente salen del orden de la barra lateral', () => {
+    expect(view.prev?.href).toBe('/repo/es/');
+  });
+});
+
+describe('docView: edición', () => {
+  it('editFile es el editPath de la entrada; sin editUrl no hay enlace', () => {
+    const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
+    const data = [doc('guide', 'en', { editPath: 'docs/guide.md' })];
+    const v = docView(docRoutes(data, cfg)[0]!, data, cfg);
+    expect(v.editUrl).toBe('https://github.com/o/r/edit/main');
+    expect(v.editFile).toBe('docs/guide.md');
+    const none = site();
+    expect(docView(docRoutes(data, none)[0]!, data, none).editUrl).toBeUndefined();
+  });
+
+  it('sin editPath no se ofrece edición aunque haya editUrl', () => {
+    const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
+    const data = [doc('guide', 'en')];
+    expect(docView(docRoutes(data, cfg)[0]!, data, cfg).editUrl).toBeUndefined();
+  });
+});
+
+describe('docView: noindex', () => {
+  const cfg = site();
+  const data = [doc('guide', 'en'), doc('guide', 'es', { seo: { noindex: true } })];
+  const view = docView(route(docRoutes(data, cfg), 'guide', 'es'), data, cfg);
+
+  it('robots noindex, no indexable, y sin hreflang entre las gemelas', () => {
+    expect(view.indexable).toBe(false);
+    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
+  });
+
+  it('sigue siendo alcanzable desde el selector de idioma', () => {
+    expect(view.hrefs['es']).toBe('/repo/es/guide/');
+  });
+});
+
+describe('docView: ruta de reserva', () => {
+  const cfg = site({
+    translations: { missing: 'fallback' },
+    editUrl: 'https://github.com/o/r/edit/main',
+  });
+  const data = [doc('', 'en'), doc('only-en', 'en', { editPath: 'docs/only-en.md' })];
+  const view = docView(route(docRoutes(data, cfg), 'only-en', 'es'), data, cfg);
+
+  it('idioma de la ruta, aviso con el original, no indexable', () => {
+    expect(view.lang).toBe('es');
+    expect(view.fallback).toEqual({ originalLocale: 'en', href: '/repo/only-en/' });
+    expect(view.indexable).toBe(false);
+    expect(view.current).toBe('/repo/es/only-en/');
+  });
+
+  it('head: noindex y canonical al ORIGINAL, sin alternates', () => {
+    expect(view.head.find((h) => h.attrs['rel'] === 'canonical')!.attrs['href']).toBe(
+      'https://x.dev/repo/only-en/',
+    );
+    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
+  });
+
+  it('selector de idioma sin gemela en es; edición apunta al archivo original', () => {
+    expect(view.hrefs).toEqual({ en: '/repo/only-en/' });
+    expect(view.editFile).toBe('docs/only-en.md');
+  });
+
+  it('la barra lateral es la de es y contiene la ruta de reserva', () => {
+    expect(JSON.stringify(view.sidebar)).toContain('/repo/es/only-en/');
+  });
+});

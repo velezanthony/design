@@ -1,0 +1,42 @@
+---
+import type { Locale } from '../../core/i18n/locale';
+import type { UiStrings } from '../../core/i18n/ui-strings';
+import BackToTop from '../organisms/BackToTop.astro';
+import ConsentBanner from '../organisms/ConsentBanner.astro';
+import DocsFooter from '../organisms/DocsFooter.astro';
+import DocsHeader from '../organisms/DocsHeader.astro';
+import NotFound from '../organisms/NotFound.astro';
+
+/* Cuerpo de una 404 en un idioma: lo usa la propia página y cada `<template data-locale>`.
+   Sin `<script>`: los scripts de la página los pone `NotFoundLayout`, una sola vez. */
+interface Props {
+  lang: Locale;
+  siteName: string;
+  homeHref: string;
+  strings: UiStrings;
+  baseUrl: string;
+  year: number;
+  privacyUrl?: string;
+  gtmId?: string;
+}
+
+const { lang, siteName, homeHref, strings, baseUrl, year, privacyUrl, gtmId } = Astro.props;
+
+if (gtmId && !privacyUrl) {
+  throw new Error('NotFoundLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+}
+---
+
+<DocsHeader siteName={siteName} homeHref={homeHref} lang={lang} hrefs={{}} strings={strings} />
+<main id="main-content" class="mx-auto max-w-(--container-page) px-6 lg:px-10" data-pagefind-ignore>
+  <NotFound strings={strings} homeHref={homeHref} baseUrl={baseUrl} />
+</main>
+<DocsFooter
+  siteName={siteName}
+  year={year}
+  strings={strings}
+  privacyUrl={privacyUrl}
+  cookieControl={Boolean(gtmId)}
+/>
+{gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
+<BackToTop strings={strings} />

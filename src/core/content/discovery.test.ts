@@ -78,6 +78,45 @@ describe('discoverPages: nativas', () => {
     expect(errors[0]).toContain('a/index.md');
   });
 
+  /* `es.md` en el idioma por defecto sería `/es/`, la portada del idioma `es`. */
+  it('un slug que es un código de idioma configurado colisiona con la portada de ese idioma', () => {
+    const errors = errorsOf(() => discoverPages([native('es.md')], cfg()));
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('es.md');
+    expect(errors[0]).toContain('«es»');
+    expect(errors[0]).toContain('/es/');
+  });
+
+  it('también cuando el código es el primer segmento del slug (`es/guia.md`)', () => {
+    const errors = errorsOf(() => discoverPages([native('es/guia.md')], cfg()));
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('es/guia.md');
+  });
+
+  it('afecta a las páginas externas del idioma por defecto', () => {
+    const errors = errorsOf(() =>
+      discoverPages([external('../X.md')], cfg({ external: [{ slug: 'es', file: '../X.md' }] })),
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('«es»');
+  });
+
+  it('el idioma por defecto no ocupa prefijo: `en.md` es una página normal', () => {
+    expect(discoverPages([native('en.md')], cfg()).map((p) => p.slug)).toEqual(['en']);
+  });
+
+  it('un slug parecido (`esperanza.md`, `espanol/x.md`) no colisiona', () => {
+    const slugs = discoverPages([native('esperanza.md'), native('espanol/x.md')], cfg()).map(
+      (p) => p.slug,
+    );
+    expect(slugs).toEqual(['esperanza', 'espanol/x']);
+  });
+
+  it('un sitio monolingüe no tiene prefijos que reservar', () => {
+    const mono = resolveConfig({ name: 'X' });
+    expect(discoverPages([native('es.md')], mono).map((p) => p.slug)).toEqual(['es']);
+  });
+
   it('sin H1 ni título: falla nombrando el archivo', () => {
     const errors = errorsOf(() => discoverPages([native('vacia.md', 'solo texto')], cfg()));
     expect(errors[0]).toContain('vacia.md');

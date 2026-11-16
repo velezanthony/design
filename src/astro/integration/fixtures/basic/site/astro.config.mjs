@@ -1,5 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { satteri } from '@astrojs/markdown-satteri';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
 import { docs } from '../../../index.ts';
 import docsConfig from './docs.config.mjs';
@@ -11,7 +12,7 @@ export default defineConfig({
   site: 'https://example.dev',
   base: '/repo',
   trailingSlash: 'always',
-  vite: { plugins: [{ name: 'consumer-vite-plugin' }] },
+  vite: { plugins: [{ name: 'consumer-vite-plugin' }, tailwindcss()] },
   markdown: { processor: satteri({ mdastPlugins: [probeLocale] }) },
   fonts: [
     { provider: fontProviders.fontsource(), name: 'Consumer Font', cssVariable: '--font-consumer' },

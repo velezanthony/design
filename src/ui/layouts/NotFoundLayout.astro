@@ -1,0 +1,58 @@
+---
+import type { Locale } from '../../core/i18n/locale';
+import type { UiStrings } from '../../core/i18n/ui-strings';
+import type { HeadConfig } from '../../core/seo/head';
+import NotFoundBody from './NotFoundBody.astro';
+import Shell from './Shell.astro';
+
+interface Props {
+  lang: Locale;
+  head: HeadConfig[];
+  siteName: string;
+  homeHref: string;
+  strings: UiStrings;
+  baseUrl: string;
+  year: number;
+  privacyUrl?: string;
+  gtmId?: string;
+  /** Solo `/404.html`: el cuerpo de cada otro idioma, que el navegador sustituye en sitio. */
+  others?: { lang: Locale; title: string; homeHref: string; strings: UiStrings }[];
+  /** Datos de la sustitución (`localeFromPath`); presentes solo si hay `others`. */
+  swap?: { base: string; locales: Locale[]; defaultLocale: Locale };
+}
+
+const { lang, head, others = [], swap, ...body } = Astro.props;
+const swapping = others.length > 0 && swap !== undefined;
+const htmlAttrs: Record<string, string> = swapping
+  ? {
+      'data-nf-base': swap.base,
+      'data-nf-locales': swap.locales.join(','),
+      'data-nf-default': swap.defaultLocale,
+    }
+  : {};
+---
+
+<Shell lang={lang} head={head} htmlAttrs={htmlAttrs} pending={swapping}>
+  <slot name="head" slot="head" />
+  <NotFoundBody lang={lang} {...body} />
+  {swapping &&
+    others.map((other) => (
+      <template data-locale={other.lang} data-title={other.title}>
+        <NotFoundBody
+          lang={other.lang}
+          siteName={body.siteName}
+          homeHref={other.homeHref}
+          strings={other.strings}
+          baseUrl={body.baseUrl}
+          year={body.year}
+          privacyUrl={body.privacyUrl}
+          gtmId={body.gtmId}
+        />
+      </template>
+    ))}
+  <script>
+    import { bootNotFound } from './boot';
+
+    bootNotFound();
+  </script>
+</Shell>

@@ -5,4 +5,7 @@ export default defineDocsConfig({
   name: 'Fixture',
   locales: ['en', 'es'],
   external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+  editUrl: 'https://github.com/o/r/edit/main',
+  privacyUrl: 'https://example.dev/privacy',
+  gtmId: 'GTM-TEST',
 });

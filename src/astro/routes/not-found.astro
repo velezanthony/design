@@ -1,33 +1,21 @@
 ---
-/* Contenedor mínimo de la 404 (la Fase 12 añade la plantilla por idioma y el script previo al
-   pintado). `/404` usa el idioma por defecto; `/[locale]/404` cada uno de los demás. */
-import config from 'virtual:@velezanthony/design/config';
-import { pageUrl } from '../../core/i18n/availability';
-import NotFound from '../../ui/organisms/NotFound.astro';
+/* Contenedor de la 404. `/404` (→ `404.html`, el único que sirve GitHub Pages) es el idioma por
+   defecto con una plantilla por cada otro idioma; `/[locale]/404` pinta el suyo directamente. */
+import { Font } from 'astro:assets';
+import NotFoundLayout from '../../ui/layouts/NotFoundLayout.astro';
+import { notFoundRoutes, notFoundView } from './not-found-view';
+import { siteConfig } from './site-config';
 
 export function getStaticPaths() {
-  return config.locales
-    .filter((locale) => locale !== config.defaultLocale)
-    .map((locale) => ({ params: { locale } }));
+  return notFoundRoutes(siteConfig);
 }
 
-const locale = Astro.params.locale ?? config.defaultLocale;
-const homeHref = pageUrl('', locale, config);
+const view = notFoundView(Astro.params.locale, siteConfig);
 ---
 
-<html lang={locale}>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="robots" content="noindex" />
-    <title>{config.strings[locale]['notFound.title']}</title>
-  </head>
-  <body>
-    <main data-pagefind-ignore>
-      <NotFound
-        strings={config.strings[locale] as never}
-        homeHref={homeHref}
-        baseUrl={config.base}
-      />
-    </main>
-  </body>
-</html>
+<NotFoundLayout {...view} year={new Date().getFullYear()}>
+  <Fragment slot="head">
+    <Font cssVariable="--font-plex-sans" preload />
+    <Font cssVariable="--font-plex-mono" />
+  </Fragment>
+</NotFoundLayout>

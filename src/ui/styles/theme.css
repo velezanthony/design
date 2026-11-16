@@ -523,6 +523,20 @@
     cursor: pointer;
   }
 
+  /* Ancla permanente de `client/anchors.ts`: aparece al señalar o enfocar el encabezado. */
+  & .heading-anchor {
+    margin-left: 0.4em;
+    color: var(--color-faint);
+    text-decoration: none;
+    opacity: 0;
+  }
+
+  & :is(h2, h3, h4):hover > .heading-anchor,
+  & .heading-anchor:focus-visible {
+    color: var(--color-accent);
+    opacity: 1;
+  }
+
   & .docs-copy:hover,
   & .docs-copy[data-state='copied'] {
     color: var(--color-ink);

@@ -43,7 +43,7 @@ export function buildHead(
   page: PageData,
   av: Availability,
   site: URL,
-  cfg: ResolvedConfig,
+  cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name'>,
   url: Pick<UrlPolicy, 'base'>,
 ): HeadConfig[] {
   const absolute = (path: string) => new URL(path, site).href;

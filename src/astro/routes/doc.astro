@@ -1,30 +1,40 @@
 ---
-/* Contenedor mínimo de una página de docs (la Fase 12 lo completa con layout, cabecera y SEO).
-   Lee el módulo virtual y `astro:content`; el idioma por defecto va sin prefijo en la URL. */
-import config from 'virtual:@velezanthony/design/config';
+/* Contenedor de una página de docs. Lee el módulo virtual y `astro:content`, llama al núcleo y
+   pasa a `DocsLayout` (presentacional) los datos ya calculados. `render(entry)` va AQUÍ, no en el
+   layout: renderizar en un layout rompe el `<head>` en dev (astro#13724). */
+import { Font } from 'astro:assets';
+import DocsLayout from '../../ui/layouts/DocsLayout.astro';
+import { docRoutes, docView, type DocRoute } from './doc-view';
 import { getDocs, renderDoc } from './docs-collection';
+import { siteConfig } from './site-config';
 
 export async function getStaticPaths() {
-  const entries = await getDocs();
-  return entries.map((entry) => {
-    const { slug, locale } = entry.data;
-    const path = [locale === config.defaultLocale ? '' : locale, slug].filter(Boolean).join('/');
-    return { params: { slug: path || undefined }, props: { entry } };
-  });
+  const data = (await getDocs()).map((entry) => entry.data);
+  return docRoutes(data, siteConfig).map((route) => ({
+    params: { slug: route.param },
+    props: { route },
+  }));
 }
 
-const { entry } = Astro.props;
-const { Content } = await renderDoc(entry);
+const route = Astro.props.route as DocRoute;
+const entries = await getDocs();
+const entry = entries.find(
+  ({ data }) => data.slug === route.slug && data.locale === route.contentLocale,
+);
+if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slug}.`);
+
+const { Content, headings } = await renderDoc(entry);
+const view = docView(
+  route,
+  entries.map(({ data }) => data),
+  siteConfig,
+);
 ---
 
-<html lang={entry.data.locale}>
-  <head>
-    <meta charset="utf-8" />
-    <title>{entry.data.title}</title>
-  </head>
-  <body>
-    <main data-pagefind-body>
-      <Content />
-    </main>
-  </body>
-</html>
+<DocsLayout {...view} headings={headings} year={new Date().getFullYear()}>
+  <Fragment slot="head">
+    <Font cssVariable="--font-plex-sans" preload />
+    <Font cssVariable="--font-plex-mono" />
+  </Fragment>
+  <Content />
+</DocsLayout>

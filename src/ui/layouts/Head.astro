@@ -1,0 +1,20 @@
+---
+import type { HeadConfig } from '../../core/seo/head';
+
+interface Props {
+  /** Etiquetas del `<head>` como datos (`buildHead`); aquí solo se pintan. */
+  head: HeadConfig[];
+}
+
+const { head } = Astro.props;
+---
+
+{head.map(({ tag, attrs, content }) =>
+  tag === 'title' ? (
+    <title>{content}</title>
+  ) : tag === 'meta' ? (
+    <meta {...attrs} />
+  ) : (
+    <link {...attrs} />
+  ),
+)}
