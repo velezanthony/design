@@ -206,12 +206,17 @@ missing translations, an oversized or badly proportioned OG image, an unknown Sh
 
 ```sh
 npm install
-npm run dev           # playground
+npm run dev           # minimal root page
+npm run playground:dev    # real-content consumer (snake-orm docs snapshot)
 npm test              # Vitest
 npm run lint          # ESLint
 npm run format:check  # Prettier
 npm run check         # astro check
 ```
+
+`playground/` is a real consumer (npm workspace, the library is linked from `src/`, so edits hot-reload)
+built from a snapshot of the snake-orm docs. Regenerate it with
+`scripts/migrate-mkdocs/run-snake-orm.sh <snake-orm checkout> <python with griffe2md>`.
 
 CI runs lint, format, check and test on every push and pull request to `main`.
 
