@@ -147,16 +147,62 @@ describe('DocsFooter', () => {
     expect(text(await footer({ year: 2030 }))).toContain('© 2030');
   });
 
-  it('enlaces del consumidor y privacidad solo si se pasan', async () => {
-    const bare = await footer();
+  it('enlaces del footer y privacidad solo si se pasan; los propios van antes que la privacidad', async () => {
+    const bare = await footer({ footer: { links: [] } });
     expect(bare.querySelector('a')).toBeNull();
     const doc = await footer({
       privacyUrl: '/privacidad/',
-      links: [{ label: 'Código', href: 'https://github.com/x/y' }],
+      cookieControl: true,
+      footer: { links: [{ label: 'Código', href: 'https://github.com/x/y', external: true }] },
     });
-    expect(doc.querySelector('a[href="/privacidad/"]')).not.toBeNull();
     expect(text(doc.querySelector('a[href="/privacidad/"]'))).toBe('Política de privacidad');
-    expect(text(doc.querySelector('a[href="https://github.com/x/y"]'))).toBe('Código');
+    const link = doc.querySelector('a[href="https://github.com/x/y"]')!;
+    expect(text(link)).toBe('Código');
+    expect(link.getAttribute('rel')).toContain('noopener');
+    const order = [...doc.querySelectorAll('footer nav a, footer nav button')].map((n) => text(n));
+    expect(order).toEqual(['Código', 'Política de privacidad', 'Preferencias de cookies']);
+  });
+
+  it('izquierda: «© año nombre por autor» en una frase y después la licencia (con o sin enlace)', async () => {
+    const doc = await footer({
+      footer: {
+        license: { label: 'MIT', href: 'https://x.dev/LICENSE' },
+        author: { name: 'Anthony Vélez', href: 'https://velezanthony.github.io/' },
+        links: [],
+      },
+    });
+    const left = text(doc.querySelector('[data-footer-meta]'));
+    expect(left).toBe('© 2026 Design por Anthony Vélez · Licencia MIT');
+    expect(doc.querySelector('a[href="https://x.dev/LICENSE"]')).not.toBeNull();
+    expect(doc.querySelector('a[href="https://velezanthony.github.io/"]')).not.toBeNull();
+    const plain = await footer({ footer: { license: { label: 'MIT' }, links: [] } });
+    expect(text(plain.querySelector('[data-footer-meta]'))).toBe('© 2026 Design · Licencia MIT');
+    expect(plain.querySelector('[data-footer-meta] a')).toBeNull();
+  });
+
+  it('en inglés dice «by»', async () => {
+    const doc = await footer({
+      strings: stringsFor('en'),
+      footer: { author: { name: 'Ana', href: 'https://ana.dev' }, links: [] },
+    });
+    expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design by Ana');
+  });
+
+  it('los enlaces van en un nav etiquetado; sin enlaces no hay nav', async () => {
+    const doc = await footer({
+      footer: { links: [{ label: 'A', href: 'https://a.dev', external: true }] },
+    });
+    expect(doc.querySelector('footer nav')!.getAttribute('aria-label')).toBe('Enlaces del sitio');
+    expect((await footer()).querySelector('footer nav')).toBeNull();
+  });
+
+  it('un enlace interno no se abre en otra pestaña', async () => {
+    const doc = await footer({
+      footer: { links: [{ label: 'Cambios', href: '/repo/changelog/', external: false }] },
+    });
+    const link = doc.querySelector('footer nav a')!;
+    expect(link.getAttribute('target')).toBeNull();
+    expect(link.getAttribute('rel')).toBeNull();
   });
 
   it('el control de cookies es un botón solo con cookieControl', async () => {

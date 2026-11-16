@@ -1,6 +1,7 @@
 import { z } from 'astro/zod';
 import { MissingTranslation } from '../i18n/translation-policy';
 import { LayoutWidth, PanelState } from './layout';
+import type { FooterConfig, FooterLink } from './footer';
 import { NavIcon, type NavItem } from './nav';
 import { defaultStrings, uiKeys, type UiKey } from '../i18n/ui-strings';
 
@@ -71,6 +72,24 @@ const NavItemSchema = z.strictObject({
   icon: NavIconSchema.optional(),
 }) as unknown as z.ZodType<NavItem, NavItem>;
 
+/* Igual que `nav`: forma plana y validación en `superRefine` para que cada fallo lleve su ruta
+   (`footer.links[1].href`). */
+const FooterLinkSchema = z.strictObject({
+  label: LabelSchema,
+  slug: z.string().min(1).optional(),
+  href: z.string().optional(),
+}) as unknown as z.ZodType<FooterLink, FooterLink>;
+
+const FooterSchema = z.strictObject({
+  license: z
+    .union([z.string().min(1), z.strictObject({ label: LabelSchema, href: z.string() })])
+    .optional(),
+  author: z
+    .union([z.literal(false), z.strictObject({ name: z.string().min(1), href: z.string() })])
+    .optional(),
+  links: z.array(FooterLinkSchema).optional(),
+}) as unknown as z.ZodType<FooterConfig, FooterConfig>;
+
 /* Esquema estricto de `ui`, generado desde las claves del catálogo: una clave desconocida falla. */
 const UiLocaleSchema = z.strictObject(
   Object.fromEntries(uiKeys.map((key) => [key, z.string().optional()])) as Record<
@@ -128,6 +147,7 @@ export const DocsConfigSchema = z
     external: z.array(ExternalDocSchema).optional(),
     sidebar: z.array(SidebarItemSchema).optional(),
     nav: z.array(NavItemSchema).optional(),
+    footer: FooterSchema.optional(),
     editUrl: z.string().optional(),
     repoRoot: z.string().optional(),
     privacyUrl: z
@@ -183,6 +203,7 @@ export const DocsConfigSchema = z
       });
     });
     validateNavShape(config.nav ?? [], issue);
+    validateFooterShape(config.footer, issue);
     if (config.gtmId !== undefined && config.privacyUrl === undefined) {
       issue(['privacyUrl'], 'Es obligatoria cuando se define `gtmId`.');
     }
@@ -246,3 +267,32 @@ function validateNavShape(
 /** Dos carpetas se solapan si son la misma o una cuelga de la otra (`users` y `users/guide`). */
 const overlaps = (a: string, b: string): boolean =>
   a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+
+const HTTPS = 'Debe ser una URL https (https://…).';
+
+/** Lo que se puede juzgar del `footer` sin conocer las páginas: forma de cada enlace y https. */
+function validateFooterShape(
+  footer: FooterConfig | undefined,
+  issue: (path: (string | number)[], message: string) => void,
+): void {
+  if (!footer) return;
+  const { license, author } = footer;
+  if (typeof license === 'object' && !license.href.startsWith('https://')) {
+    issue(['footer', 'license', 'href'], HTTPS);
+  }
+  if (author && !author.href.startsWith('https://')) issue(['footer', 'author', 'href'], HTTPS);
+  footer.links?.forEach((raw, index) => {
+    // Forma plana (ver `FooterLinkSchema`): se mira por claves, no por el tipo discriminado.
+    const link = raw as { slug?: string; href?: string };
+    if ((link.slug === undefined) === (link.href === undefined)) {
+      issue(
+        ['footer', 'links', index],
+        'Debe ser una página (`slug`) o un enlace (`href`), solo uno de los dos.',
+      );
+      return;
+    }
+    if (link.href !== undefined && !link.href.startsWith('https://')) {
+      issue(['footer', 'links', index, 'href'], HTTPS);
+    }
+  });
+}

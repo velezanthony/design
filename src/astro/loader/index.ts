@@ -10,6 +10,7 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
+import { validateFooter } from '../../core/navigation/footer';
 import { validateNav } from '../../core/navigation/nav-sections';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
 import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-policy';
@@ -107,6 +108,7 @@ async function sync(ctx: LoaderContext, config: ResolvedConfig): Promise<void> {
     errors.push(
       ...validateSidebarSlugs(config.sidebar ?? [], pageSlugs),
       ...validateNav(config.nav ?? [], pageSlugs),
+      ...validateFooter(config.footer?.links ?? [], pageSlugs),
     );
   }
   for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {

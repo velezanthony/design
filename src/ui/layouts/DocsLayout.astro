@@ -2,6 +2,7 @@
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import type { FooterView } from '../../core/navigation/footer';
 import type { NavEntry } from '../../core/navigation/nav-entries';
 import type { SidebarNode } from '../../core/navigation/sidebar';
 import type { HeadConfig } from '../../core/seo/head';
@@ -30,6 +31,7 @@ interface Props {
   sidebar: SidebarNode[];
   /** Items de la cabecera; en móvil abren el «Menú», antes de la barra lateral de la sección. */
   nav?: NavEntry[];
+  footer?: FooterView;
   /** URL de esta página (la entrada de la barra lateral que lleva `aria-current`). */
   current: string;
   headings: { depth: number; slug: string; text: string }[];
@@ -59,6 +61,7 @@ const {
   strings,
   sidebar,
   nav = [],
+  footer,
   current,
   headings,
   prev,
@@ -180,6 +183,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     strings={strings}
     privacyUrl={privacyUrl}
     cookieControl={Boolean(gtmId)}
+    footer={footer}
   />
   {gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
   <BackToTop strings={strings} />

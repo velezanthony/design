@@ -52,4 +52,7 @@ export default defineDocsConfig({
   editUrl: 'https://github.com/velezanthony/snake-orm/edit/main',
   repoRoot: './src/content',
   social: { github: 'https://github.com/velezanthony/snake-orm' },
+  footer: {
+    license: { label: 'MIT', href: 'https://github.com/velezanthony/snake-orm/blob/main/LICENSE' },
+  },
 });

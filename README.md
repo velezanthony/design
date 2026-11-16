@@ -109,13 +109,14 @@ Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`)
 | `external`      | Files outside `src/content/docs/` published as pages: `{ slug, file, locales?, seo?, translations? }`.                          |
 | `sidebar`       | Order of the sidebar: slugs and groups `{ label, slug?, items }`. The home is `'index'`. Unknown slugs fail the build. The rest goes after. |
 | `nav`           | Header items, each section with its own sidebar: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. See below. |
+| `footer`        | License, author and extra links of the footer: `{ license?, author?, links? }`. See below.                                      |
 | `editUrl`       | Repo edit base (`https://github.com/o/r/edit/main`). Adds "Edit this page" pointing at the real source file.                    |
 | `repoRoot`      | Repo root relative to the Astro project (default: nearest ancestor with `.git`). Needed for `editUrl` when there is no `.git`.  |
 | `favicon`       | Tab icon: a file in `public/` (`'favicon.svg'` or `'/favicon.svg'`, must exist) or an `https://` URL. Default: the package's own icon. See below. |
 | `gtmId`         | Google Tag Manager id. Loaded only after the visitor accepts the consent banner. Requires `privacyUrl`.                         |
 | `privacyUrl`    | Privacy policy link of the banner and footer (`https://...` or a site path).                                                    |
 | `layout`        | Collapsible sidebars and reading / full width: `{ sidebar?, toc?, width?, toggles? }`. See below.                               |
-| `social`        | `{ github }`.                                                                                                                   |
+| `social`        | `{ github }`. Also feeds the footer's repository and "Report a bug" links.                                                       |
 
 ### `seo`
 
@@ -188,6 +189,33 @@ nav: [
   dirs (equal, or one inside the other), a section `sidebar` slug that is unknown or outside its
   `dir`, a page `slug` that is not a page or lives inside a section, and an `href` that is not https.
 - UI texts: `nav.label` (the nav landmark) and `nav.external` (the marker for screen readers).
+
+### `footer`
+
+One row, the same on every page (the 404 included). Everything is optional.
+
+```js
+footer: {
+  license: { label: 'MIT', href: 'https://github.com/o/r/blob/main/LICENSE' }, // or just 'MIT'
+  author: { name: 'Ana', href: 'https://ana.dev' }, // default: Anthony Vélez; false hides it
+  links: [
+    { label: { en: 'Changelog', es: 'Cambios' }, slug: 'changelog' }, // a page
+    { label: 'Blog', href: 'https://blog.dev' }, // external, https only
+  ],
+},
+```
+
+- **Left**: `© <year> <name> by <author>` as one sentence, then the license. Give only its name
+  (`'MIT'`, `'Apache-2.0'`): the page reads "MIT License" / "Licencia MIT" (a link when you give `href`).
+- **Right** (a `<nav>`): your `links` first, then what the config already says: repository and
+  "Report a bug" (`<repo>/issues/new`) from `social.github`, the privacy policy from `privacyUrl` and,
+  only with `gtmId`, a "Cookie preferences" button that reopens the consent banner (withdrawing
+  consent is as easy as giving it).
+- `label` and the license label can be a string or per locale, with the usual fallback. A `slug` link
+  follows `translations.missing`; `omit` hides it where the page is not translated.
+- Fails the build, with the path (`footer.links[1].slug`): a `slug` that is not a page, a link with
+  both or neither of `slug` / `href`, and any `href` that is not https.
+- UI texts: `footer.label`, `footer.repository`, `footer.report`, `footer.by`.
 
 ### `layout`
 

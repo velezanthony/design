@@ -224,3 +224,71 @@ describe('nav', () => {
     ).toEqual([]);
   });
 });
+
+describe('footer', () => {
+  const base = { name: 'X', locales: ['en', 'es'] };
+
+  it('sin `footer` queda sin definir', () => {
+    expect(resolveConfig(base).footer).toBeUndefined();
+  });
+
+  it('acepta licencia en texto o con enlace, autor y enlaces de página o externos', () => {
+    const footer = {
+      license: { label: { en: 'MIT', es: 'MIT' }, href: 'https://x.dev/LICENSE' },
+      author: { name: 'Ana', href: 'https://ana.dev' },
+      links: [
+        { label: 'Changelog', slug: 'changelog' },
+        { label: { en: 'Blog', es: 'Bitácora' }, href: 'https://blog.dev' },
+      ],
+    };
+    expect(resolveConfig({ ...base, footer }).footer).toEqual(footer);
+    expect(resolveConfig({ ...base, footer: { license: 'MIT' } }).footer).toEqual({
+      license: 'MIT',
+    });
+  });
+
+  it('`author: false` es válido y oculta el autor', () => {
+    expect(resolveConfig({ ...base, footer: { author: false } }).footer).toEqual({ author: false });
+  });
+
+  it('solo https: licencia, autor y enlaces, cada uno con su ruta', () => {
+    expect(
+      messages({ ...base, footer: { license: { label: 'MIT', href: 'http://x.dev' } } })[0],
+    ).toContain('footer.license.href');
+    expect(messages({ ...base, footer: { author: { name: 'Ana', href: '/ana' } } })[0]).toContain(
+      'footer.author.href',
+    );
+    expect(
+      messages({
+        ...base,
+        footer: {
+          links: [
+            { label: 'A', slug: 'a' },
+            { label: 'B', href: 'http://b.dev' },
+          ],
+        },
+      })[0],
+    ).toContain('footer.links[1].href');
+  });
+
+  it('un enlace es una página (`slug`) o un enlace (`href`), solo uno', () => {
+    expect(messages({ ...base, footer: { links: [{ label: 'A' }] } })[0]).toContain(
+      'footer.links[0]',
+    );
+    expect(
+      messages({
+        ...base,
+        footer: { links: [{ label: 'A', slug: 'a', href: 'https://a.dev' }] },
+      })[0],
+    ).toContain('footer.links[0]');
+  });
+
+  it('una opción desconocida se nombra con su ruta', () => {
+    expect(messages({ ...base, footer: { color: 'red' } })).toEqual([
+      expect.stringContaining('footer.color'),
+    ]);
+    expect(
+      messages({ ...base, footer: { links: [{ label: 'A', slug: 'a', icon: 'github' }] } }),
+    ).toEqual([expect.stringContaining('footer.links[0].icon')]);
+  });
+});

@@ -3,6 +3,7 @@ import { buildAvailability, pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import { fallbackRoutes, resolvePolicies } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
+import { buildFooter, type FooterView } from '../../core/navigation/footer';
 import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
 import { buildScopedSidebar } from '../../core/navigation/nav-sidebar';
 import { flatten, type SidebarNode } from '../../core/navigation/sidebar';
@@ -66,6 +67,8 @@ export interface DocView {
   sidebar: SidebarNode[];
   /** Items de la cabecera (vacío sin `nav`). */
   nav: NavEntry[];
+  /** Licencia, autor y enlaces del footer, ya resueltos para el idioma de la página. */
+  footer: FooterView;
   current: string;
   prev?: { label: string; href: string };
   next?: { label: string; href: string };
@@ -134,6 +137,7 @@ export function docView(
     strings: cfg.strings[route.locale] as UiStrings,
     sidebar,
     nav: buildNav(cfg.nav, navContext),
+    footer: buildFooter(cfg, navContext, cfg.strings[route.locale] as UiStrings),
     current: pageUrlOfRoute,
     ...(prev && { prev }),
     ...(next && { next }),

@@ -241,3 +241,36 @@ describe('docView: nav con secciones', () => {
     expect(v.sidebar.length).toBeGreaterThan(1);
   });
 });
+
+describe('docView: footer', () => {
+  const pages = [doc('', 'en'), doc('', 'es'), doc('changelog', 'en'), doc('changelog', 'es')];
+  const cfg = site({
+    social: { github: 'https://github.com/x/y' },
+    footer: {
+      license: 'MIT',
+      links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }],
+    },
+  });
+  const footerOf = (locale: string) =>
+    docView(route(docRoutes(pages, cfg), '', locale), pages, cfg).footer;
+
+  it('entrega licencia, autor por defecto y los enlaces ya resueltos para el idioma', () => {
+    const footer = footerOf('es');
+    expect(footer.license).toEqual({ label: 'MIT' });
+    expect(footer.author?.name).toBe('Anthony Vélez');
+    expect(footer.links.map((link) => [link.label, link.href])).toEqual([
+      ['Cambios', '/repo/es/changelog/'],
+      ['Repositorio', 'https://github.com/x/y'],
+      ['Informar de un error', 'https://github.com/x/y/issues/new'],
+    ]);
+  });
+
+  it('sin config del footer solo queda el autor', () => {
+    const plain = site();
+    const v = docView(route(docRoutes(pages, plain), '', 'en'), pages, plain);
+    expect(v.footer).toEqual({
+      author: { name: 'Anthony Vélez', href: 'https://velezanthony.github.io/' },
+      links: [],
+    });
+  });
+});

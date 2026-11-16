@@ -5,6 +5,7 @@ import { Font } from 'astro:assets';
 import NotFoundLayout from '../../ui/layouts/NotFoundLayout.astro';
 import { readImageSizes } from '../loader/images';
 import { notFoundRoutes, notFoundView } from './not-found-view';
+import { getDocs } from './docs-collection';
 import { siteConfig } from './site-config';
 
 export function getStaticPaths() {
@@ -15,7 +16,8 @@ const sizes = await readImageSizes(
   [siteConfig.seo.image?.src].filter((src) => src !== undefined),
   new URL(siteConfig.publicDir ?? 'file:///'),
 );
-const view = notFoundView(Astro.params.locale, siteConfig, sizes);
+const data = (await getDocs()).map((entry) => entry.data);
+const view = notFoundView(Astro.params.locale, siteConfig, sizes, data);
 ---
 
 <NotFoundLayout {...view} year={new Date().getFullYear()}>

@@ -2,6 +2,7 @@ import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
+import type { FooterConfig } from './footer';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
 import {
@@ -30,6 +31,8 @@ export interface ResolvedConfig {
   sidebar?: SidebarItem[];
   /** Items de la cabecera; sin definir, el sitio usa solo `sidebar`. */
   nav?: NavItem[];
+  /** Footer del sitio; sin definir, solo el autor por defecto. */
+  footer?: FooterConfig;
   editUrl?: string;
   repoRoot?: string;
   privacyUrl?: string;

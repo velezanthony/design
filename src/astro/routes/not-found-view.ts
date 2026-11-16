@@ -1,6 +1,10 @@
 import { pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import type { UiStrings } from '../../core/i18n/ui-strings';
+import { buildAvailability } from '../../core/i18n/availability';
+import { resolvePolicies } from '../../core/i18n/translation-policy';
+import { buildFooter, type FooterView } from '../../core/navigation/footer';
+import type { NavContext } from '../../core/navigation/nav-entries';
 import { buildHead, type HeadConfig } from '../../core/seo/head';
 import {
   applyTitleTemplate,
@@ -8,7 +12,7 @@ import {
   withImageSize,
   type ImageSizes,
 } from '../../core/seo/meta';
-import { urlPolicyOf } from './pages';
+import { pagesOf, urlPolicyOf, type DocData } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 
 /** Rutas `[locale]/404`: una por idioma que no es el de defecto (`/404` sirve el de defecto). */
@@ -23,6 +27,7 @@ export interface NotFoundOther {
   title: string;
   homeHref: string;
   strings: UiStrings;
+  footer: FooterView;
 }
 
 export interface NotFoundView {
@@ -31,6 +36,7 @@ export interface NotFoundView {
   siteName: string;
   homeHref: string;
   strings: UiStrings;
+  footer: FooterView;
   baseUrl: string;
   privacyUrl?: string;
   gtmId?: string;
@@ -46,10 +52,27 @@ export function notFoundView(
   locale: Locale | undefined,
   cfg: VirtualConfig,
   sizes: ImageSizes = new Map(),
+  data: DocData[] = [],
 ): NotFoundView {
   const lang = locale ?? cfg.defaultLocale;
   const url = urlPolicyOf(cfg);
   const strings = cfg.strings[lang] as UiStrings;
+  // La 404 no es una página: el contexto solo sirve para resolver a dónde apuntan los enlaces del footer.
+  const pages = pagesOf(data);
+  const footerFor = (locale: Locale) =>
+    buildFooter(
+      cfg,
+      {
+        pages,
+        av: buildAvailability(pages, url),
+        locale,
+        cfg,
+        policies: resolvePolicies(pages, cfg.translations.missing).policies,
+        url,
+        slug: '',
+      } satisfies NavContext,
+      cfg.strings[locale] as UiStrings,
+    );
   const meta = withImageSize(
     resolveMeta(
       cfg.seo,
@@ -83,6 +106,7 @@ export function notFoundView(
               ),
               homeHref: pageUrl('', other, url),
               strings: otherStrings,
+              footer: footerFor(other),
             };
           })
       : [];
@@ -92,6 +116,7 @@ export function notFoundView(
     siteName: cfg.name,
     homeHref: pageUrl('', lang, url),
     strings,
+    footer: footerFor(lang),
     baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
     ...(cfg.privacyUrl !== undefined && { privacyUrl: cfg.privacyUrl }),
     ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),

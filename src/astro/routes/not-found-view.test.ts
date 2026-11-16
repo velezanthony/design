@@ -66,3 +66,38 @@ describe('notFoundView', () => {
     expect(view.swap).toBeUndefined();
   });
 });
+
+describe('notFoundView: footer', () => {
+  const pages = [
+    { slug: '', locale: 'en', title: 'Home', sourcePath: 'index.md' },
+    { slug: 'changelog', locale: 'en', title: 'C', sourcePath: 'changelog.md' },
+    { slug: 'changelog', locale: 'es', title: 'C', sourcePath: 'changelog.es.md' },
+  ];
+  const cfg = createVirtualData(
+    resolveConfig({
+      name: 'Docs',
+      locales: ['en', 'es'],
+      social: { github: 'https://github.com/x/y' },
+      footer: { links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }] },
+    }),
+    { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+  );
+
+  it('la 404 lleva el mismo footer, y cada plantilla el de su idioma', () => {
+    const view = notFoundView(undefined, cfg, new Map(), pages);
+    expect(view.footer.links.map((link) => [link.label, link.href])).toEqual([
+      ['Changes', '/repo/changelog/'],
+      ['Repository', 'https://github.com/x/y'],
+      ['Report a bug', 'https://github.com/x/y/issues/new'],
+    ]);
+    expect(view.others[0]?.footer.links[0]).toMatchObject({
+      label: 'Cambios',
+      href: '/repo/es/changelog/',
+    });
+  });
+
+  it('sin páginas los enlaces a página se omiten, no se rompen', () => {
+    const view = notFoundView(undefined, cfg);
+    expect(view.footer.links.map((link) => link.label)).toEqual(['Repository', 'Report a bug']);
+  });
+});

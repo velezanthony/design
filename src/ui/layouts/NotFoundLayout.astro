@@ -1,6 +1,7 @@
 ---
 import type { Locale } from '../../core/i18n/locale';
 import type { UiStrings } from '../../core/i18n/ui-strings';
+import type { FooterView } from '../../core/navigation/footer';
 import type { HeadConfig } from '../../core/seo/head';
 import NotFoundBody from './NotFoundBody.astro';
 import Shell from './Shell.astro';
@@ -11,12 +12,19 @@ interface Props {
   siteName: string;
   homeHref: string;
   strings: UiStrings;
+  footer?: FooterView;
   baseUrl: string;
   year: number;
   privacyUrl?: string;
   gtmId?: string;
   /** Solo `/404.html`: el cuerpo de cada otro idioma, que el navegador sustituye en sitio. */
-  others?: { lang: Locale; title: string; homeHref: string; strings: UiStrings }[];
+  others?: {
+    lang: Locale;
+    title: string;
+    homeHref: string;
+    strings: UiStrings;
+    footer?: FooterView;
+  }[];
   /** Datos de la sustitución (`localeFromPath`); presentes solo si hay `others`. */
   swap?: { base: string; locales: Locale[]; defaultLocale: Locale };
 }
@@ -43,6 +51,7 @@ const htmlAttrs: Record<string, string> = swapping
           siteName={body.siteName}
           homeHref={other.homeHref}
           strings={other.strings}
+          footer={other.footer}
           baseUrl={body.baseUrl}
           year={body.year}
           privacyUrl={body.privacyUrl}

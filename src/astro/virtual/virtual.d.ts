@@ -9,6 +9,12 @@ declare module 'virtual:@velezanthony/design/config' {
     | { label: Label; dir: string; sidebar?: SidebarItem[] }
     | { label: Label; slug: string }
     | { label: Label; href: string; icon?: 'github' };
+  type FooterLink = { label: Label; slug: string } | { label: Label; href: string };
+  type FooterConfig = {
+    license?: string | { label: Label; href: string };
+    author?: { name: string; href: string } | false;
+    links?: FooterLink[];
+  };
 
   const config: {
     name: string;
@@ -30,6 +36,7 @@ declare module 'virtual:@velezanthony/design/config' {
     }[];
     sidebar?: SidebarItem[];
     nav?: NavItem[];
+    footer?: FooterConfig;
     editUrl?: string;
     repoRoot?: string;
     privacyUrl?: string;

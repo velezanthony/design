@@ -1,6 +1,7 @@
 ---
 import Link from '../atoms/Link.astro';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import type { FooterView } from '../../core/navigation/footer';
 
 interface Props {
   siteName: string;
@@ -9,52 +10,96 @@ interface Props {
   strings: UiStrings;
   /** Página de privacidad; sin ella no se pinta el enlace. */
   privacyUrl?: string;
-  /** Enlaces extra del consumidor (repositorio, licencia…). */
-  links?: { label: string; href: string }[];
   /** Si el sitio pide consentimiento, hay una elección que reabrir. */
   cookieControl?: boolean;
+  /** Licencia, autor y enlaces propios o derivados de la config; ya resueltos al idioma. */
+  footer?: FooterView;
 }
 
-const { siteName, year, strings, privacyUrl, links = [], cookieControl = false } = Astro.props;
-const hasLinks = Boolean(privacyUrl) || links.length > 0 || cookieControl;
+const { siteName, year, strings, privacyUrl, cookieControl = false, footer } = Astro.props;
+const { license, author, links = [] } = footer ?? {};
+const hasLinks = links.length > 0 || Boolean(privacyUrl) || cookieControl;
+/* La config da solo el nombre ('MIT', 'Apache-2.0'); la frase («MIT License», «Licencia MIT»)
+   depende del idioma. */
+const licenseText = license && t(strings, 'footer.license').replace('{name}', () => license.label);
+
+/* Una sola cadena para todo lo que se pinta como enlace del pie. */
+const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
 ---
 
 <footer class="border-t border-rule">
-  <div class="mx-auto flex max-w-(--container-page) flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-6 py-8 font-mono text-xs text-faint lg:px-10">
-    <p>
-      © {year} {siteName}
+  <div class="mx-auto flex max-w-(--container-page) flex-wrap items-baseline justify-between gap-x-6 gap-y-3 ps-6 pe-16 py-8 font-mono text-xs text-faint lg:ps-10 lg:pe-16">
+    {/* `pe-16`: deja libre el sitio del botón «volver arriba», fijo abajo a la derecha, para que no tape el último enlace. */}
+    {/* Izquierda: quién y bajo qué licencia. Los puntos son adorno: no se leen, y en móvil sobran porque cada dato va en su línea. */}
+    <p
+      data-footer-meta
+      class="flex flex-col gap-y-1 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2"
+    >
+      {/* Una sola frase: «© 2026 SnakeORM por Anthony Vélez», con el autor enlazado. */}
+      <span class="inline-flex flex-wrap items-baseline gap-x-1">
+        <span>
+          © {year} {siteName}
+        </span>
+        {author && (
+          <>
+            {' '}
+            {t(strings, 'footer.by')}{' '}
+            <Link href={author.href} variant="quiet">
+              {author.name}
+            </Link>
+          </>
+        )}
+      </span>
+      {license && (
+        <>
+          {' '}
+          <span aria-hidden="true" class="max-sm:hidden">
+            ·
+          </span>{' '}
+          {license.href ? (
+            <Link href={license.href} variant="quiet">
+              {licenseText}
+            </Link>
+          ) : (
+            <span>{licenseText}</span>
+          )}
+        </>
+      )}
     </p>
 
+    {/* Derecha: lo que se puede hacer con el proyecto. Primero los enlaces propios. */}
     {hasLinks && (
-      <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-        {privacyUrl && (
-          <li>
-            <Link href={privacyUrl} variant="quiet">
-              {t(strings, 'consent.privacy')}
-            </Link>
-          </li>
-        )}
-        {cookieControl && (
-          <li>
-            {/* Un botón, no un enlace: actúa sobre la página, no lleva a ningún sitio. El
+      <nav aria-label={t(strings, 'footer.label')}>
+        <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+          {links.map((link) => (
+            <li>
+              <Link href={link.href} variant="quiet" external={link.external}>
+                {link.label}
+              </Link>
+            </li>
+          ))}
+          {privacyUrl && (
+            <li>
+              <Link href={privacyUrl} variant="quiet">
+                {t(strings, 'consent.privacy')}
+              </Link>
+            </li>
+          )}
+          {cookieControl && (
+            <li>
+              {/* Un botón, no un enlace: actúa sobre la página, no lleva a ningún sitio. El
                   preflight de Tailwind pone `cursor: default` a los botones. */}
-            <button
-              type="button"
-              data-consent-open
-              class="inline-flex min-h-6 cursor-pointer items-center text-muted transition-colors hover:text-ink"
-            >
-              {t(strings, 'consent.preferences')}
-            </button>
-          </li>
-        )}
-        {links.map((link) => (
-          <li>
-            <Link href={link.href} variant="quiet">
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
+              <button
+                type="button"
+                data-consent-open
+                class:list={['inline-flex cursor-pointer items-center', quiet]}
+              >
+                {t(strings, 'consent.preferences')}
+              </button>
+            </li>
+          )}
+        </ul>
+      </nav>
     )}
   </div>
 </footer>

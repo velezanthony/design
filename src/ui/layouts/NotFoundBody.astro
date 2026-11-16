@@ -1,6 +1,7 @@
 ---
 import type { Locale } from '../../core/i18n/locale';
 import type { UiStrings } from '../../core/i18n/ui-strings';
+import type { FooterView } from '../../core/navigation/footer';
 import BackToTop from '../organisms/BackToTop.astro';
 import ConsentBanner from '../organisms/ConsentBanner.astro';
 import DocsFooter from '../organisms/DocsFooter.astro';
@@ -14,13 +15,14 @@ interface Props {
   siteName: string;
   homeHref: string;
   strings: UiStrings;
+  footer?: FooterView;
   baseUrl: string;
   year: number;
   privacyUrl?: string;
   gtmId?: string;
 }
 
-const { lang, siteName, homeHref, strings, baseUrl, year, privacyUrl, gtmId } = Astro.props;
+const { lang, siteName, homeHref, strings, footer, baseUrl, year, privacyUrl, gtmId } = Astro.props;
 
 if (gtmId && !privacyUrl) {
   throw new Error('NotFoundLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
@@ -37,6 +39,7 @@ if (gtmId && !privacyUrl) {
   strings={strings}
   privacyUrl={privacyUrl}
   cookieControl={Boolean(gtmId)}
+  footer={footer}
 />
 {gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
 <BackToTop strings={strings} />
