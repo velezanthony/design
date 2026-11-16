@@ -469,3 +469,23 @@ describe('#19 tabla ancha', () => {
     expect(html).toMatch(/<div class="table-scroll" tabindex="0"><table>[\s\S]*<\/table><\/div>/);
   });
 });
+
+describe('#20 favicon por defecto', () => {
+  it('toda página enlaza el favicon del paquete con la base, sin tocar public/', async () => {
+    const link = '<link rel="icon" href="/repo/_design/favicon.png" type="image/png"';
+    for (const page of ['index.html', 'es/guide/index.html', '404.html', 'es/404/index.html']) {
+      expect(await site.read(page)).toContain(link);
+    }
+  });
+
+  it('la ruta de reserva también lo lleva', async () => {
+    expect(await site.read('es/fallback-demo/index.html')).toContain(
+      'href="/repo/_design/favicon.png"',
+    );
+  });
+
+  it('el endpoint emite el PNG en dist/_design/', async () => {
+    const bytes = await readFile(resolve(site.dist, '_design/favicon.png'));
+    expect([...bytes.subarray(1, 4)]).toEqual([0x50, 0x4e, 0x47]);
+  });
+});

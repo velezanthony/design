@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
+import { resolveFavicon } from './favicon';
 import { applyTitleTemplate, type ResolvedMeta } from './meta';
 
 /** Una etiqueta de `<head>` como dato; `Head.astro` solo la pinta. */
@@ -43,7 +44,7 @@ export function buildHead(
   page: PageData,
   av: Availability,
   site: URL,
-  cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name'>,
+  cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon'>,
   url: Pick<UrlPolicy, 'base'>,
 ): HeadConfig[] {
   const absolute = (path: string) => new URL(path, site).href;
@@ -61,6 +62,7 @@ export function buildHead(
       content: applyTitleTemplate(resolved.titleTemplate, resolved.title),
     },
   ];
+  tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(cfg.favicon, url.base) } });
   if (resolved.description) tags.push(meta('name', 'description', resolved.description));
   if (canonical) tags.push({ tag: 'link', attrs: { rel: 'canonical', href: canonical } });
   if (noindex) tags.push(meta('name', 'robots', 'noindex'));

@@ -13,6 +13,7 @@ declare module 'virtual:@velezanthony/design/config' {
       description?: Label;
       image?: { src: string; alt: Label };
     };
+    favicon?: string;
     locales: string[];
     defaultLocale: string;
     translations: { missing: 'link' | 'omit' | 'fallback' };

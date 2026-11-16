@@ -18,7 +18,7 @@ interface LocalImage {
 }
 
 /** Lee la imagen de `public/`; `undefined` si no existe o si la ruta se sale de `public/`. */
-async function readPublic(publicDir: URL, src: string): Promise<Buffer | undefined> {
+export async function readPublic(publicDir: URL, src: string): Promise<Buffer | undefined> {
   const base = fileURLToPath(publicDir);
   const file = path.resolve(base, publicImagePath(src));
   if (!file.startsWith(path.join(base, path.sep))) return undefined;

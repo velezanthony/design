@@ -3,6 +3,7 @@ import type { AstroIntegration } from 'astro';
 import { AstroError } from 'astro/errors';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
+import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
 import { codeThemes } from '../../ui/styles/code-themes';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
@@ -100,6 +101,11 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         injectRoute({
           pattern: '/sitemap.xml',
           entrypoint: route('sitemap.xml.ts'),
+          prerender: true,
+        });
+        injectRoute({
+          pattern: DEFAULT_FAVICON_PATH,
+          entrypoint: route('favicon.png.ts'),
           prerender: true,
         });
         injectRoute({ pattern: '/404', entrypoint: route('not-found.astro'), prerender: true });

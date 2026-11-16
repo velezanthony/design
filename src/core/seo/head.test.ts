@@ -200,3 +200,46 @@ describe('buildHead + resolveMeta', () => {
     expect(value(tags, 'property', 'og:description')).toBe('Documentación');
   });
 });
+
+describe('buildHead: favicon', () => {
+  const icons = (tags: HeadConfig[]) => links(tags, 'icon');
+
+  it('por defecto emite el favicon del paquete, con base, en toda página', () => {
+    const page = icons(head(meta(), enPage, single));
+    expect(page).toHaveLength(1);
+    expect(page[0].attrs).toEqual({
+      rel: 'icon',
+      href: '/repo/_design/favicon.png',
+      type: 'image/png',
+    });
+  });
+
+  it('también en rutas de reserva y 404', () => {
+    const fallback: PageData = { ...enPage, kind: 'fallback', canonical: '/repo/install/' };
+    const notFound: PageData = { ...enPage, kind: 'notFound', slug: '' };
+    expect(icons(head(meta(), fallback, single))).toHaveLength(1);
+    expect(icons(head(meta(), notFound, new Map()))).toHaveLength(1);
+  });
+
+  it('el favicon de la config manda: ruta con base o https tal cual', () => {
+    const local = { ...cfg, favicon: 'favicon.svg' };
+    const tags = buildHead(meta(), enPage, single, site, local, url);
+    expect(icons(tags)[0].attrs).toEqual({
+      rel: 'icon',
+      href: '/repo/favicon.svg',
+      type: 'image/svg+xml',
+    });
+    const remote = { ...cfg, favicon: 'https://cdn.dev/i.ico' };
+    expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0].attrs.href).toBe(
+      'https://cdn.dev/i.ico',
+    );
+  });
+
+  it('extensión desconocida: sin atributo type', () => {
+    const odd = { ...cfg, favicon: '/i.webp' };
+    expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0].attrs).toEqual({
+      rel: 'icon',
+      href: '/repo/i.webp',
+    });
+  });
+});

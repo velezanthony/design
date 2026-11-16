@@ -19,6 +19,7 @@ import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
 import { toAstroError } from '../integration/errors';
 import { readIntegrationConfig } from './config';
 import { readFrontmatter } from './frontmatter';
+import { checkFavicon } from './favicon';
 import { checkSeoImages } from './images';
 import { resolveRepoRoot } from './repo-root';
 import { docsSchema } from './schema';
@@ -169,7 +170,7 @@ async function sync(ctx: LoaderContext, config: ResolvedConfig): Promise<void> {
     collectImageRefs(config.seo.image, pages),
     ctx.config.publicDir,
   );
-  errors.push(...images.errors);
+  errors.push(...images.errors, ...(await checkFavicon(config.favicon, ctx.config.publicDir)));
   for (const warning of images.warnings) ctx.logger.warn(warning);
   collectErrors(errors);
 }

@@ -102,6 +102,17 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
     expect(output).toContain('/no-esta.png');
   });
 
+  it('favicon de public/ inexistente: nombra el campo y el archivo', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'missing-favicon',
+      config: { name: 'Strict', favicon: '/no-esta.svg' },
+      docs: { 'index.md': page('Home') },
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('favicon');
+    expect(output).toContain('/no-esta.svg');
+  });
+
   it('un fallo de integración (config inválida) se propaga: gtmId sin privacyUrl', async () => {
     const { code, output } = await buildFailingCase({
       name: 'integration-failure',

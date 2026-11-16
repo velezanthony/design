@@ -18,6 +18,8 @@ export interface ResolvedConfig {
     description?: Label;
     image?: { src: string; alt: Label };
   };
+  /** Favicon de `public/` o URL https; sin definir, el del paquete. */
+  favicon?: string;
   locales: Locale[];
   defaultLocale: Locale;
   translations: { missing: MissingTranslation };

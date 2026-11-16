@@ -110,6 +110,7 @@ Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`)
 | `sidebar`       | Order of the sidebar: slugs and groups `{ label, slug?, items }`. The home is `'index'`. Unknown slugs fail the build. The rest goes after. |
 | `editUrl`       | Repo edit base (`https://github.com/o/r/edit/main`). Adds "Edit this page" pointing at the real source file.                    |
 | `repoRoot`      | Repo root relative to the Astro project (default: nearest ancestor with `.git`). Needed for `editUrl` when there is no `.git`.  |
+| `favicon`       | Tab icon: a file in `public/` (`'favicon.svg'` or `'/favicon.svg'`, must exist) or an `https://` URL. Default: the package's own icon. See below. |
 | `gtmId`         | Google Tag Manager id. Loaded only after the visitor accepts the consent banner. Requires `privacyUrl`.                         |
 | `privacyUrl`    | Privacy policy link of the banner and footer (`https://...` or a site path).                                                    |
 | `social`        | `{ github }`.                                                                                                                   |
@@ -127,6 +128,22 @@ seo: {
 A page overrides the base field by field: frontmatter `seo` on native pages, `external[].seo` on
 external ones. Shape: `{ title?, description?, image?: { src, alt? }, noindex? }`. The OG image should
 be about 1.91:1 and under 300 KB (a warning otherwise). `noindex` pages leave `sitemap.xml` and search.
+
+### `favicon`
+
+Every page (docs, fallback routes and 404) emits `<link rel="icon" href type>`. By default the
+package serves its own icon at `<base>/_design/favicon.png`, a namespaced path that never collides
+with your `public/`. Set `favicon` to use yours:
+
+```js
+favicon: 'favicon.svg', // a file in public/ (with or without leading slash), href gets the base
+favicon: 'https://cdn.example.dev/icon.png', // used as-is, not checked (http:// is rejected)
+```
+
+`type` is inferred from the extension (`svg`, `png`, `ico`; anything else omits it). A missing
+`public/` file fails the build with the field and the file. The `public/favicon.svg` and
+`public/favicon.ico` that the Astro scaffold ships are NOT used unless you point `favicon` at one;
+delete them if you keep the default.
 
 ### `sidebar`
 
@@ -197,7 +214,7 @@ Unknown container names (`:::foo`) fail the build; stray colons (`12:30`, `http:
 
 The build fails on: a broken relative link or `#anchor`, a locale suffix that is not in `locales`
 (`x.fr.md`), a page without `h1` or `title`, an unknown admonition, a missing external file, a missing
-SEO image, conflicting translation policies and a sitemap over 50 000 URLs. Warnings: undeclared
+SEO image or `public/` favicon, conflicting translation policies and a sitemap over 50 000 URLs. Warnings: undeclared
 missing translations, an oversized or badly proportioned OG image, an unknown Shiki language.
 
 ## Deploying to GitHub Pages

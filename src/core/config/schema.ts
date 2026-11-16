@@ -11,6 +11,17 @@ const ImageSrcSchema = z
   .string()
   .regex(/^(\/(?!\/)|https:\/\/)/, 'Debe ser una ruta de `public/` (/og.png) o una URL https.');
 
+/* Un favicon vive en `public/` (con o sin barra inicial) o es una URL https; nada de http ni otros esquemas. */
+const FaviconSchema = z
+  .string()
+  .min(1)
+  .refine(
+    (favicon) =>
+      favicon.startsWith('https://') ||
+      !(favicon.startsWith('//') || /^[a-z][a-z0-9+.-]*:/i.test(favicon)),
+    'Debe ser una ruta de `public/` (favicon.svg) o una URL https.',
+  );
+
 /** Valores permitidos de `MissingTranslation` como esquema: zod los lista en el mensaje de error. */
 export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation));
 
@@ -89,6 +100,7 @@ export const DocsConfigSchema = z
         image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema }).optional(),
       })
       .optional(),
+    favicon: FaviconSchema.optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
     defaultLocale: z.string().optional(),
     translations: z.strictObject({ missing: MissingTranslationSchema.optional() }).optional(),
