@@ -32,7 +32,17 @@ npm install astro tailwindcss @tailwindcss/vite @astrojs/markdown-satteri
 The package ships TypeScript and `.astro` sources (no build step); Astro compiles them. To update,
 change the tag and install again.
 
+To type-check the site (`astro check`), add the tooling too: `npm install -D @astrojs/check typescript`
+and a `"check": "astro check"` script. The Astro scaffold (`npm create astro`) has neither.
+
 ## Consumer setup
+
+Paths below are written for a `docs/` folder inside the repo; in a project created with
+`npm create astro` the Astro project is the repo root, so drop the `docs/` prefix and adjust the
+relative paths (`../CHANGELOG.md` becomes `./CHANGELOG.md`). Start by deleting the scaffold page
+`src/pages/index.astro`: the home is `src/content/docs/index.md`, and a page of your own on `/`, `/404`
+or `/sitemap.xml` (or `/es/`, `/es/404` for other locales) fails the build, since Astro would
+otherwise render it instead of the docs.
 
 Declare the config once in `docs.config.mjs`. Astro drops custom properties from integrations, so the
 loader cannot read the config from `astro.config.mjs`; both files import the same module instead.
@@ -215,7 +225,8 @@ npm run check         # astro check
 ```
 
 `playground/` is a real consumer (npm workspace, the library is linked from `src/`, so edits hot-reload)
-built from a snapshot of the snake-orm docs. Regenerate it with
+built from the official Astro scaffold plus a snapshot of the snake-orm docs, and it follows the
+consumer setup above (it depends on `"file:.."` instead of `github:velezanthony/design#vX.Y.Z`). Regenerate it with
 `scripts/migrate-mkdocs/run-snake-orm.sh <snake-orm checkout> <python with griffe2md>`.
 
 CI runs lint, format, check and test on every push and pull request to `main`.
