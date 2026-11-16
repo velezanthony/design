@@ -1,0 +1,18 @@
+---
+interface Props {
+  /** Añade una marca corta de acento al inicio de la regla. */
+  marked?: boolean;
+  class?: string;
+}
+
+const { marked = false, class: className } = Astro.props;
+---
+
+{marked ? (
+  <div class:list={['flex items-center', className]}>
+    <span class="h-px w-8 bg-accent" />
+    <span class="h-px flex-1 bg-rule" />
+  </div>
+) : (
+  <hr class:list={['border-0 border-t border-rule', className]} />
+)}
