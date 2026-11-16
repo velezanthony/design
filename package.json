@@ -32,7 +32,8 @@
     "mdast-util-directive": "^3.2.0",
     "mdast-util-to-markdown": "^2.2.3",
     "pagefind": "^1.6.0",
-    "satteri": "~0.11.6"
+    "satteri": "~0.11.6",
+    "shiki": "^4.6.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
@@ -50,7 +51,6 @@
     "prettier": "^3.10.1",
     "prettier-plugin-astro": "^1.1.2",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "shiki": "^4.6.0",
     "tailwindcss": "^4.3.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.2",

@@ -140,3 +140,32 @@ describe('#7 ids de encabezado github-slugger', () => {
     expect(html).toContain('id="instalación"');
   });
 });
+
+describe('#8 plugins de Markdown en una build real', () => {
+  it('directiva con título por defecto localizado por fileURL, en nativo', async () => {
+    const html = await site.read('es/guide/index.html');
+    expect(html).toContain('data-kind="note"');
+    expect(html).toContain('<p class="admonition-title">Nota</p>');
+  });
+
+  it('alerta de GitHub en un external (es) con el título localizado', async () => {
+    const html = await site.read('es/changelog/index.html');
+    expect(html).toContain('data-kind="warning"');
+    expect(html).toContain('>Advertencia<');
+  });
+
+  it('desplegable, alerta IMPORTANT, pestañas y tabla desplazable', async () => {
+    const html = await site.read('en/guide/index.html');
+    expect(html).toContain('<details class="admonition" data-kind="tip">');
+    expect(html).toContain('data-kind="info"');
+    expect(html).toContain('>Important<');
+    expect(html.match(/class="docs-tab-panel"/g)).toHaveLength(2);
+    expect(html).toContain('table-scroll');
+  });
+
+  it('django y pycon se resaltan por su alias sin romper la build', async () => {
+    const html = await site.read('en/guide/index.html');
+    expect(html.match(/class="astro-code[^"]*"/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(html).toContain('--shiki-dark');
+  });
+});

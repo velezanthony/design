@@ -48,14 +48,16 @@ export function externalPath(file: string, locale: Locale, defaultLocale: Locale
 }
 
 /** Idiomas en los que una entrada externa PUEDE existir (los declarados o, si no, todos los del sitio). */
-function externalLocales(entry: ExternalDoc, cfg: ResolvedConfig): Locale[] {
+function externalLocales(entry: ExternalDoc, cfg: Pick<ResolvedConfig, 'locales'>): Locale[] {
   return entry.locales ?? cfg.locales;
 }
 
 type ExternalDoc = ResolvedConfig['external'][number];
 
 /** Todas las rutas externas que el adaptador debe intentar leer; las que no existan, se omiten. */
-export function externalCandidates(cfg: ResolvedConfig): string[] {
+export function externalCandidates(
+  cfg: Pick<ResolvedConfig, 'external' | 'locales' | 'defaultLocale'>,
+): string[] {
   return cfg.external.flatMap((entry) =>
     externalLocales(entry, cfg).map((locale) =>
       externalPath(entry.file, locale, cfg.defaultLocale),

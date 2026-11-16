@@ -11,14 +11,19 @@ const logger = {
 } as unknown as AstroIntegrationLogger;
 
 /** Contexto falso de `astro:config:setup` (la integración principal de Starlight se prueba igual). */
-function setupContext(processor: { name: string }) {
+function setupContext(processor: { name: string }, shikiConfig: object = {}) {
   const updateConfig = vi.fn((partial: unknown) => partial);
   const injectTypes = vi.fn();
   return {
     updateConfig,
     injectTypes,
     context: {
-      config: { base: '/repo', site: 'https://x.dev', markdown: { processor } },
+      config: {
+        base: '/repo',
+        site: 'https://x.dev',
+        root: new URL('file:///site/'),
+        markdown: { processor, shikiConfig },
+      },
       updateConfig,
       injectTypes,
       logger,
@@ -26,9 +31,9 @@ function setupContext(processor: { name: string }) {
   };
 }
 
-async function runSetup(processor: { name: string }) {
+async function runSetup(processor: { name: string }, shikiConfig: object = {}) {
   const integration = docs({ name: 'x' });
-  const { context, updateConfig } = setupContext(processor);
+  const { context, updateConfig } = setupContext(processor, shikiConfig);
   await integration.hooks['astro:config:setup']?.(context);
   return { integration, updateConfig };
 }
@@ -61,7 +66,9 @@ describe('astro:config:setup: processor de Markdown', () => {
     const processor = satteri();
     await runSetup(processor);
     expect(processor.options.features.directive).toBe(true);
-    expect(processor.options.mdastPlugins).toHaveLength(1);
+    // Plugins de admoniciones, pestañas, tablas… y restoreDirectives al final.
+    expect(processor.options.mdastPlugins.length).toBeGreaterThan(1);
+    expect(processor.options.mdastPlugins.at(-1)).toMatchObject({ name: 'restore-directives' });
   });
 
   it('un processor que no es Sätteri falla con un AstroError accionable', async () => {
@@ -91,5 +98,35 @@ describe('astro:config:setup: fuentes y módulo virtual', () => {
     expect(partial?.vite?.plugins?.map((p) => p.name)).toContain(
       'velezanthony-design-virtual-config',
     );
+  });
+});
+
+describe('astro:config:setup: Shiki', () => {
+  const shikiOf = async (processorShiki: object) => {
+    const { updateConfig } = await runSetup(satteri(), processorShiki);
+    return updateConfig.mock.calls
+      .map(([p]) => p as { markdown?: { shikiConfig?: Record<string, unknown> } })
+      .find((p) => p.markdown?.shikiConfig)?.markdown?.shikiConfig;
+  };
+
+  it('añade los alias django→jinja y pycon→python', async () => {
+    expect((await shikiOf({}))?.langAlias).toEqual({ django: 'jinja', pycon: 'python' });
+  });
+
+  it('fusiona con los alias del consumidor, y el suyo manda', async () => {
+    const merged = (await shikiOf({ langAlias: { foo: 'js', django: 'html' } }))?.langAlias;
+    expect(merged).toEqual({ django: 'html', pycon: 'python', foo: 'js' });
+  });
+
+  it('fija los temas claro/oscuro emparejados si el consumidor no puso los suyos', async () => {
+    expect((await shikiOf({ themes: {} }))?.themes).toEqual({
+      light: 'github-light-default',
+      dark: 'github-dark-default',
+    });
+  });
+
+  it('no pisa los temas del consumidor (no los incluye en su updateConfig)', async () => {
+    const mine = { light: 'min-light', dark: 'min-dark' };
+    expect(await shikiOf({ themes: mine })).not.toHaveProperty('themes');
   });
 });

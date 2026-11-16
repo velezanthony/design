@@ -13,3 +13,31 @@ Dos.
 ## Instalación
 
 Tres
+
+:::tip[Extra]{collapsed}
+Plegado
+:::
+
+> [!IMPORTANT]
+> Alerta
+
+::::tabs
+:::tab[npm]
+npm i
+:::
+:::tab[pnpm]
+pnpm add
+:::
+::::
+
+```django
+{{ valor }}
+```
+
+```pycon
+>>> 1 + 1
+```
+
+| a | b |
+| - | - |
+| 1 | 2 |

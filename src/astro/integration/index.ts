@@ -1,7 +1,10 @@
 import type { AstroIntegration } from 'astro';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
+import { codeThemes } from '../../ui/styles/code-themes';
+import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
+import { mergeLangAlias } from '../markdown/register';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
 import { toAstroError } from './errors';
 import { designFonts } from './fonts';
@@ -39,9 +42,17 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
     name: INTEGRATION_NAME,
     resolvedConfig,
     hooks: {
-      'astro:config:setup': ({ config, updateConfig }) => {
-        extendMarkdownProcessor(config.markdown.processor);
+      'astro:config:setup': ({ config, updateConfig, logger }) => {
+        const env = createMarkdownEnv(resolvedConfig, config.root, (message) =>
+          logger.warn(message),
+        );
+        const { shikiConfig } = config.markdown;
+        const langAlias = mergeLangAlias(shikiConfig?.langAlias);
+        extendMarkdownProcessor(config.markdown.processor, env, langAlias);
+        // Solo si el consumidor no eligió temas: los de la documentación van emparejados con los tokens.
+        const hasThemes = Object.keys(shikiConfig?.themes ?? {}).length > 0;
         updateConfig({
+          markdown: { shikiConfig: { langAlias, ...(hasThemes ? {} : { themes: codeThemes }) } },
           fonts: designFonts(),
           vite: {
             plugins: [

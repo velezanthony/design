@@ -59,7 +59,7 @@ describe('Admonition', () => {
 
   it('el desplegable sin título usa el del tipo', async () => {
     const doc = await admonition({ kind: 'warning', collapsed: true });
-    expect(text(doc.querySelector('summary'))).toBe('Aviso');
+    expect(text(doc.querySelector('summary'))).toBe('Advertencia');
   });
 
   it('un cuerpo con bloques anidados se conserva', async () => {

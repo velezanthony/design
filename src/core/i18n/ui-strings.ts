@@ -68,7 +68,7 @@ const es: UiStrings = {
   'admonition.note': 'Nota',
   'admonition.info': 'Información',
   'admonition.tip': 'Consejo',
-  'admonition.warning': 'Aviso',
+  'admonition.warning': 'Advertencia',
   'admonition.danger': 'Peligro',
   'admonition.question': 'Pregunta',
   'admonition.important': 'Importante',

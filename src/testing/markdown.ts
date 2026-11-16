@@ -1,7 +1,7 @@
 import { markdownToHtml, type Features, type MdastPluginList } from 'satteri';
 
 /* Raíz ficticia de un proyecto consumidor: solo importa la forma de las rutas, nunca se lee. */
-const project = new URL('file:///site/');
+export const project = new URL('file:///site/');
 
 /** URL de un archivo dentro de `src/content/docs/`, como los que ve el loader. */
 export const docFileURL = (relativePath: string): URL =>
