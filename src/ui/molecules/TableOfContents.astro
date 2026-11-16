@@ -1,0 +1,40 @@
+---
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+
+interface Props {
+  /** Encabezados de la página tal como los devuelve `render(entry)`. Se listan h2 y h3. */
+  headings: { depth: number; slug: string; text: string }[];
+  strings: UiStrings;
+}
+
+const { headings, strings } = Astro.props;
+const entries = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const title = t(strings, 'toc.title');
+---
+
+{/*
+  Acompaña a quien lee por una página larga, a su lado: pegajoso en la columna lateral y oculto
+  en móvil, donde no la hay. Con menos de tres entradas es una página, no un documento que
+  merezca índice. Solo marcado: `trackSections` (client/toc.ts) engancha `nav.toc` desde el layout.
+*/}
+{entries.length >= 3 && (
+  <nav aria-label={title} class="toc hidden md:sticky md:top-8 md:block">
+    <p class="label mb-3 text-faint">{title}</p>
+    <ol class="space-y-1 border-l border-rule">
+      {entries.map((entry) => (
+        <li>
+          <a
+            href={`#${entry.slug}`}
+            data-depth={entry.depth}
+            class:list={[
+              '-ml-px block border-l border-transparent py-1 text-sm text-muted transition-colors hover:text-ink aria-[current=location]:border-accent aria-[current=location]:text-ink',
+              entry.depth === 3 ? 'pl-6' : 'pl-3',
+            ]}
+          >
+            {entry.text}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}

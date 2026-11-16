@@ -1,0 +1,26 @@
+---
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+
+interface Props {
+  /** Base de edición del repositorio (`editUrl` de la config). Sin ella no se pinta nada. */
+  editUrl?: string;
+  /**
+   * Archivo fuente relativo a la raíz del repo. Lo decide el contenedor: el de idioma de la
+   * página, la ruta del externo o, en una ruta de reserva, el archivo original.
+   */
+  file: string;
+  strings: UiStrings;
+}
+
+const { editUrl, file, strings } = Astro.props;
+const href = editUrl && `${editUrl.replace(/\/+$/, '')}/${file.replace(/^\/+/, '')}`;
+---
+
+{href && (
+  <a
+    href={href}
+    class="label inline-flex min-h-6 items-center text-muted transition-colors hover:text-ink"
+  >
+    {t(strings, 'edit.page')}
+  </a>
+)}
