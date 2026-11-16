@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # scratch files that never reach the repo
 _local/
+
+# lo que vuelcan las fixtures de integración al construirse
+src/**/fixtures/**/probe.json

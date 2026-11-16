@@ -6,7 +6,5 @@ import { getViteConfig } from 'astro/config';
 export default getViteConfig({
   test: {
     include: ['src/**/*.test.ts'],
-    /* Aún sin tests de módulos; una suite vacía no es un fallo. Se quita al llegar el primero. */
-    passWithNoTests: true,
   },
 });
