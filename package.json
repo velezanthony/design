@@ -6,6 +6,17 @@
   "engines": {
     "node": ">=22.23.4"
   },
+  "workspaces": [
+    "playground"
+  ],
+  "files": [
+    "src",
+    "!src/pages",
+    "!src/testing",
+    "!src/**/fixtures",
+    "!src/**/*.test.ts",
+    "README.md"
+  ],
   "exports": {
     "./integration": "./src/astro/integration/index.ts",
     "./loader": "./src/astro/loader/index.ts",
@@ -26,7 +37,10 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "playground:dev": "npm run dev -w playground",
+    "playground:build": "npm run build -w playground",
+    "playground:check": "npm run check -w playground"
   },
   "dependencies": {
     "mdast-util-directive": "^3.2.0",

@@ -31,3 +31,7 @@ src/**/fixtures/**/probe.json
 
 # casos de reglas estrictas que escriben y borran los tests
 src/**/fixtures/**/.cases/
+
+# el playground tiene su propia carpeta de salida y tipos generados
+playground/dist/
+playground/.astro/

@@ -53,7 +53,7 @@ const layer = (
 /* Sin linting con tipos: `astro check` ya es el dueño de los tipos, y el parser tendría que
    escribir un `.tsx` por cada `.astro` para comprobarlos. */
 export default defineConfig(
-  { ignores: ['**/dist/', '**/.astro/', '_local/', '**/.cases/'] },
+  { ignores: ['**/dist/', '**/.astro/', '_local/', 'playground/', '**/.cases/'] },
 
   js.configs.recommended,
   tseslint.configs.recommended,

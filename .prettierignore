@@ -7,3 +7,6 @@ public/
 
 # Prose, wrapped by hand. Prettier would reflow it.
 *.md
+
+# Real-content consumer, with its own checks.
+playground/
