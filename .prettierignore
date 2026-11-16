@@ -1,0 +1,9 @@
+dist/
+.astro/
+package-lock.json
+
+# Served byte for byte.
+public/
+
+# Prose, wrapped by hand. Prettier would reflow it.
+*.md

@@ -1,43 +1,45 @@
-# Astro Starter Kit: Minimal
+# @velezanthony/design
+
+A library, not a site. It holds the design system and the Astro docs integration that the
+documentation of [velezanthony](https://github.com/velezanthony)'s repositories is built with,
+so every repo's docs look and behave the same.
+
+> Work in progress: nothing is exported yet.
+
+## Requirements
+
+- Node `>=22.23.4`
+- Astro 7
+- Tailwind CSS 4
+
+## Install
+
+It is not published to npm. Install it from GitHub, pinned to a release tag:
 
 ```sh
-npm create astro@latest -- --template minimal
+npm install github:velezanthony/design#v0.1.0
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+To update, change the tag and install again.
 
-## 🚀 Project Structure
+## Development
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+npm install
+npm run dev           # playground
+npm test              # Vitest
+npm run lint          # ESLint
+npm run format:check  # Prettier
+npm run check         # astro check
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+CI runs lint, format, check and test on every push and pull request to `main`.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Releasing
 
-Any static assets, like images, can be placed in the `public/` directory.
+Bump `version` in `package.json`, commit, then tag that commit and push the tag:
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
