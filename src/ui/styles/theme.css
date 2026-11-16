@@ -1,0 +1,526 @@
+@import 'tailwindcss';
+
+/* El paquete se publica como fuente: Tailwind debe escanear las clases de esta carpeta aunque el
+   consumidor importe el tema desde `node_modules`. */
+@source './';
+
+/* Tokens. Los neutros son una rampa OKLCH de matiz 195 para compartir el matiz del acento: no los
+   cambies por los grises por defecto de Tailwind. Los ratios son contra la superficie de cada
+   token. */
+
+@theme {
+  --color-canvas: #fcfefe;
+  --color-raised: #f5f7f7; /*  1.06:1 */
+  --color-ink: #1d2626; /* 15.28:1  AAA */
+  --color-muted: #515a5a; /*  7.01:1  AAA */
+  --color-faint: #6a7272; /*  4.87:1  AA  */
+  --color-accent: #00635b; /*  7.07:1  AAA */
+  --color-accent-soft: #e4f9f5;
+  --color-rule: #d5dada; /*  1.40:1 */
+
+  --color-state-live: #0f6b39; /*  6.52:1  AA  — mantenido    */
+  --color-state-wip: #7d4a00; /*  7.28:1  AAA — experimental */
+
+  --color-danger: #b42318; /*  6.4:1   AA  — error / peligro */
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  --text-display: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.025em;
+
+  --text-row: 0.9375rem; /* 15px */
+  --text-row--line-height: 1.6;
+
+  /* Listas mono de nombres (tecnologías, rutas), como valores junto a texto sans de 14px. Plex Mono
+     comparte métricas con Plex Sans, pero cada glifo ocupa un avance completo, así que una tirada
+     lleva más tinta. Un paso menos iguala el peso; el código en línea toma 0.9em por lo mismo. */
+  --text-mono-list: 0.8125rem; /* 13px */
+  --text-mono-list--line-height: 1.7;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.14em;
+
+  /* ~78 caracteres reales: pasa del clásico 75, a cambio de menos scroll en textos largos. No `ch`:
+     mide el glifo `0`, así que 65ch se verían ~86. */
+  --container-measure: 42rem;
+
+  /* ~75 caracteres de texto de fila de 15px, para anchos de una sola columna. */
+  --container-measure-row: 36rem;
+
+  /* La columna derecha de cada diseño de dos columnas, desde md: barra lateral, metadatos. El
+     contenido a su lado toma el resto de la página. Desde lg son 18rem, más abajo. */
+  --container-aside: 14rem;
+
+  --container-text: 42rem;
+
+  --container-page: 80rem;
+}
+
+/* La columna lateral se estrecha entre md y lg, donde empiezan las dos columnas: 14rem deja al
+   contenido ~425px a 768. Desde lg son 18rem. */
+@media (min-width: 64rem) {
+  :root {
+    --container-aside: 18rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-canvas: #0e1111;
+    --color-raised: #161a1a; /*  1.08:1 */
+    --color-ink: #e0e8e8; /* 15.25:1  AAA */
+    --color-muted: #a6b0b0; /*  8.54:1  AAA */
+    --color-faint: #7e8988; /*  5.26:1  AA  */
+    --color-accent: #67bdb1; /*  8.57:1  AAA — #00635b da 2.65:1 aquí
+                                   y no llega ni al 3:1 de lo no textual */
+    --color-accent-soft: #142422;
+    --color-rule: #2d3333; /*  1.48:1 */
+    --color-state-live: #6dd196; /* 10.13:1  AAA */
+    --color-state-wip: #e0a44a; /*  8.65:1  AAA */
+    --color-danger: #f97066; /*  7.0:1   AAA */
+  }
+}
+
+/* Un tema elegido nombra también su `color-scheme`, o las barras de scroll y los controles nativos
+   conservan el del sistema. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-canvas: #0e1111;
+  --color-raised: #161a1a; /*  1.08:1 */
+  --color-ink: #e0e8e8; /* 15.25:1  AAA */
+  --color-muted: #a6b0b0; /*  8.54:1  AAA */
+  --color-faint: #7e8988; /*  5.26:1  AA  */
+  --color-accent: #67bdb1; /*  8.57:1  AAA — #00635b da 2.65:1 aquí
+                                   y no llega ni al 3:1 de lo no textual */
+  --color-accent-soft: #142422;
+  --color-rule: #2d3333; /*  1.48:1 */
+  --color-state-live: #6dd196; /* 10.13:1  AAA */
+  --color-state-wip: #e0a44a; /*  8.65:1  AAA */
+  --color-danger: #f97066; /*  7.0:1   AAA */
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-canvas);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+}
+
+/* Superficie a sangre sin elemento envoltorio: la sombra extendida la pinta y `clip-path` evita
+   que ensanche el documento. */
+@utility band {
+  background-color: var(--color-raised);
+  box-shadow:
+    0 0 0 100vmax var(--color-raised),
+    inset 0 1px 0 var(--color-rule),
+    inset 0 -1px 0 var(--color-rule);
+  clip-path: inset(0 -100vmax);
+}
+
+@utility label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--text-label--letter-spacing);
+  line-height: var(--text-label--line-height);
+  text-transform: uppercase;
+}
+
+@utility prose {
+  max-width: var(--container-measure);
+
+  /* Un encabezado al que se llega desde el índice o un #enlace compartido aterriza con aire por
+     encima, no pegado al borde. */
+  & :is(h2, h3) {
+    scroll-margin-top: 2rem;
+  }
+
+  & > * + * {
+    margin-top: 1.25em;
+  }
+
+  & h2 {
+    margin-top: 2.75em;
+    padding-top: 1.25em;
+    border-top: 1px solid var(--color-rule);
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+
+  & > h2:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  & h3 {
+    margin-top: 2em;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  & h2 + *,
+  & h3 + * {
+    margin-top: 0.75em;
+  }
+
+  & a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+
+  & strong {
+    font-weight: 600;
+  }
+
+  & ul,
+  & ol {
+    padding-left: 1.25em;
+  }
+
+  & ul {
+    list-style: disc;
+  }
+
+  & ol {
+    list-style: decimal;
+  }
+
+  & li + li {
+    margin-top: 0.4em;
+  }
+
+  & li::marker {
+    color: var(--color-faint);
+  }
+
+  /* El preflight de Tailwind quita todos los bordes de tabla y no colapsa nada, así que una tabla
+     de Markdown se ve como texto suelto. Estas reglas devuelven la rejilla; `.table-scroll`
+     mantiene una tabla ancha dentro de la página en vez de ensanchar el documento. */
+  & .table-scroll {
+    overflow-x: auto;
+    width: calc(100% + 1.5rem);
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  & table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-row);
+    text-align: left;
+  }
+
+  & thead th {
+    padding: 0 0.875em 0.5em;
+    border-bottom: 1px solid var(--color-ink);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+    white-space: nowrap;
+  }
+
+  & tbody th,
+  & tbody td {
+    padding: 0.6em 0.875em;
+    border-bottom: 1px solid var(--color-rule);
+    vertical-align: baseline;
+  }
+
+  & tbody th {
+    font-weight: 500;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+
+  & tbody td {
+    color: var(--color-muted);
+  }
+
+  & :is(thead th, tbody th, tbody td):first-child {
+    padding-left: 0;
+  }
+
+  & :is(thead th, tbody th, tbody td):last-child {
+    padding-right: 0;
+  }
+
+  & tbody tr:last-child :is(th, td) {
+    border-bottom: 0;
+  }
+
+  & blockquote {
+    border-left: 2px solid var(--color-rule);
+    padding-left: 1.25em;
+    color: var(--color-muted);
+  }
+
+  /* El código en línea son rutas, nombres de módulo e ids: tiradas sin cortes más largas que la
+     línea de un móvil. Sin una oportunidad de corte explícita arrastran el documento a un scroll
+     lateral. */
+  & code {
+    font-family: var(--font-mono);
+    /* Un paso menos: a 1em el avance completo y la caja hacían de cada identificador la palabra
+       más ruidosa de su frase, y la caja llenaba la línea. */
+    font-size: 0.9em;
+    background-color: var(--color-raised);
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    overflow-wrap: anywhere;
+  }
+
+  & pre {
+    background-color: var(--color-raised);
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+    padding: 1rem 1.125rem;
+    overflow-x: auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  & pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+    overflow-wrap: normal;
+  }
+
+  & hr {
+    border: 0;
+    border-top: 1px solid var(--color-rule);
+  }
+
+  /* Las capturas sobresalen de la medida hacia el margen. En móvil no hay margen al que sobresalir,
+     así que el exceso se limita al viewport menos el padding de la página: si no, todo el documento
+     hace scroll lateral. */
+  & img {
+    display: block;
+    width: min(calc(100% + 6rem), calc(100vw - 3rem));
+    max-width: var(--container-text);
+    height: auto;
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+  }
+
+  & p:has(> img) {
+    margin-top: 2em;
+  }
+
+  /* Admoniciones: `<aside class="admonition" data-kind>` o, si se pliega, `<details>` con
+     `<summary class="admonition-title">`. El color del tipo sale de los tokens de la paleta. */
+  & .admonition {
+    --admonition-color: var(--color-accent);
+    border: 1px solid var(--color-rule);
+    border-left: 3px solid var(--admonition-color);
+    border-radius: 4px;
+    background-color: var(--color-raised);
+    padding: 0.75rem 1rem;
+    font-size: var(--text-row);
+    line-height: var(--text-row--line-height);
+  }
+
+  & .admonition[data-kind='note'] {
+    --admonition-color: var(--color-accent);
+  }
+
+  & .admonition[data-kind='info'] {
+    --admonition-color: var(--color-ink);
+  }
+
+  & .admonition[data-kind='tip'] {
+    --admonition-color: var(--color-state-live);
+  }
+
+  & .admonition[data-kind='warning'] {
+    --admonition-color: var(--color-state-wip);
+  }
+
+  & .admonition[data-kind='danger'] {
+    --admonition-color: var(--color-danger);
+  }
+
+  & .admonition[data-kind='question'] {
+    --admonition-color: var(--color-muted);
+  }
+
+  & .admonition > * + * {
+    margin-top: 0.5em;
+  }
+
+  & .admonition-title {
+    color: var(--admonition-color);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: var(--text-label--letter-spacing);
+    line-height: var(--text-label--line-height);
+    text-transform: uppercase;
+  }
+
+  /* Plegable: el título es el `<summary>`, clicable y con foco visible; el cuerpo, lo que queda
+     tras él. */
+  & details.admonition > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  & details.admonition > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  & details.admonition > summary::before {
+    content: '+';
+    display: inline-block;
+    width: 1.25em;
+  }
+
+  & details.admonition[open] > summary::before {
+    content: '−';
+  }
+
+  /* Pestañas. Sin JavaScript los paneles se apilan, cada uno con su etiqueta visible. Con
+     JavaScript el grupo recibe `data-enhanced`: aparece la `tablist`, la etiqueta se oculta y solo
+     se ve el panel activo (los demás llevan `hidden`). */
+  & .docs-tabs {
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+  }
+
+  & .docs-tabs:not([data-enhanced]) .docs-tablist {
+    display: none;
+  }
+
+  & .docs-tablist {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding: 0 0.5rem;
+    border-bottom: 1px solid var(--color-rule);
+    background-color: var(--color-raised);
+  }
+
+  & .docs-tab {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid transparent;
+    color: var(--color-muted);
+    font-size: var(--text-row);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  & .docs-tab[aria-selected='true'] {
+    border-bottom-color: var(--color-accent);
+    color: var(--color-ink);
+  }
+
+  & .docs-tab-panel {
+    padding: 0.75rem 1rem;
+  }
+
+  & .docs-tab-panel + .docs-tab-panel {
+    border-top: 1px solid var(--color-rule);
+  }
+
+  & .docs-tab-panel[hidden] {
+    display: none;
+  }
+
+  & .docs-tab-label {
+    margin-bottom: 0.5em;
+    color: var(--color-faint);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--text-label--letter-spacing);
+    line-height: var(--text-label--line-height);
+    text-transform: uppercase;
+  }
+
+  & .docs-tabs[data-enhanced] .docs-tab-label {
+    display: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .astro-code,
+  :root:not([data-theme='light']) .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+/* Elegido con el selector contra un sistema claro: sin esto el código sigue claro en una página oscura. */
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
