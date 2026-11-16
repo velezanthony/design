@@ -131,8 +131,31 @@ describe('themeBootstrapScript', () => {
 });
 
 describe('initTheme', () => {
-  const setup = (opts: { storage?: Storage; systemDark?: boolean; theme?: string } = {}) => {
+  const setup = (
+    opts: {
+      storage?: Storage;
+      systemDark?: boolean;
+      theme?: string;
+      api?: boolean;
+      reduced?: boolean;
+    } = {},
+  ) => {
     const document = page();
+    const seen: { kind?: string; x: string; y: string; r: string }[] = [];
+    if (opts.api) {
+      const start = vi.fn((update: () => void) => {
+        const root = document.documentElement;
+        seen.push({
+          kind: root.dataset.transition,
+          x: root.style.getPropertyValue('--reveal-x'),
+          y: root.style.getPropertyValue('--reveal-y'),
+          r: root.style.getPropertyValue('--reveal-r'),
+        });
+        update();
+        return { finished: Promise.resolve() };
+      });
+      Object.assign(document, { startViewTransition: start });
+    }
     if (opts.theme) document.documentElement.dataset.theme = opts.theme;
     const listeners: (() => void)[] = [];
     const system = {
@@ -140,10 +163,10 @@ describe('initTheme', () => {
       addEventListener: (_: string, cb: () => void) => void listeners.push(cb),
     };
     const storage = opts.storage ?? memory();
-    initTheme({ doc: document, storage, system, colors });
+    initTheme({ doc: document, storage, system, colors, motion: { matches: !!opts.reduced } });
     const buttons = [...document.querySelectorAll('[data-theme-toggle]')];
     const click = (i = 0) => buttons[i]!.dispatchEvent(new document.defaultView!.Event('click'));
-    return { document, storage, buttons, click, system, listeners };
+    return { document, storage, buttons, click, system, listeners, seen };
   };
 
   it('refleja el tema del sistema en aria-pressed al arrancar', () => {
@@ -184,6 +207,41 @@ describe('initTheme', () => {
     system.matches = true;
     for (const cb of listeners) cb();
     expect(buttons[0]!.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  describe('con View Transitions', () => {
+    it('cambia y guarda el tema dentro de la transición, con el círculo naciendo del botón', () => {
+      const { document, storage, buttons, click, seen } = setup({ api: true });
+      Object.assign(buttons[0]!, {
+        getBoundingClientRect: () => ({ left: 90, top: 10, width: 20, height: 20 }),
+      });
+      Object.assign(document.defaultView!, { innerWidth: 400, innerHeight: 300 });
+      click(0);
+      expect(seen).toHaveLength(1);
+      expect(seen[0]!.kind).toBe('theme');
+      expect([seen[0]!.x, seen[0]!.y]).toEqual(['100px', '20px']);
+      /* El radio llega a la esquina más lejana: de (100, 20) a (400, 300). */
+      expect(parseFloat(seen[0]!.r)).toBeCloseTo(Math.hypot(300, 280), 0);
+      expect(document.documentElement.dataset.theme).toBe('dark');
+      expect(storage.getItem('theme')).toBe('dark');
+      expect(buttons[0]!.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('con movimiento reducido cambia al instante, sin usar la API', () => {
+      const { document, storage, click } = setup({ api: true, reduced: true });
+      click();
+      expect(document.startViewTransition).not.toHaveBeenCalled();
+      expect(document.documentElement.dataset.theme).toBe('dark');
+      expect(storage.getItem('theme')).toBe('dark');
+    });
+
+    it('sin la API cambia igual y no deja marcas', () => {
+      const { document, storage, click } = setup({ api: false });
+      click();
+      expect(document.documentElement.dataset.theme).toBe('dark');
+      expect(storage.getItem('theme')).toBe('dark');
+      expect(document.documentElement.dataset.transition).toBeUndefined();
+    });
   });
 
   it('no hace nada en una página sin botón', () => {

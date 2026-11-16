@@ -210,6 +210,16 @@ Code blocks use Shiki (`github-light` / `github-dark`); `django` is highlighted 
 as `python`. Not supported: `{ #id }` custom heading ids and Material icons (`:material-x:` stays text).
 Unknown container names (`:::foo`) fail the build; stray colons (`12:30`, `http://`) are left alone.
 
+## Transitions & image zoom
+
+Pages use the View Transitions API, all of it behind `prefers-reduced-motion: no-preference` and with an instant fallback where the API is missing:
+
+- **Navigation** (CSS only): the header, sidebar and table of contents stay still while the content fades in.
+- **Theme toggle**: the new theme is revealed with a circle that grows from the button.
+- **Tabs**: the panel cross-fades.
+- **Mobile menu**: opens and closes smoothly where `::details-content` is supported.
+- **Image zoom**: content images (`.prose img`) with a non-empty `alt` open in a modal `<dialog>` and morph from the thumbnail to the enlarged image. Decorative images (`alt=""`), images inside links, images declared smaller than 96px and images with `data-no-zoom` are left alone. The labels are the `zoom.open` and `zoom.close` UI strings.
+
 ## Strict build rules
 
 The build fails on: a broken relative link or `#anchor`, a locale suffix that is not in `locales`

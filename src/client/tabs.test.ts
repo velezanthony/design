@@ -141,4 +141,53 @@ describe('initTabs', () => {
     const { tabs } = setup('<div class="docs-tabs"><div class="docs-tab-panel">x</div></div>');
     expect(tabs()[0]!.textContent).toBe('1');
   });
+
+  describe('con View Transitions', () => {
+    const enhanced = (api: boolean, reduced = false) => {
+      const { document } = parseHTML(
+        `<!doctype html><html><body>${group(['a', 'b'])}</body></html>`,
+      );
+      const root = document.querySelector<HTMLElement>('.docs-tabs')!;
+      const seen: string[] = [];
+      const start = vi.fn((update: () => void) => {
+        seen.push(root.style.getPropertyValue('view-transition-name'));
+        update();
+        return { finished: Promise.resolve() };
+      });
+      if (api) Object.assign(document, { startViewTransition: start });
+      initTabs(document, { matches: reduced });
+      const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+      const click = (i: number) => tabs[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+      return { root, tabs, click, start, seen };
+    };
+
+    it('cambia de pestaña dentro de la transición, con el grupo nombrado solo mientras dura', async () => {
+      const { root, tabs, click, start, seen } = enhanced(true);
+      click(1);
+      expect(start).toHaveBeenCalledOnce();
+      expect(seen).toEqual(['docs-tabs']);
+      expect(tabs[1]!.getAttribute('aria-selected')).toBe('true');
+      await new Promise((resolve) => setTimeout(resolve));
+      expect(root.style.getPropertyValue('view-transition-name')).toBe('');
+    });
+
+    it('sin la API cambia igual', () => {
+      const { tabs, click } = enhanced(false);
+      click(1);
+      expect(tabs[1]!.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('con movimiento reducido cambia sin usar la API', () => {
+      const { tabs, click, start } = enhanced(true, true);
+      click(1);
+      expect(start).not.toHaveBeenCalled();
+      expect(tabs[1]!.getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('volver a pulsar la pestaña activa no anima', () => {
+      const { click, start } = enhanced(true);
+      click(0);
+      expect(start).not.toHaveBeenCalled();
+    });
+  });
 });

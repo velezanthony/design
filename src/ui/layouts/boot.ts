@@ -6,6 +6,8 @@ import { initSearch } from '../../client/search';
 import { storageOf } from '../../client/storage';
 import { initTabs } from '../../client/tabs';
 import { initTheme } from '../../client/theme';
+import type { MotionPreference } from '../../client/transition';
+import { initZoom } from '../../client/zoom';
 import { trackSections } from '../../client/toc';
 import { localeFromPath } from '../../core/i18n/locale';
 import { themeColors } from '../styles/theme-colors';
@@ -15,6 +17,8 @@ export interface BootEnv {
   doc: Document;
   storage: Storage | undefined;
   system: Parameters<typeof initTheme>[0]['system'];
+  /** `(prefers-reduced-motion: reduce)`; sin él, las transiciones se permiten. */
+  motion?: MotionPreference;
   clipboard: Pick<Clipboard, 'writeText'> | undefined;
   hostname: string;
   reload: () => void;
@@ -26,6 +30,7 @@ const browserEnv = (): BootEnv => ({
   doc: document,
   storage: storageOf('localStorage'),
   system: matchMedia('(prefers-color-scheme: dark)'),
+  motion: matchMedia('(prefers-reduced-motion: reduce)'),
   clipboard: navigator.clipboard,
   hostname: location.hostname,
   reload: () => location.reload(),
@@ -34,19 +39,26 @@ const browserEnv = (): BootEnv => ({
 
 /**
  * Cablea todo el cliente de una página de docs: tema, consentimiento, buscadores, pestañas, botón
- * de copiar, anclas de encabezado e índice de contenidos. Cada `init*` ignora lo que la página no
+ * de copiar, ampliación de imágenes, anclas de encabezado e índice de contenidos. Cada `init*` ignora lo que la página no
  * tenga. Los textos vienen de `data-*` de `<main>` (el catálogo de la página ya resuelto).
  */
 export function bootDocs(env: BootEnv = browserEnv()): void {
   const { doc } = env;
-  initTheme({ doc, storage: env.storage, system: env.system, colors: themeColors });
+  initTheme({
+    doc,
+    storage: env.storage,
+    system: env.system,
+    colors: themeColors,
+    motion: env.motion,
+  });
   initConsent({ doc, storage: env.storage, hostname: env.hostname, reload: env.reload });
   for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
-  initTabs(doc);
+  initTabs(doc, env.motion);
 
   const main = doc.querySelector<HTMLElement>('main');
   if (main) {
-    const { copyLabel, copiedLabel, copyFailedLabel, anchorLabel } = main.dataset;
+    const { copyLabel, copiedLabel, copyFailedLabel, anchorLabel, zoomLabel, zoomCloseLabel } =
+      main.dataset;
     if (copyLabel && copiedLabel && copyFailedLabel) {
       initCopyCode(doc, {
         clipboard: env.clipboard,
@@ -54,6 +66,9 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
       });
     }
     if (anchorLabel) initHeadingAnchors(doc, anchorLabel);
+    if (zoomLabel && zoomCloseLabel) {
+      initZoom(doc, { labels: { open: zoomLabel, close: zoomCloseLabel }, motion: env.motion });
+    }
   }
 
   const toc = doc.querySelector('nav.toc');

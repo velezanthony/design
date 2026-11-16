@@ -1,4 +1,5 @@
 import { THEME_KEY, safeSet } from './storage';
+import { withTransition, type MotionPreference } from './transition';
 
 export type Theme = 'dark' | 'light';
 
@@ -64,10 +65,30 @@ export interface ThemeEnv {
     addEventListener(type: 'change', cb: () => void): void;
   };
   colors: ThemeColors;
+  /** Si quien visita pidió reducir el movimiento, el cambio es instantáneo. Sin él, se anima. */
+  motion?: MotionPreference;
+}
+
+/**
+ * Las variables del efecto «revelado»: el centro del botón y el radio que alcanza la esquina más
+ * lejana de la ventana, para que el círculo cubra toda la página justo al terminar.
+ */
+export function revealVars(button: Element, win: Pick<Window, 'innerWidth' | 'innerHeight'>) {
+  const rect = button.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  const radius = Math.hypot(Math.max(x, win.innerWidth - x), Math.max(y, win.innerHeight - y));
+  return { '--reveal-x': `${x}px`, '--reveal-y': `${y}px`, '--reveal-r': `${radius}px` };
 }
 
 /** Cablea los botones `[data-theme-toggle]`: cambian el tema, la barra y lo recuerdan. */
-export function initTheme({ doc, storage, system, colors }: ThemeEnv): void {
+export function initTheme({
+  doc,
+  storage,
+  system,
+  colors,
+  motion = { matches: false },
+}: ThemeEnv): void {
   const root = doc.documentElement;
   const buttons = doc.querySelectorAll('[data-theme-toggle]');
   if (!buttons.length) return;
@@ -80,10 +101,22 @@ export function initTheme({ doc, storage, system, colors }: ThemeEnv): void {
   for (const button of buttons) {
     button.addEventListener('click', () => {
       const next = nextTheme(chosen(), system.matches);
-      root.dataset.theme = next;
-      syncThemeColor(doc, colors[next]);
-      safeSet(storage, THEME_KEY, next);
-      sync();
+      /* El tema se cambia dentro de la transición: el navegador fotografía antes y después, y el
+         CSS revela el nuevo con un círculo que nace en el botón. */
+      void withTransition(
+        () => {
+          root.dataset.theme = next;
+          syncThemeColor(doc, colors[next]);
+          safeSet(storage, THEME_KEY, next);
+          sync();
+        },
+        {
+          doc,
+          motion,
+          kind: 'theme',
+          vars: revealVars(button, doc.defaultView ?? { innerWidth: 0, innerHeight: 0 }),
+        },
+      );
     });
   }
 

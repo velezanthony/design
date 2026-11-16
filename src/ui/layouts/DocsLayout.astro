@@ -79,7 +79,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
   </DocsHeader>
 
   <div class="mx-auto grid max-w-(--container-page) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:px-10 xl:grid-cols-[14rem_minmax(0,1fr)_14rem]">
-    <aside class="lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto">
+    <aside class="docs-sidebar lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto">
       {/* En móvil la navegación entera iría antes del contenido: se pliega tras un «Menú». Llega
           abierta (sin JS se ve como siempre) y el script la cierra por debajo de lg antes de pintar;
           desde lg el botón no existe y queda abierta. */}
@@ -108,6 +108,8 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       data-copied-label={t(strings, 'copy.copied')}
       data-copy-failed-label={t(strings, 'copy.failed')}
       data-anchor-label={strings['heading.anchor']}
+      data-zoom-label={strings['zoom.open']}
+      data-zoom-close-label={t(strings, 'zoom.close')}
     >
       {fallback && (
         <FallbackNotice

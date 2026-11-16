@@ -1,3 +1,5 @@
+import { withTransition, type MotionPreference } from './transition';
+
 /**
  * El índice al que lleva una tecla desde la pestaña actual: flechas con vuelta, Inicio y Fin.
  * `undefined` para cualquier otra tecla, que no se toca.
@@ -25,9 +27,11 @@ let groups = 0;
  * `tab` por panel (`.docs-tab-panel`, cuya etiqueta es su `.docs-tab-label`), un solo panel
  * visible y teclado con flechas, Inicio y Fin. Sin JavaScript el marcado sigue siendo legible:
  * paneles apilados, cada uno con su etiqueta. El grupo mejorado recibe `data-enhanced`, que el
- * CSS usa para mostrar la lista y ocultar las etiquetas.
+ * CSS usa para mostrar la lista y ocultar las etiquetas. Al cambiar de pestaña el grupo hace un
+ * fundido cruzado (View Transition con el grupo como único elemento nombrado, para que no se anime
+ * la página entera), salvo que `motion` pida reducir el movimiento.
  */
-export function initTabs(doc: Document): void {
+export function initTabs(doc: Document, motion: MotionPreference = { matches: false }): void {
   for (const root of doc.querySelectorAll<HTMLElement>('.docs-tabs:not([data-enhanced])')) {
     const panels = [...root.querySelectorAll<HTMLElement>(':scope > .docs-tab-panel')];
     if (!panels.length) continue;
@@ -63,13 +67,22 @@ export function initTabs(doc: Document): void {
       });
     };
 
+    /* Lo que hace quien visita: con transición, y sin ella si ya está seleccionada. */
+    const show = (index: number) => {
+      if (tabs[index]!.getAttribute('aria-selected') === 'true') return;
+      root.style.setProperty('view-transition-name', 'docs-tabs');
+      void withTransition(() => select(index), { doc, motion, kind: 'tabs' }).then(() =>
+        root.style.removeProperty('view-transition-name'),
+      );
+    };
+
     tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('click', () => show(i));
       tab.addEventListener('keydown', (event) => {
         const target = nextTabIndex((event as KeyboardEvent).key, i, tabs.length);
         if (target === undefined) return;
         event.preventDefault();
-        select(target);
+        show(target);
         tabs[target]!.focus();
       });
     });

@@ -21,8 +21,9 @@ const env = (html: string, extra: Partial<BootEnv> = {}): BootEnv => {
 
 const content = `
   <button data-theme-toggle aria-pressed="false"></button>
-  <main data-copy-label="Copiar" data-copied-label="Copiado" data-copy-failed-label="Error" data-anchor-label="Enlace a {title}">
+  <main data-copy-label="Copiar" data-copied-label="Copiado" data-copy-failed-label="Error" data-anchor-label="Enlace a {title}" data-zoom-label="Ampliar: {alt}" data-zoom-close-label="Cerrar">
     <h2 id="a">Uno</h2>
+    <div class="prose"><img src="/a.png" alt="Esquema" width="800" height="400"></div>
     <pre class="astro-code"><code>x</code></pre>
     <div class="docs-tabs"><div class="docs-tab-panel"><div class="docs-tab-label">A</div>a</div></div>
   </main>`;
@@ -37,6 +38,21 @@ describe('bootDocs', () => {
     expect(e.doc.querySelector('a.heading-anchor')!.getAttribute('aria-label')).toBe(
       'Enlace a Uno',
     );
+  });
+
+  it('hace ampliables las imágenes del contenido, con los textos de <main>', () => {
+    const e = env(content);
+    bootDocs(e);
+    expect(e.doc.querySelector('button.docs-zoom')!.getAttribute('aria-label')).toBe(
+      'Ampliar: Esquema',
+    );
+    expect(e.doc.querySelector('.docs-zoom-close')!.getAttribute('aria-label')).toBe('Cerrar');
+  });
+
+  it('sin los textos del zoom no toca las imágenes', () => {
+    const e = env(content.replace(/ data-zoom-label="[^"]*"/, ''));
+    bootDocs(e);
+    expect(e.doc.querySelector('button.docs-zoom')).toBeNull();
   });
 
   it('sin <main> ni controles no hace nada (ni falla)', () => {
