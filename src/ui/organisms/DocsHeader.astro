@@ -1,0 +1,47 @@
+---
+import type { Locale } from '../../core/i18n/locale';
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import LocaleSwitch from '../molecules/LocaleSwitch.astro';
+import ThemeToggle from '../molecules/ThemeToggle.astro';
+
+interface Props {
+  /** Nombre del sitio: enlaza a la portada del idioma. */
+  siteName: string;
+  homeHref: string;
+  lang: Locale;
+  /** URL de la misma página en cada idioma en que existe (ver `LocaleSwitch`). */
+  hrefs: Partial<Record<Locale, string>>;
+  strings: UiStrings;
+  /** Id del contenedor principal al que salta el enlace de salto. */
+  mainId?: string;
+}
+
+const { siteName, homeHref, lang, hrefs, strings, mainId = 'main-content' } = Astro.props;
+---
+
+{/* Lo primero que alcanza el tabulador: salta la cabecera y la barra lateral. */}
+<a
+  href={`#${mainId}`}
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-canvas focus:px-4 focus:py-2 focus:text-ink focus:outline focus:outline-2 focus:outline-accent"
+>
+  {t(strings, 'skipToContent')}
+</a>
+
+<header class="border-b border-rule">
+  <div class="mx-auto flex max-w-(--container-page) flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-4 lg:px-10">
+    <a
+      href={homeHref}
+      class="inline-flex min-h-6 items-center font-mono text-sm font-medium tracking-tight text-ink transition-colors hover:text-accent"
+    >
+      {siteName}
+    </a>
+
+    <div class="flex items-center gap-4">
+      <slot />
+      <div class="flex items-center gap-1">
+        <LocaleSwitch lang={lang} hrefs={hrefs} strings={strings} />
+        <ThemeToggle strings={strings} />
+      </div>
+    </div>
+  </div>
+</header>

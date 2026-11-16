@@ -1,0 +1,55 @@
+---
+import { isSidebarGroup, type SidebarNode } from '../../core/navigation/sidebar';
+import { localeNames, t, type UiStrings } from '../../core/i18n/ui-strings';
+import type { Locale } from '../../core/i18n/locale';
+
+/* Lista recursiva de `Sidebar`. Es interna: se usa solo desde ese organismo. */
+interface Props {
+  nodes: SidebarNode[];
+  current: string;
+  strings: UiStrings;
+  root?: boolean;
+}
+
+const { nodes, current, strings, root = false } = Astro.props;
+
+const linkClass =
+  '-ml-px block min-h-6 border-l border-transparent py-1 pl-3 text-muted transition-colors hover:text-ink aria-[current=page]:border-accent aria-[current=page]:text-ink';
+const badgeName = (locale: Locale) =>
+  t(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
+---
+
+<ul class:list={['space-y-0.5', !root && 'ml-3 border-l border-rule']}>
+  {nodes.map((node) => {
+    const group = isSidebarGroup(node);
+    const href = node.href;
+    const badge = node.badge;
+    return (
+      <li>
+        {href ? (
+          <a
+            href={href}
+            aria-current={href === current ? 'page' : undefined}
+            hreflang={badge}
+            lang={badge}
+            class:list={[linkClass, group && 'label text-faint']}
+          >
+            {node.label}
+            {badge && (
+              <span
+                role="img"
+                aria-label={badgeName(badge)}
+                class="label ml-2 border border-rule px-1 text-faint"
+              >
+                {badge}
+              </span>
+            )}
+          </a>
+        ) : (
+          <span class="label block py-1 pl-3 text-faint">{node.label}</span>
+        )}
+        {group && <Astro.self nodes={node.items} current={current} strings={strings} />}
+      </li>
+    );
+  })}
+</ul>

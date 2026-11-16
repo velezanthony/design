@@ -185,6 +185,13 @@ describe('initSearch', () => {
     expect(root.getAttribute('data-state')).toBe('empty');
   });
 
+  it('el mensaje de sin resultados interpola la consulta ({query}) como texto', async () => {
+    const { status, root, type } = setup(() => Promise.resolve(fakeApi([])));
+    root.setAttribute('data-no-results', 'Sin resultados para «{query}»');
+    await type('<b>x</b>');
+    expect(status.textContent).toBe('Sin resultados para «<b>x</b>»');
+  });
+
   it('vaciar la consulta limpia resultados y estado', async () => {
     const api = fakeApi([{ url: '/a/', title: 'A', excerpt: 'a' }]);
     const { status, items, type, root } = setup(() => Promise.resolve(api));

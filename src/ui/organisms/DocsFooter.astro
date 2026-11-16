@@ -1,0 +1,60 @@
+---
+import Link from '../atoms/Link.astro';
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+
+interface Props {
+  siteName: string;
+  /** Año del copyright. Va por props para que el pie salga igual cuando se renderice. */
+  year: number;
+  strings: UiStrings;
+  /** Página de privacidad; sin ella no se pinta el enlace. */
+  privacyUrl?: string;
+  /** Enlaces extra del consumidor (repositorio, licencia…). */
+  links?: { label: string; href: string }[];
+  /** Si el sitio pide consentimiento, hay una elección que reabrir. */
+  cookieControl?: boolean;
+}
+
+const { siteName, year, strings, privacyUrl, links = [], cookieControl = false } = Astro.props;
+const hasLinks = Boolean(privacyUrl) || links.length > 0 || cookieControl;
+---
+
+<footer class="border-t border-rule">
+  <div class="mx-auto flex max-w-(--container-page) flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-6 py-8 font-mono text-xs text-faint lg:px-10">
+    <p>
+      © {year} {siteName}
+    </p>
+
+    {hasLinks && (
+      <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+        {privacyUrl && (
+          <li>
+            <Link href={privacyUrl} variant="quiet">
+              {t(strings, 'consent.privacy')}
+            </Link>
+          </li>
+        )}
+        {cookieControl && (
+          <li>
+            {/* Un botón, no un enlace: actúa sobre la página, no lleva a ningún sitio. El
+                  preflight de Tailwind pone `cursor: default` a los botones. */}
+            <button
+              type="button"
+              data-consent-open
+              class="inline-flex min-h-6 cursor-pointer items-center text-muted transition-colors hover:text-ink"
+            >
+              {t(strings, 'consent.preferences')}
+            </button>
+          </li>
+        )}
+        {links.map((link) => (
+          <li>
+            <Link href={link.href} variant="quiet">
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</footer>

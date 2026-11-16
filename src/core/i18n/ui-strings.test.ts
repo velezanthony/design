@@ -36,6 +36,12 @@ describe('catálogo', () => {
     }
   });
 
+  it('cubre los textos de los organismos (barra lateral, aviso de cookies, pie)', () => {
+    for (const key of ['sidebar.label', 'consent.label', 'consent.preferences'] as const) {
+      expect(uiKeys).toContain(key);
+    }
+  });
+
   it('cada idioma incluido tiene nombre propio', () => {
     expect(localeNames).toEqual({ en: 'English', es: 'Español' });
   });

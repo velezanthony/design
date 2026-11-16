@@ -1,0 +1,70 @@
+---
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+
+interface Props {
+  strings: UiStrings;
+  /** Base del sitio (`import.meta.env.BASE_URL`): de ahí carga el cliente el índice de Pagefind. */
+  baseUrl: string;
+  /** Distingue los ids si hay más de un buscador en la página. */
+  id?: string;
+  class?: string;
+}
+
+const { strings, baseUrl, id = 'docs-search', class: className } = Astro.props;
+const inputId = `${id}-input`;
+---
+
+{/*
+  Marcado que cablea `initSearch` (client/search.ts). Los textos de estado viajan como `data-*`
+  porque el cliente no conoce el catálogo; `{query}` lo interpola el cliente.
+*/}
+<div
+  data-search
+  data-base-url={baseUrl}
+  data-requires-build={t(strings, 'search.requiresBuild')}
+  data-no-results={strings['search.noResults']}
+  class:list={['docs-search', className]}
+>
+  <label for={inputId} class="label mb-1 block text-faint">
+    {t(strings, 'search.label')}
+  </label>
+  <input
+    id={inputId}
+    type="search"
+    data-search-input
+    autocomplete="off"
+    placeholder={t(strings, 'search.placeholder')}
+    class="min-h-10 w-full border border-rule bg-canvas px-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
+  />
+  <p data-search-status role="status" class="mt-2 text-sm text-muted"></p>
+  <ul data-search-results class="docs-search-results mt-2 space-y-1 text-sm"></ul>
+</div>
+
+<style is:global>
+  .docs-search-results a {
+    display: block;
+    min-height: 1.5rem;
+    padding: 0.375rem 0.5rem;
+    color: var(--color-ink);
+    border-left: 2px solid transparent;
+  }
+
+  .docs-search-results a:hover,
+  .docs-search-results a:focus-visible {
+    border-left-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .docs-search-results a > span:last-child {
+    display: block;
+    color: var(--color-muted);
+  }
+
+  .docs-search-results mark {
+    background: transparent;
+    color: var(--color-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+  }
+</style>

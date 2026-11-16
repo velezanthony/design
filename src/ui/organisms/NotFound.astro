@@ -1,0 +1,27 @@
+---
+import Link from '../atoms/Link.astro';
+import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import SearchBox from './SearchBox.astro';
+
+interface Props {
+  strings: UiStrings;
+  /** Portada del idioma de esta 404. */
+  homeHref: string;
+  /** Base del sitio para el buscador. */
+  baseUrl: string;
+}
+
+const { strings, homeHref, baseUrl } = Astro.props;
+---
+
+{/* Los textos `notFound.*` vienen del catálogo (con los overrides del consumidor ya fusionados). */}
+<section class="mx-auto max-w-(--container-measure) py-16">
+  <h1 class="text-3xl font-semibold text-ink">{t(strings, 'notFound.title')}</h1>
+  <p class="mt-4 text-muted">{t(strings, 'notFound.body')}</p>
+  <SearchBox strings={strings} baseUrl={baseUrl} class="mt-8" />
+  <p class="mt-8">
+    <Link href={homeHref} variant="action">
+      {t(strings, 'notFound.home')}
+    </Link>
+  </p>
+</section>

@@ -170,7 +170,11 @@ export function initSearch(
     if (ticket !== latest) return;
     render(hits);
     if (hits.length) setState('results');
-    else setState('empty', root.dataset.noResults ?? '');
+    else
+      setState(
+        'empty',
+        (root.dataset.noResults ?? '').replace('{query}', () => query),
+      );
   };
 
   input.addEventListener('input', () => schedule(() => void search(), debounceMs));
