@@ -502,6 +502,35 @@
   & .docs-tabs[data-enhanced] .docs-tab-label {
     display: none;
   }
+
+  /* Botón de copiar de `client/copy-code.ts`: el bloque se envuelve en `.docs-code` y el botón
+     flota arriba a la derecha. Sin JavaScript no existe y el bloque queda tal cual. */
+  & .docs-code {
+    position: relative;
+  }
+
+  & .docs-copy {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    background-color: var(--color-raised);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    cursor: pointer;
+  }
+
+  & .docs-copy:hover,
+  & .docs-copy[data-state='copied'] {
+    color: var(--color-ink);
+  }
+
+  & .docs-copy[data-state='error'] {
+    color: var(--color-danger);
+  }
 }
 
 @media (prefers-color-scheme: dark) {
