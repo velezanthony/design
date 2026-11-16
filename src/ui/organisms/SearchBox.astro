@@ -8,9 +8,17 @@ interface Props {
   /** Distingue los ids si hay más de un buscador en la página. */
   id?: string;
   class?: string;
+  /** En la cabecera móvil la etiqueta solo queda para lectores de pantalla (el placeholder basta). */
+  compactLabel?: boolean;
 }
 
-const { strings, baseUrl, id = 'docs-search', class: className } = Astro.props;
+const {
+  strings,
+  baseUrl,
+  id = 'docs-search',
+  class: className,
+  compactLabel = false,
+} = Astro.props;
 const inputId = `${id}-input`;
 ---
 
@@ -25,7 +33,10 @@ const inputId = `${id}-input`;
   data-no-results={strings['search.noResults']}
   class:list={['docs-search relative', className]}
 >
-  <label for={inputId} class="label mb-1 block text-faint">
+  <label
+    for={inputId}
+    class:list={['label mb-1 block text-faint', compactLabel && 'max-md:sr-only']}
+  >
     {t(strings, 'search.label')}
   </label>
   <input

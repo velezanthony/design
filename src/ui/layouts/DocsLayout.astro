@@ -75,7 +75,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
 <Shell lang={lang} head={head}>
   <slot name="head" slot="head" />
   <DocsHeader siteName={siteName} homeHref={homeHref} lang={lang} hrefs={hrefs} strings={strings}>
-    <SearchBox strings={strings} baseUrl={baseUrl} />
+    <SearchBox strings={strings} baseUrl={baseUrl} compactLabel />
   </DocsHeader>
 
   <div class="mx-auto grid max-w-(--container-page) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:px-10 xl:grid-cols-[14rem_minmax(0,1fr)_14rem]">

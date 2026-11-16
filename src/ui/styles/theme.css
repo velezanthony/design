@@ -85,6 +85,14 @@
   }
 }
 
+/* Transición entre páginas del mismo origen (fundido cruzado del navegador), sin JS. Solo si quien
+   visita no pidió reducir el movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
 /* Sin tema elegido manda el sistema: sin esto el oscuro del sistema pintaba barras de scroll y
    controles nativos en claro. Un tema elegido lo fija abajo. */
 :root {
@@ -535,6 +543,12 @@
     border-radius: 0;
   }
 
+  /* El ritmo de `prose` solo alcanza a sus hijos directos: dentro de un panel, dos bloques
+     seguidos quedaban pegados. */
+  & .docs-tab-panel > :not(.docs-tab-label) + * {
+    margin-top: 1em;
+  }
+
   & .docs-tab-panel + .docs-tab-panel {
     border-top: 1px solid var(--color-rule);
   }
@@ -580,6 +594,14 @@
 
   /* Con ratón, el botón solo aparece al señalar el bloque (o al enfocarlo con teclado): así no tapa
      el final de las firmas largas mientras se leen. En táctil no hay "señalar" y queda visible. */
+  /* En táctil no hay «señalar»: el botón está siempre visible, así que el bloque le deja una franja
+     propia arriba y el código empieza debajo, sin solaparse nunca. */
+  @media (pointer: coarse) {
+    & .docs-code pre {
+      padding-top: 2.75rem;
+    }
+  }
+
   @media (hover: hover) {
     & .docs-copy {
       opacity: 0;
