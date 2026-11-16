@@ -4,6 +4,9 @@ import { pageUrl, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { fenceMask } from './fences';
 
+/** Carpeta (relativa a la raíz del proyecto) de las páginas nativas; sus `sourcePath` cuelgan de ella. */
+export const NATIVE_DOCS_DIR = 'src/content/docs';
+
 /** Lo que `rewriteLinks` necesita saber del sitio: sus páginas, cómo son sus URLs y sus recursos. */
 export interface PageIndex {
   pages: readonly Page[];
@@ -37,6 +40,25 @@ function resolvePath(fromPath: string, target: string): string {
     else stack.push(segment);
   }
   return stack.join('/');
+}
+
+/**
+ * Página a la que apunta `resolved`. Los `sourcePath` nativos cuelgan de la carpeta de docs y los
+ * external de la raíz del proyecto, así que un nativo que enlaza a un external lo hace con su ruta
+ * real: se vuelve a resolver desde la raíz. Un external solo enlaza a external.
+ */
+function findTarget(
+  resolved: string,
+  decoded: string,
+  from: Page,
+  pages: readonly Page[],
+): Page | undefined {
+  const sameKind = pages.find(
+    (page) => page.kind === from.kind && stripDot(page.sourcePath) === resolved,
+  );
+  if (sameKind || from.kind !== 'native') return sameKind;
+  const fromRoot = resolvePath(`${NATIVE_DOCS_DIR}/${from.sourcePath}`, decoded);
+  return pages.find((page) => page.kind === 'external' && stripDot(page.sourcePath) === fromRoot);
 }
 
 /** Rangos `[inicio, fin)` de los códigos en línea de una línea (backticks de igual longitud). */
@@ -90,15 +112,15 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     errors.push(brokenLink(rawTarget, from, line, 'no es una página ni un recurso publicado'));
     return undefined;
   }
-  const found = index.pages.find(
-    (page) => page.kind === from.kind && stripDot(page.sourcePath) === resolved,
-  );
+  const found = findTarget(resolved, decoded, from, index.pages);
   if (!found) {
     errors.push(brokenLink(rawTarget, from, line, 'no es una página publicada'));
     return undefined;
   }
   // La gemela del idioma de origen manda; si no existe, se enlaza la página que sí existe.
-  const twin = index.pages.find((page) => page.slug === found.slug && page.locale === from.locale);
+  const twin = index.pages.find(
+    (page) => page.kind === found.kind && page.slug === found.slug && page.locale === from.locale,
+  );
   const destination = twin ?? found;
   refs.push({
     file: from.sourcePath,

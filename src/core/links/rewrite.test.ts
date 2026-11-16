@@ -18,6 +18,8 @@ const pages = [
   page('guide', 'en', 'guide.md'),
   page('index', 'es', 'index.es.md'),
   page('changelog', 'en', '../CHANGELOG.md', 'external'),
+  page('changelog', 'es', '../CHANGELOG.es.md', 'external'),
+  page('nested', 'es', 'guide/nested.es.md'),
   page('readme', 'en', '../README.md', 'external'),
 ];
 const index: PageIndex = { pages, url };
@@ -119,5 +121,58 @@ describe('rewriteLinks', () => {
     const never: PageIndex = { pages, url: { ...url, trailingSlash: 'never' } };
     const result = rewriteLinks('[i](./install.md)', from('guide.md'), never);
     expect(result.body).toBe('[i](/repo/install)');
+  });
+
+  describe('de una página nativa a un archivo external', () => {
+    it('resuelve la ruta real del external a su URL en el idioma de la página que enlaza', () => {
+      const es = rewriteLinks(
+        '[c](../../../../CHANGELOG.md#cambios)',
+        from('install.es.md'),
+        index,
+      );
+      expect(es.errors).toEqual([]);
+      expect(es.body).toBe('[c](/repo/es/changelog/#cambios)');
+      expect(es.refs).toEqual([
+        { file: 'install.es.md', line: 1, slug: 'changelog', locale: 'es', anchor: 'cambios' },
+      ]);
+      const en = rewriteLinks('[c](../../../../CHANGELOG.md)', from('install.md'), index);
+      expect(en.body).toBe('[c](/repo/changelog/)');
+    });
+
+    it('funciona desde una carpeta anidada', () => {
+      const result = rewriteLinks(
+        '[c](../../../../../CHANGELOG.md)',
+        from('guide/nested.es.md'),
+        index,
+      );
+      expect(result.errors).toEqual([]);
+      expect(result.body).toBe('[c](/repo/es/changelog/)');
+    });
+
+    it('sin gemela en el idioma, enlaza al external que sí existe', () => {
+      const result = rewriteLinks('[r](../../../../README.md)', from('install.es.md'), index);
+      expect(result.errors).toEqual([]);
+      expect(result.body).toBe('[r](/repo/readme/)');
+    });
+
+    it('respeta trailingSlash never', () => {
+      const never: PageIndex = { pages, url: { ...url, trailingSlash: 'never' } };
+      const result = rewriteLinks('[c](../../../../CHANGELOG.md)', from('install.es.md'), never);
+      expect(result.body).toBe('[c](/repo/es/changelog)');
+    });
+
+    it('un archivo que no es página ni recurso sigue siendo un error', () => {
+      const result = rewriteLinks('[x](../../../../NOPE.md)', from('install.es.md'), index);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0].message).toContain('../../../../NOPE.md');
+    });
+
+    it('un enlace https, incluso al propio sitio, ni se reescribe ni se valida', () => {
+      const body = '[a](https://example.dev/repo/changelog/) [b](https://example.dev/nada.md)';
+      const result = rewriteLinks(body, from('install.es.md'), index);
+      expect(result.body).toBe(body);
+      expect(result.errors).toEqual([]);
+      expect(result.refs).toEqual([]);
+    });
   });
 });

@@ -65,6 +65,31 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
     expect(output).toContain('no-existe.md');
   });
 
+  it('id personalizado `{ #id }` no soportado: enlazarlo es un ancla rota', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'stale-custom-id',
+      config: { name: 'Strict' },
+      docs: {
+        'index.md': page('Home', '## Uso { #usage }\n\nVer [uso](#usage).'),
+      },
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('index.md');
+    expect(output).toContain('#usage');
+  });
+
+  it('enlace relativo a un external con ancla inexistente: nombra archivo y ancla', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'external-broken-anchor',
+      config: { name: 'Strict', external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
+      docs: { 'index.md': page('Home', '[c](../../../CHANGELOG.md#no-existe)') },
+      extra: { 'CHANGELOG.md': '# Changelog\n\n## Uno\n' },
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('index.md:3');
+    expect(output).toContain('#no-existe');
+  });
+
   it('imagen SEO inexistente: nombra la página y el campo', async () => {
     const { code, output } = await buildFailingCase({
       name: 'missing-image',

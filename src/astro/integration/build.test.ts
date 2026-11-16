@@ -447,3 +447,25 @@ describe('#16 políticas de traducción y textos en una build real', () => {
     expect(await site.read('es/404/index.html')).toContain('lang="es"');
   });
 });
+
+describe('#17 enlace relativo de una página nativa a un external', () => {
+  it('se reescribe a la URL del external en el idioma de la página, con base', async () => {
+    expect(await site.read('guide/index.html')).toContain('href="/repo/changelog/"');
+    expect(await site.read('es/guide/index.html')).toContain('href="/repo/es/changelog/"');
+  });
+});
+
+describe('#18 un solo Astro en el árbol del consumidor', () => {
+  it('los puntos de entrada del paquete resuelven el mismo `astro` que la config del consumidor', async () => {
+    const { astro } = await probe();
+    expect(astro.fromPackage).toBeTruthy();
+    expect(astro.fromPackage).toBe(astro.fromConsumer);
+  });
+});
+
+describe('#19 tabla ancha', () => {
+  it('una tabla Markdown sale dentro del contenedor desplazable `table-scroll`', async () => {
+    const html = await site.read('guide/index.html');
+    expect(html).toMatch(/<div class="table-scroll" tabindex="0"><table>[\s\S]*<\/table><\/div>/);
+  });
+});

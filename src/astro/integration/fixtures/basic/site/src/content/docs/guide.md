@@ -47,3 +47,5 @@ pnpm add
 | a | b |
 | - | - |
 | 1 | 2 |
+
+Ver el [changelog](../../../../CHANGELOG.md).

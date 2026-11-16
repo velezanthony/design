@@ -13,7 +13,7 @@ import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
 import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-policy';
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
-import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
+import { NATIVE_DOCS_DIR, rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
 import { toAstroError } from '../integration/errors';
@@ -24,7 +24,7 @@ import { resolveRepoRoot } from './repo-root';
 import { docsSchema } from './schema';
 import { createReloader, watchSources } from './watch';
 
-const NATIVE_DIR = 'src/content/docs';
+const NATIVE_DIR = NATIVE_DOCS_DIR;
 const LOAD_ERROR = 'No se puede cargar el contenido de docs.';
 
 /** Rutas de los `.md` bajo `dir`, relativas a él y con `/` aunque el sistema use otro separador. */

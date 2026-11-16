@@ -143,7 +143,11 @@ twin with no declared policy only warns.
 `external[].file` is relative to the Astro project (`../CHANGELOG.md`). `CHANGELOG.es.md` is its
 Spanish twin. The default-locale file is required, `locales` makes the others required too. Relative
 links and images inside them are resolved against their real location, so they keep working on GitHub.
-Native pages link to each other with relative `.md` paths (`./guide.md`).
+Native pages link to each other with relative `.md` paths (`./guide.md`), and to an external file
+with its real relative path (`../../../../CHANGELOG.md#anchor` from `src/content/docs/`). Relative
+links to native or external files are resolved to the page URL in the language of the linking page
+(falling back like the sidebar does) and validated, `#anchor` included; a relative path to a file that
+is neither a page nor a declared asset fails the build. `https://` links are allowed but not validated.
 
 ## Markdown
 
