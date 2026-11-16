@@ -373,6 +373,15 @@
     overflow-wrap: normal;
   }
 
+  /* En un encabezado el código ya destaca por el propio encabezado (y en la API generada cada
+     miembro es un `h4` con su nombre en código): la caja sería un segundo estilo encima. */
+  & :is(h1, h2, h3, h4) code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+  }
+
   & hr {
     border: 0;
     border-top: 1px solid var(--color-rule);
@@ -540,11 +549,27 @@
     padding: 0.125rem 0.5rem;
     border: 1px solid var(--color-rule);
     border-radius: 3px;
-    background-color: var(--color-raised);
+    /* Opaco y sobre el lienzo: cuando una línea larga pasa por debajo, la tapa en vez de mezclarse. */
+    background-color: var(--color-canvas);
     color: var(--color-muted);
     font-family: var(--font-mono);
     font-size: var(--text-label);
     cursor: pointer;
+  }
+
+  /* Con ratón, el botón solo aparece al señalar el bloque (o al enfocarlo con teclado): así no tapa
+     el final de las firmas largas mientras se leen. En táctil no hay "señalar" y queda visible. */
+  @media (hover: hover) {
+    & .docs-copy {
+      opacity: 0;
+      transition: opacity 120ms;
+    }
+
+    & .docs-code:hover .docs-copy,
+    & .docs-copy:focus-visible,
+    & .docs-copy[data-state] {
+      opacity: 1;
+    }
   }
 
   /* Ancla permanente de `client/anchors.ts`: aparece al señalar o enfocar el encabezado. */

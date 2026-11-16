@@ -23,7 +23,7 @@ const inputId = `${id}-input`;
   data-base-url={baseUrl}
   data-requires-build={t(strings, 'search.requiresBuild')}
   data-no-results={strings['search.noResults']}
-  class:list={['docs-search', className]}
+  class:list={['docs-search relative', className]}
 >
   <label for={inputId} class="label mb-1 block text-faint">
     {t(strings, 'search.label')}
@@ -36,11 +36,37 @@ const inputId = `${id}-input`;
     placeholder={t(strings, 'search.placeholder')}
     class="min-h-10 w-full border border-rule bg-canvas px-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
   />
-  <p data-search-status role="status" class="mt-2 text-sm text-muted"></p>
-  <ul data-search-results class="docs-search-results mt-2 space-y-1 text-sm"></ul>
+  {/* Estado y resultados flotan bajo el campo: si ocuparan sitio, cada búsqueda empujaría la
+      cabecera entera. El panel solo se pinta cuando alguno de los dos tiene contenido. */}
+  <div class="docs-search-panel absolute top-full right-0 z-30 mt-1 w-full min-w-72">
+    <p data-search-status role="status" class="text-sm text-muted"></p>
+    <ul data-search-results class="docs-search-results space-y-1 text-sm"></ul>
+  </div>
 </div>
 
 <style is:global>
+  .docs-search-panel {
+    display: none;
+    max-height: min(70vh, 32rem);
+    overflow-y: auto;
+    padding: 0.5rem;
+    border: 1px solid var(--color-rule);
+    background-color: var(--color-canvas);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  }
+
+  .docs-search-panel:has(> :not(:empty)) {
+    display: block;
+  }
+
+  .docs-search-panel > :empty {
+    display: none;
+  }
+
+  .docs-search-panel > p + ul {
+    margin-top: 0.5rem;
+  }
+
   .docs-search-results a {
     display: block;
     min-height: 1.5rem;
