@@ -19,8 +19,13 @@ function labelFor(label: Label | undefined, locale: Locale): string | undefined 
   return typeof label === 'string' || label === undefined ? label : label[locale];
 }
 
-/** Título del `<title>`: `%s` se sustituye por el título (sin interpretar patrones de `replace`). */
-export function applyTitleTemplate(template: string, title: string): string {
+/**
+ * Título del `<title>`: `%s` se sustituye por el título (sin interpretar patrones de `replace`).
+ * Si el título ya ES el nombre del sitio (la portada suele llamarse así), la plantilla lo repetiría
+ * («SnakeORM | SnakeORM»): se devuelve tal cual.
+ */
+export function applyTitleTemplate(template: string, title: string, siteName?: string): string {
+  if (siteName !== undefined && title === siteName) return title;
   return template.replace('%s', () => title);
 }
 

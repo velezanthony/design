@@ -59,7 +59,7 @@ export function buildHead(
     {
       tag: 'title',
       attrs: {},
-      content: applyTitleTemplate(resolved.titleTemplate, resolved.title),
+      content: applyTitleTemplate(resolved.titleTemplate, resolved.title, cfg.name),
     },
   ];
   tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(cfg.favicon, url.base) } });

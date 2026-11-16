@@ -85,6 +85,21 @@
   }
 }
 
+/* Sin tema elegido manda el sistema: sin esto el oscuro del sistema pintaba barras de scroll y
+   controles nativos en claro. Un tema elegido lo fija abajo. */
+:root {
+  color-scheme: light dark;
+}
+
+/* Barras finas con los colores del tema en vez de las nativas con flechas (barra lateral, código,
+   tablas). El pulgar sale del texto tenue a media opacidad: se ve en los dos temas sin pesar. */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-faint) 55%, transparent) transparent;
+  }
+}
+
 /* Un tema elegido nombra también su `color-scheme`, o las barras de scroll y los controles nativos
    conservan el del sistema. */
 :root[data-theme='light'] {
@@ -209,8 +224,8 @@
   }
 
   & h2 {
-    margin-top: 2.75em;
-    padding-top: 1.25em;
+    margin-top: 1.75em;
+    padding-top: 1em;
     border-top: 1px solid var(--color-rule);
     font-size: 1.375rem;
     font-weight: 600;
@@ -514,6 +529,12 @@
     padding: 0.75rem 1rem;
   }
 
+  /* El panel ya es la caja: un `pre` con su propio borde dentro sería caja dentro de caja. */
+  & .docs-tab-panel pre {
+    border: 0;
+    border-radius: 0;
+  }
+
   & .docs-tab-panel + .docs-tab-panel {
     border-top: 1px solid var(--color-rule);
   }
@@ -615,4 +636,47 @@
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* «Menú» de la navegación en móvil (`DocsLayout`): desde lg no se muestra y el `<details>` queda
+   abierto. En `components` para que la utilidad `lg:hidden` gane. */
+@layer components {
+  .docs-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--color-rule);
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .docs-nav-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .docs-nav-toggle::after {
+    content: '+';
+    color: var(--color-muted);
+  }
+
+  .docs-nav[open] > .docs-nav-toggle::after {
+    content: '−';
+  }
+
+  .docs-nav[open] > .docs-nav-toggle + * {
+    margin-top: 1rem;
+  }
+
+  @media (min-width: 64rem) {
+    .docs-nav[open] > .docs-nav-toggle + * {
+      margin-top: 0;
+    }
+  }
 }

@@ -34,6 +34,14 @@ describe('applyTitleTemplate', () => {
   it('no interpreta los patrones especiales de replace ($&)', () => {
     expect(applyTitleTemplate('%s · X', 'Cost $& more')).toBe('Cost $& more · X');
   });
+
+  it('si el título ya es el nombre del sitio (la portada), no lo repite', () => {
+    expect(applyTitleTemplate('%s | SnakeORM', 'SnakeORM', 'SnakeORM')).toBe('SnakeORM');
+  });
+
+  it('con el nombre del sitio, cualquier otro título sí lleva la plantilla', () => {
+    expect(applyTitleTemplate('%s | SnakeORM', 'Querying', 'SnakeORM')).toBe('Querying | SnakeORM');
+  });
 });
 
 describe('resolveMeta: descripción', () => {

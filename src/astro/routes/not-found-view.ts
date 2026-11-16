@@ -76,7 +76,11 @@ export function notFoundView(
             return {
               lang: other,
               // El <title> de la plantilla lleva la misma plantilla que el de su propia `/<locale>/404/`.
-              title: applyTitleTemplate(cfg.seo.titleTemplate, otherStrings['notFound.title']),
+              title: applyTitleTemplate(
+                cfg.seo.titleTemplate,
+                otherStrings['notFound.title'],
+                cfg.name,
+              ),
               homeHref: pageUrl('', other, url),
               strings: otherStrings,
             };
