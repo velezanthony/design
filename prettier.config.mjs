@@ -2,13 +2,13 @@
 
 /** @type {import('prettier').Config} */
 export default {
-  /* Tailwind's plugin must load last: it wraps the other parsers. */
+  /* El plugin de Tailwind tiene que cargarse el último: envuelve a los demás parsers. */
   plugins: ['prettier-plugin-astro', 'prettier-plugin-tailwindcss'],
-  /* The width the hand-wrapped comments are written to. */
+  /* El ancho al que se ajustan a mano los comentarios. */
   printWidth: 100,
   singleQuote: true,
   overrides: [{ files: '*.astro', options: { parser: 'astro' } }],
 
-  /* The stylesheet that defines `@theme` and the custom utilities, so they sort as Tailwind's own. */
+  /* La hoja que define `@theme` y las utilidades propias, para que se ordenen como las de Tailwind. */
   tailwindStylesheet: './src/styles/theme.css',
 };

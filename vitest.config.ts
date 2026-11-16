@@ -1,12 +1,12 @@
 /// <reference types="vitest/config" />
 import { getViteConfig } from 'astro/config';
 
-/* Through Astro's own Vite config, so aliases and `.astro` compilation resolve in tests
-   exactly as they do in the build. */
+/* Por la config de Vite de Astro, para que los alias y la compilación de `.astro` se resuelvan
+   en los tests exactamente igual que en la build. */
 export default getViteConfig({
   test: {
     include: ['src/**/*.test.ts'],
-    /* No tests yet; an empty suite is not a failure. Drop this once the first one lands. */
+    /* Aún sin tests de módulos; una suite vacía no es un fallo. Se quita al llegar el primero. */
     passWithNoTests: true,
   },
 });
