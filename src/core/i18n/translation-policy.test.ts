@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { Page } from '../content/discovery';
 import { DocsErrors } from '../errors';
+import type { UrlPolicy } from './availability';
 import {
+  fallbackRoutes,
   MissingTranslation,
+  missingEntry,
   resolvePolicies,
   sourceLocale,
   undeclaredMissing,
@@ -141,5 +144,102 @@ describe('DocsErrors se usa con resolvePolicies', () => {
     expect(() => {
       throw new DocsErrors(errors);
     }).toThrow(/x\.md/);
+  });
+});
+
+const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
+const cfg = { locales: ['en', 'es'], defaultLocale: 'en' };
+
+describe('missingEntry', () => {
+  const available = { en: '/repo/changelog/' };
+
+  it('link: hoja hacia el original con la insignia del idioma de origen', () => {
+    expect(
+      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.LINK, cfg, url),
+    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/changelog/', badge: 'en' });
+  });
+
+  it('link: el origen es el primer idioma disponible si falta el idioma por defecto', () => {
+    const entry = missingEntry(
+      'x',
+      'X',
+      { es: '/repo/es/x/' },
+      'en',
+      MissingTranslation.LINK,
+      cfg,
+      url,
+    );
+    expect(entry).toMatchObject({ href: '/repo/es/x/', badge: 'es' });
+  });
+
+  it('fallback: hoja normal, sin insignia, hacia la ruta de reserva del idioma', () => {
+    expect(
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.FALLBACK,
+        cfg,
+        url,
+      ),
+    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/es/changelog/' });
+  });
+
+  it('omit: sin hoja', () => {
+    expect(
+      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.OMIT, cfg, url),
+    ).toBeNull();
+  });
+});
+
+describe('fallbackRoutes', () => {
+  const av = new Map([
+    ['changelog', { en: '/repo/changelog/' }],
+    ['install', { en: '/repo/install/', es: '/repo/es/install/' }],
+    ['faq', { en: '/repo/faq/' }],
+  ]);
+
+  it('una ruta por idioma ausente, solo en grupos fallback', () => {
+    const policies = new Map<string, MissingTranslation>([
+      ['changelog', 'fallback'],
+      ['install', 'fallback'],
+      ['faq', 'link'],
+    ]);
+    expect(fallbackRoutes(av, policies, cfg, url)).toEqual([
+      {
+        slug: 'changelog',
+        locale: 'es',
+        isFallback: true,
+        entryMeta: { locale: 'en' },
+        canonical: '/repo/changelog/',
+      },
+    ]);
+  });
+
+  it('un grupo completo no genera rutas y link/omit tampoco', () => {
+    const policies = new Map<string, MissingTranslation>([
+      ['changelog', 'omit'],
+      ['install', 'fallback'],
+      ['faq', 'link'],
+    ]);
+    expect(fallbackRoutes(av, policies, cfg, url)).toEqual([]);
+  });
+
+  it('no cambia Availability: las rutas de reserva no son traducciones', () => {
+    const before = structuredClone([...av]);
+    fallbackRoutes(av, new Map([['changelog', 'fallback']]), cfg, url);
+    expect([...av]).toEqual(before);
+  });
+
+  it('con tres idiomas genera una ruta por cada idioma ausente', () => {
+    const three = { locales: ['en', 'es', 'fr'], defaultLocale: 'en' };
+    const routes = fallbackRoutes(
+      new Map([['a', { en: '/repo/a/' }]]),
+      new Map([['a', 'fallback']]),
+      three,
+      url,
+    );
+    expect(routes.map((route) => route.locale)).toEqual(['es', 'fr']);
   });
 });
