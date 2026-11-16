@@ -12,7 +12,7 @@ const ImageSrcSchema = z
   .regex(/^(\/(?!\/)|https:\/\/)/, 'Debe ser una ruta de `public/` (/og.png) o una URL https.');
 
 /** Valores permitidos de `MissingTranslation` como esquema: zod los lista en el mensaje de error. */
-const MissingTranslationSchema = z.enum(Object.values(MissingTranslation));
+export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation));
 
 /** Override de SEO de una página: frontmatter `seo` (nativas) o `external[].seo` (externas). */
 export const PageSeoOverrideSchema = z.strictObject({

@@ -35,3 +35,15 @@ export function validateAnchors(refs: LinkRef[], headings: HeadingIndex): DocsEr
   }
   return errors;
 }
+
+/** Índice de ids de encabezado a partir de lo que Astro devolvió al renderizar cada página. */
+export function buildHeadingIndex(
+  pages: readonly { slug: string; locale: Locale; headings: readonly { slug: string }[] }[],
+): HeadingIndex {
+  return new Map(
+    pages.map((page) => [
+      headingKey(page.slug, page.locale),
+      new Set(page.headings.map((heading) => heading.slug)),
+    ]),
+  );
+}

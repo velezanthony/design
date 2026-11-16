@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { headingKey, validateAnchors, type HeadingIndex } from './anchors';
+import { buildHeadingIndex, headingKey, validateAnchors, type HeadingIndex } from './anchors';
 import type { LinkRef } from './rewrite';
 
 const headings: HeadingIndex = new Map([
@@ -53,5 +53,16 @@ describe('validateAnchors', () => {
   it('agrega todos los fallos', () => {
     const refs = [ref({ anchor: 'a' }), ref({ anchor: 'usage' }), ref({ anchor: 'b', line: 9 })];
     expect(validateAnchors(refs, headings).map((e) => e.line)).toEqual([4, 9]);
+  });
+});
+
+describe('buildHeadingIndex', () => {
+  it('indexa los ids de cada página por slug e idioma', () => {
+    const index = buildHeadingIndex([
+      { slug: 'guide', locale: 'es', headings: [{ slug: 'uso' }, { slug: 'api' }] },
+      { slug: 'guide', locale: 'en', headings: [{ slug: 'usage' }] },
+    ]);
+    expect(index.get(headingKey('guide', 'es'))).toEqual(new Set(['uso', 'api']));
+    expect(index.get(headingKey('guide', 'en'))).toEqual(new Set(['usage']));
   });
 });
