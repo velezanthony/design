@@ -24,6 +24,8 @@ export type { DocsUserConfig };
 export { MissingTranslation } from '../../core/i18n/translation-policy';
 /** Valores cerrados de `layout` (`PanelState.COLLAPSED`, `LayoutWidth.FULL`). */
 export { LayoutWidth, PanelState } from '../../core/config/layout';
+/** Valores cerrados de los iconos de `nav` (`NavIcon.GITHUB`). */
+export { NavIcon } from '../../core/config/nav';
 
 export interface DocsIntegration extends AstroIntegration {
   /** La config resuelta. Astro la descarta al validar `config.integrations`: ver `defineDocsConfig`. */

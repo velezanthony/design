@@ -1,7 +1,9 @@
 ---
 import type { Locale } from '../../core/i18n/locale';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import type { NavEntry } from '../../core/navigation/nav-entries';
 import LocaleSwitch from '../molecules/LocaleSwitch.astro';
+import NavList from '../molecules/NavList.astro';
 import ThemeToggle from '../molecules/ThemeToggle.astro';
 
 interface Props {
@@ -12,6 +14,8 @@ interface Props {
   /** URL de la misma página en cada idioma en que existe (ver `LocaleSwitch`). */
   hrefs: Partial<Record<Locale, string>>;
   strings: UiStrings;
+  /** Items de la cabecera (secciones, páginas y enlaces): desde lg van tras el nombre del sitio. */
+  nav?: NavEntry[];
   /** Id del contenedor principal al que salta el enlace de salto. */
   mainId?: string;
   /** Pinta el conmutador de ancho Lectura / Ancho (`layout.toggles`). */
@@ -26,6 +30,7 @@ const {
   lang,
   hrefs,
   strings,
+  nav = [],
   mainId = 'main-content',
   layoutToggles = false,
   layoutWidth = 'reading',
@@ -60,6 +65,14 @@ const widths = [
     >
       {siteName}
     </a>
+
+    {/* Por debajo de lg los mismos items van en el «Menú» de la barra lateral. */}
+    <NavList
+      entries={nav}
+      strings={strings}
+      variant="bar"
+      class="hidden lg:order-1 lg:flex lg:flex-1 lg:items-center"
+    />
 
     {/* En móvil: nombre e idioma/tema en la primera fila y el buscador a todo el ancho debajo.
         Desde md, todo en una fila como siempre. */}

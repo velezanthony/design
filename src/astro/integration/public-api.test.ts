@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { defineDocsConfig, docs, LayoutWidth, MissingTranslation, PanelState } from './index';
+import {
+  defineDocsConfig,
+  docs,
+  LayoutWidth,
+  MissingTranslation,
+  NavIcon,
+  PanelState,
+} from './index';
 
 describe('API pública de ./integration', () => {
   it('exporta MissingTranslation como objeto de valores', () => {
@@ -37,5 +44,22 @@ describe('API pública de ./integration: layout', () => {
       width: 'full',
       toggles: true,
     });
+  });
+});
+
+describe('API pública de ./integration: nav', () => {
+  it('exporta NavIcon como objeto de valores', () => {
+    expect(NavIcon).toEqual({ GITHUB: 'github' });
+  });
+
+  it('una config con nav llega resuelta', () => {
+    const config = defineDocsConfig({
+      name: 'T',
+      nav: [
+        { label: 'Guide', dir: 'users' },
+        { label: 'Code', href: 'https://github.com/x/y', icon: NavIcon.GITHUB },
+      ],
+    });
+    expect(docs(config).resolvedConfig.nav).toHaveLength(2);
   });
 });

@@ -10,6 +10,7 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
+import { validateNav } from '../../core/navigation/nav-sections';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
 import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-policy';
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
@@ -102,8 +103,10 @@ async function sync(ctx: LoaderContext, config: ResolvedConfig): Promise<void> {
   errors.push(...policy.errors);
   // Si el descubrimiento falló no hay páginas fiables: el sidebar se juzgaría contra una lista vacía.
   if (discovered.errors.length === 0) {
+    const pageSlugs = new Set(pages.map((page) => page.slug));
     errors.push(
-      ...validateSidebarSlugs(config.sidebar ?? [], new Set(pages.map((page) => page.slug))),
+      ...validateSidebarSlugs(config.sidebar ?? [], pageSlugs),
+      ...validateNav(config.nav ?? [], pageSlugs),
     );
   }
   for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {

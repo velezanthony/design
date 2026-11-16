@@ -108,6 +108,7 @@ Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`)
 | `ui`            | Overrides of UI texts per locale, merged key by key: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Unknown keys fail.        |
 | `external`      | Files outside `src/content/docs/` published as pages: `{ slug, file, locales?, seo?, translations? }`.                          |
 | `sidebar`       | Order of the sidebar: slugs and groups `{ label, slug?, items }`. The home is `'index'`. Unknown slugs fail the build. The rest goes after. |
+| `nav`           | Header items, each section with its own sidebar: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. See below. |
 | `editUrl`       | Repo edit base (`https://github.com/o/r/edit/main`). Adds "Edit this page" pointing at the real source file.                    |
 | `repoRoot`      | Repo root relative to the Astro project (default: nearest ancestor with `.git`). Needed for `editUrl` when there is no `.git`.  |
 | `favicon`       | Tab icon: a file in `public/` (`'favicon.svg'` or `'/favicon.svg'`, must exist) or an `https://` URL. Default: the package's own icon. See below. |
@@ -152,6 +153,41 @@ Entries are slugs (`'guide/install'`) or groups `{ label, slug?, items }`. The h
 `'index'` (its internal slug is empty). A slug that matches no page, in any language, fails the build
 with one aggregated error naming each of them and its path (`sidebar[2].items[0]`). Pages not listed
 go after the declared ones, by frontmatter `order`, then slug.
+
+### `nav`
+
+Header items after the site name (from `lg`; below it they open the mobile Menu, above the sidebar).
+Without `nav` nothing changes: one top-level `sidebar` for the whole site.
+
+```js
+import { NavIcon } from '@velezanthony/design/integration';
+
+nav: [
+  { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // section
+  { label: 'Changelog', slug: 'changelog' }, // a single page
+  { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // external, https only
+],
+```
+
+- **Section** `{ label, dir, sidebar? }`: every page (native or external) whose slug is `dir` or starts
+  with `dir/` belongs to it. Its pages show ONLY that section's tree on the left, and previous / next
+  never leave it. `sidebar` orders the section (same shape as the top-level one, slugs must live
+  inside `dir`); the rest follows by `order`, then slug, grouped under `dir` (the folder itself is not
+  a level). The item links to the `dir` index page if it exists, else to the section's first page.
+- **Page** `{ label, slug }`: a link to one page. That page belongs to no section.
+- **Link** `{ label, href, icon? }`: external, `https://` only, with `rel="noopener"` and an external
+  marker. With `icon` (`NavIcon.GITHUB`) only the icon is drawn and the label stays for screen readers.
+- **Pages outside every section** (the home, single pages, anything else) use the top-level `sidebar`
+  if you give one (entries that belong to a section are ignored) and, if not, an automatic list of
+  just those pages. Previous / next stay among them.
+- The current section or page carries `aria-current` (`page` on its own page, `true` on a section
+  when you are inside it). `label` can be a string or per locale; a missing locale falls back to the
+  default locale, like every other label. A page item whose page is not translated follows
+  `translations.missing` (`link`/`fallback` point to the original, `omit` hides the item).
+- Fails the build, aggregated with the config path (`nav[1].dir`): a `dir` with no pages, overlapping
+  dirs (equal, or one inside the other), a section `sidebar` slug that is unknown or outside its
+  `dir`, a page `slug` that is not a page or lives inside a section, and an `href` that is not https.
+- UI texts: `nav.label` (the nav landmark) and `nav.external` (the marker for screen readers).
 
 ### `layout`
 

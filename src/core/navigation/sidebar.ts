@@ -1,5 +1,5 @@
 import type { ResolvedConfig } from '../config/resolve';
-import type { Label, SidebarItem } from '../config/schema';
+import type { SidebarItem } from '../config/schema';
 import type { Page } from '../content/discovery';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
@@ -9,6 +9,7 @@ import {
   sourceLocale,
   type TranslationPolicies,
 } from '../i18n/translation-policy';
+import { resolveLabel } from './label';
 import { toSidebarSlug } from './sidebar-slugs';
 
 /** Página de la barra lateral. `badge` solo aparece en las `link`: es el idioma del original. */
@@ -44,9 +45,6 @@ interface Entry {
 
 /** Secciones anidadas como máximo hasta aquí: sección → sección → hoja son tres niveles. */
 const MAX_SECTION_DEPTH = 2;
-
-const resolveLabel = (label: Label, locale: Locale): string =>
-  typeof label === 'string' ? label : (label[locale] ?? Object.values(label)[0] ?? '');
 
 /** `getting-started` → `Getting started`. */
 function humanize(segment: string): string {
@@ -101,16 +99,28 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
   return { label, slug, href, ...(badge && { badge }) };
 }
 
-function autoTree(entries: Entry[], collator: Intl.Collator): SidebarNode[] {
+/**
+ * `base` es la carpeta que hace de raíz (la de una sección de la cabecera): no cuenta como nivel
+ * y sus páginas cuelgan directamente de la raíz del árbol.
+ */
+function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
+  const rootDepth = base === '' ? 0 : base.split('/').length;
   const sectionPath = (slug: string) => {
     const segments = slug.split('/');
-    return segments.slice(0, Math.min(segments.length - 1, MAX_SECTION_DEPTH));
+    const path = segments.slice(0, Math.min(segments.length - 1, rootDepth + MAX_SECTION_DEPTH));
+    return path.length > rootDepth ? path : [];
+  };
+  const parentOf = (path: string) => {
+    const parent = path.split('/').slice(0, -1);
+    return parent.length > rootDepth ? parent.join('/') : '';
   };
   // Un slug es una sección si algún otro cuelga de él como carpeta.
   const sections = new Set<string>();
   for (const { slug } of entries) {
     const path = sectionPath(slug);
-    for (let depth = 1; depth <= path.length; depth++) sections.add(path.slice(0, depth).join('/'));
+    for (let depth = rootDepth + 1; depth <= path.length; depth++) {
+      sections.add(path.slice(0, depth).join('/'));
+    }
   }
 
   const groups = new Map<string, { group: SidebarGroup; sort: Sortable[]; order?: number }>();
@@ -158,7 +168,7 @@ function autoTree(entries: Entry[], collator: Intl.Collator): SidebarNode[] {
     found.group.items = found.sort.sort(compare).map(({ node }) => node);
     const closed = closeGroup(found.group);
     if (!closed) continue;
-    const parent = path.split('/').slice(0, -1).join('/');
+    const parent = parentOf(path);
     const sortable: Sortable = {
       node: closed,
       key: path,
@@ -174,6 +184,7 @@ function declaredTree(
   bySlug: Map<string, Entry>,
   used: Set<string>,
   locale: Locale,
+  defaultLocale: Locale,
 ): SidebarNode[] {
   const nodes: SidebarNode[] = [];
   for (const item of items) {
@@ -188,8 +199,8 @@ function declaredTree(
     const own = item.slug === undefined ? undefined : bySlug.get(toSidebarSlug(item.slug));
     if (own) used.add(own.slug);
     const group: SidebarGroup = {
-      label: resolveLabel(item.label, locale),
-      items: declaredTree(item.items ?? [], bySlug, used, locale),
+      label: resolveLabel(item.label, locale, defaultLocale),
+      items: declaredTree(item.items ?? [], bySlug, used, locale, defaultLocale),
       ...(own && { slug: own.slug, href: own.leaf.href }),
       ...(own?.leaf.badge && { badge: own.leaf.badge }),
     };
@@ -203,6 +214,7 @@ function declaredTree(
  * Árbol de la barra lateral de un idioma, de hasta tres niveles. Sigue el orden declarado en la
  * config; lo no listado va detrás, por `order` del frontmatter y luego por `Intl.Collator` del
  * slug. Los slugs sin traducción en el idioma aplican su política (`link`, `fallback` u `omit`).
+ * `base` es la carpeta raíz de una sección de la cabecera: lo no declarado se agrupa por debajo.
  */
 export function buildSidebar(
   pages: Page[],
@@ -211,15 +223,17 @@ export function buildSidebar(
   cfg: SidebarConfig,
   policies: TranslationPolicies,
   url: UrlPolicy,
+  base = '',
 ): SidebarNode[] {
   const collator = new Intl.Collator(locale, { numeric: true });
   const entries = toEntries(pages, av, locale, cfg, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
   const used = new Set<string>();
-  const declared = declaredTree(cfg.sidebar ?? [], bySlug, used, locale);
+  const declared = declaredTree(cfg.sidebar ?? [], bySlug, used, locale, cfg.defaultLocale);
   const rest = autoTree(
     entries.filter((entry) => !used.has(entry.slug)),
     collator,
+    base,
   );
   return [...declared, ...rest];
 }

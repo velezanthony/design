@@ -189,3 +189,55 @@ describe('docView: dimensiones de la imagen', () => {
     expect(content(tags, 'og:image:width')).toBeUndefined();
   });
 });
+
+describe('docView: nav con secciones', () => {
+  const pages = [
+    doc('', 'en'),
+    doc('', 'es'),
+    doc('showcase', 'en'),
+    doc('users/a', 'en'),
+    doc('users/b', 'en'),
+    doc('users/c', 'en'),
+    doc('contributors/x', 'en'),
+  ];
+  const cfg = site({
+    locales: ['en'],
+    nav: [
+      { label: 'Guide', dir: 'users' },
+      { label: 'Contributing', dir: 'contributors' },
+    ],
+    sidebar: ['index', 'showcase'],
+  });
+  const view = (slug: string) => docView(route(docRoutes(pages, cfg), slug, 'en'), pages, cfg);
+
+  it('la barra lateral es la de la sección de la página', () => {
+    const slugs = (slug: string) =>
+      view(slug).sidebar.map((node) => ('slug' in node ? node.slug : node.label));
+    expect(slugs('users/b')).toEqual(['users/a', 'users/b', 'users/c']);
+    expect(slugs('contributors/x')).toEqual(['contributors/x']);
+    expect(slugs('showcase')).toEqual(['', 'showcase']);
+  });
+
+  it('anterior y siguiente no salen de la sección', () => {
+    expect(view('users/c').next).toBeUndefined();
+    expect(view('users/a').prev).toBeUndefined();
+    expect(view('users/b').prev?.href).toBe('/repo/users/a/');
+    expect(view('showcase').next).toBeUndefined();
+  });
+
+  it('entrega las entradas de cabecera con la sección activa', () => {
+    const entries = view('users/b').nav;
+    expect(entries.map((entry) => [entry.label, entry.current])).toEqual([
+      ['Guide', 'true'],
+      ['Contributing', undefined],
+    ]);
+    expect(entries[0]!.href).toBe('/repo/users/a/');
+  });
+
+  it('sin `nav` la lista es vacía y la barra lateral es la entera', () => {
+    const plain = site({ locales: ['en'] });
+    const v = docView(route(docRoutes(pages, plain), 'users/b', 'en'), pages, plain);
+    expect(v.nav).toEqual([]);
+    expect(v.sidebar.length).toBeGreaterThan(1);
+  });
+});

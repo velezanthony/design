@@ -3,7 +3,9 @@ import { buildAvailability, pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import { fallbackRoutes, resolvePolicies } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
-import { buildSidebar, flatten, type SidebarNode } from '../../core/navigation/sidebar';
+import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
+import { buildScopedSidebar } from '../../core/navigation/nav-sidebar';
+import { flatten, type SidebarNode } from '../../core/navigation/sidebar';
 import { prevNext } from '../../core/navigation/prev-next';
 import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
 import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
@@ -62,6 +64,8 @@ export interface DocView {
   hrefs: Partial<Record<Locale, string>>;
   strings: UiStrings;
   sidebar: SidebarNode[];
+  /** Items de la cabecera (vacío sin `nav`). */
+  nav: NavEntry[];
   current: string;
   prev?: { label: string; href: string };
   next?: { label: string; href: string };
@@ -113,7 +117,8 @@ export function docView(
     url,
   );
 
-  const sidebar = buildSidebar(pages, av, route.locale, cfg, policies, url);
+  const navContext = { pages, av, locale: route.locale, cfg, policies, url, slug: route.slug };
+  const sidebar = buildScopedSidebar(navContext);
   const neighbours = prevNext(flatten(sidebar), route.slug);
   const link = (leaf?: { label: string; href: string }) =>
     leaf && { label: leaf.label, href: leaf.href };
@@ -128,6 +133,7 @@ export function docView(
     hrefs: av.get(route.slug) ?? {},
     strings: cfg.strings[route.locale] as UiStrings,
     sidebar,
+    nav: buildNav(cfg.nav, navContext),
     current: pageUrlOfRoute,
     ...(prev && { prev }),
     ...(next && { next }),

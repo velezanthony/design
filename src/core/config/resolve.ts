@@ -3,6 +3,7 @@ import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import { resolveLayout, type ResolvedLayout } from './layout';
+import type { NavItem } from './nav';
 import {
   DocsConfigSchema,
   type ExternalDoc,
@@ -27,6 +28,8 @@ export interface ResolvedConfig {
   ui: UiOverrides;
   external: ExternalDoc[];
   sidebar?: SidebarItem[];
+  /** Items de la cabecera; sin definir, el sitio usa solo `sidebar`. */
+  nav?: NavItem[];
   editUrl?: string;
   repoRoot?: string;
   privacyUrl?: string;

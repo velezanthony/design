@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveConfig } from './resolve';
 import { DocsConfigSchema, PageSeoOverrideSchema } from './schema';
 import { DocsErrors } from '../errors';
+import { NavIcon } from './nav';
 
 function messages(input: unknown): string[] {
   try {
@@ -127,5 +128,99 @@ describe('layout de la config', () => {
     expect(messages({ name: 'X', layout: { rail: true } })).toEqual([
       expect.stringContaining('layout.rail'),
     ]);
+  });
+});
+
+describe('nav', () => {
+  const base = { name: 'X', locales: ['en', 'es'] };
+
+  it('sin `nav` no cambia nada: queda sin definir', () => {
+    expect(resolveConfig({ name: 'X' }).nav).toBeUndefined();
+  });
+
+  it('acepta una sección, una página y un enlace con icono', () => {
+    const nav = [
+      { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/a'] },
+      { label: 'Changelog', slug: 'changelog' },
+      { label: 'GitHub', href: 'https://github.com/x/y', icon: NavIcon.GITHUB },
+    ];
+    expect(resolveConfig({ ...base, nav }).nav).toEqual(nav);
+  });
+
+  it('NavIcon es un objeto `as const` con el icono de GitHub', () => {
+    expect(NavIcon).toEqual({ GITHUB: 'github' });
+  });
+
+  it('un icono desconocido falla con la ruta del campo', () => {
+    const out = messages({
+      ...base,
+      nav: [{ label: 'G', href: 'https://x.dev', icon: 'twitter' }],
+    });
+    expect(out[0]).toContain('nav[0].icon');
+  });
+
+  it('solo https: un href http o relativo falla con su ruta', () => {
+    expect(messages({ ...base, nav: [{ label: 'G', href: 'http://x.dev' }] })[0]).toContain(
+      'nav[0].href',
+    );
+    expect(messages({ ...base, nav: [{ label: 'G', href: '/x' }] })[0]).toContain('nav[0].href');
+  });
+
+  it('cada item es exactamente uno de sección, página o enlace', () => {
+    expect(messages({ ...base, nav: [{ label: 'G' }] })[0]).toContain('nav[0]');
+    expect(messages({ ...base, nav: [{ label: 'G', dir: 'a', slug: 'b' }] })[0]).toContain(
+      'nav[0]',
+    );
+  });
+
+  it('`sidebar` solo va con `dir` e `icon` solo con `href`', () => {
+    expect(messages({ ...base, nav: [{ label: 'G', slug: 'a', sidebar: ['a'] }] })[0]).toContain(
+      'nav[0].sidebar',
+    );
+    expect(messages({ ...base, nav: [{ label: 'G', dir: 'a', icon: 'github' }] })[0]).toContain(
+      'nav[0].icon',
+    );
+  });
+
+  it('una opción desconocida de un item se nombra con su ruta', () => {
+    expect(messages({ ...base, nav: [{ label: 'G', dir: 'a', color: 'red' }] })).toEqual([
+      expect.stringContaining('nav[0].color'),
+    ]);
+  });
+
+  it('el dir va sin barras al principio ni al final', () => {
+    expect(messages({ ...base, nav: [{ label: 'G', dir: '/users/' }] })[0]).toContain('nav[0].dir');
+  });
+
+  it('dirs que se solapan fallan: iguales o uno prefijo del otro', () => {
+    const same = messages({
+      ...base,
+      nav: [
+        { label: 'A', dir: 'users' },
+        { label: 'B', dir: 'users' },
+      ],
+    });
+    expect(same[0]).toContain('nav[1].dir');
+    const nested = messages({
+      ...base,
+      nav: [
+        { label: 'A', dir: 'users' },
+        { label: 'B', dir: 'users/guide' },
+      ],
+    });
+    expect(nested[0]).toContain('nav[1].dir');
+    expect(nested[0]).toContain('nav[0]');
+  });
+
+  it('dirs hermanos con prefijo de texto común no se solapan', () => {
+    expect(
+      messages({
+        ...base,
+        nav: [
+          { label: 'A', dir: 'users' },
+          { label: 'B', dir: 'users-extra' },
+        ],
+      }),
+    ).toEqual([]);
   });
 });

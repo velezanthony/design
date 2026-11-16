@@ -5,6 +5,10 @@
 declare module 'virtual:@velezanthony/design/config' {
   type Label = string | Record<string, string>;
   type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
+  type NavItem =
+    | { label: Label; dir: string; sidebar?: SidebarItem[] }
+    | { label: Label; slug: string }
+    | { label: Label; href: string; icon?: 'github' };
 
   const config: {
     name: string;
@@ -25,6 +29,7 @@ declare module 'virtual:@velezanthony/design/config' {
       translations?: 'link' | 'omit' | 'fallback';
     }[];
     sidebar?: SidebarItem[];
+    nav?: NavItem[];
     editUrl?: string;
     repoRoot?: string;
     privacyUrl?: string;

@@ -2,10 +2,12 @@
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import type { NavEntry } from '../../core/navigation/nav-entries';
 import type { SidebarNode } from '../../core/navigation/sidebar';
 import type { HeadConfig } from '../../core/seo/head';
 import EditLink from '../molecules/EditLink.astro';
 import FallbackNotice from '../molecules/FallbackNotice.astro';
+import NavList from '../molecules/NavList.astro';
 import PanelToggle from '../molecules/PanelToggle.astro';
 import PrevNext from '../molecules/PrevNext.astro';
 import TableOfContents from '../molecules/TableOfContents.astro';
@@ -26,6 +28,8 @@ interface Props {
   hrefs: Partial<Record<Locale, string>>;
   strings: UiStrings;
   sidebar: SidebarNode[];
+  /** Items de la cabecera; en móvil abren el «Menú», antes de la barra lateral de la sección. */
+  nav?: NavEntry[];
   /** URL de esta página (la entrada de la barra lateral que lleva `aria-current`). */
   current: string;
   headings: { depth: number; slug: string; text: string }[];
@@ -54,6 +58,7 @@ const {
   hrefs,
   strings,
   sidebar,
+  nav = [],
   current,
   headings,
   prev,
@@ -85,6 +90,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     lang={lang}
     hrefs={hrefs}
     strings={strings}
+    nav={nav}
     layoutToggles={layout.toggles}
     layoutWidth={layout.width}
   >
@@ -107,6 +113,12 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
           desde lg el botón no existe y queda abierta. */}
         <details class="docs-nav" open data-docs-nav>
           <summary class="docs-nav-toggle lg:hidden">{t(strings, 'sidebar.toggle')}</summary>
+          <NavList
+            entries={nav}
+            strings={strings}
+            variant="menu"
+            class="mb-4 border-b border-rule pb-4 lg:hidden"
+          />
           <Sidebar nodes={sidebar} current={current} strings={strings} />
         </details>
         <script is:inline>

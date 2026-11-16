@@ -15,6 +15,81 @@ const header = (props: Record<string, unknown> = {}) =>
     ...props,
   });
 
+const navEntries = [
+  { label: 'Guía', href: '/repo/es/users/a/', kind: 'section', current: 'true' },
+  { label: 'Changelog', href: '/repo/es/changelog/', kind: 'page', current: 'page' },
+  { label: 'Contribuir', href: '/repo/es/contributors/', kind: 'section' },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/x/y',
+    kind: 'link',
+    external: true,
+    icon: 'github',
+  },
+  { label: 'Blog', href: 'https://blog.dev', kind: 'link', external: true },
+];
+
+describe('DocsHeader: nav', () => {
+  it('sin items no pinta navegación de secciones', async () => {
+    expect((await header()).querySelector('header nav[aria-label="Secciones"]')).toBeNull();
+  });
+
+  it('pinta los items en orden dentro de un nav etiquetado, tras el nombre del sitio', async () => {
+    const doc = await header({ nav: navEntries });
+    const nav = doc.querySelector('header nav[aria-label="Secciones"]')!;
+    expect(
+      [...nav.querySelectorAll('a')].map((a) => text(a).replace(/\s*Enlace externo$/, '')),
+    ).toEqual(['Guía', 'Changelog', 'Contribuir', 'GitHub', 'Blog']);
+    const home = doc.querySelector('header a[href="/repo/es/"]')!;
+    expect(home.compareDocumentPosition(nav) & 4).toBeTruthy();
+  });
+
+  it('marca la sección actual con aria-current="true" y la página con "page"', async () => {
+    const nav = (await header({ nav: navEntries })).querySelector(
+      'header nav[aria-label="Secciones"]',
+    )!;
+    expect(nav.querySelector('a[href="/repo/es/users/a/"]')!.getAttribute('aria-current')).toBe(
+      'true',
+    );
+    expect(nav.querySelector('a[href="/repo/es/changelog/"]')!.getAttribute('aria-current')).toBe(
+      'page',
+    );
+    expect(
+      nav.querySelector('a[href="/repo/es/contributors/"]')!.hasAttribute('aria-current'),
+    ).toBe(false);
+  });
+
+  it('los externos llevan rel="noopener" y un marcador externo; los internos, ninguno', async () => {
+    const nav = (await header({ nav: navEntries })).querySelector(
+      'header nav[aria-label="Secciones"]',
+    )!;
+    const blog = nav.querySelector('a[href="https://blog.dev"]')!;
+    expect(blog.getAttribute('rel')).toBe('noopener');
+    expect(text(blog.querySelector('[data-external-marker]'))).toContain('Enlace externo');
+    const guide = nav.querySelector('a[href="/repo/es/users/a/"]')!;
+    expect(guide.hasAttribute('rel')).toBe(false);
+    expect(guide.querySelector('[data-external-marker]')).toBeNull();
+  });
+
+  it('un enlace con icono es solo icono pero conserva su etiqueta para lectores de pantalla', async () => {
+    const nav = (await header({ nav: navEntries })).querySelector(
+      'header nav[aria-label="Secciones"]',
+    )!;
+    const github = nav.querySelector('a[href="https://github.com/x/y"]')!;
+    expect(github.querySelector('svg')).not.toBeNull();
+    const label = [...github.querySelectorAll('span')].find((span) => text(span) === 'GitHub')!;
+    expect(label.getAttribute('class')).toContain('sr-only');
+  });
+
+  it('desde lg y no antes: la barra va oculta por debajo de lg', async () => {
+    const nav = (await header({ nav: navEntries })).querySelector(
+      'header nav[aria-label="Secciones"]',
+    )!;
+    expect(nav.getAttribute('class')).toMatch(/\bhidden\b/);
+    expect(nav.getAttribute('class')).toMatch(/lg:flex|lg:block/);
+  });
+});
+
 describe('DocsHeader', () => {
   it('el enlace de salto es lo primero y apunta al contenido principal', async () => {
     const doc = await header();

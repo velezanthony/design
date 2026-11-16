@@ -263,3 +263,46 @@ describe('DocsLayout: columnas plegables y ancho', () => {
     });
   });
 });
+
+describe('DocsLayout: nav en el menú móvil', () => {
+  const nav = [
+    { label: 'Guía', href: '/repo/es/users/a/', kind: 'section', current: 'true' },
+    {
+      label: 'GitHub',
+      href: 'https://github.com/x/y',
+      kind: 'link',
+      external: true,
+      icon: 'github',
+    },
+  ];
+
+  it('el menú muestra primero los items de nav y después el sidebar de la sección', async () => {
+    const doc = await page({ nav });
+    const menu = doc.querySelector('details.docs-nav')!;
+    const items = menu.querySelector('nav[aria-label="Secciones"]')!;
+    const tree = menu.querySelector('nav[aria-label="Documentación"]')!;
+    expect(items.querySelector('a[href="/repo/es/users/a/"]')).not.toBeNull();
+    expect(items.compareDocumentPosition(tree) & 4).toBeTruthy();
+  });
+
+  it('en el menú el enlace con icono enseña su etiqueta', async () => {
+    const doc = await page({ nav });
+    const github = doc.querySelector('details.docs-nav a[href="https://github.com/x/y"]')!;
+    const label = [...github.querySelectorAll('span')].find(
+      (span) => span.textContent === 'GitHub',
+    )!;
+    expect(label.getAttribute('class') ?? '').not.toContain('sr-only');
+  });
+
+  it('la navegación del menú solo se ve por debajo de lg', async () => {
+    const doc = await page({ nav });
+    expect(
+      doc.querySelector('details.docs-nav nav[aria-label="Secciones"]')!.getAttribute('class'),
+    ).toContain('lg:hidden');
+  });
+
+  it('sin nav el menú solo lleva el sidebar', async () => {
+    const doc = await page();
+    expect(doc.querySelector('details.docs-nav nav[aria-label="Secciones"]')).toBeNull();
+  });
+});
