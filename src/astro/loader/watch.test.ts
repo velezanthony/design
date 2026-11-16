@@ -70,6 +70,33 @@ describe('watchSources', () => {
   });
 });
 
+describe('watchSources: Astro quita los listeners en cada sincronización completa', () => {
+  const options = { nativeDir: '/p/docs', files: [] as string[] };
+
+  it('si el watcher pierde nuestros listeners, la siguiente carga los vuelve a enganchar', async () => {
+    const watcher = new FakeWatcher();
+    const first = vi.fn(async () => {});
+    const second = vi.fn(async () => {});
+    watchSources(watcher as never, { ...options, reload: first });
+    // Lo que hace `ContentLayer.sync` antes de volver a llamar a `load`: removeAllTrackedListeners.
+    watcher.removeAllListeners();
+    watchSources(watcher as never, { ...options, reload: second });
+    watcher.emit('add', '/p/docs/nueva/index.es.md');
+    await settle();
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it('si los listeners siguen puestos no se duplican', () => {
+    const watcher = new FakeWatcher();
+    watchSources(watcher as never, { ...options, reload: async () => {} });
+    watchSources(watcher as never, { ...options, reload: async () => {} });
+    for (const event of ['add', 'change', 'unlink']) {
+      expect(watcher.listenerCount(event)).toBe(1);
+    }
+  });
+});
+
 describe('createReloader', () => {
   it('agrupa avisos mientras recarga y lanza una sola recarga más', async () => {
     let release!: () => void;
