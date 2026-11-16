@@ -6,3 +6,5 @@ seo:
 # Hidden
 
 Página fuera de buscadores.
+
+Término único zznoindexunico.

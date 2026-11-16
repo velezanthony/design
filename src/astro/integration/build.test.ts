@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildFixture, type BuiltSite } from '../../testing/build';
+import { searchBuilt } from '../../testing/search';
 
 /* Tests de riesgo del diseño que solo existen en una build real. Se construye UNA vez el proyecto
    de `fixtures/basic` (`base: '/repo'`) y cada test lee su parte. Lento a propósito. */
@@ -77,33 +77,7 @@ describe('#4 Pagefind por la API de Node con base', () => {
     globalThis.fetch = realFetch;
   });
 
-  /** Busca como lo haría el navegador: `fetch` de `http://x/repo/**` leído de `dist/`. */
-  async function search(lang: string, term: string): Promise<string[]> {
-    globalThis.fetch = async (input) => {
-      const url = new URL(String(input), 'http://x/repo/');
-      try {
-        return new Response(
-          await readFile(resolve(site.dist, url.pathname.replace(/^\/repo\//, ''))),
-        );
-      } catch {
-        return new Response('no encontrado', { status: 404 });
-      }
-    };
-    Object.assign(globalThis, {
-      location: { origin: 'http://x', href: 'http://x/repo/' },
-      window: globalThis,
-      document: { querySelector: () => ({ getAttribute: () => lang }), documentElement: { lang } },
-    });
-    const pagefind = await import(
-      /* @vite-ignore */ `${pathToFileURL(resolve(site.dist, 'pagefind/pagefind.js')).href}?${lang}`
-    );
-    await pagefind.options({ basePath: 'http://x/repo/pagefind/' });
-    await pagefind.init();
-    const { results } = await pagefind.search(term);
-    return (
-      await Promise.all(results.map((r: { data(): Promise<{ url: string }> }) => r.data()))
-    ).map((d) => d.url);
-  }
+  const search = (lang: string, term: string) => searchBuilt(site.dist, lang, term);
 
   it('escribe el índice en dist/pagefind/', async () => {
     expect(await site.read('pagefind/pagefind-entry.json')).toContain('languages');
@@ -280,5 +254,41 @@ describe('#11 layouts y rutas de la Fase 12', () => {
     expect(html).not.toContain('<template');
     expect(html).toContain('<meta name="robots" content="noindex"');
     expect(html).toMatch(/<main[^>]*data-pagefind-ignore/);
+  });
+});
+
+describe('#12 alcance del índice de búsqueda', () => {
+  const realFetch = globalThis.fetch;
+  afterAll(() => {
+    globalThis.fetch = realFetch;
+  });
+  const search = (lang: string, term: string) => searchBuilt(site.dist, lang, term);
+
+  it('control positivo: el cuerpo de una página indexable sí se encuentra', async () => {
+    expect(await search('en', 'zzfallbackunico')).toEqual(['/repo/fallback-demo/']);
+  });
+
+  it('una ruta de reserva /es/<slug>/ no aparece: es no devuelve el término del original', async () => {
+    expect(await search('es', 'zzfallbackunico')).toEqual([]);
+  });
+
+  it('una página noindex no aparece en ningún idioma', async () => {
+    expect(await search('en', 'zznoindexunico')).toEqual([]);
+    expect(await search('es', 'zznoindexunico')).toEqual([]);
+  });
+
+  it('el cromo queda fuera: la barra lateral (título de otra página) y la cabecera no dan resultados', async () => {
+    expect(await search('en', 'hidden')).toEqual([]);
+    expect(await search('en', 'Fixture')).toEqual([]);
+  });
+
+  it('las 404 no se indexan: su texto no se encuentra', async () => {
+    expect(await search('en', 'moved')).toEqual([]);
+    expect(await search('es', 'movido')).toEqual([]);
+  });
+
+  it('el aislamiento por idioma se mantiene: es no encuentra lo de en', async () => {
+    expect(await search('es', 'Usage')).toEqual([]);
+    expect(await search('en', 'Guía')).toEqual([]);
   });
 });
