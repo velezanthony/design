@@ -317,6 +317,27 @@ describe('docsLoader: traducciones no declaradas', () => {
   });
 });
 
+describe('docsLoader: slugs del sidebar', () => {
+  it('falla con todos los slugs desconocidos y su ruta en la config', async () => {
+    await write('src/content/docs/a.md', '# A\n');
+    const message = await failure({
+      name: 'T',
+      sidebar: ['a', 'nope', { label: 'G', items: ['ghost'] }],
+    });
+    expect(message).toContain('sidebar[1]');
+    expect(message).toContain('nope');
+    expect(message).toContain('sidebar[2].items[0]');
+    expect(message).toContain('ghost');
+  });
+
+  it("acepta 'index' para la portada", async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/a.md', '# A\n');
+    const { entries } = await load({ name: 'T', sidebar: ['a', 'index'] });
+    expect(entries.has('en/index')).toBe(true);
+  });
+});
+
 describe('docsLoader: raíz del repositorio', () => {
   it('editUrl sin raíz del repo rompe con una pista accionable', async () => {
     await write('src/content/docs/a.md', '# A\n');

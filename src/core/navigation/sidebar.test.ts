@@ -186,3 +186,16 @@ describe('flatten', () => {
     expect(leaves.find((leaf) => leaf.slug === 'changelog')?.badge).toBe('en');
   });
 });
+
+describe('buildSidebar: portada en la config', () => {
+  it("'index' coloca la portada donde se declara", () => {
+    const pages = [page(''), page('guide'), page('install')];
+    expect(shape(build(pages, 'en', ['guide', 'index']))).toEqual(['guide', '', 'install']);
+  });
+
+  it("una sección puede apuntar a la portada con slug 'index'", () => {
+    const pages = [page(''), page('guide')];
+    const tree = build(pages, 'en', [{ label: 'Home', slug: 'index', items: ['guide'] }]);
+    expect((tree[0] as SidebarGroup).slug).toBe('');
+  });
+});

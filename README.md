@@ -39,11 +39,12 @@ loader cannot read the config from `astro.config.mjs`; both files import the sam
 
 ```js
 // docs/docs.config.mjs
-import { defineDocsConfig } from '@velezanthony/design/integration';
+import { defineDocsConfig, MissingTranslation } from '@velezanthony/design/integration';
 
 export default defineDocsConfig({
   name: 'My repo',
   locales: ['en', 'es'],
+  translations: { missing: MissingTranslation.LINK },
   external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
 });
 ```
@@ -93,10 +94,10 @@ Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`)
 | `locales`       | Languages, `en` and `es` have built-in UI texts. Default `['en']`.                                                              |
 | `defaultLocale` | Unsuffixed files and `/`. Default: the first locale.                                                                            |
 | `seo`           | Site-wide SEO base, see below.                                                                                                  |
-| `translations`  | `{ missing: 'link' \| 'omit' \| 'fallback' }`, default `'link'`. See below.                                                     |
+| `translations`  | `{ missing: MissingTranslation.LINK }` (`LINK`, `OMIT`, `FALLBACK`), default `LINK`. See below.                                  |
 | `ui`            | Overrides of UI texts per locale, merged key by key: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Unknown keys fail.        |
 | `external`      | Files outside `src/content/docs/` published as pages: `{ slug, file, locales?, seo?, translations? }`.                          |
-| `sidebar`       | Order of the sidebar: slugs and groups `{ label, slug?, items }`. What is not listed goes after, by frontmatter `order`, slug.  |
+| `sidebar`       | Order of the sidebar: slugs and groups `{ label, slug?, items }`. The home is `'index'`. Unknown slugs fail the build. The rest goes after. |
 | `editUrl`       | Repo edit base (`https://github.com/o/r/edit/main`). Adds "Edit this page" pointing at the real source file.                    |
 | `repoRoot`      | Repo root relative to the Astro project (default: nearest ancestor with `.git`). Needed for `editUrl` when there is no `.git`.  |
 | `gtmId`         | Google Tag Manager id. Loaded only after the visitor accepts the consent banner. Requires `privacyUrl`.                         |
@@ -117,7 +118,18 @@ A page overrides the base field by field: frontmatter `seo` on native pages, `ex
 external ones. Shape: `{ title?, description?, image?: { src, alt? }, noindex? }`. The OG image should
 be about 1.91:1 and under 300 KB (a warning otherwise). `noindex` pages leave `sitemap.xml` and search.
 
+### `sidebar`
+
+Entries are slugs (`'guide/install'`) or groups `{ label, slug?, items }`. The home page is written
+`'index'` (its internal slug is empty). A slug that matches no page, in any language, fails the build
+with one aggregated error naming each of them and its path (`sidebar[2].items[0]`). Pages not listed
+go after the declared ones, by frontmatter `order`, then slug.
+
 ### `translations`
+
+`MissingTranslation` is exported from `@velezanthony/design/integration` (value and type), so the
+config reads `MissingTranslation.LINK`. In frontmatter YAML the same values are plain strings:
+`translations: link | omit | fallback`.
 
 When a page exists in one language and not in another, `translations.missing` decides what the other
 language shows: `link` (the sidebar links to the original, badged with its language), `omit` (nothing)

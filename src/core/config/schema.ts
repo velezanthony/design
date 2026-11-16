@@ -23,6 +23,10 @@ export const PageSeoOverrideSchema = z.strictObject({
 });
 export type PageSeoOverride = z.infer<typeof PageSeoOverrideSchema>;
 
+/**
+ * Entrada del sidebar: un slug o una sección `{ label, slug?, items }`. La portada se escribe
+ * `'index'` (su slug interno es vacío). Un slug sin página hace fallar la carga.
+ */
 export type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
 
 const SidebarItemSchema: z.ZodType<SidebarItem, SidebarItem> = z.lazy(() =>

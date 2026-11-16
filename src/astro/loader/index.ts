@@ -10,6 +10,7 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
+import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
 import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-policy';
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
 import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
@@ -98,6 +99,12 @@ async function sync(ctx: LoaderContext, config: ResolvedConfig): Promise<void> {
 
   const policy = resolvePolicies(pages, config.translations.missing);
   errors.push(...policy.errors);
+  // Si el descubrimiento falló no hay páginas fiables: el sidebar se juzgaría contra una lista vacía.
+  if (discovered.errors.length === 0) {
+    errors.push(
+      ...validateSidebarSlugs(config.sidebar ?? [], new Set(pages.map((page) => page.slug))),
+    );
+  }
   for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {
     ctx.logger.warn(
       `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`translations\` para elegir qué ve quien no tiene traducción.`,

@@ -9,6 +9,7 @@ import {
   sourceLocale,
   type TranslationPolicies,
 } from '../i18n/translation-policy';
+import { toSidebarSlug } from './sidebar-slugs';
 
 /** Página de la barra lateral. `badge` solo aparece en las `link`: es el idioma del original. */
 export interface SidebarLeaf {
@@ -177,13 +178,14 @@ function declaredTree(
   const nodes: SidebarNode[] = [];
   for (const item of items) {
     if (typeof item === 'string') {
-      const entry = bySlug.get(item);
+      const slug = toSidebarSlug(item);
+      const entry = bySlug.get(slug);
       if (!entry) continue;
-      used.add(item);
+      used.add(slug);
       nodes.push(entry.leaf);
       continue;
     }
-    const own = item.slug === undefined ? undefined : bySlug.get(item.slug);
+    const own = item.slug === undefined ? undefined : bySlug.get(toSidebarSlug(item.slug));
     if (own) used.add(own.slug);
     const group: SidebarGroup = {
       label: resolveLabel(item.label, locale),

@@ -18,6 +18,8 @@ import { buildPagefindIndex } from './pagefind';
 export const INTEGRATION_NAME = '@velezanthony/design';
 
 export type { DocsUserConfig };
+/** Valores cerrados de `translations.missing` (`MissingTranslation.LINK`); en el frontmatter son las mismas cadenas. */
+export { MissingTranslation } from '../../core/i18n/translation-policy';
 
 export interface DocsIntegration extends AstroIntegration {
   /** La config resuelta. Astro la descarta al validar `config.integrations`: ver `defineDocsConfig`. */
