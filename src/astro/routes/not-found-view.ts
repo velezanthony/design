@@ -2,7 +2,7 @@ import { pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildHead, type HeadConfig } from '../../core/seo/head';
-import { resolveMeta } from '../../core/seo/meta';
+import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import { urlPolicyOf } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 
@@ -37,15 +37,22 @@ export interface NotFoundView {
  * Datos de una 404. `/404` (sin `locale`) es el idioma por defecto y trae las plantillas de los
  * demás más los datos de la sustitución en sitio; `/<locale>/404/` pinta su idioma directamente.
  */
-export function notFoundView(locale: Locale | undefined, cfg: VirtualConfig): NotFoundView {
+export function notFoundView(
+  locale: Locale | undefined,
+  cfg: VirtualConfig,
+  sizes: ImageSizes = new Map(),
+): NotFoundView {
   const lang = locale ?? cfg.defaultLocale;
   const url = urlPolicyOf(cfg);
   const strings = cfg.strings[lang] as UiStrings;
-  const meta = resolveMeta(
-    cfg.seo,
-    { description: strings['notFound.description'] },
-    { title: strings['notFound.title'] },
-    lang,
+  const meta = withImageSize(
+    resolveMeta(
+      cfg.seo,
+      { description: strings['notFound.description'] },
+      { title: strings['notFound.title'] },
+      lang,
+    ),
+    sizes,
   );
   const head = buildHead(
     { ...meta, noindex: true },

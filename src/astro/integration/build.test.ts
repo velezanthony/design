@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildFixture, type BuiltSite } from '../../testing/build';
@@ -290,5 +290,160 @@ describe('#12 alcance del índice de búsqueda', () => {
   it('el aislamiento por idioma se mantiene: es no encuentra lo de en', async () => {
     expect(await search('es', 'Usage')).toEqual([]);
     expect(await search('en', 'Guía')).toEqual([]);
+  });
+});
+
+/** Valor de `content` de una etiqueta `<meta>` por su `name`/`property`; `undefined` si no está. */
+function metaContent(html: string, key: string): string | undefined {
+  const tag = html.match(/<meta\b[^>]*>/g)?.find((candidate) => {
+    return candidate.includes(`name="${key}"`) || candidate.includes(`property="${key}"`);
+  });
+  return tag && /content="([^"]*)"/.exec(tag)?.[1];
+}
+const metaAll = (html: string, key: string) =>
+  (html.match(/<meta\b[^>]*>/g) ?? [])
+    .filter((tag) => tag.includes(`property="${key}"`) || tag.includes(`name="${key}"`))
+    .map((tag) => /content="([^"]*)"/.exec(tag)?.[1]);
+const titleOf = (html: string) => /<title>([^<]*)<\/title>/.exec(html)?.[1];
+
+describe('#13 sitemap único y sin robots.txt', () => {
+  it('solo existe sitemap.xml: ni índice ni sitemap-N.xml ni robots.txt', async () => {
+    const files = await readdir(site.dist);
+    expect(files.filter((file) => /^sitemap/.test(file))).toEqual(['sitemap.xml']);
+    expect(files).not.toContain('robots.txt');
+  });
+
+  it('lista las páginas reales con alternates y deja fuera noindex, reservas y 404', async () => {
+    const xml = await site.read('sitemap.xml');
+    expect(xml).toContain('<loc>https://example.dev/repo/card/</loc>');
+    expect(xml).toContain('hreflang="es" href="https://example.dev/repo/es/card/"');
+    expect(xml).toContain('<loc>https://example.dev/repo/link-demo/</loc>');
+    expect(xml).not.toContain('/repo/es/link-demo/');
+    expect(xml).not.toContain('/repo/hidden/');
+    expect(xml).not.toContain('/repo/es/fallback-demo/');
+    expect(xml).not.toMatch(/404/);
+  });
+});
+
+describe('#14 LocaleSwitch y hreflang con disponibilidad completa y parcial', () => {
+  it('completa: la ficha en es enlaza a en y el head lleva hreflang es, en y x-default', async () => {
+    const html = await site.read('es/card/index.html');
+    expect(html).toContain('hreflang="en" href="https://example.dev/repo/card/"');
+    expect(html).toContain('hreflang="es" href="https://example.dev/repo/es/card/"');
+    expect(html).toContain('hreflang="x-default" href="https://example.dev/repo/card/"');
+    expect(html).toContain('href="/repo/card/"');
+  });
+
+  it('parcial: una página solo en inglés no emite hreflang ni og:locale:alternate', async () => {
+    const html = await site.read('link-demo/index.html');
+    expect(html).not.toContain('rel="alternate"');
+    expect(metaAll(html, 'og:locale:alternate')).toEqual([]);
+    expect(metaContent(html, 'og:locale')).toBe('en');
+  });
+});
+
+describe('#15 etiquetas SEO y cascada', () => {
+  it('og:image absoluta bajo base, con tamaño leído y alt = título de la página', async () => {
+    const html = await site.read('es/card/index.html');
+    expect(metaContent(html, 'og:image')).toBe('https://example.dev/repo/og.png');
+    expect(metaContent(html, 'og:image:width')).toBe('1200');
+    expect(metaContent(html, 'og:image:height')).toBe('630');
+    expect(metaContent(html, 'og:image:alt')).toBe('Tarjeta');
+    expect(metaContent(html, 'twitter:image')).toBe('https://example.dev/repo/og.png');
+    expect(metaContent(html, 'twitter:image:alt')).toBe('Tarjeta');
+  });
+
+  it('twitter:*, og:locale y og:locale:alternate solo de traducciones reales', async () => {
+    const html = await site.read('es/card/index.html');
+    expect(metaContent(html, 'twitter:card')).toBe('summary_large_image');
+    expect(metaContent(html, 'twitter:title')).toBe('Tarjeta');
+    expect(metaContent(html, 'og:locale')).toBe('es');
+    expect(metaAll(html, 'og:locale:alternate')).toEqual(['en']);
+    expect(titleOf(html)).toBe('Tarjeta | Fixture docs');
+  });
+
+  it('la base aporta descripción e imagen por idioma', async () => {
+    const es = await site.read('es/index.html');
+    expect(metaContent(es, 'description')).toBe('Descripción de la fixture');
+    expect(metaContent(es, 'og:image:alt')).toBe('Tarjeta de la fixture');
+    const en = await site.read('index.html');
+    expect(metaContent(en, 'description')).toBe('Fixture description');
+    expect(metaContent(en, 'og:image:alt')).toBe('Fixture card');
+  });
+
+  it('el frontmatter sobrescribe título (solo el head) y descripción', async () => {
+    const html = await site.read('guide/index.html');
+    expect(titleOf(html)).toBe('Guide for the head | Fixture docs');
+    expect(metaContent(html, 'description')).toBe('Guide description');
+    expect(html).toMatch(/<h1[^>]*>Guide<\/h1>/);
+    // la hermana en es no hereda el override de en: vuelve a la base
+    expect(metaContent(await site.read('es/guide/index.html'), 'description')).toBe(
+      'Descripción de la fixture',
+    );
+  });
+
+  it('external[].seo sobrescribe la descripción de la externa', async () => {
+    expect(metaContent(await site.read('changelog/index.html'), 'description')).toBe(
+      'Changelog override',
+    );
+  });
+
+  it('noindex: robots, fuera del sitemap y del índice (ver #11 y #12)', async () => {
+    const html = await site.read('hidden/index.html');
+    expect(metaContent(html, 'robots')).toBe('noindex');
+    expect(html).not.toContain('rel="canonical"' + 'x');
+    expect(await site.read('sitemap.xml')).not.toContain('/repo/hidden/');
+  });
+});
+
+describe('#16 políticas de traducción y textos en una build real', () => {
+  const sidebarHtml = () => site.read('es/guide/index.html');
+
+  it('link: la barra es muestra la insignia en inglés y no existe /es/<slug>/', async () => {
+    const html = await sidebarHtml();
+    expect(html).toContain('href="/repo/link-demo/" hreflang="en" lang="en"');
+    await expect(site.read('es/link-demo/index.html')).rejects.toThrow();
+  });
+
+  it('omit: ausente de la barra es y sin ruta es', async () => {
+    expect(await sidebarHtml()).not.toContain('omit-demo');
+    await expect(site.read('es/omit-demo/index.html')).rejects.toThrow();
+    expect(await site.read('guide/index.html')).toContain('/repo/omit-demo/');
+  });
+
+  it('external con translations: link como las nativas', async () => {
+    expect(await sidebarHtml()).toContain('href="/repo/notes/" hreflang="en" lang="en"');
+    expect(await site.read('notes/index.html')).toContain('Notes');
+    await expect(site.read('es/notes/index.html')).rejects.toThrow();
+  });
+
+  it('fallback: ruta es con aviso, lang del original, noindex y fuera de sitemap (ver #11)', async () => {
+    const html = await site.read('es/fallback-demo/index.html');
+    expect(html).toContain('<div lang="en"');
+    expect(metaContent(html, 'robots')).toBe('noindex');
+  });
+
+  it('una página sin traducción ni política avisa en la build, una vez por grupo', async () => {
+    /* `output` junta stdout y stderr: la misma línea puede salir dos veces (con otra hora). */
+    const warnings = [
+      ...new Set(
+        site.output
+          .split('\n')
+          .filter((line) => line.includes('lonely: falta'))
+          .map((line) => line.replace(/^\d\d:\d\d:\d\d /, '')),
+      ),
+    ];
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain('es');
+  });
+
+  it('ui sobrescrito se ve en el HTML de es y no en el de en', async () => {
+    expect(await site.read('es/guide/index.html')).toContain('placeholder="Buscar en la fixture"');
+    expect(await site.read('guide/index.html')).toContain('placeholder="Search the docs"');
+  });
+
+  it('404.html en la raíz de base con plantilla es y /es/404/ (ver #9 y #11)', async () => {
+    expect(await site.read('404.html')).toContain('<template data-locale="es"');
+    expect(await site.read('es/404/index.html')).toContain('lang="es"');
   });
 });

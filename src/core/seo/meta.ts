@@ -49,3 +49,13 @@ export function resolveMeta(
     titleTemplate: base.titleTemplate,
   };
 }
+
+/** Dimensiones leídas de las imágenes locales, por su `src` (las https no figuran). */
+export type ImageSizes = ReadonlyMap<string, { width: number; height: number }>;
+
+/** Completa `width`/`height` de la imagen con las dimensiones leídas, si se conocen. */
+export function withImageSize(meta: ResolvedMeta, sizes: ImageSizes): ResolvedMeta {
+  const size = meta.image && sizes.get(meta.image.src);
+  if (!meta.image || !size) return meta;
+  return { ...meta, image: { ...meta.image, width: size.width, height: size.height } };
+}

@@ -3,6 +3,7 @@
    defecto con una plantilla por cada otro idioma; `/[locale]/404` pinta el suyo directamente. */
 import { Font } from 'astro:assets';
 import NotFoundLayout from '../../ui/layouts/NotFoundLayout.astro';
+import { readImageSizes } from '../loader/images';
 import { notFoundRoutes, notFoundView } from './not-found-view';
 import { siteConfig } from './site-config';
 
@@ -10,7 +11,11 @@ export function getStaticPaths() {
   return notFoundRoutes(siteConfig);
 }
 
-const view = notFoundView(Astro.params.locale, siteConfig);
+const sizes = await readImageSizes(
+  [siteConfig.seo.image?.src].filter((src) => src !== undefined),
+  new URL(siteConfig.publicDir ?? 'file:///'),
+);
+const view = notFoundView(Astro.params.locale, siteConfig, sizes);
 ---
 
 <NotFoundLayout {...view} year={new Date().getFullYear()}>

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { checkSeoImages } from './images';
+import { checkSeoImages, readImageSizes } from './images';
 
 /** PNG mínimo válido para leer sus dimensiones; `extra` infla el peso sin cambiar la cabecera. */
 function png(width: number, height: number, extra = 0): Buffer {
@@ -98,5 +98,17 @@ describe('checkSeoImages', () => {
       publicDir,
     );
     expect(warnings).toHaveLength(2);
+  });
+});
+
+describe('readImageSizes', () => {
+  it('lee las dimensiones de las locales y omite https, ausentes e ilegibles', async () => {
+    await writeFile(path.join(dir, 'public/og.png'), png(1200, 630));
+    await writeFile(path.join(dir, 'public/roto.png'), 'no es una imagen');
+    const sizes = await readImageSizes(
+      ['/og.png', '/og.png', 'https://cdn.dev/x.png', '/falta.png', '/roto.png'],
+      publicDir,
+    );
+    expect([...sizes]).toEqual([['/og.png', { width: 1200, height: 630 }]]);
   });
 });

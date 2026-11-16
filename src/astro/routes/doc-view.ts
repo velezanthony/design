@@ -6,7 +6,7 @@ import { buildSidebar, flatten, type SidebarNode } from '../../core/navigation/s
 import { prevNext } from '../../core/navigation/prev-next';
 import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
 import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
-import { resolveMeta } from '../../core/seo/meta';
+import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import { pagesOf, urlPolicyOf, type DocData } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 
@@ -74,7 +74,12 @@ export interface DocView {
 }
 
 /** Datos de la página que se renderiza, para el layout. */
-export function docView(route: DocRoute, data: DocData[], cfg: VirtualConfig): DocView {
+export function docView(
+  route: DocRoute,
+  data: DocData[],
+  cfg: VirtualConfig,
+  sizes: ImageSizes = new Map(),
+): DocView {
   const pages = pagesOf(data);
   const url = urlPolicyOf(cfg);
   const av = buildAvailability(pages, url);
@@ -85,7 +90,10 @@ export function docView(route: DocRoute, data: DocData[], cfg: VirtualConfig): D
   if (!original) throw new Error(`No hay entrada ${route.contentLocale}/${route.slug}.`);
 
   const isFallback = route.kind === 'fallback';
-  const meta = resolveMeta(cfg.seo, original.seo, { title: original.title }, route.locale);
+  const meta = withImageSize(
+    resolveMeta(cfg.seo, original.seo, { title: original.title }, route.locale),
+    sizes,
+  );
   const pageUrlOfRoute = pageUrl(route.slug, route.locale, url);
   const pageData: PageData = {
     kind: route.kind,

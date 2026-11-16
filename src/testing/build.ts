@@ -45,3 +45,24 @@ export async function buildFixture(root: string): Promise<BuiltSite> {
     read: (relativePath) => readFile(resolve(dist, relativePath), 'utf8'),
   };
 }
+
+export interface FailedBuild {
+  /** Código de salida del proceso (distinto de 0). */
+  code: number;
+  /** Salida combinada (stdout + stderr): aquí debe estar el mensaje accionable. */
+  output: string;
+}
+
+/** Igual que `buildFixture`, pero para builds que DEBEN fallar: devuelve el código y la salida. */
+export async function buildFixtureFailing(root: string): Promise<FailedBuild> {
+  try {
+    await buildFixture(root);
+  } catch (error) {
+    const failure = error as { code?: number; stdout?: string; stderr?: string };
+    return {
+      code: typeof failure.code === 'number' ? failure.code : 1,
+      output: `${failure.stdout ?? ''}\n${failure.stderr ?? ''}`,
+    };
+  }
+  throw new Error('La build debía fallar y terminó con éxito.');
+}

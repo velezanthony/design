@@ -33,6 +33,7 @@ function setupContext(
         trailingSlash: 'always',
         build: { format: 'directory' },
         root: new URL('file:///site/'),
+        publicDir: new URL('file:///site/public/'),
         markdown: { processor, shikiConfig },
         integrations,
         ...overrides,
@@ -208,6 +209,7 @@ describe('astro:config:setup: módulo virtual', () => {
       site: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
+      publicDir: 'file:///site/public/',
     });
     expect(data.translations).toEqual({ missing: MissingTranslation.LINK });
   });

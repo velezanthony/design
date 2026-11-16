@@ -28,3 +28,6 @@ _local/
 
 # lo que vuelcan las fixtures de integración al construirse
 src/**/fixtures/**/probe.json
+
+# casos de reglas estrictas que escriben y borran los tests
+src/**/fixtures/**/.cases/

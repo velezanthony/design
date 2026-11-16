@@ -82,6 +82,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
                   site: config.site,
                   trailingSlash: config.trailingSlash,
                   buildFormat: config.build.format,
+                  publicDir: config.publicDir.href,
                 }),
               ),
             ],

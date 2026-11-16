@@ -168,3 +168,24 @@ describe('docView: ruta de reserva', () => {
     expect(JSON.stringify(view.sidebar)).toContain('/repo/es/only-en/');
   });
 });
+
+describe('docView: dimensiones de la imagen', () => {
+  const cfg = site({ seo: { image: { src: '/og.png', alt: 'Card' } } });
+  const head = (sizes?: Map<string, { width: number; height: number }>) =>
+    docView(route(docRoutes(all, cfg), 'guide', 'es'), all, cfg, sizes).head;
+  const content = (tags: ReturnType<typeof head>, property: string) =>
+    tags.find((h) => h.attrs['property'] === property)?.attrs['content'];
+
+  it('og:image:width/height salen de los tamaños leídos', () => {
+    const tags = head(new Map([['/og.png', { width: 1200, height: 630 }]]));
+    expect(content(tags, 'og:image')).toBe('https://x.dev/repo/og.png');
+    expect(content(tags, 'og:image:width')).toBe('1200');
+    expect(content(tags, 'og:image:height')).toBe('630');
+  });
+
+  it('sin tamaños leídos se emite la imagen sin width ni height', () => {
+    const tags = head();
+    expect(content(tags, 'og:image')).toBe('https://x.dev/repo/og.png');
+    expect(content(tags, 'og:image:width')).toBeUndefined();
+  });
+});

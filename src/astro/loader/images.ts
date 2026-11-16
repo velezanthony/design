@@ -63,3 +63,24 @@ export async function checkSeoImages(
   });
   return { errors: imageErrors(refs, existing), warnings };
 }
+
+/**
+ * Dimensiones de las imágenes locales (las que cuelgan de `public/`), por su `src`, para emitir
+ * `og:image:width/height`. Las https, las ausentes y las ilegibles no figuran: el head las emite
+ * sin tamaño (la validación y los avisos ya los dio `checkSeoImages` en la carga).
+ */
+export async function readImageSizes(
+  srcs: Iterable<string>,
+  publicDir: URL,
+): Promise<Map<string, { width: number; height: number }>> {
+  const sizes = new Map<string, { width: number; height: number }>();
+  for (const src of new Set(srcs)) {
+    if (isRemoteImage(src)) continue;
+    const bytes = await readPublic(publicDir, src);
+    const image = bytes && (await inspect(bytes));
+    if (image?.width !== undefined && image.height !== undefined) {
+      sizes.set(src, { width: image.width, height: image.height });
+    }
+  }
+  return sizes;
+}

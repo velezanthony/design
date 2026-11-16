@@ -1,3 +1,9 @@
+---
+seo:
+  title: Guide for the head
+  description: Guide description
+---
+
 # Guide
 
 Quedamos a las 12:30, mira x:y y http://a.b o :emoji: y buscable-en.

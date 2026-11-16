@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applyTitleTemplate, resolveMeta, type SeoBase } from './meta';
+import {
+  applyTitleTemplate,
+  resolveMeta,
+  withImageSize,
+  type ResolvedMeta,
+  type SeoBase,
+} from './meta';
 
 const base: SeoBase = { titleTemplate: '%s · Design' };
 const page = { title: 'Install guide' };
@@ -126,5 +132,28 @@ describe('resolveMeta: noindex', () => {
 
   it('`seo.noindex` lo desactiva', () => {
     expect(resolveMeta(base, { noindex: true }, page, 'en').noindex).toBe(true);
+  });
+});
+
+describe('withImageSize', () => {
+  const meta: ResolvedMeta = {
+    title: 'T',
+    image: { src: '/og.png', alt: 'A' },
+    noindex: false,
+    titleTemplate: '%s',
+  };
+
+  it('añade width y height cuando se conoce el tamaño de la imagen', () => {
+    const sized = withImageSize(meta, new Map([['/og.png', { width: 1200, height: 630 }]]));
+    expect(sized.image).toEqual({ src: '/og.png', alt: 'A', width: 1200, height: 630 });
+  });
+
+  it('no inventa dimensiones si no se leyeron (https, ilegible)', () => {
+    expect(withImageSize(meta, new Map()).image).toEqual({ src: '/og.png', alt: 'A' });
+  });
+
+  it('sin imagen devuelve la misma meta', () => {
+    const bare = { ...meta, image: undefined };
+    expect(withImageSize(bare, new Map([['/og.png', { width: 1, height: 1 }]]))).toBe(bare);
   });
 });

@@ -4,6 +4,7 @@
    layout: renderizar en un layout rompe el `<head>` en dev (astro#13724). */
 import { Font } from 'astro:assets';
 import DocsLayout from '../../ui/layouts/DocsLayout.astro';
+import { readImageSizes } from '../loader/images';
 import { docRoutes, docView, type DocRoute } from './doc-view';
 import { getDocs, renderDoc } from './docs-collection';
 import { siteConfig } from './site-config';
@@ -24,11 +25,14 @@ const entry = entries.find(
 if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slug}.`);
 
 const { Content, headings } = await renderDoc(entry);
-const view = docView(
-  route,
-  entries.map(({ data }) => data),
-  siteConfig,
+const data = entries.map((item) => item.data);
+const sizes = await readImageSizes(
+  [siteConfig.seo.image?.src, ...data.map((item) => item.seo?.image?.src)].filter(
+    (src) => src !== undefined,
+  ),
+  new URL(siteConfig.publicDir ?? 'file:///'),
 );
+const view = docView(route, data, siteConfig, sizes);
 ---
 
 <DocsLayout {...view} headings={headings} year={new Date().getFullYear()}>
