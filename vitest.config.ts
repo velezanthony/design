@@ -5,6 +5,6 @@ import { getViteConfig } from 'astro/config';
    en los tests exactamente igual que en la build. */
 export default getViteConfig({
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
   },
 });
