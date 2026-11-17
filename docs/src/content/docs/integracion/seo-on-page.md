@@ -46,7 +46,8 @@ flowchart LR
   cfg["Config del sitio<br/>módulo virtual"] --> ad
   ad --> tree["buildSeoTree<br/>(núcleo, puro)"]
   tree --> an["Analizadores<br/>título · descripción · H1 · idiomas"]
-  an --> ui["Rutas de dev + UI<br/>solo pintan el árbol"]
+  an --> model["Modelo de cada pantalla<br/>core/seo-on-page/pages (puro)"]
+  model --> ui["Rutas de dev + UI<br/>solo pintan el modelo"]
 ```
 
 El adaptador (`src/astro/data/seo-on-page/adapter.ts`) es el único sitio que conoce
@@ -54,6 +55,24 @@ El adaptador (`src/astro/data/seo-on-page/adapter.ts`) es el único sitio que co
 `ui/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
 `panelView` (`views/seo-on-page/panel.ts`): barra lateral con las pantallas del panel, `noindex`, sin analítica ni
 aviso de consentimiento.
+
+## Cómo se reparte cada pantalla
+
+Cada pantalla es lo mismo en pequeño: **leer la URL → pedir el árbol al adaptador → pedir el modelo
+al núcleo → pintar componentes**. Nada más.
+
+| Pantalla | Página (`astro/pages/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
+| --- | --- | --- |
+| Resumen | `overview.astro` | `overview/model.ts`: totales, desglose por gravedad y por tipo, schemas |
+| Páginas | `pages.astro` | `listing/model.ts`: filtros efectivos, filas de la página, paginación |
+| Inspector | `page.astro` | `inspector/model.ts`: una clave por sección, con las traducciones |
+
+Cada modelo es una función pura que devuelve exactamente lo que enseña su pantalla. Como el núcleo
+no sabe formar URLs (`base`, `trailingSlash`), los modelos reciben un **puerto de enlaces**
+(`PanelLinks`, en `pages/links.ts`) y devuelven los enlaces ya hechos como texto; `devHrefs`, de
+`astro/views/seo-on-page/hrefs.ts`, lo implementa. Los componentes (`ui/seo-on-page/organisms/`) son
+una sección cada uno y reciben solo su porción del modelo; las etiquetas y los textos son suyos
+(`labels.ts`), los datos no.
 
 ## Los límites
 

@@ -104,7 +104,9 @@ ui/
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag)
 │   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro
-│   ├── organisms/   Overview, PagesTable, Inspector
+│   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewStats,
+│   │                SchemasSummary, IssuesBySeverity, IssuesByKind, PagesTable, PublishedFacts,
+│   │                Previews, IssuesList, SchemasList, HeadingsOutline, Translations
 │   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
