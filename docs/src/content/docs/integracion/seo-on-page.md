@@ -79,6 +79,15 @@ informativo. La regla es una sola y no depende del estado:
   gravedad, así que solo ahí aparecen también las páginas sin ninguna incidencia.
 - Las casillas del formulario reflejan los filtros efectivos, de modo que enviarlo reenvía lo que se ve.
 
+### Paginación
+
+La tabla enseña 25 filas por página (`PAGE_SIZE`, fijo: cada fila pinta varias insignias y 25 se
+escanean de una vez) con el recuento («1–25 de 75 páginas») y enlaces anterior, siguiente y de número,
+sin JavaScript. La página va en la URL como `page`; la 1 es la de por defecto y no se escribe. Los
+enlaces de página conservan los filtros, y cambiar un filtro, o «mostrar también las informativas»,
+vuelve a la página 1. Una página fuera de rango (`page=0`, `page=abc`, `page=99`) se lleva a la más
+cercana válida. Con todo en una sola página no hay paginador.
+
 ## Cómo arreglar cada problema
 
 Cada problema trae una frase de acción que dice **qué cambiar y dónde**, con el archivo real de la
