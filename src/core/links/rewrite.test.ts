@@ -176,3 +176,37 @@ describe('rewriteLinks', () => {
     });
   });
 });
+
+/* Astro resuelve las imágenes de una página como importaciones: `img/x.png` sin `./` sería un
+   módulo «bare» (falla con ImageNotFound), aunque en Markdown sea una ruta relativa válida. */
+describe('rewriteLinks: imágenes relativas sin `./`', () => {
+  const rewrite = (body: string) => rewriteLinks(body, from('guide.md'), index).body;
+
+  it('añade `./` a una ruta relativa que no lo lleva', () => {
+    expect(rewrite('![captura](img/captura.png)')).toBe('![captura](./img/captura.png)');
+  });
+
+  it('conserva el título y la forma con `<...>`', () => {
+    expect(rewrite('![c](img/a.png "Título")')).toBe('![c](./img/a.png "Título")');
+    expect(rewrite('![c](<img/mi foto.png>)')).toBe('![c](<./img/mi foto.png>)');
+  });
+
+  it.each([
+    './img/a.png',
+    '../assets/a.png',
+    '/og.png',
+    'https://example.dev/a.png',
+    'data:image/png;base64,AAAA',
+  ])('«%s» se deja como está', (target) => {
+    expect(rewrite(`![c](${target})`)).toBe(`![c](${target})`);
+  });
+
+  it('ignora imágenes en bloques de código y en código en línea', () => {
+    const body = ['```md', '![c](img/a.png)', '```', '`![c](img/a.png)`'].join('\n');
+    expect(rewrite(body)).toBe(body);
+  });
+
+  it('no inventa errores de enlace roto con las imágenes', () => {
+    expect(rewriteLinks('![c](img/a.png)', from('guide.md'), index).errors).toEqual([]);
+  });
+});

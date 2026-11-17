@@ -84,6 +84,19 @@ interface Context {
   errors: DocsError[];
 }
 
+/**
+ * Imagen relativa sin `./` (`img/a.png`) con el `./` puesto. Astro importa las imágenes de una
+ * página como módulos y una ruta sin `./` ni `../` sería un módulo «bare»: no la encontraría aunque
+ * en Markdown sea una ruta relativa al archivo. Lo demás (URLs, rutas del sitio, `./`, `../`) no se toca.
+ */
+function dotImageTarget(rawTarget: string): string {
+  const angled = rawTarget.startsWith('<');
+  const target = angled ? rawTarget.slice(1, -1) : rawTarget;
+  if (EXTERNAL.test(target) || target.startsWith('./') || target.startsWith('../'))
+    return rawTarget;
+  return angled ? `<./${target}>` : `./${target}`;
+}
+
 /** Nuevo destino de un enlace o `undefined` si se deja como estaba (externo, ancla o recurso). */
 function rewriteTarget(rawTarget: string, line: number, context: Context): string | undefined {
   const { from, index, refs, errors } = context;
@@ -172,7 +185,11 @@ export function rewriteLinks(
         title: string,
         offset: number,
       ) => {
-        if (bang || inside(spans, offset)) return match;
+        if (inside(spans, offset)) return match;
+        if (bang) {
+          const dotted = dotImageTarget(target);
+          return dotted === target ? match : `![${label}](${dotted}${title})`;
+        }
         const replaced = rewriteTarget(target, i + 1, context);
         return replaced === undefined ? match : `[${label}](${replaced}${title})`;
       },
