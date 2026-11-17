@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import type { AstroIntegration } from 'astro';
 import { AstroError } from 'astro/errors';
 import { applyAnalytics } from '../../core/analytics/resolve';
@@ -36,6 +36,9 @@ export interface DocsIntegration extends AstroIntegration {
 }
 
 /** `resolveConfig` con los errores del núcleo traducidos a `AstroError`. */
+/** Nombres con los que la documentación da por hecho que vive la config del sitio, en la raíz. */
+const CONFIG_FILES = ['docs.config.mjs', 'docs.config.js', 'docs.config.ts'] as const;
+
 export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
   try {
     return resolveConfig(config);
@@ -77,7 +80,21 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
     name: INTEGRATION_NAME,
     resolvedConfig,
     hooks: {
-      'astro:config:setup': ({ command, config, updateConfig, injectRoute, logger }) => {
+      'astro:config:setup': ({
+        command,
+        config,
+        updateConfig,
+        injectRoute,
+        addWatchFile,
+        logger,
+      }) => {
+        /* `astro.config.mjs` importa `docs.config.mjs`, pero Astro solo reinicia `dev` cuando cambia
+           el propio astro.config, no lo que importa: sin esto, editar la config del sitio no tendría
+           efecto hasta reiniciar a mano. Solo se vigila; el archivo lo carga el import del consumidor. */
+        for (const file of CONFIG_FILES) {
+          const url = new URL(file, config.root);
+          if (existsSync(url)) addWatchFile(url);
+        }
         if (!config.site) {
           throw new AstroError(
             'Falta `site` en la config de Astro.',

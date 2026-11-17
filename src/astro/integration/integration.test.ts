@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { basename, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
 import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
@@ -443,5 +443,37 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(AstroError);
     expect(String((error as AstroError).hint)).toContain('en');
+  });
+});
+
+describe('astro:config:setup: vigilar docs.config', () => {
+  /* `astro.config.mjs` importa `docs.config.mjs`, pero Astro solo reinicia `dev` cuando cambia el
+     propio astro.config: sin `addWatchFile`, editar la config del sitio no tendría efecto. */
+  async function watched(files: string[]) {
+    const dir = mkdtempSync(join(tmpdir(), 'design-watch-'));
+    for (const file of files) writeFileSync(join(dir, file), 'export default {};\n');
+    const addWatchFile = vi.fn();
+    const setup = setupContext(satteri(), {}, { root: pathToFileURL(`${dir}/`) });
+    await docs({ name: 'x' }).hooks['astro:config:setup']?.({
+      ...(setup.context as object),
+      addWatchFile,
+    } as never);
+    rmSync(dir, { recursive: true, force: true });
+    return addWatchFile.mock.calls.map(([url]) => basename(fileURLToPath(url as URL)));
+  }
+
+  it('vigila docs.config.mjs si existe en la raíz', async () => {
+    expect(await watched(['docs.config.mjs'])).toEqual(['docs.config.mjs']);
+  });
+
+  it('vigila también las variantes .js y .ts que existan', async () => {
+    expect(await watched(['docs.config.js', 'docs.config.ts'])).toEqual([
+      'docs.config.js',
+      'docs.config.ts',
+    ]);
+  });
+
+  it('sin archivo de config no vigila nada (config escrita en astro.config)', async () => {
+    expect(await watched([])).toEqual([]);
   });
 });
