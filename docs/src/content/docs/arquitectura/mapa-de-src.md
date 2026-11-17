@@ -1,0 +1,174 @@
+---
+order: 2
+---
+
+# Mapa de `src/`
+
+Los tests viven **junto a su archivo** (`slug.ts` y `slug.test.ts`), así que aquí solo aparece el
+código. Las rutas son relativas a `src/`.
+
+## `core/`: la lógica pura
+
+```text
+core/
+├── errors.ts              DocsError (archivo, línea, pista) y DocsErrors (varios a la vez)
+├── config/
+│   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
+│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
+│   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
+│   ├── nav.ts             NavIcon y los tipos de los elementos de nav
+│   └── footer.ts          Tipos del pie
+├── content/
+│   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
+│   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
+│   ├── slug.ts            guia/index → guia, index → '' (portada)
+│   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
+├── i18n/
+│   ├── locale.ts          Idiomas, sufijos de archivo, idioma de una URL
+│   ├── availability.ts    pageUrl (LA función de URLs) y qué idiomas tiene cada página
+│   ├── translation-policy.ts  MissingTranslation, políticas por grupo, rutas de reserva
+│   └── ui-strings.ts      Catálogo de textos de interfaz en/es, t() e interpolación
+├── links/
+│   ├── rewrite.ts         Enlaces .md relativos → URLs del sitio, con referencias para validar
+│   ├── anchors.ts         Índice de encabezados y validación de #anclas
+│   └── fences.ts          No tocar enlaces dentro de bloques de código
+├── navigation/
+│   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
+│   ├── sidebar-slugs.ts   Valida los slugs de sidebar
+│   ├── nav-sections.ts    Secciones por dir, validación de nav
+│   ├── nav-sidebar.ts     La barra lateral de la sección actual
+│   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
+│   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
+│   ├── footer.ts          Vista del pie y validación de sus enlaces
+│   └── label.ts           Etiqueta por idioma con recurso al idioma por defecto
+├── seo/
+│   ├── meta.ts            Cascada página > base > derivado; plantilla de título
+│   ├── head.ts            Etiquetas del head: title, canonical, hreflang, OG, twitter
+│   ├── sitemap.ts         XML con alternates; límite de 50 000 URLs
+│   ├── indexable.ts       Qué URLs son noindex
+│   ├── image-refs.ts      Qué imágenes SEO hay que comprobar
+│   ├── image-checks.ts    Peso y proporción de la imagen OG (avisos)
+│   └── favicon.ts         Favicon por defecto (/_design/favicon.png) o el del consumidor
+├── analytics/resolve.ts   PUBLIC_GTM_ID / gtmId → id validado y URLs de privacidad
+└── privacy/
+    ├── copy.ts            Texto de la página de privacidad en es/en
+    └── pages.ts           URLs de la página de privacidad propia
+```
+
+## `client/`: el navegador
+
+Cada archivo exporta funciones `init*` que reciben lo que necesitan (documento, `Storage`,
+`matchMedia`…) en vez de leer globales, para poder probarlas con dobles.
+
+```text
+client/
+├── theme.ts          Tema claro/oscuro, script previo al pintado, revelado circular
+├── layout.ts         Columnas plegables y ancho; script previo al pintado
+├── sidebar-scroll.ts Recuerda el desplazamiento de la barra lateral
+├── consent.ts        Banner de consentimiento, carga de GTM, borrado de cookies
+├── search.ts         Pagefind: carga bajo la base, resultados, atajo «/»
+├── tabs.ts           Pestañas accesibles con teclado
+├── copy-code.ts      Botón de copiar en los bloques de código
+├── anchors.ts        Enlace a cada encabezado
+├── toc.ts            Resalta la sección visible en el índice
+├── zoom.ts           Ampliación de imágenes en un <dialog>
+├── mermaid.ts        Convierte los bloques .docs-mermaid en SVG
+├── not-found.ts      Cambia la 404 al idioma de la URL
+├── transition.ts     Envoltorio de la View Transitions API con movimiento reducido
+├── year.ts           Año del pie con el reloj del visitante
+└── storage.ts        Acceso seguro a localStorage/sessionStorage y sus claves
+```
+
+## `ui/`: lo que se ve
+
+Diseño atómico. Ningún componente lee datos por su cuenta: todo llega por props, incluidos los
+textos (`strings: UiStrings`).
+
+```text
+ui/
+├── atoms/       Heading, Icon, Link, Rule, Tag
+├── molecules/   Admonition, EditLink, FallbackNotice, LocaleSwitch, NavList, PanelToggle,
+│                PrevNext, TableOfContents, Tabs, ThemeToggle
+├── organisms/   DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, ConsentBanner,
+│                BackToTop, NotFound, PrivacyPolicy
+├── layouts/
+│   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
+│   ├── Head.astro           Pinta las etiquetas que calculó core/seo/head.ts
+│   ├── DocsLayout.astro     Página de docs: cabecera, barra, contenido, índice, pie
+│   ├── NotFoundLayout.astro / NotFoundBody.astro   La 404 con plantillas por idioma
+│   ├── PrivacyLayout.astro  La página de privacidad propia
+│   └── boot.ts              Arranque del JavaScript de cliente (bootDocs, bootNotFound)
+├── styles/
+│   ├── theme.css            Tailwind, tokens, paletas, prosa, disposición, transiciones
+│   ├── theme-colors.ts      --color-canvas de cada tema para <meta name="theme-color">
+│   └── code-themes.ts       Temas de Shiki emparejados con los tokens
+└── assets/favicon.png       Favicon por defecto
+```
+
+## `astro/`: el adaptador
+
+```text
+astro/
+├── integration/
+│   ├── index.ts             docs(), defineDocsConfig, hooks, exports públicos
+│   ├── analytics-env.ts     Lee PUBLIC_GTM_ID con loadEnv
+│   ├── route-collisions.ts  Falla si src/pages/ pisa una ruta de la librería
+│   ├── fonts.ts             IBM Plex y el choque de variables de fuente
+│   ├── companions.ts        Integraciones auxiliares (hoy ninguna)
+│   ├── pagefind.ts          Índice de búsqueda tras el build
+│   └── errors.ts            DocsError → AstroError
+├── loader/
+│   ├── index.ts             docsLoader: descubrir, renderizar, validar
+│   ├── schema.ts            docsSchema: los datos de cada entrada
+│   ├── config.ts            Plan A: leer la config de la integración (si Astro la dejara)
+│   ├── frontmatter.ts       Lee y valida YAML con archivo y línea
+│   ├── repo-root.ts         repoRoot o el .git más cercano, para editPath
+│   ├── images.ts / favicon.ts   Comprueban archivos de public/
+│   └── watch.ts             Recarga en astro dev
+├── markdown/                Plugins mdast y su registro (ver Integración → Markdown)
+├── routes/
+│   ├── doc.astro            Contenedor de /[...slug]
+│   ├── doc-view.ts          docRoutes y docView: todo lo que necesita una página
+│   ├── docs-collection.ts   getDocs / renderDoc tipados para la colección docs
+│   ├── site-config.ts       La config del módulo virtual con su tipo completo
+│   ├── pages.ts             DocData → Page y sitemap
+│   ├── not-found.astro, not-found-view.ts
+│   ├── privacy.astro, privacy-locale.astro, PrivacyPage.astro, privacy-view.ts
+│   ├── sitemap.xml.ts
+│   └── favicon.png.ts
+└── virtual/
+    ├── plugin.ts            Plugin de Vite de virtual:@velezanthony/design/config
+    ├── data.ts              Qué viaja en el módulo virtual
+    └── virtual.d.ts         Sus tipos, copiados al .astro/ del consumidor
+```
+
+## `testing/` y `pages/` (no se distribuyen)
+
+- `testing/render.ts`: renderiza un componente con el contenedor de Astro y lo devuelve como DOM
+  (linkedom).
+- `testing/strings.ts`: `stringsFor('es', overrides)` para pasar textos a los componentes.
+- `testing/astro-content.ts` y `testing/virtual.ts`: dobles de `astro:content` y del módulo virtual,
+  validados con el esquema real para que no diverjan.
+- `testing/build.ts` y `testing/case.ts`: construyen proyectos consumidores mínimos descritos como
+  datos, para los tests de integración (con un entorno limpio de variables de Vitest).
+- `testing/contrast.ts`: luminancia y contraste WCAG para los tests de la paleta.
+- `testing/boundaries.test.ts`: la regla de capas (ver [Capas](./index.md#cómo-lo-hace-cumplir-eslint)).
+- `pages/index.astro`: la página mínima que sirve `npm run dev` en la raíz.
+
+## El contrato público
+
+Lo que un consumidor puede importar está fijado en `"exports"` del `package.json`:
+
+| Subruta | Apunta a |
+| --- | --- |
+| `@velezanthony/design/integration` | `src/astro/integration/index.ts` |
+| `@velezanthony/design/loader` | `src/astro/loader/index.ts` |
+| `@velezanthony/design/client/*` | `src/client/*.ts` |
+| `@velezanthony/design/components/*` | `src/ui/*` |
+| `@velezanthony/design/layouts/*` | `src/ui/layouts/*` |
+| `@velezanthony/design/routes/*` | `src/astro/routes/*` |
+| `@velezanthony/design/theme.css` | `src/ui/styles/theme.css` |
+| `@velezanthony/design/theme-colors` | `src/ui/styles/theme-colors.ts` |
+
+Mover un archivo a los que apunta una de estas subrutas es un cambio incompatible para los
+consumidores. `src/astro/integration/public-api.test.ts` sujeta lo que exporta la integración.

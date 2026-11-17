@@ -1,0 +1,66 @@
+---
+order: 3
+---
+
+# Tests
+
+## La política
+
+- **TDD estricto para la lógica y el comportamiento.** Todo lo que decide algo (una URL, un orden,
+  una validación, un estado del cliente) se escribe test primero: rojo, verde, refactor.
+- **Sin tests para lo obvio o puramente visual.** Un ajuste de margen, un color o una clase de
+  Tailwind no llevan test: el test solo repetiría el CSS y fallaría con cada retoque sin proteger
+  nada. Lo que sí se prueba del CSS son **contratos**: los ratios de contraste, que las dos paletas
+  oscuras coincidan, que no haya colores literales, que el `@source` apunte a `src/`.
+- **El test describe el comportamiento, en español.** `it('sin editUrl no se renderiza')`, no
+  `it('test EditLink 3')`.
+
+## Dónde vive cada tipo de test
+
+```mermaid
+flowchart TD
+  u["Unitarios puros<br/>core/**/*.test.ts · client/**/*.test.ts"] --- fast["Milisegundos"]
+  c["Componentes<br/>ui/**/*.test.ts con testing/render.ts"] --- med["Contenedor de Astro + linkedom"]
+  a["Adaptadores<br/>astro/routes, loader, markdown"] --- dbl["Config resuelta<br/>+ dobles validados"]
+  b["Integración<br/>astro/integration/build*.test.ts"] --- slow["astro build real<br/>de fixtures"]
+  g["Guardas<br/>boundaries, theme, coupling,<br/>package-contents"] --- meta["Protegen reglas del repo"]
+```
+
+| Tipo | Ejemplo | Herramientas |
+| --- | --- | --- |
+| Núcleo puro | `core/navigation/prev-next.test.ts` | Solo Vitest: entra un dato, sale un dato. |
+| Cliente | `client/consent.test.ts` | Funciones con el entorno inyectado (`Storage`, `matchMedia`, documento de linkedom). |
+| Componentes | `ui/molecules/EditLink.test.ts` | `render()` y `text()` de `testing/render.ts`; textos con `stringsFor()`. |
+| Plugins de Markdown | `astro/markdown/tables.test.ts` | `testing/markdown.ts`. |
+| Vistas de las rutas | `astro/routes/doc-view.test.ts` | Funciones puras sobre una config resuelta con `resolveConfig`. Para lo que necesite `astro:content` hay un doble en `testing/astro-content.ts`. |
+| Build completo | `astro/integration/build.test.ts`, `build-strict.test.ts` | Fixtures en `src/**/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
+| Guardas del repo | `testing/boundaries.test.ts`, `testing/package-contents.test.ts`, `ui/styles/theme.test.ts`, `ui/coupling.test.ts` | Leen archivos de configuración o código y fallan si alguien relaja una regla. |
+| Migración | `scripts/migrate-mkdocs/*.test.ts` | Transformaciones puras de texto. |
+
+## Patrones que se repiten
+
+- **Inyectar el entorno.** Si una función necesita el navegador, recibe lo que usa como parámetro
+  (`BootEnv`, `LayoutEnv`, `ConsentEnv`). En el test se pasan dobles; en producción, los reales. Nada
+  de _mocks_ de globales.
+- **Dobles validados.** Los dobles de `astro:content` y del módulo virtual se construyen con el
+  `docsSchema()` real y el plugin real, así que un test no puede pasar con datos que la build
+  rechazaría.
+- **Errores agregados.** Cuando se prueba una validación, se comprueba que salen **todos** los fallos
+  con su ruta (`nav[1].dir`), no solo el primero.
+- **Fixtures que se limpian solas.** Las de reglas estrictas escriben casos en `.cases/` y los
+  borran; lo que vuelcan las fixtures (`probe.json`, `.cases/`) está en `.gitignore`.
+
+## Ejecutar
+
+```sh
+npm test                                   # todo
+npm run test:watch                         # vigilancia, para TDD
+npx vitest run src/core/navigation         # una carpeta
+npx vitest run -t "sin editUrl"            # por nombre
+```
+
+Los tests de build (`build*.test.ts`) son los lentos: construyen proyectos de Astro de verdad. Si
+estás iterando sobre lógica pura, filtra por carpeta.
+
+`vitest.config.ts` usa `getViteConfig` de Astro para que los `.astro`, los alias y el módulo virtual
+se resuelvan en los tests exactamente igual que en el build.
