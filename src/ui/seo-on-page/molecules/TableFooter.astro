@@ -41,10 +41,14 @@ const { filters, perPage, action, from, to, total, overall, page, pages, href } 
       value={String(perPage)}
       options={PAGE_SIZES.map((size) => ({ value: String(size), label: String(size) }))}
       inline
+      data-auto-submit
     />
-    <Button type="submit" variant="secondary">
-      Aplicar
-    </Button>
+    {/* Con JavaScript, elegir un tamaño ya envía el formulario (`client/forms/auto-submit.ts`). */}
+    <noscript>
+      <Button type="submit" variant="secondary">
+        Aplicar
+      </Button>
+    </noscript>
   </form>
   <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
     <ResultsCount from={from} to={to} total={total} overall={overall} />
