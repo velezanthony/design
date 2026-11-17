@@ -47,9 +47,10 @@ página del scaffold `src/pages/index.astro`: la home es `src/content/docs/index
 propia en `/`, `/404` o `/sitemap.xml` (o `/es/`, `/es/404` para otros idiomas) rompe el build,
 porque Astro la renderizaría en lugar de los docs.
 
-Declara la configuración una sola vez en `docs.config.mjs`. Astro descarta las propiedades
-personalizadas de las integraciones, así que el loader no puede leer la configuración desde
-`astro.config.mjs`; ambos archivos importan el mismo módulo.
+Declara la configuración una sola vez en `docs.config.mjs` y pásala a `docs()` en
+`astro.config.mjs`. El `content.config.ts` es una línea que no la importa: la colección toma la
+configuración del módulo virtual de la integración, que es la que `docs(config)` ya resolvió. Así hay
+una única carga de la config y integración y loader no pueden usar configs distintas.
 
 ```js
 // docs/docs.config.mjs
@@ -78,6 +79,19 @@ export default defineConfig({
   integrations: [docs(docsConfig)],
 });
 ```
+
+```ts
+// docs/src/content.config.ts
+export { collections } from '@velezanthony/design/content';
+```
+
+`@velezanthony/design/content` necesita la integración registrada: sin `docs(config)` en
+`astro.config.mjs` el build falla con un error que lo dice.
+
+### Forma explícita del loader (casos avanzados)
+
+Si prefieres montar la colección tú, usa `docsLoader(config)` con el mismo objeto que das a
+`docs(config)`:
 
 ```ts
 // docs/src/content.config.ts

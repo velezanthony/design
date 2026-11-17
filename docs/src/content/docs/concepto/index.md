@@ -19,7 +19,7 @@ flowchart TD
   sub -->|"npm install github:velezanthony/design#v0.1.0"| nm["node_modules/@velezanthony/design<br/>(solo src/ + README)"]
   sub --> cfg["docs.config.mjs<br/>defineDocsConfig({...})"]
   cfg --> astrocfg["astro.config.mjs<br/>integrations: [docs(docsConfig)]"]
-  cfg --> cc["src/content.config.ts<br/>docsLoader(docsConfig) + docsSchema()"]
+  astrocfg -. "módulo virtual" .-> cc["src/content.config.ts<br/>export { collections } from<br/>@velezanthony/design/content"]
   md["src/content/docs/**/*.md<br/>+ archivos externos (CHANGELOG.md)"] --> cc
   nm --> astrocfg
   nm --> cc
@@ -32,8 +32,8 @@ flowchart TD
 1. El repo consumidor crea `docs/` con el scaffold de Astro.
 2. Instala la librería desde GitHub, **fijada a una etiqueta**: `github:velezanthony/design#v0.1.0`.
    No está en el registro de npm.
-3. Escribe `docs.config.mjs` con `defineDocsConfig` y lo importa en dos sitios: en
-   `astro.config.mjs` (para la integración `docs()`) y en `src/content.config.ts` (para el loader).
+3. Escribe `docs.config.mjs` con `defineDocsConfig` y lo importa solo en `astro.config.mjs`, para
+   `docs(docsConfig)`. `src/content.config.ts` es una línea que no lo importa.
 4. Escribe sus páginas en `docs/src/content/docs/`.
 5. `astro build` genera `docs/dist/`, totalmente estático.
 6. Un workflow publica `docs/dist/` en GitHub Pages, bajo `https://velezanthony.github.io/<repo>/`.
@@ -42,9 +42,10 @@ El paso a paso con el código exacto está en [Integración](../integracion/inde
 
 > [!NOTE]
 > ¿Por qué la configuración va en un archivo aparte y no directamente en `astro.config.mjs`? Porque
-> Astro valida la lista de integraciones y **descarta las propiedades que no conoce**. El loader de
-> contenido no tiene forma de leer la config desde la integración, así que ambos importan el mismo
-> módulo. Lo explica el comentario de `defineDocsConfig` en `src/astro/integration/index.ts`.
+> Astro valida la lista de integraciones y **descarta las propiedades que no conoce**: el loader de
+> contenido no puede leer la config del objeto de la integración. Se resuelve con un solo import en
+> `astro.config.mjs` y el módulo virtual de la integración, del que la colección toma esa misma config:
+> hay una única fuente por construcción.
 
 ## Qué pone la librería y qué pone el consumidor
 

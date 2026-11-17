@@ -10,12 +10,22 @@ seo:
 La integración tiene dos puertas de entrada, una por cada archivo que toca el consumidor:
 
 - `docs(config)` en `astro.config.mjs` → `src/astro/integration/index.ts`.
-- `docsLoader(config)` en `content.config.ts` → `src/astro/loader/index.ts`.
+- La colección de `content.config.ts` (`@velezanthony/design/content`) →
+  `src/astro/content/index.ts` y `src/astro/loader/index.ts`.
 
-Las dos reciben la misma config de `docs.config.mjs` y la pasan por `resolveConfig`
-(`src/core/config/resolve.ts`), que valida con el esquema zod y rellena los valores por defecto. Un
-error ahí sale como `AstroError` con la ruta de la clave (`toAstroError`, en
+La config se carga UNA vez: `astro.config.mjs` importa `docs.config.mjs` y se lo pasa a `docs()`, que
+lo pasa por `resolveConfig` (`src/core/config/resolve.ts`: valida con el esquema zod y rellena los
+valores por defecto). Un error ahí sale como `AstroError` con la ruta de la clave (`toAstroError`, en
 `src/astro/integration/errors.ts`).
+
+El loader se evalúa fuera de la integración y Astro descarta las propiedades que esta le adjunte a
+su objeto, así que no puede leerla de ahí. Tampoco hace falta que importe `docs.config.mjs` por su
+cuenta: la colección de `@velezanthony/design/content` importa el módulo virtual
+`virtual:@velezanthony/design/config` (ver más abajo), que sirve la config que la integración ya
+resolvió. Hay una sola fuente por construcción: dos configs distintas no son posibles, y no hace falta
+ninguna comprobación que lo vigile. Ojo: Astro solo reinicia `astro dev` cuando cambia el propio
+`astro.config.mjs`, no lo que este importa. Por eso la integración registra `docs.config.mjs` (o su
+variante `.js`/`.ts`) con `addWatchFile` si existe en la raíz: solo lo vigila, no lo carga.
 
 ## `astro build` paso a paso
 
@@ -25,12 +35,12 @@ sequenceDiagram
   participant CLI as astro build
   participant Int as docs() · integration/index.ts
   participant Vite as Vite + módulo virtual
-  participant Ldr as docsLoader() · loader/index.ts
+  participant Ldr as collections · content/index.ts + loader/index.ts
   participant MD as Sätteri + plugins mdast
   participant Rt as Rutas inyectadas · astro/routes/
   participant PF as Pagefind
 
-  CLI->>Int: docs(userConfig) → resolveConfig (zod)
+  CLI->>Int: docs(docsConfig) → resolveConfig (zod)
   CLI->>Int: astro:config:setup
   Int->>Int: exige site, lee PUBLIC_GTM_ID (applyAnalytics)
   Int->>Int: assertNoRouteCollision, assertNoFontConflict
@@ -38,7 +48,7 @@ sequenceDiagram
   Int->>Vite: updateConfig (shikiConfig, fonts, plugin virtual)
   Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml, favicon, privacidad
   CLI->>Int: astro:config:done → injectTypes(virtual.d.ts)
-  CLI->>Ldr: sincroniza la colección docs
+  CLI->>Ldr: sincroniza la colección docs (config del módulo virtual)
   Ldr->>Ldr: lee src/content/docs/**.md + external[]
   Ldr->>Ldr: discoverPages, políticas de traducción, valida sidebar/nav/footer
   loop cada página
@@ -114,7 +124,9 @@ Starlight):
   interfaz por idioma en `strings`.
 - `createVirtualConfigPlugin` (`src/astro/virtual/plugin.ts`) sirve ese objeto con
   `JSON.stringify` bajo el id `virtual:@velezanthony/design/config`. Solo datos: nada de funciones.
-- `src/astro/routes/site-config.ts` es el único sitio que lo importa y le pone su tipo completo.
+- `src/astro/routes/site-config.ts` importa el módulo y le pone su tipo completo.
+- `src/astro/content/index.ts` también lo importa: de ahí saca el loader la config. Sin la
+  integración registrada, ese import no resuelve y la build falla con un `AstroError` que pide añadir `docs(config)`.
 
 ```mermaid
 flowchart LR
@@ -124,12 +136,13 @@ flowchart LR
   aa --> vd["createVirtualData<br/>astro/virtual/data.ts"]
   vd --> vp["plugin de Vite<br/>virtual:@velezanthony/design/config"]
   vp --> sc["routes/site-config.ts"]
+  vp --> ct["content/index.ts<br/>colección docs"]
   sc --> doc["doc.astro · not-found.astro<br/>sitemap.xml.ts · privacy.astro"]
 ```
 
 ## El loader
 
-`docsLoader` es un loader de la Content Layer de Astro. Hace una carga completa (`sync`) en tres
+`docsLoader` (o, con la config ya resuelta, `docsLoaderFromResolved`, que usa `@velezanthony/design/content`) es un loader de la Content Layer de Astro. Hace una carga completa (`sync`) en tres
 pasadas y **acumula todos los errores** antes de fallar, para que un build roto te diga todo lo que
 está mal de una vez, con archivo y línea:
 

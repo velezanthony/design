@@ -121,13 +121,14 @@ astro/
 │   ├── pagefind.ts          Índice de búsqueda tras el build
 │   └── errors.ts            DocsError → AstroError
 ├── loader/
-│   ├── index.ts             docsLoader: descubrir, renderizar, validar
+│   ├── index.ts             docsLoader / docsLoaderFromResolved: descubrir, renderizar, validar
 │   ├── schema.ts            docsSchema: los datos de cada entrada
-│   ├── config.ts            Plan A: leer la config de la integración (si Astro la dejara)
 │   ├── frontmatter.ts       Lee y valida YAML con archivo y línea
 │   ├── repo-root.ts         repoRoot o el .git más cercano, para editPath
 │   ├── images.ts / favicon.ts   Comprueban archivos de public/
 │   └── watch.ts             Recarga en astro dev
+├── content/
+│   └── index.ts             `collections`: la colección docs con la config del módulo virtual
 ├── markdown/                Plugins mdast y su registro (ver Integración → Markdown)
 ├── routes/
 │   ├── doc.astro            Contenedor de /[...slug]
@@ -166,6 +167,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | --- | --- |
 | `@velezanthony/design/integration` | `src/astro/integration/index.ts` |
 | `@velezanthony/design/loader` | `src/astro/loader/index.ts` |
+| `@velezanthony/design/content` | `src/astro/content/index.ts` |
 | `@velezanthony/design/client/*` | `src/client/*.ts` |
 | `@velezanthony/design/components/*` | `src/ui/*` |
 | `@velezanthony/design/layouts/*` | `src/ui/layouts/*` |

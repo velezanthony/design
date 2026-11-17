@@ -52,7 +52,8 @@ Markdown. El rango exacto está en `peerDependencies` del `package.json` de la l
 
 ## 3. `docs/docs.config.mjs`
 
-La configuración se declara UNA vez y la importan dos archivos:
+La configuración se declara UNA vez, en este archivo. Solo la importa `astro.config.mjs`, que se la
+pasa a `docs()`:
 
 ```js
 import { defineDocsConfig, MissingTranslation, NavIcon } from '@velezanthony/design/integration';
@@ -99,6 +100,8 @@ export default defineConfig({
 });
 ```
 
+- `docs(docsConfig)` recibe la config. Editar `docs.config.mjs` reinicia `astro dev`: la integración
+  le pide a Astro que vigile ese archivo, porque por sí solo solo vigila `astro.config.mjs`.
 - `site` es **obligatorio**: sin él, la integración falla en `astro:config:setup` porque el sitemap y
   las URLs canónicas necesitan un origen absoluto.
 - `base` es el nombre del repo: GitHub Pages sirve las páginas de proyecto bajo
@@ -110,6 +113,25 @@ export default defineConfig({
 ## 5. `docs/src/content.config.ts`
 
 ```ts
+export { collections } from '@velezanthony/design/content';
+```
+
+Una línea, y sin importar la config. `@velezanthony/design/content` (`src/astro/content/index.ts`)
+exporta la colección `docs` ya montada y le da al loader la config del módulo virtual
+`virtual:@velezanthony/design/config`, el mismo que sirve la integración. Es la config que
+`docs(docsConfig)` ya resolvió: hay UNA sola carga, así que integración y loader no pueden acabar con
+configs distintas. Por eso mismo necesita que `docs(docsConfig)` esté en `astro.config.mjs`; sin ella
+el build falla con un error que pide añadirla.
+
+La colección **tiene que llamarse `docs`**: las rutas de la librería la piden por ese nombre
+(`src/astro/routes/docs-collection.ts`).
+
+### Forma explícita
+
+Si necesitas montar la colección tú (por ejemplo, para añadir otra), usa el loader suelto con el
+MISMO objeto que das a `docs()`. Es la forma de siempre y sigue funcionando:
+
+```ts
 import { defineCollection } from 'astro:content';
 import { docsLoader, docsSchema } from '@velezanthony/design/loader';
 import docsConfig from '../docs.config.mjs';
@@ -118,9 +140,6 @@ export const collections = {
   docs: defineCollection({ loader: docsLoader(docsConfig), schema: docsSchema() }),
 };
 ```
-
-La colección **tiene que llamarse `docs`**: las rutas de la librería la piden por ese nombre
-(`src/astro/routes/docs-collection.ts`).
 
 ## 6. Contenido
 
