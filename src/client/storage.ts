@@ -5,6 +5,8 @@ export const THEME_KEY = 'theme';
 export const LAYOUT_KEY = 'docs:layout';
 /** La respuesta del visitante al banner de cookies, en `localStorage`. */
 export const CONSENT_KEY = 'consent';
+/** Desplazamiento de la barra lateral, en `sessionStorage`: solo vale para esta pestaña. */
+export const SIDEBAR_SCROLL_KEY = 'docs:sidebar-scroll';
 
 /**
  * Lectura que no puede romper la página. Las ventanas privadas y los datos de sitio bloqueados

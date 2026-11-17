@@ -1,4 +1,5 @@
 ---
+import { sidebarScrollScript } from '../../client/sidebar-scroll';
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
@@ -101,7 +102,10 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
   </DocsHeader>
 
   <div class="docs-container docs-page mx-auto grid max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:px-10 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
-    <aside class="docs-sidebar lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto">
+    <aside
+      class="docs-sidebar lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto"
+      data-docs-sidebar-scroll
+    >
       {layout.toggles && (
         <PanelToggle
           side="left"
@@ -136,6 +140,9 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
           })();
         </script>
       </div>
+      {/* Tras la barra, antes del primer pintado: al cambiar de página recupera el desplazamiento (o
+        centra la entrada actual) sin que se vea el salto. */}
+      <script is:inline set:html={sidebarScrollScript()} />
     </aside>
 
     {/* El relleno izquierdo desde lg deja al texto el mismo aire hasta el plano de la barra lateral

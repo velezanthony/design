@@ -127,3 +127,28 @@ describe('bootNotFound', () => {
     expect(e.doc.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed')).toBe('false');
   });
 });
+
+describe('bootDocs: desplazamiento de la barra lateral', () => {
+  it('guarda la posición de la barra al salir de la página', () => {
+    const listeners = new Map<string, () => void>();
+    const session = {
+      items: new Map<string, string>(),
+      getItem(k: string) {
+        return this.items.get(k) ?? null;
+      },
+      setItem(k: string, v: string) {
+        this.items.set(k, v);
+      },
+    };
+    const e = env('<aside data-docs-sidebar-scroll></aside>', {
+      session: session as unknown as Storage,
+      win: {
+        addEventListener: (type: string, cb: () => void) => void listeners.set(type, cb),
+      } as never,
+    });
+    (e.doc.querySelector('aside') as HTMLElement).scrollTop = 123;
+    bootDocs(e);
+    listeners.get('pagehide')!();
+    expect(session.items.get('docs:sidebar-scroll')).toBe('123');
+  });
+});

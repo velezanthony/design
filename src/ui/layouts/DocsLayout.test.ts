@@ -306,3 +306,14 @@ describe('DocsLayout: nav en el menú móvil', () => {
     expect(doc.querySelector('details.docs-nav nav[aria-label="Secciones"]')).toBeNull();
   });
 });
+
+describe('DocsLayout: desplazamiento de la barra lateral', () => {
+  it('la barra que se desplaza lleva su marca y, tras ella, el script previo al pintado', async () => {
+    const doc = await page();
+    const aside = doc.querySelector('aside.docs-sidebar')!;
+    expect(aside.hasAttribute('data-docs-sidebar-scroll')).toBe(true);
+    const last = aside.lastElementChild!;
+    expect(last.tagName).toBe('SCRIPT');
+    expect(last.textContent).toContain('docs:sidebar-scroll');
+  });
+});

@@ -4,6 +4,7 @@ import { initCopyCode } from '../../client/copy-code';
 import { initLayout, type RailQuery } from '../../client/layout';
 import { swapNotFound } from '../../client/not-found';
 import { initSearch, initSearchShortcut } from '../../client/search';
+import { initSidebarScroll } from '../../client/sidebar-scroll';
 import { storageOf } from '../../client/storage';
 import { initTabs } from '../../client/tabs';
 import { initTheme } from '../../client/theme';
@@ -17,6 +18,10 @@ import { themeColors } from '../styles/theme-colors';
 export interface BootEnv {
   doc: Document;
   storage: Storage | undefined;
+  /** `sessionStorage`, para el desplazamiento de la barra lateral. */
+  session?: Storage;
+  /** La ventana, para saber cuándo se sale de la página (`pagehide`). Sin ella no se recuerda. */
+  win?: Pick<Window, 'addEventListener'>;
   system: Parameters<typeof initTheme>[0]['system'];
   /** `(prefers-reduced-motion: reduce)`; sin él, las transiciones se permiten. */
   motion?: MotionPreference;
@@ -32,6 +37,8 @@ export interface BootEnv {
 const browserEnv = (): BootEnv => ({
   doc: document,
   storage: storageOf('localStorage'),
+  session: storageOf('sessionStorage'),
+  win: window,
   system: matchMedia('(prefers-color-scheme: dark)'),
   motion: matchMedia('(prefers-reduced-motion: reduce)'),
   rail: matchMedia('(min-width: 64rem)'),
@@ -56,6 +63,9 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
     motion: env.motion,
   });
   initLayout({ doc, storage: env.storage, rail: env.rail });
+  if (env.win) {
+    initSidebarScroll({ doc, storage: env.session, win: env.win, rail: env.rail });
+  }
   initConsent({ doc, storage: env.storage, hostname: env.hostname, reload: env.reload });
   for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
   initSearchShortcut(doc);
