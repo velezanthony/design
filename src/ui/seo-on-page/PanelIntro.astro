@@ -1,0 +1,25 @@
+---
+import type { UiStrings } from '../../core/i18n/ui-strings';
+import Heading from '../atoms/Heading.astro';
+import Admonition from '../molecules/Admonition.astro';
+
+interface Props {
+  /** Nombre de la pantalla: es el `h1`. */
+  title: string;
+  strings: UiStrings;
+}
+
+const { title, strings } = Astro.props;
+---
+
+<div class="mb-6 flex flex-col gap-6">
+  <Admonition kind="note" title="Herramienta de desarrollo" strings={strings}>
+    <p>
+      Herramienta solo en desarrollo: lee los mismos datos con los que se genera el sitio y no
+      existe en la build publicada.
+    </p>
+  </Admonition>
+  <Heading level={1} size="xl">
+    {title}
+  </Heading>
+</div>

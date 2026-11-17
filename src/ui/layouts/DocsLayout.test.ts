@@ -321,3 +321,18 @@ describe('DocsLayout: desplazamiento de la barra lateral', () => {
     expect(last.textContent).toContain('docs:sidebar-scroll');
   });
 });
+
+describe('DocsLayout: contenido sin prosa', () => {
+  it('por defecto el contenido va en .prose, que da estilo al Markdown', async () => {
+    const doc = await page();
+    expect(doc.querySelector('main .prose')).not.toBeNull();
+  });
+
+  /* Una página que trae su propio marcado (tablas, listas, formularios) no quiere que `.prose` le
+     cambie los márgenes, las viñetas ni los enlaces. */
+  it('con prose={false} el contenido va sin .prose, pero dentro de <main>', async () => {
+    const doc = await page({ prose: false });
+    expect(doc.querySelector('.prose')).toBeNull();
+    expect(doc.querySelector('main h1')!.textContent).toBe('Guía');
+  });
+});

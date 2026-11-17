@@ -56,4 +56,11 @@ describe('FiltersForm', () => {
       '/repo/seo-on-page/pages/',
     );
   });
+
+  it('el desplegable de tipos y el botón de filtrar son clicables y lo parecen', async () => {
+    const doc = await form();
+    expect(doc.querySelector('summary')!.classList.contains('cursor-pointer')).toBe(true);
+    const submit = doc.querySelector('button[type="submit"]')!;
+    expect(submit.classList.contains('cursor-pointer')).toBe(true);
+  });
 });

@@ -65,3 +65,8 @@ export async function loadSeoTree(config: VirtualConfig): Promise<SeoTree> {
   );
   return buildSeoTree(seoInputOf(entries, config, sizes));
 }
+
+/** Los datos de la colección tal cual, para que la cabecera y el pie del panel se resuelvan como los del sitio. */
+export async function loadDocData(): Promise<DocData[]> {
+  return (await getDocs()).map((entry) => entry.data);
+}

@@ -51,6 +51,8 @@ interface Props {
   fallback?: { originalLocale: Locale; href: string };
   /** Columnas plegables y ancho; sin él, todo abierto, en lectura y con los controles. */
   layout?: ResolvedLayout;
+  /** `false` para una página con su propio marcado (herramientas, tablas): sin el estilo de `.prose`. */
+  prose?: boolean;
 }
 
 const {
@@ -76,6 +78,7 @@ const {
   year,
   fallback,
   layout = DEFAULT_LAYOUT,
+  prose = true,
 } = Astro.props;
 
 if (gtmId && !privacyUrl) {
@@ -174,7 +177,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       )}
       {/* `.prose` es la utilidad que da estilo al Markdown renderizado (encabezados, código, anclas,
           admoniciones, pestañas). Va solo en el contenido: el cromo de debajo no la hereda. */}
-      <div class="prose" lang={fallback?.originalLocale}>
+      <div class:list={[prose && 'prose']} lang={fallback?.originalLocale}>
         <slot />
       </div>
       <div data-pagefind-ignore>

@@ -2,6 +2,8 @@
 import { IssueKind, IssueSeverity } from '../../core/seo-on-page/tree/types';
 import type { SeoSummary } from '../../core/seo-on-page/queries/summary';
 import Heading from '../atoms/Heading.astro';
+import Link from '../atoms/Link.astro';
+import Tag from '../atoms/Tag.astro';
 import { KIND_LABELS, SEVERITY_PLURALS, SEVERITY_TONES } from './labels';
 
 interface Props {
@@ -24,9 +26,9 @@ const stats = [
   { id: 'informative-only', label: 'Solo informativas', value: summary.informativeOnly },
   { id: 'clean', label: 'Sin nada', value: summary.clean },
 ];
-const row = 'flex min-h-8 w-full items-baseline justify-between gap-4 border-b border-rule py-1';
-const link = 'text-accent hover:underline underline-offset-[0.2em]';
-const inlineLink = 'text-accent underline underline-offset-[0.2em]';
+/* La fila entera es el enlace (o, sin incidencias, un texto apagado): una zona de clic amplia. `rowBox` no lleva `display`: el enlace ya es inline-flex y el texto añade flex. */
+const rowBox = 'min-h-8 w-full justify-between gap-4 border-b border-rule py-1';
+const rowText = `flex items-baseline ${rowBox}`;
 ---
 
 <div class="flex flex-col gap-8">
@@ -40,12 +42,8 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
   </dl>
 
   <p class="flex flex-wrap gap-x-6 gap-y-1">
-    <a href={hrefs.pages} class={inlineLink}>
-      Ver las páginas con problemas
-    </a>
-    <a href={hrefs.all} class={inlineLink}>
-      Ver todas las páginas
-    </a>
+    <Link href={hrefs.pages}>Ver las páginas con problemas</Link>
+    <Link href={hrefs.all}>Ver todas las páginas</Link>
   </p>
 
   <section aria-labelledby="schemas" data-schemas class="max-w-measure">
@@ -62,7 +60,7 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
         </p>
         <ul class="mt-3">
           {summary.schemas.types.map(({ type, pages }) => (
-            <li data-schema-type={type} class:list={[row, 'text-ink']}>
+            <li data-schema-type={type} class:list={[rowText, 'text-ink']}>
               <span class="font-mono">{type}</span>
               <span class="font-mono">{pages}</span>
             </li>
@@ -83,14 +81,14 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
       {Object.values(IssueSeverity).map((severity) => (
         <li data-severity={severity}>
           {summary.bySeverity[severity] > 0 ? (
-            <a href={hrefs.severity(severity)} class:list={[row, link]}>
+            <Link href={hrefs.severity(severity)} class={rowBox}>
               {SEVERITY_PLURALS[severity]}
-              <span class:list={['font-mono', SEVERITY_TONES[severity]]}>
+              <Tag tone={SEVERITY_TONES[severity]} plain class="font-mono">
                 {summary.bySeverity[severity]}
-              </span>
-            </a>
+              </Tag>
+            </Link>
           ) : (
-            <p class:list={[row, 'text-muted']}>
+            <p class={`${rowText} text-muted`}>
               {SEVERITY_PLURALS[severity]}
               <span class="font-mono">0</span>
             </p>
@@ -108,12 +106,12 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
       {Object.values(IssueKind).map((kind) => (
         <li data-kind={kind}>
           {summary.byKind[kind] > 0 ? (
-            <a href={hrefs.kind(kind)} class:list={[row, link]}>
+            <Link href={hrefs.kind(kind)} class={rowBox}>
               {KIND_LABELS[kind]}
               <span class="font-mono text-ink">{summary.byKind[kind]}</span>
-            </a>
+            </Link>
           ) : (
-            <p class:list={[row, 'text-muted']}>
+            <p class={`${rowText} text-muted`}>
               {KIND_LABELS[kind]}
               <span class="font-mono">0</span>
             </p>

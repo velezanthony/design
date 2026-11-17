@@ -4,6 +4,7 @@
 /* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
 import { isTitleOutOfRange, THRESHOLDS } from '../../core/seo-on-page/thresholds';
 import type { SeoPage } from '../../core/seo-on-page/tree/types';
+import Link from '../atoms/Link.astro';
 import IssueBadge from './IssueBadge.astro';
 import { DESCRIPTION_SOURCE_LABELS, slugLabel } from './labels';
 
@@ -44,9 +45,7 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
         {rows.map(({ page, href }) => (
           <tr>
             <th scope="row" class:list={[cell, 'font-mono font-normal']}>
-              <a href={href} class="text-accent underline underline-offset-[0.2em]">
-                {slugLabel(page.slug)}
-              </a>
+              <Link href={href}>{slugLabel(page.slug)}</Link>
             </th>
             <td class={cell}>{page.locale}</td>
             <td class={cell}>

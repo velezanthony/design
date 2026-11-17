@@ -9,19 +9,28 @@ import {
   filtersFromUrl,
   parsePage,
 } from '../../core/seo-on-page/queries/url-filters';
+import DocsLayout from '../../ui/layouts/DocsLayout.astro';
 import FiltersForm from '../../ui/seo-on-page/FiltersForm.astro';
 import InfoHiddenNote from '../../ui/seo-on-page/InfoHiddenNote.astro';
 import Pagination from '../../ui/molecules/Pagination.astro';
 import PagesTable from '../../ui/seo-on-page/PagesTable.astro';
 import ResultsCount from '../../ui/seo-on-page/ResultsCount.astro';
 import { PAGINATION_LABELS } from '../../ui/seo-on-page/labels';
-import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
+import PanelIntro from '../../ui/seo-on-page/PanelIntro.astro';
 import { urlPolicyOf } from '../routes/pages';
 import { siteConfig } from '../routes/site-config';
-import { loadSeoTree } from './adapter';
+import { loadDocData, loadSeoTree } from './adapter';
 import { devHrefs } from './hrefs';
+import { panelView } from './panel-view';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
+const view = panelView({
+  cfg: siteConfig,
+  data: await loadDocData(),
+  hrefs,
+  screen: 'pages',
+  title: 'Páginas',
+});
 const { filters, defaulted } = filtersFromUrl(Astro.url.searchParams);
 const tree = await loadSeoTree(siteConfig);
 const result = paginate(filterPages(tree, filters), parsePage(Astro.url.searchParams), PAGE_SIZE);
@@ -31,16 +40,12 @@ const rows = result.rows.map((page) => ({ page, href: hrefs.inspector(page) }));
 const linkFilters = defaulted ? { ...filters, severities: [] } : filters;
 ---
 
-<SeoLayout
-  title="Páginas"
-  siteName={siteConfig.name}
-  active="pages"
-  hrefs={{ overview: hrefs.overview(), pages: hrefs.pages(), site: hrefs.siteHome() }}
->
+<DocsLayout {...view} year={new Date().getFullYear()}>
   <Fragment slot="head">
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
+  <PanelIntro title="Páginas" strings={view.strings} />
   <div class="flex flex-col gap-6">
     <FiltersForm filters={filters} locales={siteConfig.locales} action={hrefs.pages()} />
     {defaulted && (
@@ -60,4 +65,4 @@ const linkFilters = defaulted ? { ...filters, severities: [] } : filters;
       href={(number) => hrefs.pages(linkFilters, number)}
     />
   </div>
-</SeoLayout>
+</DocsLayout>

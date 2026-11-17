@@ -36,11 +36,12 @@ export const SEVERITY_PLURALS: Record<IssueSeverity, string> = {
   info: 'Informativos',
 };
 
-export const SEVERITY_TONES: Record<IssueSeverity, string> = {
-  error: 'text-danger',
-  warning: 'text-state-wip',
-  info: 'text-muted',
-};
+/** El tono (de `Tag`) con el que se pinta cada gravedad: rojo, ámbar y apagado. */
+export const SEVERITY_TONES = {
+  error: 'danger',
+  warning: 'wip',
+  info: 'neutral',
+} as const satisfies Record<IssueSeverity, 'danger' | 'wip' | 'neutral'>;
 
 export const DESCRIPTION_SOURCE_LABELS: Record<DescriptionSource, string> = {
   page: 'De la página',
@@ -58,3 +59,25 @@ export const PAGINATION_LABELS = {
   next: 'Siguiente →',
   page: (number: number) => `Página ${number}`,
 };
+
+export const PANEL_NAME = 'SEO on page';
+
+/** Las pantallas del panel, para su navegación y su `<title>`. */
+export const SCREEN_LABELS = {
+  overview: 'Resumen',
+  pages: 'Páginas',
+} as const;
+
+/**
+ * Las secciones del inspector: el `id` de cada encabezado y su texto, en el orden de la página. Es la
+ * única fuente: el inspector pinta de aquí sus encabezados y el panel construye con ellos «En esta
+ * página», así no pueden desincronizarse.
+ */
+export const INSPECTOR_SECTIONS = {
+  published: 'Lo que se publica',
+  previews: 'Vistas previas',
+  issues: 'Problemas',
+  schemas: 'Schemas (JSON-LD)',
+  outline: 'Encabezados',
+  translations: 'Traducciones',
+} as const;

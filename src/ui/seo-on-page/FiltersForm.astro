@@ -1,6 +1,10 @@
 ---
 import { IssueKind, IssueSeverity } from '../../core/seo-on-page/tree/types';
 import type { SeoFilters } from '../../core/seo-on-page/queries/url-filters';
+import Button from '../atoms/Button.astro';
+import Checkbox from '../atoms/Checkbox.astro';
+import Input from '../atoms/Input.astro';
+import Link from '../atoms/Link.astro';
 import { KIND_LABELS, SEVERITY_PLURALS } from './labels';
 
 interface Props {
@@ -13,48 +17,34 @@ interface Props {
 
 const { filters, locales, action } = Astro.props;
 const group = 'flex flex-wrap items-center gap-x-4 gap-y-1';
-const check = 'inline-flex min-h-6 items-center gap-1.5';
 ---
 
 {/* Sin JavaScript: un GET con la query de `parseFilters`. Atrás/adelante y compartir la URL funcionan. */}
 <form method="get" action={action} class="flex flex-col gap-4 border border-rule bg-raised p-4">
   <div class="flex flex-wrap items-end gap-4">
-    <label class="flex flex-col gap-1">
-      <span class="label text-muted">Buscar</span>
-      <input
-        type="search"
-        name="q"
-        value={filters.text}
-        placeholder="slug o título"
-        class="min-h-8 w-64 border border-rule bg-canvas px-2 text-ink"
-      />
-    </label>
+    <Input
+      id="seo-filter-text"
+      type="search"
+      name="q"
+      label="Buscar"
+      value={filters.text}
+      placeholder="slug o título"
+      class="w-64"
+    />
     <fieldset class={group}>
       <legend class="label mb-1 text-muted">Gravedad</legend>
       {Object.values(IssueSeverity).map((severity) => (
-        <label class={check}>
-          <input
-            type="checkbox"
-            name="severity"
-            value={severity}
-            checked={filters.severities.includes(severity)}
-          />
+        <Checkbox name="severity" value={severity} checked={filters.severities.includes(severity)}>
           {SEVERITY_PLURALS[severity]}
-        </label>
+        </Checkbox>
       ))}
     </fieldset>
     <fieldset class={group}>
       <legend class="label mb-1 text-muted">Idioma</legend>
       {locales.map((locale) => (
-        <label class={check}>
-          <input
-            type="checkbox"
-            name="locale"
-            value={locale}
-            checked={filters.locales.includes(locale)}
-          />
+        <Checkbox name="locale" value={locale} checked={filters.locales.includes(locale)}>
           {locale}
-        </label>
+        </Checkbox>
       ))}
     </fieldset>
   </div>
@@ -62,22 +52,16 @@ const check = 'inline-flex min-h-6 items-center gap-1.5';
     <summary class="label min-h-6 cursor-pointer text-muted">Tipo de problema</summary>
     <div class="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
       {Object.values(IssueKind).map((kind) => (
-        <label class={check}>
-          <input type="checkbox" name="kind" value={kind} checked={filters.kinds.includes(kind)} />
+        <Checkbox name="kind" value={kind} checked={filters.kinds.includes(kind)}>
           {KIND_LABELS[kind]}
-        </label>
+        </Checkbox>
       ))}
     </div>
   </details>
   <div class="flex items-center gap-4">
-    <button
-      type="submit"
-      class="label min-h-8 border border-accent bg-accent-soft px-3 text-accent hover:bg-canvas"
-    >
-      Filtrar
-    </button>
-    <a data-clear href={action} class="min-h-6 text-accent underline underline-offset-[0.2em]">
+    <Button type="submit">Filtrar</Button>
+    <Link data-clear href={action}>
       Limpiar filtros
-    </a>
+    </Link>
   </div>
 </form>

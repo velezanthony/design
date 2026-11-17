@@ -3,8 +3,9 @@ import { outline } from '../../core/seo-on-page/queries/outline';
 import { THRESHOLDS } from '../../core/seo-on-page/thresholds';
 import type { SeoPage } from '../../core/seo-on-page/tree/types';
 import Heading from '../atoms/Heading.astro';
+import Link from '../atoms/Link.astro';
 import IssueBadge from './IssueBadge.astro';
-import { DESCRIPTION_SOURCE_LABELS, slugLabel } from './labels';
+import { DESCRIPTION_SOURCE_LABELS, INSPECTOR_SECTIONS, slugLabel } from './labels';
 import OgPreview from './OgPreview.astro';
 import SerpPreview from './SerpPreview.astro';
 
@@ -37,17 +38,13 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
 
 <div class="flex flex-col gap-10">
   <p class="flex flex-wrap gap-x-6 gap-y-1">
-    <a href={pagesHref} class="text-accent underline underline-offset-[0.2em]">
-      ← Todas las páginas
-    </a>
-    <a href={liveHref} class="text-accent underline underline-offset-[0.2em]">
-      Abrir la página real
-    </a>
+    <Link href={pagesHref}>← Todas las páginas</Link>
+    <Link href={liveHref}>Abrir la página real</Link>
   </p>
 
   <section aria-labelledby="published" class="flex flex-col">
     <Heading level={2} size="md" id="published">
-      Lo que se publica
+      {INSPECTOR_SECTIONS.published}
     </Heading>
     <dl class="mt-3">
       <div class={field}>
@@ -91,7 +88,7 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
 
   <section aria-labelledby="previews" class="flex flex-col gap-4">
     <Heading level={2} size="md" id="previews">
-      Vistas previas
+      {INSPECTOR_SECTIONS.previews}
     </Heading>
     <div class="grid gap-6 lg:grid-cols-2">
       <div class="flex flex-col gap-2">
@@ -118,7 +115,7 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
 
   <section aria-labelledby="issues" data-issues class="flex flex-col gap-2">
     <Heading level={2} size="md" id="issues">
-      Problemas
+      {INSPECTOR_SECTIONS.issues}
     </Heading>
     {page.issues.length === 0 ? (
       <p class="text-muted">Sin problemas.</p>
@@ -135,13 +132,9 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
                   {issue.related.map((other, index) => (
                     <>
                       {index > 0 && ', '}
-                      <a
-                        data-related
-                        href={inspectorHref(other)}
-                        class="font-mono text-accent underline underline-offset-[0.2em]"
-                      >
+                      <Link data-related href={inspectorHref(other)} class="font-mono">
                         {other.slug || '/'}
-                      </a>
+                      </Link>
                     </>
                   ))}
                 </span>
@@ -160,7 +153,7 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
 
   <section aria-labelledby="schemas" data-schemas class="flex flex-col gap-3">
     <Heading level={2} size="md" id="schemas">
-      Schemas (JSON-LD)
+      {INSPECTOR_SECTIONS.schemas}
     </Heading>
     {page.schemas.length === 0 ? (
       <p class="text-muted">Esta página no declara ningún schema.</p>
@@ -182,7 +175,7 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
 
   <section aria-labelledby="outline" class="flex flex-col gap-2">
     <Heading level={2} size="md" id="outline">
-      Encabezados
+      {INSPECTOR_SECTIONS.outline}
     </Heading>
     {items.length === 0 ? (
       <p class="text-muted" data-outline-empty>
@@ -213,7 +206,7 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
 
   <section aria-labelledby="translations" class="flex flex-col gap-3">
     <Heading level={2} size="md" id="translations">
-      Traducciones
+      {INSPECTOR_SECTIONS.translations}
     </Heading>
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {page.locales.map((entry) => {
@@ -252,12 +245,9 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
                   <p class="font-mono text-sm text-ink">{entry.url}</p>
                 )}
                 {entry.locale !== page.locale && inspectorHrefs[entry.locale] && (
-                  <a
-                    href={inspectorHrefs[entry.locale]}
-                    class="text-accent underline underline-offset-[0.2em]"
-                  >
+                  <Link href={inspectorHrefs[entry.locale]!}>
                     Inspeccionar {slugLabel(page.slug)} en {entry.locale}
-                  </a>
+                  </Link>
                 )}
               </>
             )}

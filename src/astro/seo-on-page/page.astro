@@ -2,13 +2,16 @@
 /* Contenedor del inspector: una página e idioma elegidos por la query (`?slug=…&locale=…`; la
    portada tiene slug vacío). Ruta bajo demanda por lo mismo que la tabla. */
 import { Font } from 'astro:assets';
+import DocsLayout from '../../ui/layouts/DocsLayout.astro';
+import Link from '../../ui/atoms/Link.astro';
 import Inspector from '../../ui/seo-on-page/Inspector.astro';
 import { slugLabel } from '../../ui/seo-on-page/labels';
-import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
+import PanelIntro from '../../ui/seo-on-page/PanelIntro.astro';
 import { urlPolicyOf } from '../routes/pages';
 import { siteConfig } from '../routes/site-config';
-import { loadSeoTree } from './adapter';
+import { loadDocData, loadSeoTree } from './adapter';
 import { assetHref, devHrefs } from './hrefs';
+import { inspectorHeadings, panelView } from './panel-view';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
 const { searchParams } = Astro.url;
@@ -23,18 +26,23 @@ const inspectorHrefs = Object.fromEntries(
   siteConfig.locales.map((code) => [code, hrefs.inspector({ slug, locale: code })]),
 );
 const ogSrc = page?.meta.ogImage?.src;
+const title = page ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada';
+const view = panelView({
+  cfg: siteConfig,
+  data: await loadDocData(),
+  hrefs,
+  screen: 'pages',
+  title,
+  headings: page ? inspectorHeadings() : [],
+});
 ---
 
-<SeoLayout
-  title={page ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada'}
-  siteName={siteConfig.name}
-  active="pages"
-  hrefs={{ overview: hrefs.overview(), pages: hrefs.pages(), site: hrefs.siteHome() }}
->
+<DocsLayout {...view} year={new Date().getFullYear()}>
   <Fragment slot="head">
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
+  <PanelIntro title={title} strings={view.strings} />
   {page ? (
     <Inspector
       page={page}
@@ -49,9 +57,7 @@ const ogSrc = page?.meta.ogImage?.src;
   ) : (
     <p class="text-ink">
       No hay ninguna página con slug «{slug}» en «{locale}».
-      <a href={hrefs.pages()} class="text-accent underline underline-offset-[0.2em]">
-        Ver la tabla
-      </a>
+      <Link href={hrefs.pages()}>Ver la tabla</Link>
     </p>
   )}
-</SeoLayout>
+</DocsLayout>
