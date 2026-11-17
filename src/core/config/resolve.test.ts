@@ -15,6 +15,24 @@ function messages(input: unknown): string[] {
   return [];
 }
 
+describe('resolveConfig: content', () => {
+  it('por defecto la carpeta de contenido es `src/content/docs`', () => {
+    expect(resolveConfig({ name: 'X' }).content).toBe('src/content/docs');
+  });
+
+  it('se normaliza lo declarado: `../docs/` -> `../docs`', () => {
+    expect(resolveConfig({ name: 'X', content: '../docs/' }).content).toBe('../docs');
+    expect(resolveConfig({ name: 'X', content: './docs//' }).content).toBe('docs');
+  });
+
+  it.each(['https://x.dev/docs', '/abs/docs', '', '.'])(
+    '«%s» falla nombrando `content`',
+    (value) => {
+      expect(messages({ name: 'X', content: value }).join('\n')).toContain('content');
+    },
+  );
+});
+
 describe('resolveConfig: valores por defecto', () => {
   it('config mínima: solo nombre', () => {
     const cfg = resolveConfig({ name: 'Design' });

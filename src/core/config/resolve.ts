@@ -1,3 +1,4 @@
+import { DEFAULT_CONTENT_DIR, normalizeContentDir } from '../content/content-dir';
 import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
@@ -26,6 +27,8 @@ export interface ResolvedConfig {
   };
   /** Favicon de `public/` o URL https; sin definir, el del paquete. */
   favicon?: string;
+  /** Carpeta de las páginas nativas, relativa a la raíz del proyecto y ya normalizada (`../docs`). */
+  content: string;
   locales: Locale[];
   defaultLocale: Locale;
   translations: { missing: MissingTranslation };
@@ -76,6 +79,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   return {
     ...config,
     seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
+    content: normalizeContentDir(config.content ?? DEFAULT_CONTENT_DIR),
     locales,
     defaultLocale: config.defaultLocale ?? locales[0],
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },

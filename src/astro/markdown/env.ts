@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { MdastPluginDefinition, PluginFactoryContext } from 'satteri';
 import type { ResolvedConfig } from '../../core/config/resolve';
 import { externalCandidates } from '../../core/content/discovery';
@@ -18,7 +20,7 @@ export interface MarkdownEnv {
   warn: (message: string) => void;
 }
 
-type EnvConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'ui' | 'external'>;
+type EnvConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'ui' | 'external' | 'content'>;
 
 export function createMarkdownEnv(
   config: EnvConfig,
@@ -27,7 +29,7 @@ export function createMarkdownEnv(
 ): MarkdownEnv {
   return {
     root,
-    scope: createScope(root, externalCandidates(config)),
+    scope: createScope(root, externalCandidates(config), config.content),
     locales: config.locales,
     defaultLocale: config.defaultLocale,
     strings: mergeUiStrings(defaultStrings, config.ui),
@@ -53,13 +55,16 @@ export function stringsOf(env: MarkdownEnv, fileURL: URL | undefined): UiStrings
   return env.strings[localeOf(env, fileURL)] ?? env.strings[env.defaultLocale]!;
 }
 
-/** Ruta del archivo respecto a la raíz del proyecto, para los mensajes de error. */
+/**
+ * Ruta del archivo respecto a la raíz del proyecto, para los mensajes de error. Los archivos de
+ * fuera (`../docs/guia.md`, `../CHANGELOG.md`) salen con sus `..`, no con una ruta absoluta.
+ */
 export function fileLabel(env: MarkdownEnv, fileURL: URL | undefined): string {
   if (!fileURL) return '(archivo desconocido)';
-  const { href } = fileURL;
-  return decodeURI(
-    href.startsWith(env.root.href) ? href.slice(env.root.href.length) : fileURL.pathname,
-  );
+  if (fileURL.protocol !== 'file:' || env.root.protocol !== 'file:') {
+    return decodeURI(fileURL.pathname);
+  }
+  return path.relative(fileURLToPath(env.root), fileURLToPath(fileURL)).split(path.sep).join('/');
 }
 
 /** Lo que recibe un plugin ya gateado: archivo, catálogo del idioma y ruta legible. */

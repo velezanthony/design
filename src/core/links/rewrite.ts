@@ -1,11 +1,9 @@
 import type { Page } from '../content/discovery';
+import { DEFAULT_CONTENT_DIR, normalizeContentDir } from '../content/content-dir';
 import { DocsError } from '../errors';
 import { pageUrl, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { fenceMask } from './fences';
-
-/** Carpeta (relativa a la raíz del proyecto) de las páginas nativas; sus `sourcePath` cuelgan de ella. */
-export const NATIVE_DOCS_DIR = 'src/content/docs';
 
 /** Lo que `rewriteLinks` necesita saber del sitio: sus páginas, cómo son sus URLs y sus recursos. */
 export interface PageIndex {
@@ -13,6 +11,11 @@ export interface PageIndex {
   url: UrlPolicy;
   /** Rutas (como las de `sourcePath`, ya normalizadas) de recursos publicados que no son páginas. */
   assets?: ReadonlySet<string>;
+  /**
+   * Carpeta de las páginas nativas relativa a la raíz del proyecto (normalizada); sus `sourcePath`
+   * cuelgan de ella. Puede estar fuera del proyecto (`../docs`). Por defecto, `src/content/docs`.
+   */
+  contentDir?: string;
 }
 
 /** Enlace interno ya resuelto a una página; `validateAnchors` comprueba su ancla. */
@@ -43,22 +46,32 @@ function resolvePath(fromPath: string, target: string): string {
 }
 
 /**
- * Página a la que apunta `resolved`. Los `sourcePath` nativos cuelgan de la carpeta de docs y los
- * external de la raíz del proyecto, así que un nativo que enlaza a un external lo hace con su ruta
- * real: se vuelve a resolver desde la raíz. Un external solo enlaza a external.
+ * Página a la que apunta `resolved`. Los `sourcePath` nativos cuelgan de la carpeta de contenido y
+ * los external de la raíz del proyecto, así que entre tipos distintos se cambia de referencia:
+ * un nativo que enlaza a un external lo hace con su ruta real (se vuelve a resolver desde la raíz)
+ * y un external que enlaza a un nativo apunta dentro de la carpeta de contenido (se le quita ese
+ * prefijo). La búsqueda es siempre por la ruta real del archivo, esté donde esté la carpeta.
  */
 function findTarget(
   resolved: string,
   decoded: string,
   from: Page,
-  pages: readonly Page[],
+  index: PageIndex,
 ): Page | undefined {
+  const { pages } = index;
+  const contentDir = normalizeContentDir(index.contentDir ?? DEFAULT_CONTENT_DIR);
   const sameKind = pages.find(
     (page) => page.kind === from.kind && stripDot(page.sourcePath) === resolved,
   );
-  if (sameKind || from.kind !== 'native') return sameKind;
-  const fromRoot = resolvePath(`${NATIVE_DOCS_DIR}/${from.sourcePath}`, decoded);
-  return pages.find((page) => page.kind === 'external' && stripDot(page.sourcePath) === fromRoot);
+  if (sameKind) return sameKind;
+  if (from.kind === 'native') {
+    const fromRoot = resolvePath(`${contentDir}/${from.sourcePath}`, decoded);
+    return pages.find((page) => page.kind === 'external' && stripDot(page.sourcePath) === fromRoot);
+  }
+  const prefix = `${contentDir}/`;
+  if (!resolved.startsWith(prefix)) return undefined;
+  const inside = resolved.slice(prefix.length);
+  return pages.find((page) => page.kind === 'native' && page.sourcePath === inside);
 }
 
 /** Rangos `[inicio, fin)` de los códigos en línea de una línea (backticks de igual longitud). */
@@ -125,7 +138,7 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     errors.push(brokenLink(rawTarget, from, line, 'no es una página ni un recurso publicado'));
     return undefined;
   }
-  const found = findTarget(resolved, decoded, from, index.pages);
+  const found = findTarget(resolved, decoded, from, index);
   if (!found) {
     errors.push(brokenLink(rawTarget, from, line, 'no es una página publicada'));
     return undefined;

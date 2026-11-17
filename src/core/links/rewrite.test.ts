@@ -177,6 +177,81 @@ describe('rewriteLinks', () => {
   });
 });
 
+/* La carpeta de contenido vive FUERA del proyecto de Astro (`site/` + `docs/` hermanas): los
+   `sourcePath` nativos siguen siendo relativos a ella y los external, a la raíz del proyecto. */
+describe('rewriteLinks con `contentDir` fuera del proyecto', () => {
+  const contentDir = '../docs';
+  const outside = [
+    page('', 'en', 'index.md'),
+    page('', 'es', 'index.es.md'),
+    page('users/guia', 'en', 'users/guia.md'),
+    page('users/guia', 'es', 'users/guia.es.md'),
+    page('changelog', 'en', '../CHANGELOG.md', 'external'),
+    page('changelog', 'es', '../CHANGELOG.es.md', 'external'),
+  ];
+  const outsideIndex: PageIndex = { pages: outside, url, contentDir };
+  const at = (sourcePath: string) => outside.find((p) => p.sourcePath === sourcePath)!;
+
+  it('un enlace relativo entre nativas sigue resolviendo contra la carpeta de contenido', () => {
+    const result = rewriteLinks(
+      '[g](./guia.md) y [h](../index.md)',
+      at('users/guia.md'),
+      outsideIndex,
+    );
+    expect(result.body).toBe('[g](/repo/users/guia/) y [h](/repo/)');
+  });
+
+  it('respeta el idioma de la página que enlaza', () => {
+    const result = rewriteLinks('[g](./guia.md)', at('users/guia.es.md'), outsideIndex);
+    expect(result.body).toBe('[g](/repo/es/users/guia/)');
+  });
+
+  it('una nativa enlaza a un external con su ruta real desde la carpeta de contenido', () => {
+    const result = rewriteLinks('[c](../../CHANGELOG.md#v1)', at('users/guia.md'), outsideIndex);
+    expect(result.body).toBe('[c](/repo/changelog/#v1)');
+    expect(result.errors).toEqual([]);
+  });
+
+  it('un external enlaza de vuelta a una nativa por su ruta real (`../docs/...`)', () => {
+    const result = rewriteLinks(
+      '[g](./docs/users/guia.md#uso)',
+      at('../CHANGELOG.md'),
+      outsideIndex,
+    );
+    expect(result.body).toBe('[g](/repo/users/guia/#uso)');
+    expect(result.refs).toEqual([
+      { file: '../CHANGELOG.md', line: 1, slug: 'users/guia', locale: 'en', anchor: 'uso' },
+    ]);
+  });
+
+  it('el enlace de vuelta usa la gemela del idioma del external', () => {
+    const result = rewriteLinks(
+      '[g](./docs/users/guia.md)',
+      at('../CHANGELOG.es.md'),
+      outsideIndex,
+    );
+    expect(result.body).toBe('[g](/repo/es/users/guia/)');
+  });
+
+  it('un external sigue enlazando a otro external', () => {
+    const result = rewriteLinks('[c](./CHANGELOG.md)', at('../CHANGELOG.es.md'), outsideIndex);
+    expect(result.body).toBe('[c](/repo/es/changelog/)');
+  });
+
+  it('un external que no apunta dentro de la carpeta de contenido no encuentra nativas', () => {
+    const result = rewriteLinks('[g](./users/guia.md)', at('../CHANGELOG.md'), outsideIndex);
+    expect(result.errors).toHaveLength(1);
+  });
+
+  it('sin `contentDir` se asume `src/content/docs` (los external no ven nativas bajo `../docs`)', () => {
+    const result = rewriteLinks('[g](./docs/users/guia.md)', at('../CHANGELOG.md'), {
+      pages: outside,
+      url,
+    });
+    expect(result.errors).toHaveLength(1);
+  });
+});
+
 /* Astro resuelve las imágenes de una página como importaciones: `img/x.png` sin `./` sería un
    módulo «bare» (falla con ImageNotFound), aunque en Markdown sea una ruta relativa válida. */
 describe('rewriteLinks: imágenes relativas sin `./`', () => {

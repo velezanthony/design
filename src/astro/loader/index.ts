@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Loader, LoaderContext } from 'astro/loaders';
@@ -15,7 +15,7 @@ import { validateNav } from '../../core/navigation/nav-sections';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
 import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-policy';
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
-import { NATIVE_DOCS_DIR, rewriteLinks, type LinkRef } from '../../core/links/rewrite';
+import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
 import { toAstroError } from '../integration/errors';
@@ -26,12 +26,24 @@ import { resolveRepoRoot } from './repo-root';
 import { docsSchema } from './schema';
 import { createReloader, watchSources } from './watch';
 
-const NATIVE_DIR = NATIVE_DOCS_DIR;
 const LOAD_ERROR = 'No se puede cargar el contenido de docs.';
+
+/** Carpeta de las páginas nativas, absoluta: `content` está resuelta contra la raíz del proyecto. */
+const contentDir = (root: string, config: Pick<LoaderConfig, 'content'>) =>
+  path.resolve(root, config.content);
+
+/** Falla con la ruta ya resuelta si la carpeta de contenido no existe o no es una carpeta. */
+async function assertContentDir(dir: string, config: Pick<LoaderConfig, 'content'>) {
+  const info = await stat(dir).catch(() => undefined);
+  if (info?.isDirectory()) return;
+  throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${dir}.`, {
+    hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
+  });
+}
 
 /** Rutas de los `.md` bajo `dir`, relativas a él y con `/` aunque el sistema use otro separador. */
 async function walk(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { recursive: true, withFileTypes: true }).catch(() => []);
+  const entries = await readdir(dir, { recursive: true, withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
     .map((entry) =>
@@ -48,7 +60,8 @@ async function readSources(
   root: string,
   config: LoaderConfig,
 ): Promise<{ files: SourceFile[]; errors: DocsError[] }> {
-  const nativeDir = path.join(root, NATIVE_DIR);
+  const nativeDir = contentDir(root, config);
+  await assertContentDir(nativeDir, config);
   const errors: DocsError[] = [];
   const native = await Promise.all(
     (await walk(nativeDir)).map(async (file): Promise<SourceFile> => {
@@ -68,9 +81,9 @@ async function readSources(
 }
 
 /** Archivo absoluto de una página: las nativas cuelgan del directorio de contenido. */
-const absolutePath = (root: string, page: Page) =>
+const absolutePath = (root: string, config: LoaderConfig, page: Page) =>
   page.kind === 'native'
-    ? path.join(root, NATIVE_DIR, page.sourcePath)
+    ? path.join(contentDir(root, config), page.sourcePath)
     : path.resolve(root, page.sourcePath);
 
 /** Errores de `discoverPages` como lista, para sumarlos a los demás en vez de cortar la carga. */
@@ -130,12 +143,13 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
       trailingSlash: ctx.config.trailingSlash,
       defaultLocale: config.defaultLocale,
     },
+    contentDir: config.content,
   };
   const refs: LinkRef[] = [];
   const headings: { slug: string; locale: string; headings: { slug: string }[] }[] = [];
   for (const page of pages) {
     const id = `${page.locale}/${page.slug || 'index'}`;
-    const file = absolutePath(root, page);
+    const file = absolutePath(root, config, page);
     const rewritten = rewriteLinks(page.body, page, index);
     errors.push(...rewritten.errors);
     refs.push(...rewritten.refs);
@@ -215,7 +229,7 @@ function createLoader(getConfig: () => LoaderConfig): Loader {
       if (ctx.watcher) {
         const root = fileURLToPath(ctx.config.root);
         watchSources(ctx.watcher, {
-          nativeDir: path.join(root, NATIVE_DIR),
+          nativeDir: contentDir(root, docsConfig),
           files: externalCandidates(docsConfig).map((file) => path.resolve(root, file)),
           reload: createReloader(run, (error) => {
             const text = error instanceof Error ? error.message : String(error);

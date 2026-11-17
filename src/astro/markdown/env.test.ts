@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from '../../core/config/resolve';
 import { docFileURL, externalFileURL, project } from '../../testing/markdown';
-import { createMarkdownEnv, localeOf, stringsOf } from './env';
+import { createMarkdownEnv, fileLabel, localeOf, stringsOf } from './env';
 
 const env = createMarkdownEnv(
   resolveConfig({
@@ -31,5 +31,19 @@ describe('stringsOf', () => {
   it('trae el catálogo del idioma con los overrides del consumidor', () => {
     expect(stringsOf(env, docFileURL('a.es.md'))['admonition.note']).toBe('Ojo');
     expect(stringsOf(env, docFileURL('a.md'))['admonition.note']).toBe('Note');
+  });
+});
+
+describe('con `content` fuera del proyecto', () => {
+  const outside = createMarkdownEnv(resolveConfig({ name: 'x', content: '../docs' }), project);
+
+  it('el ámbito de los plugins es esa carpeta', () => {
+    expect(outside.scope.docsPrefix).toBe('file:///docs/');
+  });
+
+  it('fileLabel da la ruta respecto a la raíz del proyecto, también con `..`', () => {
+    expect(fileLabel(outside, new URL('file:///docs/users/guia.md'))).toBe('../docs/users/guia.md');
+    expect(fileLabel(outside, docFileURL('a.md'))).toBe('src/content/docs/a.md');
+    expect(fileLabel(outside, externalFileURL('../CHANGELOG.md'))).toBe('../CHANGELOG.md');
   });
 });

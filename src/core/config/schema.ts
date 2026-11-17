@@ -1,6 +1,7 @@
 import { PRIVACY_LOCALES } from '../privacy/copy';
 import { missingPrivacyLocales } from '../privacy/pages';
 import { z } from 'astro/zod';
+import { contentDirProblem } from '../content/content-dir';
 import { MissingTranslation } from '../i18n/translation-policy';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
@@ -148,6 +149,13 @@ export const DocsConfigSchema = z
       })
       .optional(),
     favicon: FaviconSchema.optional(),
+    content: z
+      .string()
+      .superRefine((dir, ctx) => {
+        const problem = contentDirProblem(dir);
+        if (problem) ctx.addIssue({ code: 'custom', message: problem });
+      })
+      .optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
     defaultLocale: z.string().optional(),
     translations: z.strictObject({ missing: MissingTranslationSchema.optional() }).optional(),

@@ -123,4 +123,41 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
     expect(output).toContain('gtmId');
     expect(output).toContain('GTM-XXXXXXX');
   });
+
+  /* Contenido fuera del proyecto de Astro (`site/` + `docs/`): lo mismo, con la ruta real. */
+  it('`content` fuera del proyecto: una admonición desconocida nombra la ruta real y la línea', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'outside-admonition',
+      config: { name: 'Strict', content: '../docs' },
+      docs: {
+        'index.md': page('Home'),
+        'users/guia.md': page('Guía', ':::peligro\nNo existe.\n:::'),
+      },
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('../docs/users/guia.md:3');
+    expect(output).toContain('peligro');
+  });
+
+  it('`content` fuera del proyecto: un enlace roto nombra archivo y línea', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'outside-broken-link',
+      config: { name: 'Strict', content: '../docs' },
+      docs: { 'index.md': page('Home'), 'users/guia.md': page('Guía', '[x](../no-existe.md)') },
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('users/guia.md:3');
+    expect(output).toContain('no-existe.md');
+  });
+
+  it('`content` apuntando a una carpeta que no existe: nombra la ruta resuelta', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'outside-missing-dir',
+      config: { name: 'Strict', content: '../no-hay' },
+      docs: {},
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('no-hay');
+    expect(output).toContain('content');
+  });
 });

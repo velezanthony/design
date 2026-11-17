@@ -36,3 +36,29 @@ describe('shouldTransform', () => {
     expect(shouldTransform(docFileURL('a.md'), loose)).toBe(true);
   });
 });
+
+describe('shouldTransform con la carpeta de contenido fuera del proyecto', () => {
+  const outside = createScope(project, ['../CHANGELOG.md'], '../docs');
+
+  it('transforma las páginas de `../docs/`, anidadas y de otro idioma', () => {
+    expect(shouldTransform(new URL('file:///docs/index.md'), outside)).toBe(true);
+    expect(shouldTransform(new URL('file:///docs/users/guia.es.md'), outside)).toBe(true);
+  });
+
+  it('ya no trata `src/content/docs/` como documentación', () => {
+    expect(shouldTransform(docFileURL('guide.md'), outside)).toBe(false);
+  });
+
+  it('el prefijo lleva barra final: `docs-old/` no cuenta como `docs/`', () => {
+    expect(shouldTransform(new URL('file:///docs-old/a.md'), outside)).toBe(false);
+  });
+
+  it('los external siguen valiendo', () => {
+    expect(shouldTransform(new URL('file:///CHANGELOG.md'), outside)).toBe(true);
+  });
+
+  it('una carpeta dentro del proyecto (`documentacion`) también se transforma', () => {
+    const inside = createScope(project, [], 'documentacion');
+    expect(shouldTransform(new URL('documentacion/a.md', project), inside)).toBe(true);
+  });
+});

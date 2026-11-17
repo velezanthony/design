@@ -37,7 +37,9 @@ class FakeWatcher extends EventEmitter {
 }
 
 /** `ctx` mínimo del content layer: store en memoria, `parseData` con el schema real y Markdown simulado. */
-function makeCtx(options: { base?: string; watcher?: FakeWatcher } = {}) {
+function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: string } = {}) {
+  /* Raíz del proyecto de Astro: `root`, o una subcarpeta (`site`) si el contenido vive fuera de ella. */
+  const projectRoot = options.project ? path.join(root, options.project) : root;
   const entries = new Map<
     string,
     { id: string; data: Record<string, unknown>; filePath?: string }
@@ -47,10 +49,10 @@ function makeCtx(options: { base?: string; watcher?: FakeWatcher } = {}) {
   const rendered: string[] = [];
   const ctx = {
     config: {
-      root: pathToFileURL(`${root}/`),
+      root: pathToFileURL(`${projectRoot}/`),
       base: options.base ?? '/',
       trailingSlash: 'ignore',
-      publicDir: pathToFileURL(`${root}/public/`),
+      publicDir: pathToFileURL(`${projectRoot}/public/`),
       integrations: [],
     },
     store: {
@@ -405,6 +407,119 @@ describe('docsLoader: dev (watcher)', () => {
     await write('src/content/docs/a.md', '# A fijo\n');
     watcher.emit('change', path.join(root, 'src/content/docs/a.md'));
     await vi.waitFor(() => expect(made.entries.get('en/a')!.data.title).toBe('A fijo'));
+  });
+});
+
+describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
+  const site = () => makeCtx({ project: 'site', base: '/repo' });
+  const config = (extra: Partial<DocsUserConfig> = {}): DocsUserConfig => ({
+    name: 'T',
+    locales: ['en', 'es'],
+    content: '../docs',
+    ...extra,
+  });
+
+  it('lee las páginas de ../docs sin mirar src/content/docs, y solo los .md', async () => {
+    await write('docs/index.md', '# Home\n');
+    await write('docs/index.es.md', '# Inicio\n');
+    await write('docs/users/guia.md', '# Guía\n');
+    await write('docs/requirements.txt', 'mkdocs\n');
+    await write('docs/img/captura.png', 'png');
+    await write('site/src/content/docs/otra.md', '# Otra\n');
+    const { entries } = await load(config(), site());
+    expect([...entries.keys()].sort()).toEqual(['en/index', 'en/users/guia', 'es/index']);
+  });
+
+  it('sourcePath y filePath son la ruta real respecto al proyecto (`../docs/...`)', async () => {
+    await write('docs/users/guia.md', '# Guía\n');
+    const { entries } = await load(config(), site());
+    const entry = entries.get('en/users/guia')!;
+    expect(entry.data.sourcePath).toBe(path.join('../docs', 'users/guia.md'));
+    expect(entry.filePath).toBe(path.join('../docs', 'users/guia.md'));
+  });
+
+  it('el fileURL que recibe renderMarkdown es el del archivo real (imágenes relativas)', async () => {
+    await write('docs/users/guia.md', '# Guía\n\n![c](img/captura.png)\n');
+    const made = site();
+    const urls: string[] = [];
+    const render = made.ctx as unknown as {
+      renderMarkdown: (body: string, options: { fileURL: URL }) => Promise<unknown>;
+    };
+    const original = render.renderMarkdown;
+    render.renderMarkdown = (body, options) => {
+      urls.push(options.fileURL.href);
+      return original(body, options);
+    };
+    await load(config(), made);
+    expect(urls).toEqual([pathToFileURL(path.join(root, 'docs/users/guia.md')).href]);
+  });
+
+  it('enlaces relativos entre páginas y anclas, en el idioma de la página que enlaza', async () => {
+    await write('docs/index.md', '# Home\n');
+    await write(
+      'docs/users/guia.md',
+      '# Guía\n\n## Uso\n\n[home](../index.md) [otra](./otra.md#paso)\n',
+    );
+    await write('docs/users/guia.es.md', '# Guía es\n\n[otra](./otra.md#paso)\n');
+    await write('docs/users/otra.md', '# Otra\n\n## Paso\n');
+    await write('docs/users/otra.es.md', '# Otra es\n\n## Paso\n');
+    const { rendered } = await load(config(), site());
+    const all = rendered.join('\n');
+    expect(all).toContain('[home](/repo/) [otra](/repo/users/otra/#paso)');
+    expect(all).toContain('[otra](/repo/es/users/otra/#paso)');
+  });
+
+  it('un ancla rota se nombra con el archivo (relativo a la carpeta de contenido) y la línea', async () => {
+    await write('docs/a.md', '# A\n\n[b](./b.md#no-hay)\n');
+    await write('docs/b.md', '# B\n');
+    const message = await failure(config(), site());
+    expect(message).toContain('a.md:3');
+    expect(message).toContain('no-hay');
+  });
+
+  it('una nativa y un external (CHANGELOG en la raíz del repo) se enlazan en ambos sentidos', async () => {
+    await write('docs/users/guia.md', '# Guía\n\n[c](../../CHANGELOG.md#v1)\n');
+    await write('CHANGELOG.md', '# Changelog\n\n## v1\n\n[g](./docs/users/guia.md)\n');
+    const { rendered } = await load(
+      config({ locales: ['en'], external: [{ slug: 'changelog', file: '../CHANGELOG.md' }] }),
+      site(),
+    );
+    const all = rendered.join('\n');
+    expect(all).toContain('[c](/repo/changelog/#v1)');
+    expect(all).toContain('[g](/repo/users/guia/)');
+  });
+
+  it('«Editar esta página» apunta a la ruta real del repositorio (docs/users/guia.md)', async () => {
+    await write('docs/users/guia.md', '# Guía\n');
+    const { entries } = await load(
+      config({ editUrl: 'https://x/edit/main', repoRoot: '..' }),
+      site(),
+    );
+    expect(entries.get('en/users/guia')!.data.editPath).toBe(path.join('docs', 'users/guia.md'));
+  });
+
+  it('una carpeta de contenido inexistente rompe nombrando la ruta resuelta', async () => {
+    await write('site/astro.config.mjs', '');
+    const message = await failure(config(), site());
+    expect(message).toContain(path.join(root, 'docs'));
+    expect(message).toContain('content');
+  });
+
+  it('una carpeta de contenido que es un archivo también rompe', async () => {
+    await write('docs', 'no soy una carpeta');
+    expect(await failure(config(), site())).toContain(path.join(root, 'docs'));
+  });
+
+  it('vigila la carpeta externa y una edición en ella recarga', async () => {
+    await write('docs/a.md', '# A\n');
+    const watcher = new FakeWatcher();
+    const made = makeCtx({ project: 'site', watcher });
+    await load(config(), made);
+    expect(watcher.added).toEqual([path.join(root, 'docs')]);
+
+    await write('docs/a.md', '# A editada\n');
+    watcher.emit('change', path.join(root, 'docs/a.md'));
+    await vi.waitFor(() => expect(made.entries.get('en/a')!.data.title).toBe('A editada'));
   });
 });
 

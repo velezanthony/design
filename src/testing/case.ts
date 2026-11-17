@@ -3,13 +3,17 @@ import { dirname, relative, resolve } from 'node:path';
 import type { DocsUserConfig } from '../core/config/schema';
 import { buildFixtureFailing, type FailedBuild } from './build';
 
-/** Un proyecto consumidor mínimo descrito como datos: la config y los archivos de `src/content/docs`. */
+/**
+ * Un proyecto consumidor mínimo descrito como datos: la config y los archivos de la carpeta de
+ * contenido (`src/content/docs`, o la de `config.content`: si es una ruta de fuera, p. ej.
+ * `../docs`, el proyecto de Astro se escribe en `site/` para que `../docs` caiga dentro del caso).
+ */
 export interface BuildCase {
   name: string;
   config: DocsUserConfig;
-  /** Ruta bajo `src/content/docs/` -> contenido. */
+  /** Ruta bajo la carpeta de contenido -> contenido. */
   docs: Record<string, string>;
-  /** Ruta bajo la raíz del caso -> contenido (p. ej. `public/og.png`). */
+  /** Ruta bajo la raíz del proyecto de Astro -> contenido (p. ej. `public/og.png`; `../CHANGELOG.md` queda fuera de él). */
   extra?: Record<string, string | Uint8Array>;
 }
 
@@ -27,13 +31,16 @@ function importPath(dir: string, target: string): string {
  * en vez de una carpeta de fixture por regla.
  */
 export async function buildFailingCase(buildCase: BuildCase): Promise<FailedBuild> {
-  const root = resolve(casesDir, buildCase.name);
+  const caseDir = resolve(casesDir, buildCase.name);
+  const contentDir = buildCase.config.content ?? 'src/content/docs';
+  // Con contenido fuera del proyecto, este vive en `site/` y `..` cae dentro de la carpeta del caso.
+  const root = contentDir.startsWith('..') ? resolve(caseDir, 'site') : caseDir;
   const write = async (relativePath: string, content: string | Uint8Array) => {
     const file = resolve(root, relativePath);
     await mkdir(dirname(file), { recursive: true });
     await writeFile(file, content);
   };
-  await rm(root, { recursive: true, force: true });
+  await rm(caseDir, { recursive: true, force: true });
   try {
     await write(
       'astro.config.mjs',
@@ -66,13 +73,13 @@ export const collections = {
 `,
     );
     for (const [path, content] of Object.entries(buildCase.docs)) {
-      await write(`src/content/docs/${path}`, content);
+      await write(`${contentDir}/${path}`, content);
     }
     for (const [path, content] of Object.entries(buildCase.extra ?? {})) {
       await write(path, content);
     }
     return await buildFixtureFailing(root);
   } finally {
-    await rm(root, { recursive: true, force: true });
+    await rm(caseDir, { recursive: true, force: true });
   }
 }

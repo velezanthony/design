@@ -47,6 +47,6 @@ export function assertNoRouteCollision(
   if (clashes.length === 0) return;
   throw new AstroError(
     `Hay páginas propias que pisan rutas de \`@velezanthony/design\`: ${clashes.join(', ')}.`,
-    'Astro da prioridad a `src/pages/`, así que esas rutas no mostrarían la documentación. Borra esos ficheros (el andamio de `npm create astro` trae `src/pages/index.astro`): la home es `src/content/docs/index.md`; `404` y `sitemap.xml` los inyecta la integración.',
+    'Astro da prioridad a `src/pages/`, así que esas rutas no mostrarían la documentación. Borra esos ficheros (el andamio de `npm create astro` trae `src/pages/index.astro`): la home es el `index.md` de la carpeta de contenido (`src/content/docs/index.md` por defecto); `404` y `sitemap.xml` los inyecta la integración.',
   );
 }
