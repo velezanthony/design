@@ -552,6 +552,23 @@ export default defineDocsConfig({
 - Si ya tienes un fichero en `src/pages/` que ocupa `/privacidad/` o `/en/privacy/`, la integración
   falla y te dice cuál.
 
+## SEO on page (solo en desarrollo)
+
+Con `astro dev` el sitio sirve un panel para revisar el SEO de cada página mientras escribes, sin
+configurar nada:
+
+- `/<base>/seo-on-page/`: resumen con los problemas por gravedad y por tipo.
+- `/<base>/seo-on-page/pages`: tabla filtrable (gravedad, idioma, tipo, texto) de todas las páginas e
+  idiomas, con el `<title>` final y su longitud contra el límite, el origen de la descripción y los
+  problemas. Los filtros van en la URL.
+- `/<base>/seo-on-page/page?slug=…&locale=…`: inspector de una página, con vista previa de buscador y
+  Open Graph, canonical, esquema de encabezados y traducciones lado a lado.
+
+No hay rastreo ni lectura de HTML: lee la colección con la que se genera el sitio y reutiliza la
+misma cascada de metadatos. Con `astro build` no se inyecta ninguna de estas rutas (un test de build
+comprueba que `dist/` no las menciona). Si tienes una página propia en esa ruta, en dev el build
+falla como con cualquier otra colisión. Más en la documentación: «SEO on page».
+
 ## Reglas estrictas de build
 
 El build falla por: un enlace relativo o `#anchor` roto, un sufijo de idioma que no está en `locales`

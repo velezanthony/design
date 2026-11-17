@@ -136,6 +136,10 @@ astro/
 ├── content/
 │   └── index.ts             `collections`: la colección docs con la config del módulo virtual
 ├── markdown/                Plugins mdast y su registro (ver Integración → Markdown)
+├── seo-on-page/             Panel SOLO de dev (ver Integración → SEO on page)
+│   ├── adapter.ts           Colección + config → SeoInput → árbol (el único que lee astro:content)
+│   ├── hrefs.ts             Rutas del panel y enlaces entre pantallas
+│   └── overview.astro, pages.astro, page.astro   Contenedores de las tres rutas
 ├── routes/
 │   ├── doc.astro            Contenedor de /[...slug]
 │   ├── doc-view.ts          docRoutes y docView: todo lo que necesita una página
