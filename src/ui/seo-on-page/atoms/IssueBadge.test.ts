@@ -40,6 +40,8 @@ describe('IssueBadge', () => {
     });
     const title = doc.querySelector('[data-severity]')!.getAttribute('title');
     expect(title).toContain('Título largo.');
-    expect(title).toContain('Cómo arreglarlo: Acorta `seo.title` en a.md.');
+    // Un title no admite HTML: las comillas de código se quitan en lugar de enseñarse.
+    expect(title).toContain('Cómo arreglarlo: Acorta seo.title en a.md.');
+    expect(title).not.toContain('`');
   });
 });

@@ -1,4 +1,5 @@
 ---
+import { codeSpans } from '../../../core/seo-on-page/queries/code-spans';
 import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
 import Heading from '../../atoms/Heading.astro';
 import Link from '../../atoms/Link.astro';
@@ -41,7 +42,10 @@ const { issues } = Astro.props;
           </div>
           {issue.fix && (
             <p data-fix class="text-sm text-muted">
-              <span class="label">Arreglo</span> {issue.fix}
+              <span class="label">Arreglo</span>{' '}
+              {codeSpans(issue.fix).map((span) =>
+                span.code ? <code class="font-mono text-ink">{span.text}</code> : span.text,
+              )}
             </p>
           )}
         </li>

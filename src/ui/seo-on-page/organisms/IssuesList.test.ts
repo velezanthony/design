@@ -43,6 +43,12 @@ describe('IssuesList', () => {
     const fix = doc.querySelector('[data-issues] [data-fix]');
     expect(text(fix)).toContain('seo.title');
     expect(text(fix)).toContain('guide.md');
+    // Las claves y rutas se pintan como código, sin las comillas de Markdown a la vista.
+    expect([...fix!.querySelectorAll('code')].map((code) => code.textContent)).toEqual([
+      'seo.title',
+      'guide.md',
+    ]);
+    expect(text(fix)).not.toContain('`');
   });
 
   it('sin problemas lo dice', async () => {
