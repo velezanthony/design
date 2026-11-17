@@ -13,9 +13,9 @@ en un buscador y en una tarjeta al compartir, y qué problemas tienen.
 
 | Ruta | Qué enseña |
 | --- | --- |
-| `/seo-on-page/` | Totales, con las páginas separadas en con problemas (error o aviso), solo informativas y sin nada, y las incidencias por gravedad y por tipo, cada una con un enlace a la tabla ya filtrada. |
+| `/seo-on-page/` | Totales, con las páginas separadas en con problemas (error o aviso), solo informativas y sin nada, y las incidencias por gravedad y por tipo, cada una con un enlace a la tabla ya filtrada; además, cuántas páginas llevan JSON-LD y qué `@type` se usan. |
 | `/seo-on-page/pages` | Una fila por página **e idioma**: slug, `<title>` final con su longitud contra el límite («72 / 60»), origen y longitud de la descripción e insignias de problemas. |
-| `/seo-on-page/page?slug=…&locale=…` | El inspector de una página (la portada tiene slug vacío): lo que se publica, vista previa del resultado de búsqueda y de la tarjeta Open Graph, canonical, `noindex`, el esquema de encabezados con los saltos marcados, sus problemas y sus traducciones lado a lado. |
+| `/seo-on-page/page?slug=…&locale=…` | El inspector de una página (la portada tiene slug vacío): lo que se publica, vista previa del resultado de búsqueda y de la tarjeta Open Graph, canonical, `noindex`, los schemas JSON-LD con su `@type`, su origen (sitio o página) y el JSON formateado, el esquema de encabezados con los saltos marcados, sus problemas y sus traducciones lado a lado. |
 
 > [!NOTE]
 > Con `trailingSlash: 'always'` Astro solo
@@ -59,6 +59,11 @@ cambian de criterio): `<title>` de 15 a 60, descripción de 70 a 160 y exactamen
 en `src/core/seo-on-page/thresholds.ts`. Los problemas que detecta: título largo o corto, descripción
 ausente, heredada del sitio, larga o corta, título o descripción duplicados, ningún H1 o varios,
 saltos de nivel (H2 → H4) y traducciones ausentes o con políticas en conflicto.
+
+El JSON-LD (`seo.schema`) solo se **muestra**: la librería no impone ninguno, así que no hay
+incidencias por tenerlo o no. Sale de la misma cascada que `buildHead` (sitio y después página,
+`schema: false` lo quita), y la tabla no tiene filtro por schema porque los filtros de la URL son de
+tipo y gravedad de incidencia.
 
 ## Filtros en la URL
 

@@ -77,10 +77,46 @@ flowchart LR
   `alt`, el `alt` es el título de esa página. Se leen sus dimensiones para `og:image:width/height`,
   y se avisa si pesa más de 300 KB o no se acerca a 1,91:1 (`core/seo/image-checks.ts`).
 - **`noindex`.** Saca la página del sitemap y del índice de búsqueda.
+- **JSON-LD (`seo.schema`).** La librería no inyecta ninguno por defecto: es un puente. El sitio
+  declara los suyos y se pintan en el `<head>`, un `<script type="application/ld+json">` por schema.
+  La cascada es la de los títulos: sin nada en ningún nivel no sale nada; los del sitio salen en
+  todas las páginas; `seo.schema: [...]` en una página se **suma** a los del sitio (primero los del
+  sitio); `seo.schema: false` deja esa página sin ninguno.
+
+  ```js
+  // docs.config.mjs
+  seo: { schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }] }
+  ```
+
+  ```yaml
+  ---
+  seo:
+    schema:
+      - '@type': TechArticle
+        headline: Instalar en cualquier sistema
+  ---
+  ```
+
+  Cada schema es un objeto con `@type` (un string o una lista no vacía de strings) y las demás
+  claves libres. Si falta `@context` se añade `https://schema.org`; si lo declaras, se respeta. Un
+  fallo se nombra con su ruta (`seo.schema[1]['@type']`).
+
+  La config viaja al sitio como JSON, así que no admite funciones. Como `docs.config.mjs` es
+  JavaScript, calcula los objetos al construir y pásalos ya hechos:
+
+  ```js
+  import { author } from './src/data/author.mjs';
+
+  const person = { '@type': 'Person', name: author.name, url: author.url, sameAs: author.profiles };
+  export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
+  ```
+
+  El JSON sale escapando `<`, `>`, `&`, U+2028 y U+2029 (`\u003c`…): un valor con
+  `</script><script>alert(1)</script>` no puede cerrar el `<script>` ni abrir otro.
 
 `buildHead` emite: `<title>`, favicon, `canonical`, los `hreflang` (con `x-default`), Open Graph
 (`og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale` y alternativas,
-`og:image*`) y las etiquetas `twitter:*`. Una ruta de reserva lleva `noindex` y su canonical apunta
+`og:image*`), las etiquetas `twitter:*` y el JSON-LD declarado. Una ruta de reserva lleva `noindex` y su canonical apunta
 al original.
 
 Ejemplo de frontmatter de una página:
