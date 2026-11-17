@@ -320,7 +320,7 @@ pnpm add x
 ::::
 ```
 
-Los bloques de código usan Shiki (`github-light` / `github-dark`); Shiki ya
+Los bloques de código usan Shiki (`github-light-default` / `github-dark-default`); Shiki ya
 entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la
 librería añade alias: `django` y `htmldjango` se resaltan como `jinja`, `pycon` como `python`, `env`
 y `.env` como `dotenv`, `terminal` y `shell-session` como `shellsession` (igual que `console`). Los
