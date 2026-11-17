@@ -369,6 +369,45 @@ de repositorio también sirve, el id es público en la página de todos modos):
 
 Sin ella, los builds locales y de forks quedan sin rastreo y sin ningún camino de código propio.
 
+### Página de privacidad propia (`privacy`)
+
+Por defecto no se genera ninguna página: si la analítica está activa (o defines `privacyUrl`), el
+footer y el aviso de consentimiento enlazan a la política del portfolio, una por idioma
+(`https://velezanthony.github.io/privacidad/` en `es` y `https://velezanthony.github.io/en/privacy/`
+en `en`).
+
+Para que el sitio publique la suya, actívala:
+
+```js
+export default defineDocsConfig({
+  name: 'Portfolio',
+  locales: ['es', 'en'],
+  privacy: {
+    page: true,
+    // Opcional. Por defecto, el responsable del portfolio.
+    controller: { name: 'Tu Nombre', email: 'tu@correo.dev' },
+  },
+});
+```
+
+| Opción               | Descripción                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `privacy.page`       | `true` inyecta la página de privacidad en cada idioma (`es` → `/privacidad/`, `en` → `/privacy/`, con el prefijo de idioma y la `base` que corresponda). Por defecto `false`. |
+| `privacy.controller` | `{ name, email }` del responsable que aparece en el texto. Por defecto, el del portfolio.                                                                              |
+
+- La página lleva la cabecera, el pie y el aviso de consentimiento de la documentación, pero sin barra
+  lateral. Es indexable: entra en `sitemap.xml` y lleva `hreflang` entre idiomas.
+- El enlace de privacidad del footer y del aviso apunta entonces a esta página (relativo a la `base`),
+  salvo que definas `privacyUrl`, que siempre gana.
+- El texto cubre este sitio y las webs de documentación de `velezanthony.github.io/<repo>/` (mismo
+  responsable, misma analítica, mismo consentimiento). Describe qué se guarda (tema, disposición y
+  elección de cookies en `localStorage`; cookies de GTM/GA solo tras aceptar), la base legal, la
+  conservación, los derechos y cómo retirar el consentimiento con «Preferencias de cookies».
+- Solo hay texto en `es` y `en`: con `page: true` y otro idioma en `locales`, la construcción falla con
+  un error claro.
+- Si ya tienes un fichero en `src/pages/` que ocupa `/privacidad/` o `/en/privacy/`, la integración
+  falla y te dice cuál.
+
 ## Reglas estrictas de build
 
 El build falla por: un enlace relativo o `#anchor` roto, un sufijo de idioma que no está en `locales`
