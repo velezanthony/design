@@ -4,6 +4,7 @@ import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildAvailability } from '../../core/i18n/availability';
 import { resolvePolicies } from '../../core/i18n/translation-policy';
 import { buildFooter, type FooterView } from '../../core/navigation/footer';
+import { resolveLabel } from '../../core/navigation/label';
 import type { NavContext } from '../../core/navigation/nav-entries';
 import { buildHead, type HeadConfig } from '../../core/seo/head';
 import {
@@ -28,6 +29,8 @@ export interface NotFoundOther {
   homeHref: string;
   strings: UiStrings;
   footer: FooterView;
+  /** Política de privacidad de este idioma (solo con analítica o `privacyUrl`). */
+  privacyUrl?: string;
 }
 
 export interface NotFoundView {
@@ -107,6 +110,9 @@ export function notFoundView(
               homeHref: pageUrl('', other, url),
               strings: otherStrings,
               footer: footerFor(other),
+              ...(cfg.privacyUrl !== undefined && {
+                privacyUrl: resolveLabel(cfg.privacyUrl, other, cfg.defaultLocale),
+              }),
             };
           })
       : [];
@@ -118,7 +124,9 @@ export function notFoundView(
     strings,
     footer: footerFor(lang),
     baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
-    ...(cfg.privacyUrl !== undefined && { privacyUrl: cfg.privacyUrl }),
+    ...(cfg.privacyUrl !== undefined && {
+      privacyUrl: resolveLabel(cfg.privacyUrl, lang, cfg.defaultLocale),
+    }),
     ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
     others,
     ...(others.length > 0 && {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
 import { createVirtualData } from '../virtual/data';
 import { notFoundRoutes, notFoundView } from './not-found-view';
@@ -99,5 +100,34 @@ describe('notFoundView: footer', () => {
   it('sin páginas los enlaces a página se omiten, no se rompen', () => {
     const view = notFoundView(undefined, cfg);
     expect(view.footer.links.map((link) => link.label)).toEqual(['Repository', 'Report a bug']);
+  });
+});
+
+describe('notFoundView: analítica y privacidad', () => {
+  const on = (envValue: string | undefined) =>
+    createVirtualData(
+      applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'] }), envValue),
+      {
+        base: '/repo',
+        site: 'https://x.dev',
+        trailingSlash: 'always',
+        buildFormat: 'directory',
+      },
+    );
+
+  it('sin analítica la 404 no trae gtmId ni privacidad, tampoco las plantillas', () => {
+    const view = notFoundView(undefined, on(undefined));
+    expect(view.gtmId).toBeUndefined();
+    expect(view.privacyUrl).toBeUndefined();
+    expect(view.others[0]?.privacyUrl).toBeUndefined();
+  });
+
+  it('con analítica cada 404, y cada plantilla, enlaza la política de su idioma', () => {
+    const cfg = on('GTM-ENV0001');
+    const view = notFoundView(undefined, cfg);
+    expect(view.gtmId).toBe('GTM-ENV0001');
+    expect(view.privacyUrl).toBe('https://velezanthony.github.io/en/privacy/');
+    expect(view.others[0]?.privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
+    expect(notFoundView('es', cfg).privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
   });
 });

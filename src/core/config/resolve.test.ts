@@ -81,11 +81,26 @@ describe('resolveConfig: validación', () => {
     ).toBeGreaterThanOrEqual(3);
   });
 
-  it('`gtmId` exige `privacyUrl`', () => {
-    expect(messages({ name: 'X', gtmId: 'GTM-1' })[0]).toContain('privacyUrl');
-    expect(messages({ name: 'X', gtmId: 'GTM-1', privacyUrl: 'https://x.dev/privacy' })).toEqual(
-      [],
-    );
+  it('`gtmId` ya no exige `privacyUrl`: la integración la completa o falla según el entorno', () => {
+    expect(messages({ name: 'X', gtmId: 'GTM-1' })).toEqual([]);
+  });
+
+  it('`privacyUrl` acepta una cadena o una etiqueta por idioma', () => {
+    expect(messages({ name: 'X', privacyUrl: 'https://x.dev/privacy' })).toEqual([]);
+    expect(
+      messages({
+        name: 'X',
+        locales: ['en', 'es'],
+        privacyUrl: { en: '/privacy/', es: '/privacidad/' },
+      }),
+    ).toEqual([]);
+  });
+
+  it('`privacyUrl` por idioma valida cada URL y los idiomas', () => {
+    expect(messages({ name: 'X', privacyUrl: { en: 'privacy' } })[0]).toContain('privacyUrl.en');
+    expect(
+      messages({ name: 'X', locales: ['en'], privacyUrl: { es: '/privacidad/' } })[0],
+    ).toContain('privacyUrl.es');
   });
 
   it('`external[].file` no puede ser una URL remota', () => {

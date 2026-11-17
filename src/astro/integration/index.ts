@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import type { AstroIntegration } from 'astro';
 import { AstroError } from 'astro/errors';
+import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
@@ -10,6 +11,7 @@ import { extendMarkdownProcessor } from '../markdown/processor';
 import { mergeLangAlias } from '../markdown/register';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
+import { readAnalyticsEnv } from './analytics-env';
 import { addCompanions, COMPANIONS } from './companions';
 import { toAstroError } from './errors';
 import { assertNoFontConflict, designFonts } from './fonts';
@@ -55,19 +57,33 @@ const route = (file: string) => new URL(`../routes/${file}`, import.meta.url);
 const virtualTypes = () =>
   readFileSync(new URL('../virtual/virtual.d.ts', import.meta.url), 'utf8');
 
+/** `applyAnalytics` con los errores del núcleo traducidos a `AstroError`. */
+function applyAnalyticsOrThrow(config: ResolvedConfig, envValue: string | undefined) {
+  try {
+    return applyAnalytics(config, envValue);
+  } catch (error) {
+    throw toAstroError(error, 'La analítica de `@velezanthony/design` no es válida.');
+  }
+}
+
 export function docs(userConfig: DocsUserConfig): DocsIntegration {
   const resolvedConfig = resolveConfigOrThrow(userConfig);
   return {
     name: INTEGRATION_NAME,
     resolvedConfig,
     hooks: {
-      'astro:config:setup': ({ config, updateConfig, injectRoute, logger }) => {
+      'astro:config:setup': ({ command, config, updateConfig, injectRoute, logger }) => {
         if (!config.site) {
           throw new AstroError(
             'Falta `site` en la config de Astro.',
             'Defínelo en astro.config.mjs (`site: "https://tu-dominio.dev"`): lo necesitan el sitemap y las URLs canónicas.',
           );
         }
+        // Analítica: el ID sale de la config o de PUBLIC_GTM_ID; sin ninguno no hay nada de nada.
+        const siteConfig = applyAnalyticsOrThrow(
+          resolvedConfig,
+          readAnalyticsEnv(command, config.root),
+        );
         assertNoRouteCollision(
           new URL('pages/', config.srcDir),
           resolvedConfig.locales,
@@ -90,7 +106,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           vite: {
             plugins: [
               createVirtualConfigPlugin(
-                createVirtualData(resolvedConfig, {
+                createVirtualData(siteConfig, {
                   base: config.base,
                   site: config.site,
                   trailingSlash: config.trailingSlash,

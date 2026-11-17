@@ -4,6 +4,7 @@ import type { Locale } from '../../core/i18n/locale';
 import { fallbackRoutes, resolvePolicies } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../core/navigation/footer';
+import { resolveLabel } from '../../core/navigation/label';
 import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
 import { buildScopedSidebar } from '../../core/navigation/nav-sidebar';
 import { flatten, type SidebarNode } from '../../core/navigation/sidebar';
@@ -142,7 +143,9 @@ export function docView(
     ...(prev && { prev }),
     ...(next && { next }),
     ...(editable && { editUrl: cfg.editUrl, editFile: original.editPath }),
-    ...(cfg.privacyUrl !== undefined && { privacyUrl: cfg.privacyUrl }),
+    ...(cfg.privacyUrl !== undefined && {
+      privacyUrl: resolveLabel(cfg.privacyUrl, route.locale, cfg.defaultLocale),
+    }),
     ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
     indexable: !isFallback && !meta.noindex,
     baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,

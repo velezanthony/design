@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
@@ -272,5 +273,40 @@ describe('docView: footer', () => {
       author: { name: 'Anthony Vélez', href: 'https://velezanthony.github.io/' },
       links: [],
     });
+  });
+});
+
+describe('docView: analítica y privacidad', () => {
+  const withEnv = (envValue: string | undefined, user: Partial<DocsUserConfig> = {}) =>
+    createVirtualData(
+      applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), envValue),
+      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+    );
+
+  it('sin analítica no hay gtmId ni enlace de privacidad', () => {
+    const view = docView(
+      route(docRoutes(all, withEnv(undefined)), '', 'en'),
+      all,
+      withEnv(undefined),
+    );
+    expect(view.gtmId).toBeUndefined();
+    expect(view.privacyUrl).toBeUndefined();
+  });
+
+  it('con analítica cada idioma enlaza la política del portfolio de su idioma', () => {
+    const cfg = withEnv('GTM-ENV0001');
+    const routes = docRoutes(all, cfg);
+    const en = docView(route(routes, 'guide', 'en'), all, cfg);
+    const es = docView(route(routes, 'guide', 'es'), all, cfg);
+    expect(en.gtmId).toBe('GTM-ENV0001');
+    expect(en.privacyUrl).toBe('https://velezanthony.github.io/en/privacy/');
+    expect(es.privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
+  });
+
+  it('una privacyUrl explícita sin analítica se enlaza sin gtmId', () => {
+    const cfg = withEnv(undefined, { privacyUrl: '/privacy/' });
+    const view = docView(route(docRoutes(all, cfg), '', 'es'), all, cfg);
+    expect(view.privacyUrl).toBe('/privacy/');
+    expect(view.gtmId).toBeUndefined();
   });
 });

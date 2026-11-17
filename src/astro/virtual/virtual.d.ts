@@ -39,7 +39,7 @@ declare module 'virtual:@velezanthony/design/config' {
     footer?: FooterConfig;
     editUrl?: string;
     repoRoot?: string;
-    privacyUrl?: string;
+    privacyUrl?: Label;
     gtmId?: string;
     social?: { github?: string };
     layout: {

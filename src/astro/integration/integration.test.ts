@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
 import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { docs, INTEGRATION_NAME } from './index';
 import { MissingTranslation } from '../../core/i18n/translation-policy';
 
@@ -43,6 +43,7 @@ function setupContext(
         integrations,
         ...overrides,
       },
+      command: 'build',
       updateConfig,
       injectTypes,
       injectRoute,
@@ -343,5 +344,55 @@ describe('astro:config:setup: rutas inyectadas', () => {
   it('todas las rutas se prerenderizan', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
     expect(routes.every((r) => r.prerender === true)).toBe(true);
+  });
+});
+
+describe('astro:config:setup: analítica desde el entorno', () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const two = { name: 'x', locales: ['en', 'es'] };
+
+  it('sin PUBLIC_GTM_ID no hay gtmId ni enlace de privacidad', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', '');
+    const data = await virtualData(two);
+    expect(data.gtmId).toBeUndefined();
+    expect(data.privacyUrl).toBeUndefined();
+  });
+
+  it('con PUBLIC_GTM_ID activa la analítica y la privacidad del portfolio por idioma', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', ' GTM-ENV0001 ');
+    const data = await virtualData(two);
+    expect(data.gtmId).toBe('GTM-ENV0001');
+    expect(data.privacyUrl).toEqual({
+      en: 'https://velezanthony.github.io/en/privacy/',
+      es: 'https://velezanthony.github.io/privacidad/',
+    });
+  });
+
+  it('el gtmId de la config gana al entorno y su privacyUrl por idioma se respeta', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+    const data = await virtualData({
+      ...two,
+      gtmId: 'GTM-CONF001',
+      privacyUrl: { en: '/privacy/', es: '/privacidad/' },
+    });
+    expect(data.gtmId).toBe('GTM-CONF001');
+    expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+  });
+
+  it('un ID con formato inválido rompe la construcción con un AstroError', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
+    const error = await virtualData(two).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AstroError);
+    expect(String((error as AstroError).hint)).toContain('GTM-XXXXXXX');
+  });
+
+  it('con analítica y un idioma sin política posible falla', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+    const error = await virtualData({
+      ...two,
+      privacyUrl: { es: '/privacidad/' },
+    }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AstroError);
+    expect(String((error as AstroError).hint)).toContain('en');
   });
 });

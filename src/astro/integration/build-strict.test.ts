@@ -113,13 +113,14 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
     expect(output).toContain('/no-esta.svg');
   });
 
-  it('un fallo de integración (config inválida) se propaga: gtmId sin privacyUrl', async () => {
+  it('un fallo de integración (analítica inválida) se propaga: gtmId con formato imposible', async () => {
     const { code, output } = await buildFailingCase({
       name: 'integration-failure',
-      config: { name: 'Strict', gtmId: 'GTM-X' },
+      config: { name: 'Strict', gtmId: 'nope' },
       docs: { 'index.md': page('Home') },
     });
     expect(code).not.toBe(0);
-    expect(output).toContain('privacyUrl');
+    expect(output).toContain('gtmId');
+    expect(output).toContain('GTM-XXXXXXX');
   });
 });

@@ -9,6 +9,14 @@ import { defaultStrings, uiKeys, type UiKey } from '../i18n/ui-strings';
 const LabelSchema = z.union([z.string(), z.record(z.string(), z.string())]);
 export type Label = z.infer<typeof LabelSchema>;
 
+/** URL absoluta o ruta del sitio: lo que puede enlazar el aviso de consentimiento. */
+const PrivacyUrlSchema = z
+  .string()
+  .regex(
+    /^(https?:\/\/|\/)/,
+    'Debe ser una URL absoluta (https://…) o una ruta del sitio (/privacidad).',
+  );
+
 /* Una imagen vive en `public/` (ruta absoluta del sitio) o es una URL https. */
 const ImageSrcSchema = z
   .string()
@@ -150,13 +158,7 @@ export const DocsConfigSchema = z
     footer: FooterSchema.optional(),
     editUrl: z.string().optional(),
     repoRoot: z.string().optional(),
-    privacyUrl: z
-      .string()
-      .regex(
-        /^(https?:\/\/|\/)/,
-        'Debe ser una URL absoluta (https://…) o una ruta del sitio (/privacidad).',
-      )
-      .optional(),
+    privacyUrl: z.union([PrivacyUrlSchema, z.record(z.string(), PrivacyUrlSchema)]).optional(),
     gtmId: z.string().min(1).optional(),
     social: z.strictObject({ github: z.string().optional() }).optional(),
     layout: z
@@ -204,8 +206,15 @@ export const DocsConfigSchema = z
     });
     validateNavShape(config.nav ?? [], issue);
     validateFooterShape(config.footer, issue);
-    if (config.gtmId !== undefined && config.privacyUrl === undefined) {
-      issue(['privacyUrl'], 'Es obligatoria cuando se define `gtmId`.');
+    if (typeof config.privacyUrl === 'object') {
+      for (const locale of Object.keys(config.privacyUrl)) {
+        if (!locales.includes(locale)) {
+          issue(
+            ['privacyUrl', locale],
+            `«${locale}» no está en \`locales\` (${locales.join(', ')}).`,
+          );
+        }
+      }
     }
   });
 

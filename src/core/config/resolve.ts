@@ -35,7 +35,9 @@ export interface ResolvedConfig {
   footer?: FooterConfig;
   editUrl?: string;
   repoRoot?: string;
-  privacyUrl?: string;
+  /** Enlace de privacidad: una URL o una por idioma. La integración lo completa según la analítica. */
+  privacyUrl?: Label;
+  /** ID del contenedor de GTM de la config (anula al del entorno); la integración fija el efectivo. */
   gtmId?: string;
   social?: { github?: string };
   layout: ResolvedLayout;

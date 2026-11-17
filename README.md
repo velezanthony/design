@@ -113,8 +113,8 @@ Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`)
 | `editUrl`       | Repo edit base (`https://github.com/o/r/edit/main`). Adds "Edit this page" pointing at the real source file.                    |
 | `repoRoot`      | Repo root relative to the Astro project (default: nearest ancestor with `.git`). Needed for `editUrl` when there is no `.git`.  |
 | `favicon`       | Tab icon: a file in `public/` (`'favicon.svg'` or `'/favicon.svg'`, must exist) or an `https://` URL. Default: the package's own icon. See below. |
-| `gtmId`         | Google Tag Manager id. Loaded only after the visitor accepts the consent banner. Requires `privacyUrl`.                         |
-| `privacyUrl`    | Privacy policy link of the banner and footer (`https://...` or a site path).                                                    |
+| `gtmId`         | Google Tag Manager id. Optional override of `PUBLIC_GTM_ID` (the config wins over the environment). See [Analytics](#analytics). |
+| `privacyUrl`    | Optional override of the privacy policy link: a URL or one per locale. Default: the portfolio's page. See [Analytics](#analytics). |
 | `layout`        | Collapsible sidebars and reading / full width: `{ sidebar?, toc?, width?, toggles? }`. See below.                               |
 | `social`        | `{ github }`. Also feeds the footer's repository and "Report a bug" links.                                                       |
 
@@ -208,8 +208,8 @@ footer: {
 - **Left**: `© <year> <name> by <author>` as one sentence, then the license. Give only its name
   (`'MIT'`, `'Apache-2.0'`): the page reads "MIT License" / "Licencia MIT" (a link when you give `href`).
 - **Right** (a `<nav>`): your `links` first, then what the config already says: repository and
-  "Report a bug" (`<repo>/issues/new`) from `social.github`, the privacy policy from `privacyUrl` and,
-  only with `gtmId`, a "Cookie preferences" button that reopens the consent banner (withdrawing
+  "Report a bug" (`<repo>/issues/new`) from `social.github`, the privacy policy (shown when analytics is on, or when you set `privacyUrl`) and, only
+  with analytics on, a "Cookie preferences" button that reopens the consent banner (withdrawing
   consent is as easy as giving it).
 - `label` and the license label can be a string or per locale, with the usual fallback. A `slug` link
   follows `translations.missing`; `omit` hides it where the page is not translated.
@@ -305,6 +305,42 @@ Pages use the View Transitions API, all of it behind `prefers-reduced-motion: no
 - **Tabs**: the panel cross-fades.
 - **Mobile menu**: opens and closes smoothly where `::details-content` is supported.
 - **Image zoom**: content images (`.prose img`) with a non-empty `alt` open in a modal `<dialog>` and morph from the thumbnail to the enlarged image. Decorative images (`alt=""`), images inside links, images declared smaller than 96px and images with `data-no-zoom` are left alone. The labels are the `zoom.open` and `zoom.close` UI strings.
+
+## Analytics
+
+Analytics is **off by default**: with no Google Tag Manager id there is no GTM script, no consent
+banner, no "Cookie preferences" button and nothing stored in the browser. The id comes from the
+environment, never from committed code:
+
+```sh
+# .env (dev) or .env.production (build); both are git-ignored. Copy .env.example.
+PUBLIC_GTM_ID=GTM-XXXXXXX
+```
+
+With the id set, visitors get the consent banner, GTM loads only after they accept, and the footer
+gets a "Cookie preferences" button to change their mind. A value that is not `GTM-` plus capital
+letters and digits fails the build (the error names the variable, never prints the value). An empty
+or blank value counts as unset.
+
+- The variable is read with Vite's `loadEnv` for the current command (`dev` reads `.env.development`,
+  `build` reads `.env.production`); variables already in the process environment (CI) win over files.
+- `gtmId` in the config is an explicit override and wins over the environment. Use it only if a repo
+  must pin a container; leave it out otherwise.
+- Privacy policy: there is one, the portfolio's. By default the banner and footer link to
+  `https://velezanthony.github.io/privacidad/` (`es`) and `https://velezanthony.github.io/en/privacy/` (`en`), per
+  locale. Set `privacyUrl` (a string, or `{ en: '...', es: '...' }`) only to override it; it is also
+  linked from the footer without analytics. With analytics on, a locale with no resolvable URL fails the build.
+
+In GitHub Actions pass the variable to the build step (the portfolio keeps it as a secret; a
+repository variable works too, the id is public in the page anyway):
+
+```yaml
+- run: npm run build
+  env:
+    PUBLIC_GTM_ID: ${{ secrets.PUBLIC_GTM_ID }}
+```
+
+Without it, local and fork builds stay untracked with no code path of their own.
 
 ## Strict build rules
 
