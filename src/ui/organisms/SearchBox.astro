@@ -37,7 +37,7 @@ const inputId = `${id}-input`;
       autocomplete="off"
       aria-keyshortcuts="/"
       placeholder={t(strings, 'search.placeholder')}
-      class="docs-search-input min-h-10 w-full rounded-md border border-rule bg-canvas pr-9 pl-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
+      class="docs-search-input min-h-10 w-full rounded-md border border-rule bg-canvas px-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
     />
     {/* Pista del atajo: cuándo se ve (y el hueco que reserva) lo decide el CSS de abajo. */}
     <kbd
@@ -57,9 +57,14 @@ const inputId = `${id}-input`;
 
 <style is:global>
   /* La pista «/» solo se ve si el atajo funciona (`initSearchShortcut` marca `data-shortcut`; sin
-     JS no existe), con el campo vacío y sin foco, y nunca en táctil. */
+     JS no existe), con el campo vacío y sin foco, y nunca en táctil. Solo entonces el campo le
+     reserva hueco a la derecha: con texto, la «x» nativa de borrar vuelve a su sitio, al final. */
   .docs-search-kbd {
     display: none;
+  }
+
+  [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) {
+    padding-right: 2.25rem;
   }
 
   [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) + .docs-search-kbd {
@@ -67,6 +72,10 @@ const inputId = `${id}-input`;
   }
 
   @media (pointer: coarse) {
+    [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) {
+      padding-right: 0.75rem;
+    }
+
     [data-search][data-shortcut]
       .docs-search-input:placeholder-shown:not(:focus)
       + .docs-search-kbd {
