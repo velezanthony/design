@@ -217,7 +217,8 @@ footer: {
 },
 ```
 
-- **Fila 1, izquierda**: `© <año> <name> by <author>` como una sola frase.
+- **Fila 1, izquierda**: `© <año> <name> by <author>` como una sola frase. El año sale del
+  reloj del visitante; el del build queda como respaldo sin JavaScript.
 - **Fila 1, derecha** (un `<nav>`): primero tus `links`, y después repositorio y "Report a bug"
   (`<repo>/issues/new`) a partir de `social.github`.
 - **Fila 2** (más pequeña y tenue, una lista): la licencia, la política de privacidad (se muestra

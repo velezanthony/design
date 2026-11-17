@@ -40,6 +40,14 @@ describe('bootDocs', () => {
     );
   });
 
+  it('pone el año del visitante donde está marcado', () => {
+    const e = env('<span data-current-year>1999</span>');
+    bootDocs(e);
+    expect(e.doc.querySelector('[data-current-year]')!.textContent).toBe(
+      String(new Date().getFullYear()),
+    );
+  });
+
   it('hace ampliables las imágenes del contenido, con los textos de <main>', () => {
     const e = env(content);
     bootDocs(e);

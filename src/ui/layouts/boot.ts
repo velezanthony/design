@@ -9,6 +9,7 @@ import { storageOf } from '../../client/storage';
 import { initTabs } from '../../client/tabs';
 import { initTheme } from '../../client/theme';
 import type { MotionPreference } from '../../client/transition';
+import { initCurrentYear } from '../../client/year';
 import { initZoom } from '../../client/zoom';
 import { trackSections } from '../../client/toc';
 import { localeFromPath } from '../../core/i18n/locale';
@@ -69,6 +70,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
   initConsent({ doc, storage: env.storage, hostname: env.hostname, reload: env.reload });
   for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
   initSearchShortcut(doc);
+  initCurrentYear(doc);
   initTabs(doc, env.motion);
 
   const main = doc.querySelector<HTMLElement>('main');

@@ -147,6 +147,11 @@ describe('DocsFooter', () => {
     expect(text(await footer({ year: 2030 }))).toContain('© 2030');
   });
 
+  it('el año va marcado para que el cliente lo sustituya, con el del build como respaldo', async () => {
+    const mark = (await footer({ year: 2030 })).querySelector('[data-current-year]')!;
+    expect(text(mark)).toBe('2030');
+  });
+
   it('fila 1: los enlaces propios en el nav; privacidad y cookies ya no están ahí', async () => {
     const bare = await footer({ footer: { links: [] } });
     expect(bare.querySelector('a')).toBeNull();
