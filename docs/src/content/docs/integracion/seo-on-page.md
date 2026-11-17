@@ -13,7 +13,7 @@ en un buscador y en una tarjeta al compartir, y qué problemas tienen.
 
 | Ruta | Qué enseña |
 | --- | --- |
-| `/seo-on-page/` | Totales y problemas por gravedad y por tipo, cada uno con un enlace a la tabla ya filtrada. |
+| `/seo-on-page/` | Totales, con las páginas separadas en con problemas (error o aviso), solo informativas y sin nada, y las incidencias por gravedad y por tipo, cada una con un enlace a la tabla ya filtrada. |
 | `/seo-on-page/pages` | Una fila por página **e idioma**: slug, `<title>` final con su longitud contra el límite («72 / 60»), origen y longitud de la descripción e insignias de problemas. |
 | `/seo-on-page/page?slug=…&locale=…` | El inspector de una página (la portada tiene slug vacío): lo que se publica, vista previa del resultado de búsqueda y de la tarjeta Open Graph, canonical, `noindex`, el esquema de encabezados con los saltos marcados, sus problemas y sus traducciones lado a lado. |
 
@@ -65,3 +65,16 @@ saltos de nivel (H2 → H4) y traducciones ausentes o con políticas en conflict
 La tabla se filtra con un formulario `GET` (gravedad, idioma, tipo de problema y texto) sin
 JavaScript: los filtros viajan en la query (`?severity=error&locale=es&kind=no-h1&q=orm`), así que
 atrás/adelante y compartir el enlace funcionan.
+
+### Qué enseña la tabla sin filtros
+
+Casi todas las páginas tienen la incidencia informativa «descripción heredada del sitio», y mostrarlas
+todas ahogaría los avisos reales. Por eso, si la URL no nombra ninguna gravedad ni ningún tipo, la
+tabla parte de **errores y avisos** y lo dice en una nota con un enlace para mostrar también lo
+informativo. La regla es una sola y no depende del estado:
+
+- Lo que la URL escribe manda: `?severity=info` o `?kind=description-inherited` se ven tal cual.
+- «Mostrar todo» es la URL explícita con las tres gravedades
+  (`?severity=error&severity=warning&severity=info`); pedirlas a la vez equivale a no filtrar por
+  gravedad, así que solo ahí aparecen también las páginas sin ninguna incidencia.
+- Las casillas del formulario reflejan los filtros efectivos, de modo que enviarlo reenvía lo que se ve.
