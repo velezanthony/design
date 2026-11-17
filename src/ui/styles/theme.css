@@ -769,6 +769,37 @@
     display: none;
   }
 
+  /* Etiqueta del lenguaje: el `data-language` que ya pone el resaltado, escrito como lo escribió el
+     autor. Es una franja en flujo arriba del bloque (no flota), así que el código siempre empieza
+     debajo y nunca se solapa con ella ni con el botón de copiar, que se alinea en esa misma franja.
+     `sticky` la deja fija a la izquierda aunque el bloque se desplace en horizontal. Los bloques sin
+     lenguaje y la familia `text` no llevan etiqueta ni franja. */
+  &
+    pre.astro-code[data-language]:not(
+      [data-language='text' i],
+      [data-language='txt' i],
+      [data-language='plain' i],
+      [data-language='plaintext' i]
+    ) {
+    padding-top: 0.5rem;
+
+    &::before {
+      content: attr(data-language);
+      display: block;
+      position: sticky;
+      left: 0;
+      margin-bottom: 0.5rem;
+      /* La altura del botón de copiar (`.docs-copy`), para que ambos compartan franja y centro. */
+      line-height: 1.5rem;
+      color: var(--color-faint);
+      font-family: var(--font-mono);
+      font-size: var(--text-label);
+      text-transform: lowercase;
+      white-space: normal;
+      user-select: none;
+    }
+  }
+
   /* Botón de copiar de `client/copy-code.ts`: el bloque se envuelve en `.docs-code` y el botón
      flota arriba a la derecha. Sin JavaScript no existe y el bloque queda tal cual. */
   & .docs-code {

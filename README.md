@@ -314,7 +314,11 @@ Los bloques de código usan Shiki (`github-light` / `github-dark`); Shiki ya
 entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la
 librería añade alias: `django` y `htmldjango` se resaltan como `jinja`, `pycon` como `python`, `env`
 y `.env` como `dotenv`, `terminal` y `shell-session` como `shellsession` (igual que `console`). Los
-`langAlias` de tu `markdown.shikiConfig` se fusionan con estos y, si chocan, mandan los tuyos. No soportado: ids de encabezado personalizados `{ #id }` ni iconos de
+`langAlias` de tu `markdown.shikiConfig` se fusionan con estos y, si chocan, mandan los tuyos.
+Cada bloque resaltado lleva arriba a la izquierda una etiqueta discreta con el lenguaje tal como lo
+escribió el autor (`python`, `bash`, `console`…), en una franja que comparte con el botón de copiar
+sin tapar nunca el código; los bloques sin lenguaje o con `text`, `txt`, `plain` y `plaintext` no
+llevan etiqueta. Es CSS puro sobre `data-language`, sin JavaScript. No soportado: ids de encabezado personalizados `{ #id }` ni iconos de
 Material (`:material-x:` se queda como texto). Los nombres de contenedor desconocidos (`:::foo`)
 rompen el build; los dos puntos sueltos (`12:30`, `http://`) se dejan en paz.
 
