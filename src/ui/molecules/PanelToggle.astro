@@ -21,7 +21,7 @@ const rail = t(strings, nav ? 'layout.navRail' : 'layout.tocRail');
 ---
 
 {/*
-  Solo marcado. `initLayout` (client/layout.ts) engancha `[data-layout-toggle]`: cambia
+  Solo marcado. `initLayout` (client/layout/layout.ts) engancha `[data-layout-toggle]`: cambia
   `<html data-left|data-right>`, `aria-expanded`, el nombre accesible y `inert` del panel. Los
   dos textos viajan en `data-*` porque el cliente no tiene el catálogo. La cabecera y la etiqueta
   del raíl solo existen donde hay columna lateral (desde lg); en móvil manda el «Menú».

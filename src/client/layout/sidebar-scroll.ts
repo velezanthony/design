@@ -1,4 +1,4 @@
-import { SIDEBAR_SCROLL_KEY, safeSet } from './storage';
+import { SIDEBAR_SCROLL_KEY, safeSet } from '../preferences/storage';
 import type { RailQuery } from './layout';
 
 /** Un tramo vertical en coordenadas del contenido (desde el inicio de lo desplazable). */

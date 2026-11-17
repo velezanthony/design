@@ -10,7 +10,7 @@ const element = (hName: string, className: string, children: (MdastNode | Custom
 
 /**
  * Pestañas: `::::tabs` con una o más `:::tab[Etiqueta]`. Sin JS son paneles apilados, cada uno con su
- * etiqueta visible (marcado de `ui/molecules/Tabs.astro`); `client/tabs.ts` construye la
+ * etiqueta visible (marcado de `ui/molecules/Tabs.astro`); `client/content/tabs.ts` construye la
  * `tablist` y los roles. Una pestaña sin etiqueta, o fuera de un grupo, falla con el archivo.
  */
 export const tabs = (env: MarkdownEnv) =>

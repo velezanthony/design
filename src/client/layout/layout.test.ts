@@ -10,7 +10,7 @@ import {
   withWidth,
   type LayoutState,
 } from './layout';
-import { LAYOUT_KEY } from './storage';
+import { LAYOUT_KEY } from '../preferences/storage';
 
 const defaults: LayoutState = { left: 'open', right: 'open', width: 'reading' };
 

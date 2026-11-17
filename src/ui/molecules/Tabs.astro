@@ -9,7 +9,7 @@ const { panels } = Astro.props;
 
 {/*
   Sin JavaScript los paneles se apilan, cada uno con su etiqueta visible. `initTabs`
-  (client/tabs.ts) añade la `tablist`, los roles y deja un solo panel a la vista.
+  (client/content/tabs.ts) añade la `tablist`, los roles y deja un solo panel a la vista.
 */}
 {panels.length > 0 && (
   <div class="docs-tabs">

@@ -1,4 +1,4 @@
-import { withTransition, type MotionPreference } from './transition';
+import { withTransition, type MotionPreference } from '../transition';
 
 export interface ZoomLabels {
   /** Nombre accesible del botón de cada imagen; lleva `{alt}`. */

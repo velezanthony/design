@@ -1,5 +1,5 @@
-import type { LayoutWidth, PanelState } from '../core/config/layout';
-import { LAYOUT_KEY, safeSet } from './storage';
+import type { LayoutWidth, PanelState } from '../../core/config/layout';
+import { LAYOUT_KEY, safeSet } from '../preferences/storage';
 
 /** `left` es la barra de navegación; `right`, el índice «En esta página». */
 export type Side = 'left' | 'right';

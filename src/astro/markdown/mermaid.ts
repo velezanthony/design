@@ -9,8 +9,8 @@ const escapeHtml = (text: string) =>
  * fuente dentro de un `pre` SIN resaltar: no pasa por Shiki (un diagrama no es código que colorear).
  * Pero lleva el mismo marcado que un bloque resaltado (`pre.astro-code[data-language]`), y eso es
  * lo que le da el cromo de un bloque de código sin duplicar nada: el CSS le pone la etiqueta del
- * lenguaje («mermaid») y `client/copy-code.ts` le añade el botón de copiar, que copia SIEMPRE el
- * código original y no el SVG. `client/mermaid.ts` añade el SVG solo en las páginas que lo tienen;
+ * lenguaje («mermaid») y `client/content/copy-code.ts` le añade el botón de copiar, que copia SIEMPRE el
+ * código original y no el SVG. `client/diagrams/mermaid.ts` añade el SVG solo en las páginas que lo tienen;
  * sin JavaScript el lector ve un bloque de código como cualquier otro.
  * Se emite como HTML crudo (escapado aquí) y no como nodo de texto porque este recorta la sangría
  * de las líneas, y en Mermaid la sangría es sintaxis (mindmap, gitGraph…).

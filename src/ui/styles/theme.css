@@ -80,7 +80,7 @@
 }
 
 /* Disposición de las páginas de docs. El estado vive en `<html data-left data-right data-width>`
-   (`client/layout.ts`); aquí solo se traduce a variables. Cada columna lateral plegada se queda en
+   (`client/layout/layout.ts`); aquí solo se traduce a variables. Cada columna lateral plegada se queda en
    un raíl; el texto conserva su medida y lo ancho (código, tablas, capturas) aprovecha el hueco. */
 :root {
   --rail: 2.75rem;
@@ -220,7 +220,7 @@
   }
 
   /* Tema: el tema nuevo se revela con un círculo que nace en el botón (`--reveal-*` los pone
-     `client/theme.ts`) y crece hasta la esquina más lejana. */
+     `client/preferences/theme.ts`) y crece hasta la esquina más lejana. */
   :root[data-transition='theme']::view-transition-old(root),
   :root[data-transition='theme']::view-transition-new(root) {
     animation: none;
@@ -240,7 +240,7 @@
     }
   }
 
-  /* Pestañas: solo el grupo (nombrado por `client/tabs.ts`) hace un fundido rápido; el resto de la
+  /* Pestañas: solo el grupo (nombrado por `client/content/tabs.ts`) hace un fundido rápido; el resto de la
      página no se anima. */
   :root[data-transition='tabs']::view-transition-old(root),
   :root[data-transition='tabs']::view-transition-new(root) {
@@ -388,7 +388,7 @@
 
 /* `label` es una clase global y Mermaid pone esa misma clase a las etiquetas de sus nodos: sin esto
    salen en mayúsculas, monoespaciadas y a 12px. Se apunta al id del SVG (`docs-mermaid-N`, de
-   `client/mermaid.ts`) y no a la figura porque Mermaid mide el texto en un elemento temporal que
+   `client/diagrams/mermaid.ts`) y no a la figura porque Mermaid mide el texto en un elemento temporal que
    cuelga del `body`: si allí midiera con `label`, las cajas saldrían a la medida de otro texto. Va
    fuera de capas porque las utilidades ganan a cualquier capa anterior sea cual sea la
    especificidad. */
@@ -647,7 +647,7 @@ svg[id^='docs-mermaid-'] .label {
     margin-top: 2em;
   }
 
-  /* Imagen ampliable (`client/zoom.ts`): el botón toma la medida de la captura y esta rellena el
+  /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la captura y esta rellena el
      botón, así que el foco rodea la imagen y no cambia nada de la maquetación. */
   & .docs-zoom {
     @apply block cursor-zoom-in rounded-[4px] p-0;
@@ -674,7 +674,7 @@ svg[id^='docs-mermaid-'] .label {
     @apply outline-2 outline-offset-2 outline-accent;
   }
 
-  /* Diagrama de Mermaid (`astro/markdown/mermaid.ts`, `client/mermaid.ts`). Es un bloque de código
+  /* Diagrama de Mermaid (`astro/markdown/mermaid.ts`, `client/diagrams/mermaid.ts`). Es un bloque de código
      más: con su etiqueta («mermaid») y su botón de copiar. Sin JavaScript, o si falla el dibujo, es
      el código en su `pre`. Con `data-state="rendered"` el SVG ocupa el lugar del código y el `pre`
      se queda en la franja de la etiqueta y los botones (como cabecera de la figura, que va pegada
@@ -880,7 +880,7 @@ svg[id^='docs-mermaid-'] .label {
     }
   }
 
-  /* Botón de copiar de `client/copy-code.ts`: el bloque se envuelve en `.docs-code` y el botón
+  /* Botón de copiar de `client/content/copy-code.ts`: el bloque se envuelve en `.docs-code` y el botón
      flota arriba a la derecha. Sin JavaScript no existe y el bloque queda tal cual. */
   & .docs-code {
     position: relative;
@@ -901,7 +901,7 @@ svg[id^='docs-mermaid-'] .label {
     cursor: pointer;
   }
 
-  /* «Pantalla completa» de un diagrama (`client/mermaid.ts`): mismo botón que el de copiar, pero
+  /* «Pantalla completa» de un diagrama (`client/diagrams/mermaid.ts`): mismo botón que el de copiar, pero
      con un icono de medida fija, así que el de copiar (de ancho variable: «Copiar», «Copiado»…) se
      aparta lo que ocupa y sigue anclado a su borde. */
   & .docs-expand {
@@ -939,7 +939,7 @@ svg[id^='docs-mermaid-'] .label {
     }
   }
 
-  /* Ancla permanente de `client/anchors.ts`: aparece al señalar o enfocar el encabezado. */
+  /* Ancla permanente de `client/layout/anchors.ts`: aparece al señalar o enfocar el encabezado. */
   & .heading-anchor {
     margin-left: 0.4em;
     color: var(--color-faint);
@@ -1284,7 +1284,7 @@ svg[id^='docs-mermaid-'] .label {
   }
 }
 
-/* Diálogo de ampliación de imágenes (`client/zoom.ts`), colgado de `<body>`: ocupa toda la ventana
+/* Diálogo de ampliación de imágenes (`client/content/zoom.ts`), colgado de `<body>`: ocupa toda la ventana
    y centra la imagen, que se ajusta a ella con su proporción (así la miniatura y la grande tienen
    la misma forma y el cambio de una a otra no se deforma). El fondo es el lienzo del tema, algo
    translúcido. Mientras está abierto la página no hace scroll, y `scrollbar-gutter` reserva la
@@ -1314,7 +1314,7 @@ svg[id^='docs-mermaid-'] .label {
     @apply absolute top-3 right-3 grid size-11 cursor-pointer place-items-center rounded-[3px] border border-rule bg-canvas text-2xl leading-none text-ink hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
   }
 
-  /* Visor de diagramas (`client/diagram-viewer.ts`): el mismo diálogo, pero sin el margen de la
+  /* Visor de diagramas (`client/diagrams/diagram-viewer.ts`): el mismo diálogo, pero sin el margen de la
      imagen. El visor ocupa toda la ventana y el diagrama se mueve dentro con `transform` (la
      escala y la posición las pone el script); `touch-none` deja los gestos al script y no al
      desplazamiento del navegador. La barra de botones comparte esquina y aspecto con el cierre de

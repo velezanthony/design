@@ -4,7 +4,7 @@ import {
   type DiagramViewer,
   type DiagramViewerLabels,
 } from './diagram-viewer';
-import { isDark, parseTheme } from './theme';
+import { isDark, parseTheme } from '../preferences/theme';
 
 /** Lo que usamos de Mermaid; el módulo real lo cumple y los tests lo sustituyen por un doble. */
 export interface MermaidApi {

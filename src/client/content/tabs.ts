@@ -1,4 +1,4 @@
-import { withTransition, type MotionPreference } from './transition';
+import { withTransition, type MotionPreference } from '../transition';
 
 /**
  * El índice al que lleva una tecla desde la pestaña actual: flechas con vuelta, Inicio y Fin.

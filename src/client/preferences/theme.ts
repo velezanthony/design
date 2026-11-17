@@ -1,5 +1,5 @@
 import { THEME_KEY, safeSet } from './storage';
-import { withTransition, type MotionPreference } from './transition';
+import { withTransition, type MotionPreference } from '../transition';
 
 export type Theme = 'dark' | 'light';
 
