@@ -49,4 +49,13 @@ describe('Link', () => {
     const a = await link({ href: 'https://example.com', variant: 'action' });
     expect(a.querySelectorAll('svg')).toHaveLength(1);
   });
+
+  it('propaga rel, aria-current y data-* sin perder el rel de un enlace externo', async () => {
+    const a = await link({ rel: 'next', 'aria-current': 'page', 'data-page': '' });
+    expect(a.getAttribute('rel')).toBe('next');
+    expect(a.getAttribute('aria-current')).toBe('page');
+    expect(a.hasAttribute('data-page')).toBe(true);
+    const external = await link({ href: 'https://example.com', rel: 'author' });
+    expect(external.getAttribute('rel')).toBe('author noopener noreferrer');
+  });
 });

@@ -50,3 +50,11 @@ export const DESCRIPTION_SOURCE_LABELS: Record<DescriptionSource, string> = {
 
 /** La portada tiene slug vacío; en pantalla se enseña como la raíz. */
 export const slugLabel = (slug: string) => (slug === '' ? '/' : slug);
+
+/** Los textos de la paginación de la tabla: el componente es genérico y el idioma lo pone el panel. */
+export const PAGINATION_LABELS = {
+  nav: 'Paginación de la tabla',
+  previous: '← Anterior',
+  next: 'Siguiente →',
+  page: (number: number) => `Página ${number}`,
+};

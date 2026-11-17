@@ -11,9 +11,10 @@ import {
 } from '../../core/seo-on-page/queries/url-filters';
 import FiltersForm from '../../ui/seo-on-page/FiltersForm.astro';
 import InfoHiddenNote from '../../ui/seo-on-page/InfoHiddenNote.astro';
-import Pagination from '../../ui/seo-on-page/Pagination.astro';
+import Pagination from '../../ui/molecules/Pagination.astro';
 import PagesTable from '../../ui/seo-on-page/PagesTable.astro';
 import ResultsCount from '../../ui/seo-on-page/ResultsCount.astro';
+import { PAGINATION_LABELS } from '../../ui/seo-on-page/labels';
 import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
 import { urlPolicyOf } from '../routes/pages';
 import { siteConfig } from '../routes/site-config';
@@ -55,6 +56,7 @@ const linkFilters = defaulted ? { ...filters, severities: [] } : filters;
     <Pagination
       page={result.page}
       pages={result.pages}
+      labels={PAGINATION_LABELS}
       href={(number) => hrefs.pages(linkFilters, number)}
     />
   </div>

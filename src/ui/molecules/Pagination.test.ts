@@ -44,4 +44,26 @@ describe('Pagination', () => {
     expect(shown).toEqual(['1', '9', '10', '11', '20']);
     expect(doc.querySelectorAll('[data-gap]').length).toBe(2);
   });
+
+  it('sin textos propios usa unos neutrales en inglés', async () => {
+    const doc = await render(Pagination, props({ page: 2, pages: 3 }));
+    expect(doc.querySelector('nav')!.getAttribute('aria-label')).toBe('Pagination');
+    expect(text(doc.querySelector('a[rel="prev"]'))).toContain('Previous');
+    expect(text(doc.querySelector('a[rel="next"]'))).toContain('Next');
+    expect(doc.querySelector('a[data-page][aria-label="Page 1"]')).not.toBeNull();
+  });
+
+  it('los textos se pasan por props, para cualquier idioma', async () => {
+    const labels = {
+      nav: 'Paginación de la tabla',
+      previous: '← Anterior',
+      next: 'Siguiente →',
+      page: (number: number) => `Página ${number}`,
+    };
+    const doc = await render(Pagination, props({ labels }));
+    expect(doc.querySelector('nav')!.getAttribute('aria-label')).toBe('Paginación de la tabla');
+    expect(text(doc.querySelector('a[rel="prev"]'))).toBe('← Anterior');
+    expect(text(doc.querySelector('a[rel="next"]'))).toBe('Siguiente →');
+    expect(doc.querySelector('a[data-page][aria-label="Página 1"]')).not.toBeNull();
+  });
 });

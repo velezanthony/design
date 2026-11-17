@@ -30,7 +30,10 @@ describe('subpath ./components/*', () => {
     expect(pkg.exports['./components/*']).toBe('./src/ui/*');
   });
 
-  it.each(['Link', 'Icon', 'Heading', 'Tag', 'Rule'])('el átomo %s es importable', (name) => {
-    expect(sources).toContain(`src/ui/atoms/${name}.astro`);
-  });
+  it.each(['Link', 'Icon', 'Heading', 'Tag', 'Rule', 'Button', 'Input', 'Checkbox'])(
+    'el átomo %s es importable',
+    (name) => {
+      expect(sources).toContain(`src/ui/atoms/${name}.astro`);
+    },
+  );
 });

@@ -1,0 +1,80 @@
+---
+import { GAP, pageWindow } from '../../core/navigation/page-window';
+import Link from '../atoms/Link.astro';
+
+interface Props {
+  /** Página actual (ya acotada) y total de páginas. */
+  page: number;
+  pages: number;
+  /** Enlace a una página; el que llama decide qué lleva (filtros, orden…). */
+  href: (page: number) => string;
+  /** Textos de la interfaz. Sin ellos, unos neutrales en inglés: el idioma lo pone quien la usa. */
+  labels?: {
+    /** Nombre accesible de la navegación. */
+    nav: string;
+    previous: string;
+    next: string;
+    /** Nombre accesible del enlace a una página concreta. */
+    page: (number: number) => string;
+  };
+}
+
+const NEUTRAL_LABELS = {
+  nav: 'Pagination',
+  previous: '← Previous',
+  next: 'Next →',
+  page: (number: number) => `Page ${number}`,
+};
+
+const { page, pages, href, labels = NEUTRAL_LABELS } = Astro.props;
+
+const items = pageWindow(page, pages);
+/* Todos los números comparten caja para que la fila no baile: 32px, por encima de los 24px de WCAG. */
+const box = 'min-h-8 min-w-8 justify-center px-2';
+---
+
+{pages > 1 && (
+  /* Enlaces de verdad: funciona sin JavaScript, con teclado y con atrás/adelante. */
+  <nav aria-label={labels.nav}>
+    <ul class="flex flex-wrap items-center gap-1">
+      {page > 1 && (
+        <li>
+          <Link href={href(page - 1)} rel="prev" class={box}>
+            {labels.previous}
+          </Link>
+        </li>
+      )}
+      {items.map((item) => (
+        <li>
+          {item === GAP ? (
+            <span data-gap aria-hidden="true" class="px-1 text-muted">
+              …
+            </span>
+          ) : item === page ? (
+            /* La actual es un enlace a sí misma (se ve y se anuncia como actual), en tinta y con caja. */
+            <Link
+              data-page
+              href={href(item)}
+              aria-current="page"
+              variant="value"
+              class:list={[box, 'border border-accent bg-accent-soft hover:text-ink']}
+            >
+              {item}
+            </Link>
+          ) : (
+            <Link data-page href={href(item)} aria-label={labels.page(item)} class={box}>
+              {item}
+            </Link>
+          )}
+        </li>
+      ))}
+      {page < pages && (
+        <li>
+          <Link href={href(page + 1)} rel="next" class={box}>
+            {labels.next}
+          </Link>
+        </li>
+      )}
+    </ul>
+  </nav>
+)}
