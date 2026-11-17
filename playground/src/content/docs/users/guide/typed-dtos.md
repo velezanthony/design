@@ -140,7 +140,7 @@ data. Use the two-argument `getattr`, which is what the ORM does internally.
 
 ## The check mode is the point
 
-```text
+```console
 $ snakeorm dto --file blog/dto.py
 blog/dto.py: Would write 1 change(s).
   AuthorDto: added `country_id: int | None`

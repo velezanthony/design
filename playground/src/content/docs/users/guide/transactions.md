@@ -124,7 +124,7 @@ that has none (SQLite) it **refuses the wrap** instead of pretending to cap.
 
 `LoggingDriver` writes the statement and the NUMBER of parameters, never the parameters themselves:
 
-```
+```sql
 INSERT INTO users (email, pw) VALUES (%s, %s) -- params=<2 hidden> -> 1 row(s)
 ```
 

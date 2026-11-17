@@ -125,7 +125,7 @@ no la tiene (SQLite) **rechaza el envoltorio** en vez de fingir que limita.
 
 `LoggingDriver` escribe la sentencia y el NÚMERO de parámetros, nunca los parámetros:
 
-```
+```sql
 INSERT INTO users (email, pw) VALUES (%s, %s) -- params=<2 hidden> -> 1 row(s)
 ```
 

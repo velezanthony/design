@@ -72,11 +72,11 @@ the hash of an object already inside a `set`. Insert it first.
 
 ## Table names
 
-```text
-@snake_model                                   # table: "users" (class name + s)
+```python
+@snake_model                                # table: "users" (class name + s)
 @snake_model(table="users_legacy")          # table: "users_legacy"
 @snake_model(prefix="app", table="users")   # table: "app_users"
-@snake_model(schema="analytics")               # table: "analytics"."users"
+@snake_model(schema="analytics")            # table: "analytics"."users"
 ```
 
 :::note[Default pluralization is naive]

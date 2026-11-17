@@ -140,7 +140,7 @@ dentro.
 
 ## El modo check es el porqué de todo esto
 
-```text
+```console
 $ snakeorm dto --file blog/dto.py
 blog/dto.py: Would write 1 change(s).
   AuthorDto: added `country_id: int | None`
