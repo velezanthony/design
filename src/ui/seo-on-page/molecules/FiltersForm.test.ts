@@ -4,8 +4,13 @@ import { render } from '../../../testing/render';
 import FiltersForm from './FiltersForm.astro';
 
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
-const form = (filters: SeoFilters = none) =>
-  render(FiltersForm, { filters, locales: ['en', 'es'], action: '/repo/seo-on-page/pages/' });
+const form = (filters: SeoFilters = none, perPage = 25) =>
+  render(FiltersForm, {
+    filters,
+    perPage,
+    locales: ['en', 'es'],
+    action: '/repo/seo-on-page/pages/',
+  });
 const checked = (doc: Document, name: string) =>
   [...doc.querySelectorAll(`input[name="${name}"]`)]
     .filter((input) => input.hasAttribute('checked'))
@@ -62,5 +67,20 @@ describe('FiltersForm', () => {
     expect(doc.querySelector('summary')!.classList.contains('cursor-pointer')).toBe(true);
     const submit = doc.querySelector('button[type="submit"]')!;
     expect(submit.classList.contains('cursor-pointer')).toBe(true);
+  });
+
+  it('ofrece las filas por página dentro del formulario, con el tamaño actual seleccionado', async () => {
+    const doc = await form(none, 50);
+    const select = doc.querySelector('form select[name="per"]')!;
+    expect([...select.querySelectorAll('option')].map((o) => o.getAttribute('value'))).toEqual([
+      '10',
+      '25',
+      '50',
+      '100',
+    ]);
+    expect(select.querySelector('option[selected]')!.getAttribute('value')).toBe('50');
+    expect(doc.querySelector(`label[for="${select.id}"]`)!.textContent).toContain(
+      'Filas por página',
+    );
   });
 });

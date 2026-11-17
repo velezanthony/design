@@ -49,6 +49,13 @@ describe('devHrefs', () => {
     );
     expect(devHrefs(policy).pages(filters, 1)).toBe('/repo/seo-on-page/pages/?severity=info');
     expect(devHrefs(policy).pages(undefined, 3)).toBe('/repo/seo-on-page/pages/?page=3');
+    expect(devHrefs(policy).pages(filters, 2, 50)).toBe(
+      '/repo/seo-on-page/pages/?severity=info&page=2&per=50',
+    );
+    expect(devHrefs(policy).pages(filters, 1, 10)).toBe(
+      '/repo/seo-on-page/pages/?severity=info&per=10',
+    );
+    expect(devHrefs(policy).pages(filters, 1, 25)).toBe('/repo/seo-on-page/pages/?severity=info');
   });
 
   it('sin filtros no deja un `?` colgando', () => {

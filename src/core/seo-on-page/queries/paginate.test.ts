@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { PAGE_SIZE, paginate } from './paginate';
+import { PAGE_SIZE, PAGE_SIZES, paginate } from './paginate';
 
 const rows = (count: number) => Array.from({ length: count }, (_, index) => index + 1);
 
 describe('paginate', () => {
-  it('el tamaño de página es 25', () => {
+  it('el tamaño por defecto es 25', () => {
     expect(PAGE_SIZE).toBe(25);
+  });
+
+  it('los tamaños elegibles son 10, 25, 50 y 100, y incluyen el de por defecto', () => {
+    expect(PAGE_SIZES).toEqual([10, 25, 50, 100]);
+    expect(PAGE_SIZES).toContain(PAGE_SIZE);
   });
 
   it('lista vacía: una sola página sin filas y el rango a cero', () => {

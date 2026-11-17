@@ -1,10 +1,13 @@
 /**
- * Filas por página de la tabla. 25 son unas dos pantallas con las insignias de problemas: se
+ * Filas por página por defecto. 25 son unas dos pantallas con las insignias de problemas: se
  * escanea de una vez y la página sigue siendo ligera (cada fila pinta varias insignias), sin
- * obligar a pasar de página para ver un grupo corto. Fijo y sin selector: un tamaño elegible
- * sería un parámetro más en la URL para casi ningún beneficio en una herramienta de desarrollo.
+ * obligar a pasar de página para ver un grupo corto. Quien quiera otro tamaño lo elige entre
+ * `PAGE_SIZES`; este es el que rige si la URL no dice nada.
  */
 export const PAGE_SIZE = 25;
+
+/** Tamaños elegibles. Cerrados a propósito: una URL con un número cualquiera no pide una página gigante. */
+export const PAGE_SIZES = [10, 25, 50, 100] as const;
 
 export interface Paginated<T> {
   rows: T[];

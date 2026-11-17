@@ -5,17 +5,21 @@ import Button from '../../atoms/Button.astro';
 import Checkbox from '../../atoms/Checkbox.astro';
 import Input from '../../atoms/Input.astro';
 import Link from '../../atoms/Link.astro';
+import Select from '../../atoms/Select.astro';
+import { PAGE_SIZES } from '../../../core/seo-on-page/queries/paginate';
 import { KIND_LABELS, SEVERITY_PLURALS } from '../labels';
 
 interface Props {
   filters: SeoFilters;
+  /** Filas por página en vigor: viaja en el formulario, así cambiarlo vuelve a la página 1. */
+  perPage: number;
   /** Idiomas de la config del sitio. */
   locales: string[];
   /** Ruta de la tabla: el formulario es un GET a ella, así los filtros viven en la URL. */
   action: string;
 }
 
-const { filters, locales, action } = Astro.props;
+const { filters, perPage, locales, action } = Astro.props;
 const group = 'flex flex-wrap items-center gap-x-4 gap-y-1';
 ---
 
@@ -58,7 +62,15 @@ const group = 'flex flex-wrap items-center gap-x-4 gap-y-1';
       ))}
     </div>
   </details>
-  <div class="flex items-center gap-4">
+  <div class="flex flex-wrap items-end gap-4">
+    <Select
+      id="seo-filter-per"
+      name="per"
+      label="Filas por página"
+      value={String(perPage)}
+      options={PAGE_SIZES.map((size) => ({ value: String(size), label: String(size) }))}
+      class="w-32"
+    />
     <Button type="submit">Filtrar</Button>
     <Link data-clear href={action}>
       Limpiar filtros

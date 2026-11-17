@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PAGE_SIZE } from './paginate';
 import {
   ALL_SEVERITIES,
   DEFAULT_SEVERITIES,
@@ -6,6 +7,7 @@ import {
   filtersFromUrl,
   parseFilters,
   parsePage,
+  parsePerPage,
   serializeFilters,
 } from './url-filters';
 
@@ -122,5 +124,40 @@ describe('serializeFilters: página', () => {
     expect(params.toString()).toBe('severity=info&q=orm&page=3');
     expect(parsePage(params)).toBe(3);
     expect(parseFilters(params)).toEqual(filters);
+  });
+});
+
+describe('parsePerPage', () => {
+  it.each([
+    ['', PAGE_SIZE],
+    ['per=10', 10],
+    ['per=25', 25],
+    ['per=50', 50],
+    ['per=100', 100],
+    ['per=999', PAGE_SIZE],
+    ['per=0', PAGE_SIZE],
+    ['per=-10', PAGE_SIZE],
+    ['per=abc', PAGE_SIZE],
+    ['per=10.5', PAGE_SIZE],
+    ['per=', PAGE_SIZE],
+    ['per=010', PAGE_SIZE],
+  ])('%s -> %s', (query, expected) => {
+    expect(parsePerPage(new URLSearchParams(query))).toBe(expected);
+  });
+});
+
+describe('serializeFilters: filas por página', () => {
+  it('el tamaño por defecto no se escribe', () => {
+    expect(serializeFilters(EMPTY_FILTERS, 1, PAGE_SIZE).toString()).toBe('');
+  });
+
+  it('otro tamaño va al final, tras la página, y vuelve con parsePerPage', () => {
+    const params = serializeFilters({ ...EMPTY_FILTERS, text: 'a' }, 2, 50);
+    expect(params.toString()).toBe('q=a&page=2&per=50');
+    expect(parsePerPage(params)).toBe(50);
+  });
+
+  it('un tamaño que no está permitido tampoco se escribe', () => {
+    expect(serializeFilters(EMPTY_FILTERS, 1, 7).toString()).toBe('');
   });
 });

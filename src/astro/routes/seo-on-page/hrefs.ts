@@ -31,11 +31,8 @@ export function devHrefs(url: UrlPolicy) {
   return {
     siteHome: () => pageUrl('', url.defaultLocale, url),
     overview: () => pageUrl(SEO_ON_PAGE_DIR, url.defaultLocale, url),
-    pages: (filters?: SeoFilters, page = 1) =>
-      withQuery(
-        at('pages'),
-        filters ? serializeFilters(filters, page) : serializeFilters(EMPTY_FILTERS, page),
-      ),
+    pages: (filters?: SeoFilters, page = 1, perPage?: number) =>
+      withQuery(at('pages'), serializeFilters(filters ?? EMPTY_FILTERS, page, perPage)),
     /** El inspector identifica la página por slug (vacío = portada) e idioma. */
     inspector: (page: { slug: string; locale: Locale }) =>
       withQuery(at('page'), new URLSearchParams({ slug: page.slug, locale: page.locale })),

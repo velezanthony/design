@@ -1,5 +1,6 @@
 import type { Locale } from '../../i18n/locale';
 import { IssueKind, IssueSeverity } from '../tree/types';
+import { PAGE_SIZE, PAGE_SIZES } from './paginate';
 
 /** Filtros de la tabla. Vacío = sin restricción; los distintos campos se combinan con Y. */
 export interface SeoFilters {
@@ -47,16 +48,35 @@ export function parsePage(params: URLSearchParams): number {
 }
 
 /**
- * Inversa de `parseFilters` (y de `parsePage`): solo emite lo que filtra, en un orden estable. La
- * página 1 es la de por defecto y no se escribe, para que la URL canónica de la tabla no cambie.
+ * Filas por página: solo valen los tamaños de `PAGE_SIZES`; cualquier otra cosa (vacío, texto,
+ * un número que no se ofrece) es el de por defecto. Como `page`, no vive en `SeoFilters`: los
+ * enlaces que se forman desde los filtros lo pasan aparte para conservarlo, y el formulario lo
+ * envía como un campo más, así cambiarlo reinicia la página (el formulario no lleva `page`).
  */
-export function serializeFilters(filters: SeoFilters, page = 1): URLSearchParams {
+export function parsePerPage(params: URLSearchParams): number {
+  const size = PAGE_SIZES.find((candidate) => String(candidate) === params.get('per'));
+  return size ?? PAGE_SIZE;
+}
+
+/**
+ * Inversa de `parseFilters`, `parsePage` y `parsePerPage`: solo emite lo que filtra, en un orden
+ * estable. La página 1 y el tamaño por defecto no se escriben, para que la URL canónica de la
+ * tabla no cambie.
+ */
+export function serializeFilters(
+  filters: SeoFilters,
+  page = 1,
+  perPage: number = PAGE_SIZE,
+): URLSearchParams {
   const params = new URLSearchParams();
   for (const kind of filters.kinds) params.append('kind', kind);
   for (const severity of filters.severities) params.append('severity', severity);
   for (const locale of filters.locales) params.append('locale', locale);
   if (filters.text !== '') params.set('q', filters.text);
   if (page > 1) params.set('page', String(page));
+  if (perPage !== PAGE_SIZE && PAGE_SIZES.some((size) => size === perPage)) {
+    params.set('per', String(perPage));
+  }
   return params;
 }
 
