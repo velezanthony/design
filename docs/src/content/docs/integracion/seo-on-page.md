@@ -89,12 +89,15 @@ informativo. La regla es una sola y no depende del estado:
 
 ### Paginación
 
-La tabla enseña 25 filas por página (`PAGE_SIZE`, fijo: cada fila pinta varias insignias y 25 se
+La tabla enseña 25 filas por página por defecto (`PAGE_SIZE`: cada fila pinta varias insignias y 25 se
 escanean de una vez) con el recuento («1–25 de 75 páginas») y enlaces anterior, siguiente y de número,
-sin JavaScript. La página va en la URL como `page`; la 1 es la de por defecto y no se escribe. Los
-enlaces de página conservan los filtros, y cambiar un filtro, o «mostrar también las informativas»,
-vuelve a la página 1. Una página fuera de rango (`page=0`, `page=abc`, `page=99`) se lleva a la más
-cercana válida. Con todo en una sola página no hay paginador.
+sin JavaScript. El selector «Filas por página» del formulario ofrece 10, 25, 50 y 100 (`PAGE_SIZES`).
+La página va en la URL como `page` y el tamaño como `per`; la 1 y el 25 son los de por defecto y no se
+escriben en los enlaces que genera el panel (el formulario, al ser un GET, sí envía `per`). Los
+enlaces de página y «mostrar también las informativas» conservan el tamaño, y cambiarlo desde el
+formulario vuelve a la página 1. Una página fuera de rango (`page=0`, `page=abc`, `page=99`) se lleva a
+la más cercana válida, y un tamaño que no se ofrece (`per=999`) es el de por defecto. El paginador
+está siempre: con todo en una sola página, o sin filas, sus controles aparecen deshabilitados.
 
 ## Cómo arreglar cada problema
 
