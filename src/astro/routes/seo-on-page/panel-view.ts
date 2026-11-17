@@ -1,15 +1,15 @@
-import type { ResolvedLayout } from '../../core/config/layout';
-import { buildAvailability, pageUrl } from '../../core/i18n/availability';
-import type { Locale } from '../../core/i18n/locale';
-import { resolvePolicies } from '../../core/i18n/translation-policy';
-import type { UiStrings } from '../../core/i18n/ui-strings';
-import { buildFooter, type FooterView } from '../../core/navigation/footer';
-import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
-import type { SidebarNode } from '../../core/navigation/sidebar';
-import type { HeadConfig } from '../../core/seo/head';
-import { INSPECTOR_SECTIONS, PANEL_NAME, SCREEN_LABELS } from '../../ui/seo-on-page/labels';
-import { pagesOf, urlPolicyOf, type DocData } from '../routes/pages';
-import type { VirtualConfig } from '../virtual/data';
+import type { ResolvedLayout } from '../../../core/config/layout';
+import { buildAvailability, pageUrl } from '../../../core/i18n/availability';
+import type { Locale } from '../../../core/i18n/locale';
+import { resolvePolicies } from '../../../core/i18n/translation-policy';
+import type { UiStrings } from '../../../core/i18n/ui-strings';
+import { buildFooter, type FooterView } from '../../../core/navigation/footer';
+import { buildNav, type NavEntry } from '../../../core/navigation/nav-entries';
+import type { SidebarNode } from '../../../core/navigation/sidebar';
+import type { HeadConfig } from '../../../core/seo/head';
+import { INSPECTOR_SECTIONS, PANEL_NAME, SCREEN_LABELS } from '../../../ui/seo-on-page/labels';
+import { pagesOf, urlPolicyOf, type DocData } from '../pages';
+import type { VirtualConfig } from '../../virtual/data';
 import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
 
 type Screen = keyof typeof SCREEN_LABELS;

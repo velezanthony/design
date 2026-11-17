@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { mockedAstroContent } from '../../testing/astro-content';
+import { mockedAstroContent } from '../../../testing/astro-content';
 
 const headings = vi.hoisted(() => ({
   bySlug: {} as Record<string, { depth: number; slug: string; text: string }[]>,

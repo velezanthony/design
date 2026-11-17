@@ -19,7 +19,7 @@ import { toAstroError } from './errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
-import { SEO_ON_PAGE_ROUTES } from '../seo-on-page/hrefs';
+import { SEO_ON_PAGE_ROUTES } from '../routes/seo-on-page/hrefs';
 import { assertNoRouteCollision } from './route-collisions';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
@@ -61,9 +61,6 @@ export const defineDocsConfig = (config: DocsUserConfig): DocsUserConfig => conf
 const route = (file: string) => new URL(`../routes/${file}`, import.meta.url);
 
 /** Los `.d.ts` del módulo virtual, tal cual: `injectTypes` los copia al `.astro/` del consumidor. */
-/** Contenedor de una pantalla del panel SEO on page (vive en `astro/seo-on-page/`). */
-const seoRoute = (file: string) => new URL(`../seo-on-page/${file}`, import.meta.url);
-
 const virtualTypes = () =>
   readFileSync(new URL('../virtual/virtual.d.ts', import.meta.url), 'utf8');
 
@@ -187,7 +184,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
            leen la query de la URL (filtros, página elegida), que una ruta prerenderizada no ve. */
         if (command === 'dev') {
           for (const { pattern, file } of SEO_ON_PAGE_ROUTES) {
-            injectRoute({ pattern, entrypoint: seoRoute(file), prerender: false });
+            injectRoute({ pattern, entrypoint: route(`seo-on-page/${file}`), prerender: false });
           }
         }
         // Un idioma por defecto sin prefijo no tiene `/<idioma>/404/`: solo los demás.

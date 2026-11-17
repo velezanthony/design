@@ -1,13 +1,13 @@
 ---
-import { outline } from '../../core/seo-on-page/queries/outline';
-import { THRESHOLDS } from '../../core/seo-on-page/thresholds';
-import type { SeoPage } from '../../core/seo-on-page/tree/types';
-import Heading from '../atoms/Heading.astro';
-import Link from '../atoms/Link.astro';
-import IssueBadge from './IssueBadge.astro';
-import { DESCRIPTION_SOURCE_LABELS, INSPECTOR_SECTIONS, slugLabel } from './labels';
-import OgPreview from './OgPreview.astro';
-import SerpPreview from './SerpPreview.astro';
+import { outline } from '../../../core/seo-on-page/queries/outline';
+import { THRESHOLDS } from '../../../core/seo-on-page/thresholds';
+import type { SeoPage } from '../../../core/seo-on-page/tree/types';
+import Heading from '../../atoms/Heading.astro';
+import Link from '../../atoms/Link.astro';
+import IssueBadge from '../atoms/IssueBadge.astro';
+import { DESCRIPTION_SOURCE_LABELS, INSPECTOR_SECTIONS, slugLabel } from '../labels';
+import OgPreview from '../molecules/OgPreview.astro';
+import SerpPreview from '../molecules/SerpPreview.astro';
 
 interface Props {
   page: SeoPage;

@@ -1,10 +1,10 @@
 ---
-import { IssueKind, IssueSeverity } from '../../core/seo-on-page/tree/types';
-import type { SeoSummary } from '../../core/seo-on-page/queries/summary';
-import Heading from '../atoms/Heading.astro';
-import Link from '../atoms/Link.astro';
-import Tag from '../atoms/Tag.astro';
-import { KIND_LABELS, SEVERITY_PLURALS, SEVERITY_TONES } from './labels';
+import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
+import type { SeoSummary } from '../../../core/seo-on-page/queries/summary';
+import Heading from '../../atoms/Heading.astro';
+import Link from '../../atoms/Link.astro';
+import Tag from '../../atoms/Tag.astro';
+import { KIND_LABELS, SEVERITY_PLURALS, SEVERITY_TONES } from '../labels';
 
 interface Props {
   summary: SeoSummary;

@@ -1,11 +1,11 @@
 ---
-import { IssueKind, IssueSeverity } from '../../core/seo-on-page/tree/types';
-import type { SeoFilters } from '../../core/seo-on-page/queries/url-filters';
-import Button from '../atoms/Button.astro';
-import Checkbox from '../atoms/Checkbox.astro';
-import Input from '../atoms/Input.astro';
-import Link from '../atoms/Link.astro';
-import { KIND_LABELS, SEVERITY_PLURALS } from './labels';
+import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
+import type { SeoFilters } from '../../../core/seo-on-page/queries/url-filters';
+import Button from '../../atoms/Button.astro';
+import Checkbox from '../../atoms/Checkbox.astro';
+import Input from '../../atoms/Input.astro';
+import Link from '../../atoms/Link.astro';
+import { KIND_LABELS, SEVERITY_PLURALS } from '../labels';
 
 interface Props {
   filters: SeoFilters;

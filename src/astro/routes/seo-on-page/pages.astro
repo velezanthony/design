@@ -2,23 +2,23 @@
 /* Contenedor de la tabla de páginas. Los filtros viven en la query de la URL (`parseFilters`),
    así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
 import { Font } from 'astro:assets';
-import { filterPages } from '../../core/seo-on-page/queries/filter';
-import { paginate, PAGE_SIZE } from '../../core/seo-on-page/queries/paginate';
+import { filterPages } from '../../../core/seo-on-page/queries/filter';
+import { paginate, PAGE_SIZE } from '../../../core/seo-on-page/queries/paginate';
 import {
   ALL_SEVERITIES,
   filtersFromUrl,
   parsePage,
-} from '../../core/seo-on-page/queries/url-filters';
-import DocsLayout from '../../ui/layouts/DocsLayout.astro';
-import FiltersForm from '../../ui/seo-on-page/FiltersForm.astro';
-import InfoHiddenNote from '../../ui/seo-on-page/InfoHiddenNote.astro';
-import Pagination from '../../ui/molecules/Pagination.astro';
-import PagesTable from '../../ui/seo-on-page/PagesTable.astro';
-import ResultsCount from '../../ui/seo-on-page/ResultsCount.astro';
-import { PAGINATION_LABELS } from '../../ui/seo-on-page/labels';
-import PanelIntro from '../../ui/seo-on-page/PanelIntro.astro';
-import { urlPolicyOf } from '../routes/pages';
-import { siteConfig } from '../routes/site-config';
+} from '../../../core/seo-on-page/queries/url-filters';
+import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
+import FiltersForm from '../../../ui/seo-on-page/molecules/FiltersForm.astro';
+import InfoHiddenNote from '../../../ui/seo-on-page/molecules/InfoHiddenNote.astro';
+import Pagination from '../../../ui/molecules/Pagination.astro';
+import PagesTable from '../../../ui/seo-on-page/organisms/PagesTable.astro';
+import ResultsCount from '../../../ui/seo-on-page/molecules/ResultsCount.astro';
+import { PAGINATION_LABELS } from '../../../ui/seo-on-page/labels';
+import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
+import { urlPolicyOf } from '../pages';
+import { siteConfig } from '../site-config';
 import { loadDocData, loadSeoTree } from './adapter';
 import { devHrefs } from './hrefs';
 import { panelView } from './panel-view';

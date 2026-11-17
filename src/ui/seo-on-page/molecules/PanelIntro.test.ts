@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { render, text } from '../../testing/render';
-import { stringsFor } from '../../testing/strings';
+import { render, text } from '../../../testing/render';
+import { stringsFor } from '../../../testing/strings';
 import PanelIntro from './PanelIntro.astro';
 
 const intro = () => render(PanelIntro, { title: 'Resumen', strings: stringsFor('es') });

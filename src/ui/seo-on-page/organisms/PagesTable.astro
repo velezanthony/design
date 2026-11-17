@@ -2,11 +2,11 @@
 /* El contenedor con scroll horizontal lleva `tabindex="0"` a propósito: sin él, el teclado no podría
    desplazar la tabla (igual que `table-scroll` en la prosa). */
 /* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
-import { isTitleOutOfRange, THRESHOLDS } from '../../core/seo-on-page/thresholds';
-import type { SeoPage } from '../../core/seo-on-page/tree/types';
-import Link from '../atoms/Link.astro';
-import IssueBadge from './IssueBadge.astro';
-import { DESCRIPTION_SOURCE_LABELS, slugLabel } from './labels';
+import { isTitleOutOfRange, THRESHOLDS } from '../../../core/seo-on-page/thresholds';
+import type { SeoPage } from '../../../core/seo-on-page/tree/types';
+import Link from '../../atoms/Link.astro';
+import IssueBadge from '../atoms/IssueBadge.astro';
+import { DESCRIPTION_SOURCE_LABELS, slugLabel } from '../labels';
 
 interface Props {
   /** Una fila por página e idioma, con el enlace a su inspector ya formado. */

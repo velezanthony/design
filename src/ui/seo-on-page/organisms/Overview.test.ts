@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { IssueKind, IssueSeverity } from '../../core/seo-on-page/tree/types';
-import { render, text } from '../../testing/render';
+import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
+import { render, text } from '../../../testing/render';
 import Overview from './Overview.astro';
 
 const zero = <K extends string>(keys: readonly K[]) =>

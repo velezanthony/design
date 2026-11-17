@@ -1,10 +1,10 @@
-import { pageUrl, type UrlPolicy } from '../../core/i18n/availability';
-import type { Locale } from '../../core/i18n/locale';
+import { pageUrl, type UrlPolicy } from '../../../core/i18n/availability';
+import type { Locale } from '../../../core/i18n/locale';
 import {
   EMPTY_FILTERS,
   serializeFilters,
   type SeoFilters,
-} from '../../core/seo-on-page/queries/url-filters';
+} from '../../../core/seo-on-page/queries/url-filters';
 
 /** Carpeta común de las rutas del panel: lo que un consumidor no debería usar para sus páginas. */
 export const SEO_ON_PAGE_DIR = 'seo-on-page';

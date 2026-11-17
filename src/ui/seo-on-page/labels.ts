@@ -4,7 +4,9 @@ import type {
   IssueSeverity,
 } from '../../core/seo-on-page/tree/types';
 
-/* El panel es una herramienta de desarrollo en español: no pasa por el catálogo de textos de la
+/* Datos de presentación del panel (textos y tonos), no un componente: por eso vive en la raíz de
+   `seo-on-page/` y no en un nivel atómico. Lo consumen átomos, moléculas, organismos y el contenedor.
+   El panel es una herramienta de desarrollo en español: no pasa por el catálogo de textos de la
    interfaz (que es de las páginas del sitio, por idioma). Todo su texto de dominio vive aquí. */
 
 export const KIND_LABELS: Record<IssueKind, string> = {

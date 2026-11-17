@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IssueKind, IssueSeverity } from '../../core/seo-on-page/tree/types';
+import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
 import { assetHref, devHrefs, SEO_ON_PAGE_ROUTES } from './hrefs';
 
 const policy = { base: '/repo', trailingSlash: 'always' as const, defaultLocale: 'en' };

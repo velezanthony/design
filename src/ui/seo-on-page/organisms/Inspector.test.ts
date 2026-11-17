@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { render, text } from '../../testing/render';
-import { seoPage } from '../../testing/seo-page';
+import { render, text } from '../../../testing/render';
+import { seoPage } from '../../../testing/seo-page';
 import Inspector from './Inspector.astro';
 
 const props = (extra: Record<string, unknown> = {}) => {

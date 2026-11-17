@@ -1,11 +1,11 @@
-import type { SeoInput, SeoPageInput } from '../../core/seo-on-page/tree/input';
-import { buildSeoTree } from '../../core/seo-on-page/tree/build-tree';
-import type { HeadingNode, SeoTree } from '../../core/seo-on-page/tree/types';
-import { readImageSizes } from '../loader/images';
-import { urlPolicyOf } from '../routes/pages';
-import type { DocData } from '../routes/pages';
-import { getDocs, renderDoc, type DocsEntry } from '../routes/docs-collection';
-import type { VirtualConfig } from '../virtual/data';
+import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/input';
+import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
+import type { HeadingNode, SeoTree } from '../../../core/seo-on-page/tree/types';
+import { readImageSizes } from '../../loader/images';
+import { urlPolicyOf } from '../pages';
+import type { DocData } from '../pages';
+import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
+import type { VirtualConfig } from '../../virtual/data';
 
 /** Una entrada de la colección con sus encabezados ya resueltos. */
 export interface SeoEntry {

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveConfig } from '../../core/config/resolve';
-import type { DocsUserConfig } from '../../core/config/schema';
-import { renderDocument, text } from '../../testing/render';
-import DocsLayout from '../../ui/layouts/DocsLayout.astro';
-import { createVirtualData } from '../virtual/data';
-import type { DocData } from '../routes/pages';
+import { resolveConfig } from '../../../core/config/resolve';
+import type { DocsUserConfig } from '../../../core/config/schema';
+import { renderDocument, text } from '../../../testing/render';
+import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
+import { createVirtualData } from '../../virtual/data';
+import type { DocData } from '../pages';
 import { devHrefs } from './hrefs';
 import { inspectorHeadings, panelView } from './panel-view';
 

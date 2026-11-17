@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, text } from '../../testing/render';
+import { render, text } from '../../../testing/render';
 import OgPreview from './OgPreview.astro';
 
 const props = (extra: Record<string, unknown> = {}) => ({

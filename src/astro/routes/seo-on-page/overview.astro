@@ -3,13 +3,13 @@
    integración no inyecta la ruta en la build). Lee la colección por el adaptador y pasa a la UI
    los datos ya calculados. */
 import { Font } from 'astro:assets';
-import { summarize } from '../../core/seo-on-page/queries/summary';
-import { ALL_SEVERITIES, EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
-import DocsLayout from '../../ui/layouts/DocsLayout.astro';
-import Overview from '../../ui/seo-on-page/Overview.astro';
-import PanelIntro from '../../ui/seo-on-page/PanelIntro.astro';
-import { urlPolicyOf } from '../routes/pages';
-import { siteConfig } from '../routes/site-config';
+import { summarize } from '../../../core/seo-on-page/queries/summary';
+import { ALL_SEVERITIES, EMPTY_FILTERS } from '../../../core/seo-on-page/queries/url-filters';
+import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
+import Overview from '../../../ui/seo-on-page/organisms/Overview.astro';
+import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
+import { urlPolicyOf } from '../pages';
+import { siteConfig } from '../site-config';
 import { loadDocData, loadSeoTree } from './adapter';
 import { devHrefs } from './hrefs';
 import { panelView } from './panel-view';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { SeoFilters } from '../../core/seo-on-page/queries/url-filters';
-import { render } from '../../testing/render';
+import type { SeoFilters } from '../../../core/seo-on-page/queries/url-filters';
+import { render } from '../../../testing/render';
 import FiltersForm from './FiltersForm.astro';
 
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };

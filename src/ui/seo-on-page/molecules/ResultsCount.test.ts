@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, text } from '../../testing/render';
+import { render, text } from '../../../testing/render';
 import ResultsCount from './ResultsCount.astro';
 
 describe('ResultsCount', () => {
