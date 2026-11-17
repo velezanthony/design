@@ -78,3 +78,17 @@ informativo. La regla es una sola y no depende del estado:
   (`?severity=error&severity=warning&severity=info`); pedirlas a la vez equivale a no filtrar por
   gravedad, así que solo ahí aparecen también las páginas sin ninguna incidencia.
 - Las casillas del formulario reflejan los filtros efectivos, de modo que enviarlo reenvía lo que se ve.
+
+## Cómo arreglar cada problema
+
+Cada problema trae una frase de acción que dice **qué cambiar y dónde**, con el archivo real de la
+página: `seo.title` o `seo.description` en el frontmatter de ese archivo, empezarlo con `# Título`,
+dejar un solo `#`, subir o bajar el nivel de un encabezado concreto, crear el archivo gemelo de una
+traducción (con su ruta exacta, p. ej. `docs/x.es.md`) o declarar `translations: omit`. Se ve bajo
+cada problema en el inspector y en la ayuda de cada insignia de la tabla.
+
+Las páginas de `external[]` (p. ej. el CHANGELOG) no tienen frontmatter: su `seo` y su `translations`
+viven en `docs.config.mjs`, y el arreglo lo dice (`external[].seo.description` de la entrada
+«changelog»). Para saberlo, el loader guarda en cada entrada de la colección de dónde viene
+(`kind`: nativa o externa). El texto se construye en el núcleo puro
+(`src/core/seo-on-page/analyzers/fixes.ts`).
