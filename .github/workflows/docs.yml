@@ -1,0 +1,60 @@
+name: Docs
+
+# Publica el sitio de documentación (`docs/`) en GitHub Pages: https://velezanthony.github.io/design/
+# Solo cuando cambia algo que afecta al sitio: su contenido, la librería que lo construye o las
+# dependencias. Un cambio en `playground/` o en `_local/` no lo redespliega.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+# `deploy-pages` se autentica con un token OIDC, por eso necesita `id-token`.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Nunca se cancela un despliegue a medias: un sitio publicado a medias es peor que uno viejo.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/configure-pages@v6
+
+      # Un solo `npm ci` en la raíz instala también el workspace `docs/`, que enlaza la librería
+      # desde `src/` (`file:..`): el sitio se construye con el código de este mismo commit.
+      - run: npm ci
+
+      # Sin `PUBLIC_GTM_ID`: este sitio no tiene analítica, así que no hay banner ni GTM.
+      - run: npm run docs:build
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
