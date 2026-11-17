@@ -42,9 +42,13 @@ export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation)
 export const PanelStateSchema = z.enum(Object.values(PanelState));
 export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 
+/** Sufijo del `<title>`: texto (o uno por idioma), o `false` para no llevar ninguno. */
+const TitleSuffixSchema = z.union([LabelSchema, z.literal(false)]);
+
 /** Override de SEO de una página: frontmatter `seo` (nativas) o `external[].seo` (externas). */
 export const PageSeoOverrideSchema = z.strictObject({
   title: z.string().optional(),
+  titleSuffix: TitleSuffixSchema.optional(),
   description: LabelSchema.optional(),
   image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema.optional() }).optional(),
   noindex: z.boolean().optional(),
@@ -138,13 +142,7 @@ export const DocsConfigSchema = z
     name: z.string().min(1),
     seo: z
       .strictObject({
-        titleTemplate: z
-          .string()
-          .refine(
-            (template) => template.includes('%s'),
-            'Debe contener `%s` (el título de la página).',
-          )
-          .optional(),
+        titleSuffix: TitleSuffixSchema.optional(),
         description: LabelSchema.optional(),
         image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema }).optional(),
       })

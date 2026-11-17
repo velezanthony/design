@@ -58,7 +58,7 @@ export default defineDocsConfig({
   name: 'Mi repo',
   locales: ['es', 'en'],
   seo: {
-    titleTemplate: '%s · Mi repo',
+    titleSuffix: 'Mi repo',
     description: { es: 'Documentación de mi repo', en: 'My repo docs' },
   },
   translations: { missing: MissingTranslation.LINK },

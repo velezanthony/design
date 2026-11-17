@@ -38,7 +38,10 @@ describe('notFoundView', () => {
     expect(view.head.some((h) => h.attrs['rel'] === 'canonical')).toBe(false);
     expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
     expect(view.others.map((o) => o.lang)).toEqual(['es']);
-    expect(view.others[0]).toMatchObject({ title: 'Perdido · Docs', homeHref: '/repo/es/' });
+    expect(view.others[0]).toMatchObject({
+      title: 'Perdido | Anthony Vélez Tapia',
+      homeHref: '/repo/es/',
+    });
     expect(view.swap).toEqual({ base: '/repo/', locales: ['en', 'es'], defaultLocale: 'en' });
     expect(view.homeHref).toBe('/repo/');
   });

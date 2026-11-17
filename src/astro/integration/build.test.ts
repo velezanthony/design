@@ -373,13 +373,19 @@ describe('#15 etiquetas SEO y cascada', () => {
 
   it('el frontmatter sobrescribe título (solo el head) y descripción', async () => {
     const html = await site.read('guide/index.html');
-    expect(titleOf(html)).toBe('Guide for the head | Fixture docs');
+    expect(titleOf(html)).toBe('Guide for the head | Guides');
     expect(metaContent(html, 'description')).toBe('Guide description');
     expect(html).toMatch(/<h1[^>]*>Guide<\/h1>/);
     // la hermana en es no hereda el override de en: vuelve a la base
     expect(metaContent(await site.read('es/guide/index.html'), 'description')).toBe(
       'Descripción de la fixture',
     );
+  });
+
+  it('el sufijo de la página gana al del sitio y `false` lo quita', async () => {
+    expect(titleOf(await site.read('guide/index.html'))).toBe('Guide for the head | Guides');
+    expect(titleOf(await site.read('hidden/index.html'))).toBe('Hidden');
+    expect(titleOf(await site.read('lonely/index.html'))).toBe('Lonely | Fixture docs');
   });
 
   it('external[].seo sobrescribe la descripción de la externa', async () => {

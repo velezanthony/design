@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DocsErrors } from '../errors';
 import { MissingTranslation } from '../i18n/translation-policy';
+import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 import { resolveConfig } from './resolve';
 
 /** Mensajes de error de una config inválida. */
@@ -22,7 +23,7 @@ describe('resolveConfig: valores por defecto', () => {
     expect(cfg.defaultLocale).toBe('en');
     expect(cfg.translations.missing).toBe(MissingTranslation.LINK);
     expect(cfg.external).toEqual([]);
-    expect(cfg.seo.titleTemplate).toBe('%s · Design');
+    expect(cfg.seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
   });
 
   it('el idioma por defecto es el primero de `locales`', () => {
@@ -35,11 +36,11 @@ describe('resolveConfig: valores por defecto', () => {
       locales: ['en', 'es'],
       defaultLocale: 'es',
       translations: { missing: 'omit' },
-      seo: { titleTemplate: '%s | X', description: { en: 'Docs', es: 'Documentación' } },
+      seo: { titleSuffix: 'X', description: { en: 'Docs', es: 'Documentación' } },
     });
     expect(cfg.defaultLocale).toBe('es');
     expect(cfg.translations.missing).toBe('omit');
-    expect(cfg.seo.titleTemplate).toBe('%s | X');
+    expect(cfg.seo.titleSuffix).toBe('X');
     expect(cfg.seo.description).toEqual({ en: 'Docs', es: 'Documentación' });
   });
 

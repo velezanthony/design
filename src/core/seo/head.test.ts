@@ -12,7 +12,7 @@ const cfg: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'
 const meta = (extra: Partial<ResolvedMeta> = {}): ResolvedMeta => ({
   title: 'Install',
   noindex: false,
-  titleTemplate: '%s · Design',
+  titleSuffix: 'Design',
   ...extra,
 });
 const enPage: PageData = { kind: 'page', slug: 'install', locale: 'en', url: '/repo/install/' };
@@ -33,9 +33,9 @@ const links = (tags: HeadConfig[], rel: string) =>
   tags.filter((t) => t.tag === 'link' && t.attrs.rel === rel);
 
 describe('buildHead: página normal', () => {
-  it('<title> por plantilla y og:title / twitter:title sin ella', () => {
+  it('<title> con sufijo y og:title / twitter:title sin él', () => {
     const tags = head(meta(), enPage, single);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install · Design');
+    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install | Design');
     expect(value(tags, 'property', 'og:title')).toBe('Install');
     expect(value(tags, 'name', 'twitter:title')).toBe('Install');
   });
@@ -67,6 +67,13 @@ describe('buildHead: página normal', () => {
   it('og:locale usa guion bajo para regiones', () => {
     const tags = head(meta(), { ...enPage, locale: 'pt-BR' }, single);
     expect(value(tags, 'property', 'og:locale')).toBe('pt_BR');
+  });
+});
+
+describe('buildHead: sin sufijo', () => {
+  it('<title> es solo el título si no hay sufijo', () => {
+    const tags = head(meta({ titleSuffix: undefined }), enPage, single);
+    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install');
   });
 });
 
@@ -190,13 +197,13 @@ describe('buildHead: noindex, reserva y 404', () => {
 describe('buildHead + resolveMeta', () => {
   it('encadena la cascada con la salida del head', () => {
     const resolved = resolveMeta(
-      { titleTemplate: '%s · Design', description: { en: 'Docs', es: 'Documentación' } },
+      { titleSuffix: 'Design', description: { en: 'Docs', es: 'Documentación' } },
       { title: 'Instalar Design' },
       { title: 'Instalar' },
       'es',
     );
     const tags = head(resolved, esPage, pair);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Instalar Design · Design');
+    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Instalar Design | Design');
     expect(value(tags, 'property', 'og:description')).toBe('Documentación');
   });
 });

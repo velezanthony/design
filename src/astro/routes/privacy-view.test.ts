@@ -39,7 +39,7 @@ describe('privacyView', () => {
   it('idioma por defecto: título, contenido y responsable por defecto', () => {
     const view = privacyView(undefined, site());
     expect(view.lang).toBe('es');
-    expect(view.head[0]).toMatchObject({ content: 'Política de privacidad · Docs' });
+    expect(view.head[0]).toMatchObject({ content: 'Política de privacidad | Anthony Vélez Tapia' });
     expect(JSON.stringify(view.sections)).toContain('Anthony Velez Tapia');
     expect(view.updated.iso).toBe('2026-11-17');
     expect(view.homeHref).toBe('/repo/');

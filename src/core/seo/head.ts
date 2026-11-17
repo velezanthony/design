@@ -2,7 +2,8 @@ import type { ResolvedConfig } from '../config/resolve';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { resolveFavicon } from './favicon';
-import { applyTitleTemplate, type ResolvedMeta } from './meta';
+import type { ResolvedMeta } from './meta';
+import { composeTitle } from './title';
 
 /** Una etiqueta de `<head>` como dato; `Head.astro` solo la pinta. */
 export interface HeadConfig {
@@ -59,7 +60,7 @@ export function buildHead(
     {
       tag: 'title',
       attrs: {},
-      content: applyTitleTemplate(resolved.titleTemplate, resolved.title, cfg.name),
+      content: composeTitle(resolved.title, resolved.titleSuffix),
     },
   ];
   tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(cfg.favicon, url.base) } });

@@ -3,6 +3,7 @@ import { resolveConfig } from './resolve';
 import { DocsConfigSchema, PageSeoOverrideSchema } from './schema';
 import { DocsErrors } from '../errors';
 import { NavIcon } from './nav';
+import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 
 function messages(input: unknown): string[] {
   try {
@@ -15,12 +16,24 @@ function messages(input: unknown): string[] {
 }
 
 describe('seo de la config', () => {
-  it('plantilla por defecto `%s · <name>`', () => {
-    expect(resolveConfig({ name: 'Design' }).seo.titleTemplate).toBe('%s · Design');
+  it('sufijo por defecto: el de la librería', () => {
+    expect(resolveConfig({ name: 'Design' }).seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
   });
 
-  it('la plantilla debe contener %s: ruta `seo.titleTemplate`', () => {
-    expect(messages({ name: 'X', seo: { titleTemplate: 'sin marcador' } })[0]).toContain(
+  it('el sufijo acepta texto, un Label por idioma o `false`', () => {
+    for (const titleSuffix of ['Docs', { en: 'Docs', es: 'Documentación' }, false as const]) {
+      expect(resolveConfig({ name: 'X', seo: { titleSuffix } }).seo.titleSuffix).toEqual(
+        titleSuffix,
+      );
+    }
+  });
+
+  it('`true` no es un sufijo válido: ruta `seo.titleSuffix`', () => {
+    expect(messages({ name: 'X', seo: { titleSuffix: true } })[0]).toContain('seo.titleSuffix');
+  });
+
+  it('`titleTemplate` ya no existe y falla como opción desconocida', () => {
+    expect(messages({ name: 'X', seo: { titleTemplate: '%s | X' } })[0]).toContain(
       'seo.titleTemplate',
     );
   });
@@ -290,5 +303,14 @@ describe('footer', () => {
     expect(
       messages({ ...base, footer: { links: [{ label: 'A', slug: 'a', icon: 'github' }] } }),
     ).toEqual([expect.stringContaining('footer.links[0].icon')]);
+  });
+});
+
+describe('seo de una página', () => {
+  it('`titleSuffix` acepta texto, Label por idioma o `false`', () => {
+    for (const titleSuffix of ['Docs', { es: 'Docs' }, false]) {
+      expect(PageSeoOverrideSchema.safeParse({ titleSuffix }).success).toBe(true);
+    }
+    expect(PageSeoOverrideSchema.safeParse({ titleSuffix: true }).success).toBe(false);
   });
 });

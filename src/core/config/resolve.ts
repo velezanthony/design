@@ -4,6 +4,7 @@ import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
 import { DEFAULT_CONTROLLER, type Controller } from '../privacy/copy';
+import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
 import {
@@ -18,7 +19,8 @@ import {
 export interface ResolvedConfig {
   name: string;
   seo: {
-    titleTemplate: string;
+    /** Sufijo del `<title>` del sitio, ya con el de la librería si la config no dice nada. */
+    titleSuffix: Label | false;
     description?: Label;
     image?: { src: string; alt: Label };
   };
@@ -73,7 +75,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   const locales = config.locales ?? DEFAULT_LOCALES;
   return {
     ...config,
-    seo: { ...config.seo, titleTemplate: config.seo?.titleTemplate ?? `%s · ${config.name}` },
+    seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
     locales,
     defaultLocale: config.defaultLocale ?? locales[0],
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },

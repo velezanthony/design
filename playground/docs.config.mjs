@@ -11,7 +11,7 @@ export default defineDocsConfig({
   locales: ['en', 'es'],
   defaultLocale: 'en',
   seo: {
-    titleTemplate: '%s | SnakeORM',
+    titleSuffix: 'SnakeORM',
     description: {
       en: 'A dataclass-first, type-first Python ORM where the type system is the single source of truth.',
       es: 'Un ORM de Python con dataclasses y tipado como única fuente de verdad.',

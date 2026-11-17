@@ -1,6 +1,7 @@
 ---
 seo:
   noindex: true
+  titleSuffix: false
 ---
 
 # Hidden

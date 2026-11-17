@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import {
-  applyTitleTemplate,
-  resolveMeta,
-  withImageSize,
-  type ResolvedMeta,
-  type SeoBase,
-} from './meta';
+import { resolveMeta, withImageSize, type ResolvedMeta, type SeoBase } from './meta';
 
-const base: SeoBase = { titleTemplate: '%s · Design' };
+const base: SeoBase = { titleSuffix: 'Design' };
 const page = { title: 'Install guide' };
 
 describe('resolveMeta: título', () => {
@@ -21,26 +15,18 @@ describe('resolveMeta: título', () => {
     expect(page.title).toBe('Install guide');
   });
 
-  it('lleva la plantilla para que el head forme el <title>', () => {
-    expect(resolveMeta(base, undefined, page, 'en').titleTemplate).toBe('%s · Design');
-  });
-});
-
-describe('applyTitleTemplate', () => {
-  it('sustituye %s por el título', () => {
-    expect(applyTitleTemplate('%s · Design', 'Install guide')).toBe('Install guide · Design');
+  it('lleva el sufijo ya resuelto para el idioma, para que el head forme el <title>', () => {
+    expect(resolveMeta(base, undefined, page, 'en').titleSuffix).toBe('Design');
+    expect(resolveMeta({ titleSuffix: { es: 'Diseño' } }, undefined, page, 'es').titleSuffix).toBe(
+      'Diseño',
+    );
   });
 
-  it('no interpreta los patrones especiales de replace ($&)', () => {
-    expect(applyTitleTemplate('%s · X', 'Cost $& more')).toBe('Cost $& more · X');
-  });
-
-  it('si el título ya es el nombre del sitio (la portada), no lo repite', () => {
-    expect(applyTitleTemplate('%s | SnakeORM', 'SnakeORM', 'SnakeORM')).toBe('SnakeORM');
-  });
-
-  it('con el nombre del sitio, cualquier otro título sí lleva la plantilla', () => {
-    expect(applyTitleTemplate('%s | SnakeORM', 'Querying', 'SnakeORM')).toBe('Querying | SnakeORM');
+  it('el sufijo de la página gana al del sitio; `false` lo quita', () => {
+    expect(resolveMeta(base, { titleSuffix: 'Otro' }, page, 'en').titleSuffix).toBe('Otro');
+    const meta = resolveMeta(base, { titleSuffix: false }, page, 'en');
+    expect(meta.titleSuffix).toBeUndefined();
+    expect('titleSuffix' in meta).toBe(false);
   });
 });
 
@@ -148,7 +134,6 @@ describe('withImageSize', () => {
     title: 'T',
     image: { src: '/og.png', alt: 'A' },
     noindex: false,
-    titleTemplate: '%s',
   };
 
   it('añade width y height cuando se conoce el tamaño de la imagen', () => {

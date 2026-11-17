@@ -49,8 +49,26 @@ flowchart LR
   r --> head["buildHead<br/>core/seo/head.ts"]
 ```
 
-- **Título.** `seo.titleTemplate` (por defecto `'%s · <name>'`; debe contener `%s`) se aplica al
-  título de la página. `seo.title` en el frontmatter cambia solo el `<title>` del head, no el `h1`.
+- **Título.** El `<title>` tiene dos partes, título y sufijo, y sale como `título | sufijo` (el
+  separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > librería.
+  `seo.title` en el frontmatter cambia solo el título del head, no el `h1`. `seo.titleSuffix`
+  (en `docs.config.mjs` o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
+  ninguno de los dos, el sufijo es el de la librería, `Anthony Vélez Tapia`. Con `false` en la
+  página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
+  sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` van
+  siempre sin sufijo. La 404 compone su título igual.
+
+```mermaid
+flowchart LR
+  p["seo.titleSuffix<br/>de la página"] -->|si no lo define| s["seo.titleSuffix<br/>del sitio"]
+  s -->|si no lo define| l["sufijo de la librería<br/>Anthony Vélez Tapia"]
+  p --> r["sufijo resuelto"]
+  s --> r
+  l --> r
+  r -->|"false: sin sufijo"| t["título"]
+  r -->|"texto"| c["título | sufijo"]
+```
+
 - **Descripción.** Una para todo el sitio o una por idioma; la página la sobrescribe.
 - **Imagen OG.** Debe estar en `public/` (`/og.png`) o ser una URL https. Si una página da `src` sin
   `alt`, el `alt` es el título de esa página. Se leen sus dimensiones para `og:image:width/height`,

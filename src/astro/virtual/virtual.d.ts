@@ -19,7 +19,7 @@ declare module 'virtual:@velezanthony/design/config' {
   const config: {
     name: string;
     seo: {
-      titleTemplate: string;
+      titleSuffix: Label | false;
       description?: Label;
       image?: { src: string; alt: Label };
     };
@@ -31,7 +31,7 @@ declare module 'virtual:@velezanthony/design/config' {
       slug: string;
       file: string;
       locales?: string[];
-      seo?: { title?: string; description?: Label; noindex?: boolean };
+      seo?: { title?: string; titleSuffix?: Label | false; description?: Label; noindex?: boolean };
       translations?: 'link' | 'omit' | 'fallback';
     }[];
     sidebar?: SidebarItem[];

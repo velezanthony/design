@@ -5,7 +5,7 @@ export default defineDocsConfig({
   name: 'Fixture',
   locales: ['en', 'es'],
   seo: {
-    titleTemplate: '%s | Fixture docs',
+    titleSuffix: 'Fixture docs',
     description: { en: 'Fixture description', es: 'Descripción de la fixture' },
     image: { src: '/og.png', alt: { en: 'Fixture card', es: 'Tarjeta de la fixture' } },
   },

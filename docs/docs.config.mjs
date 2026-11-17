@@ -7,7 +7,6 @@ export default defineDocsConfig({
   locales: ['es'],
   defaultLocale: 'es',
   seo: {
-    titleTemplate: '%s · Design',
     description:
       'Cómo funciona y cómo se mantiene @velezanthony/design: el sistema de diseño y el motor de documentación de los repositorios de velezanthony.',
   },

@@ -1,6 +1,7 @@
 ---
 seo:
   title: Guide for the head
+  titleSuffix: Guides
   description: Guide description
 ---
 

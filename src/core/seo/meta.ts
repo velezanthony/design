@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { Label, PageSeoOverride } from '../config/schema';
 import type { Locale } from '../i18n/locale';
+import { resolveTitleSuffix } from './title';
 
 /** Base SEO del sitio: la de la config ya con los valores por defecto. */
 export type SeoBase = ResolvedConfig['seo'];
@@ -11,7 +12,8 @@ export interface ResolvedMeta {
   description?: string;
   image?: { src: string; alt: string; width?: number; height?: number };
   noindex: boolean;
-  titleTemplate: string;
+  /** Sufijo ya resuelto para el idioma de la página; sin él, el `<title>` es solo el título. */
+  titleSuffix?: string;
 }
 
 /** Valor de un `Label` en un idioma; `undefined` si el `Label` por idioma no lo trae. */
@@ -20,18 +22,8 @@ function labelFor(label: Label | undefined, locale: Locale): string | undefined 
 }
 
 /**
- * Título del `<title>`: `%s` se sustituye por el título (sin interpretar patrones de `replace`).
- * Si el título ya ES el nombre del sitio (la portada suele llamarse así), la plantilla lo repetiría
- * («SnakeORM | SnakeORM»): se devuelve tal cual.
- */
-export function applyTitleTemplate(template: string, title: string, siteName?: string): string {
-  if (siteName !== undefined && title === siteName) return title;
-  return template.replace('%s', () => title);
-}
-
-/**
  * Cascada SEO campo a campo: override de la página > base > derivado (el H1 para el título; nada
- * para la descripción). La imagen es una unidad: si la página trae `src` sin `alt`, el `alt` es el
+ * para la descripción; el sufijo del título cierra con el de la librería). La imagen es una unidad: si la página trae `src` sin `alt`, el `alt` es el
  * título de la PÁGINA, nunca el de la imagen base. `seo.title` solo afecta al head.
  */
 export function resolveMeta(
@@ -46,12 +38,13 @@ export function resolveMeta(
     src: source.src,
     alt: labelFor(source.alt, locale) ?? page.title,
   };
+  const titleSuffix = resolveTitleSuffix(override?.titleSuffix, base.titleSuffix, locale);
   return {
     title: override?.title ?? page.title,
     ...(description !== undefined && { description }),
     ...(image && { image }),
     noindex: override?.noindex ?? false,
-    titleTemplate: base.titleTemplate,
+    ...(titleSuffix !== undefined && { titleSuffix }),
   };
 }
 

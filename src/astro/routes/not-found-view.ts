@@ -7,12 +7,8 @@ import { buildFooter, type FooterView } from '../../core/navigation/footer';
 import { resolveLabel } from '../../core/navigation/label';
 import type { NavContext } from '../../core/navigation/nav-entries';
 import { buildHead, type HeadConfig } from '../../core/seo/head';
-import {
-  applyTitleTemplate,
-  resolveMeta,
-  withImageSize,
-  type ImageSizes,
-} from '../../core/seo/meta';
+import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
+import { composeTitle, resolveTitleSuffix } from '../../core/seo/title';
 import { pagesOf, urlPolicyOf, type DocData } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 
@@ -101,11 +97,10 @@ export function notFoundView(
             const otherStrings = cfg.strings[other] as UiStrings;
             return {
               lang: other,
-              // El <title> de la plantilla lleva la misma plantilla que el de su propia `/<locale>/404/`.
-              title: applyTitleTemplate(
-                cfg.seo.titleTemplate,
+              // El <title> de la plantilla se compone igual que el de su propia `/<locale>/404/`.
+              title: composeTitle(
                 otherStrings['notFound.title'],
-                cfg.name,
+                resolveTitleSuffix(undefined, cfg.seo.titleSuffix, other),
               ),
               homeHref: pageUrl('', other, url),
               strings: otherStrings,
