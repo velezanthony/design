@@ -191,3 +191,5 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
     },
   };
 }
+
+export { defineDocsSite, type DocsSiteOptions } from './define-docs-site';

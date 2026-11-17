@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   defineDocsConfig,
+  defineDocsSite,
   docs,
   LayoutWidth,
   MissingTranslation,
@@ -44,6 +45,14 @@ describe('API pública de ./integration: layout', () => {
       width: 'full',
       toggles: true,
     });
+  });
+});
+
+describe('API pública de ./integration: defineDocsSite', () => {
+  it('se exporta y devuelve la config de Astro con la integración', () => {
+    const config = defineDocsSite(defineDocsConfig({ name: 'T' }), { base: '/t' });
+    expect(config.base).toBe('/t');
+    expect(config.integrations).toHaveLength(1);
   });
 });
 
