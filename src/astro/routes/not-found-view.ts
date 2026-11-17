@@ -2,7 +2,12 @@ import { pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildHead, type HeadConfig } from '../../core/seo/head';
-import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
+import {
+  applyTitleTemplate,
+  resolveMeta,
+  withImageSize,
+  type ImageSizes,
+} from '../../core/seo/meta';
 import { urlPolicyOf } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 
@@ -70,7 +75,8 @@ export function notFoundView(
             const otherStrings = cfg.strings[other] as UiStrings;
             return {
               lang: other,
-              title: otherStrings['notFound.title'],
+              // El <title> de la plantilla lleva la misma plantilla que el de su propia `/<locale>/404/`.
+              title: applyTitleTemplate(cfg.seo.titleTemplate, otherStrings['notFound.title']),
               homeHref: pageUrl('', other, url),
               strings: otherStrings,
             };

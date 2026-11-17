@@ -37,9 +37,18 @@ describe('notFoundView', () => {
     expect(view.head.some((h) => h.attrs['rel'] === 'canonical')).toBe(false);
     expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
     expect(view.others.map((o) => o.lang)).toEqual(['es']);
-    expect(view.others[0]).toMatchObject({ title: 'Perdido', homeHref: '/repo/es/' });
+    expect(view.others[0]).toMatchObject({ title: 'Perdido · Docs', homeHref: '/repo/es/' });
     expect(view.swap).toEqual({ base: '/repo/', locales: ['en', 'es'], defaultLocale: 'en' });
     expect(view.homeHref).toBe('/repo/');
+  });
+
+  it('el título del idioma sustituido lleva la plantilla, igual que su propia /es/404/', () => {
+    const swapped = notFoundView(undefined, cfg).others[0]?.title;
+    const own = notFoundView('es', cfg).head[0];
+    expect(own).toMatchObject({ tag: 'title' });
+    expect(swapped).toBe(own?.content);
+    expect(swapped).toContain('Perdido');
+    expect(swapped).not.toBe('Perdido');
   });
 
   it('/es/404/: su idioma directamente, sin plantillas ni sustitución', () => {
