@@ -3,7 +3,7 @@ import { initConsent } from '../../client/consent';
 import { initCopyCode } from '../../client/copy-code';
 import { initLayout, type RailQuery } from '../../client/layout';
 import { swapNotFound } from '../../client/not-found';
-import { initSearch } from '../../client/search';
+import { initSearch, initSearchShortcut } from '../../client/search';
 import { storageOf } from '../../client/storage';
 import { initTabs } from '../../client/tabs';
 import { initTheme } from '../../client/theme';
@@ -58,6 +58,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
   initLayout({ doc, storage: env.storage, rail: env.rail });
   initConsent({ doc, storage: env.storage, hostname: env.hostname, reload: env.reload });
   for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
+  initSearchShortcut(doc);
   initTabs(doc, env.motion);
 
   const main = doc.querySelector<HTMLElement>('main');

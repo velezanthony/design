@@ -97,7 +97,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     layoutToggles={layout.toggles}
     layoutWidth={layout.width}
   >
-    <SearchBox strings={strings} baseUrl={baseUrl} compactLabel />
+    <SearchBox strings={strings} baseUrl={baseUrl} />
   </DocsHeader>
 
   <div class="docs-container docs-page mx-auto grid max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:px-10 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
@@ -138,9 +138,11 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       </div>
     </aside>
 
+    {/* El relleno izquierdo desde lg deja al texto el mismo aire hasta el plano de la barra lateral
+        que el que tiene la barra hasta su borde. */}
     <main
       id="main-content"
-      class="min-w-0"
+      class="min-w-0 lg:pl-5"
       {...pagefind}
       data-copy-label={t(strings, 'copy.label')}
       data-copied-label={t(strings, 'copy.copied')}

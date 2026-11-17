@@ -540,8 +540,10 @@
     /* Un paso menos: a 1em el avance completo y la caja hacían de cada identificador la palabra
        más ruidosa de su frase, y la caja llenaba la línea. */
     font-size: 0.9em;
-    background-color: var(--color-raised);
-    border: 1px solid var(--color-rule);
+    /* Sin borde: solo el fondo, un tinte de acento sobre el tono de la navegación. La caja
+       marcada llenaba la línea; el tinte separa el identificador sin competir con el texto. */
+    background-color: color-mix(in oklab, var(--color-accent-soft) 70%, var(--color-raised));
+    border: 0;
     border-radius: 3px;
     padding: 0.1em 0.35em;
     overflow-wrap: anywhere;
@@ -892,6 +894,27 @@
     margin-top: 1rem;
   }
 
+  /* Por debajo de lg el «Menú» es una caja en el tono de la navegación (como la cabecera), y su
+     contenido, ya dentro de ella, se separa del borde. */
+  @media (max-width: 63.999rem) {
+    .docs-nav {
+      border: 1px solid var(--color-rule);
+      background-color: var(--color-raised);
+    }
+
+    .docs-nav-toggle {
+      border: 0;
+    }
+
+    .docs-nav > :not(.docs-nav-toggle) {
+      margin-inline: 0.875rem;
+    }
+
+    .docs-nav > :last-child {
+      margin-bottom: 0.875rem;
+    }
+  }
+
   @media (min-width: 64rem) {
     .docs-nav[open] > .docs-nav-toggle + * {
       margin-top: 0;
@@ -917,8 +940,10 @@
     @apply min-w-0 truncate;
   }
 
+  /* Solo icono: la caja (borde) aparece al señalarlo o enfocarlo, no antes. Conserva los 44px de
+     área de pulsación y el anillo de foco. */
   .docs-panel-toggle {
-    @apply grid size-(--rail) shrink-0 cursor-pointer place-items-center rounded-[4px] border border-rule bg-canvas text-muted hover:border-faint hover:text-ink focus-visible:outline-offset-[-3px];
+    @apply grid size-(--rail) shrink-0 cursor-pointer place-items-center rounded-[4px] border border-transparent bg-transparent text-muted hover:border-rule hover:text-ink focus-visible:border-rule focus-visible:text-ink focus-visible:outline-offset-[-3px];
   }
 
   .docs-rail-label {
@@ -987,14 +1012,38 @@
     }
   }
 
-  /* Lectura / Ancho: dos botones pegados; el activo se invierte con los tokens, así que en oscuro
-     se ve bien sin más. */
+  /* Lectura / Ancho: dos botones pegados; el activo lleva el tinte y el color del acento (no un
+     bloque de tinta), así que la cabecera se queda tranquila y en oscuro se ve bien sin más. */
   .docs-width-switch {
     @apply overflow-hidden rounded-[4px] border border-rule;
   }
 
   .docs-width-switch button {
-    @apply inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 label text-muted transition-colors hover:text-ink focus-visible:outline-offset-[-2px] aria-pressed:bg-ink aria-pressed:text-canvas;
+    @apply inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 label text-muted transition-colors hover:text-ink focus-visible:outline-offset-[-2px] aria-pressed:bg-accent-soft aria-pressed:text-accent;
+  }
+}
+
+/* El plano de la barra lateral: el tono de la navegación llega hasta el borde izquierdo de la
+   ventana mientras su contenido sigue alineado con la rejilla de la página. Es un pseudoelemento
+   de la rejilla (no ocupa celda): arranca en el borde de la ventana y termina un poco más allá de
+   la columna izquierda, así que sigue al raíl al plegarla y al ancho completo. */
+@media (min-width: 64rem) {
+  .docs-page {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .docs-page::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset-block: 0;
+    left: calc(50% - 50vw);
+    /* Hasta el borde de la ventana (50vw - 50%), el relleno de la página (2.5rem), la columna y la
+       mitad del hueco hasta el contenido (1.25rem). */
+    width: calc(50vw - 50% + 2.5rem + var(--col-left) + 1.25rem);
+    background-color: var(--color-raised);
+    border-right: 1px solid var(--color-rule);
   }
 }
 
@@ -1045,6 +1094,10 @@
 
   .prose > * {
     transition: max-width 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .docs-page::before {
+    transition: width 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
 

@@ -8,17 +8,9 @@ interface Props {
   /** Distingue los ids si hay más de un buscador en la página. */
   id?: string;
   class?: string;
-  /** En la cabecera móvil la etiqueta solo queda para lectores de pantalla (el placeholder basta). */
-  compactLabel?: boolean;
 }
 
-const {
-  strings,
-  baseUrl,
-  id = 'docs-search',
-  class: className,
-  compactLabel = false,
-} = Astro.props;
+const { strings, baseUrl, id = 'docs-search', class: className } = Astro.props;
 const inputId = `${id}-input`;
 ---
 
@@ -33,20 +25,28 @@ const inputId = `${id}-input`;
   data-no-results={strings['search.noResults']}
   class:list={['docs-search relative', className]}
 >
-  <label
-    for={inputId}
-    class:list={['label mb-1 block text-faint', compactLabel && 'max-md:sr-only']}
-  >
+  {/* La etiqueta solo la leen los lectores de pantalla: el placeholder y el atajo bastan a la vista. */}
+  <label for={inputId} class="sr-only">
     {t(strings, 'search.label')}
   </label>
-  <input
-    id={inputId}
-    type="search"
-    data-search-input
-    autocomplete="off"
-    placeholder={t(strings, 'search.placeholder')}
-    class="min-h-10 w-full border border-rule bg-canvas px-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
-  />
+  <div class="relative">
+    <input
+      id={inputId}
+      type="search"
+      data-search-input
+      autocomplete="off"
+      aria-keyshortcuts="/"
+      placeholder={t(strings, 'search.placeholder')}
+      class="peer min-h-10 w-full rounded-md border border-rule bg-canvas pr-9 pl-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
+    />
+    {/* Pista del atajo (`initSearchShortcut`): se va al enfocar o escribir, y no sale en táctil. */}
+    <kbd
+      aria-hidden="true"
+      class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded-[3px] border border-rule px-1.5 font-mono text-[0.6875rem] leading-4 text-faint peer-focus:hidden peer-[:not(:placeholder-shown)]:hidden pointer-coarse:hidden"
+    >
+      /
+    </kbd>
+  </div>
   {/* Estado y resultados flotan bajo el campo: si ocuparan sitio, cada búsqueda empujaría la
       cabecera entera. El panel solo se pinta cuando alguno de los dos tiene contenido. */}
   <div class="docs-search-panel absolute top-full right-0 z-30 mt-1 w-full min-w-72">

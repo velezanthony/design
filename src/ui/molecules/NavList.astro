@@ -17,7 +17,7 @@ const { entries, strings, variant, class: className } = Astro.props;
 const bar = variant === 'bar';
 
 const linkClass = bar
-  ? 'inline-flex min-h-6 items-center gap-1.5 border-b-2 border-transparent py-0.5 font-mono text-sm text-muted transition-colors hover:text-ink aria-[current]:border-accent aria-[current]:text-ink'
+  ? 'inline-flex min-h-6 items-center gap-1.5 py-1 font-mono text-sm text-muted transition-colors hover:text-ink aria-[current]:text-accent aria-[current]:shadow-[inset_0_-2px_0_var(--color-accent)]'
   : 'flex min-h-11 items-center gap-2 border-l-2 border-transparent py-2 pl-3 font-mono text-sm text-muted transition-colors hover:text-ink aria-[current]:border-accent aria-[current]:text-ink';
 ---
 

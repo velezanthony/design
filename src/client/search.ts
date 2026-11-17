@@ -198,3 +198,31 @@ export function initSearch(
     }
   });
 }
+
+/** ¿Se está escribiendo en este elemento? Entonces «/» es un carácter más, no un atajo. */
+function isTyping(target: EventTarget | null): boolean {
+  const element = target as Element | null;
+  if (!element || typeof element.closest !== 'function') return false;
+  return (
+    element.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') !==
+    null
+  );
+}
+
+/**
+ * Atajo de teclado: «/» lleva el foco al buscador (el primero de la página). Se ignora mientras se
+ * escribe en un campo, con Ctrl, Meta o Alt (Mayús no cuenta: en muchos teclados la barra es
+ * Mayús+7) y si otro manejador ya atendió la tecla. Sin buscador no hace nada y la tecla sigue su
+ * curso.
+ */
+export function initSearchShortcut(doc: Document): void {
+  doc.addEventListener('keydown', (event) => {
+    const { key, ctrlKey, metaKey, altKey, defaultPrevented } = event as KeyboardEvent;
+    if (key !== '/' || ctrlKey || metaKey || altKey || defaultPrevented) return;
+    if (isTyping(event.target)) return;
+    const input = doc.querySelector<HTMLInputElement>('[data-search-input]');
+    if (!input) return;
+    event.preventDefault();
+    input.focus();
+  });
+}

@@ -7,7 +7,7 @@ se comporten igual.
 
 A un repo consumidor le da, desde un único archivo de configuración: páginas localizadas
 (`en`/`es`), el layout, la barra lateral, la tabla de contenidos, la búsqueda (Pagefind, por
-idioma), el tema claro/oscuro, un banner de consentimiento de analítica, etiquetas SEO en el head,
+idioma; la tecla `/` enfoca el buscador), el tema claro/oscuro, un banner de consentimiento de analítica, etiquetas SEO en el head,
 `sitemap.xml` y un `404.html` que responde en el idioma del visitante. También puede publicar
 archivos de la raíz como `README.md` o `CHANGELOG.md` como páginas, así que GitHub y el sitio de
 docs leen la misma fuente.

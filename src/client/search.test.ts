@@ -5,6 +5,7 @@ import {
   type PagefindApi,
   excerptParts,
   initSearch,
+  initSearchShortcut,
   loadPagefind,
   normalizeBase,
   pagefindUrl,
@@ -249,5 +250,83 @@ describe('initSearch', () => {
   it('no hace nada si faltan las piezas del control', () => {
     const { document } = parseHTML('<div data-search></div>');
     expect(() => initSearch(document.querySelector('[data-search]')!)).not.toThrow();
+  });
+});
+
+describe('initSearchShortcut', () => {
+  const page = (
+    body = '<input data-search-input type="search"><input id="other"><textarea id="area"></textarea><div id="edit" contenteditable="true"></div><button id="btn">x</button>',
+  ) => {
+    const { document } = parseHTML(`<!doctype html><html><body>${body}</body></html>`);
+    initSearchShortcut(document);
+    const input = document.querySelector<HTMLInputElement>('[data-search-input]');
+    if (input) input.focus = vi.fn();
+    const press = (props: object = {}, target: Element = document.body) => {
+      const event = Object.assign(
+        new document.defaultView!.Event('keydown', { cancelable: true, bubbles: true }),
+        { key: '/', ...props },
+      );
+      target.dispatchEvent(event);
+      return event;
+    };
+    return { document, input, press };
+  };
+
+  it('«/» enfoca el buscador y no escribe la barra en ningún sitio', () => {
+    const { input, press } = page();
+    const event = press();
+    expect(input!.focus).toHaveBeenCalledTimes(1);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('también funciona desde un botón o con el foco en el cuerpo', () => {
+    const { document, input, press } = page();
+    press({}, document.querySelector('#btn')!);
+    expect(input!.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('con Mayús funciona: en muchos teclados la barra es Mayús+7', () => {
+    const { input, press } = page();
+    press({ shiftKey: true });
+    expect(input!.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['#other', '#area', '#edit', '[data-search-input]'])(
+    'se ignora mientras se escribe en %s',
+    (selector) => {
+      const { document, input, press } = page();
+      const event = press({}, document.querySelector(selector)!);
+      expect(input!.focus).not.toHaveBeenCalled();
+      expect(event.defaultPrevented).toBe(false);
+    },
+  );
+
+  it.each(['ctrlKey', 'metaKey', 'altKey'])('se ignora con %s', (modifier) => {
+    const { input, press } = page();
+    const event = press({ [modifier]: true });
+    expect(input!.focus).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('se ignora con otras teclas', () => {
+    const { input, press } = page();
+    press({ key: 'a' });
+    expect(input!.focus).not.toHaveBeenCalled();
+  });
+
+  it('si otro manejador ya atendió la tecla, no la pisa', () => {
+    const { document, input } = page();
+    const event = Object.assign(
+      new document.defaultView!.Event('keydown', { cancelable: true, bubbles: true }),
+      { key: '/' },
+    );
+    event.preventDefault();
+    document.body.dispatchEvent(event);
+    expect(input!.focus).not.toHaveBeenCalled();
+  });
+
+  it('sin buscador en la página no hace nada y deja pasar la tecla', () => {
+    const { press } = page('<p>nada</p>');
+    expect(press().defaultPrevented).toBe(false);
   });
 });

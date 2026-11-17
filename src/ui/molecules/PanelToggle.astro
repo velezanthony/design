@@ -27,7 +27,9 @@ const rail = t(strings, nav ? 'layout.navRail' : 'layout.tocRail');
   del raíl solo existen donde hay columna lateral (desde lg); en móvil manda el «Menú».
 */}
 <div class:list={['docs-panel-head', `docs-panel-head-${side}`]}>
-  <span class="docs-panel-title label text-faint">{title ?? rail}</span>
+  <span class:list={['docs-panel-title label', nav ? 'text-faint' : 'text-muted']}>
+    {title ?? rail}
+  </span>
   <button
     type="button"
     class="docs-panel-toggle"
