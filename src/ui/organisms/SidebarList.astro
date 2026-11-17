@@ -15,7 +15,7 @@ const { nodes, current, strings, root = false } = Astro.props;
 
 /* Sin raya a la izquierda: el nivel lo da la sangría y la página actual, su fondo de acento. */
 const itemClass =
-  'block min-h-6 rounded-md px-2.5 py-1 transition-colors hover:bg-accent-soft/60 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent';
+  'block min-h-6 rounded-md px-2.5 py-1 transition-colors hover:bg-accent-soft/60 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent aria-[current=page]:shadow-[inset_2px_0_0_var(--color-accent-line)]';
 const pageClass = `${itemClass} text-muted hover:text-ink aria-[current=page]:font-medium`;
 /* Título de grupo: tinta y seminegrita, que es lo que lo separa de las páginas. */
 const groupClass = 'label font-semibold tracking-[0.08em] text-ink';

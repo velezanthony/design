@@ -27,7 +27,7 @@ const isExternal = external ?? /^https?:\/\//.test(href);
    separaría las líneas. */
 const variants: Record<Variant, string> = {
   inline:
-    'text-accent underline underline-offset-[0.2em] decoration-1 hover:decoration-2 transition-[text-decoration-thickness]',
+    'text-accent underline decoration-accent-line underline-offset-[0.2em] decoration-1 hover:decoration-2 transition-[text-decoration-thickness]',
   quiet: 'min-h-6 text-muted hover:text-ink transition-colors',
   /* El contenido de un campo con etiqueta: tinta, como los valores de texto que lo acompañan. */
   value: 'min-h-6 text-ink hover:text-accent transition-colors',

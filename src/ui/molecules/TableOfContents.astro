@@ -42,7 +42,7 @@ const title = t(strings, 'toc.title');
             href={`#${entry.slug}`}
             data-depth={entry.depth}
             class:list={[
-              '-ml-px block border-l border-transparent py-1 text-sm text-muted transition-colors hover:text-ink aria-[current=location]:border-accent aria-[current=location]:text-accent',
+              '-ml-px block border-l border-transparent py-1 text-sm text-muted transition-colors hover:text-ink aria-[current=location]:border-accent-line aria-[current=location]:text-accent',
               entry.depth === 3 ? 'pl-6' : 'pl-3',
             ]}
           >

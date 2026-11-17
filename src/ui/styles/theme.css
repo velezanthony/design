@@ -10,19 +10,35 @@
    token. */
 
 @theme {
-  --color-canvas: #fcfefe;
-  --color-raised: #f5f7f7; /*  1.06:1 */
-  --color-ink: #1d2626; /* 15.28:1  AAA */
-  --color-muted: #515a5a; /*  7.01:1  AAA */
-  --color-faint: #6a7272; /*  4.87:1  AA  */
-  --color-accent: #00635b; /*  7.07:1  AAA */
-  --color-accent-soft: #e4f9f5;
-  --color-rule: #d5dada; /*  1.40:1 */
+  /* Superficies, de la más clara a la más pesada: el contenido, el plano del sidebar, la cabecera
+     y el pie invertido. */
+  --color-canvas: #faf9f6; /* blanco cálido */
+  --color-raised: #f0ede6; /* piedra · 1.10:1 */
+  --color-chrome: #d8cbb5; /* moka · 1.51:1 */
+  --color-inverse: #202d32; /* antracita · 13.45:1 */
 
-  --color-state-live: #0f6b39; /*  6.52:1  AA  — mantenido    */
-  --color-state-wip: #7d4a00; /*  7.28:1  AAA — experimental */
+  /* Ratios contra el canvas y, entre paréntesis, contra el plano. Sobre la cabecera solo se
+     escribe en `ink` (9.67:1): `muted` y el acento no llegan a 4.5:1 en el moka. */
+  --color-ink: #1d2626; /* 14.69:1  AAA */
+  --color-muted: #515a5a; /*  6.74:1  AA  (6.07) */
+  --color-faint: #626a6a; /*  5.26:1  AA  (4.74) */
 
-  --color-danger: #b42318; /*  6.4:1   AA  — error / peligro */
+  /* El verde en dos intensidades: `accent` para texto; `accent-line` (el verde petróleo de la
+     paleta) para lo que no es texto (subrayados, barras), donde basta 3:1. Como texto daría
+     4.18:1 en el plano y 3.06:1 en la cabecera. */
+  --color-accent: #2b665f; /*  6.30:1  AA  (5.67) */
+  --color-accent-line: #367c75; /*  4.64:1  (3.06 en la cabecera) */
+  --color-accent-soft: #e2efec; /* el acento da 5.62:1 sobre él */
+  --color-rule: #d9d3c7; /*  1.42:1 */
+
+  /* El pie invierte los papeles: tinta clara sobre antracita. */
+  --color-inverse-ink: #e0e8e8; /* 11.38:1  AAA */
+  --color-inverse-muted: #a6b0b0; /*  6.38:1  AA  */
+
+  --color-state-live: #0f6b39; /*  6.27:1  AA  — mantenido    */
+  --color-state-wip: #7d4a00; /*  6.99:1  AA  — experimental */
+
+  --color-danger: #b42318; /*  6.24:1  AA  — error / peligro */
 
   --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
@@ -126,18 +142,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-canvas: #0e1111;
-    --color-raised: #161a1a; /*  1.08:1 */
-    --color-ink: #e0e8e8; /* 15.25:1  AAA */
-    --color-muted: #a6b0b0; /*  8.54:1  AAA */
-    --color-faint: #7e8988; /*  5.26:1  AA  */
-    --color-accent: #67bdb1; /*  8.57:1  AAA — #00635b da 2.65:1 aquí
-                                   y no llega ni al 3:1 de lo no textual */
-    --color-accent-soft: #142422;
-    --color-rule: #2d3333; /*  1.48:1 */
-    --color-state-live: #6dd196; /* 10.13:1  AAA */
-    --color-state-wip: #e0a44a; /*  8.65:1  AAA */
-    --color-danger: #f97066; /*  7.0:1   AAA */
+    /* Mismos matices que en claro; en oscuro, más pesado es más claro, salvo el pie. */
+    --color-canvas: #141311;
+    --color-raised: #1c1a17; /*  1.07:1 */
+    --color-chrome: #2c2620; /*  1.24:1 */
+    --color-inverse: #0b1013;
+    --color-ink: #ece8e1; /* 15.20:1  AAA */
+    --color-muted: #b5ada2; /*  8.37:1  AAA (7.82) */
+    --color-faint: #8e877c; /*  5.22:1  AA  (4.88) */
+    --color-accent: #7cc2b8; /*  9.08:1  AAA (8.49) */
+    --color-accent-line: #5fa69c; /*  6.56:1 */
+    --color-accent-soft: #17302c;
+    --color-rule: #2e2a25; /*  1.30:1 */
+    --color-inverse-ink: #e0e8e8; /* 15.37:1  AAA */
+    --color-inverse-muted: #a6b0b0; /*  8.62:1  AAA */
+    --color-state-live: #6dd196; /*  9.91:1  AAA */
+    --color-state-wip: #e0a44a; /*  8.47:1  AAA */
+    --color-danger: #f97066; /*  6.66:1  AA  */
   }
 }
 
@@ -268,18 +289,23 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-canvas: #0e1111;
-  --color-raised: #161a1a; /*  1.08:1 */
-  --color-ink: #e0e8e8; /* 15.25:1  AAA */
-  --color-muted: #a6b0b0; /*  8.54:1  AAA */
-  --color-faint: #7e8988; /*  5.26:1  AA  */
-  --color-accent: #67bdb1; /*  8.57:1  AAA — #00635b da 2.65:1 aquí
-                                   y no llega ni al 3:1 de lo no textual */
-  --color-accent-soft: #142422;
-  --color-rule: #2d3333; /*  1.48:1 */
-  --color-state-live: #6dd196; /* 10.13:1  AAA */
-  --color-state-wip: #e0a44a; /*  8.65:1  AAA */
-  --color-danger: #f97066; /*  7.0:1   AAA */
+  /* Mismos matices que en claro; en oscuro, más pesado es más claro, salvo el pie. */
+  --color-canvas: #141311;
+  --color-raised: #1c1a17; /*  1.07:1 */
+  --color-chrome: #2c2620; /*  1.24:1 */
+  --color-inverse: #0b1013;
+  --color-ink: #ece8e1; /* 15.20:1  AAA */
+  --color-muted: #b5ada2; /*  8.37:1  AAA (7.82) */
+  --color-faint: #8e877c; /*  5.22:1  AA  (4.88) */
+  --color-accent: #7cc2b8; /*  9.08:1  AAA (8.49) */
+  --color-accent-line: #5fa69c; /*  6.56:1 */
+  --color-accent-soft: #17302c;
+  --color-rule: #2e2a25; /*  1.30:1 */
+  --color-inverse-ink: #e0e8e8; /* 15.37:1  AAA */
+  --color-inverse-muted: #a6b0b0; /*  8.62:1  AAA */
+  --color-state-live: #6dd196; /*  9.91:1  AAA */
+  --color-state-wip: #e0a44a; /*  8.47:1  AAA */
+  --color-danger: #f97066; /*  6.66:1  AA  */
 }
 
 @view-transition {
@@ -873,11 +899,13 @@
   }
 }
 
+/* En oscuro, el fondo de github-dark (#0d1117) es azul y choca con la paleta cálida: va un negro
+   cálido algo más hondo que el canvas. Sus colores conservan el contraste (comentarios 6.27:1). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .astro-code,
   :root:not([data-theme='light']) .astro-code span {
     color: var(--shiki-dark) !important;
-    background-color: var(--shiki-dark-bg) !important;
+    background-color: #0f0e0c !important;
     font-style: var(--shiki-dark-font-style) !important;
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
@@ -888,7 +916,7 @@
 :root[data-theme='dark'] .astro-code,
 :root[data-theme='dark'] .astro-code span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
+  background-color: #0f0e0c !important;
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
@@ -1051,11 +1079,35 @@
   /* Lectura / Ancho: dos botones pegados; el activo lleva el tinte y el color del acento (no un
      bloque de tinta), así que la cabecera se queda tranquila y en oscuro se ve bien sin más. */
   .docs-width-switch {
-    @apply overflow-hidden rounded-[4px] border border-rule;
+    @apply overflow-hidden rounded-[4px] border border-ink/25 bg-canvas/40;
   }
 
   .docs-width-switch button {
-    @apply inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 label text-muted transition-colors hover:text-ink focus-visible:outline-offset-[-2px] aria-pressed:bg-accent-soft aria-pressed:text-accent;
+    @apply inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 label text-ink transition-colors hover:bg-accent-soft/60 focus-visible:outline-offset-[-2px] aria-pressed:bg-accent-soft aria-pressed:text-accent;
+  }
+}
+
+/* El pie es una superficie invertida: en vez de pintar cada pieza en otro color, redefine los
+   tokens en su ámbito y todo lo de dentro (enlaces, botón de cookies, foco) los hereda. El foco
+   pasa a la tinta clara: el verde da 2.9:1 sobre la antracita. En oscuro el pie apenas se separa
+   del fondo (1.03:1), así que conserva el filete de arriba. */
+.docs-footer {
+  --color-ink: var(--color-inverse-ink);
+  --color-muted: var(--color-inverse-muted);
+  --color-faint: var(--color-inverse-muted);
+  --color-accent: var(--color-inverse-ink);
+  --color-accent-line: var(--color-inverse-muted);
+  background-color: var(--color-inverse);
+  color: var(--color-ink);
+}
+
+:root[data-theme='dark'] .docs-footer {
+  border-top: 1px solid var(--color-rule);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .docs-footer {
+    border-top: 1px solid var(--color-rule);
   }
 }
 

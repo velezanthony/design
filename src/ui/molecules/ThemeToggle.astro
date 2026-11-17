@@ -52,13 +52,13 @@ const label = t(strings, 'theme.toggle');
     block-size: 2rem;
     /* Una fila flex corta de sitio lo estrechaba a 19px de ancho: es un objetivo de 32px. */
     flex-shrink: 0;
-    color: var(--color-faint);
+    color: var(--color-ink);
     border-radius: 3px;
     transition: color 150ms ease;
   }
 
   .theme-toggle:hover {
-    color: var(--color-accent);
+    background-color: color-mix(in oklab, var(--color-ink) 8%, transparent);
   }
 
   /* Muestra el icono del tema actual: sol en claro, luna en oscuro. Una elección manda sobre la
