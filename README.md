@@ -332,6 +332,25 @@ llevan etiqueta. Es CSS puro sobre `data-language`, sin JavaScript. No soportado
 Material (`:material-x:` se queda como texto). Los nombres de contenedor desconocidos (`:::foo`)
 rompen el build; los dos puntos sueltos (`12:30`, `http://`) se dejan en paz.
 
+Diagramas Mermaid: un bloque con el lenguaje `mermaid` se dibuja como SVG en el navegador, con la
+paleta y el tema claro/oscuro del sitio (se vuelve a dibujar al cambiar de tema). Mermaid solo se
+descarga en las páginas que tienen algún diagrama. No pasa por Shiki, pero es un bloque de código
+más: lleva la etiqueta `mermaid` y el botón de copiar, que copia el código original y no el SVG.
+Otro botón lo abre a pantalla completa (mismo diálogo que la ampliación de imágenes: Escape, el
+botón de cerrar o un clic fuera lo cierran): allí se acerca y se aleja (botones, `+` `-` `0`, rueda
+sobre el puntero o pellizco, de 0.25× a 8×) y se mueve arrastrando o con las flechas; empieza
+ajustado a la pantalla. Si cambia el tema con el visor abierto, se cierra. Sin JavaScript, o si el
+diagrama es inválido, el lector ve su código. Un `accTitle` en el diagrama es su nombre accesible;
+si no, se usa el texto de UI `diagram.label`. Los textos de los botones son las claves
+`diagram.expand`, `diagram.zoomIn`, `diagram.zoomOut` y `diagram.fit`.
+
+````md
+```mermaid
+flowchart LR
+  A[Markdown] --> B[SVG]
+```
+````
+
 ## Transiciones y zoom de imágenes
 
 Las páginas usan la View Transitions API, todo ello tras `prefers-reduced-motion: no-preference` y

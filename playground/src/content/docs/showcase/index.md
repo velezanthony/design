@@ -31,3 +31,16 @@ The detail page of a component, with its props and slots:
 :::tip[Open me]{collapsed}
 This admonition starts closed. It is a `<details>` underneath, so it works without JavaScript.
 :::
+
+## Diagram
+
+A fenced block with the `mermaid` language is drawn as an SVG that follows the site palette and theme. It carries the `mermaid` label and a button to copy its source, like any code block, plus one to open it full screen, where you can zoom and pan. The library only loads Mermaid on pages that have a diagram.
+
+```mermaid
+flowchart LR
+  accTitle: From Markdown to page
+  md[Markdown] --> plugin{{Mermaid plugin}}
+  plugin --> source[Readable source]
+  source -->|JavaScript| svg[SVG diagram]
+  source -->|No JavaScript| code[Stays as code]
+```

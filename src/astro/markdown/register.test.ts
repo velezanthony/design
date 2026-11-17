@@ -41,6 +41,12 @@ describe('markdownPlugins: orden', () => {
     expect(names.at(-1)).toBe('restore-directives');
     expect(names).toEqual(expect.arrayContaining(['github-alerts', 'admonitions', 'tabs']));
   });
+
+  it('mermaid va antes de codeLanguages: así este no avisa de un lenguaje que Shiki no conoce', () => {
+    const names = markdownPlugins(env).map((entry) => resolveName(entry, docFileURL('a.md')));
+    expect(names.indexOf('mermaid')).toBeGreaterThan(-1);
+    expect(names.indexOf('mermaid')).toBeLessThan(names.indexOf('code-languages'));
+  });
 });
 
 const full = (source: string, fileURL: URL, consumer: MdastPluginDefinition[] = []) =>

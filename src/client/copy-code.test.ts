@@ -107,4 +107,17 @@ describe('initCopyCode', () => {
     const { document } = setup(undefined, '<pre>plano</pre>');
     expect(document.querySelector('button')).toBeNull();
   });
+
+  it('en un diagrama de Mermaid copia el código original, aunque el SVG ya esté dibujado', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    const { document } = parseHTML(
+      '<div class="docs-mermaid" data-mermaid><pre class="astro-code" data-language="mermaid"><code>graph TD\n  A--&gt;B</code></pre>' +
+        '<div class="docs-mermaid-figure"><svg><text>A</text><text>B</text></svg></div></div>',
+    );
+    initCopyCode(document, { clipboard: { writeText }, labels });
+    const frame = document.querySelector('.docs-mermaid > .docs-code')!;
+    expect(frame.querySelector('pre')).not.toBeNull();
+    document.querySelector<HTMLButtonElement>('button.docs-copy')!.click();
+    expect(writeText).toHaveBeenCalledWith('graph TD\n  A-->B');
+  });
 });

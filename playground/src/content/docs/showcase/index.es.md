@@ -31,3 +31,16 @@ La página de detalle de un componente, con sus props y slots:
 :::tip[Ábreme]{collapsed}
 Este admonition empieza cerrado. Por debajo es un `<details>`, así que funciona sin JavaScript.
 :::
+
+## Diagrama
+
+Un bloque con el lenguaje `mermaid` se dibuja como un SVG que sigue la paleta y el tema del sitio. Lleva la etiqueta `mermaid` y un botón para copiar el código, como cualquier bloque de código, y otro para verlo a pantalla completa: allí se acerca, se aleja y se mueve. La librería solo carga Mermaid en las páginas que tienen un diagrama.
+
+```mermaid
+flowchart LR
+  accTitle: Del Markdown a la página
+  md[Markdown] --> plugin{{Plugin de Mermaid}}
+  plugin --> source[Código legible]
+  source -->|JavaScript| svg[Diagrama SVG]
+  source -->|Sin JavaScript| code[Se queda como código]
+```

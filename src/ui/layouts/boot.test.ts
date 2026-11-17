@@ -63,6 +63,58 @@ describe('bootDocs', () => {
     expect(e.doc.querySelector('button.docs-zoom')).toBeNull();
   });
 
+  describe('diagramas de Mermaid', () => {
+    const diagram = `<main data-diagram-label="Diagrama" data-copy-label="Copiar" data-copied-label="Copiado" data-copy-failed-label="Error" data-diagram-expand-label="Pantalla completa" data-diagram-zoom-in-label="Acercar" data-diagram-zoom-out-label="Alejar" data-diagram-fit-label="Ajustar" data-zoom-close-label="Cerrar"><div class="docs-mermaid" data-mermaid><pre class="astro-code" data-language="mermaid"><code>A--&gt;B</code></pre></div></main>`;
+    const mermaid = () => ({
+      importer: vi.fn(async () => ({
+        default: { initialize: vi.fn(), render: vi.fn(async () => ({ svg: '<svg></svg>' })) },
+      })),
+      readToken: () => '#fff',
+    });
+
+    it('los dibuja con la etiqueta de <main>', async () => {
+      const m = mermaid();
+      const e = env(diagram, { mermaid: m });
+      bootDocs(e);
+      await vi.waitFor(() =>
+        expect(e.doc.querySelector('.docs-mermaid-figure')!.getAttribute('aria-label')).toBe(
+          'Diagrama',
+        ),
+      );
+    });
+
+    it('cada diagrama lleva copiar y pantalla completa, con los textos de <main>', async () => {
+      const e = env(diagram, { mermaid: mermaid() });
+      bootDocs(e);
+      await vi.waitFor(() => expect(e.doc.querySelector('.docs-expand')).not.toBeNull());
+      const frame = e.doc.querySelector('.docs-mermaid .docs-code')!;
+      expect(frame.querySelector('button.docs-copy')!.getAttribute('aria-label')).toBe('Copiar');
+      expect(frame.querySelector('button.docs-expand')!.getAttribute('aria-label')).toBe(
+        'Pantalla completa',
+      );
+      const labels = [...e.doc.querySelectorAll('dialog.docs-diagram-dialog button')].map((b) =>
+        b.getAttribute('aria-label'),
+      );
+      expect(labels).toEqual(['Alejar', 'Acercar', 'Ajustar', 'Cerrar']);
+    });
+
+    it('sin los textos del visor se dibuja igual pero sin botón de pantalla completa', async () => {
+      const e = env(diagram.replace(/ data-diagram-expand-label="[^"]*"/, ''), {
+        mermaid: mermaid(),
+      });
+      bootDocs(e);
+      await vi.waitFor(() => expect(e.doc.querySelector('.docs-mermaid-figure')).not.toBeNull());
+      expect(e.doc.querySelector('.docs-expand')).toBeNull();
+      expect(e.doc.querySelector('dialog')).toBeNull();
+    });
+
+    it('en una página sin diagramas no descarga mermaid', () => {
+      const m = mermaid();
+      bootDocs(env(content, { mermaid: m }));
+      expect(m.importer).not.toHaveBeenCalled();
+    });
+  });
+
   it('cablea los botones de plegado y de ancho', () => {
     const e = env(
       `<button data-layout-toggle="left" aria-controls="nav" data-collapse-label="Plegar" data-expand-label="Desplegar"></button><div id="nav"></div><button data-layout-width="full"></button>`,
