@@ -1,4 +1,4 @@
-import type { ResolvedLayout } from '../../../core/config/layout';
+import { LayoutWidth, type ResolvedLayout } from '../../../core/config/layout';
 import { buildAvailability, pageUrl } from '../../../core/i18n/availability';
 import type { Locale } from '../../../core/i18n/locale';
 import { resolvePolicies } from '../../../core/i18n/translation-policy';
@@ -115,7 +115,9 @@ export function panelView({
     headings,
     indexable: false,
     baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
-    layout: cfg.layout,
+    /* A ancho completo: la tabla y las vistas previas no caben en la columna de lectura. El resto
+       de la disposición es la del sitio, y el conmutador sigue permitiendo cambiarla. */
+    layout: { ...cfg.layout, width: LayoutWidth.FULL },
     prose: false,
   };
 }

@@ -14,6 +14,6 @@ describe('PanelIntro', () => {
   it('avisa de que es una herramienta solo de desarrollo, como nota', async () => {
     const doc = await intro();
     expect(doc.querySelector('aside[role="note"]')).not.toBeNull();
-    expect(text(doc)).toContain('solo en desarrollo');
+    expect(text(doc)).toMatch(/solo en desarrollo/i);
   });
 });

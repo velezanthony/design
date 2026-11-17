@@ -13,11 +13,8 @@ const { title, strings } = Astro.props;
 ---
 
 <div class="mb-6 flex flex-col gap-6">
-  <Admonition kind="note" title="Herramienta de desarrollo" strings={strings}>
-    <p>
-      Herramienta solo en desarrollo: lee los mismos datos con los que se genera el sitio y no
-      existe en la build publicada.
-    </p>
+  <Admonition kind="note" title="Solo en desarrollo" strings={strings}>
+    <p>Lee los mismos datos con los que se genera el sitio y no existe en la build publicada.</p>
   </Admonition>
   <Heading level={1} size="xl">
     {title}

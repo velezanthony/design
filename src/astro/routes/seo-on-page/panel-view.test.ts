@@ -68,7 +68,6 @@ describe('panelView', () => {
     expect(built.homeHref).toBe('/repo/');
     expect(built.nav.map((entry) => entry.label)).toEqual(['Guía']);
     expect(built.strings).toBe(cfg.strings.en);
-    expect(built.layout).toBe(cfg.layout);
     expect(built.hrefs).toEqual({});
   });
 
@@ -79,6 +78,14 @@ describe('panelView', () => {
     expect(built).not.toHaveProperty('gtmId');
     expect(built).not.toHaveProperty('privacyUrl');
     expect(built).not.toHaveProperty('editUrl');
+  });
+
+  it('se abre a ancho completo: tablas y vistas previas no caben en el de lectura', () => {
+    const cfg = site({ layout: { width: 'reading' } });
+    const built = view({ cfg });
+    expect(built.layout.width).toBe('full');
+    // El resto de la disposición (barras plegables, conmutadores) sigue siendo la del sitio.
+    expect({ ...built.layout, width: cfg.layout.width }).toEqual(cfg.layout);
   });
 
   it('el contenido va sin prosa: el panel trae su propio marcado', () => {
