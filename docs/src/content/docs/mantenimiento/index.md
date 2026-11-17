@@ -1,5 +1,8 @@
 ---
 order: 1
+seo:
+  title: "Comandos y convenciones del repo"
+  description: "Los comandos de desarrollo, tests, lint, comprobación de tipos y build, y las convenciones: código en inglés, comentarios en español y commits convencionales."
 ---
 
 # Comandos y convenciones

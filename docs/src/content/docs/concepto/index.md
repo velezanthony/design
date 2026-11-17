@@ -1,5 +1,8 @@
 ---
 order: 1
+seo:
+  title: "Dónde se monta la librería en un repo"
+  description: "Vive en un subproyecto docs/ de cada repo: se instala desde GitHub, se integra en Astro y se publica en GitHub Pages. Qué pone ella y qué pone el repo."
 ---
 
 # Dónde se monta

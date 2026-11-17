@@ -1,5 +1,8 @@
 ---
 order: 5
+seo:
+  title: "Navegación, barra lateral y búsqueda"
+  description: "Cómo se calculan la cabecera, la barra lateral, los archivos externos y el pie, y cómo funciona la búsqueda con Pagefind, que se indexa al construir."
 ---
 
 # Navegación y búsqueda

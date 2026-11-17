@@ -1,5 +1,8 @@
 ---
 order: 7
+seo:
+  title: "Disposición, tema claro y oscuro y transiciones"
+  description: "Los modos lectura y ancho completo, cómo se aplica su estado antes de pintar, el tema claro y oscuro y las transiciones de vista entre páginas."
 ---
 
 # Disposición, tema y transiciones

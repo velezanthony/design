@@ -1,5 +1,8 @@
 ---
 order: 1
+seo:
+  title: "Arquitectura por capas de la librería"
+  description: "Las capas core, client, ui, astro y testing, qué puede importar cada una y cómo lo hace cumplir ESLint: la lógica que decide no sabe nada de Astro."
 ---
 
 # Capas

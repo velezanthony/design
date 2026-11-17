@@ -1,5 +1,8 @@
 ---
 order: 1
+seo:
+  title: "Integrar la librería en un repo nuevo"
+  description: "Paso a paso para documentar un repo: instalar desde GitHub, astro.config.mjs, docs.config.mjs, content.config.ts, el contenido y el despliegue en Pages."
 ---
 
 # Integrar un repo nuevo

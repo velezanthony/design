@@ -1,5 +1,8 @@
 ---
 order: 3
+seo:
+  title: "Política de tests y dónde vive cada uno"
+  description: "TDD estricto para la lógica y nada de tests para lo visual u obvio: los tipos de test, dónde vive cada uno, los tests de build y cómo filtrar al iterar."
 ---
 
 # Tests

@@ -1,3 +1,9 @@
+---
+seo:
+  title: "Sistema de diseño y documentación para Astro"
+  description: "Librería de velezanthony: un sistema de diseño y un motor de documentación sobre Astro que comparten sus repos. Qué es, cómo se monta y cómo se mantiene."
+---
+
 # Design
 
 `@velezanthony/design` es **una librería, no un sitio**. Reúne dos cosas que todos los repositorios

@@ -1,5 +1,8 @@
 ---
 order: 2
+seo:
+  title: "Mapa de src: qué hace cada archivo"
+  description: "Recorrido por las carpetas de src/ con el propósito de cada archivo importante, dónde viven sus tests y las rutas públicas que exporta el paquete."
 ---
 
 # Mapa de `src/`

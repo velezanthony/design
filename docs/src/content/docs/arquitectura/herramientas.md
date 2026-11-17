@@ -1,5 +1,8 @@
 ---
 order: 4
+seo:
+  title: "Playground, este sitio y la migración desde MkDocs"
+  description: "Las piezas que rodean a la librería sin distribuirse: el playground con la documentación de snake-orm, este sitio y el script de migración desde MkDocs."
 ---
 
 # Playground, este sitio y la migración

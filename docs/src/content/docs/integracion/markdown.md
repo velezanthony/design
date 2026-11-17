@@ -1,5 +1,8 @@
 ---
 order: 3
+seo:
+  title: "Markdown: Sätteri, Shiki, directivas y Mermaid"
+  description: "Cómo extiende la librería el Markdown de Astro: los plugins en orden, admoniciones y alertas de GitHub, bloques de código, diagramas y reglas estrictas."
 ---
 
 # Markdown

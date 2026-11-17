@@ -1,5 +1,8 @@
 ---
 order: 3
+seo:
+  title: "Una página de principio a fin"
+  description: "Un archivo Markdown de un consumidor seguido desde el disco hasta el navegador: carga, render, head y scripts de cliente, y dónde mirar si algo se rompe."
 ---
 
 # Una página de principio a fin

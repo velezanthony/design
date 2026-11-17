@@ -1,5 +1,8 @@
 ---
 order: 2
+seo:
+  title: "Paleta de colores y tokens de diseño"
+  description: "Las superficies, el acento en dos intensidades y por qué cada token anota su contraste WCAG; los tests que lo vigilan y cómo el pie redefine sus tokens."
 ---
 
 # Paleta y tokens
