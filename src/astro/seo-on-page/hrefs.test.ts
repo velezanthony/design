@@ -42,6 +42,15 @@ describe('devHrefs', () => {
     );
   });
 
+  it('la página se añade tras los filtros y la 1 no se escribe', () => {
+    const filters = { kinds: [], severities: [IssueSeverity.INFO], locales: [], text: '' };
+    expect(devHrefs(policy).pages(filters, 2)).toBe(
+      '/repo/seo-on-page/pages/?severity=info&page=2',
+    );
+    expect(devHrefs(policy).pages(filters, 1)).toBe('/repo/seo-on-page/pages/?severity=info');
+    expect(devHrefs(policy).pages(undefined, 3)).toBe('/repo/seo-on-page/pages/?page=3');
+  });
+
   it('sin filtros no deja un `?` colgando', () => {
     const empty = { kinds: [], severities: [], locales: [], text: '' };
     expect(devHrefs(policy).pages(empty)).toBe('/repo/seo-on-page/pages/');

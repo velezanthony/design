@@ -1,0 +1,19 @@
+---
+interface Props {
+  /** Rango (1-based) de la página que se enseña; 0 y 0 sin resultados. */
+  from: number;
+  to: number;
+  /** Páginas que cumplen los filtros. */
+  total: number;
+  /** Todas las del árbol, para que se vea cuánto dejan fuera los filtros. */
+  overall: number;
+}
+
+const { from, to, total, overall } = Astro.props;
+---
+
+<p class="text-muted" role="status">
+  {total === 0
+    ? `0 de ${overall} páginas`
+    : `${from}–${to} de ${total} páginas${total !== overall ? ` · ${overall} en total` : ''}`}
+</p>

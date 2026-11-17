@@ -3,10 +3,17 @@
    así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
 import { Font } from 'astro:assets';
 import { filterPages } from '../../core/seo-on-page/queries/filter';
-import { ALL_SEVERITIES, filtersFromUrl } from '../../core/seo-on-page/queries/url-filters';
+import { paginate, PAGE_SIZE } from '../../core/seo-on-page/queries/paginate';
+import {
+  ALL_SEVERITIES,
+  filtersFromUrl,
+  parsePage,
+} from '../../core/seo-on-page/queries/url-filters';
 import FiltersForm from '../../ui/seo-on-page/FiltersForm.astro';
 import InfoHiddenNote from '../../ui/seo-on-page/InfoHiddenNote.astro';
+import Pagination from '../../ui/seo-on-page/Pagination.astro';
 import PagesTable from '../../ui/seo-on-page/PagesTable.astro';
+import ResultsCount from '../../ui/seo-on-page/ResultsCount.astro';
 import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
 import { urlPolicyOf } from '../routes/pages';
 import { siteConfig } from '../routes/site-config';
@@ -16,7 +23,11 @@ import { devHrefs } from './hrefs';
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
 const { filters, defaulted } = filtersFromUrl(Astro.url.searchParams);
 const tree = await loadSeoTree(siteConfig);
-const rows = filterPages(tree, filters).map((page) => ({ page, href: hrefs.inspector(page) }));
+const result = paginate(filterPages(tree, filters), parsePage(Astro.url.searchParams), PAGE_SIZE);
+const rows = result.rows.map((page) => ({ page, href: hrefs.inspector(page) }));
+/* Los enlaces de página llevan los filtros ESCRITOS en la URL: en la vista por defecto no se
+   añade `severity`, así pasar de página no la convierte en una vista con filtros explícitos. */
+const linkFilters = defaulted ? { ...filters, severities: [] } : filters;
 ---
 
 <SeoLayout
@@ -34,9 +45,17 @@ const rows = filterPages(tree, filters).map((page) => ({ page, href: hrefs.inspe
     {defaulted && (
       <InfoHiddenNote showAllHref={hrefs.pages({ ...filters, severities: ALL_SEVERITIES })} />
     )}
-    <p class="text-muted" role="status">
-      {rows.length} de {tree.pages.length} páginas
-    </p>
+    <ResultsCount
+      from={result.from}
+      to={result.to}
+      total={result.total}
+      overall={tree.pages.length}
+    />
     <PagesTable rows={rows} />
+    <Pagination
+      page={result.page}
+      pages={result.pages}
+      href={(number) => hrefs.pages(linkFilters, number)}
+    />
   </div>
 </SeoLayout>

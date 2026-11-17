@@ -5,6 +5,7 @@ import {
   EMPTY_FILTERS,
   filtersFromUrl,
   parseFilters,
+  parsePage,
   serializeFilters,
 } from './url-filters';
 
@@ -90,5 +91,36 @@ describe('filtersFromUrl', () => {
       filters: { ...EMPTY_FILTERS, severities: ALL_SEVERITIES },
       defaulted: false,
     });
+  });
+});
+
+describe('parsePage', () => {
+  it.each([
+    ['', 1],
+    ['page=', 1],
+    ['page=abc', 1],
+    ['page=0', 1],
+    ['page=-2', 1],
+    ['page=2.5', 1],
+    ['page=1', 1],
+    ['page=3', 3],
+    ['page=3&page=5', 3],
+  ])('«%s» es la página %i', (query, expected) => {
+    expect(parsePage(new URLSearchParams(query))).toBe(expected);
+  });
+});
+
+describe('serializeFilters: página', () => {
+  it('la página 1 es la de por defecto y no se escribe', () => {
+    expect(serializeFilters(EMPTY_FILTERS, 1).toString()).toBe('');
+    expect(serializeFilters(EMPTY_FILTERS).toString()).toBe('');
+  });
+
+  it('a partir de la 2 va al final, tras los filtros, y vuelve con parsePage', () => {
+    const filters = { ...EMPTY_FILTERS, severities: ['info' as const], text: 'orm' };
+    const params = serializeFilters(filters, 3);
+    expect(params.toString()).toBe('severity=info&q=orm&page=3');
+    expect(parsePage(params)).toBe(3);
+    expect(parseFilters(params)).toEqual(filters);
   });
 });

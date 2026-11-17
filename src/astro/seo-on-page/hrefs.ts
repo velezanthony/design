@@ -1,6 +1,10 @@
 import { pageUrl, type UrlPolicy } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
-import { serializeFilters, type SeoFilters } from '../../core/seo-on-page/queries/url-filters';
+import {
+  EMPTY_FILTERS,
+  serializeFilters,
+  type SeoFilters,
+} from '../../core/seo-on-page/queries/url-filters';
 
 /** Carpeta común de las rutas del panel: lo que un consumidor no debería usar para sus páginas. */
 export const SEO_ON_PAGE_DIR = 'seo-on-page';
@@ -27,8 +31,11 @@ export function devHrefs(url: UrlPolicy) {
   return {
     siteHome: () => pageUrl('', url.defaultLocale, url),
     overview: () => pageUrl(SEO_ON_PAGE_DIR, url.defaultLocale, url),
-    pages: (filters?: SeoFilters) =>
-      withQuery(at('pages'), filters ? serializeFilters(filters) : new URLSearchParams()),
+    pages: (filters?: SeoFilters, page = 1) =>
+      withQuery(
+        at('pages'),
+        filters ? serializeFilters(filters, page) : serializeFilters(EMPTY_FILTERS, page),
+      ),
     /** El inspector identifica la página por slug (vacío = portada) e idioma. */
     inspector: (page: { slug: string; locale: Locale }) =>
       withQuery(at('page'), new URLSearchParams({ slug: page.slug, locale: page.locale })),

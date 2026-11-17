@@ -35,13 +35,28 @@ export function parseFilters(params: URLSearchParams): SeoFilters {
   };
 }
 
-/** Inversa de `parseFilters`: solo emite lo que filtra, en un orden estable. */
-export function serializeFilters(filters: SeoFilters): URLSearchParams {
+/**
+ * Página de la tabla: un entero ≥ 1; lo que no lo sea (vacío, texto, 0, negativo, decimal) es la
+ * 1. No vive en `SeoFilters` a propósito: así cualquier enlace que se forma desde los filtros
+ * (cambiar la gravedad, «mostrar también lo informativo») vuelve a la página 1 sin acordarse de
+ * reiniciarla. Que la pasada del final se acote lo decide `paginate`, que conoce el total.
+ */
+export function parsePage(params: URLSearchParams): number {
+  const raw = params.get('page') ?? '';
+  return /^[1-9]\d*$/.test(raw) ? Number(raw) : 1;
+}
+
+/**
+ * Inversa de `parseFilters` (y de `parsePage`): solo emite lo que filtra, en un orden estable. La
+ * página 1 es la de por defecto y no se escribe, para que la URL canónica de la tabla no cambie.
+ */
+export function serializeFilters(filters: SeoFilters, page = 1): URLSearchParams {
   const params = new URLSearchParams();
   for (const kind of filters.kinds) params.append('kind', kind);
   for (const severity of filters.severities) params.append('severity', severity);
   for (const locale of filters.locales) params.append('locale', locale);
   if (filters.text !== '') params.set('q', filters.text);
+  if (page > 1) params.set('page', String(page));
   return params;
 }
 
