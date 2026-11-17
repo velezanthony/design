@@ -8,11 +8,11 @@ import { ALL_SEVERITIES, EMPTY_FILTERS } from '../../../core/seo-on-page/queries
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import Overview from '../../../ui/seo-on-page/organisms/Overview.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
-import { urlPolicyOf } from '../pages';
-import { siteConfig } from '../site-config';
-import { loadDocData, loadSeoTree } from './adapter';
-import { devHrefs } from './hrefs';
-import { panelView } from './panel-view';
+import { urlPolicyOf } from '../../views/pages';
+import { siteConfig } from '../../data/site-config';
+import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
+import { devHrefs } from '../../views/seo-on-page/hrefs';
+import { panelView } from '../../views/seo-on-page/panel';
 
 const url = urlPolicyOf(siteConfig);
 const hrefs = devHrefs(url);

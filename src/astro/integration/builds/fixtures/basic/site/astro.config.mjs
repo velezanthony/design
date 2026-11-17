@@ -46,7 +46,7 @@ export default defineConfig({
               astro: {
                 fromConsumer: resolveAstro(import.meta.url),
                 fromPackage: resolveAstro(
-                  new URL('../../../../../routes/doc.astro', import.meta.url).href,
+                  new URL('../../../../../pages/doc.astro', import.meta.url).href,
                 ),
               },
               base: config.base,

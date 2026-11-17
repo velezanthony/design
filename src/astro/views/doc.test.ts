@@ -4,7 +4,7 @@ import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
-import { docRoutes, docView, type DocRoute } from './doc-view';
+import { docRoutes, docView, type DocRoute } from './doc';
 import type { DocData } from './pages';
 
 const site = (user: Partial<DocsUserConfig> = {}) =>

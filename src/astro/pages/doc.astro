@@ -5,9 +5,9 @@
 import { Font } from 'astro:assets';
 import DocsLayout from '../../ui/layouts/DocsLayout.astro';
 import { readImageSizes } from '../loader/images';
-import { docRoutes, docView, type DocRoute } from './doc-view';
-import { getDocs, renderDoc } from './docs-collection';
-import { siteConfig } from './site-config';
+import { docRoutes, docView, type DocRoute } from '../views/doc';
+import { getDocs, renderDoc } from '../data/docs-collection';
+import { siteConfig } from '../data/site-config';
 
 export async function getStaticPaths() {
   const data = (await getDocs()).map((entry) => entry.data);

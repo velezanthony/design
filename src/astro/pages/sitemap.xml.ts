@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getDocs } from './docs-collection';
-import { sitemapXml } from './pages';
-import { siteConfig } from './site-config';
+import { getDocs } from '../data/docs-collection';
+import { sitemapXml } from '../views/pages';
+import { siteConfig } from '../data/site-config';
 
 /** El único `sitemap.xml` del sitio: solo páginas reales (ni rutas de reserva ni 404). */
 export const GET: APIRoute = async () => {

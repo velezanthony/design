@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
 import { createVirtualData } from '../virtual/data';
-import { notFoundRoutes, notFoundView } from './not-found-view';
+import { notFoundRoutes, notFoundView } from './not-found';
 
 const site = (locales: string[], ui = {}) =>
   createVirtualData(resolveConfig({ name: 'Docs', locales, ui }), {

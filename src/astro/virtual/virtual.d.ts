@@ -1,7 +1,7 @@
 /* Tipos del módulo virtual que sirve la integración (`injectTypes`). Es la config validada, ya con
    los valores por defecto, más lo de Astro (`base`, `site`, `trailingSlash`, `buildFormat`) y el
    catálogo de textos fusionado por idioma. Autocontenido: se copia al `.astro/` del consumidor,
-   donde no se puede importar nada del paquete. Solo `astro/routes` y `testing/` lo importan. */
+   donde no se puede importar nada del paquete. Solo `astro/data` y `testing/` lo importan. */
 declare module 'virtual:@velezanthony/design/config' {
   type Label = string | Record<string, string>;
   type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };

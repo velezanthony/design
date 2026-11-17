@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { AstroError } from 'astro/errors';
 import { privacySlug } from '../../core/privacy/pages';
-import { SEO_ON_PAGE_ROUTES } from '../routes/seo-on-page/hrefs';
+import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
 
 /** Extensiones con las que Astro enruta un fichero de `src/pages/` (páginas y endpoints). */
 const PAGE_EXTENSIONS = ['astro', 'md', 'mdx', 'html', 'ts', 'js', 'mts', 'mjs'];

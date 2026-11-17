@@ -69,7 +69,7 @@ describe('tokens', () => {
     // Relativa a este fichero: tiene que llegar a src/, no quedarse en src/ui/styles/.
     const scanned = resolve(dirname(fileURLToPath(import.meta.url)), source!);
     expect(existsSync(resolve(scanned, 'ui/molecules'))).toBe(true);
-    expect(existsSync(resolve(scanned, 'astro/routes'))).toBe(true);
+    expect(existsSync(resolve(scanned, 'astro/pages'))).toBe(true);
   });
 });
 

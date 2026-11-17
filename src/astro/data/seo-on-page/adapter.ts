@@ -2,8 +2,8 @@ import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/inpu
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type { HeadingNode, SeoTree } from '../../../core/seo-on-page/tree/types';
 import { readImageSizes } from '../../loader/images';
-import { urlPolicyOf } from '../pages';
-import type { DocData } from '../pages';
+import { urlPolicyOf } from '../../views/pages';
+import type { DocData } from '../../views/pages';
 import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
 import type { VirtualConfig } from '../../virtual/data';
 

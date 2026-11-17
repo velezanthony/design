@@ -8,7 +8,7 @@ import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import { createVirtualData } from '../../virtual/data';
 import type { DocData } from '../pages';
 import { devHrefs } from './hrefs';
-import { inspectorHeadings, panelView } from './panel-view';
+import { inspectorHeadings, panelView } from './panel';
 
 const site = (user: Partial<DocsUserConfig> = {}) =>
   createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {

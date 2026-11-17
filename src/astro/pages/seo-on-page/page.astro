@@ -7,11 +7,11 @@ import Link from '../../../ui/atoms/Link.astro';
 import Inspector from '../../../ui/seo-on-page/organisms/Inspector.astro';
 import { slugLabel } from '../../../ui/seo-on-page/labels';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
-import { urlPolicyOf } from '../pages';
-import { siteConfig } from '../site-config';
-import { loadDocData, loadSeoTree } from './adapter';
-import { assetHref, devHrefs } from './hrefs';
-import { inspectorHeadings, panelView } from './panel-view';
+import { urlPolicyOf } from '../../views/pages';
+import { siteConfig } from '../../data/site-config';
+import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
+import { assetHref, devHrefs } from '../../views/seo-on-page/hrefs';
+import { inspectorHeadings, panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
 const { searchParams } = Astro.url;

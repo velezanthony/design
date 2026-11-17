@@ -16,11 +16,11 @@ import InfoHiddenNote from '../../../ui/seo-on-page/molecules/InfoHiddenNote.ast
 import PagesTable from '../../../ui/seo-on-page/organisms/PagesTable.astro';
 import TableFooter from '../../../ui/seo-on-page/molecules/TableFooter.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
-import { urlPolicyOf } from '../pages';
-import { siteConfig } from '../site-config';
-import { loadDocData, loadSeoTree } from './adapter';
-import { devHrefs } from './hrefs';
-import { panelView } from './panel-view';
+import { urlPolicyOf } from '../../views/pages';
+import { siteConfig } from '../../data/site-config';
+import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
+import { devHrefs } from '../../views/seo-on-page/hrefs';
+import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
 const view = panelView({

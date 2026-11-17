@@ -19,7 +19,7 @@ import { toAstroError } from './errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
-import { SEO_ON_PAGE_ROUTES } from '../routes/seo-on-page/hrefs';
+import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
 import { assertNoRouteCollision } from './route-collisions';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
@@ -57,8 +57,8 @@ export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
  */
 export const defineDocsConfig = (config: DocsUserConfig): DocsUserConfig => config;
 
-/** Ruta de un contenedor del paquete (vive en `astro/routes/`, junto a esta carpeta). */
-const route = (file: string) => new URL(`../routes/${file}`, import.meta.url);
+/** Ruta de un contenedor del paquete (vive en `astro/pages/`, junto a esta carpeta). */
+const route = (file: string) => new URL(`../pages/${file}`, import.meta.url);
 
 /** Los `.d.ts` del módulo virtual, tal cual: `injectTypes` los copia al `.astro/` del consumidor. */
 const virtualTypes = () =>

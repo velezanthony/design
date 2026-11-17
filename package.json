@@ -25,7 +25,7 @@
     "./client/*": "./src/client/*.ts",
     "./components/*": "./src/ui/*",
     "./layouts/*": "./src/ui/layouts/*",
-    "./routes/*": "./src/astro/routes/*",
+    "./pages/*": "./src/astro/pages/*",
     "./theme.css": "./src/ui/styles/theme.css",
     "./theme-colors": "./src/ui/styles/theme-colors.ts"
   },

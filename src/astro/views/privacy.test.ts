@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
 import { createVirtualData } from '../virtual/data';
-import { privacyRoutes, privacyView } from './privacy-view';
+import { privacyRoutes, privacyView } from './privacy';
 
 const site = (privacy: object = { page: true }, extra: object = {}) => {
   const resolved = resolveConfig({

@@ -357,10 +357,10 @@ describe('astro:config:setup: rutas inyectadas', () => {
       '/_design/favicon.png',
       '/404',
     ]);
-    expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
-    expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
-    expect(entry(routes[2])).toMatch(/routes\/favicon\.png\.ts$/);
-    expect(entry(routes[3])).toMatch(/routes\/not-found\.astro$/);
+    expect(entry(routes[0])).toMatch(/pages\/doc\.astro$/);
+    expect(entry(routes[1])).toMatch(/pages\/sitemap\.xml\.ts$/);
+    expect(entry(routes[2])).toMatch(/pages\/favicon\.png\.ts$/);
+    expect(entry(routes[3])).toMatch(/pages\/not-found\.astro$/);
   });
 
   it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
