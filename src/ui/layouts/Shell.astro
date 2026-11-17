@@ -46,7 +46,7 @@ const pendingStyle = 'html.nf-pending main { visibility: hidden; }';
     <script is:inline set:html={themeBootstrapScript(themeColors)} />
     {layoutScript && <script is:inline set:html={layoutScript} />}
   </head>
-  <body>
+  <body class="flex min-h-dvh flex-col">
     <slot />
   </body>
 </html>

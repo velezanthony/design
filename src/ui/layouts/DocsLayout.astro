@@ -101,7 +101,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     <SearchBox strings={strings} baseUrl={baseUrl} />
   </DocsHeader>
 
-  <div class="docs-container docs-page mx-auto grid max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:gap-y-0 lg:px-10 lg:py-0 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
+  <div class="docs-container docs-page mx-auto grid w-full max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:gap-y-0 lg:px-10 lg:py-0 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
     {/* `aside` es el plano (fondo y bordes, de la altura de la columna); lo que se desplaza, con su
         propia barra, es el contenedor pegajoso de dentro. */}
     <aside class="docs-sidebar">
