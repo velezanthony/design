@@ -2,7 +2,7 @@
 /* El contenedor con scroll horizontal lleva `tabindex="0"` a propósito: sin él, el teclado no podría
    desplazar la tabla (igual que `table-scroll` en la prosa). */
 /* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
-import { THRESHOLDS } from '../../core/seo-on-page/thresholds';
+import { isTitleOutOfRange, THRESHOLDS } from '../../core/seo-on-page/thresholds';
 import type { SeoPage } from '../../core/seo-on-page/tree/types';
 import IssueBadge from './IssueBadge.astro';
 import { DESCRIPTION_SOURCE_LABELS, slugLabel } from './labels';
@@ -14,8 +14,6 @@ interface Props {
 
 const { rows } = Astro.props;
 const cell = 'border-b border-rule px-3 py-2 align-top';
-/* Fuera de rango (largo o corto) se marca el número; el color es un refuerzo, el número ya lo dice. */
-const titleOut = (length: number) => length > THRESHOLDS.titleMax || length < THRESHOLDS.titleMin;
 ---
 
 {rows.length === 0 ? (
@@ -56,9 +54,9 @@ const titleOut = (length: number) => length > THRESHOLDS.titleMax || length < TH
               <p
                 class:list={[
                   'font-mono',
-                  titleOut(page.meta.titleLength) ? 'text-state-wip' : 'text-muted',
+                  isTitleOutOfRange(page.meta.titleLength) ? 'text-state-wip' : 'text-muted',
                 ]}
-                data-over={titleOut(page.meta.titleLength) || undefined}
+                data-over={isTitleOutOfRange(page.meta.titleLength) || undefined}
               >
                 {page.meta.titleLength} / {THRESHOLDS.titleMax}
               </p>

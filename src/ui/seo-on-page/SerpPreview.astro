@@ -1,4 +1,6 @@
 ---
+import { clip } from '../../core/seo-on-page/queries/clip';
+
 interface Props {
   /** El `<title>` tal como se publica. */
   title: string;
@@ -11,10 +13,6 @@ interface Props {
 }
 
 const { title, url, description, titleMax, descriptionMax } = Astro.props;
-
-/** Recorta con «…» como lo hace el buscador; lo que queda fuera no lo ve el usuario. */
-const clip = (value: string, max: number) =>
-  value.length <= max ? value : `${value.slice(0, max - 1).trimEnd()}…`;
 ---
 
 <div class="max-w-measure-full border border-rule bg-canvas p-4" data-serp="card">

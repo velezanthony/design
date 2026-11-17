@@ -1,4 +1,6 @@
 ---
+import { GAP, pageWindow } from '../../core/navigation/page-window';
+
 interface Props {
   /** Página actual (ya acotada) y total de páginas. */
   page: number;
@@ -9,17 +11,7 @@ interface Props {
 
 const { page, pages, href } = Astro.props;
 
-/* Con pocas páginas, todas; con muchas, la primera, la última y las vecinas de la actual, con huecos. */
-const SHOW_ALL_UP_TO = 7;
-const numbers =
-  pages <= SHOW_ALL_UP_TO
-    ? Array.from({ length: pages }, (_, index) => index + 1)
-    : [...new Set([1, page - 1, page, page + 1, pages])]
-        .filter((number) => number >= 1 && number <= pages)
-        .sort((a, b) => a - b);
-const items = numbers.flatMap((number, index) =>
-  index > 0 && number - numbers[index - 1]! > 1 ? [undefined, number] : [number],
-);
+const items = pageWindow(page, pages);
 const link =
   'inline-flex min-h-8 min-w-8 items-center justify-center px-2 text-accent underline underline-offset-[0.2em]';
 const current =
@@ -39,7 +31,7 @@ const current =
       )}
       {items.map((item) => (
         <li>
-          {item === undefined ? (
+          {item === GAP ? (
             <span data-gap aria-hidden="true" class="px-1 text-muted">
               …
             </span>
