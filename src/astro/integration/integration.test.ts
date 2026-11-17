@@ -307,6 +307,39 @@ describe('astro:config:setup: páginas del consumidor', () => {
   });
 });
 
+describe('astro:config:setup: el panel SEO on page y las páginas del consumidor', () => {
+  /* El panel solo existe en dev, así que solo ahí puede chocar con una página del repo. La
+     comprobación de colisiones tiene sus tests; estos aseguran que la integración le pasa el modo. */
+  async function setupWithPage(command: 'dev' | 'build') {
+    const root = mkdtempSync(join(tmpdir(), 'design-seo-'));
+    try {
+      mkdirSync(join(root, 'src/pages/seo-on-page'), { recursive: true });
+      writeFileSync(join(root, 'src/pages/seo-on-page/index.astro'), '');
+      const setup = setupContext(satteri(), {}, { srcDir: pathToFileURL(join(root, 'src') + '/') });
+      // `async` para que un `throw` síncrono del hook llegue como rechazo y lo recoja el `catch`.
+      const run = async () =>
+        docs({ name: 'x' }).hooks['astro:config:setup']?.({
+          ...(setup.context as object),
+          command,
+          addWatchFile: vi.fn(),
+        } as never);
+      return await run().catch((e: unknown) => e);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  it('en dev, una página del repo en /seo-on-page/ choca con el panel y lo dice', async () => {
+    const error = await setupWithPage('dev');
+    expect(error).toBeInstanceOf(AstroError);
+    expect(error).toMatchObject({ message: expect.stringContaining('seo-on-page') });
+  });
+
+  it('en build no hay panel, así que esa página no choca con nada', async () => {
+    expect(await setupWithPage('build')).not.toBeInstanceOf(AstroError);
+  });
+});
+
 describe('astro:config:setup: rutas inyectadas', () => {
   const routesOf = async (userConfig: Parameters<typeof docs>[0]) => {
     const { injectRoute } = await runSetup(satteri(), {}, userConfig);
@@ -345,6 +378,48 @@ describe('astro:config:setup: rutas inyectadas', () => {
   it('todas las rutas se prerenderizan', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
     expect(routes.every((r) => r.prerender === true)).toBe(true);
+  });
+});
+
+describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
+  /** Rutas inyectadas con el comando de Astro dado. */
+  const routesFor = async (command: 'dev' | 'build') => {
+    const integration = docs({ name: 'x', locales: ['en', 'es'] });
+    const { context, injectRoute } = setupContext(satteri());
+    await integration.hooks['astro:config:setup']?.({ ...(context as object), command } as never);
+    return injectRoute.mock.calls.map(
+      ([route]) => route as { pattern: string; entrypoint: string | URL; prerender?: boolean },
+    );
+  };
+
+  it('con `astro build` no inyecta ninguna ruta del panel', async () => {
+    const routes = await routesFor('build');
+    expect(routes.filter((route) => route.pattern.includes('seo-on-page'))).toEqual([]);
+    expect(routes.filter((route) => String(route.entrypoint).includes('seo-on-page'))).toEqual([]);
+  });
+
+  it('con `astro dev` inyecta resumen, tabla e inspector, sin prerenderizar (leen la query)', async () => {
+    const routes = (await routesFor('dev')).filter((route) =>
+      route.pattern.includes('seo-on-page'),
+    );
+    expect(routes.map((route) => route.pattern)).toEqual([
+      '/seo-on-page',
+      '/seo-on-page/pages',
+      '/seo-on-page/page',
+    ]);
+    expect(routes.map((route) => String(route.entrypoint).split('/').at(-1))).toEqual([
+      'overview.astro',
+      'pages.astro',
+      'page.astro',
+    ]);
+    expect(routes.every((route) => route.prerender === false)).toBe(true);
+  });
+
+  it('en dev el resto de rutas siguen siendo las mismas', async () => {
+    const dev = (await routesFor('dev')).filter((route) => !route.pattern.includes('seo-on-page'));
+    expect(dev.map((route) => route.pattern)).toEqual(
+      (await routesFor('build')).map((route) => route.pattern),
+    );
   });
 });
 

@@ -1,0 +1,38 @@
+---
+/* Contenedor de la vista general del panel SEO on page. Solo existe con `astro dev` (la
+   integración no inyecta la ruta en la build). Lee la colección por el adaptador y pasa a la UI
+   los datos ya calculados. */
+import { Font } from 'astro:assets';
+import { summarize } from '../../core/seo-on-page/queries/summary';
+import { EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
+import Overview from '../../ui/seo-on-page/Overview.astro';
+import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
+import { urlPolicyOf } from '../routes/pages';
+import { siteConfig } from '../routes/site-config';
+import { loadSeoTree } from './adapter';
+import { devHrefs } from './hrefs';
+
+const url = urlPolicyOf(siteConfig);
+const hrefs = devHrefs(url);
+const summary = summarize(await loadSeoTree(siteConfig));
+---
+
+<SeoLayout
+  title="Resumen"
+  siteName={siteConfig.name}
+  active="overview"
+  hrefs={{ overview: hrefs.overview(), pages: hrefs.pages(), site: hrefs.siteHome() }}
+>
+  <Fragment slot="head">
+    <Font cssVariable="--font-plex-sans" preload />
+    <Font cssVariable="--font-plex-mono" />
+  </Fragment>
+  <Overview
+    summary={summary}
+    hrefs={{
+      pages: hrefs.pages(),
+      kind: (kind) => hrefs.pages({ ...EMPTY_FILTERS, kinds: [kind] }),
+      severity: (severity) => hrefs.pages({ ...EMPTY_FILTERS, severities: [severity] }),
+    }}
+  />
+</SeoLayout>

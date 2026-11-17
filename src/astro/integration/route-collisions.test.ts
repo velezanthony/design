@@ -92,3 +92,22 @@ describe('assertNoRouteCollision: página de privacidad', () => {
     expect(() => run('en/privacy/index.astro', false)).not.toThrow();
   });
 });
+
+describe('assertNoRouteCollision: panel SEO on page', () => {
+  const run = (file: string, panel: boolean) =>
+    assertNoRouteCollision(pagesWith(file), ['en'], 'en', false, panel);
+
+  it.each([
+    'seo-on-page.astro',
+    'seo-on-page/index.astro',
+    'seo-on-page/pages.astro',
+    'seo-on-page/pages/index.astro',
+    'seo-on-page/page.ts',
+  ])('en desarrollo detecta %s', (file) => {
+    expect(() => run(file, true)).toThrow(/seo-on-page/);
+  });
+
+  it('fuera de desarrollo esas rutas son del consumidor', () => {
+    expect(() => run('seo-on-page/index.astro', false)).not.toThrow();
+  });
+});

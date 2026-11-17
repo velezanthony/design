@@ -1,0 +1,36 @@
+import { describe, expect, it } from 'vitest';
+import { render, text } from '../../testing/render';
+import IssueBadge from './IssueBadge.astro';
+
+const issue = (extra: Record<string, unknown> = {}) => ({
+  kind: 'title-too-long',
+  severity: 'warning',
+  slug: 'guide',
+  locale: 'en',
+  message: 'm',
+  ...extra,
+});
+
+describe('IssueBadge', () => {
+  it('dice el problema y lo medido contra su límite («72 / 60»)', async () => {
+    const doc = await render(IssueBadge, { issue: issue({ value: 72, limit: 60 }) });
+    expect(text(doc)).toContain('Título demasiado largo');
+    expect(text(doc)).toContain('72 / 60');
+  });
+
+  it('sin medida no pinta la razón', async () => {
+    const doc = await render(IssueBadge, { issue: issue({ kind: 'duplicate-title' }) });
+    expect(text(doc)).not.toContain('/');
+  });
+
+  it('la gravedad viaja en un atributo y en texto, no solo en el color', async () => {
+    const doc = await render(IssueBadge, { issue: issue({ severity: 'error' }) });
+    expect(doc.querySelector('[data-severity="error"]')).not.toBeNull();
+    expect(text(doc)).toContain('Error');
+  });
+
+  it('el mensaje del análisis queda como ayuda al pasar el ratón', async () => {
+    const doc = await render(IssueBadge, { issue: issue({ message: 'Salto de H2 a H4' }) });
+    expect(doc.querySelector('[title="Salto de H2 a H4"]')).not.toBeNull();
+  });
+});

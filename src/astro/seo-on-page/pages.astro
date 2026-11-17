@@ -1,0 +1,38 @@
+---
+/* Contenedor de la tabla de páginas. Los filtros viven en la query de la URL (`parseFilters`),
+   así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
+import { Font } from 'astro:assets';
+import { filterPages } from '../../core/seo-on-page/queries/filter';
+import { parseFilters } from '../../core/seo-on-page/queries/url-filters';
+import FiltersForm from '../../ui/seo-on-page/FiltersForm.astro';
+import PagesTable from '../../ui/seo-on-page/PagesTable.astro';
+import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
+import { urlPolicyOf } from '../routes/pages';
+import { siteConfig } from '../routes/site-config';
+import { loadSeoTree } from './adapter';
+import { devHrefs } from './hrefs';
+
+const hrefs = devHrefs(urlPolicyOf(siteConfig));
+const filters = parseFilters(Astro.url.searchParams);
+const tree = await loadSeoTree(siteConfig);
+const rows = filterPages(tree, filters).map((page) => ({ page, href: hrefs.inspector(page) }));
+---
+
+<SeoLayout
+  title="Páginas"
+  siteName={siteConfig.name}
+  active="pages"
+  hrefs={{ overview: hrefs.overview(), pages: hrefs.pages(), site: hrefs.siteHome() }}
+>
+  <Fragment slot="head">
+    <Font cssVariable="--font-plex-sans" preload />
+    <Font cssVariable="--font-plex-mono" />
+  </Fragment>
+  <div class="flex flex-col gap-6">
+    <FiltersForm filters={filters} locales={siteConfig.locales} action={hrefs.pages()} />
+    <p class="text-muted" role="status">
+      {rows.length} de {tree.pages.length} páginas
+    </p>
+    <PagesTable rows={rows} />
+  </div>
+</SeoLayout>

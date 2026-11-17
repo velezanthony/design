@@ -1,0 +1,30 @@
+---
+import type { Issue } from '../../core/seo-on-page/tree/types';
+import { KIND_LABELS, SEVERITY_LABELS, SEVERITY_TONES } from './labels';
+
+interface Props {
+  issue: Pick<Issue, 'kind' | 'severity' | 'message' | 'value' | 'limit'>;
+}
+
+const { issue } = Astro.props;
+/* «72 / 60»: lo medido contra su límite, solo cuando el análisis aporta ambos. */
+const measure =
+  issue.value !== undefined && issue.limit !== undefined
+    ? `${issue.value} / ${issue.limit}`
+    : undefined;
+---
+
+{/* La gravedad va también como texto (oculto) y en `data-severity`: el color solo no basta. */}
+<span
+  data-severity={issue.severity}
+  data-kind={issue.kind}
+  title={issue.message}
+  class:list={[
+    'inline-flex items-baseline gap-1.5 border border-current px-1.5 py-0.5 text-sm whitespace-nowrap',
+    SEVERITY_TONES[issue.severity],
+  ]}
+>
+  <span class="sr-only">{SEVERITY_LABELS[issue.severity]}: </span>
+  {KIND_LABELS[issue.kind]}
+  {measure && <span class="font-mono">{measure}</span>}
+</span>

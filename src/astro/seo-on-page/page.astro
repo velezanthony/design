@@ -1,0 +1,56 @@
+---
+/* Contenedor del inspector: una página e idioma elegidos por la query (`?slug=…&locale=…`; la
+   portada tiene slug vacío). Ruta bajo demanda por lo mismo que la tabla. */
+import { Font } from 'astro:assets';
+import Inspector from '../../ui/seo-on-page/Inspector.astro';
+import { slugLabel } from '../../ui/seo-on-page/labels';
+import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
+import { urlPolicyOf } from '../routes/pages';
+import { siteConfig } from '../routes/site-config';
+import { loadSeoTree } from './adapter';
+import { assetHref, devHrefs } from './hrefs';
+
+const hrefs = devHrefs(urlPolicyOf(siteConfig));
+const { searchParams } = Astro.url;
+const slug = searchParams.get('slug') ?? '';
+const locale = searchParams.get('locale') ?? siteConfig.defaultLocale;
+const tree = await loadSeoTree(siteConfig);
+const page = tree.pages.find((item) => item.slug === slug && item.locale === locale);
+if (!page) Astro.response.status = 404;
+
+const group = page ? tree.pages.filter((item) => item.slug === slug) : [];
+const inspectorHrefs = Object.fromEntries(
+  siteConfig.locales.map((code) => [code, hrefs.inspector({ slug, locale: code })]),
+);
+const ogSrc = page?.meta.ogImage?.src;
+---
+
+<SeoLayout
+  title={page ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada'}
+  siteName={siteConfig.name}
+  active="pages"
+  hrefs={{ overview: hrefs.overview(), pages: hrefs.pages(), site: hrefs.siteHome() }}
+>
+  <Fragment slot="head">
+    <Font cssVariable="--font-plex-sans" preload />
+    <Font cssVariable="--font-plex-mono" />
+  </Fragment>
+  {page ? (
+    <Inspector
+      page={page}
+      group={group}
+      inspectorHrefs={inspectorHrefs}
+      liveHref={page.meta.canonical}
+      displayUrl={new URL(page.meta.canonical, siteConfig.site).href}
+      ogImageSrc={ogSrc ? assetHref(siteConfig.base, ogSrc) : undefined}
+      pagesHref={hrefs.pages()}
+    />
+  ) : (
+    <p class="text-ink">
+      No hay ninguna página con slug «{slug}» en «{locale}».
+      <a href={hrefs.pages()} class="text-accent underline underline-offset-[0.2em]">
+        Ver la tabla
+      </a>
+    </p>
+  )}
+</SeoLayout>

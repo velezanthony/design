@@ -1,0 +1,86 @@
+---
+/* El contenedor con scroll horizontal lleva `tabindex="0"` a propósito: sin él, el teclado no podría
+   desplazar la tabla (igual que `table-scroll` en la prosa). */
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
+import { THRESHOLDS } from '../../core/seo-on-page/thresholds';
+import type { SeoPage } from '../../core/seo-on-page/tree/types';
+import IssueBadge from './IssueBadge.astro';
+import { DESCRIPTION_SOURCE_LABELS, slugLabel } from './labels';
+
+interface Props {
+  /** Una fila por página e idioma, con el enlace a su inspector ya formado. */
+  rows: { page: SeoPage; href: string }[];
+}
+
+const { rows } = Astro.props;
+const cell = 'border-b border-rule px-3 py-2 align-top';
+/* Fuera de rango (largo o corto) se marca el número; el color es un refuerzo, el número ya lo dice. */
+const titleOut = (length: number) => length > THRESHOLDS.titleMax || length < THRESHOLDS.titleMin;
+---
+
+{rows.length === 0 ? (
+  <p class="border border-rule bg-raised p-4 text-muted">Ninguna página cumple los filtros.</p>
+) : (
+  <div class="overflow-x-auto" tabindex="0">
+    <table class="w-full border-collapse text-left text-sm">
+      <thead>
+        <tr class="label text-muted">
+          <th scope="col" class={cell}>
+            Página
+          </th>
+          <th scope="col" class={cell}>
+            Idioma
+          </th>
+          <th scope="col" class={cell}>
+            &lt;title&gt;
+          </th>
+          <th scope="col" class={cell}>
+            Descripción
+          </th>
+          <th scope="col" class={cell}>
+            Problemas
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(({ page, href }) => (
+          <tr>
+            <th scope="row" class:list={[cell, 'font-mono font-normal']}>
+              <a href={href} class="text-accent underline underline-offset-[0.2em]">
+                {slugLabel(page.slug)}
+              </a>
+            </th>
+            <td class={cell}>{page.locale}</td>
+            <td class={cell}>
+              <p class="text-ink">{page.meta.title}</p>
+              <p
+                class:list={[
+                  'font-mono',
+                  titleOut(page.meta.titleLength) ? 'text-state-wip' : 'text-muted',
+                ]}
+                data-over={titleOut(page.meta.titleLength) || undefined}
+              >
+                {page.meta.titleLength} / {THRESHOLDS.titleMax}
+              </p>
+            </td>
+            <td class={cell}>
+              <p class="text-ink">{DESCRIPTION_SOURCE_LABELS[page.meta.descriptionSource]}</p>
+              {page.meta.descriptionLength !== undefined && (
+                <p class="font-mono text-muted">
+                  {page.meta.descriptionLength} / {THRESHOLDS.descriptionMax}
+                </p>
+              )}
+            </td>
+            <td class={cell}>
+              <div class="flex flex-wrap gap-1.5">
+                {page.issues.map((issue) => (
+                  <IssueBadge issue={issue} />
+                ))}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}

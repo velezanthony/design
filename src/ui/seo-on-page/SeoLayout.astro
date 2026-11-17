@@ -1,0 +1,65 @@
+---
+import type { HeadConfig } from '../../core/seo/head';
+import Shell from '../layouts/Shell.astro';
+
+interface Props {
+  /** Nombre de la pantalla; el `<title>` le añade el del panel. */
+  title: string;
+  siteName: string;
+  hrefs: { overview: string; pages: string; /** La portada del sitio. */ site: string };
+  /** Pantalla actual, para marcarla en la navegación. */
+  active: 'overview' | 'pages';
+}
+
+const { title, siteName, hrefs, active } = Astro.props;
+
+/* Nunca se indexa: es una herramienta de desarrollo y, además, solo existe con `astro dev`. */
+const head: HeadConfig[] = [
+  { tag: 'title', attrs: {}, content: `${title} · SEO on page` },
+  { tag: 'meta', attrs: { name: 'robots', content: 'noindex' } },
+];
+const tabs = [
+  { id: 'overview', label: 'Resumen', href: hrefs.overview },
+  { id: 'pages', label: 'Páginas', href: hrefs.pages },
+] as const;
+---
+
+<Shell lang="es" head={head}>
+  <slot name="head" slot="head" />
+  <header class="border-b border-rule bg-chrome">
+    <div class="mx-auto flex w-full max-w-(--container-page) flex-wrap items-center gap-x-8 gap-y-2 px-6 py-3 lg:px-10">
+      <p class="text-ink">
+        <strong>SEO on page</strong> · {siteName}
+      </p>
+      <nav aria-label="Panel SEO on page" class="flex gap-4">
+        {tabs.map((tab) => (
+          <a
+            href={tab.href}
+            aria-current={tab.id === active ? 'page' : undefined}
+            class:list={[
+              'min-h-6 text-ink underline-offset-[0.3em]',
+              tab.id === active ? 'font-semibold underline' : 'hover:underline',
+            ]}
+          >
+            {tab.label}
+          </a>
+        ))}
+      </nav>
+      <a href={hrefs.site} class="ml-auto min-h-6 text-ink underline underline-offset-[0.3em]">
+        Ir al sitio
+      </a>
+    </div>
+  </header>
+  <main
+    id="main-content"
+    class="mx-auto w-full max-w-(--container-page) flex-1 px-6 py-8 lg:px-10"
+    data-pagefind-ignore
+  >
+    <p class="mb-6 border border-rule bg-raised p-3 text-sm text-muted">
+      Herramienta solo en desarrollo: lee los mismos datos con los que se genera el sitio y no
+      existe en la build publicada.
+    </p>
+    <h1 class="mb-6 text-3xl font-semibold tracking-tight text-ink">{title}</h1>
+    <slot />
+  </main>
+</Shell>

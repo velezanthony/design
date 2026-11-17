@@ -1,0 +1,220 @@
+---
+import { outline } from '../../core/seo-on-page/queries/outline';
+import { THRESHOLDS } from '../../core/seo-on-page/thresholds';
+import type { SeoPage } from '../../core/seo-on-page/tree/types';
+import Heading from '../atoms/Heading.astro';
+import IssueBadge from './IssueBadge.astro';
+import { DESCRIPTION_SOURCE_LABELS, slugLabel } from './labels';
+import OgPreview from './OgPreview.astro';
+import SerpPreview from './SerpPreview.astro';
+
+interface Props {
+  page: SeoPage;
+  /** Todas las páginas del mismo slug (una por idioma existente), la propia incluida. */
+  group: SeoPage[];
+  /** Enlace al inspector de cada idioma de la página. */
+  inspectorHrefs: Record<string, string>;
+  /** La página real, para abrirla. */
+  liveHref: string;
+  /** URL absoluta de la página (`site` + ruta), la que enseña el buscador. */
+  displayUrl: string;
+  /** `src` de la imagen OG ya resoluble por el navegador (con `base`). */
+  ogImageSrc?: string;
+  /** La tabla de páginas, para volver. */
+  pagesHref: string;
+}
+
+const { page, group, inspectorHrefs, liveHref, displayUrl, ogImageSrc, pagesHref } = Astro.props;
+const { meta } = page;
+const items = outline(page.headings);
+const indent = ['ml-0', 'ml-0', 'ml-4', 'ml-8', 'ml-12', 'ml-16', 'ml-20'];
+const field = 'grid gap-1 border-b border-rule py-2 sm:grid-cols-[10rem_1fr] sm:gap-4';
+const siblingOf = (locale: string) => group.find((item) => item.locale === locale);
+---
+
+<div class="flex flex-col gap-10">
+  <p class="flex flex-wrap gap-x-6 gap-y-1">
+    <a href={pagesHref} class="text-accent underline underline-offset-[0.2em]">
+      ← Todas las páginas
+    </a>
+    <a href={liveHref} class="text-accent underline underline-offset-[0.2em]">
+      Abrir la página real
+    </a>
+  </p>
+
+  <section aria-labelledby="published" class="flex flex-col">
+    <Heading level={2} size="md" id="published">
+      Lo que se publica
+    </Heading>
+    <dl class="mt-3">
+      <div class={field}>
+        <dt class="label text-muted">&lt;title&gt;</dt>
+        <dd>
+          <p class="text-ink">{meta.title}</p>
+          <p class="font-mono text-sm text-muted">
+            {meta.titleLength} / {THRESHOLDS.titleMax}
+          </p>
+        </dd>
+      </div>
+      <div class={field}>
+        <dt class="label text-muted">Descripción</dt>
+        <dd>
+          <p class="text-ink">{meta.description ?? '—'}</p>
+          <p class="text-sm text-muted">
+            {DESCRIPTION_SOURCE_LABELS[meta.descriptionSource]}
+            {meta.descriptionLength !== undefined && (
+              <span class="font-mono">
+                {' '}
+                · {meta.descriptionLength} / {THRESHOLDS.descriptionMax}
+              </span>
+            )}
+          </p>
+        </dd>
+      </div>
+      <div class={field} data-field="canonical">
+        <dt class="label text-muted">Canonical</dt>
+        <dd class="font-mono text-sm break-all text-ink">{meta.canonical}</dd>
+      </div>
+      <div class={field} data-field="noindex">
+        <dt class="label text-muted">noindex</dt>
+        <dd class="text-ink">{meta.noindex ? 'Sí' : 'No'}</dd>
+      </div>
+      <div class={field}>
+        <dt class="label text-muted">Archivo</dt>
+        <dd class="font-mono text-sm text-ink">{page.sourcePath}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="previews" class="flex flex-col gap-4">
+    <Heading level={2} size="md" id="previews">
+      Vistas previas
+    </Heading>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="flex flex-col gap-2">
+        <p class="label text-muted">Resultado de búsqueda</p>
+        <SerpPreview
+          title={meta.title}
+          url={displayUrl}
+          description={meta.description}
+          titleMax={THRESHOLDS.titleMax}
+          descriptionMax={THRESHOLDS.descriptionMax}
+        />
+      </div>
+      <div class="flex flex-col gap-2">
+        <p class="label text-muted">Open Graph</p>
+        <OgPreview
+          title={meta.ogTitle}
+          description={meta.ogDescription}
+          host={new URL(displayUrl).host}
+          image={meta.ogImage && ogImageSrc ? { ...meta.ogImage, src: ogImageSrc } : undefined}
+        />
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="issues" data-issues class="flex flex-col gap-2">
+    <Heading level={2} size="md" id="issues">
+      Problemas
+    </Heading>
+    {page.issues.length === 0 ? (
+      <p class="text-muted">Sin problemas.</p>
+    ) : (
+      <ul class="flex flex-col gap-2">
+        {page.issues.map((issue) => (
+          <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <IssueBadge issue={issue} />
+            <span class="text-ink">{issue.message}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+
+  <section aria-labelledby="outline" class="flex flex-col gap-2">
+    <Heading level={2} size="md" id="outline">
+      Encabezados
+    </Heading>
+    {items.length === 0 ? (
+      <p class="text-muted" data-outline-empty>
+        Sin encabezados.
+      </p>
+    ) : (
+      <ol data-outline class="flex flex-col">
+        {items.map((item) => (
+          <li
+            data-skip={item.skipFrom !== undefined ? '' : undefined}
+            class:list={[
+              'flex flex-wrap items-baseline gap-2 py-0.5',
+              indent[item.depth] ?? 'ml-24',
+            ]}
+          >
+            <span class="label text-faint">H{item.depth}</span>
+            <span class="text-ink">{item.text}</span>
+            {item.skipFrom !== undefined && (
+              <span class="text-sm text-state-wip">
+                Salto H{item.skipFrom} → H{item.depth}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    )}
+  </section>
+
+  <section aria-labelledby="translations" class="flex flex-col gap-3">
+    <Heading level={2} size="md" id="translations">
+      Traducciones
+    </Heading>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {page.locales.map((entry) => {
+        const sibling = entry.status === 'present' ? siblingOf(entry.locale) : undefined;
+        return (
+          <article
+            data-translation={entry.locale}
+            aria-current={entry.locale === page.locale ? 'true' : undefined}
+            class:list={[
+              'flex flex-col gap-1 border p-3',
+              entry.locale === page.locale ? 'border-accent-line bg-accent-soft' : 'border-rule',
+            ]}
+          >
+            <p class="label text-muted">
+              {entry.locale}
+              {entry.locale === page.locale ? ' · esta' : ''}
+            </p>
+            {entry.status === 'missing' ? (
+              <p class="text-ink">
+                Falta · política <code class="font-mono">{entry.policy}</code>
+                {entry.declared ? ' (declarada)' : ' (sin declarar)'}
+              </p>
+            ) : (
+              <>
+                {sibling ? (
+                  <>
+                    <p class="text-ink">{sibling.meta.title}</p>
+                    <p class="text-sm text-muted">{sibling.meta.description ?? '—'}</p>
+                    <p class="text-sm text-muted">
+                      {sibling.issues.length === 0
+                        ? 'Sin problemas'
+                        : `${sibling.issues.length} problemas`}
+                    </p>
+                  </>
+                ) : (
+                  <p class="font-mono text-sm text-ink">{entry.url}</p>
+                )}
+                {entry.locale !== page.locale && inspectorHrefs[entry.locale] && (
+                  <a
+                    href={inspectorHrefs[entry.locale]}
+                    class="text-accent underline underline-offset-[0.2em]"
+                  >
+                    Inspeccionar {slugLabel(page.slug)} en {entry.locale}
+                  </a>
+                )}
+              </>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  </section>
+</div>

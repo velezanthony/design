@@ -495,3 +495,26 @@ describe('#20 favicon por defecto', () => {
     expect([...bytes.subarray(1, 4)]).toEqual([0x50, 0x4e, 0x47]);
   });
 });
+
+describe('#21 el panel SEO on page no llega a la build', () => {
+  /** Todos los ficheros de `dist/`, con ruta relativa. */
+  const distFiles = async () =>
+    (await readdir(site.dist, { recursive: true, withFileTypes: true }))
+      .filter((entry) => entry.isFile())
+      .map((entry) => resolve(entry.parentPath, entry.name));
+
+  it('dist/ no tiene ninguna ruta seo-on-page', async () => {
+    const files = await distFiles();
+    expect(files.length).toBeGreaterThan(0);
+    expect(files.filter((file) => file.includes('seo-on-page'))).toEqual([]);
+  });
+
+  it('ningún fichero de dist/ (HTML, JS, CSS, sitemap) lo referencia', async () => {
+    const referencing: string[] = [];
+    for (const file of await distFiles()) {
+      if (!/\.(html|js|mjs|css|xml|json|txt)$/.test(file)) continue;
+      if ((await readFile(file, 'utf8')).includes('seo-on-page')) referencing.push(file);
+    }
+    expect(referencing).toEqual([]);
+  });
+});
