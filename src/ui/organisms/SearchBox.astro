@@ -37,12 +37,12 @@ const inputId = `${id}-input`;
       autocomplete="off"
       aria-keyshortcuts="/"
       placeholder={t(strings, 'search.placeholder')}
-      class="peer min-h-10 w-full rounded-md border border-rule bg-canvas pr-9 pl-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
+      class="docs-search-input min-h-10 w-full rounded-md border border-rule bg-canvas pr-9 pl-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
     />
-    {/* Pista del atajo (`initSearchShortcut`): se va al enfocar o escribir, y no sale en táctil. */}
+    {/* Pista del atajo: cuándo se ve (y el hueco que reserva) lo decide el CSS de abajo. */}
     <kbd
       aria-hidden="true"
-      class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded-[3px] border border-rule px-1.5 font-mono text-[0.6875rem] leading-4 text-faint peer-focus:hidden peer-[:not(:placeholder-shown)]:hidden pointer-coarse:hidden"
+      class="docs-search-kbd pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded-[3px] border border-rule px-1.5 font-mono text-[0.6875rem] leading-4 text-faint"
     >
       /
     </kbd>
@@ -56,6 +56,24 @@ const inputId = `${id}-input`;
 </div>
 
 <style is:global>
+  /* La pista «/» solo se ve si el atajo funciona (`initSearchShortcut` marca `data-shortcut`; sin
+     JS no existe), con el campo vacío y sin foco, y nunca en táctil. */
+  .docs-search-kbd {
+    display: none;
+  }
+
+  [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) + .docs-search-kbd {
+    display: inline-block;
+  }
+
+  @media (pointer: coarse) {
+    [data-search][data-shortcut]
+      .docs-search-input:placeholder-shown:not(:focus)
+      + .docs-search-kbd {
+      display: none;
+    }
+  }
+
   .docs-search-panel {
     display: none;
     max-height: min(70vh, 32rem);

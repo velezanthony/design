@@ -253,6 +253,18 @@ describe('initSearch', () => {
   });
 });
 
+describe('initSearchShortcut: anuncio del atajo', () => {
+  it('marca cada buscador con data-shortcut: la pista «/» solo se muestra si el atajo funciona', () => {
+    const { document } = parseHTML(
+      '<!doctype html><html><body><div data-search><input data-search-input></div><div data-search><input data-search-input></div></body></html>',
+    );
+    const roots = [...document.querySelectorAll('[data-search]')];
+    expect(roots.every((root) => !root.hasAttribute('data-shortcut'))).toBe(true);
+    initSearchShortcut(document);
+    expect(roots.every((root) => root.hasAttribute('data-shortcut'))).toBe(true);
+  });
+});
+
 describe('initSearchShortcut', () => {
   const page = (
     body = '<input data-search-input type="search"><input id="other"><textarea id="area"></textarea><div id="edit" contenteditable="true"></div><button id="btn">x</button>',

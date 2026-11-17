@@ -216,6 +216,8 @@ function isTyping(target: EventTarget | null): boolean {
  * curso.
  */
 export function initSearchShortcut(doc: Document): void {
+  /* La pista «/» del campo solo se enseña con esta marca: sin JS el atajo no existe y no se anuncia. */
+  for (const root of doc.querySelectorAll('[data-search]')) root.setAttribute('data-shortcut', '');
   doc.addEventListener('keydown', (event) => {
     const { key, ctrlKey, metaKey, altKey, defaultPrevented } = event as KeyboardEvent;
     if (key !== '/' || ctrlKey || metaKey || altKey || defaultPrevented) return;
