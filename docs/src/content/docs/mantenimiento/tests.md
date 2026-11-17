@@ -38,7 +38,7 @@ flowchart TD
 | Vistas de las rutas | `astro/routes/doc-view.test.ts` | Funciones puras sobre una config resuelta con `resolveConfig`. Para lo que necesite `astro:content` hay un doble en `testing/astro-content.ts`. |
 | Build completo | `astro/integration/build.test.ts`, `build-strict.test.ts` | Fixtures en `src/**/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
 | Guardas del repo | `testing/boundaries.test.ts`, `testing/package-contents.test.ts`, `ui/styles/theme.test.ts`, `ui/coupling.test.ts` | Leen archivos de configuración o código y fallan si alguien relaja una regla. |
-| Migración | `scripts/migrate-mkdocs/*.test.ts` | Transformaciones puras de texto. |
+| Migración | `scripts/migrate-mkdocs/**/*.test.ts` | Transformaciones puras de texto. |
 
 ## Patrones que se repiten
 

@@ -19,7 +19,7 @@ flowchart LR
     dc["docs/<br/>este sitio"]
     mig["scripts/migrate-mkdocs/"]
   end
-  snake["Checkout de snake-orm<br/>(MkDocs Material)"] -->|"run-snake-orm.sh"| mig
+  snake["Checkout de snake-orm<br/>(MkDocs Material)"] -->|"playground-snapshot/refresh.sh"| mig
   mig -->|"contenido + sidebar.generated.mjs"| pg
   src -->|"file:.. (symlink)"| pg
   src -->|"file:.. (symlink)"| dc
@@ -76,25 +76,81 @@ Se publica en `https://velezanthony.github.io/design/` con `.github/workflows/do
 
 ## `scripts/migrate-mkdocs/`: de MkDocs a la librería
 
-La documentación de snake-orm se escribió para MkDocs Material. Este codemod convierte una carpeta `docs/`
-de MkDocs en contenido de la librería **sin escribir nunca en el origen**:
+La librería lee los `.md` de un repo **donde ya están** (`content: '../docs'`, ver «Docs fuera del
+proyecto de Astro» en el README), así que migrar no es mover ficheros: solo hay que convertir una vez
+la sintaxis que es propia de MkDocs Material. Este codemod lo hace.
 
-| Archivo | Qué hace |
-| --- | --- |
-| `cli.ts` | Envuelve todo con E/S: lee `mkdocs.yml` y `docs/`, escribe contenido, sidebar e informe. |
-| `transform.ts` | Transformación **pura** del Markdown: admoniciones de Material → directivas o alertas de GitHub, pestañas, etiquetas de lenguaje inequívocas (`console`, `sql`). Devuelve el texto y un registro de cada cambio. |
-| `nav.ts` | El `nav` de `mkdocs.yml` → `sidebar` de la config, con `nav_translations` para `es`. |
-| `rewrite-links.ts` | Los enlaces a páginas publicadas se quedan; los que apuntan a código del repo pasan a URLs absolutas de GitHub. |
-| `anchors.ts` | MkDocs genera ids sin acentos y la librería los conserva (como GitHub): corrige `#el-catalogo` a `#el-catálogo`. |
-| `generate-api.py` | Genera la referencia de API con griffe2md para los `::: identificador` de mkdocstrings. |
-| `api-postprocess.ts` | Limpia la salida de griffe2md para que pase el build estricto. |
-| `run-snake-orm.sh` | Regenera el playground desde un checkout de snake-orm. |
+### Flujo habitual: `--in-place`
 
 ```sh
-scripts/migrate-mkdocs/run-snake-orm.sh <ruta a snake-orm> <python con griffe2md>
+node scripts/migrate-mkdocs/cli.ts --repo <ruta al repo> --in-place
+git -C <ruta al repo> diff docs/      # revisa SOLO la conversión
+git -C <ruta al repo> commit ...       # o: git checkout docs/  para descartarla
 ```
 
-El codemod solo etiqueta un bloque sin lenguaje cuando es inequívoco: `console` si empieza por
-`$ `, `sql` si empieza por `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `ALTER` o `WITH`.
-Nunca adivina Python ni otros lenguajes. Sus tests (`*.test.ts` de la carpeta) entran en `npm test`
-por el `include` de `vitest.config.ts`.
+Reescribe `docs/**/*.md` en su sitio, solo los ficheros que cambian y respetando sus saltos de
+línea (LF o CRLF). Convierte admoniciones (`!!!`, `???`, `???+`), pestañas (`=== "x"`), iconos de
+Material, `attr_list`, ids de encabezado y las anclas sin acentos que generaba MkDocs. Los enlaces
+`.md` relativos **se quedan tal cual**: la librería los resuelve y los valida ella. No toca ficheros
+que no sean `.md`. Si ejecutas el comando dos veces, la segunda no cambia nada.
+
+Reglas de seguridad, para que `git diff docs/` enseñe únicamente la conversión:
+
+- Si el repo no es git, o `git status --porcelain -- docs` no está vacío (cambios sin confirmar en
+  `docs/`), se niega a correr y sale con error sin tocar nada.
+- `--force` se salta esa comprobación. Se **desaconseja**: tu diff se mezclaría con lo que ya
+  tuvieras a medias.
+- `--in-place` es incompatible con `--out` (y con las opciones que solo usa el modo carpeta).
+
+Al terminar imprime un resumen: ficheros cambiados, conversiones por tipo (admoniciones, pestañas,
+iconos quitados, anclas corregidas…), stubs, restos y el siguiente paso (`git diff docs/`).
+
+**Comprobación de restos.** Tras convertir se revisa el _resultado_: cualquier línea, fuera de
+bloques de código y de código en línea, que siga empezando por `!!!` o `???`, por `===` con un
+título entre comillas (también `===+`), que lleve un código de icono (`:material-…:`,
+`:octicons-…:`, `:fontawesome-…:`, `:simple-…:`) o un `--8<--` se lista como
+`fichero:línea  tipo  vista previa` y el código de salida es 1. La detección es por líneas, como la
+de Python-Markdown; el riesgo está en convertir bloques anidados o con sangrías raras, y esta red
+lo cubre.
+
+**Stubs de snippet.** Una página cuyo cuerpo es solo `--8<-- "CHANGELOG.md"` (con, como mucho,
+frontmatter, comentarios HTML y un título) no se convierte ni se borra. Se lista aparte con la
+entrada exacta para `external[]` de `site/docs.config.mjs`
+(`{ slug: 'changelog', file: '../CHANGELOG.md' }`), y también los enlaces que apuntan al stub con
+la ruta real que los sustituiría (`../../CONTRIBUTING.md`). Después, borra el stub.
+
+### Modo carpeta: `--out`
+
+Para migraciones que sí cambian de sitio los ficheros (como el playground con snake-orm):
+`--repo`, `--out`, `--repo-url`, y opcionalmente `--branch`, `--api`, `--external`/`--external-out`,
+`--sidebar-out` y `--report`. Lee `mkdocs.yml` (nav, `exclude_docs`, traducciones), reescribe los
+enlaces a código del repo como URLs de GitHub, genera el sidebar y **no escribe nunca en el
+origen**. Comprueba restos igual que `--in-place`.
+
+```sh
+scripts/playground-snapshot/refresh.sh <ruta a snake-orm> <python con griffe2md>
+```
+
+### Cómo está hecho
+
+Cada conversión es una **función pura** (sin `fs`, git ni `process`) en su propio módulo, con su
+`*.test.ts` al lado. Reciben texto y devuelven `{ output, log }`. La E/S va aparte y llega
+_inyectada_. La carpeta se divide por responsabilidad:
+
+| Carpeta | Responsabilidad |
+| --- | --- |
+| `cli.ts` | Solo parsea argumentos y cablea los módulos. |
+| `conversions/blocks/` | Conversiones de bloque: `admonitions` (`!!!`, `???`), `tabs` (`=== "x"`), `fences` (código intacto y etiquetas inequívocas), `api-directive` (mkdocstrings) y `html-wrappers` (tarjetas `<div markdown>`). |
+| `conversions/inline/` | Conversiones de texto corrido, línea a línea y fuera del código en línea: `icons`, `attr-lists`, `heading-ids`, `autorefs` y `links`. |
+| `checks/` | Comprobaciones sobre el resultado: `leftovers` (restos de sintaxis y stubs `--8<--`), `stub-links` (enlaces a un stub) y `anchors` (ids sin acentos de MkDocs; desde `x.es.md` valida contra la gemela). |
+| `pipeline/` | La composición, pura: `transform` (un documento, en orden fijo y documentado) y `pipeline` (un conjunto de ficheros), más sus utilidades (`lines`, `newlines`, `frontmatter`, `types`). |
+| `modes/` | Los dos modos de la CLI: `in-place`, con E/S inyectada, y `to-folder` (`--out`), con lo que solo usa este último: `rewrite-links` y `nav` (el sidebar de `--sidebar-out`). |
+| `api/` | La API de Python para `--api`: `generate-api.py` la genera con griffe2md desde el código de un paquete y `api-postprocess` limpia ese Markdown. Sirve para cualquier repo de Python. |
+| `io/` | Lo que toca el exterior o lo describe: `node-io` (fs y git de Node), `git-guard`, `options` (validación de flags) y `report` (textos del informe). |
+
+Al lado, `scripts/playground-snapshot/refresh.sh` es lo único propio del playground: ejecuta el conversor
+contra un checkout de snake-orm para regenerar la copia de su documentación. Vive fuera de
+`migrate-mkdocs/` porque lo usa, no forma parte de él: el conversor no depende de snake-orm.
+
+Sus tests (`*.test.ts` de todas las subcarpetas) entran en `npm test` por el `include` de
+`vitest.config.ts`.

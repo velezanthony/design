@@ -591,10 +591,16 @@ npm run check         # astro check
 las ediciones se recargan en caliente) construido con el scaffold oficial de Astro más un snapshot de
 los docs de snake-orm, y sigue la configuración del consumidor de arriba (depende de `"file:.."` en
 lugar de `github:velezanthony/design#vX.Y.Z`). Regéneralo con
-`scripts/migrate-mkdocs/run-snake-orm.sh <snake-orm checkout> <python with griffe2md>`. El codemod
+`scripts/playground-snapshot/refresh.sh <snake-orm checkout> <python with griffe2md>`. El codemod
 solo etiqueta un bloque sin lenguaje (o `text`) cuando es inequívoco: `console` si empieza por una
 orden `$ ` y `sql` si empieza por `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `ALTER` o `WITH`;
 cada cambio queda en el registro como `code-language`. Nunca adivina Python ni otros lenguajes.
+
+Para migrar un repo MkDocs **sin mover sus `.md`**: `node scripts/migrate-mkdocs/cli.ts --repo <repo> --in-place`
+convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), se niega a correr si el
+repo no es git o `docs/` tiene cambios sin confirmar (`--force` lo salta; se desaconseja) y termina
+con un resumen, los restos de sintaxis que no ha entendido y las páginas `--8<--` que conviene
+publicar con `external[]`. Luego: `git diff docs/` y commit, o `git checkout docs/` para descartarlo.
 
 CI ejecuta lint, format, check y test en cada push y pull request a `main`.
 
