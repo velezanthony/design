@@ -2,7 +2,7 @@ import { LayoutWidth, type ResolvedLayout } from '../../../core/config/layout';
 import { buildAvailability, pageUrl } from '../../../core/i18n/availability';
 import type { Locale } from '../../../core/i18n/locale';
 import { resolvePolicies } from '../../../core/i18n/translation-policy';
-import type { UiStrings } from '../../../core/i18n/ui-strings';
+import { defaultStrings, type UiStrings } from '../../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../../core/navigation/footer';
 import { buildNav, type NavEntry } from '../../../core/navigation/nav-entries';
 import type { SidebarNode } from '../../../core/navigation/sidebar';
@@ -61,6 +61,9 @@ export const inspectorHeadings = (): PanelHeading[] =>
  * del panel, y la página NUNCA se indexa y no lleva analítica ni aviso de consentimiento (ni
  * `gtmId` ni `privacyUrl`) ni enlace de edición: es una herramienta de desarrollo.
  */
+/** El idioma del panel: es una herramienta de desarrollo y solo existe en español. */
+const PANEL_LOCALE = 'es';
+
 export function panelView({
   cfg,
   data,
@@ -72,14 +75,18 @@ export function panelView({
   const url = urlPolicyOf(cfg);
   const pages = pagesOf(data);
   const { policies } = resolvePolicies(pages, cfg.translations.missing);
-  const lang = cfg.defaultLocale;
-  const strings = cfg.strings[lang] as UiStrings;
+  /* El panel solo existe en español, así que su interfaz va en español SIEMPRE, sin depender del
+     idioma por defecto del sitio: con el catálogo del sitio si tiene español (respeta sus
+     sobrescrituras de `ui`) y, si no, con el de la librería. Los enlaces de la cabecera y el pie
+     son contenido del sitio: van a su versión española si existe y, si no, a la de su idioma. */
+  const siteLang = cfg.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : cfg.defaultLocale;
+  const strings = (cfg.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna
      sección de `nav`, así que la cabecera no marca nada como actual. */
   const context = {
     pages,
     av: buildAvailability(pages, url),
-    locale: lang,
+    locale: siteLang,
     cfg,
     policies,
     url,
@@ -91,13 +98,13 @@ export function panelView({
   } satisfies Record<Screen, { slug: string; href: string }>;
 
   return {
-    lang,
+    lang: PANEL_LOCALE,
     head: [
       { tag: 'title', attrs: {}, content: `${title} · ${PANEL_NAME}` },
       { tag: 'meta', attrs: { name: 'robots', content: 'noindex' } },
     ],
     siteName: cfg.name,
-    homeHref: pageUrl('', lang, url),
+    homeHref: pageUrl('', siteLang, url),
     hrefs: {},
     strings,
     sidebar: [

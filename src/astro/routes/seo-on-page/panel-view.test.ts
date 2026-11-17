@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { defaultStrings } from '../../../core/i18n/ui-strings';
 
 import { resolveConfig } from '../../../core/config/resolve';
 import type { DocsUserConfig } from '../../../core/config/schema';
@@ -60,15 +61,27 @@ describe('panelView', () => {
     expect(view({ screen: 'pages', title: 'Páginas' }).current).toBe('/repo/seo-on-page/pages/');
   });
 
-  it('la cabecera y el pie son los del sitio, en su idioma por defecto', () => {
-    const cfg = site({ nav: [{ label: 'Guía', slug: 'guide' }] });
+  it('el panel va en español; con español en el sitio, su cabecera y su pie también', () => {
+    const cfg = site({ nav: [{ label: { en: 'Guide', es: 'Guía' }, slug: 'guide' }] });
     const built = view({ cfg });
-    expect(built.lang).toBe('en');
+    expect(built.lang).toBe('es');
+    expect(built.strings).toBe(cfg.strings.es);
     expect(built.siteName).toBe('Docs');
-    expect(built.homeHref).toBe('/repo/');
+    expect(built.homeHref).toBe('/repo/es/');
     expect(built.nav.map((entry) => entry.label)).toEqual(['Guía']);
-    expect(built.strings).toBe(cfg.strings.en);
     expect(built.hrefs).toEqual({});
+  });
+
+  it('sin español en el sitio, la interfaz sigue en español y los enlaces van a su idioma', () => {
+    const cfg = createVirtualData(
+      resolveConfig({ name: 'Docs', locales: ['en'], nav: [{ label: 'Guide', slug: 'guide' }] }),
+      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+    );
+    const built = view({ cfg });
+    expect(built.lang).toBe('es');
+    expect(built.strings).toEqual(defaultStrings.es);
+    expect(built.homeHref).toBe('/repo/');
+    expect(built.nav.map((entry) => entry.label)).toEqual(['Guide']);
   });
 
   it('sin analítica, sin consentimiento y sin enlace de edición, aunque el sitio los tenga', () => {
