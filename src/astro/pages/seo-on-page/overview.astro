@@ -5,7 +5,11 @@
 import { Font } from 'astro:assets';
 import { overviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
-import Overview from '../../../ui/seo-on-page/organisms/Overview.astro';
+import Link from '../../../ui/atoms/Link.astro';
+import IssuesByKind from '../../../ui/seo-on-page/organisms/IssuesByKind.astro';
+import IssuesBySeverity from '../../../ui/seo-on-page/organisms/IssuesBySeverity.astro';
+import OverviewStats from '../../../ui/seo-on-page/organisms/OverviewStats.astro';
+import SchemasSummary from '../../../ui/seo-on-page/organisms/SchemasSummary.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
@@ -30,5 +34,14 @@ const view = panelView({
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
   <PanelIntro title="Resumen" strings={view.strings} />
-  <Overview model={model} />
+  <div class="flex flex-col gap-8">
+    <OverviewStats totals={model.totals} />
+    <p class="flex flex-wrap gap-x-6 gap-y-1">
+      <Link href={model.links.problems}>Ver las páginas con problemas</Link>
+      <Link href={model.links.all}>Ver todas las páginas</Link>
+    </p>
+    <SchemasSummary schemas={model.schemas} />
+    <IssuesBySeverity rows={model.bySeverity} />
+    <IssuesByKind rows={model.byKind} />
+  </div>
 </DocsLayout>

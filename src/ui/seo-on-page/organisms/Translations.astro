@@ -1,0 +1,64 @@
+---
+import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import Heading from '../../atoms/Heading.astro';
+import Link from '../../atoms/Link.astro';
+import { INSPECTOR_SECTIONS, slugLabel } from '../labels';
+
+interface Props {
+  translations: InspectorModel['translations'];
+  /** El slug de la página, para el texto del enlace a cada idioma. */
+  slug: string;
+}
+
+const { translations, slug } = Astro.props;
+---
+
+<section aria-labelledby="translations" class="flex flex-col gap-3">
+  <Heading level={2} size="md" id="translations">
+    {INSPECTOR_SECTIONS.translations}
+  </Heading>
+  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    {translations.map((entry) => (
+      <article
+        data-translation={entry.locale}
+        aria-current={entry.current ? 'true' : undefined}
+        class:list={[
+          'flex flex-col gap-1 border p-3',
+          entry.current ? 'border-accent-line bg-accent-soft' : 'border-rule',
+        ]}
+      >
+        <p class="label text-muted">
+          {entry.locale}
+          {entry.current ? ' · esta' : ''}
+        </p>
+        {entry.state === 'missing' ? (
+          <p class="text-ink">
+            Falta · política <code class="font-mono">{entry.policy}</code>
+            {entry.declared ? ' (declarada)' : ' (sin declarar)'}
+          </p>
+        ) : (
+          <>
+            {entry.summary ? (
+              <>
+                <p class="text-ink">{entry.summary.title}</p>
+                <p class="text-sm text-muted">{entry.summary.description ?? '—'}</p>
+                <p class="text-sm text-muted">
+                  {entry.summary.problems === 0
+                    ? 'Sin problemas'
+                    : `${entry.summary.problems} problemas`}
+                </p>
+              </>
+            ) : (
+              <p class="font-mono text-sm text-ink">{entry.url}</p>
+            )}
+            {entry.inspectHref && (
+              <Link href={entry.inspectHref}>
+                Inspeccionar {slugLabel(slug)} en {entry.locale}
+              </Link>
+            )}
+          </>
+        )}
+      </article>
+    ))}
+  </div>
+</section>

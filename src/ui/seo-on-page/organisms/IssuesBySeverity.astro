@@ -1,0 +1,44 @@
+---
+import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
+import Heading from '../../atoms/Heading.astro';
+import Link from '../../atoms/Link.astro';
+import Tag from '../../atoms/Tag.astro';
+import { SEVERITY_PLURALS, SEVERITY_TONES } from '../labels';
+
+interface Props {
+  rows: OverviewModel['bySeverity'];
+}
+
+const { rows } = Astro.props;
+/* La fila entera es el enlace (o, sin incidencias, un texto apagado): una zona de clic amplia. `rowBox` no lleva `display`: el enlace ya es inline-flex y el texto añade flex. */
+const rowBox = 'min-h-8 w-full justify-between gap-4 border-b border-rule py-1';
+const rowText = `flex items-baseline ${rowBox}`;
+---
+
+<section aria-labelledby="by-severity" class="max-w-measure">
+  <Heading level={2} size="md" id="by-severity">
+    Por gravedad
+  </Heading>
+  <p class="mt-1 text-sm text-muted">
+    Cuenta incidencias, no páginas: una página puede tener varias.
+  </p>
+  <ul class="mt-3">
+    {rows.map(({ severity, count, href }) => (
+      <li data-severity={severity}>
+        {href ? (
+          <Link href={href} class={rowBox}>
+            {SEVERITY_PLURALS[severity]}
+            <Tag tone={SEVERITY_TONES[severity]} plain class="font-mono">
+              {count}
+            </Tag>
+          </Link>
+        ) : (
+          <p class={`${rowText} text-muted`}>
+            {SEVERITY_PLURALS[severity]}
+            <span class="font-mono">0</span>
+          </p>
+        )}
+      </li>
+    ))}
+  </ul>
+</section>

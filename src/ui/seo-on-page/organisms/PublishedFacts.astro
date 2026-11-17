@@ -1,0 +1,56 @@
+---
+import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import Heading from '../../atoms/Heading.astro';
+import { DESCRIPTION_SOURCE_LABELS, INSPECTOR_SECTIONS } from '../labels';
+
+interface Props {
+  published: InspectorModel['published'];
+}
+
+const { published } = Astro.props;
+const field = 'grid gap-1 border-b border-rule py-2 sm:grid-cols-[10rem_1fr] sm:gap-4';
+---
+
+<section aria-labelledby="published" class="flex flex-col">
+  <Heading level={2} size="md" id="published">
+    {INSPECTOR_SECTIONS.published}
+  </Heading>
+  <dl class="mt-3">
+    <div class={field}>
+      <dt class="label text-muted">&lt;title&gt;</dt>
+      <dd>
+        <p class="text-ink">{published.title}</p>
+        <p class="font-mono text-sm text-muted">
+          {published.titleLength} / {published.titleMax}
+        </p>
+      </dd>
+    </div>
+    <div class={field}>
+      <dt class="label text-muted">Descripción</dt>
+      <dd>
+        <p class="text-ink">{published.description ?? '—'}</p>
+        <p class="text-sm text-muted">
+          {DESCRIPTION_SOURCE_LABELS[published.descriptionSource]}
+          {published.descriptionLength !== undefined && (
+            <span class="font-mono">
+              {' '}
+              · {published.descriptionLength} / {published.descriptionMax}
+            </span>
+          )}
+        </p>
+      </dd>
+    </div>
+    <div class={field} data-field="canonical">
+      <dt class="label text-muted">Canonical</dt>
+      <dd class="font-mono text-sm break-all text-ink">{published.canonical}</dd>
+    </div>
+    <div class={field} data-field="noindex">
+      <dt class="label text-muted">noindex</dt>
+      <dd class="text-ink">{published.noindex ? 'Sí' : 'No'}</dd>
+    </div>
+    <div class={field}>
+      <dt class="label text-muted">Archivo</dt>
+      <dd class="font-mono text-sm text-ink">{published.sourcePath}</dd>
+    </div>
+  </dl>
+</section>

@@ -1,0 +1,29 @@
+---
+import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import Heading from '../../atoms/Heading.astro';
+import { INSPECTOR_SECTIONS } from '../labels';
+import OgPreview from '../molecules/OgPreview.astro';
+import SerpPreview from '../molecules/SerpPreview.astro';
+
+interface Props {
+  previews: InspectorModel['previews'];
+}
+
+const { previews } = Astro.props;
+---
+
+<section aria-labelledby="previews" class="flex flex-col gap-4">
+  <Heading level={2} size="md" id="previews">
+    {INSPECTOR_SECTIONS.previews}
+  </Heading>
+  <div class="grid gap-6 lg:grid-cols-2">
+    <div class="flex flex-col gap-2">
+      <p class="label text-muted">Resultado de búsqueda</p>
+      <SerpPreview {...previews.serp} />
+    </div>
+    <div class="flex flex-col gap-2">
+      <p class="label text-muted">Open Graph</p>
+      <OgPreview {...previews.og} />
+    </div>
+  </div>
+</section>

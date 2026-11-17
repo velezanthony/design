@@ -1,0 +1,24 @@
+---
+import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
+
+interface Props {
+  totals: OverviewModel['totals'];
+}
+
+const { totals } = Astro.props;
+const stats = [
+  { id: 'total', label: 'Páginas (por idioma)', value: totals.total },
+  { id: 'with-problems', label: 'Con problemas', value: totals.withProblems },
+  { id: 'informative-only', label: 'Solo informativas', value: totals.informativeOnly },
+  { id: 'clean', label: 'Sin nada', value: totals.clean },
+];
+---
+
+<dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  {stats.map((stat) => (
+    <div class="border border-rule bg-raised p-4" data-stat={stat.id}>
+      <dt class="label text-muted">{stat.label}</dt>
+      <dd class="mt-1 text-display font-semibold text-ink">{stat.value}</dd>
+    </div>
+  ))}
+</dl>

@@ -1,0 +1,38 @@
+---
+import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
+import Heading from '../../atoms/Heading.astro';
+import Link from '../../atoms/Link.astro';
+import { KIND_LABELS } from '../labels';
+
+interface Props {
+  rows: OverviewModel['byKind'];
+}
+
+const { rows } = Astro.props;
+/* La fila entera es el enlace (o, sin incidencias, un texto apagado): una zona de clic amplia. `rowBox` no lleva `display`: el enlace ya es inline-flex y el texto añade flex. */
+const rowBox = 'min-h-8 w-full justify-between gap-4 border-b border-rule py-1';
+const rowText = `flex items-baseline ${rowBox}`;
+---
+
+<section aria-labelledby="by-kind" class="max-w-measure">
+  <Heading level={2} size="md" id="by-kind">
+    Por tipo de problema
+  </Heading>
+  <ul class="mt-3">
+    {rows.map(({ kind, count, href }) => (
+      <li data-kind={kind}>
+        {href ? (
+          <Link href={href} class={rowBox}>
+            {KIND_LABELS[kind]}
+            <span class="font-mono text-ink">{count}</span>
+          </Link>
+        ) : (
+          <p class={`${rowText} text-muted`}>
+            {KIND_LABELS[kind]}
+            <span class="font-mono">0</span>
+          </p>
+        )}
+      </li>
+    ))}
+  </ul>
+</section>

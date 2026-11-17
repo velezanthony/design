@@ -1,0 +1,40 @@
+---
+import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import Heading from '../../atoms/Heading.astro';
+import { INSPECTOR_SECTIONS } from '../labels';
+
+interface Props {
+  outline: InspectorModel['outline'];
+}
+
+const { outline } = Astro.props;
+const indent = ['ml-0', 'ml-0', 'ml-4', 'ml-8', 'ml-12', 'ml-16', 'ml-20'];
+---
+
+<section aria-labelledby="outline" class="flex flex-col gap-2">
+  <Heading level={2} size="md" id="outline">
+    {INSPECTOR_SECTIONS.outline}
+  </Heading>
+  {outline.length === 0 ? (
+    <p class="text-muted" data-outline-empty>
+      Sin encabezados.
+    </p>
+  ) : (
+    <ol data-outline class="flex flex-col">
+      {outline.map((item) => (
+        <li
+          data-skip={item.skipFrom !== undefined ? '' : undefined}
+          class:list={['flex flex-wrap items-baseline gap-2 py-0.5', indent[item.depth] ?? 'ml-24']}
+        >
+          <span class="label text-faint">H{item.depth}</span>
+          <span class="text-ink">{item.text}</span>
+          {item.skipFrom !== undefined && (
+            <span class="text-sm text-state-wip">
+              Salto H{item.skipFrom} → H{item.depth}
+            </span>
+          )}
+        </li>
+      ))}
+    </ol>
+  )}
+</section>

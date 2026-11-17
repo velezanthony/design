@@ -1,0 +1,30 @@
+---
+import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import Heading from '../../atoms/Heading.astro';
+import { INSPECTOR_SECTIONS } from '../labels';
+
+interface Props {
+  schemas: InspectorModel['schemas'];
+}
+
+const { schemas } = Astro.props;
+---
+
+<section aria-labelledby="schemas" data-schemas class="flex flex-col gap-3">
+  <Heading level={2} size="md" id="schemas">
+    {INSPECTOR_SECTIONS.schemas}
+  </Heading>
+  {schemas.length === 0 ? (
+    <p class="text-muted">Esta página no declara ningún schema.</p>
+  ) : (
+    schemas.map(({ types, source, json }) => (
+      <article data-schema class="flex flex-col gap-2 border border-rule p-3">
+        <p class="flex flex-wrap items-baseline gap-x-3">
+          <span class="font-mono text-ink">{types.join(', ')}</span>
+          <span class="label text-muted">{source === 'site' ? 'del sitio' : 'de la página'}</span>
+        </p>
+        <pre class="overflow-x-auto bg-raised p-3 font-mono text-sm text-ink" set:text={json} />
+      </article>
+    ))
+  )}
+</section>
