@@ -40,6 +40,7 @@ const ogSrc = page?.meta.ogImage?.src;
       page={page}
       group={group}
       inspectorHrefs={inspectorHrefs}
+      inspectorHref={hrefs.inspector}
       liveHref={page.meta.canonical}
       displayUrl={new URL(page.meta.canonical, siteConfig.site).href}
       ogImageSrc={ogSrc ? assetHref(siteConfig.base, ogSrc) : undefined}

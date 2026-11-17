@@ -35,6 +35,11 @@ export interface Issue {
   value?: number;
   /** El límite contra el que se midió `value`. */
   limit?: number;
+  /**
+   * Las OTRAS páginas implicadas, sin la propia (con qué página está duplicado el título, por
+   * ejemplo): sin ellas el aviso dice que hay un problema pero no dónde arreglarlo.
+   */
+  related?: { slug: string; locale: Locale }[];
 }
 
 /** Origen de la descripción final: la de la página, la heredada del sitio o ninguna. */

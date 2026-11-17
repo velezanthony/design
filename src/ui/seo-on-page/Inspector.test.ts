@@ -9,6 +9,8 @@ const props = (extra: Record<string, unknown> = {}) => {
     page,
     group: [page],
     inspectorHrefs: { en: '/i/?locale=en', es: '/i/?locale=es' },
+    inspectorHref: (target: { slug: string; locale: string }) =>
+      `/i/?slug=${target.slug}&locale=${target.locale}`,
     liveHref: '/repo/guide/',
     displayUrl: 'https://x.dev/repo/guide/',
     ogImageSrc: '/repo/og.png',
@@ -18,6 +20,26 @@ const props = (extra: Record<string, unknown> = {}) => {
 };
 
 describe('Inspector', () => {
+  it('un duplicado enlaza al inspector de la página con la que choca', async () => {
+    const page = seoPage({
+      issues: [
+        {
+          kind: 'duplicate-title',
+          severity: 'warning',
+          slug: 'guide',
+          locale: 'en',
+          message: 'Otra página del mismo idioma tiene el mismo título.',
+          value: 2,
+          related: [{ slug: 'reference/guide', locale: 'en' }],
+        },
+      ],
+    });
+    const doc = await render(Inspector, props({ page }));
+    const link = doc.querySelector<HTMLAnchorElement>('[data-issues] a[data-related]');
+    expect(link?.getAttribute('href')).toBe('/i/?slug=reference/guide&locale=en');
+    expect(text(link)).toContain('reference/guide');
+  });
+
   it('enseña el <title> publicado y de dónde sale la descripción', async () => {
     const doc = await render(Inspector, props());
     const content = text(doc);

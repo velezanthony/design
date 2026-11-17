@@ -107,6 +107,31 @@ describe('analyzeDuplicates', () => {
     ]);
   });
 
+  it('cada duplicado nombra las OTRAS páginas con las que choca, sin incluirse', () => {
+    const pages = [
+      facts('a', { title: 'Same title here' }),
+      facts('b', { title: 'Same title here' }),
+      facts('c', { title: 'Same title here' }),
+    ];
+    const [first] = analyzeDuplicates(pages);
+    expect(first).toMatchObject({ slug: 'a', value: 3 });
+    expect(first?.related).toEqual([
+      { slug: 'b', locale: 'en' },
+      { slug: 'c', locale: 'en' },
+    ]);
+  });
+
+  it('una descripción duplicada también nombra la otra página', () => {
+    const pages = [
+      facts('a', { description: 'Same text' }),
+      facts('b', { description: 'Same text' }),
+    ];
+    expect(analyzeDuplicates(pages).map((issue) => issue.related)).toEqual([
+      [{ slug: 'b', locale: 'en' }],
+      [{ slug: 'a', locale: 'en' }],
+    ]);
+  });
+
   it('el mismo título en idiomas distintos NO es duplicado', () => {
     const pages = [facts('a', { title: 'Same' }, 'en'), facts('a', { title: 'Same' }, 'es')];
     expect(analyzeDuplicates(pages)).toEqual([]);

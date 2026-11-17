@@ -14,6 +14,8 @@ interface Props {
   group: SeoPage[];
   /** Enlace al inspector de cada idioma de la página. */
   inspectorHrefs: Record<string, string>;
+  /** Enlace al inspector de cualquier página: para las páginas con las que choca un problema. */
+  inspectorHref: (page: { slug: string; locale: string }) => string;
   /** La página real, para abrirla. */
   liveHref: string;
   /** URL absoluta de la página (`site` + ruta), la que enseña el buscador. */
@@ -24,7 +26,8 @@ interface Props {
   pagesHref: string;
 }
 
-const { page, group, inspectorHrefs, liveHref, displayUrl, ogImageSrc, pagesHref } = Astro.props;
+const { page, group, inspectorHrefs, inspectorHref, liveHref, displayUrl, ogImageSrc, pagesHref } =
+  Astro.props;
 const { meta } = page;
 const items = outline(page.headings);
 const indent = ['ml-0', 'ml-0', 'ml-4', 'ml-8', 'ml-12', 'ml-16', 'ml-20'];
@@ -125,6 +128,23 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
           <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <IssueBadge issue={issue} />
             <span class="text-ink">{issue.message}</span>
+            {issue.related && issue.related.length > 0 && (
+              <span class="text-muted">
+                Con:{' '}
+                {issue.related.map((other, index) => (
+                  <>
+                    {index > 0 && ', '}
+                    <a
+                      data-related
+                      href={inspectorHref(other)}
+                      class="font-mono text-accent underline underline-offset-[0.2em]"
+                    >
+                      {other.slug || '/'}
+                    </a>
+                  </>
+                ))}
+              </span>
+            )}
           </li>
         ))}
       </ul>

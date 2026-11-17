@@ -79,6 +79,10 @@ function groupBy(pages: SeoPageFacts[], keyOf: (page: SeoPageFacts) => string | 
   return [...groups.values()].filter((group) => group.length > 1);
 }
 
+/** El resto del grupo: las páginas con las que choca `page`, sin ella misma. */
+const othersIn = (group: SeoPageFacts[], page: SeoPageFacts) =>
+  group.filter((other) => other !== page).map(({ slug, locale }) => ({ slug, locale }));
+
 /**
  * Títulos y descripciones repetidos entre páginas del MISMO idioma (el mismo título en `en` y `es`
  * es lo normal). Las `noindex` no compiten en los resultados, así que no cuentan; y la descripción
@@ -101,9 +105,7 @@ export function analyzeDuplicates(pages: SeoPageFacts[]): Issue[] {
           IssueKind.DUPLICATE_TITLE,
           page,
           'Otra página del mismo idioma tiene el mismo título.',
-          {
-            value: group.length,
-          },
+          { value: group.length, related: othersIn(group, page) },
         ),
       ),
     ),
@@ -113,9 +115,7 @@ export function analyzeDuplicates(pages: SeoPageFacts[]): Issue[] {
           IssueKind.DUPLICATE_DESCRIPTION,
           page,
           'Otra página del mismo idioma tiene la misma descripción.',
-          {
-            value: group.length,
-          },
+          { value: group.length, related: othersIn(group, page) },
         ),
       ),
     ),
