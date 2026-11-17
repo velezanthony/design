@@ -75,7 +75,8 @@ export function notFoundView(
   const meta = withImageSize(
     resolveMeta(
       cfg.seo,
-      { description: strings['notFound.description'] },
+      /* Sin los schemas del sitio: describen el proyecto y sus páginas, no una página que no existe. */
+      { description: strings['notFound.description'], schema: false },
       { title: strings['notFound.title'] },
       lang,
     ),

@@ -27,6 +27,19 @@ describe('notFoundRoutes', () => {
 describe('notFoundView', () => {
   const cfg = site(['en', 'es'], { es: { 'notFound.title': 'Perdido' } });
 
+  it('no lleva los schemas del sitio: una 404 no es la página que describen', () => {
+    const withSchema = createVirtualData(
+      resolveConfig({
+        name: 'Docs',
+        locales: ['en'],
+        seo: { schema: [{ '@type': 'SoftwareSourceCode', name: 'Docs' }] },
+      }),
+      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+    );
+    const view = notFoundView(undefined, withSchema);
+    expect(view.head.some((tag) => tag.attrs['type'] === 'application/ld+json')).toBe(false);
+  });
+
   it('/404 (idioma por defecto): head noindex sin canonical y plantillas del resto', () => {
     const view = notFoundView(undefined, cfg);
     expect(view.lang).toBe('en');
