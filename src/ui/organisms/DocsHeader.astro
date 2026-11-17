@@ -39,12 +39,14 @@ const widths = [
   {
     value: 'reading',
     label: t(strings, 'layout.reading'),
-    icon: 'M4.5 2.5h5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z',
+    /* Líneas de texto en una columna estrecha, con margen a los lados. */
+    lines: 'M6 6h4M6 8h4M6 10h2.5',
   },
   {
     value: 'full',
     label: t(strings, 'layout.full'),
-    icon: 'M2 2.5h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z',
+    /* Las mismas líneas de borde a borde. */
+    lines: 'M4 6h8M4 8h8M4 10h5',
   },
 ] as const;
 ---
@@ -95,11 +97,27 @@ const widths = [
               type="button"
               data-layout-width={width.value}
               aria-pressed={layoutWidth === width.value ? 'true' : 'false'}
+              aria-label={width.label}
+              title={width.label}
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d={width.icon} stroke="currentColor" stroke-width="1.4"></path>
+              {/* Solo icono: una página y sus líneas de texto. El nombre va en `aria-label`. */}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect
+                  x="1.5"
+                  y="2.5"
+                  width="13"
+                  height="11"
+                  rx="1.5"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                ></rect>
+                <path
+                  d={width.lines}
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                ></path>
               </svg>
-              {width.label}
             </button>
           ))}
         </div>

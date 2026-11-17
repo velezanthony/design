@@ -1080,14 +1080,14 @@
     }
   }
 
-  /* Lectura / Ancho: dos botones pegados; el activo lleva el tinte y el color del acento (no un
-     bloque de tinta), así que la cabecera se queda tranquila y en oscuro se ve bien sin más. */
+  /* Lectura / Ancho: dos botones de solo icono pegados; el activo lleva el tinte y el color del
+     acento (no un bloque de tinta), así que la cabecera se queda tranquila y en oscuro se ve bien. */
   .docs-width-switch {
     @apply overflow-hidden rounded-[4px] border border-ink/25 bg-canvas/40;
   }
 
   .docs-width-switch button {
-    @apply inline-flex cursor-pointer items-center gap-1.5 px-2.5 py-1.5 label text-ink transition-colors hover:bg-accent-soft/60 focus-visible:outline-offset-[-2px] aria-pressed:bg-accent-soft aria-pressed:text-accent;
+    @apply inline-flex cursor-pointer items-center p-1.5 text-ink transition-colors hover:bg-accent-soft/60 focus-visible:outline-offset-[-2px] aria-pressed:bg-accent-soft aria-pressed:text-accent;
   }
 }
 

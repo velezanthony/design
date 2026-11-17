@@ -275,7 +275,10 @@ describe('DocsHeader: ancho de lectura', () => {
     const buttons = [...group.querySelectorAll('button[data-layout-width]')];
     expect(buttons.map((b) => b.getAttribute('data-layout-width'))).toEqual(['reading', 'full']);
     expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
-    expect(buttons.map((b) => text(b))).toEqual(['Lectura', 'Ancho']);
+    // Solo icono: el nombre va en `aria-label` y el mismo texto en `title`, como pista al pasar.
+    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual(['Lectura', 'Ancho']);
+    expect(buttons.map((b) => b.getAttribute('title'))).toEqual(['Lectura', 'Ancho']);
+    expect(buttons.map((b) => text(b))).toEqual(['', '']);
     for (const button of buttons) expect(button.getAttribute('type')).toBe('button');
   });
 
@@ -287,6 +290,8 @@ describe('DocsHeader: ancho de lectura', () => {
   it('los textos salen del catálogo del idioma', async () => {
     const doc = await header({ layoutToggles: true, strings: stringsFor('en') });
     expect(doc.querySelector('[role="group"]')!.getAttribute('aria-label')).toBe('Page width');
-    expect(text(doc.querySelector('[data-layout-width="full"]'))).toBe('Full');
+    expect(doc.querySelector('[data-layout-width="full"]')!.getAttribute('aria-label')).toBe(
+      'Full',
+    );
   });
 });
