@@ -10,4 +10,11 @@ describe('InfoHiddenNote', () => {
     expect(link?.getAttribute('href')).toBe('/t/?severity=error');
     expect(text(link)).toContain('Mostrar también');
   });
+
+  it('separa la frase del enlace con un espacio', async () => {
+    const doc = await render(InfoHiddenNote, { showAllHref: '/p/' });
+    expect(doc.querySelector('[data-info-hidden]')?.textContent?.replace(/\s+/g, ' ')).toContain(
+      'sin problemas. Mostrar',
+    );
+  });
 });
