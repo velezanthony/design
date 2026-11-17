@@ -25,7 +25,7 @@ flowchart TD
   u["Unitarios puros<br/>core/**/*.test.ts · client/**/*.test.ts"] --- fast["Milisegundos"]
   c["Componentes<br/>ui/**/*.test.ts con testing/render.ts"] --- med["Contenedor de Astro + linkedom"]
   a["Adaptadores<br/>astro/routes, loader, markdown"] --- dbl["Config resuelta<br/>+ dobles validados"]
-  b["Integración<br/>astro/integration/build*.test.ts"] --- slow["astro build real<br/>de fixtures"]
+  b["Integración<br/>astro/integration/builds/"] --- slow["astro build real<br/>de fixtures"]
   g["Guardas<br/>boundaries, theme, coupling,<br/>package-contents"] --- meta["Protegen reglas del repo"]
 ```
 
@@ -36,7 +36,7 @@ flowchart TD
 | Componentes | `ui/molecules/EditLink.test.ts` | `render()` y `text()` de `testing/render.ts`; textos con `stringsFor()`. |
 | Plugins de Markdown | `astro/markdown/tables.test.ts` | `testing/markdown.ts`. |
 | Vistas de las rutas | `astro/routes/doc-view.test.ts` | Funciones puras sobre una config resuelta con `resolveConfig`. Para lo que necesite `astro:content` hay un doble en `testing/astro-content.ts`. |
-| Build completo | `astro/integration/build.test.ts`, `build-strict.test.ts` | Fixtures en `src/**/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
+| Build completo | `astro/integration/builds/` (`basic`, `short-form`, `outside`, `strict`, `content`) | Cada test se llama por el escenario que construye. Fixtures en `builds/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
 | Guardas del repo | `testing/boundaries.test.ts`, `testing/package-contents.test.ts`, `ui/styles/theme.test.ts`, `ui/coupling.test.ts` | Leen archivos de configuración o código y fallan si alguien relaja una regla. |
 | Migración | `scripts/migrate-mkdocs/**/*.test.ts` | Transformaciones puras de texto. |
 
@@ -62,8 +62,12 @@ npx vitest run src/core/navigation         # una carpeta
 npx vitest run -t "sin editUrl"            # por nombre
 ```
 
-Los tests de build (`build*.test.ts`) son los lentos: construyen proyectos de Astro de verdad. Si
-estás iterando sobre lógica pura, filtra por carpeta.
+Los tests de build (`astro/integration/builds/`) son los lentos: construyen proyectos de Astro de
+verdad. Si estás iterando sobre lógica pura, déjalos fuera:
+
+```sh
+npx vitest run --exclude '**/builds/**'   # solo los rápidos
+```
 
 `vitest.config.ts` usa `getViteConfig` de Astro para que los `.astro`, los alias y el módulo virtual
 se resuelvan en los tests exactamente igual que en el build.
