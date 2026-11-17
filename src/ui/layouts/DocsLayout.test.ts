@@ -311,8 +311,12 @@ describe('DocsLayout: desplazamiento de la barra lateral', () => {
   it('la barra que se desplaza lleva su marca y, tras ella, el script previo al pintado', async () => {
     const doc = await page();
     const aside = doc.querySelector('aside.docs-sidebar')!;
-    expect(aside.hasAttribute('data-docs-sidebar-scroll')).toBe(true);
-    const last = aside.lastElementChild!;
+    // El plano (`aside`) no se desplaza: lo hace el contenedor interior, que es el que lleva la marca.
+    expect(aside.hasAttribute('data-docs-sidebar-scroll')).toBe(false);
+    const scroller = aside.querySelector('[data-docs-sidebar-scroll]')!;
+    expect(scroller.parentElement).toBe(aside);
+    expect(scroller.querySelector('#docs-nav-panel')).not.toBeNull();
+    const last = scroller.lastElementChild!;
     expect(last.tagName).toBe('SCRIPT');
     expect(last.textContent).toContain('docs:sidebar-scroll');
   });

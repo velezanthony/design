@@ -248,9 +248,13 @@ layout: {
 
 Cada columna lateral tiene un botón con chevron que la pliega en un raíl de 44px (una etiqueta
 vertical y el botón; el panel está `inert` mientras está plegado). La cabecera incorpora un
-interruptor Reading / Full (desde `md`). En `full` la página y la barra de la cabecera usan toda la
-ventana y la medida del texto crece un poco; el código, las tablas, las pestañas y las imágenes
-ocupan toda la columna siempre que un lado esté plegado o el ancho sea `full`. Por debajo de `lg` no
+interruptor Reading / Full (desde `md`). En `reading` la página va centrada (80rem) y la barra
+lateral es un plano que mide solo su columna, pegado a la cabecera. En `full` el diseño se ancla: la
+barra lateral pega al borde izquierdo de la ventana (18rem, de arriba abajo, con borde solo a la
+derecha), la cabecera ocupa todo el ancho con el nombre del sitio sobre la barra, y el contenido y el
+índice llenan el resto; la medida del texto crece un poco. El código, las tablas, las pestañas y las
+imágenes ocupan toda la columna siempre que un lado esté plegado o el ancho sea `full`. En ambos
+modos la barra lateral es pegajosa y se desplaza por su cuenta. Por debajo de `lg` no
 cambia nada: la navegación se queda detrás del "Menu". La elección del visitante se guarda en
 `localStorage` (`docs:layout`) y se aplica antes del primer pintado, así que al recargar no hay
 saltos. Las animaciones respetan `prefers-reduced-motion`. Los valores desconocidos fallan la

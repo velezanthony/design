@@ -101,55 +101,57 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     <SearchBox strings={strings} baseUrl={baseUrl} />
   </DocsHeader>
 
-  <div class="docs-container docs-page mx-auto grid max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:px-10 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
-    <aside
-      class="docs-sidebar lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto"
-      data-docs-sidebar-scroll
-    >
-      {layout.toggles && (
-        <PanelToggle
-          side="left"
-          controls="docs-nav-panel"
-          open={layout.sidebar === 'open'}
-          strings={strings}
-        />
-      )}
-      <div id="docs-nav-panel" class="docs-panel">
-        {/* En móvil la navegación entera iría antes del contenido: se pliega tras un «Menú». Llega
+  <div class="docs-container docs-page mx-auto grid max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:gap-y-0 lg:px-10 lg:py-0 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
+    {/* `aside` es el plano (fondo y bordes, de la altura de la columna); lo que se desplaza, con su
+        propia barra, es el contenedor pegajoso de dentro. */}
+    <aside class="docs-sidebar">
+      <div
+        class="docs-sidebar-scroll lg:sticky lg:top-0 lg:max-h-dvh lg:overflow-y-auto"
+        data-docs-sidebar-scroll
+      >
+        {layout.toggles && (
+          <PanelToggle
+            side="left"
+            controls="docs-nav-panel"
+            open={layout.sidebar === 'open'}
+            strings={strings}
+          />
+        )}
+        <div id="docs-nav-panel" class="docs-panel">
+          {/* En móvil la navegación entera iría antes del contenido: se pliega tras un «Menú». Llega
           abierta (sin JS se ve como siempre) y el script la cierra por debajo de lg antes de pintar;
           desde lg el botón no existe y queda abierta. */}
-        <details class="docs-nav" open data-docs-nav>
-          <summary class="docs-nav-toggle lg:hidden">{t(strings, 'sidebar.toggle')}</summary>
-          <NavList
-            entries={nav}
-            strings={strings}
-            variant="menu"
-            class="mb-4 border-b border-rule pb-4 lg:hidden"
-          />
-          <Sidebar nodes={sidebar} current={current} strings={strings} />
-        </details>
-        <script is:inline>
-          (() => {
-            const nav = document.currentScript.previousElementSibling;
-            const wide = matchMedia('(min-width: 64rem)');
-            const sync = () => {
-              nav.open = wide.matches;
-            };
-            sync();
-            wide.addEventListener('change', sync);
-          })();
-        </script>
-      </div>
-      {/* Tras la barra, antes del primer pintado: al cambiar de página recupera el desplazamiento (o
+          <details class="docs-nav" open data-docs-nav>
+            <summary class="docs-nav-toggle lg:hidden">{t(strings, 'sidebar.toggle')}</summary>
+            <NavList
+              entries={nav}
+              strings={strings}
+              variant="menu"
+              class="mb-4 border-b border-rule pb-4 lg:hidden"
+            />
+            <Sidebar nodes={sidebar} current={current} strings={strings} />
+          </details>
+          <script is:inline>
+            (() => {
+              const nav = document.currentScript.previousElementSibling;
+              const wide = matchMedia('(min-width: 64rem)');
+              const sync = () => {
+                nav.open = wide.matches;
+              };
+              sync();
+              wide.addEventListener('change', sync);
+            })();
+          </script>
+        </div>
+        {/* Tras la barra, antes del primer pintado: al cambiar de página recupera el desplazamiento (o
         centra la entrada actual) sin que se vea el salto. */}
-      <script is:inline set:html={sidebarScrollScript()} />
+        <script is:inline set:html={sidebarScrollScript()} />
+      </div>
     </aside>
 
-    {/* El relleno izquierdo desde lg deja al texto el mismo aire hasta el plano de la barra lateral
-        que el que tiene la barra hasta su borde. */}
     <main
       id="main-content"
-      class="min-w-0 lg:pl-5"
+      class="min-w-0 lg:py-8"
       {...pagefind}
       data-copy-label={t(strings, 'copy.label')}
       data-copied-label={t(strings, 'copy.copied')}
@@ -176,7 +178,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       </div>
     </main>
 
-    <div class="hidden xl:block">
+    <div class="hidden xl:block xl:py-8">
       <TableOfContents
         headings={headings}
         strings={strings}
