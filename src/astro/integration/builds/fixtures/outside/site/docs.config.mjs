@@ -1,4 +1,4 @@
-import { defineDocsConfig } from '../../../index.ts';
+import { defineDocsConfig } from '../../../../index.ts';
 
 export default defineDocsConfig({
   name: 'Outside',

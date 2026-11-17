@@ -17,7 +17,7 @@ export interface BuildCase {
   extra?: Record<string, string | Uint8Array>;
 }
 
-const casesDir = resolve('src/astro/integration/fixtures/strict/.cases');
+const casesDir = resolve('src/astro/integration/builds/fixtures/strict/.cases');
 
 /** `import` relativo (con `./`) desde un archivo de `dir` hasta `target`. */
 function importPath(dir: string, target: string): string {

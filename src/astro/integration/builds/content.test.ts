@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildFailingCase } from '../../testing/case';
+import { resolve } from 'node:path';
+import { buildFailingCase } from '../../../testing/case';
+
+const contentEntry = resolve('src/astro/content/index.ts');
 
 /* `@velezanthony/design/content` toma la config del módulo virtual de la integración. El caso feliz
-   lo cubre `build-mono.test.ts` (su fixture usa la forma corta) y la forma explícita sigue en
-   `build.test.ts` (fixture `basic`): aquí, el único fallo propio de la forma corta. */
+   lo cubre `short-form.test.ts` (su fixture usa la forma corta) y la forma explícita sigue en
+   `basic.test.ts` (fixture `basic`): aquí, el único fallo propio de la forma corta. */
 
 describe('@velezanthony/design/content sin la integración', { timeout: 120_000 }, () => {
   it('falla diciendo que falta docs(config) en astro.config.mjs', async () => {
@@ -15,7 +18,9 @@ describe('@velezanthony/design/content sin la integración', { timeout: 120_000 
         'astro.config.mjs': `import { defineConfig } from 'astro/config';
 export default defineConfig({ site: 'https://example.dev' });
 `,
-        'src/content.config.ts': `export { collections } from '../../../../../content/index.ts';\n`,
+        /* Ruta absoluta y no relativa: el caso se escribe en una carpeta temporal y una ruta con
+           `../` contados a mano se rompe en silencio cada vez que se mueve el test o los fixtures. */
+        'src/content.config.ts': `export { collections } from '${contentEntry}';\n`,
       },
     });
     expect(code).not.toBe(0);

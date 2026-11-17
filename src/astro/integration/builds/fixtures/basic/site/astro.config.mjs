@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
-import { docs } from '../../../index.ts';
+import { docs } from '../../../../index.ts';
 import docsConfig from './docs.config.mjs';
 import { probeLocale } from './probe-plugin.mjs';
 
@@ -46,7 +46,7 @@ export default defineConfig({
               astro: {
                 fromConsumer: resolveAstro(import.meta.url),
                 fromPackage: resolveAstro(
-                  new URL('../../../../routes/doc.astro', import.meta.url).href,
+                  new URL('../../../../../routes/doc.astro', import.meta.url).href,
                 ),
               },
               base: config.base,

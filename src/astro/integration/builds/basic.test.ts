@@ -1,13 +1,13 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildFixture, type BuiltSite } from '../../testing/build';
-import { searchBuilt } from '../../testing/search';
+import { buildFixture, type BuiltSite } from '../../../testing/build';
+import { searchBuilt } from '../../../testing/search';
 
 /* Tests de riesgo del diseño que solo existen en una build real. Se construye UNA vez el proyecto
    de `fixtures/basic` (`base: '/repo'`) y cada test lee su parte. Lento a propósito. */
 
-const root = resolve('src/astro/integration/fixtures/basic/site');
+const root = resolve('src/astro/integration/builds/fixtures/basic/site');
 let site: BuiltSite;
 
 beforeAll(async () => {

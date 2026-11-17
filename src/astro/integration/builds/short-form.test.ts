@@ -1,12 +1,12 @@
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { buildFixture, type BuiltSite } from '../../testing/build';
+import { buildFixture, type BuiltSite } from '../../../testing/build';
 
 /* Sitio monolingüe real (`fixtures/mono`, un solo idioma, `base: '/mono'`): la 404 sigue
    existiendo y no se inyecta ninguna ruta `/<locale>/404`. */
 
-const root = resolve('src/astro/integration/fixtures/mono/site');
+const root = resolve('src/astro/integration/builds/fixtures/mono/site');
 let site: BuiltSite;
 
 beforeAll(async () => {

@@ -1,4 +1,4 @@
-import { defineDocsSite } from '../../../index.ts';
+import { defineDocsSite } from '../../../../index.ts';
 import docsConfig from './docs.config.mjs';
 
 /* Forma corta: `defineDocsSite` y, en content.config.ts, una línea que toma la config del módulo

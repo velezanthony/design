@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFailingCase } from '../../testing/case';
+import { buildFailingCase } from '../../../testing/case';
 
 /* Reglas estrictas: cada caso es un proyecto mínimo cuya build DEBE fallar con código distinto de 0
    y un mensaje que diga qué archivo o campo arreglar. Comparten un esqueleto (`testing/case.ts`). */

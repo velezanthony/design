@@ -1,4 +1,4 @@
-import { defineDocsSite } from '../../../index.ts';
+import { defineDocsSite } from '../../../../index.ts';
 import docsConfig from './docs.config.mjs';
 
 /* Proyecto de Astro en `site/` con las páginas en `../docs/` (como un repo que ya tenía `docs/`
