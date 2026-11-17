@@ -108,15 +108,17 @@ const inputId = `${id}-input`;
   .docs-search-results a {
     display: block;
     min-height: 1.5rem;
-    padding: 0.375rem 0.5rem;
+    padding: 0.5rem 0.625rem;
     color: var(--color-ink);
     border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
   }
 
-  .docs-search-results a:hover,
-  .docs-search-results a:focus-visible {
-    border-left-color: var(--color-accent);
-    color: var(--color-accent);
+  .docs-search-results a > span:first-child {
+    font-weight: 500;
   }
 
   .docs-search-results a > span:last-child {
@@ -124,11 +126,33 @@ const inputId = `${id}-input`;
     color: var(--color-muted);
   }
 
+  /* El resultado activo (ratón o flechas) se lee como un bloque: fondo tintado, barra en el verde
+     de la paleta y título en el acento (5.62:1 sobre el tinte). El extracto sube a tinta en vez de
+     teñirse: cuatro líneas en verde se leen peor y las coincidencias dejarían de destacar. El
+     fondo y la barra ya marcan el foco, así que sobra el contorno. */
+  .docs-search-results a:hover,
+  .docs-search-results a:focus-visible {
+    background-color: var(--color-accent-soft);
+    border-left-color: var(--color-accent-line);
+  }
+
+  .docs-search-results a:focus-visible {
+    outline: none;
+  }
+
+  .docs-search-results a:is(:hover, :focus-visible) > span:first-child {
+    color: var(--color-accent);
+  }
+
+  .docs-search-results a:is(:hover, :focus-visible) > span:last-child {
+    color: var(--color-ink);
+  }
+
   .docs-search-results mark {
     background: transparent;
     color: var(--color-ink);
     font-weight: 600;
     text-decoration: underline;
-    text-decoration-color: var(--color-accent);
+    text-decoration-color: var(--color-accent-line);
   }
 </style>
