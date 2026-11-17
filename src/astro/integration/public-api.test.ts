@@ -63,3 +63,14 @@ describe('API pública de ./integration: nav', () => {
     expect(docs(config).resolvedConfig.nav).toHaveLength(2);
   });
 });
+
+describe('API pública: package.json "exports"', () => {
+  it('./content apunta a un archivo que existe y exporta la colección docs', async () => {
+    const { readFileSync, existsSync } = await import('node:fs');
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      exports: Record<string, string>;
+    };
+    expect(pkg.exports['./content']).toBe('./src/astro/content/index.ts');
+    expect(existsSync(pkg.exports['./content'])).toBe(true);
+  });
+});

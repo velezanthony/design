@@ -52,6 +52,9 @@ function externalLocales(entry: ExternalDoc, cfg: Pick<ResolvedConfig, 'locales'
   return entry.locales ?? cfg.locales;
 }
 
+/** Lo que el descubrimiento lee de la config: nada de `ui`, que el loader no recibe del módulo virtual. */
+type DiscoveryConfig = Omit<ResolvedConfig, 'ui'>;
+
 type ExternalDoc = ResolvedConfig['external'][number];
 
 /** Todas las rutas externas que el adaptador debe intentar leer; las que no existan, se omiten. */
@@ -78,7 +81,7 @@ function attempt<T>(errors: DocsError[], build: () => T): T | undefined {
   }
 }
 
-function nativePage(file: SourceFile, cfg: ResolvedConfig, errors: DocsError[]): Page | undefined {
+function nativePage(file: SourceFile, cfg: DiscoveryConfig, errors: DocsError[]): Page | undefined {
   const located = attempt(errors, () => splitLocale(file.path, cfg.locales, cfg.defaultLocale));
   if (!located) return undefined;
   const title = attempt(errors, () => resolveTitle(file.body, file.frontmatter?.title, file.path));
@@ -99,7 +102,7 @@ function nativePage(file: SourceFile, cfg: ResolvedConfig, errors: DocsError[]):
 function externalPages(
   entry: ExternalDoc,
   files: Map<string, SourceFile>,
-  cfg: ResolvedConfig,
+  cfg: DiscoveryConfig,
   errors: DocsError[],
 ): Page[] {
   const declared = entry.locales !== undefined;
@@ -139,7 +142,7 @@ function externalPages(
  * El idioma por defecto va sin prefijo, así que su página `es/guia` ocuparía `/es/guia/`, la URL de
  * la página `guia` del idioma `es` (y `es` sería su portada). Se reserva todo prefijo de idioma.
  */
-function findLocalePrefixCollisions(pages: Page[], cfg: ResolvedConfig): DocsError[] {
+function findLocalePrefixCollisions(pages: Page[], cfg: DiscoveryConfig): DocsError[] {
   const prefixes = cfg.locales.filter((locale) => locale !== cfg.defaultLocale);
   return pages
     .filter((page) => page.locale === cfg.defaultLocale)
@@ -163,7 +166,7 @@ function findLocalePrefixCollisions(pages: Page[], cfg: ResolvedConfig): DocsErr
  * Reúne TODOS los fallos (sufijo no configurado, colisión de slugs, archivo ausente, sin título) y
  * los lanza juntos en un único `DocsErrors`.
  */
-export function discoverPages(files: SourceFile[], cfg: ResolvedConfig): Page[] {
+export function discoverPages(files: SourceFile[], cfg: DiscoveryConfig): Page[] {
   const errors: DocsError[] = [];
   const externalFiles = new Map(
     files.filter((file) => file.kind === 'external').map((file) => [normalize(file.path), file]),

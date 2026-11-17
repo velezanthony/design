@@ -19,7 +19,6 @@ import { NATIVE_DOCS_DIR, rewriteLinks, type LinkRef } from '../../core/links/re
 import { collectImageRefs } from '../../core/seo/image-refs';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
 import { toAstroError } from '../integration/errors';
-import { readIntegrationConfig } from './config';
 import { readFrontmatter } from './frontmatter';
 import { checkFavicon } from './favicon';
 import { checkSeoImages } from './images';
@@ -47,7 +46,7 @@ async function walk(dir: string): Promise<string[]> {
  */
 async function readSources(
   root: string,
-  config: ResolvedConfig,
+  config: LoaderConfig,
 ): Promise<{ files: SourceFile[]; errors: DocsError[] }> {
   const nativeDir = path.join(root, NATIVE_DIR);
   const errors: DocsError[] = [];
@@ -77,7 +76,7 @@ const absolutePath = (root: string, page: Page) =>
 /** Errores de `discoverPages` como lista, para sumarlos a los demás en vez de cortar la carga. */
 function discoverOrErrors(
   files: SourceFile[],
-  config: ResolvedConfig,
+  config: LoaderConfig,
 ): { pages: Page[]; errors: DocsError[] } {
   try {
     return { pages: discoverPages(files, config), errors: [] };
@@ -92,7 +91,7 @@ function discoverOrErrors(
  * enlaces y renderizar cada página, y validar anclas e imágenes con los encabezados de TODAS.
  * Los fallos se acumulan y salen en un único error con archivo y línea.
  */
-async function sync(ctx: LoaderContext, config: ResolvedConfig): Promise<void> {
+async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
   const root = fileURLToPath(ctx.config.root);
   const read = await readSources(root, config);
   const errors: DocsError[] = [...read.errors];
@@ -182,15 +181,31 @@ async function sync(ctx: LoaderContext, config: ResolvedConfig): Promise<void> {
 
 export { docsSchema } from './schema';
 
-/** `config`: la de `docs.config.mjs` (plan B). Sin ella intenta leerla de la integración (plan A). */
-export function docsLoader(config?: DocsUserConfig): Loader {
+/**
+ * Lo que el loader necesita de la config: la resuelta, sin los overrides de `ui` (solo los usa la
+ * interfaz y en el módulo virtual ya viajan fusionados en `strings`).
+ */
+export type LoaderConfig = Omit<ResolvedConfig, 'ui'>;
+
+/**
+ * Loader a partir de una config YA resuelta. Es lo que usa `@velezanthony/design/content` con la
+ * que la integración sirve en el módulo virtual: una sola carga de la config, sin segunda lectura.
+ */
+export function docsLoaderFromResolved(docsConfig: LoaderConfig): Loader {
+  return createLoader(() => docsConfig);
+}
+
+/** Forma explícita: `config` es la de `docs.config.mjs`, la misma que se pasa a `docs(config)`. */
+export function docsLoader(config: DocsUserConfig): Loader {
+  return createLoader(() => resolveConfigOrThrow(config));
+}
+
+function createLoader(getConfig: () => LoaderConfig): Loader {
   return {
     name: '@velezanthony/design/loader',
     schema: docsSchema(),
     async load(ctx) {
-      const docsConfig = config
-        ? resolveConfigOrThrow(config)
-        : readIntegrationConfig(ctx.config.integrations);
+      const docsConfig = getConfig();
       const run = () =>
         sync(ctx, docsConfig).catch((error: unknown) => {
           throw toAstroError(error, LOAD_ERROR);

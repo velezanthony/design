@@ -5,8 +5,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { AstroError } from 'astro/errors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { DocsUserConfig } from '../integration';
-import { docsLoader } from './index';
+import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
+import { docsLoader, docsLoaderFromResolved } from './index';
 import { docsSchema } from './schema';
 
 let root: string;
@@ -405,5 +405,14 @@ describe('docsLoader: dev (watcher)', () => {
     await write('src/content/docs/a.md', '# A fijo\n');
     watcher.emit('change', path.join(root, 'src/content/docs/a.md'));
     await vi.waitFor(() => expect(made.entries.get('en/a')!.data.title).toBe('A fijo'));
+  });
+});
+
+describe('docsLoaderFromResolved', () => {
+  it('carga con una config ya resuelta, igual que docsLoader(config)', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    const made = makeCtx();
+    await docsLoaderFromResolved(resolveConfigOrThrow({ name: 'Resuelta' })).load(made.ctx);
+    expect([...made.entries.keys()]).toEqual(['en/index']);
   });
 });
