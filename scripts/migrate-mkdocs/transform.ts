@@ -23,7 +23,8 @@ export type LogKind =
   | 'autoref'
   | 'autoref-unresolved'
   | 'link'
-  | 'anchor';
+  | 'anchor'
+  | 'code-language';
 
 export interface LogEntry {
   kind: LogKind;
@@ -84,6 +85,9 @@ const ADMONITION = /^(\s*)(!!!|\?\?\?\+?)\s+([\w-]+)(?:\s+"((?:[^"\\]|\\.)*)")?\
 const TAB = /^(\s*)===\s+"((?:[^"\\]|\\.)*)"\s*$/;
 const API_DIRECTIVE = /^(\s*):::\s+([A-Za-z_][\w.]*)\s*$/;
 const FENCE = /^\s*(`{3,}|~{3,})/;
+/** Apertura de un fence con, como mucho, `text` de etiqueta (nada de atributos). */
+const FENCE_OPEN = /^(\s*)(`{3,}|~{3,})\s*(text)?\s*$/;
+const SQL_START = /^(?:SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|WITH)\b/;
 const HTML_OPEN = /^\s*<div\b[^>]*\bmarkdown\b[^>]*>\s*$/;
 const HTML_CLOSE = /^\s*<\/div>\s*$/;
 const ICON = /:(?:material|octicons|fontawesome|simple)-[\w-]+:(?:\{[^}]*\})?[ \t]?/g;
@@ -183,6 +187,35 @@ function cleanFrontmatter(lines: string[], log: LogEntry[]): string[] {
   return ['---', ...kept, '---', ...rest];
 }
 
+/**
+ * Lenguaje que se deduce sin riesgo del cuerpo de un bloque sin etiquetar: `console` si la primera
+ * línea es una orden (`$ `, con su salida debajo si la hay) y `sql` si empieza por una sentencia.
+ * Nunca adivina Python ni nada más: ante la duda, `undefined`.
+ */
+function inferLanguage(body: string[]): string | undefined {
+  const first = body.find((row) => row.trim() !== '')?.trim();
+  if (first === undefined) return undefined;
+  if (first.startsWith('$ ')) return 'console';
+  if (SQL_START.test(first)) return 'sql';
+  return undefined;
+}
+
+/** Cuerpo del fence que abre `lines[start]` y es cerrado por otro; `undefined` si no se cierra. */
+function fenceBody(lines: string[], start: number, char: string, length: number) {
+  for (let j = start + 1; j < lines.length; j++) {
+    const close = FENCE.exec(lines[j]);
+    if (
+      close &&
+      close[1][0] === char &&
+      close[1].length >= length &&
+      lines[j].trim() === close[1]
+    ) {
+      return lines.slice(start + 1, j);
+    }
+  }
+  return undefined;
+}
+
 interface Context {
   options: TransformOptions;
   log: LogEntry[];
@@ -263,7 +296,19 @@ function convert(lines: string[], ctx: Context, offset: number): string[] {
     const open = FENCE.exec(line);
     if (open) {
       fence = { char: open[1][0], length: open[1].length };
-      out.push(line);
+      const bare = FENCE_OPEN.exec(line);
+      const body = bare && fenceBody(lines, i, fence.char, fence.length);
+      const language = body ? inferLanguage(body) : undefined;
+      if (bare && language) {
+        ctx.log.push({
+          kind: 'code-language',
+          line: lineNumber,
+          detail: `${bare[3] ?? 'none'} -> ${language}`,
+        });
+        out.push(`${bare[1]}${bare[2]}${language}`);
+      } else {
+        out.push(line);
+      }
       continue;
     }
 

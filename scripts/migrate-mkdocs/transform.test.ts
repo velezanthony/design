@@ -268,3 +268,61 @@ describe('enlaces', () => {
     expect(run(src, { rewriteHref: () => 'z' }).markdown).toBe(src);
   });
 });
+
+describe('lenguaje de los bloques de código', () => {
+  const upgrades = (source: string) =>
+    run(source).log.filter((entry) => entry.kind === 'code-language');
+
+  it('una sesión de shell sin lenguaje pasa a console', () => {
+    const out = run(md('```', '$ npm install', '$ npm test', '```'));
+    expect(out.markdown).toBe(md('```console', '$ npm install', '$ npm test', '```'));
+    expect(out.log).toEqual([{ kind: 'code-language', line: 1, detail: 'none -> console' }]);
+  });
+
+  it('un comando con su salida debajo también es console, y `text` se mejora igual', () => {
+    const out = run(md('```text', '$ python -V', 'Python 3.12.1', '```'));
+    expect(out.markdown).toBe(md('```console', '$ python -V', 'Python 3.12.1', '```'));
+    expect(upgrades(out.markdown)).toEqual([]);
+    expect(out.log[0]).toMatchObject({ detail: 'text -> console' });
+  });
+
+  it('empieza por una sentencia SQL: sql', () => {
+    for (const keyword of ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'WITH']) {
+      const out = run(md('```', `${keyword} x`, 'FROM t;', '```'));
+      expect(out.markdown.split('\n')[0]).toBe('```sql');
+    }
+  });
+
+  it('respeta la sangría y los fences de tildes', () => {
+    const out = run(md('  ~~~', '  SELECT 1;', '  ~~~'));
+    expect(out.markdown).toBe(md('  ~~~sql', '  SELECT 1;', '  ~~~'));
+  });
+
+  it('dentro de una admonición también se mejora', () => {
+    const out = run(md('!!! tip "T"', '', '    ```', '    $ ls', '    ```'));
+    expect(out.markdown).toContain('```console');
+  });
+
+  it('no inventa: texto sin pista clara se queda como está', () => {
+    for (const body of [['x = 1', 'print(x)'], ['hola', '$ ls'], ['select * from t'], ['']]) {
+      const src = md('```', ...body, '```');
+      expect(run(src).markdown).toBe(src);
+      expect(upgrades(src)).toEqual([]);
+    }
+  });
+
+  it('nunca toca un fence que ya tiene un lenguaje distinto de text', () => {
+    const src = md('```python', '$ ls', '```', '', '```bash', 'SELECT 1', '```');
+    expect(run(src).markdown).toBe(src);
+  });
+
+  it('no cambia un fence con atributos tras el nombre', () => {
+    const src = md('``` title="x"', '$ ls', '```');
+    expect(run(src).markdown).toBe(src);
+  });
+
+  it('un fence sin cerrar no se toca', () => {
+    const src = md('```', '$ ls');
+    expect(run(src).markdown).toBe(src);
+  });
+});

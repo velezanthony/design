@@ -450,7 +450,10 @@ npm run check         # astro check
 las ediciones se recargan en caliente) construido con el scaffold oficial de Astro más un snapshot de
 los docs de snake-orm, y sigue la configuración del consumidor de arriba (depende de `"file:.."` en
 lugar de `github:velezanthony/design#vX.Y.Z`). Regéneralo con
-`scripts/migrate-mkdocs/run-snake-orm.sh <snake-orm checkout> <python with griffe2md>`.
+`scripts/migrate-mkdocs/run-snake-orm.sh <snake-orm checkout> <python with griffe2md>`. El codemod
+solo etiqueta un bloque sin lenguaje (o `text`) cuando es inequívoco: `console` si empieza por una
+orden `$ ` y `sql` si empieza por `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `ALTER` o `WITH`;
+cada cambio queda en el registro como `code-language`. Nunca adivina Python ni otros lenguajes.
 
 CI ejecuta lint, format, check y test en cada push y pull request a `main`.
 
