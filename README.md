@@ -254,6 +254,10 @@ cambia nada: la navegación se queda detrás del "Menu". La elección del visita
 saltos. Las animaciones respetan `prefers-reduced-motion`. Los valores desconocidos fallan la
 validación.
 
+La barra lateral recuerda su posición de scroll entre páginas (`sessionStorage`, clave
+`docs:sidebar-scroll`, solo desde `lg`); sin posición guardada, deja a la vista el enlace de la
+página actual.
+
 ### `translations`
 
 `MissingTranslation` se exporta desde `@velezanthony/design/integration` (valor y tipo), así que la
