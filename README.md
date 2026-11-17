@@ -129,7 +129,8 @@ export const collections = {
 };
 ```
 
-Pon las páginas nativas en `docs/src/content/docs/`. La librería inyecta todas las rutas (páginas,
+Pon las páginas nativas en `docs/src/content/docs/` (o en otra carpeta con la opción `content`, ver
+[Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro)). La librería inyecta todas las rutas (páginas,
 `404`, `sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
 escribe ningún layout, ningún import de CSS ni ningún `@source`.
 
@@ -144,12 +145,13 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | Opción          | Significado                                                                                                                                              |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`          | Nombre del sitio (cabecera, pie, plantilla de título por defecto). Obligatorio.                                                                          |
+| `content`       | Carpeta de las páginas nativas, relativa a la raíz del proyecto de Astro; puede estar fuera (`'../docs'`). Por defecto `'src/content/docs'`. Ver [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro). |
 | `locales`       | Idiomas; `en` y `es` tienen textos de UI incluidos. Por defecto `['en']`.                                                                                |
 | `defaultLocale` | Archivos sin sufijo y `/`. Por defecto: el primer idioma.                                                                                                |
 | `seo`           | Base SEO de todo el sitio, ver abajo.                                                                                                                    |
 | `translations`  | `{ missing: MissingTranslation.LINK }` (`LINK`, `OMIT`, `FALLBACK`), por defecto `LINK`. Ver abajo.                                                      |
 | `ui`            | Sobrescritura de textos de UI por idioma, combinada clave a clave: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Las claves desconocidas rompen.     |
-| `external`      | Archivos fuera de `src/content/docs/` publicados como páginas: `{ slug, file, locales?, seo?, translations? }`.                                          |
+| `external`      | Archivos fuera de la carpeta de contenido (`content`) publicados como páginas: `{ slug, file, locales?, seo?, translations? }`.                                          |
 | `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
 | `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
@@ -344,11 +346,57 @@ gemela en español. El archivo del idioma por defecto es obligatorio; `locales` 
 también los demás. Los enlaces e imágenes relativos que contienen se resuelven contra su ubicación
 real, así que siguen funcionando en GitHub. Las páginas nativas se enlazan entre sí con rutas `.md`
 relativas (`./guide.md`), y a un archivo externo con su ruta relativa real
-(`../../../../CHANGELOG.md#anchor` desde `src/content/docs/`). Los enlaces relativos a archivos
+(`../../../../CHANGELOG.md#anchor` desde `src/content/docs/`; con `content: '../docs'` es
+`../../CHANGELOG.md#anchor` desde `docs/users/`). Un archivo externo también enlaza de vuelta a las
+páginas nativas por su ruta real (`./docs/users/guia.md`). Los enlaces relativos a archivos
 nativos o externos se resuelven a la URL de la página en el idioma de la página que enlaza (con
 recurso como en la barra lateral) y se validan, `#anchor` incluido; una ruta relativa a un archivo
 que no es ni una página ni un asset declarado rompe el build. Los enlaces `https://` se permiten
 pero no se validan.
+
+### Docs fuera del proyecto de Astro
+
+Si el repo ya guarda sus docs como `.md` sueltos (por ejemplo los de un MkDocs), no hace falta
+moverlos: pon el proyecto de Astro en `site/` y apunta `content` a la carpeta de siempre.
+
+```text
+repo/
+├── docs/            # páginas nativas, tal cual (index.md, index.es.md, users/guia.md, img/…)
+├── CHANGELOG.md     # external, fuera de ambos
+└── site/            # proyecto de Astro (astro.config.mjs, docs.config.mjs, package.json)
+```
+
+```js
+// site/docs.config.mjs
+export default defineDocsConfig({
+  name: 'Mi repo',
+  locales: ['en', 'es'],
+  content: '../docs',
+  external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+  editUrl: 'https://github.com/o/r/edit/main',
+  repoRoot: '..',
+});
+```
+
+Reglas de `content`:
+
+- Es una ruta **relativa a la raíz del proyecto de Astro** (`../docs`), con `/`. Se rechazan las
+  URLs, las rutas absolutas (no sobreviven a otra máquina ni a CI) y la propia raíz (recorrería
+  `node_modules`). `./docs/` y `docs` son lo mismo.
+- Si la carpeta no existe (o es un archivo) la carga falla con la ruta ya resuelta.
+- Solo los `.md` son páginas; `requirements.txt`, imágenes u otros archivos de la carpeta no lo son.
+  Las imágenes que una página referencia (`img/captura.png`, `../assets/x.png`) se publican y se
+  amplían como siempre.
+- Todo se resuelve contra la ubicación real del archivo: enlaces entre páginas y a `external`
+  (y de vuelta), anclas, imágenes y «Editar esta página» (`docs/users/guia.md`, con `repoRoot`).
+  Los sufijos de idioma, las sub-carpetas y `nav[].dir` funcionan igual; `dir` es relativo a la
+  carpeta de contenido.
+- Los plugins de Markdown de la librería (admonitions, Mermaid, pestañas…) y las reglas estrictas se
+  aplican a esa carpeta; los errores nombran el archivo con su ruta real (`../docs/users/guia.md:12`).
+- `astro dev` vigila la carpeta: editar un `.md` o añadir/borrar uno recarga la página. Si la
+  carpeta queda fuera de la raíz del proyecto, la integración la añade a `server.fs.allow` de Vite
+  (junto con la raíz del workspace) para servir sus imágenes.
+- Una imagen relativa sin `./` (`img/x.png`, lo normal en MkDocs) se trata como `./img/x.png`.
 
 ## Markdown
 

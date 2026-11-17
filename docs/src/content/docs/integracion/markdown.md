@@ -60,7 +60,7 @@ para todo lo que ningún plugin anterior reclamó. ¿Y por qué `mermaid` antes 
 Porque `mermaid` no es un lenguaje de Shiki, y no queremos un aviso por algo que es intencionado.
 
 Todos los plugins se crean con `docsPlugin` (`env.ts`), que los **limita a la documentación**: solo
-participan en archivos de `src/content/docs/` y en los `external` declarados
+participan en archivos de la carpeta de contenido (`content`, `src/content/docs/` por defecto) y en los `external` declarados
 (`path-filter.ts`). Cualquier otro Markdown del proyecto del consumidor queda intacto.
 
 ## Las dos sintaxis de admonición
@@ -128,6 +128,9 @@ grande o mal proporcionada, un lenguaje que Shiki no conoce y un bloque con fenc
   mismo recurso que la barra lateral si no está traducida).
 - Un archivo externo se enlaza con su ruta real (`../../../../CHANGELOG.md` desde
   `src/content/docs/`), y dentro de un externo los enlaces relativos se resuelven contra su
-  ubicación real. Así el mismo archivo funciona en GitHub y en el sitio.
+  ubicación real. Así el mismo archivo funciona en GitHub y en el sitio. Un externo también puede
+  enlazar de vuelta a una página nativa por su ruta real (`./docs/users/guia.md`).
+- Una imagen relativa sin `./` (`img/captura.png`) se trata como `./img/captura.png`: Astro importa
+  las imágenes como módulos y una ruta sin prefijo no la encontraría.
 - Los enlaces `https://` no se validan.
 - `core/links/fences.ts` evita tocar lo que hay dentro de bloques de código.

@@ -30,7 +30,7 @@ npm create astro@latest docs -- --template minimal --no-git
 
 Borra después lo que el scaffold trae y la librería ya resuelve:
 
-- `docs/src/pages/index.astro`: la portada es `src/content/docs/index.md`. Si dejas una página en
+- `docs/src/pages/index.astro`: la portada es el `index.md` de la carpeta de contenido (`src/content/docs/index.md` por defecto). Si dejas una página en
   `/`, `/404` o `/sitemap.xml`, el build falla a propósito (`route-collisions.ts`).
 - `docs/public/favicon.svg` y `favicon.ico`, salvo que quieras usarlos con la opción `favicon`.
 
@@ -180,6 +180,10 @@ docs/src/content/docs/
 - Los enlaces entre páginas son rutas `.md` relativas (`./instalar.md#requisitos`): funcionan en
   GitHub y la librería los convierte en URLs del sitio, validando el archivo y el ancla.
 
+Esa carpeta es la opción `content` (`'src/content/docs'` por defecto). Si el repo ya tiene sus docs
+como `.md` sueltos en `docs/` (los de un MkDocs, por ejemplo), no los muevas: ver
+[Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro).
+
 ## 7. Desplegar en GitHub Pages
 
 En el repo consumidor, **Settings → Pages → Source: GitHub Actions**, y este workflow:
@@ -245,3 +249,34 @@ jobs:
 
 Todo lo anterior vale quitando el prefijo `docs/`, y las rutas relativas cambian (`../CHANGELOG.md`
 pasa a ser `./CHANGELOG.md`). Es el caso del portfolio.
+
+## Docs fuera del proyecto de Astro
+
+Cuando el repo ya guarda sus páginas en `docs/` y no quieres moverlas, el proyecto de Astro va en
+`site/` y `content` apunta a ellas:
+
+```text
+repo/
+├── docs/            # páginas nativas, tal cual (index.md, index.es.md, users/guia.md…)
+├── CHANGELOG.md     # external
+└── site/            # proyecto de Astro
+```
+
+```js
+// site/docs.config.mjs
+export default defineDocsConfig({
+  name: 'Mi repo',
+  content: '../docs', // relativa a la raíz del proyecto de Astro (site/)
+  external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+  editUrl: 'https://github.com/velezanthony/mi-repo/edit/main',
+  repoRoot: '..',
+});
+```
+
+- `content` es una ruta relativa (no se admiten URLs ni rutas absolutas) y la carpeta debe existir:
+  si no, el build falla con la ruta ya resuelta.
+- Solo los `.md` son páginas. Un `requirements.txt` o las imágenes de la carpeta no lo son, pero las
+  imágenes que una página referencia se publican y se amplían como siempre.
+- Enlaces, anclas, imágenes y «Editar esta página» se resuelven contra la ubicación real de cada
+  archivo; un `external` y una página nativa pueden enlazarse en ambos sentidos.
+- Los plugins de Markdown y las reglas estrictas aplican a esa carpeta, y `astro dev` la vigila.

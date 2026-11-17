@@ -56,7 +56,7 @@ aparecen en el menú móvil.
 
 ### Archivos externos
 
-`external` publica archivos que viven fuera de `src/content/docs/`, típicamente el `CHANGELOG.md` o
+`external` publica archivos que viven fuera de la carpeta de contenido (`src/content/docs/` por defecto), típicamente el `CHANGELOG.md` o
 el `README.md` de la raíz del repo, para que GitHub y el sitio lean **la misma fuente**:
 
 ```js

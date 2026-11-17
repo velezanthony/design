@@ -49,7 +49,7 @@ sequenceDiagram
   Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml, favicon, privacidad
   CLI->>Int: astro:config:done → injectTypes(virtual.d.ts)
   CLI->>Ldr: sincroniza la colección docs (config del módulo virtual)
-  Ldr->>Ldr: lee src/content/docs/**.md + external[]
+  Ldr->>Ldr: lee <content>/**.md + external[]
   Ldr->>Ldr: discoverPages, políticas de traducción, valida sidebar/nav/footer
   loop cada página
     Ldr->>Ldr: rewriteLinks (.md → URL del sitio)
@@ -146,7 +146,7 @@ flowchart LR
 pasadas y **acumula todos los errores** antes de fallar, para que un build roto te diga todo lo que
 está mal de una vez, con archivo y línea:
 
-1. **Descubrir.** Lee los `.md` de `src/content/docs/` (con su frontmatter validado) y los archivos de
+1. **Descubrir.** Lee los `.md` de la carpeta de contenido (`content`, `src/content/docs/` por defecto, y puede estar fuera del proyecto; con su frontmatter validado) y los archivos de
    `external[]`. `discoverPages` (`src/core/content/discovery.ts`) deduce slug, idioma y título de
    cada uno. Después resuelve las políticas de traducción y valida `sidebar`, `nav` y `footer.links`
    contra los slugs reales.
