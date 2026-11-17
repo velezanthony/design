@@ -414,7 +414,9 @@ El build falla por: un enlace relativo o `#anchor` roto, un sufijo de idioma que
 (`x.fr.md`), una página sin `h1` ni `title`, una admonición desconocida, un archivo externo ausente,
 una imagen SEO o un favicon de `public/` ausentes, políticas de traducción en conflicto y un sitemap
 de más de 50 000 URLs. Avisos: traducciones ausentes sin declarar, una imagen OG demasiado grande o
-mal proporcionada, un lenguaje de Shiki desconocido.
+mal proporcionada, un lenguaje de Shiki desconocido y un bloque de código con fence sin lenguaje
+(el aviso lleva archivo y línea; usa ` ```text ` si es texto plano: `text`, `txt`, `plain` y
+`plaintext` nunca avisan).
 
 ## Despliegue en GitHub Pages
 

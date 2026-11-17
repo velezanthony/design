@@ -19,7 +19,7 @@ describe('SHIKI_LANG_ALIAS', () => {
 });
 
 describe('codeLanguages', () => {
-  it.each(['js', 'python', 'django', 'pycon', 'text', 'txt', 'plaintext', 'ansi', 'JSON'])(
+  it.each(['js', 'python', 'django', 'pycon', 'ansi', 'JSON'])(
     'el lenguaje conocido o aliasado %s no avisa',
     async (lang) => {
       const { warn, render } = make();
@@ -43,9 +43,35 @@ describe('codeLanguages', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('un bloque sin lenguaje no avisa', async () => {
+  it('un bloque con fence y sin lenguaje avisa con archivo y línea', async () => {
     const { warn, render } = make();
-    await render('```\nx\n```');
+    await render('texto\n\n```\nx\n```');
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      'src/content/docs/a.md:3: bloque de código sin lenguaje; usa ```text si es texto plano',
+    );
+  });
+
+  it('avisa una vez por bloque, también con fence de tildes', async () => {
+    const { warn, render } = make();
+    await render('```\na\n```\n\n~~~\nb\n~~~\n\n```sh\nc\n```');
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warn.mock.calls[0]![0]).toContain('a.md:1:');
+    expect(warn.mock.calls[1]![0]).toContain('a.md:5:');
+  });
+
+  it.each(['text', 'txt', 'plaintext', 'plain', 'TEXT'])(
+    'la familia text (%s) es «sin resaltado» explícito y no avisa',
+    async (lang) => {
+      const { warn, render } = make();
+      await render(`\`\`\`${lang}\nx\n\`\`\``);
+      expect(warn).not.toHaveBeenCalled();
+    },
+  );
+
+  it('un bloque con sangría (sin fence) no avisa', async () => {
+    const { warn, render } = make();
+    await render('texto\n\n    x\n    y');
     expect(warn).not.toHaveBeenCalled();
   });
 
