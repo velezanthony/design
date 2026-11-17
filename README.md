@@ -1,51 +1,55 @@
 # @velezanthony/design
 
-A library, not a site. It holds the design system and the Astro docs integration that the
-documentation of [velezanthony](https://github.com/velezanthony)'s repositories is built with,
-so every repo's docs look and behave the same.
+Una librería, no un sitio. Contiene el sistema de diseño y la integración de Astro para
+documentación con la que se construye la documentación de los repositorios de
+[velezanthony](https://github.com/velezanthony), de modo que los docs de todos los repos se vean y
+se comporten igual.
 
-It gives a consumer repo, from a single config file: localized pages (`en`/`es`), the layout,
-sidebar, table of contents, search (Pagefind, per language), light/dark theme, an analytics consent
-banner, SEO head tags, `sitemap.xml`, and a `404.html` that answers in the visitor's language. It can
-also publish root files such as `README.md` or `CHANGELOG.md` as pages, so GitHub and the docs site
-read the same source.
+A un repo consumidor le da, desde un único archivo de configuración: páginas localizadas
+(`en`/`es`), el layout, la barra lateral, la tabla de contenidos, la búsqueda (Pagefind, por
+idioma), el tema claro/oscuro, un banner de consentimiento de analítica, etiquetas SEO en el head,
+`sitemap.xml` y un `404.html` que responde en el idioma del visitante. También puede publicar
+archivos de la raíz como `README.md` o `CHANGELOG.md` como páginas, así que GitHub y el sitio de
+docs leen la misma fuente.
 
-## Requirements
+## Requisitos
 
 - Node `>=22.23.4`
 - Astro `^7.4.12`
-- Tailwind CSS `^4.3.5` with `@tailwindcss/vite`
-- `@astrojs/markdown-satteri` `>=0.4.10 <0.5` (the Markdown processor Astro 7 uses; a custom Sätteri
-  processor of your own is respected, any other processor fails the build)
+- Tailwind CSS `^4.3.5` con `@tailwindcss/vite`
+- `@astrojs/markdown-satteri` `>=0.4.10 <0.5` (el procesador de Markdown que usa Astro 7; se
+  respeta un procesador Sätteri propio, cualquier otro procesador rompe el build)
 
-The four are peer dependencies: install them in the consumer.
+Los cuatro son peer dependencies: instálalos en el consumidor.
 
-## Install
+## Instalación
 
-It is not published to npm. Install it from GitHub, pinned to a release tag:
+No está publicado en npm. Instálalo desde GitHub, fijado a una etiqueta de release:
 
 ```sh
 npm install github:velezanthony/design#v0.1.0
 npm install astro tailwindcss @tailwindcss/vite @astrojs/markdown-satteri
 ```
 
-The package ships TypeScript and `.astro` sources (no build step); Astro compiles them. To update,
-change the tag and install again.
+El paquete distribuye fuentes TypeScript y `.astro` (sin paso de build); las compila Astro. Para
+actualizar, cambia la etiqueta e instala de nuevo.
 
-To type-check the site (`astro check`), add the tooling too: `npm install -D @astrojs/check typescript`
-and a `"check": "astro check"` script. The Astro scaffold (`npm create astro`) has neither.
+Para comprobar los tipos del sitio (`astro check`), añade también las herramientas:
+`npm install -D @astrojs/check typescript` y un script `"check": "astro check"`. El scaffold de
+Astro (`npm create astro`) no trae ninguna de las dos.
 
-## Consumer setup
+## Configuración del consumidor
 
-Paths below are written for a `docs/` folder inside the repo; in a project created with
-`npm create astro` the Astro project is the repo root, so drop the `docs/` prefix and adjust the
-relative paths (`../CHANGELOG.md` becomes `./CHANGELOG.md`). Start by deleting the scaffold page
-`src/pages/index.astro`: the home is `src/content/docs/index.md`, and a page of your own on `/`, `/404`
-or `/sitemap.xml` (or `/es/`, `/es/404` for other locales) fails the build, since Astro would
-otherwise render it instead of the docs.
+Las rutas de abajo están escritas para una carpeta `docs/` dentro del repo; en un proyecto creado con
+`npm create astro` el proyecto de Astro es la raíz del repo, así que quita el prefijo `docs/` y
+ajusta las rutas relativas (`../CHANGELOG.md` pasa a ser `./CHANGELOG.md`). Empieza borrando la
+página del scaffold `src/pages/index.astro`: la home es `src/content/docs/index.md`, y una página
+propia en `/`, `/404` o `/sitemap.xml` (o `/es/`, `/es/404` para otros idiomas) rompe el build,
+porque Astro la renderizaría en lugar de los docs.
 
-Declare the config once in `docs.config.mjs`. Astro drops custom properties from integrations, so the
-loader cannot read the config from `astro.config.mjs`; both files import the same module instead.
+Declara la configuración una sola vez en `docs.config.mjs`. Astro descarta las propiedades
+personalizadas de las integraciones, así que el loader no puede leer la configuración desde
+`astro.config.mjs`; ambos archivos importan el mismo módulo.
 
 ```js
 // docs/docs.config.mjs
@@ -67,7 +71,7 @@ import { docs } from '@velezanthony/design/integration';
 import docsConfig from './docs.config.mjs';
 
 export default defineConfig({
-  site: 'https://velezanthony.github.io', // required
+  site: 'https://velezanthony.github.io', // obligatorio
   base: '/my-repo',
   trailingSlash: 'always',
   vite: { plugins: [tailwindcss()] },
@@ -86,136 +90,146 @@ export const collections = {
 };
 ```
 
-Put native pages in `docs/src/content/docs/`. The library injects every route (pages, `404`,
-`sitemap.xml`), the theme, the fonts (IBM Plex) and the search index; the consumer writes no layout,
-no CSS import and no `@source`.
+Pon las páginas nativas en `docs/src/content/docs/`. La librería inyecta todas las rutas (páginas,
+`404`, `sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
+escribe ningún layout, ningún import de CSS ni ningún `@source`.
 
-Native pages: `index.md` is the home, `guide.md` is `/guide/`, `guide.es.md` is its Spanish twin
-(the default locale has no suffix). The title is the first `h1` (or frontmatter `title`); a page
-without either fails the build.
+Páginas nativas: `index.md` es la home, `guide.md` es `/guide/`, `guide.es.md` es su gemela en
+español (el idioma por defecto no lleva sufijo). El título es el primer `h1` (o el `title` del
+frontmatter); una página sin ninguno de los dos rompe el build.
 
-## Config reference
+## Referencia de configuración
 
-Unknown keys fail the build with the path of the key (`ui.es.search.placeholdr`).
+Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.search.placeholdr`).
 
-| Option          | Meaning                                                                                                                         |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `name`          | Site name (header, footer, default title template). Required.                                                                   |
-| `locales`       | Languages, `en` and `es` have built-in UI texts. Default `['en']`.                                                              |
-| `defaultLocale` | Unsuffixed files and `/`. Default: the first locale.                                                                            |
-| `seo`           | Site-wide SEO base, see below.                                                                                                  |
-| `translations`  | `{ missing: MissingTranslation.LINK }` (`LINK`, `OMIT`, `FALLBACK`), default `LINK`. See below.                                  |
-| `ui`            | Overrides of UI texts per locale, merged key by key: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Unknown keys fail.        |
-| `external`      | Files outside `src/content/docs/` published as pages: `{ slug, file, locales?, seo?, translations? }`.                          |
-| `sidebar`       | Order of the sidebar: slugs and groups `{ label, slug?, items }`. The home is `'index'`. Unknown slugs fail the build. The rest goes after. |
-| `nav`           | Header items, each section with its own sidebar: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. See below. |
-| `footer`        | License, author and extra links of the footer: `{ license?, author?, links? }`. See below.                                      |
-| `editUrl`       | Repo edit base (`https://github.com/o/r/edit/main`). Adds "Edit this page" pointing at the real source file.                    |
-| `repoRoot`      | Repo root relative to the Astro project (default: nearest ancestor with `.git`). Needed for `editUrl` when there is no `.git`.  |
-| `favicon`       | Tab icon: a file in `public/` (`'favicon.svg'` or `'/favicon.svg'`, must exist) or an `https://` URL. Default: the package's own icon. See below. |
-| `gtmId`         | Google Tag Manager id. Optional override of `PUBLIC_GTM_ID` (the config wins over the environment). See [Analytics](#analytics). |
-| `privacyUrl`    | Optional override of the privacy policy link: a URL or one per locale. Default: the portfolio's page. See [Analytics](#analytics). |
-| `layout`        | Collapsible sidebars and reading / full width: `{ sidebar?, toc?, width?, toggles? }`. See below.                               |
-| `social`        | `{ github }`. Also feeds the footer's repository and "Report a bug" links.                                                       |
+| Opción          | Significado                                                                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`          | Nombre del sitio (cabecera, pie, plantilla de título por defecto). Obligatorio.                                                                          |
+| `locales`       | Idiomas; `en` y `es` tienen textos de UI incluidos. Por defecto `['en']`.                                                                                |
+| `defaultLocale` | Archivos sin sufijo y `/`. Por defecto: el primer idioma.                                                                                                |
+| `seo`           | Base SEO de todo el sitio, ver abajo.                                                                                                                    |
+| `translations`  | `{ missing: MissingTranslation.LINK }` (`LINK`, `OMIT`, `FALLBACK`), por defecto `LINK`. Ver abajo.                                                      |
+| `ui`            | Sobrescritura de textos de UI por idioma, combinada clave a clave: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Las claves desconocidas rompen.     |
+| `external`      | Archivos fuera de `src/content/docs/` publicados como páginas: `{ slug, file, locales?, seo?, translations? }`.                                          |
+| `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
+| `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
+| `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
+| `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
+| `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
+| `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
+| `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
+| `privacyUrl`    | Sobrescritura opcional del enlace a la política de privacidad: una URL o una por idioma. Por defecto: la página del portfolio. Ver [Analítica](#analítica). |
+| `layout`        | Barras laterales plegables y ancho de lectura / completo: `{ sidebar?, toc?, width?, toggles? }`. Ver abajo.                                             |
+| `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |
 
 ### `seo`
 
 ```js
 seo: {
-  titleTemplate: '%s | My repo', // default '%s · <name>', must contain %s
-  description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string or per locale
-  image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // under public/ or absolute https
+  titleTemplate: '%s | My repo', // por defecto '%s · <name>', debe contener %s
+  description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string o por idioma
+  image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // bajo public/ o https absoluta
 }
 ```
 
-A page overrides the base field by field: frontmatter `seo` on native pages, `external[].seo` on
-external ones. Shape: `{ title?, description?, image?: { src, alt? }, noindex? }`. The OG image should
-be about 1.91:1 and under 300 KB (a warning otherwise). `noindex` pages leave `sitemap.xml` and search.
+Una página sobrescribe la base campo a campo: `seo` en el frontmatter en las páginas nativas,
+`external[].seo` en las externas. Forma: `{ title?, description?, image?: { src, alt? }, noindex? }`.
+La imagen OG debería medir unos 1,91:1 y pesar menos de 300 KB (si no, avisa). Las páginas
+`noindex` salen de `sitemap.xml` y de la búsqueda.
 
 ### `favicon`
 
-Every page (docs, fallback routes and 404) emits `<link rel="icon" href type>`. By default the
-package serves its own icon at `<base>/_design/favicon.png`, a namespaced path that never collides
-with your `public/`. Set `favicon` to use yours:
+Todas las páginas (docs, rutas de respaldo y 404) emiten `<link rel="icon" href type>`. Por defecto
+el paquete sirve su propio icono en `<base>/_design/favicon.png`, una ruta con espacio de nombres que
+nunca choca con tu `public/`. Define `favicon` para usar el tuyo:
 
 ```js
-favicon: 'favicon.svg', // a file in public/ (with or without leading slash), href gets the base
-favicon: 'https://cdn.example.dev/icon.png', // used as-is, not checked (http:// is rejected)
+favicon: 'favicon.svg', // un archivo en public/ (con o sin barra inicial), el href recibe el base
+favicon: 'https://cdn.example.dev/icon.png', // se usa tal cual, sin comprobar (http:// se rechaza)
 ```
 
-`type` is inferred from the extension (`svg`, `png`, `ico`; anything else omits it). A missing
-`public/` file fails the build with the field and the file. The `public/favicon.svg` and
-`public/favicon.ico` that the Astro scaffold ships are NOT used unless you point `favicon` at one;
-delete them if you keep the default.
+`type` se infiere de la extensión (`svg`, `png`, `ico`; cualquier otra lo omite). Un archivo de
+`public/` que no exista rompe el build indicando el campo y el archivo. El `public/favicon.svg` y el
+`public/favicon.ico` que trae el scaffold de Astro NO se usan salvo que apuntes `favicon` a uno de
+ellos; bórralos si te quedas con el valor por defecto.
 
 ### `sidebar`
 
-Entries are slugs (`'guide/install'`) or groups `{ label, slug?, items }`. The home page is written
-`'index'` (its internal slug is empty). A slug that matches no page, in any language, fails the build
-with one aggregated error naming each of them and its path (`sidebar[2].items[0]`). Pages not listed
-go after the declared ones, by frontmatter `order`, then slug.
+Las entradas son slugs (`'guide/install'`) o grupos `{ label, slug?, items }`. La página home se
+escribe `'index'` (su slug interno está vacío). Un slug que no coincide con ninguna página, en
+ningún idioma, rompe el build con un único error agregado que nombra cada uno de ellos y su ruta
+(`sidebar[2].items[0]`). Las páginas no listadas van después de las declaradas, por `order` del
+frontmatter y luego por slug.
 
 ### `nav`
 
-Header items after the site name (from `lg`; below it they open the mobile Menu, above the sidebar).
-Without `nav` nothing changes: one top-level `sidebar` for the whole site.
+Elementos de la cabecera tras el nombre del sitio (desde `lg`; por debajo abren el Menu móvil, por
+encima de la barra lateral). Sin `nav` no cambia nada: una única `sidebar` de primer nivel para todo
+el sitio.
 
 ```js
 import { NavIcon } from '@velezanthony/design/integration';
 
 nav: [
-  { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // section
-  { label: 'Changelog', slug: 'changelog' }, // a single page
-  { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // external, https only
+  { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // sección
+  { label: 'Changelog', slug: 'changelog' }, // una sola página
+  { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // externo, solo https
 ],
 ```
 
-- **Section** `{ label, dir, sidebar? }`: every page (native or external) whose slug is `dir` or starts
-  with `dir/` belongs to it. Its pages show ONLY that section's tree on the left, and previous / next
-  never leave it. `sidebar` orders the section (same shape as the top-level one, slugs must live
-  inside `dir`); the rest follows by `order`, then slug, grouped under `dir` (the folder itself is not
-  a level). The item links to the `dir` index page if it exists, else to the section's first page.
-- **Page** `{ label, slug }`: a link to one page. That page belongs to no section.
-- **Link** `{ label, href, icon? }`: external, `https://` only, with `rel="noopener"` and an external
-  marker. With `icon` (`NavIcon.GITHUB`) only the icon is drawn and the label stays for screen readers.
-- **Pages outside every section** (the home, single pages, anything else) use the top-level `sidebar`
-  if you give one (entries that belong to a section are ignored) and, if not, an automatic list of
-  just those pages. Previous / next stay among them.
-- The current section or page carries `aria-current` (`page` on its own page, `true` on a section
-  when you are inside it). `label` can be a string or per locale; a missing locale falls back to the
-  default locale, like every other label. A page item whose page is not translated follows
-  `translations.missing` (`link`/`fallback` point to the original, `omit` hides the item).
-- Fails the build, aggregated with the config path (`nav[1].dir`): a `dir` with no pages, overlapping
-  dirs (equal, or one inside the other), a section `sidebar` slug that is unknown or outside its
-  `dir`, a page `slug` that is not a page or lives inside a section, and an `href` that is not https.
-- UI texts: `nav.label` (the nav landmark) and `nav.external` (the marker for screen readers).
+- **Sección** `{ label, dir, sidebar? }`: pertenece a ella toda página (nativa o externa) cuyo slug
+  sea `dir` o empiece por `dir/`. Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y
+  anterior / siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer
+  nivel, los slugs deben estar dentro de `dir`); el resto sigue por `order` y luego por slug,
+  agrupado bajo `dir` (la carpeta en sí no es un nivel). El elemento enlaza a la página índice de
+  `dir` si existe y, si no, a la primera página de la sección.
+- **Página** `{ label, slug }`: un enlace a una sola página. Esa página no pertenece a ninguna
+  sección.
+- **Enlace** `{ label, href, icon? }`: externo, solo `https://`, con `rel="noopener"` y un marcador
+  de enlace externo. Con `icon` (`NavIcon.GITHUB`) solo se dibuja el icono y el label queda para los
+  lectores de pantalla.
+- **Páginas fuera de toda sección** (la home, páginas sueltas, cualquier otra) usan la `sidebar` de
+  primer nivel si das una (se ignoran las entradas que pertenecen a una sección) y, si no, una lista
+  automática de solo esas páginas. Anterior / siguiente se quedan entre ellas.
+- La sección o página actual lleva `aria-current` (`page` en su propia página, `true` en una sección
+  cuando estás dentro). `label` puede ser un string o uno por idioma; un idioma ausente recurre al
+  idioma por defecto, como cualquier otro label. Un elemento de página cuya página no está traducida
+  sigue `translations.missing` (`link`/`fallback` apuntan al original, `omit` oculta el elemento).
+- Rompe el build, de forma agregada y con la ruta de configuración (`nav[1].dir`): un `dir` sin
+  páginas, `dir` solapados (iguales, o uno dentro de otro), un slug de `sidebar` de sección que es
+  desconocido o está fuera de su `dir`, un `slug` de página que no es una página o que vive dentro
+  de una sección, y un `href` que no es https.
+- Textos de UI: `nav.label` (el landmark de navegación) y `nav.external` (el marcador para lectores
+  de pantalla).
 
 ### `footer`
 
-One row, the same on every page (the 404 included). Everything is optional.
+Una fila, igual en todas las páginas (la 404 incluida). Todo es opcional.
 
 ```js
 footer: {
-  license: { label: 'MIT', href: 'https://github.com/o/r/blob/main/LICENSE' }, // or just 'MIT'
-  author: { name: 'Ana', href: 'https://ana.dev' }, // default: Anthony Vélez; false hides it
+  license: { label: 'MIT', href: 'https://github.com/o/r/blob/main/LICENSE' }, // o solo 'MIT'
+  author: { name: 'Ana', href: 'https://ana.dev' }, // por defecto: Anthony Vélez; false lo oculta
   links: [
-    { label: { en: 'Changelog', es: 'Cambios' }, slug: 'changelog' }, // a page
-    { label: 'Blog', href: 'https://blog.dev' }, // external, https only
+    { label: { en: 'Changelog', es: 'Cambios' }, slug: 'changelog' }, // una página
+    { label: 'Blog', href: 'https://blog.dev' }, // externo, solo https
   ],
 },
 ```
 
-- **Left**: `© <year> <name> by <author>` as one sentence, then the license. Give only its name
-  (`'MIT'`, `'Apache-2.0'`): the page reads "MIT License" / "Licencia MIT" (a link when you give `href`).
-- **Right** (a `<nav>`): your `links` first, then what the config already says: repository and
-  "Report a bug" (`<repo>/issues/new`) from `social.github`, the privacy policy (shown when analytics is on, or when you set `privacyUrl`) and, only
-  with analytics on, a "Cookie preferences" button that reopens the consent banner (withdrawing
-  consent is as easy as giving it).
-- `label` and the license label can be a string or per locale, with the usual fallback. A `slug` link
-  follows `translations.missing`; `omit` hides it where the page is not translated.
-- Fails the build, with the path (`footer.links[1].slug`): a `slug` that is not a page, a link with
-  both or neither of `slug` / `href`, and any `href` that is not https.
-- UI texts: `footer.label`, `footer.repository`, `footer.report`, `footer.by`.
+- **Izquierda**: `© <año> <name> by <author>` como una sola frase, y después la licencia. Da solo
+  su nombre (`'MIT'`, `'Apache-2.0'`): la página muestra "MIT License" / "Licencia MIT" (un enlace
+  cuando das `href`).
+- **Derecha** (un `<nav>`): primero tus `links`, y después lo que la configuración ya dice:
+  repositorio y "Report a bug" (`<repo>/issues/new`) a partir de `social.github`, la política de
+  privacidad (se muestra cuando la analítica está activada, o cuando defines `privacyUrl`) y, solo
+  con la analítica activada, un botón "Cookie preferences" que reabre el banner de consentimiento
+  (retirar el consentimiento es tan fácil como darlo).
+- `label` y el label de la licencia pueden ser un string o uno por idioma, con el recurso habitual.
+  Un enlace `slug` sigue `translations.missing`; `omit` lo oculta donde la página no está traducida.
+- Rompe el build, con la ruta (`footer.links[1].slug`): un `slug` que no es una página, un enlace con
+  ambos o ninguno de `slug` / `href`, y cualquier `href` que no sea https.
+- Textos de UI: `footer.label`, `footer.repository`, `footer.report`, `footer.by`.
 
 ### `layout`
 
@@ -223,63 +237,67 @@ footer: {
 import { LayoutWidth, PanelState } from '@velezanthony/design/integration';
 
 layout: {
-  sidebar: PanelState.OPEN, // 'open' (default) | 'collapsed': initial state of the navigation (lg and up)
-  toc: PanelState.OPEN, // same for "On this page" (xl and up)
-  width: LayoutWidth.READING, // 'reading' (default) | 'full'
-  toggles: true, // false removes every control and ignores what a visitor saved
+  sidebar: PanelState.OPEN, // 'open' (por defecto) | 'collapsed': estado inicial de la navegación (lg y superior)
+  toc: PanelState.OPEN, // igual para "On this page" (xl y superior)
+  width: LayoutWidth.READING, // 'reading' (por defecto) | 'full'
+  toggles: true, // false elimina todos los controles e ignora lo que guardó un visitante
 }
 ```
 
-Each side column has a chevron button that folds it into a 44px rail (a vertical label and the
-button; the panel is `inert` while folded). The header gets a Reading / Full switch (from `md` up).
-In `full` the page and the header bar use the whole window and the text measure grows a little; code,
-tables, tabs and images take the whole column whenever a side is folded or the width is `full`.
-Below `lg` nothing changes: the navigation stays behind the "Menu". The visitor's choice is kept in
-`localStorage` (`docs:layout`) and applied before first paint, so a reload does not jump. Animations
-respect `prefers-reduced-motion`. Unknown values fail validation.
+Cada columna lateral tiene un botón con chevron que la pliega en un raíl de 44px (una etiqueta
+vertical y el botón; el panel está `inert` mientras está plegado). La cabecera incorpora un
+interruptor Reading / Full (desde `md`). En `full` la página y la barra de la cabecera usan toda la
+ventana y la medida del texto crece un poco; el código, las tablas, las pestañas y las imágenes
+ocupan toda la columna siempre que un lado esté plegado o el ancho sea `full`. Por debajo de `lg` no
+cambia nada: la navegación se queda detrás del "Menu". La elección del visitante se guarda en
+`localStorage` (`docs:layout`) y se aplica antes del primer pintado, así que al recargar no hay
+saltos. Las animaciones respetan `prefers-reduced-motion`. Los valores desconocidos fallan la
+validación.
 
 ### `translations`
 
-`MissingTranslation` is exported from `@velezanthony/design/integration` (value and type), so the
-config reads `MissingTranslation.LINK`. In frontmatter YAML the same values are plain strings:
-`translations: link | omit | fallback`.
+`MissingTranslation` se exporta desde `@velezanthony/design/integration` (valor y tipo), así que la
+configuración se lee `MissingTranslation.LINK`. En el YAML del frontmatter los mismos valores son
+strings simples: `translations: link | omit | fallback`.
 
-When a page exists in one language and not in another, `translations.missing` decides what the other
-language shows: `link` (the sidebar links to the original, badged with its language), `omit` (nothing)
-or `fallback` (the original is rendered under the other language's URL with a notice, `noindex` and a
-canonical to the original). A page overrides the base: frontmatter `translations: omit` on native pages,
-`external[].translations` on external ones. Files of one page that disagree fail the build; a missing
-twin with no declared policy only warns.
+Cuando una página existe en un idioma y no en otro, `translations.missing` decide qué muestra el otro
+idioma: `link` (la barra lateral enlaza al original, con una insignia de su idioma), `omit` (nada) o
+`fallback` (el original se renderiza bajo la URL del otro idioma con un aviso, `noindex` y un
+canonical al original). Una página sobrescribe la base: `translations: omit` en el frontmatter de las
+páginas nativas, `external[].translations` en las externas. Los archivos de una misma página que no
+coinciden rompen el build; una gemela ausente sin política declarada solo avisa.
 
-### External files
+### Archivos externos
 
-`external[].file` is relative to the Astro project (`../CHANGELOG.md`). `CHANGELOG.es.md` is its
-Spanish twin. The default-locale file is required, `locales` makes the others required too. Relative
-links and images inside them are resolved against their real location, so they keep working on GitHub.
-Native pages link to each other with relative `.md` paths (`./guide.md`), and to an external file
-with its real relative path (`../../../../CHANGELOG.md#anchor` from `src/content/docs/`). Relative
-links to native or external files are resolved to the page URL in the language of the linking page
-(falling back like the sidebar does) and validated, `#anchor` included; a relative path to a file that
-is neither a page nor a declared asset fails the build. `https://` links are allowed but not validated.
+`external[].file` es relativo al proyecto de Astro (`../CHANGELOG.md`). `CHANGELOG.es.md` es su
+gemela en español. El archivo del idioma por defecto es obligatorio; `locales` hace obligatorios
+también los demás. Los enlaces e imágenes relativos que contienen se resuelven contra su ubicación
+real, así que siguen funcionando en GitHub. Las páginas nativas se enlazan entre sí con rutas `.md`
+relativas (`./guide.md`), y a un archivo externo con su ruta relativa real
+(`../../../../CHANGELOG.md#anchor` desde `src/content/docs/`). Los enlaces relativos a archivos
+nativos o externos se resuelven a la URL de la página en el idioma de la página que enlaza (con
+recurso como en la barra lateral) y se validan, `#anchor` incluido; una ruta relativa a un archivo
+que no es ni una página ni un asset declarado rompe el build. Los enlaces `https://` se permiten
+pero no se validan.
 
 ## Markdown
 
-Both syntaxes produce the same admonition, `note | info | tip | warning | danger | question`:
+Ambas sintaxis producen la misma admonición, `note | info | tip | warning | danger | question`:
 
 ```md
 > [!NOTE]
-> GitHub alert (NOTE, TIP, IMPORTANT, WARNING, CAUTION). Renders in GitHub too.
+> Alerta de GitHub (NOTE, TIP, IMPORTANT, WARNING, CAUTION). También se renderiza en GitHub.
 
 :::tip[Custom title]
-Directive admonition.
+Admonición con directiva.
 :::
 
 :::warning[Folded]{collapsed}
-Collapsed into a `<details>`.
+Plegada en un `<details>`.
 :::
 ```
 
-Tabs (without JavaScript the panels stack with visible labels):
+Pestañas (sin JavaScript los paneles se apilan con las etiquetas visibles):
 
 ```md
 ::::tabs
@@ -292,47 +310,56 @@ pnpm add x
 ::::
 ```
 
-Code blocks use Shiki (`github-light` / `github-dark`); `django` is highlighted as `jinja` and `pycon`
-as `python`. Not supported: `{ #id }` custom heading ids and Material icons (`:material-x:` stays text).
-Unknown container names (`:::foo`) fail the build; stray colons (`12:30`, `http://`) are left alone.
+Los bloques de código usan Shiki (`github-light` / `github-dark`); `django` se resalta como `jinja`
+y `pycon` como `python`. No soportado: ids de encabezado personalizados `{ #id }` ni iconos de
+Material (`:material-x:` se queda como texto). Los nombres de contenedor desconocidos (`:::foo`)
+rompen el build; los dos puntos sueltos (`12:30`, `http://`) se dejan en paz.
 
-## Transitions & image zoom
+## Transiciones y zoom de imágenes
 
-Pages use the View Transitions API, all of it behind `prefers-reduced-motion: no-preference` and with an instant fallback where the API is missing:
+Las páginas usan la View Transitions API, todo ello tras `prefers-reduced-motion: no-preference` y
+con un recurso instantáneo donde la API no existe:
 
-- **Navigation** (CSS only): the header, sidebar and table of contents stay still while the content fades in.
-- **Theme toggle**: the new theme is revealed with a circle that grows from the button.
-- **Tabs**: the panel cross-fades.
-- **Mobile menu**: opens and closes smoothly where `::details-content` is supported.
-- **Image zoom**: content images (`.prose img`) with a non-empty `alt` open in a modal `<dialog>` and morph from the thumbnail to the enlarged image. Decorative images (`alt=""`), images inside links, images declared smaller than 96px and images with `data-no-zoom` are left alone. The labels are the `zoom.open` and `zoom.close` UI strings.
+- **Navegación** (solo CSS): la cabecera, la barra lateral y la tabla de contenidos se quedan quietas
+  mientras el contenido aparece con un fundido.
+- **Interruptor de tema**: el nuevo tema se revela con un círculo que crece desde el botón.
+- **Pestañas**: el panel hace un fundido cruzado.
+- **Menú móvil**: se abre y se cierra con suavidad donde se soporta `::details-content`.
+- **Zoom de imágenes**: las imágenes de contenido (`.prose img`) con un `alt` no vacío se abren en un
+  `<dialog>` modal y se transforman desde la miniatura hasta la imagen ampliada. Las imágenes
+  decorativas (`alt=""`), las imágenes dentro de enlaces, las imágenes declaradas de menos de 96px y
+  las imágenes con `data-no-zoom` se dejan como están. Las etiquetas son los textos de UI `zoom.open`
+  y `zoom.close`.
 
-## Analytics
+## Analítica
 
-Analytics is **off by default**: with no Google Tag Manager id there is no GTM script, no consent
-banner, no "Cookie preferences" button and nothing stored in the browser. The id comes from the
-environment, never from committed code:
+La analítica está **desactivada por defecto**: sin un id de Google Tag Manager no hay script de GTM,
+ni banner de consentimiento, ni botón "Cookie preferences", ni nada guardado en el navegador. El id
+viene del entorno, nunca de código versionado:
 
 ```sh
-# .env (dev) or .env.production (build); both are git-ignored. Copy .env.example.
+# .env (dev) o .env.production (build); ambos están en el .gitignore. Copia .env.example.
 PUBLIC_GTM_ID=GTM-XXXXXXX
 ```
 
-With the id set, visitors get the consent banner, GTM loads only after they accept, and the footer
-gets a "Cookie preferences" button to change their mind. A value that is not `GTM-` plus capital
-letters and digits fails the build (the error names the variable, never prints the value). An empty
-or blank value counts as unset.
+Con el id definido, los visitantes ven el banner de consentimiento, GTM se carga solo después de que
+acepten, y el pie recibe un botón "Cookie preferences" para que cambien de opinión. Un valor que no
+sea `GTM-` más letras mayúsculas y dígitos rompe el build (el error nombra la variable, nunca imprime
+el valor). Un valor vacío o en blanco cuenta como no definido.
 
-- The variable is read with Vite's `loadEnv` for the current command (`dev` reads `.env.development`,
-  `build` reads `.env.production`); variables already in the process environment (CI) win over files.
-- `gtmId` in the config is an explicit override and wins over the environment. Use it only if a repo
-  must pin a container; leave it out otherwise.
-- Privacy policy: there is one, the portfolio's. By default the banner and footer link to
-  `https://velezanthony.github.io/privacidad/` (`es`) and `https://velezanthony.github.io/en/privacy/` (`en`), per
-  locale. Set `privacyUrl` (a string, or `{ en: '...', es: '...' }`) only to override it; it is also
-  linked from the footer without analytics. With analytics on, a locale with no resolvable URL fails the build.
+- La variable se lee con `loadEnv` de Vite para el comando actual (`dev` lee `.env.development`,
+  `build` lee `.env.production`); las variables que ya están en el entorno del proceso (CI) ganan a
+  los archivos.
+- `gtmId` en la configuración es una sobrescritura explícita y gana al entorno. Úsalo solo si un repo
+  debe fijar un contenedor; déjalo fuera en caso contrario.
+- Política de privacidad: existe una, la del portfolio. Por defecto el banner y el pie enlazan a
+  `https://velezanthony.github.io/privacidad/` (`es`) y `https://velezanthony.github.io/en/privacy/`
+  (`en`), según el idioma. Define `privacyUrl` (un string, o `{ en: '...', es: '...' }`) solo para
+  sobrescribirla; también se enlaza desde el pie sin analítica. Con la analítica activada, un idioma
+  sin URL resoluble rompe el build.
 
-In GitHub Actions pass the variable to the build step (the portfolio keeps it as a secret; a
-repository variable works too, the id is public in the page anyway):
+En GitHub Actions pasa la variable al paso de build (el portfolio la guarda como secret; una variable
+de repositorio también sirve, el id es público en la página de todos modos):
 
 ```yaml
 - run: npm run build
@@ -340,49 +367,52 @@ repository variable works too, the id is public in the page anyway):
     PUBLIC_GTM_ID: ${{ secrets.PUBLIC_GTM_ID }}
 ```
 
-Without it, local and fork builds stay untracked with no code path of their own.
+Sin ella, los builds locales y de forks quedan sin rastreo y sin ningún camino de código propio.
 
-## Strict build rules
+## Reglas estrictas de build
 
-The build fails on: a broken relative link or `#anchor`, a locale suffix that is not in `locales`
-(`x.fr.md`), a page without `h1` or `title`, an unknown admonition, a missing external file, a missing
-SEO image or `public/` favicon, conflicting translation policies and a sitemap over 50 000 URLs. Warnings: undeclared
-missing translations, an oversized or badly proportioned OG image, an unknown Shiki language.
+El build falla por: un enlace relativo o `#anchor` roto, un sufijo de idioma que no está en `locales`
+(`x.fr.md`), una página sin `h1` ni `title`, una admonición desconocida, un archivo externo ausente,
+una imagen SEO o un favicon de `public/` ausentes, políticas de traducción en conflicto y un sitemap
+de más de 50 000 URLs. Avisos: traducciones ausentes sin declarar, una imagen OG demasiado grande o
+mal proporcionada, un lenguaje de Shiki desconocido.
 
-## Deploying to GitHub Pages
+## Despliegue en GitHub Pages
 
-- `site` must be the user origin and `base` the repo path; the build is fully static.
-- `sitemap.xml` (with `hreflang` alternates) is emitted at `<base>/sitemap.xml`; there is no
-  `robots.txt` (the portfolio at the user origin owns it).
-- GitHub Pages serves a single `<base>/404.html`. It is in the default locale and swaps itself for
-  the language of the failed URL (`/repo/es/nope/` shows Spanish, the URL does not change).
-- The search index is built after `astro build` into `dist/pagefind/`; search needs a production build.
-- Theme and consent are stored in `localStorage` under `theme` and `consent`, so they are shared
-  with any site on the same origin that uses the same keys.
-- Installing from `github:` in CI needs a token if this repository is private.
+- `site` debe ser el origen del usuario y `base` la ruta del repo; el build es totalmente estático.
+- `sitemap.xml` (con alternativas `hreflang`) se emite en `<base>/sitemap.xml`; no hay `robots.txt`
+  (el portfolio en el origen del usuario es el dueño).
+- GitHub Pages sirve un único `<base>/404.html`. Está en el idioma por defecto y se cambia solo al
+  idioma de la URL fallida (`/repo/es/nope/` muestra español, la URL no cambia).
+- El índice de búsqueda se construye tras `astro build` en `dist/pagefind/`; la búsqueda necesita un
+  build de producción.
+- El tema y el consentimiento se guardan en `localStorage` bajo `theme` y `consent`, así que se
+  comparten con cualquier sitio del mismo origen que use las mismas claves.
+- Instalar desde `github:` en CI necesita un token si este repositorio es privado.
 
-## Development
+## Desarrollo
 
 ```sh
 npm install
-npm run dev           # minimal root page
-npm run playground:dev    # real-content consumer (snake-orm docs snapshot)
+npm run dev           # página raíz mínima
+npm run playground:dev    # consumidor con contenido real (snapshot de los docs de snake-orm)
 npm test              # Vitest
 npm run lint          # ESLint
 npm run format:check  # Prettier
 npm run check         # astro check
 ```
 
-`playground/` is a real consumer (npm workspace, the library is linked from `src/`, so edits hot-reload)
-built from the official Astro scaffold plus a snapshot of the snake-orm docs, and it follows the
-consumer setup above (it depends on `"file:.."` instead of `github:velezanthony/design#vX.Y.Z`). Regenerate it with
+`playground/` es un consumidor real (workspace de npm, la librería se enlaza desde `src/`, así que
+las ediciones se recargan en caliente) construido con el scaffold oficial de Astro más un snapshot de
+los docs de snake-orm, y sigue la configuración del consumidor de arriba (depende de `"file:.."` en
+lugar de `github:velezanthony/design#vX.Y.Z`). Regéneralo con
 `scripts/migrate-mkdocs/run-snake-orm.sh <snake-orm checkout> <python with griffe2md>`.
 
-CI runs lint, format, check and test on every push and pull request to `main`.
+CI ejecuta lint, format, check y test en cada push y pull request a `main`.
 
-## Releasing
+## Publicación de versiones
 
-Bump `version` in `package.json`, commit, then tag that commit and push the tag:
+Sube `version` en `package.json`, haz commit, etiqueta ese commit y sube la etiqueta:
 
 ```sh
 git tag v0.1.0
