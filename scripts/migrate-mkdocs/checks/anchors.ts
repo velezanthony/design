@@ -13,6 +13,9 @@ export interface AnchorLog {
   detail: string;
 }
 
+/** Sufijo de idioma de una página (`guia.es.md` -> `es`). */
+const LOCALE_SUFFIX = /\.([a-z]{2}(?:-[A-Za-z]{2,})?)\.md$/;
+
 const strip = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '');
 
 /** Aproximación de github-slugger: minúsculas, sin puntuación, espacios a guiones, `-n` si repite. */
@@ -58,7 +61,12 @@ export function fixAccentAnchors(files: ReadonlyMap<string, string>): {
         (whole, target: string, anchor: string) => {
           const targetFile =
             target === '' ? file : path.normalize(path.join(path.dirname(file), target));
-          const known = ids.get(targetFile);
+          /* Desde `x.es.md`, un enlace a `y.md` lleva a la gemela `y.es.md` (lo hace MkDocs con
+             i18n y también la librería): sus ids son los que cuentan, no los de `y.md`. */
+          const locale = LOCALE_SUFFIX.exec(file)?.[1];
+          const twin = locale && targetFile.replace(/\.md$/, `.${locale}.md`);
+          const known =
+            (twin && !LOCALE_SUFFIX.test(targetFile) && ids.get(twin)) || ids.get(targetFile);
           if (!known || known.has(anchor)) return whole;
           const match = [...known].find((id) => strip(id) === anchor);
           if (!match) return whole;

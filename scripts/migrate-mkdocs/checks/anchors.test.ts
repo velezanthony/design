@@ -35,4 +35,33 @@ describe('fixAccentAnchors', () => {
     const files = new Map([['a.md', md('# A', '## Año', '## Año', '[x](#ano-1)')]]);
     expect(fixAccentAnchors(files).files.get('a.md')).toContain('(#año-1)');
   });
+
+  it('desde una página traducida, un enlace a `x.md` se valida contra su gemela `x.es.md`', () => {
+    /* mkdocs-static-i18n resuelve `commands.md` a la gemela del idioma de la página; la
+       librería también. El id que importa es el del encabezado en español. */
+    const files = new Map([
+      ['index.es.md', md('# Inicio', '', '[c](users/commands.md#codigos-de-salida)')],
+      ['users/commands.md', md('# Commands', '', '## Exit codes')],
+      ['users/commands.es.md', md('# Comandos', '', '## Códigos de salida')],
+    ]);
+    const out = fixAccentAnchors(files);
+    expect(out.files.get('index.es.md')).toContain('(users/commands.md#códigos-de-salida)');
+  });
+
+  it('en la página sin traducir sigue usando el fichero tal cual', () => {
+    const files = new Map([
+      ['index.md', md('# Home', '', '[c](users/commands.md#codigos-de-salida)')],
+      ['users/commands.md', md('# Commands', '', '## Códigos de salida')],
+      ['users/commands.es.md', md('# Comandos', '', '## Otra cosa')],
+    ]);
+    expect(fixAccentAnchors(files).files.get('index.md')).toContain('#códigos-de-salida');
+  });
+
+  it('si la gemela no existe, cae al fichero literal', () => {
+    const files = new Map([
+      ['index.es.md', md('# Inicio', '', '[c](b.md#qué-tal)', '[d](b.md#que-tal)')],
+      ['b.md', md('# B', '', '## Qué tal')],
+    ]);
+    expect(fixAccentAnchors(files).files.get('index.es.md')).toContain('(b.md#qué-tal)');
+  });
 });
