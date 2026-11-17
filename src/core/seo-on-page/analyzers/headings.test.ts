@@ -3,7 +3,8 @@ import type { HeadingNode } from '../tree/types';
 import { analyzeHeadings } from './headings';
 
 const h = (depth: number, text = `h${depth}`): HeadingNode => ({ depth, slug: text, text });
-const analyze = (headings: HeadingNode[]) => analyzeHeadings({ slug: 'a', locale: 'en' }, headings);
+const analyze = (headings: HeadingNode[]) =>
+  analyzeHeadings({ slug: 'a', locale: 'en', kind: 'native', sourcePath: 'docs/a.md' }, headings);
 
 describe('analyzeHeadings', () => {
   it('estructura correcta: sin problemas', () => {
@@ -37,5 +38,14 @@ describe('analyzeHeadings', () => {
   it('un salto por cada vez que ocurre, en orden', () => {
     const kinds = analyze([h(1), h(3), h(4), h(6)]).map((issue) => issue.value);
     expect(kinds).toEqual([3, 6]);
+  });
+
+  it('cada problema dice cómo arreglarlo, con el archivo y el encabezado concretos', () => {
+    const [skip] = analyze([h(1), h(2), h(4, 'deep')]);
+    expect(skip!.fix).toContain('docs/a.md');
+    expect(skip!.fix).toContain('«deep»');
+    expect(skip!.fix).toContain('H3');
+    expect(analyze([h(2)])[0]!.fix).toContain('# Título');
+    expect(analyze([h(1), h(1)])[0]!.fix).toContain('un solo `#`');
   });
 });

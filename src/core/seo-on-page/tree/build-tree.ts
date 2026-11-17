@@ -82,7 +82,7 @@ export function buildSeoTree(input: SeoInput): SeoTree {
         ...analyzeMetadata(page),
         ...(duplicates.get(keyOf(page)) ?? []),
         ...analyzeHeadings(page, page.headings),
-        ...analyzeMultilingual(page, page.locales, page.policy),
+        ...analyzeMultilingual(page, page.locales, page.policy, config.defaultLocale),
       ],
     })),
   };

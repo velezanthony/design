@@ -13,6 +13,8 @@ export function docsSchema() {
     locale: z.string(),
     title: z.string(),
     sourcePath: z.string(),
+    /** De dónde viene la página: un `.md` de `content` o una entrada de `external[]` (su seo y sus traducciones viven en docs.config.mjs, no en un frontmatter). */
+    kind: z.enum(['native', 'external']).default('native'),
     order: z.number().optional(),
     seo: PageSeoOverrideSchema.optional(),
     translations: MissingTranslationSchema.optional(),

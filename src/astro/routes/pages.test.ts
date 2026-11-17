@@ -39,6 +39,17 @@ describe('pagesOf', () => {
   });
 });
 
+describe('pagesOf: kind', () => {
+  it('conserva si la página es externa, y sin dato es nativa', () => {
+    const [external, native] = pagesOf([
+      data('changelog', 'en', { kind: 'external' }),
+      data('guide', 'en'),
+    ]);
+    expect(external!.kind).toBe('external');
+    expect(native!.kind).toBe('native');
+  });
+});
+
 describe('sitemapXml', () => {
   it('lista solo páginas reales, con alternates y base', () => {
     const xml = sitemapXml([data('guide', 'en'), data('guide', 'es')], cfg);

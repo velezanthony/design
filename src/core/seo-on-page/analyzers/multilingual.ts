@@ -1,6 +1,7 @@
 import type { MissingTranslation } from '../../i18n/translation-policy';
 import { MissingTranslation as Policy } from '../../i18n/translation-policy';
 import { IssueKind, IssueSeverity, type Issue, type SeoLocaleEntry } from '../tree/types';
+import { fixFor, type FixPage } from './fixes';
 import { makeIssue } from './issue';
 
 /**
@@ -10,9 +11,10 @@ import { makeIssue } from './issue';
  * definir es el conflicto que `resolvePolicies` reporta: archivos del grupo que se contradicen.
  */
 export function analyzeMultilingual(
-  page: { slug: string; locale: string },
+  page: FixPage,
   locales: SeoLocaleEntry[],
   policy: MissingTranslation | undefined,
+  defaultLocale: string,
 ): Issue[] {
   const issues: Issue[] = [];
   if (policy === undefined) {
@@ -21,6 +23,14 @@ export function analyzeMultilingual(
         IssueKind.TRANSLATION_POLICY_CONFLICT,
         page,
         'Los archivos del grupo declaran políticas de traducción distintas.',
+        {
+          fix: fixFor(IssueKind.TRANSLATION_POLICY_CONFLICT, page, {
+            defaultLocale,
+            groupLocales: locales
+              .filter((entry) => entry.status === 'present')
+              .map((entry) => entry.locale),
+          }),
+        },
       ),
     );
   }
@@ -34,7 +44,13 @@ export function analyzeMultilingual(
         explicit
           ? `Sin traducción a «${entry.locale}» (política «${entry.policy}»).`
           : `Falta la traducción a «${entry.locale}» y no se declaró qué hacer.`,
-        { severity: explicit ? IssueSeverity.INFO : IssueSeverity.WARNING },
+        {
+          severity: explicit ? IssueSeverity.INFO : IssueSeverity.WARNING,
+          fix: fixFor(IssueKind.TRANSLATION_MISSING, page, {
+            defaultLocale,
+            missingLocale: entry.locale,
+          }),
+        },
       ),
     );
   }

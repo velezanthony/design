@@ -161,3 +161,28 @@ describe('analyzeDuplicates', () => {
     expect(analyzeDuplicates(pages)).toEqual([]);
   });
 });
+
+describe('analyzeMetadata: cómo arreglarlo', () => {
+  it('cada problema lleva su arreglo, con la clave y el archivo de la página', () => {
+    const [title] = analyzeMetadata(facts('a', { titleLength: 72 }));
+    expect(title!.fix).toContain('seo.title');
+    expect(title!.fix).toContain('a.md');
+    const [description] = analyzeMetadata(facts('a', { descriptionSource: 'none' }));
+    expect(description!.fix).toContain('seo.description');
+  });
+
+  it('en una página externa apunta a docs.config.mjs', () => {
+    const external = { ...facts('changelog', { titleLength: 72 }), kind: 'external' as const };
+    const [issue] = analyzeMetadata(external);
+    expect(issue!.fix).toContain('external[].seo.title');
+    expect(issue!.fix).toContain('docs.config.mjs');
+  });
+
+  it('un duplicado nombra con quién choca', () => {
+    const issues = analyzeDuplicates([facts('a'), { ...facts('b'), meta: facts('a').meta }]);
+    const titleIssue = issues.find(
+      (issue) => issue.kind === 'duplicate-title' && issue.slug === 'a',
+    );
+    expect(titleIssue!.fix).toContain('«b»');
+  });
+});

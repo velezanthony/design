@@ -125,25 +125,32 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
     ) : (
       <ul class="flex flex-col gap-2">
         {page.issues.map((issue) => (
-          <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <IssueBadge issue={issue} />
-            <span class="text-ink">{issue.message}</span>
-            {issue.related && issue.related.length > 0 && (
-              <span class="text-muted">
-                Con:{' '}
-                {issue.related.map((other, index) => (
-                  <>
-                    {index > 0 && ', '}
-                    <a
-                      data-related
-                      href={inspectorHref(other)}
-                      class="font-mono text-accent underline underline-offset-[0.2em]"
-                    >
-                      {other.slug || '/'}
-                    </a>
-                  </>
-                ))}
-              </span>
+          <li class="flex flex-col gap-1">
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <IssueBadge issue={issue} />
+              <span class="text-ink">{issue.message}</span>
+              {issue.related && issue.related.length > 0 && (
+                <span class="text-muted">
+                  Con:{' '}
+                  {issue.related.map((other, index) => (
+                    <>
+                      {index > 0 && ', '}
+                      <a
+                        data-related
+                        href={inspectorHref(other)}
+                        class="font-mono text-accent underline underline-offset-[0.2em]"
+                      >
+                        {other.slug || '/'}
+                      </a>
+                    </>
+                  ))}
+                </span>
+              )}
+            </div>
+            {issue.fix && (
+              <p data-fix class="text-sm text-muted">
+                <span class="label">Arreglo</span> {issue.fix}
+              </p>
             )}
           </li>
         ))}

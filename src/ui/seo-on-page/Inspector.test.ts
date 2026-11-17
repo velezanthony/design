@@ -99,6 +99,25 @@ describe('Inspector', () => {
     expect(text(doc.querySelector('[data-issues]'))).toContain('La página no tiene ningún H1.');
   });
 
+  it('cada problema enseña cómo arreglarlo bajo su mensaje', async () => {
+    const page = seoPage({
+      issues: [
+        {
+          kind: 'title-too-long',
+          severity: 'warning',
+          slug: 'guide',
+          locale: 'en',
+          message: 'El título se recorta en los resultados.',
+          fix: 'Acorta el título: `seo.title` en el frontmatter de `guide.md`.',
+        },
+      ],
+    });
+    const doc = await render(Inspector, props({ page }));
+    const fix = doc.querySelector('[data-issues] [data-fix]');
+    expect(text(fix)).toContain('seo.title');
+    expect(text(fix)).toContain('guide.md');
+  });
+
   it('sin problemas lo dice', async () => {
     const doc = await render(Inspector, props());
     expect(text(doc.querySelector('[data-issues]'))).toContain('Sin problemas');

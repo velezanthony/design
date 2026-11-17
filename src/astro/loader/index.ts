@@ -160,6 +160,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
         slug: page.slug,
         locale: page.locale,
         title: page.title,
+        kind: page.kind,
         sourcePath: path.relative(root, file),
         ...(page.order !== undefined && { order: page.order }),
         ...(page.seo && { seo: page.seo }),

@@ -73,6 +73,30 @@ describe('seoInputOf', () => {
     ]);
   });
 
+  it('la página externa llega como external (sus seo y translations viven en docs.config.mjs)', () => {
+    const [external, native] = seoInputOf(
+      [
+        {
+          data: {
+            slug: 'changelog',
+            locale: 'en',
+            title: 'C',
+            sourcePath: 'CHANGELOG.md',
+            kind: 'external',
+          },
+          headings: [],
+        },
+        {
+          data: { slug: 'a', locale: 'en', title: 'A', sourcePath: 'a.md', kind: 'native' },
+          headings: [],
+        },
+      ],
+      config as never,
+    ).pages;
+    expect(external!.kind).toBe('external');
+    expect(native!.kind).toBe('native');
+  });
+
   it('conserva seo y translations de la página', () => {
     const [page] = seoInputOf(
       [

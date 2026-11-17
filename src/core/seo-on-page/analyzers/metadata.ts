@@ -1,10 +1,12 @@
 import { THRESHOLDS } from '../thresholds';
 import { IssueKind, type Issue, type SeoPageFacts } from '../tree/types';
+import { fixFor } from './fixes';
 import { makeIssue } from './issue';
 
 /** Título y descripción de UNA página contra los límites del resultado de búsqueda. */
 export function analyzeMetadata(page: SeoPageFacts): Issue[] {
   const { meta } = page;
+  const fix = (kind: IssueKind) => fixFor(kind, page);
   const issues: Issue[] = [];
 
   if (meta.titleLength > THRESHOLDS.titleMax) {
@@ -12,6 +14,7 @@ export function analyzeMetadata(page: SeoPageFacts): Issue[] {
       makeIssue(IssueKind.TITLE_TOO_LONG, page, 'El título se recorta en los resultados.', {
         value: meta.titleLength,
         limit: THRESHOLDS.titleMax,
+        fix: fix(IssueKind.TITLE_TOO_LONG),
       }),
     );
   } else if (meta.titleLength < THRESHOLDS.titleMin) {
@@ -23,13 +26,18 @@ export function analyzeMetadata(page: SeoPageFacts): Issue[] {
         {
           value: meta.titleLength,
           limit: THRESHOLDS.titleMin,
+          fix: fix(IssueKind.TITLE_TOO_SHORT),
         },
       ),
     );
   }
 
   if (meta.descriptionSource === 'none') {
-    issues.push(makeIssue(IssueKind.DESCRIPTION_MISSING, page, 'La página no tiene descripción.'));
+    issues.push(
+      makeIssue(IssueKind.DESCRIPTION_MISSING, page, 'La página no tiene descripción.', {
+        fix: fix(IssueKind.DESCRIPTION_MISSING),
+      }),
+    );
   } else if (meta.descriptionSource === 'site') {
     // La del sitio ya se juzga una vez; medirla en cada página repetiría el mismo aviso.
     issues.push(
@@ -37,6 +45,7 @@ export function analyzeMetadata(page: SeoPageFacts): Issue[] {
         IssueKind.DESCRIPTION_INHERITED,
         page,
         'La descripción es la del sitio, no una propia.',
+        { fix: fix(IssueKind.DESCRIPTION_INHERITED) },
       ),
     );
   } else if (meta.descriptionLength !== undefined) {
@@ -49,6 +58,7 @@ export function analyzeMetadata(page: SeoPageFacts): Issue[] {
           {
             value: meta.descriptionLength,
             limit: THRESHOLDS.descriptionMax,
+            fix: fix(IssueKind.DESCRIPTION_TOO_LONG),
           },
         ),
       );
@@ -61,6 +71,7 @@ export function analyzeMetadata(page: SeoPageFacts): Issue[] {
           {
             value: meta.descriptionLength,
             limit: THRESHOLDS.descriptionMin,
+            fix: fix(IssueKind.DESCRIPTION_TOO_SHORT),
           },
         ),
       );
@@ -105,7 +116,11 @@ export function analyzeDuplicates(pages: SeoPageFacts[]): Issue[] {
           IssueKind.DUPLICATE_TITLE,
           page,
           'Otra página del mismo idioma tiene el mismo título.',
-          { value: group.length, related: othersIn(group, page) },
+          {
+            value: group.length,
+            related: othersIn(group, page),
+            fix: fixFor(IssueKind.DUPLICATE_TITLE, page, { related: othersIn(group, page) }),
+          },
         ),
       ),
     ),
@@ -115,7 +130,11 @@ export function analyzeDuplicates(pages: SeoPageFacts[]): Issue[] {
           IssueKind.DUPLICATE_DESCRIPTION,
           page,
           'Otra página del mismo idioma tiene la misma descripción.',
-          { value: group.length, related: othersIn(group, page) },
+          {
+            value: group.length,
+            related: othersIn(group, page),
+            fix: fixFor(IssueKind.DUPLICATE_DESCRIPTION, page, { related: othersIn(group, page) }),
+          },
         ),
       ),
     ),

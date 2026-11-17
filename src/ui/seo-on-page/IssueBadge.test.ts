@@ -33,4 +33,13 @@ describe('IssueBadge', () => {
     const doc = await render(IssueBadge, { issue: issue({ message: 'Salto de H2 a H4' }) });
     expect(doc.querySelector('[title="Salto de H2 a H4"]')).not.toBeNull();
   });
+
+  it('con arreglo, la ayuda al pasar el ratón añade cómo arreglarlo', async () => {
+    const doc = await render(IssueBadge, {
+      issue: issue({ message: 'Título largo.', fix: 'Acorta `seo.title` en a.md.' }),
+    });
+    const title = doc.querySelector('[data-severity]')!.getAttribute('title');
+    expect(title).toContain('Título largo.');
+    expect(title).toContain('Cómo arreglarlo: Acorta `seo.title` en a.md.');
+  });
 });

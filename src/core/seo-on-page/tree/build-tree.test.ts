@@ -178,4 +178,35 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
       );
     },
   );
+
+  it('todo problema lleva su arreglo, con el archivo real de la página', () => {
+    const tree = buildSeoTree(input);
+    const issues = tree.pages.flatMap((p) => p.issues.map((issue) => ({ page: p, issue })));
+    expect(issues.length).toBeGreaterThan(0);
+    for (const { issue } of issues) expect(issue.fix).toBeTruthy();
+    const guide = tree.pages.find((p) => p.slug === 'guide' && p.locale === 'en')!;
+    const skip = guide.issues.find((i) => i.kind === 'heading-skip');
+    expect(skip!.fix).toContain('guide.md');
+    const missing = guide.issues.find((i) => i.kind === 'translation-missing');
+    expect(missing!.fix).toContain('guide.es.md');
+  });
+
+  it('una página externa recibe arreglos que apuntan a docs.config.mjs', () => {
+    const external = buildSeoTree({
+      ...input,
+      pages: [
+        page({
+          slug: 'changelog',
+          locale: 'en',
+          title: 'Changelog',
+          kind: 'external',
+          sourcePath: 'CHANGELOG.md',
+        }),
+      ],
+    });
+    const fixes = external.pages[0]!.issues.map((issue) => issue.fix);
+    expect(fixes.some((fix) => fix?.includes('external[].translations'))).toBe(true);
+    expect(fixes.some((fix) => fix?.includes('external[].seo.description'))).toBe(true);
+    expect(fixes.every((fix) => !fix?.includes('frontmatter'))).toBe(true);
+  });
 });

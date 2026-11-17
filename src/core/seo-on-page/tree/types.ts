@@ -31,6 +31,8 @@ export interface Issue {
   locale: Locale;
   /** Mensaje corto en español para el panel. */
   message: string;
+  /** Qué cambiar y dónde (archivo y clave reales de la página), en una frase. Lo rellenan los analizadores. */
+  fix?: string;
   /** Lo medido, cuando procede (la longitud, el número de H1…): la UI pinta «72 / 60». */
   value?: number;
   /** El límite contra el que se midió `value`. */

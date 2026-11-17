@@ -17,7 +17,7 @@ const SEVERITY: Record<IssueKind, IssueSeverity> = {
   [IssueKind.TRANSLATION_POLICY_CONFLICT]: IssueSeverity.ERROR,
 };
 
-type Extra = Partial<Pick<Issue, 'severity' | 'value' | 'limit' | 'related'>>;
+type Extra = Partial<Pick<Issue, 'severity' | 'value' | 'limit' | 'related' | 'fix'>>;
 
 /** Construye un `Issue` de la página con la gravedad por defecto de su tipo (salvo que se fuerce). */
 export function makeIssue(
@@ -32,6 +32,7 @@ export function makeIssue(
     slug: page.slug,
     locale: page.locale,
     message,
+    ...(extra.fix !== undefined && { fix: extra.fix }),
     ...(extra.value !== undefined && { value: extra.value }),
     ...(extra.limit !== undefined && { limit: extra.limit }),
     ...(extra.related !== undefined && { related: extra.related }),

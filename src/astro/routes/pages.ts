@@ -13,6 +13,8 @@ export interface DocData {
   locale: string;
   title: string;
   sourcePath: string;
+  /** Nativa o `external[]`; sin dato, nativa. */
+  kind?: Page['kind'];
   order?: number;
   seo?: Page['seo'];
   translations?: Page['translations'];
@@ -38,7 +40,7 @@ export const pagesOf = (data: DocData[]): Page[] =>
     slug: item.slug,
     locale: item.locale,
     title: item.title,
-    kind: 'native',
+    kind: item.kind ?? 'native',
     sourcePath: item.sourcePath,
     body: '',
     ...(item.order !== undefined && { order: item.order }),

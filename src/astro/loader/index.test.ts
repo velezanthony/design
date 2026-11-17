@@ -116,6 +116,13 @@ describe('docsSchema', () => {
     expect(data.translations).toBe('omit');
   });
 
+  it('kind es native salvo que se diga lo contrario', () => {
+    const base = { slug: 'a', locale: 'en', title: 'A', sourcePath: 'a.md' };
+    expect(docsSchema().parse(base).kind).toBe('native');
+    expect(docsSchema().parse({ ...base, kind: 'external' }).kind).toBe('external');
+    expect(() => docsSchema().parse({ ...base, kind: 'remote' })).toThrow();
+  });
+
   it('rechaza un seo o un translations inválido', () => {
     const base = { slug: 'a', locale: 'en', title: 'A', sourcePath: 'a.md' };
     expect(() => docsSchema().parse({ ...base, seo: { titel: 'x' } })).toThrow();
@@ -173,6 +180,17 @@ describe('docsLoader: frontmatter, seo y translations', () => {
         translations: 'fallback',
       });
     }
+  });
+
+  it('cada entrada guarda de dónde viene: nativa o external[]', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('CHANGELOG.md', '# Changelog\n');
+    const { entries } = await load({
+      name: 'T',
+      external: [{ slug: 'changelog', file: './CHANGELOG.md' }],
+    });
+    expect(entries.get('en/index')!.data.kind).toBe('native');
+    expect(entries.get('en/changelog')!.data.kind).toBe('external');
   });
 
   it('seo inválido en una externa rompe con la ruta external[i].seo.<campo>', async () => {

@@ -29,7 +29,7 @@ export function seoInputOf(
     slug: data.slug,
     locale: data.locale,
     title: data.title,
-    kind: 'native',
+    kind: data.kind ?? 'native',
     sourcePath: data.sourcePath,
     ...(data.seo && { seo: data.seo }),
     ...(data.translations && { translations: data.translations }),
