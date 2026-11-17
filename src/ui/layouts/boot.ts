@@ -8,6 +8,7 @@ import { initSearch, initSearchShortcut } from '../../client/search';
 import { initSidebarScroll } from '../../client/layout/sidebar-scroll';
 import { storageOf } from '../../client/preferences/storage';
 import { initTabs } from '../../client/content/tabs';
+import { initAutoSubmit } from '../../client/forms/auto-submit';
 import { initTheme } from '../../client/preferences/theme';
 import type { MotionPreference } from '../../client/transition';
 import { initCurrentYear } from '../../client/content/year';
@@ -79,6 +80,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
   for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
   initSearchShortcut(doc);
   initCurrentYear(doc);
+  initAutoSubmit(doc);
   initTabs(doc, env.motion);
 
   const main = doc.querySelector<HTMLElement>('main');
