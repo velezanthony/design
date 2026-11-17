@@ -86,6 +86,15 @@ librería; el esquema es estricto, así que una clave mal escrita rompe el build
 ## 4. `docs/astro.config.mjs`
 
 ```js
+import { defineDocsSite } from '@velezanthony/design/integration';
+import docsConfig from './docs.config.mjs';
+
+export default defineDocsSite(docsConfig, { base: '/mi-repo' });
+```
+
+Equivale a la forma larga, que sigue valiendo si necesitas control total:
+
+```js
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import { docs } from '@velezanthony/design/integration';
@@ -100,6 +109,17 @@ export default defineConfig({
 });
 ```
 
+- `defineDocsSite(docsConfig, options)` es una función pura que devuelve esa config. `base` es
+  **obligatorio** y no tiene valor por defecto: cada repo tiene el suyo. Debe empezar por `/`
+  (`'/'` vale para un sitio de usuario u organización); si falta o no es una ruta, falla con un error
+  que lo dice.
+- `site` es opcional en la forma corta y por defecto es `https://velezanthony.github.io`
+  (`options.site` lo cambia). En la larga es **obligatorio**: sin él, la integración falla en
+  `astro:config:setup` porque el sitemap y las URLs canónicas necesitan un origen absoluto.
+- Más config de Astro, en `options.astro`, se fusiona: `integrations` y `vite.plugins` se añaden
+  después de `docs()` y de Tailwind, el resto de claves de `vite` se fusionan en superficial y las
+  demás claves de primer nivel pisan los valores por defecto. `site` y `base` van en `options`.
+  `markdown.processor` debe seguir siendo Sätteri: si no, `docs()` falla con un error claro.
 - `docs(docsConfig)` recibe la config. Editar `docs.config.mjs` reinicia `astro dev`: la integración
   le pide a Astro que vigile ese archivo, porque por sí solo solo vigila `astro.config.mjs`.
 - `site` es **obligatorio**: sin él, la integración falla en `astro:config:setup` porque el sitemap y
@@ -108,7 +128,7 @@ export default defineConfig({
   `https://<usuario>.github.io/<repo>/`. Todos los enlaces internos, la búsqueda y la 404 lo
   respetan.
 - `trailingSlash: 'always'` coincide con cómo GitHub Pages sirve los directorios (`/guia/`).
-- El plugin de Tailwind lo añade el consumidor porque es suyo (_peer_); la librería pone el CSS.
+- El plugin de Tailwind sale del _peer_ `@tailwindcss/vite`, que instala el consumidor; la librería pone el CSS.
 
 ## 5. `docs/src/content.config.ts`
 

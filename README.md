@@ -66,6 +66,31 @@ export default defineDocsConfig({
 
 ```js
 // docs/astro.config.mjs
+import { defineDocsSite } from '@velezanthony/design/integration';
+import docsConfig from './docs.config.mjs';
+
+export default defineDocsSite(docsConfig, { base: '/my-repo' });
+```
+
+`defineDocsSite(docsConfig, options)` es una función pura que devuelve la config de Astro. `base` es
+obligatorio (la ruta del repo en GitHub Pages; `'/'` en un sitio de usuario u organización) y falla
+con un error claro si falta o no empieza por `/`. `site` es opcional y por defecto es
+`https://velezanthony.github.io`. Para añadir más config de Astro usa la clave `astro`, que se
+fusiona: `integrations` y `vite.plugins` se añaden después de `docs()` y de Tailwind, el resto de
+claves de `vite` se fusionan en superficial y las demás claves de primer nivel pisan los valores por
+defecto (por ejemplo `trailingSlash`).
+
+```js
+export default defineDocsSite(docsConfig, {
+  base: '/my-repo',
+  site: 'https://example.dev',
+  astro: { integrations: [miIntegracion()], vite: { plugins: [miPlugin()] } },
+});
+```
+
+Equivale a esta forma larga, que sigue funcionando:
+
+```js
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import { docs } from '@velezanthony/design/integration';
