@@ -347,6 +347,54 @@ describe('astro:config:setup: rutas inyectadas', () => {
   });
 });
 
+describe('astro:config:setup: página de privacidad', () => {
+  afterEach(() => vi.unstubAllEnvs());
+  const routesOf = async (userConfig: Parameters<typeof docs>[0]) => {
+    const { injectRoute } = await runSetup(satteri(), {}, userConfig);
+    return injectRoute.mock.calls.map(([route]) => route as { pattern: string; entrypoint: URL });
+  };
+  const patterns = async (userConfig: Parameters<typeof docs>[0]) =>
+    (await routesOf(userConfig)).map((r) => r.pattern);
+
+  it('por defecto no se inyecta ninguna ruta de privacidad', async () => {
+    expect(await patterns({ name: 'x', locales: ['es', 'en'] })).not.toContain('/[privacy]');
+  });
+
+  it('`page: false` tampoco', async () => {
+    const all = await patterns({ name: 'x', locales: ['es', 'en'], privacy: { page: false } });
+    expect(all.some((p) => p.includes('[privacy]'))).toBe(false);
+  });
+
+  it('`page: true` inyecta la página por defecto y la de cada otro idioma, prerenderizadas', async () => {
+    const routes = await routesOf({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
+    const privacy = routes.filter((r) => r.pattern.includes('[privacy]'));
+    expect(privacy.map((r) => r.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
+    expect(privacy.map((r) => String(r.entrypoint).split('/').at(-1))).toEqual([
+      'privacy.astro',
+      'privacy-locale.astro',
+    ]);
+    expect(privacy.every((r) => (r as { prerender?: boolean }).prerender === true)).toBe(true);
+  });
+
+  it('monolingüe: solo la ruta del idioma por defecto', async () => {
+    const all = await patterns({ name: 'x', privacy: { page: true } });
+    expect(all).toContain('/[privacy]');
+    expect(all).not.toContain('/[locale]/[privacy]');
+  });
+
+  it('el enlace de privacidad del módulo virtual apunta a la página local, con la base', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+    const data = await virtualData({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
+    expect(data.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
+  });
+
+  it('sin `page` el enlace sigue siendo el del portfolio', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+    const data = await virtualData({ name: 'x', locales: ['es', 'en'] });
+    expect(data.privacyUrl.es).toBe('https://velezanthony.github.io/privacidad/');
+  });
+});
+
 describe('astro:config:setup: analítica desde el entorno', () => {
   afterEach(() => vi.unstubAllEnvs());
   const two = { name: 'x', locales: ['en', 'es'] };

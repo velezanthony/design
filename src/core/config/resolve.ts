@@ -3,6 +3,7 @@ import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
+import { DEFAULT_CONTROLLER, type Controller } from '../privacy/copy';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
 import {
@@ -39,6 +40,8 @@ export interface ResolvedConfig {
   privacyUrl?: Label;
   /** ID del contenedor de GTM de la config (anula al del entorno); la integración fija el efectivo. */
   gtmId?: string;
+  /** Página de privacidad propia: desactivada por defecto; el responsable sale en el texto. */
+  privacy: { page: boolean; controller: Controller };
   social?: { github?: string };
   layout: ResolvedLayout;
 }
@@ -77,5 +80,9 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     ui: config.ui ?? {},
     external: config.external ?? [],
     layout: resolveLayout(config.layout),
+    privacy: {
+      page: config.privacy?.page ?? false,
+      controller: config.privacy?.controller ?? { ...DEFAULT_CONTROLLER },
+    },
   };
 }

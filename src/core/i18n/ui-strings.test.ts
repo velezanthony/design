@@ -42,6 +42,12 @@ describe('catálogo', () => {
     }
   });
 
+  it('cubre los textos de la página de privacidad', () => {
+    for (const key of ['privacy.eyebrow', 'privacy.updated', 'privacy.description'] as const) {
+      expect(uiKeys).toContain(key);
+    }
+  });
+
   it('cada idioma incluido tiene nombre propio', () => {
     expect(localeNames).toEqual({ en: 'English', es: 'Español' });
   });

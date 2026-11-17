@@ -15,6 +15,10 @@ const en = {
   'consent.privacy': 'Privacy policy',
   'consent.label': 'Cookie notice',
   'consent.preferences': 'Cookie preferences',
+  'privacy.eyebrow': 'Privacy',
+  'privacy.updated': 'Last updated',
+  'privacy.description':
+    'How this site and the documentation sites of the projects handle your data.',
   'footer.label': 'Site links',
   'footer.repository': 'Repository',
   'footer.report': 'Report a bug',
@@ -79,6 +83,10 @@ const es: UiStrings = {
   'consent.privacy': 'Política de privacidad',
   'consent.label': 'Aviso de cookies',
   'consent.preferences': 'Preferencias de cookies',
+  'privacy.eyebrow': 'Privacidad',
+  'privacy.updated': 'Última actualización',
+  'privacy.description':
+    'Cómo tratan tus datos esta web y las webs de documentación de los proyectos.',
   'footer.label': 'Enlaces del sitio',
   'footer.repository': 'Repositorio',
   'footer.report': 'Informar de un error',

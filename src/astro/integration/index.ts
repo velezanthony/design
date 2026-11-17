@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import type { AstroIntegration } from 'astro';
 import { AstroError } from 'astro/errors';
 import { applyAnalytics } from '../../core/analytics/resolve';
+import type { UrlPolicy } from '../../core/i18n/availability';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
@@ -58,9 +59,13 @@ const virtualTypes = () =>
   readFileSync(new URL('../virtual/virtual.d.ts', import.meta.url), 'utf8');
 
 /** `applyAnalytics` con los errores del núcleo traducidos a `AstroError`. */
-function applyAnalyticsOrThrow(config: ResolvedConfig, envValue: string | undefined) {
+function applyAnalyticsOrThrow(
+  config: ResolvedConfig,
+  envValue: string | undefined,
+  url: UrlPolicy,
+) {
   try {
-    return applyAnalytics(config, envValue);
+    return applyAnalytics(config, envValue, url);
   } catch (error) {
     throw toAstroError(error, 'La analítica de `@velezanthony/design` no es válida.');
   }
@@ -83,11 +88,17 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         const siteConfig = applyAnalyticsOrThrow(
           resolvedConfig,
           readAnalyticsEnv(command, config.root),
+          {
+            base: config.base,
+            trailingSlash: config.trailingSlash,
+            defaultLocale: resolvedConfig.defaultLocale,
+          },
         );
         assertNoRouteCollision(
           new URL('pages/', config.srcDir),
           resolvedConfig.locales,
           resolvedConfig.defaultLocale,
+          resolvedConfig.privacy.page,
         );
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
@@ -129,6 +140,21 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           prerender: true,
         });
         injectRoute({ pattern: '/404', entrypoint: route('not-found.astro'), prerender: true });
+        // Página de privacidad propia (opcional): la del idioma por defecto sin prefijo y la de cada otro.
+        if (resolvedConfig.privacy.page) {
+          injectRoute({
+            pattern: '/[privacy]',
+            entrypoint: route('privacy.astro'),
+            prerender: true,
+          });
+          if (resolvedConfig.locales.length > 1) {
+            injectRoute({
+              pattern: '/[locale]/[privacy]',
+              entrypoint: route('privacy-locale.astro'),
+              prerender: true,
+            });
+          }
+        }
         // Un idioma por defecto sin prefijo no tiene `/<idioma>/404/`: solo los demás.
         if (resolvedConfig.locales.length > 1) {
           injectRoute({

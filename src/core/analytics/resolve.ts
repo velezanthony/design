@@ -1,5 +1,7 @@
 import { DocsError, DocsErrors } from '../errors';
+import type { UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
+import { privacyPageUrls } from '../privacy/pages';
 import type { ResolvedConfig } from '../config/resolve';
 import type { Label } from '../config/schema';
 
@@ -53,14 +55,15 @@ export function resolvePrivacyUrls(
   analyticsOn: boolean,
   locales: readonly Locale[],
   defaultLocale: Locale,
+  localUrls?: Record<Locale, string>,
 ): Record<Locale, string> | undefined {
-  if (privacyUrl === undefined && !analyticsOn) return undefined;
+  if (privacyUrl === undefined && !analyticsOn && localUrls === undefined) return undefined;
   const urls: Record<Locale, string> = {};
   const missing: DocsError[] = [];
   for (const locale of locales) {
     const url =
       privacyUrl === undefined
-        ? DEFAULT_PRIVACY_URLS[locale]
+        ? (localUrls?.[locale] ?? DEFAULT_PRIVACY_URLS[locale])
         : typeof privacyUrl === 'string'
           ? privacyUrl
           : (privacyUrl[locale] ?? privacyUrl[defaultLocale]);
@@ -80,11 +83,12 @@ export function resolvePrivacyUrls(
 
 /**
  * Fija la analítica efectiva de la config: el `gtmId` (config o entorno) y, ya por idioma, el
- * enlace de privacidad. Sin ID quita `gtmId`; la `privacyUrl` explícita se conserva para el footer.
+ * enlace de privacidad (a la página propia con `privacy.page`, y si no al del portfolio). Sin ID quita `gtmId`; la `privacyUrl` explícita se conserva para el footer.
  */
 export function applyAnalytics(
   config: ResolvedConfig,
   envValue: string | undefined,
+  url: UrlPolicy = { base: '/', trailingSlash: 'always', defaultLocale: config.defaultLocale },
 ): ResolvedConfig {
   const { privacyUrl, gtmId: configGtmId, ...rest } = config;
   const gtmId = resolveAnalytics(envValue, configGtmId);
@@ -93,6 +97,8 @@ export function applyAnalytics(
     gtmId !== undefined,
     config.locales,
     config.defaultLocale,
+    // Con página propia el enlace apunta a ella, y no al portfolio, salvo `privacyUrl` explícita.
+    config.privacy.page ? privacyPageUrls(config.locales, url) : undefined,
   );
   return {
     ...rest,

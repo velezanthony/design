@@ -1,0 +1,15 @@
+---
+/* `/[locale]/[privacy]`: la página de privacidad de cada idioma que no es el de defecto. */
+import PrivacyPage from './PrivacyPage.astro';
+import { privacyRoutes } from './privacy-view';
+import { siteConfig } from './site-config';
+
+export function getStaticPaths() {
+  return privacyRoutes(siteConfig).localized.map(({ params }) => ({
+    params,
+    props: { locale: params.locale },
+  }));
+}
+---
+
+<PrivacyPage locale={Astro.props.locale} />

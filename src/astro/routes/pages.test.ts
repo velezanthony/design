@@ -67,3 +67,29 @@ describe('sitemapXml', () => {
     expect(() => sitemapXml(many, cfg)).toThrow(/50000|50 000|sitemap/i);
   });
 });
+
+describe('sitemapXml: página de privacidad', () => {
+  const withPrivacy = {
+    ...cfg,
+    defaultLocale: 'es',
+    locales: ['es', 'en'],
+    privacy: { page: true },
+  };
+
+  it('con `page: true` la incluye en cada idioma, con hreflang entre ellas', () => {
+    const xml = sitemapXml([data('guide', 'es')], withPrivacy);
+    expect(xml).toContain('<loc>https://x.dev/repo/privacidad/</loc>');
+    expect(xml).toContain('<loc>https://x.dev/repo/en/privacy/</loc>');
+    expect(xml).toContain('hreflang="en" href="https://x.dev/repo/en/privacy/"');
+    expect(xml).toContain('hreflang="es" href="https://x.dev/repo/privacidad/"');
+  });
+
+  it('sin `page` no aparece', () => {
+    const xml = sitemapXml([data('guide', 'es')], {
+      ...withPrivacy,
+      privacy: { page: false },
+    });
+    expect(xml).not.toContain('privacidad');
+    expect(xml).not.toContain('privacy');
+  });
+});

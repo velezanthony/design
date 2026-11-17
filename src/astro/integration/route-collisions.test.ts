@@ -77,3 +77,18 @@ describe('assertNoRouteCollision', () => {
     expect(() => assertNoRouteCollision(pages, locales, 'en')).toThrow(/index\.astro[\s\S]*404/);
   });
 });
+
+describe('assertNoRouteCollision: página de privacidad', () => {
+  const run = (file: string, privacyPage: boolean) =>
+    assertNoRouteCollision(pagesWith(file), ['es', 'en'], 'es', privacyPage);
+
+  it('con `page: true` detecta los ficheros que pisan las rutas de privacidad', () => {
+    expect(() => run('privacidad.astro', true)).toThrow(/privacidad\.astro/);
+    expect(() => run('en/privacy/index.astro', true)).toThrow(/en\/privacy\/index\.astro/);
+  });
+
+  it('con `page: false` esas rutas son del consumidor', () => {
+    expect(() => run('privacidad.astro', false)).not.toThrow();
+    expect(() => run('en/privacy/index.astro', false)).not.toThrow();
+  });
+});

@@ -1,22 +1,31 @@
 import { existsSync } from 'node:fs';
 import { AstroError } from 'astro/errors';
+import { privacySlug } from '../../core/privacy/pages';
 
 /** Extensiones con las que Astro enruta un fichero de `src/pages/` (páginas y endpoints). */
 const PAGE_EXTENSIONS = ['astro', 'md', 'mdx', 'html', 'ts', 'js', 'mts', 'mjs'];
 
 /** Rutas que la integración inyecta, como ruta de fichero sin extensión (`es/404`). */
-function injectedRoutes(locales: readonly string[], defaultLocale: string): string[] {
+function injectedRoutes(
+  locales: readonly string[],
+  defaultLocale: string,
+  privacyPage: boolean,
+): string[] {
   const routes = ['sitemap.xml'];
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? '' : `${locale}/`;
     routes.push(`${prefix}index`, `${prefix}404`);
+    if (privacyPage) {
+      const slug = privacySlug(locale);
+      routes.push(`${prefix}${slug}`, `${prefix}${slug}/index`);
+    }
   }
   return routes;
 }
 
 /**
  * Falla si `src/pages/` del consumidor tiene un fichero que ocupa una ruta que la integración
- * inyecta (la home, `404`, `sitemap.xml`). Astro da prioridad a la ruta estática sobre la
+ * inyecta (la home, `404`, `sitemap.xml` y, con `privacy.page`, la página de privacidad). Astro da prioridad a la ruta estática sobre la
  * inyectada y solo avisa con un `WARN` fácil de pasar por alto, así que el sitio compilaría con
  * la página del andamio (`npm create astro`) en lugar de la documentación.
  */
@@ -24,9 +33,10 @@ export function assertNoRouteCollision(
   pagesDir: URL,
   locales: readonly string[],
   defaultLocale: string,
+  privacyPage = false,
 ): void {
   const clashes: string[] = [];
-  for (const route of injectedRoutes(locales, defaultLocale)) {
+  for (const route of injectedRoutes(locales, defaultLocale, privacyPage)) {
     // `sitemap.xml` ya lleva punto: el endpoint es `sitemap.xml.ts`, pero también vale `sitemap.xml`.
     for (const extension of ['', ...PAGE_EXTENSIONS.map((ext) => `.${ext}`)]) {
       if (route !== 'sitemap.xml' && extension === '') continue;
