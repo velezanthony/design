@@ -42,15 +42,18 @@ traducción. Lo que enseña es, por construcción, lo que sale en el `<head>`.
 
 ```mermaid
 flowchart LR
-  col["Colección docs<br/>datos + encabezados"] --> ad["Adaptador<br/>astro/seo-on-page"]
+  col["Colección docs<br/>datos + encabezados"] --> ad["Adaptador<br/>astro/routes/seo-on-page"]
   cfg["Config del sitio<br/>módulo virtual"] --> ad
   ad --> tree["buildSeoTree<br/>(núcleo, puro)"]
   tree --> an["Analizadores<br/>título · descripción · H1 · idiomas"]
   an --> ui["Rutas de dev + UI<br/>solo pintan el árbol"]
 ```
 
-El adaptador (`src/astro/seo-on-page/adapter.ts`) es el único sitio que conoce `astro:content`; el
-resto está en capas que no dependen de Astro (`core/seo-on-page/`, `ui/seo-on-page/`).
+El adaptador (`src/astro/routes/seo-on-page/adapter.ts`) es el único sitio que conoce
+`astro:content`; el resto está en capas que no dependen de Astro (`core/seo-on-page/`,
+`ui/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
+`panelView` (`panel-view.ts`): barra lateral con las pantallas del panel, `noindex`, sin analítica ni
+aviso de consentimiento.
 
 ## Los límites
 

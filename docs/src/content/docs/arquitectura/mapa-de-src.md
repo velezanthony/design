@@ -42,6 +42,7 @@ core/
 │   ├── nav-sidebar.ts     La barra lateral de la sección actual
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
+│   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── footer.ts          Vista del pie y validación de sus enlaces
 │   └── label.ts           Etiqueta por idioma con recurso al idioma por defecto
 ├── seo/
@@ -95,11 +96,16 @@ textos (`strings: UiStrings`).
 
 ```text
 ui/
-├── atoms/       Heading, Icon, Link, Rule, Tag
+├── atoms/       Button, Checkbox, Heading, Icon, Input, Link, Rule, Tag
 ├── molecules/   Admonition, EditLink, FallbackNotice, LocaleSwitch, NavList, PanelToggle,
-│                PrevNext, TableOfContents, Tabs, ThemeToggle
+│                Pagination, PrevNext, TableOfContents, Tabs, ThemeToggle
 ├── organisms/   DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, ConsentBanner,
 │                BackToTop, NotFound, PrivacyPolicy
+├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
+│   ├── atoms/       IssueBadge (sobre Tag)
+│   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro
+│   ├── organisms/   Overview, PagesTable, Inspector
+│   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
 │   ├── Head.astro           Pinta las etiquetas que calculó core/seo/head.ts
@@ -136,10 +142,6 @@ astro/
 ├── content/
 │   └── index.ts             `collections`: la colección docs con la config del módulo virtual
 ├── markdown/                Plugins mdast y su registro (ver Integración → Markdown)
-├── seo-on-page/             Panel SOLO de dev (ver Integración → SEO on page)
-│   ├── adapter.ts           Colección + config → SeoInput → árbol (el único que lee astro:content)
-│   ├── hrefs.ts             Rutas del panel y enlaces entre pantallas
-│   └── overview.astro, pages.astro, page.astro   Contenedores de las tres rutas
 ├── routes/
 │   ├── doc.astro            Contenedor de /[...slug]
 │   ├── doc-view.ts          docRoutes y docView: todo lo que necesita una página
@@ -149,7 +151,12 @@ astro/
 │   ├── not-found.astro, not-found-view.ts
 │   ├── privacy.astro, privacy-locale.astro, PrivacyPage.astro, privacy-view.ts
 │   ├── sitemap.xml.ts
-│   └── favicon.png.ts
+│   ├── favicon.png.ts
+│   └── seo-on-page/         Panel SOLO de dev (ver Integración → SEO on page)
+│       ├── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
+│       ├── hrefs.ts         Rutas del panel y enlaces entre pantallas
+│       ├── panel-view.ts    Lo que DocsLayout recibe en cada pantalla (como docView)
+│       └── overview.astro, pages.astro, page.astro   Contenedores de las tres rutas
 └── virtual/
     ├── plugin.ts            Plugin de Vite de virtual:@velezanthony/design/config
     ├── data.ts              Qué viaja en el módulo virtual
