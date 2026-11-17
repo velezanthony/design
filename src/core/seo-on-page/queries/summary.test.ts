@@ -9,7 +9,14 @@ const issue = (kind: Issue['kind'], severity: Issue['severity']): Issue => ({
   locale: 'en',
   message: '',
 });
-const page = (issues: Issue[]): SeoPage => ({ issues }) as SeoPage;
+const page = (issues: Issue[], types: (string | string[])[] = []): SeoPage =>
+  ({
+    issues,
+    schemas: types.map((type) => ({
+      schema: { '@context': 'https://schema.org', '@type': type },
+      source: 'site' as const,
+    })),
+  }) as unknown as SeoPage;
 
 describe('summarize', () => {
   it('árbol vacío: todo a cero y con todas las claves', () => {
@@ -51,5 +58,39 @@ describe('summarize', () => {
       informativeOnly: 2,
       clean: 1,
     });
+  });
+});
+
+describe('summarize: JSON-LD', () => {
+  it('árbol vacío: ninguna página con ni sin schemas', () => {
+    expect(summarize({ pages: [] }).schemas).toEqual({
+      withSchemas: 0,
+      withoutSchemas: 0,
+      types: [],
+    });
+  });
+
+  it('cuenta páginas con y sin schemas y los @type usados, con las páginas de cada uno', () => {
+    const tree: SeoTree = {
+      pages: [
+        page([], ['Organization', ['Person', 'Thing']]),
+        page([], ['Organization']),
+        page([]),
+      ],
+    };
+    expect(summarize(tree).schemas).toEqual({
+      withSchemas: 2,
+      withoutSchemas: 1,
+      types: [
+        { type: 'Organization', pages: 2 },
+        { type: 'Person', pages: 1 },
+        { type: 'Thing', pages: 1 },
+      ],
+    });
+  });
+
+  it('una página con dos schemas del mismo @type cuenta una vez ese tipo', () => {
+    const tree: SeoTree = { pages: [page([], ['Thing', 'Thing'])] };
+    expect(summarize(tree).schemas.types).toEqual([{ type: 'Thing', pages: 1 }]);
   });
 });

@@ -48,6 +48,30 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
     </a>
   </p>
 
+  <section aria-labelledby="schemas" data-schemas class="max-w-measure">
+    <Heading level={2} size="md" id="schemas">
+      Schemas (JSON-LD)
+    </Heading>
+    {summary.schemas.withSchemas === 0 ? (
+      <p class="mt-1 text-sm text-muted">Ninguna página declara schemas.</p>
+    ) : (
+      <>
+        <p class="mt-1 text-sm text-muted">
+          <span class="font-mono text-ink">{summary.schemas.withSchemas}</span> páginas con schema,{' '}
+          <span class="font-mono text-ink">{summary.schemas.withoutSchemas}</span> sin él.
+        </p>
+        <ul class="mt-3">
+          {summary.schemas.types.map(({ type, pages }) => (
+            <li data-schema-type={type} class:list={[row, 'text-ink']}>
+              <span class="font-mono">{type}</span>
+              <span class="font-mono">{pages}</span>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+  </section>
+
   <section aria-labelledby="by-severity" class="max-w-measure">
     <Heading level={2} size="md" id="by-severity">
       Por gravedad

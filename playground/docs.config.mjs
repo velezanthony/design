@@ -20,6 +20,16 @@ export default defineDocsConfig({
       src: '/og.png',
       alt: { en: 'SnakeORM documentation', es: 'Documentación de SnakeORM' },
     },
+    /* JSON-LD de TODAS las páginas. La librería no inyecta ninguno por su cuenta: lo declara el sitio. */
+    schema: [
+      {
+        '@type': 'SoftwareSourceCode',
+        name: 'SnakeORM',
+        codeRepository: 'https://github.com/velezanthony/snake-orm',
+        programmingLanguage: 'Python',
+        license: 'https://github.com/velezanthony/snake-orm/blob/main/LICENSE',
+      },
+    ],
   },
   translations: { missing: MissingTranslation.LINK },
   /* Fuera de `src/content/docs/`, como el CHANGELOG de la raíz de un repo real. */

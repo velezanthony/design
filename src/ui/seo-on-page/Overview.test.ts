@@ -14,6 +14,14 @@ const props = (extra: Record<string, unknown> = {}) => ({
     clean: 1,
     byKind: { ...zero(Object.values(IssueKind)), 'no-h1': 3 },
     bySeverity: { ...zero(Object.values(IssueSeverity)), error: 3 },
+    schemas: {
+      withSchemas: 7,
+      withoutSchemas: 3,
+      types: [
+        { type: 'Organization', pages: 7 },
+        { type: 'TechArticle', pages: 2 },
+      ],
+    },
   },
   hrefs: {
     pages: '/t/',
@@ -50,5 +58,21 @@ describe('Overview', () => {
     const doc = await render(Overview, props());
     expect(text(doc.querySelector('a[href="/t/"]'))).toContain('problemas');
     expect(text(doc.querySelector('a[href="/t/?all"]'))).toContain('todas');
+  });
+
+  it('cuenta las páginas con y sin schema y lista los @type usados', async () => {
+    const doc = await render(Overview, props());
+    const block = text(doc.querySelector('[data-schemas]'));
+    expect(block).toContain('7');
+    expect(block).toContain('3');
+    expect(block).toContain('Organization');
+    expect(block).toContain('TechArticle');
+  });
+
+  it('sin ningún schema lo dice, sin inventar tipos', async () => {
+    const empty = { withSchemas: 0, withoutSchemas: 10, types: [] };
+    const base = props();
+    const doc = await render(Overview, { ...base, summary: { ...base.summary, schemas: empty } });
+    expect(text(doc.querySelector('[data-schemas]'))).toContain('Ninguna página declara schemas');
   });
 });

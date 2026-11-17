@@ -179,6 +179,51 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
     },
   );
 
+  describe('schemas', () => {
+    const org = { '@type': 'Organization', name: 'Acme' };
+    const person = { '@type': 'Person', name: 'Ada' };
+    const withSchemas = resolveConfig({ name: 'Design', seo: { schema: [org] } });
+    const schemaPages = [
+      page({ slug: 'plain', locale: 'en' }),
+      page({ slug: 'extra', locale: 'en', seo: { schema: [person] } }),
+      page({ slug: 'off', locale: 'en', seo: { schema: false } }),
+    ];
+    const schemaTree = buildSeoTree({ config: withSchemas, url, pages: schemaPages });
+    const published = (p: (typeof schemaPages)[number]) => {
+      const base = schemaPages.map((q) => ({ ...q, body: '' }));
+      const resolved = resolveMeta(withSchemas.seo, p.seo, p, p.locale);
+      const data = {
+        kind: 'page',
+        slug: p.slug,
+        locale: p.locale,
+        url: pageUrl(p.slug, p.locale, url),
+      } as const;
+      return buildHead(resolved, data, buildAvailability(base, url), site, withSchemas, url)
+        .filter((t) => t.tag === 'script')
+        .map((t) => JSON.parse(t.content ?? ''));
+    };
+
+    it.each(schemaPages.map((p) => [p.slug, p] as const))(
+      '%s: los schemas del árbol son los que buildHead publica, con su origen',
+      (_name, p) => {
+        const node = schemaTree.pages.find((t) => t.slug === p.slug)!;
+        expect(node.schemas.map((entry) => entry.schema)).toEqual(published(p));
+      },
+    );
+
+    it('cada schema dice si viene del sitio o de la página', () => {
+      const origin = (slug: string) =>
+        schemaTree.pages.find((t) => t.slug === slug)!.schemas.map((entry) => entry.source);
+      expect(origin('plain')).toEqual(['site']);
+      expect(origin('extra')).toEqual(['site', 'page']);
+      expect(origin('off')).toEqual([]);
+    });
+
+    it('sin schemas en ningún sitio, la lista es vacía (no se impone ninguno)', () => {
+      expect(buildSeoTree(input).pages.every((p) => p.schemas.length === 0)).toBe(true);
+    });
+  });
+
   it('todo problema lleva su arreglo, con el archivo real de la página', () => {
     const tree = buildSeoTree(input);
     const issues = tree.pages.flatMap((p) => p.issues.map((issue) => ({ page: p, issue })));

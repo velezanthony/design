@@ -26,6 +26,7 @@ export function seoPage(overrides: Partial<SeoPage> = {}): SeoPage {
     },
     headings: [{ depth: 1, slug: 'guide', text: 'Guide' }],
     locales: [{ locale, status: 'present', url: `/repo/${slug}/` }],
+    schemas: [],
     issues: [],
     ...overrides,
   };

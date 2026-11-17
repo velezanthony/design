@@ -1,6 +1,7 @@
 import type { Locale } from '../../i18n/locale';
 import type { MissingTranslation } from '../../i18n/translation-policy';
 import type { Page } from '../../content/discovery';
+import type { ResolvedSchema } from '../../seo/json-ld';
 
 /** Gravedad de un problema, de más a menos. */
 export const IssueSeverity = { ERROR: 'error', WARNING: 'warning', INFO: 'info' } as const;
@@ -93,6 +94,8 @@ export interface SeoPageFacts {
   sourcePath: string;
   meta: MetaNode;
   headings: HeadingNode[];
+  /** JSON-LD que se publica, con su origen (sitio o página); vacío si nadie declara ninguno. */
+  schemas: ResolvedSchema[];
   locales: SeoLocaleEntry[];
   /** `undefined` si los archivos del grupo declaran políticas distintas. */
   policy?: MissingTranslation;

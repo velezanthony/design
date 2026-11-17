@@ -21,6 +21,7 @@ const facts = (slug: string, meta: Partial<MetaNode> = {}, locale = 'en'): SeoPa
     ...meta,
   },
   headings: [],
+  schemas: [],
   locales: [],
   policy: 'link',
 });

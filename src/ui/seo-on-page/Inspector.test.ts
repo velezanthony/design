@@ -156,4 +156,48 @@ describe('Inspector', () => {
     expect(doc.querySelector('a[href="/repo/guide/"]')).not.toBeNull();
     expect(doc.querySelector('a[href="/p/"]')).not.toBeNull();
   });
+
+  describe('Schemas (JSON-LD)', () => {
+    const schemas = [
+      {
+        schema: { '@context': 'https://schema.org', '@type': 'Organization', name: 'Acme' },
+        source: 'site' as const,
+      },
+      {
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': ['Person', 'Thing'],
+          name: '</script><b>Ada</b> & co',
+        },
+        source: 'page' as const,
+      },
+    ];
+
+    it('lista cada schema con su @type, su origen y el JSON formateado', async () => {
+      const doc = await render(Inspector, props({ page: seoPage({ schemas }) }));
+      const items = [...doc.querySelectorAll('[data-schemas] [data-schema]')];
+      expect(items).toHaveLength(2);
+      expect(text(items[0])).toContain('Organization');
+      expect(text(items[0])).toContain('sitio');
+      expect(text(items[1])).toContain('Person, Thing');
+      expect(text(items[1])).toContain('página');
+      expect(items[0].querySelector('pre')!.textContent).toBe(
+        JSON.stringify(schemas[0].schema, null, 2),
+      );
+    });
+
+    it('el JSON va escapado para HTML: no se cuela etiqueta alguna', async () => {
+      const doc = await render(Inspector, props({ page: seoPage({ schemas }) }));
+      const pre = doc.querySelectorAll('[data-schemas] pre')[1];
+      expect(pre.querySelector('b')).toBeNull();
+      expect(pre.textContent).toContain('</script><b>Ada</b> & co');
+    });
+
+    it('sin schemas, el estado vacío', async () => {
+      const doc = await render(Inspector, props());
+      expect(text(doc.querySelector('[data-schemas]'))).toContain(
+        'Esta página no declara ningún schema.',
+      );
+    });
+  });
 });

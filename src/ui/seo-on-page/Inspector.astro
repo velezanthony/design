@@ -158,6 +158,28 @@ const siblingOf = (locale: string) => group.find((item) => item.locale === local
     )}
   </section>
 
+  <section aria-labelledby="schemas" data-schemas class="flex flex-col gap-3">
+    <Heading level={2} size="md" id="schemas">
+      Schemas (JSON-LD)
+    </Heading>
+    {page.schemas.length === 0 ? (
+      <p class="text-muted">Esta página no declara ningún schema.</p>
+    ) : (
+      page.schemas.map(({ schema, source }) => (
+        <article data-schema class="flex flex-col gap-2 border border-rule p-3">
+          <p class="flex flex-wrap items-baseline gap-x-3">
+            <span class="font-mono text-ink">{[schema['@type']].flat().join(', ')}</span>
+            <span class="label text-muted">{source === 'site' ? 'del sitio' : 'de la página'}</span>
+          </p>
+          <pre
+            class="overflow-x-auto bg-raised p-3 font-mono text-sm text-ink"
+            set:text={JSON.stringify(schema, null, 2)}
+          />
+        </article>
+      ))
+    )}
+  </section>
+
   <section aria-labelledby="outline" class="flex flex-col gap-2">
     <Heading level={2} size="md" id="outline">
       Encabezados

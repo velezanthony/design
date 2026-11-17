@@ -5,6 +5,7 @@ import {
   undeclaredMissing,
   type MissingTranslation,
 } from '../../i18n/translation-policy';
+import { resolveSchemas } from '../../seo/json-ld';
 import { analyzeHeadings } from '../analyzers/headings';
 import { analyzeDuplicates, analyzeMetadata } from '../analyzers/metadata';
 import { analyzeMultilingual } from '../analyzers/multilingual';
@@ -65,6 +66,7 @@ export function buildSeoTree(input: SeoInput): SeoTree {
       sourcePath: page.sourcePath,
       meta: buildMetaNode(page, config, url, imageSizes),
       headings: buildHeadingNodes(page.headings),
+      schemas: resolveSchemas(config.seo.schema, page.seo?.schema),
       locales: entries,
       ...(policy !== undefined && { policy }),
     };
