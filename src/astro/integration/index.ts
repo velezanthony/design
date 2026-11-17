@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
 import { AstroError } from 'astro/errors';
 import { applyAnalytics } from '../../core/analytics/resolve';
@@ -16,6 +17,7 @@ import { readAnalyticsEnv } from './analytics-env';
 import { addCompanions, COMPANIONS } from './companions';
 import { toAstroError } from './errors';
 import { assertNoFontConflict, designFonts } from './fonts';
+import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
 import { assertNoRouteCollision } from './route-collisions';
 
@@ -128,10 +130,13 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         extendMarkdownProcessor(config.markdown.processor, env, langAlias);
         // Solo si el consumidor no eligió temas: los de la documentación van emparejados con los tokens.
         const hasThemes = Object.keys(shikiConfig?.themes ?? {}).length > 0;
+        // Una carpeta de contenido fuera del proyecto: Vite debe poder servir sus imágenes en dev.
+        const allow = contentFsAllow(fileURLToPath(config.root), resolvedConfig.content);
         updateConfig({
           markdown: { shikiConfig: { langAlias, ...(hasThemes ? {} : { themes: codeThemes }) } },
           fonts,
           vite: {
+            ...(allow.length > 0 && { server: { fs: { allow } } }),
             plugins: [
               createVirtualConfigPlugin(
                 createVirtualData(siteConfig, {
