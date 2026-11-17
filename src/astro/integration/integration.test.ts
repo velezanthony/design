@@ -6,6 +6,7 @@ import { satteri } from '@astrojs/markdown-satteri';
 import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { SHIKI_LANG_ALIAS } from '../markdown/code-languages';
 import { docs, INTEGRATION_NAME } from './index';
 import { MissingTranslation } from '../../core/i18n/translation-policy';
 
@@ -145,13 +146,13 @@ describe('astro:config:setup: Shiki', () => {
       .find((p) => p.markdown?.shikiConfig)?.markdown?.shikiConfig;
   };
 
-  it('añade los alias django→jinja y pycon→python', async () => {
-    expect((await shikiOf({}))?.langAlias).toEqual({ django: 'jinja', pycon: 'python' });
+  it('añade los alias de lenguajes de la librería', async () => {
+    expect((await shikiOf({}))?.langAlias).toEqual(SHIKI_LANG_ALIAS);
   });
 
   it('fusiona con los alias del consumidor, y el suyo manda', async () => {
     const merged = (await shikiOf({ langAlias: { foo: 'js', django: 'html' } }))?.langAlias;
-    expect(merged).toEqual({ django: 'html', pycon: 'python', foo: 'js' });
+    expect(merged).toEqual({ ...SHIKI_LANG_ALIAS, django: 'html', foo: 'js' });
   });
 
   it('fija los temas claro/oscuro emparejados si el consumidor no puso los suyos', async () => {

@@ -9,6 +9,7 @@ import {
   renderMarkdown,
 } from '../../testing/markdown';
 import { createMarkdownEnv } from './env';
+import { SHIKI_LANG_ALIAS } from './code-languages';
 import { markdownPlugins, mergeLangAlias } from './register';
 
 const env = createMarkdownEnv(
@@ -103,8 +104,8 @@ describe('markdownPlugins: integrados', () => {
 
 describe('mergeLangAlias', () => {
   it('añade los alias del paquete bajo los del consumidor', () => {
-    expect(mergeLangAlias(undefined)).toEqual({ django: 'jinja', pycon: 'python' });
-    expect(mergeLangAlias({ foo: 'js' })).toEqual({ django: 'jinja', pycon: 'python', foo: 'js' });
+    expect(mergeLangAlias(undefined)).toEqual(SHIKI_LANG_ALIAS);
+    expect(mergeLangAlias({ foo: 'js' })).toEqual({ ...SHIKI_LANG_ALIAS, foo: 'js' });
   });
 
   it('si el consumidor ya define un alias, el suyo manda', () => {

@@ -310,8 +310,11 @@ pnpm add x
 ::::
 ```
 
-Los bloques de código usan Shiki (`github-light` / `github-dark`); `django` se resalta como `jinja`
-y `pycon` como `python`. No soportado: ids de encabezado personalizados `{ #id }` ni iconos de
+Los bloques de código usan Shiki (`github-light` / `github-dark`); Shiki ya
+entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la
+librería añade alias: `django` y `htmldjango` se resaltan como `jinja`, `pycon` como `python`, `env`
+y `.env` como `dotenv`, `terminal` y `shell-session` como `shellsession` (igual que `console`). Los
+`langAlias` de tu `markdown.shikiConfig` se fusionan con estos y, si chocan, mandan los tuyos. No soportado: ids de encabezado personalizados `{ #id }` ni iconos de
 Material (`:material-x:` se queda como texto). Los nombres de contenedor desconocidos (`:::foo`)
 rompen el build; los dos puntos sueltos (`12:30`, `http://`) se dejan en paz.
 

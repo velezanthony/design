@@ -2,10 +2,19 @@ import { bundledLanguages, bundledLanguagesAlias } from 'shiki';
 import { defineMdastPlugin } from 'satteri';
 import { docsPlugin, type MarkdownEnv } from './env';
 
-/** Lenguajes que Shiki no trae → gramática soportada (spike §5). */
+/**
+ * Nombres que los autores escriben y Shiki no trae → gramática soportada. Lo que Shiki ya resuelve
+ * solo (`console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile`, `docker`) no se
+ * repite aquí. `console` ya es `shellsession`, así que se pinta como sesión de shell.
+ */
 export const SHIKI_LANG_ALIAS: Readonly<Record<string, string>> = {
   django: 'jinja',
+  htmldjango: 'jinja',
   pycon: 'python',
+  env: 'dotenv',
+  '.env': 'dotenv',
+  terminal: 'shellsession',
+  'shell-session': 'shellsession',
 };
 
 /** «Sin resaltado» explícito: el autor dice que es texto plano, así que ni se avisa ni lleva etiqueta. */

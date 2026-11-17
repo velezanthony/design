@@ -1,3 +1,5 @@
+import { createShikiHighlighter } from '@astrojs/internal-helpers/shiki';
+import { bundledLanguages, type BundledTheme } from 'shiki';
 import { describe, expect, it, vi } from 'vitest';
 import { resolveConfig } from '../../core/config/resolve';
 import { docFileURL, nonDocFileURL, project, renderMarkdown } from '../../testing/markdown';
@@ -12,9 +14,72 @@ const make = (langAlias: Record<string, string> = SHIKI_LANG_ALIAS) => {
   return { warn, render };
 };
 
+/** Alias que añadimos: Shiki no los trae y los autores los escriben a menudo. */
+const ADDED = {
+  django: 'jinja',
+  htmldjango: 'jinja',
+  pycon: 'python',
+  env: 'dotenv',
+  '.env': 'dotenv',
+  terminal: 'shellsession',
+  'shell-session': 'shellsession',
+};
+
+/** Nombres habituales que Shiki ya resuelve solo: no se aliasan. */
+const NATIVE = ['console', 'py', 'js', 'ts', 'yml', 'sh', 'zsh', 'jsonc', 'dockerfile', 'docker'];
+
 describe('SHIKI_LANG_ALIAS', () => {
   it('mapea los lenguajes ausentes en Shiki a gramáticas soportadas', () => {
-    expect(SHIKI_LANG_ALIAS).toEqual({ django: 'jinja', pycon: 'python' });
+    expect(SHIKI_LANG_ALIAS).toEqual(ADDED);
+  });
+
+  it.each(Object.keys(ADDED))('«%s» no existe en Shiki: el alias es necesario', (alias) => {
+    expect(alias in bundledLanguages).toBe(false);
+  });
+
+  it.each(NATIVE)('«%s» ya lo resuelve Shiki: no se aliasa', (lang) => {
+    expect(lang in bundledLanguages).toBe(true);
+    expect(SHIKI_LANG_ALIAS).not.toHaveProperty(lang);
+  });
+});
+
+describe('resaltado con los alias', () => {
+  const sample: Record<string, string> = {
+    django: '{% if x %}{{ y }}{% endif %}',
+    htmldjango: '{% if x %}<p>{{ y }}</p>{% endif %}',
+    pycon: '>>> print(1)\n1',
+    env: 'KEY=value',
+    '.env': 'KEY=value',
+    terminal: '$ ls -la\nfile',
+    'shell-session': '$ ls -la\nfile',
+    console: '$ ls -la\nfile',
+    py: 'x = 1',
+    js: 'const x = 1',
+    ts: 'const x: number = 1',
+    yml: 'a: 1',
+    sh: 'echo hi',
+    zsh: 'echo hi',
+    jsonc: '{ // c\n "a": 1 }',
+    dockerfile: 'FROM node',
+    docker: 'FROM node',
+  };
+
+  const themes: Record<string, BundledTheme> = {
+    light: 'github-light-default',
+    dark: 'github-dark-default',
+  };
+
+  it.each(Object.keys(sample))('«%s» se resalta (no cae a texto plano)', async (lang) => {
+    const hl = await createShikiHighlighter({ themes, langAlias: { ...SHIKI_LANG_ALIAS } });
+    const html = await hl.codeToHtml(sample[lang]!, lang, {});
+    expect(html).toContain('data-language="' + lang + '"');
+    expect(html).toMatch(/<span style="color:#/);
+  });
+
+  it('un texto plano no lleva colores de token', async () => {
+    const hl = await createShikiHighlighter({ themes, langAlias: { ...SHIKI_LANG_ALIAS } });
+    const html = await hl.codeToHtml('KEY=value', 'plaintext', {});
+    expect(html).not.toMatch(/<span style="color:#/);
   });
 });
 
