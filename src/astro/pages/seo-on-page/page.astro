@@ -2,6 +2,7 @@
 /* Contenedor del inspector: una página e idioma elegidos por la query (`?slug=…&locale=…`; la
    portada tiene slug vacío). Ruta bajo demanda por lo mismo que la tabla. */
 import { Font } from 'astro:assets';
+import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import Link from '../../../ui/atoms/Link.astro';
 import Inspector from '../../../ui/seo-on-page/organisms/Inspector.astro';
@@ -17,23 +18,23 @@ const hrefs = devHrefs(urlPolicyOf(siteConfig));
 const { searchParams } = Astro.url;
 const slug = searchParams.get('slug') ?? '';
 const locale = searchParams.get('locale') ?? siteConfig.defaultLocale;
-const tree = await loadSeoTree(siteConfig);
-const page = tree.pages.find((item) => item.slug === slug && item.locale === locale);
-if (!page) Astro.response.status = 404;
-
-const group = page ? tree.pages.filter((item) => item.slug === slug) : [];
-const inspectorHrefs = Object.fromEntries(
-  siteConfig.locales.map((code) => [code, hrefs.inspector({ slug, locale: code })]),
-);
-const ogSrc = page?.meta.ogImage?.src;
-const title = page ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada';
+const model = inspectorModel({
+  tree: await loadSeoTree(siteConfig),
+  slug,
+  locale,
+  links: hrefs,
+  site: siteConfig.site,
+  asset: (src) => assetHref(siteConfig.base, src),
+});
+if (!model) Astro.response.status = 404;
+const title = model ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada';
 const view = panelView({
   cfg: siteConfig,
   data: await loadDocData(),
   hrefs,
   screen: 'pages',
   title,
-  headings: page ? inspectorHeadings() : [],
+  headings: model ? inspectorHeadings() : [],
 });
 ---
 
@@ -43,17 +44,8 @@ const view = panelView({
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
   <PanelIntro title={title} strings={view.strings} />
-  {page ? (
-    <Inspector
-      page={page}
-      group={group}
-      inspectorHrefs={inspectorHrefs}
-      inspectorHref={hrefs.inspector}
-      liveHref={page.meta.canonical}
-      displayUrl={new URL(page.meta.canonical, siteConfig.site).href}
-      ogImageSrc={ogSrc ? assetHref(siteConfig.base, ogSrc) : undefined}
-      pagesHref={hrefs.pages()}
-    />
+  {model ? (
+    <Inspector model={model} />
   ) : (
     <p class="text-ink">
       No hay ninguna página con slug «{slug}» en «{locale}».

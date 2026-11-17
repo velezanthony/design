@@ -1,22 +1,26 @@
 import { describe, expect, it } from 'vitest';
+import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import type { SeoPage } from '../../../core/seo-on-page/tree/types';
 import { render, text } from '../../../testing/render';
 import { seoPage } from '../../../testing/seo-page';
 import Inspector from './Inspector.astro';
 
-const props = (extra: Record<string, unknown> = {}) => {
-  const page = (extra['page'] as ReturnType<typeof seoPage>) ?? seoPage();
-  return {
-    page,
-    group: [page],
-    inspectorHrefs: { en: '/i/?locale=en', es: '/i/?locale=es' },
-    inspectorHref: (target: { slug: string; locale: string }) =>
-      `/i/?slug=${target.slug}&locale=${target.locale}`,
-    liveHref: '/repo/guide/',
-    displayUrl: 'https://x.dev/repo/guide/',
-    ogImageSrc: '/repo/og.png',
-    pagesHref: '/p/',
-    ...extra,
-  };
+/* El modelo se construye con el real (`inspectorModel`) a partir de páginas de prueba: así el
+   componente se prueba con lo que de verdad recibe. */
+const props = (extra: { page?: SeoPage; group?: SeoPage[] } = {}) => {
+  const page = extra.page ?? seoPage();
+  const model = inspectorModel({
+    tree: { pages: extra.group ?? [page] },
+    slug: page.slug,
+    locale: page.locale,
+    links: {
+      pages: () => '/p/',
+      inspector: (target) => `/i/?slug=${target.slug}&locale=${target.locale}`,
+    },
+    site: 'https://x.dev',
+    asset: (src) => `/repo${src}`,
+  })!;
+  return { model };
 };
 
 describe('Inspector', () => {
@@ -146,7 +150,7 @@ describe('Inspector', () => {
       { locale: 'es', status: 'present', url: '/repo/es/guide/' },
     ];
     const doc = await render(Inspector, props({ page: en, group: [en, es] }));
-    const link = doc.querySelector('[data-translation="es"] a[href="/i/?locale=es"]');
+    const link = doc.querySelector('[data-translation="es"] a[href="/i/?slug=guide&locale=es"]');
     expect(link).not.toBeNull();
     expect(text(doc.querySelector('[data-translation="es"]'))).toContain('Guía | Site');
   });

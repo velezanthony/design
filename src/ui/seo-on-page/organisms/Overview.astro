@@ -1,30 +1,21 @@
 ---
-import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
-import type { SeoSummary } from '../../../core/seo-on-page/queries/summary';
+import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import Heading from '../../atoms/Heading.astro';
 import Link from '../../atoms/Link.astro';
 import Tag from '../../atoms/Tag.astro';
 import { KIND_LABELS, SEVERITY_PLURALS, SEVERITY_TONES } from '../labels';
 
 interface Props {
-  summary: SeoSummary;
-  hrefs: {
-    /** La tabla de problemas (su vista por defecto: errores y avisos). */
-    pages: string;
-    /** La tabla de todas las páginas, informativas y sin problemas incluidas. */
-    all: string;
-    /** La tabla filtrada por un tipo de problema / por una gravedad. */
-    kind: (kind: IssueKind) => string;
-    severity: (severity: IssueSeverity) => string;
-  };
+  model: OverviewModel;
 }
 
-const { summary, hrefs } = Astro.props;
+const { model } = Astro.props;
+const { totals, links, schemas } = model;
 const stats = [
-  { id: 'total', label: 'Páginas (por idioma)', value: summary.total },
-  { id: 'with-problems', label: 'Con problemas', value: summary.withProblems },
-  { id: 'informative-only', label: 'Solo informativas', value: summary.informativeOnly },
-  { id: 'clean', label: 'Sin nada', value: summary.clean },
+  { id: 'total', label: 'Páginas (por idioma)', value: totals.total },
+  { id: 'with-problems', label: 'Con problemas', value: totals.withProblems },
+  { id: 'informative-only', label: 'Solo informativas', value: totals.informativeOnly },
+  { id: 'clean', label: 'Sin nada', value: totals.clean },
 ];
 /* La fila entera es el enlace (o, sin incidencias, un texto apagado): una zona de clic amplia. `rowBox` no lleva `display`: el enlace ya es inline-flex y el texto añade flex. */
 const rowBox = 'min-h-8 w-full justify-between gap-4 border-b border-rule py-1';
@@ -42,24 +33,24 @@ const rowText = `flex items-baseline ${rowBox}`;
   </dl>
 
   <p class="flex flex-wrap gap-x-6 gap-y-1">
-    <Link href={hrefs.pages}>Ver las páginas con problemas</Link>
-    <Link href={hrefs.all}>Ver todas las páginas</Link>
+    <Link href={links.problems}>Ver las páginas con problemas</Link>
+    <Link href={links.all}>Ver todas las páginas</Link>
   </p>
 
   <section aria-labelledby="schemas" data-schemas class="max-w-measure">
     <Heading level={2} size="md" id="schemas">
       Schemas (JSON-LD)
     </Heading>
-    {summary.schemas.withSchemas === 0 ? (
+    {schemas.withSchemas === 0 ? (
       <p class="mt-1 text-sm text-muted">Ninguna página declara schemas.</p>
     ) : (
       <>
         <p class="mt-1 text-sm text-muted">
-          <span class="font-mono text-ink">{summary.schemas.withSchemas}</span> páginas con schema,{' '}
-          <span class="font-mono text-ink">{summary.schemas.withoutSchemas}</span> sin él.
+          <span class="font-mono text-ink">{schemas.withSchemas}</span> páginas con schema,{' '}
+          <span class="font-mono text-ink">{schemas.withoutSchemas}</span> sin él.
         </p>
         <ul class="mt-3">
-          {summary.schemas.types.map(({ type, pages }) => (
+          {schemas.types.map(({ type, pages }) => (
             <li data-schema-type={type} class:list={[rowText, 'text-ink']}>
               <span class="font-mono">{type}</span>
               <span class="font-mono">{pages}</span>
@@ -78,13 +69,13 @@ const rowText = `flex items-baseline ${rowBox}`;
       Cuenta incidencias, no páginas: una página puede tener varias.
     </p>
     <ul class="mt-3">
-      {Object.values(IssueSeverity).map((severity) => (
+      {model.bySeverity.map(({ severity, count, href }) => (
         <li data-severity={severity}>
-          {summary.bySeverity[severity] > 0 ? (
-            <Link href={hrefs.severity(severity)} class={rowBox}>
+          {href ? (
+            <Link href={href} class={rowBox}>
               {SEVERITY_PLURALS[severity]}
               <Tag tone={SEVERITY_TONES[severity]} plain class="font-mono">
-                {summary.bySeverity[severity]}
+                {count}
               </Tag>
             </Link>
           ) : (
@@ -103,12 +94,12 @@ const rowText = `flex items-baseline ${rowBox}`;
       Por tipo de problema
     </Heading>
     <ul class="mt-3">
-      {Object.values(IssueKind).map((kind) => (
+      {model.byKind.map(({ kind, count, href }) => (
         <li data-kind={kind}>
-          {summary.byKind[kind] > 0 ? (
-            <Link href={hrefs.kind(kind)} class={rowBox}>
+          {href ? (
+            <Link href={href} class={rowBox}>
               {KIND_LABELS[kind]}
-              <span class="font-mono text-ink">{summary.byKind[kind]}</span>
+              <span class="font-mono text-ink">{count}</span>
             </Link>
           ) : (
             <p class={`${rowText} text-muted`}>

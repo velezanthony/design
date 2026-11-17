@@ -3,17 +3,20 @@ import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
 import { render, text } from '../../../testing/render';
 import Overview from './Overview.astro';
 
-const zero = <K extends string>(keys: readonly K[]) =>
-  Object.fromEntries(keys.map((key) => [key, 0])) as Record<K, number>;
-
 const props = (extra: Record<string, unknown> = {}) => ({
-  summary: {
-    total: 10,
-    withProblems: 4,
-    informativeOnly: 5,
-    clean: 1,
-    byKind: { ...zero(Object.values(IssueKind)), 'no-h1': 3 },
-    bySeverity: { ...zero(Object.values(IssueSeverity)), error: 3 },
+  model: {
+    totals: { total: 10, withProblems: 4, informativeOnly: 5, clean: 1 },
+    links: { problems: '/t/', all: '/t/?all' },
+    bySeverity: Object.values(IssueSeverity).map((severity) => ({
+      severity,
+      count: severity === 'error' ? 3 : 0,
+      href: severity === 'error' ? '/t/?severity=error' : undefined,
+    })),
+    byKind: Object.values(IssueKind).map((kind) => ({
+      kind,
+      count: kind === 'no-h1' ? 3 : 0,
+      href: kind === 'no-h1' ? '/t/?kind=no-h1' : undefined,
+    })),
     schemas: {
       withSchemas: 7,
       withoutSchemas: 3,
@@ -22,12 +25,6 @@ const props = (extra: Record<string, unknown> = {}) => ({
         { type: 'TechArticle', pages: 2 },
       ],
     },
-  },
-  hrefs: {
-    pages: '/t/',
-    all: '/t/?all',
-    kind: (kind: string) => `/t/?kind=${kind}`,
-    severity: (severity: string) => `/t/?severity=${severity}`,
   },
   ...extra,
 });
@@ -72,7 +69,7 @@ describe('Overview', () => {
   it('sin ningún schema lo dice, sin inventar tipos', async () => {
     const empty = { withSchemas: 0, withoutSchemas: 10, types: [] };
     const base = props();
-    const doc = await render(Overview, { ...base, summary: { ...base.summary, schemas: empty } });
+    const doc = await render(Overview, { model: { ...base.model, schemas: empty } });
     expect(text(doc.querySelector('[data-schemas]'))).toContain('Ninguna página declara schemas');
   });
 });
