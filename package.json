@@ -7,7 +7,8 @@
     "node": ">=22.23.4"
   },
   "workspaces": [
-    "playground"
+    "playground",
+    "docs"
   ],
   "files": [
     "src",
@@ -40,7 +41,10 @@
     "format:check": "prettier --check .",
     "playground:dev": "npm run dev -w playground",
     "playground:build": "npm run build -w playground",
-    "playground:check": "npm run check -w playground"
+    "playground:check": "npm run check -w playground",
+    "docs:dev": "npm run dev -w docs",
+    "docs:build": "npm run build -w docs",
+    "docs:check": "npm run check -w docs"
   },
   "dependencies": {
     "mdast-util-directive": "^3.2.0",

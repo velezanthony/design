@@ -35,3 +35,7 @@ src/**/fixtures/**/.cases/
 # el playground tiene su propia carpeta de salida y tipos generados
 playground/dist/
 playground/.astro/
+
+# lo mismo para el sitio de documentación
+docs/dist/
+docs/.astro/
