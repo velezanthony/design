@@ -65,21 +65,27 @@ Cada archivo exporta funciones `init*` que reciben lo que necesitan (documento, 
 
 ```text
 client/
-├── theme.ts          Tema claro/oscuro, script previo al pintado, revelado circular
-├── layout.ts         Columnas plegables y ancho; script previo al pintado
-├── sidebar-scroll.ts Recuerda el desplazamiento de la barra lateral
-├── consent.ts        Banner de consentimiento, carga de GTM, borrado de cookies
-├── search.ts         Pagefind: carga bajo la base, resultados, atajo «/»
-├── tabs.ts           Pestañas accesibles con teclado
-├── copy-code.ts      Botón de copiar en los bloques de código
-├── anchors.ts        Enlace a cada encabezado
-├── toc.ts            Resalta la sección visible en el índice
-├── zoom.ts           Ampliación de imágenes en un <dialog>
-├── mermaid.ts        Convierte los bloques .docs-mermaid en SVG
-├── not-found.ts      Cambia la 404 al idioma de la URL
-├── transition.ts     Envoltorio de la View Transitions API con movimiento reducido
-├── year.ts           Año del pie con el reloj del visitante
-└── storage.ts        Acceso seguro a localStorage/sessionStorage y sus claves
+├── diagrams/           Diagramas de Mermaid
+│   ├── mermaid.ts        Convierte los bloques .docs-mermaid en SVG con los colores del tema
+│   ├── diagram-viewer.ts Visor a pantalla completa: zoom, arrastre y teclado
+│   └── diagram-view.ts   La matemática del visor, sin DOM
+├── layout/             La disposición de la página
+│   ├── layout.ts         Columnas plegables y ancho; script previo al pintado
+│   ├── sidebar-scroll.ts Recuerda el desplazamiento de la barra lateral
+│   ├── toc.ts            Resalta la sección visible en el índice
+│   └── anchors.ts        Enlace a cada encabezado
+├── content/            Lo que enriquece el contenido
+│   ├── zoom.ts           Ampliación de imágenes en un <dialog>
+│   ├── copy-code.ts      Botón de copiar en los bloques de código
+│   ├── tabs.ts           Pestañas accesibles con teclado
+│   └── year.ts           Año del pie con el reloj del visitante
+├── preferences/        Lo que elige el visitante y se guarda
+│   ├── theme.ts          Tema claro/oscuro, script previo al pintado, revelado circular
+│   ├── consent.ts        Banner de consentimiento, carga de GTM, borrado de cookies
+│   └── storage.ts        Acceso seguro a localStorage/sessionStorage y sus claves
+├── search.ts           Pagefind: carga bajo la base, resultados, atajo «/»
+├── transition.ts       Envoltorio de la View Transitions API con movimiento reducido
+└── not-found.ts        Cambia la 404 al idioma de la URL
 ```
 
 ## `ui/`: lo que se ve
@@ -168,7 +174,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/integration` | `src/astro/integration/index.ts` |
 | `@velezanthony/design/loader` | `src/astro/loader/index.ts` |
 | `@velezanthony/design/content` | `src/astro/content/index.ts` |
-| `@velezanthony/design/client/*` | `src/client/*.ts` |
+| `@velezanthony/design/client/*` | `src/client/*.ts` (con su carpeta: `client/preferences/theme`) |
 | `@velezanthony/design/components/*` | `src/ui/*` |
 | `@velezanthony/design/layouts/*` | `src/ui/layouts/*` |
 | `@velezanthony/design/routes/*` | `src/astro/routes/*` |

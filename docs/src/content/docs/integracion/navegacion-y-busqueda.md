@@ -52,7 +52,7 @@ aparecen en el menú móvil.
 - Las páginas fuera de toda sección (como la portada de este sitio) usan la `sidebar` de primer
   nivel o, sin ella, una lista automática de solo esas páginas.
 - La barra recuerda su desplazamiento entre páginas en `sessionStorage` (`docs:sidebar-scroll`,
-  `client/sidebar-scroll.ts`); sin posición guardada, deja a la vista la página actual.
+  `client/layout/sidebar-scroll.ts`); sin posición guardada, deja a la vista la página actual.
 
 ### Archivos externos
 
@@ -72,7 +72,7 @@ real, así que siguen funcionando en GitHub. El enlace «Editar esta página» a
 Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al repositorio y a
 «Informar de un error» (a partir de `social.github`); debajo, licencia, privacidad y «Preferencias de
 cookies» (solo con analítica). Este sitio no declara licencia todavía. El año sale del reloj del
-visitante (`client/year.ts`); el del build queda como respaldo sin JavaScript.
+visitante (`client/content/year.ts`); el del build queda como respaldo sin JavaScript.
 
 ## Búsqueda
 

@@ -43,7 +43,7 @@ sequenceDiagram
   participant H as script inline del head
   participant S as localStorage docs:layout
   participant C as theme.css
-  participant L as initLayout (client/layout.ts)
+  participant L as initLayout (client/layout/layout.ts)
   Sv->>H: html con data-left / data-right / data-width de la config
   H->>S: lee la elección guardada
   H->>H: la aplica sobre los atributos antes de pintar
@@ -53,7 +53,7 @@ sequenceDiagram
 ```
 
 El estado inicial lo escribe el servidor en `<html>` (`Shell.astro`), así que la config manda también
-sin JavaScript. El script inline (`layoutBootstrapScript` en `client/layout.ts`) solo lo pisa con lo
+sin JavaScript. El script inline (`layoutBootstrapScript` en `client/layout/layout.ts`) solo lo pisa con lo
 que guardó el visitante, y corre en el `<head>` para que al recargar **no haya saltos**: si esperara
 al módulo de cliente, la página se pintaría primero abierta y después se plegaría. Los valores por
 defecto salen de `core/config/layout.ts`; los desconocidos fallan la validación.
@@ -61,7 +61,7 @@ defecto salen de `core/config/layout.ts`; los desconocidos fallan la validación
 ## Tema claro/oscuro
 
 - Sin elección, manda el sistema (`prefers-color-scheme`). Con elección, `<html data-theme>` y
-  `localStorage` bajo `theme` (`client/theme.ts`).
+  `localStorage` bajo `theme` (`client/preferences/theme.ts`).
 - `theme.css` declara las paletas oscuras **dos veces**: una para el sistema
   (`@media (prefers-color-scheme: dark)` con `:root:not([data-theme='light'])`) y otra para la
   elección (`:root[data-theme='dark']`). Un test (`theme.test.ts`) exige que sean idénticas.
@@ -76,10 +76,10 @@ reducido no hay ninguna, y donde la API no existe el cambio es instantáneo.
 | Transición | Cómo | Dónde |
 | --- | --- | --- |
 | Navegación entre páginas | Solo CSS: `@view-transition { navigation: auto; }`. Cabecera, barra lateral e índice tienen nombre propio y se quedan quietos; el contenido entra con un fundido. | `theme.css` |
-| Cambio de tema | El tema nuevo se revela con un círculo que crece desde el botón. | `client/theme.ts`, `client/transition.ts` |
-| Pestañas | Fundido cruzado del panel. | `client/tabs.ts` |
+| Cambio de tema | El tema nuevo se revela con un círculo que crece desde el botón. | `client/preferences/theme.ts`, `client/transition.ts` |
+| Pestañas | Fundido cruzado del panel. | `client/content/tabs.ts` |
 | Menú móvil | Apertura suave donde existe `::details-content`. | `theme.css` |
-| Zoom de imágenes | La miniatura se transforma en la imagen ampliada dentro de un `<dialog>`. | `client/zoom.ts` |
+| Zoom de imágenes | La miniatura se transforma en la imagen ampliada dentro de un `<dialog>`. | `client/content/zoom.ts` |
 
 Las transiciones dentro del mismo documento (tema, pestañas, zoom) marcan `<html data-transition>`
 mientras duran, y entonces el cromo **pierde** su nombre de transición para que el efecto cubra

@@ -45,7 +45,7 @@ Este sitio **no tiene analítica**: ni `gtmId` en su config ni `PUBLIC_GTM_ID` e
 
 ## El consentimiento en el navegador
 
-`initConsent` (`src/client/consent.ts`) lo gestiona todo a partir del banner
+`initConsent` (`src/client/preferences/consent.ts`) lo gestiona todo a partir del banner
 (`src/ui/organisms/ConsentBanner.astro`), que solo se pinta con analítica activa:
 
 ```mermaid

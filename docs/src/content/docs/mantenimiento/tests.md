@@ -32,7 +32,7 @@ flowchart TD
 | Tipo | Ejemplo | Herramientas |
 | --- | --- | --- |
 | Núcleo puro | `core/navigation/prev-next.test.ts` | Solo Vitest: entra un dato, sale un dato. |
-| Cliente | `client/consent.test.ts` | Funciones con el entorno inyectado (`Storage`, `matchMedia`, documento de linkedom). |
+| Cliente | `client/preferences/consent.test.ts` | Funciones con el entorno inyectado (`Storage`, `matchMedia`, documento de linkedom). |
 | Componentes | `ui/molecules/EditLink.test.ts` | `render()` y `text()` de `testing/render.ts`; textos con `stringsFor()`. |
 | Plugins de Markdown | `astro/markdown/tables.test.ts` | `testing/markdown.ts`. |
 | Vistas de las rutas | `astro/routes/doc-view.test.ts` | Funciones puras sobre una config resuelta con `resolveConfig`. Para lo que necesite `astro:content` hay un doble en `testing/astro-content.ts`. |

@@ -91,7 +91,7 @@ Las alertas de GitHub son la opción preferida para archivos que también se lee
   `python`, `env`/`.env` → `dotenv`, `terminal`/`shell-session` → `shellsession`. Los `langAlias`
   del consumidor se fusionan y, si chocan, mandan los suyos (`mergeLangAlias`).
 - Cada bloque lleva una **etiqueta con el lenguaje** tal como lo escribió el autor y un botón de
-  copiar (`client/copy-code.ts`). La etiqueta es CSS puro sobre `data-language`.
+  copiar (`client/content/copy-code.ts`). La etiqueta es CSS puro sobre `data-language`.
 - `text`, `txt`, `plain` y `plaintext` significan «texto plano a propósito»: ni avisan ni llevan
   etiqueta.
 
