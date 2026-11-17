@@ -69,18 +69,17 @@ describe('FiltersForm', () => {
     expect(submit.classList.contains('cursor-pointer')).toBe(true);
   });
 
-  it('ofrece las filas por página dentro del formulario, con el tamaño actual seleccionado', async () => {
+  it('ya no ofrece las filas por página: es un control de la tabla, no un filtro', async () => {
     const doc = await form(none, 50);
-    const select = doc.querySelector('form select[name="per"]')!;
-    expect([...select.querySelectorAll('option')].map((o) => o.getAttribute('value'))).toEqual([
-      '10',
-      '25',
-      '50',
-      '100',
-    ]);
-    expect(select.querySelector('option[selected]')!.getAttribute('value')).toBe('50');
-    expect(doc.querySelector(`label[for="${select.id}"]`)!.textContent).toContain(
-      'Filas por página',
-    );
+    expect(doc.querySelector('select')).toBeNull();
+  });
+
+  it('conserva un tamaño de página distinto del de por defecto con un campo oculto', async () => {
+    const hidden = (await form(none, 50)).querySelector('input[type="hidden"][name="per"]')!;
+    expect(hidden.getAttribute('value')).toBe('50');
+  });
+
+  it('con el tamaño por defecto no añade ningún campo `per`', async () => {
+    expect((await form(none, 25)).querySelector('input[name="per"]')).toBeNull();
   });
 });

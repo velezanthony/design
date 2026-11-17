@@ -80,6 +80,16 @@ export function serializeFilters(
   return params;
 }
 
+/**
+ * Los filtros como pares nombre/valor, listos para campos ocultos de un formulario GET que no es el
+ * de filtros (el selector de filas por página). Sale de `serializeFilters`, no de una copia de sus
+ * reglas, así la URL que envía ese formulario es la canónica. Sin página ni tamaño: quien envía el
+ * formulario pone el suyo, y no llevar `page` es lo que lo devuelve a la primera.
+ */
+export function filterFields(filters: SeoFilters): { name: string; value: string }[] {
+  return [...serializeFilters(filters).entries()].map(([name, value]) => ({ name, value }));
+}
+
 /** Las tres gravedades: pedirlas a la vez es «mostrar todo» (ver `filterPages`). */
 export const ALL_SEVERITIES: IssueSeverity[] = [
   IssueSeverity.ERROR,

@@ -13,6 +13,11 @@ interface Props extends Omit<HTMLAttributes<'select'>, 'class' | 'id' | 'value'>
   value?: string;
   /** Deja la etiqueta solo para lectores de pantalla. */
   hideLabel?: boolean;
+  /**
+   * Etiqueta y campo en la misma fila, el campo a su ancho natural: para controles compactos
+   * (el pie de una tabla). Por defecto la etiqueta va encima y el campo ocupa su contenedor.
+   */
+  inline?: boolean;
   disabled?: boolean;
   /** Va al contenedor: el ancho lo decide quien coloca el campo; el campo ocupa todo el suyo. */
   class?: string;
@@ -24,21 +29,30 @@ const {
   options,
   value,
   hideLabel = false,
+  inline = false,
   disabled = false,
   class: className,
   ...rest
 } = Astro.props;
 ---
 
-<div class:list={['flex flex-col gap-1', className]}>
-  <label for={id} class:list={[hideLabel ? 'sr-only' : 'label text-muted']}>
+<div
+  data-select
+  data-layout={inline ? 'inline' : 'stacked'}
+  class:list={[inline ? 'flex items-center gap-2' : 'flex flex-col gap-1', className]}
+>
+  <label
+    for={id}
+    class:list={[hideLabel ? 'sr-only' : 'label text-muted', inline && 'whitespace-nowrap']}
+  >
     {label}
   </label>
   <select
     id={id}
     disabled={disabled}
     class:list={[
-      'min-h-8 w-full border border-rule bg-canvas px-2 text-ink focus-visible:border-accent',
+      'min-h-8 border border-rule bg-canvas px-2 text-ink focus-visible:border-accent',
+      !inline && 'w-full',
       disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
     ]}
     {...rest}

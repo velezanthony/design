@@ -13,10 +13,8 @@ import {
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import FiltersForm from '../../../ui/seo-on-page/molecules/FiltersForm.astro';
 import InfoHiddenNote from '../../../ui/seo-on-page/molecules/InfoHiddenNote.astro';
-import Pagination from '../../../ui/molecules/Pagination.astro';
 import PagesTable from '../../../ui/seo-on-page/organisms/PagesTable.astro';
-import ResultsCount from '../../../ui/seo-on-page/molecules/ResultsCount.astro';
-import { PAGINATION_LABELS } from '../../../ui/seo-on-page/labels';
+import TableFooter from '../../../ui/seo-on-page/molecules/TableFooter.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import { urlPolicyOf } from '../pages';
 import { siteConfig } from '../site-config';
@@ -60,17 +58,17 @@ const linkFilters = defaulted ? { ...filters, severities: [] } : filters;
         showAllHref={hrefs.pages({ ...filters, severities: ALL_SEVERITIES }, 1, perPage)}
       />
     )}
-    <ResultsCount
+    <PagesTable rows={rows} />
+    <TableFooter
+      filters={linkFilters}
+      perPage={perPage}
+      action={hrefs.pages()}
       from={result.from}
       to={result.to}
       total={result.total}
       overall={tree.pages.length}
-    />
-    <PagesTable rows={rows} />
-    <Pagination
       page={result.page}
       pages={result.pages}
-      labels={PAGINATION_LABELS}
       href={(number) => hrefs.pages(linkFilters, number, perPage)}
     />
   </div>

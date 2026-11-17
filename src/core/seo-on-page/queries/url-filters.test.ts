@@ -4,6 +4,7 @@ import {
   ALL_SEVERITIES,
   DEFAULT_SEVERITIES,
   EMPTY_FILTERS,
+  filterFields,
   filtersFromUrl,
   parseFilters,
   parsePage,
@@ -159,5 +160,35 @@ describe('serializeFilters: filas por página', () => {
 
   it('un tamaño que no está permitido tampoco se escribe', () => {
     expect(serializeFilters(EMPTY_FILTERS, 1, 7).toString()).toBe('');
+  });
+});
+
+describe('filterFields', () => {
+  it('sin filtros no hay campos', () => {
+    expect(filterFields(EMPTY_FILTERS)).toEqual([]);
+  });
+
+  it('emite exactamente lo que escribe serializeFilters, en su mismo orden', () => {
+    const filters = {
+      kinds: ['no-h1' as const],
+      severities: ['error' as const],
+      locales: ['es'],
+      text: 'a b',
+    };
+    const fields = filterFields(filters);
+    expect(fields).toEqual([
+      { name: 'kind', value: 'no-h1' },
+      { name: 'severity', value: 'error' },
+      { name: 'locale', value: 'es' },
+      { name: 'q', value: 'a b' },
+    ]);
+    const params = new URLSearchParams(fields.map(({ name, value }) => [name, value]));
+    expect(parseFilters(params)).toEqual(filters);
+  });
+
+  it('nunca incluye la página ni el tamaño: los pone quien envía el formulario', () => {
+    const names = filterFields({ ...EMPTY_FILTERS, text: 'x' }).map((field) => field.name);
+    expect(names).not.toContain('page');
+    expect(names).not.toContain('per');
   });
 });

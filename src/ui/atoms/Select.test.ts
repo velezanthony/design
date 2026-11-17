@@ -54,6 +54,20 @@ describe('Select', () => {
     expect(doc.querySelectorAll('option[selected]').length).toBe(0);
   });
 
+  it('en línea, la etiqueta va delante del campo en la misma fila y el campo no se estira', async () => {
+    const doc = await render(Select, props({ inline: true }));
+    const wrapper = doc.querySelector('[data-select]')!;
+    expect(wrapper.getAttribute('data-layout')).toBe('inline');
+    expect(wrapper.firstElementChild?.tagName).toBe('LABEL');
+    expect(doc.querySelector('select')!.className).not.toContain('w-full');
+  });
+
+  it('por defecto, la etiqueta va encima y el campo ocupa su contenedor', async () => {
+    const doc = await render(Select, props());
+    expect(doc.querySelector('[data-select]')!.getAttribute('data-layout')).toBe('stacked');
+    expect(doc.querySelector('select')!.className).toContain('w-full');
+  });
+
   it('con hideLabel la etiqueta sigue ahí, solo para lectores de pantalla', async () => {
     const label = (await render(Select, props({ hideLabel: true }))).querySelector('label')!;
     expect(label.classList.contains('sr-only')).toBe(true);
