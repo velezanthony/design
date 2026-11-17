@@ -144,7 +144,7 @@ configs distintas. Por eso mismo necesita que `docs(docsConfig)` esté en `astro
 el build falla con un error que pide añadirla.
 
 La colección **tiene que llamarse `docs`**: las rutas de la librería la piden por ese nombre
-(`src/astro/routes/docs-collection.ts`).
+(`src/astro/data/docs-collection.ts`).
 
 ### Forma explícita
 

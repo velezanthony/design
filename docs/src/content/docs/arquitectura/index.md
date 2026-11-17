@@ -46,7 +46,7 @@ Las flechas son las únicas direcciones permitidas. Fíjate en lo que **no** hay
   arrastrar valores de `core/` metería en el bundle código que no pinta nada en el navegador. Los
   datos que necesita le llegan por atributos `data-*` del HTML.
 - `ui/` no ve `astro/`: un componente no lee la colección ni el módulo virtual. Eso lo hacen los
-  **contenedores** de `astro/routes/` (patrón contenedor/presentacional).
+  **páginas** de `astro/pages/` (patrón contenedor/presentacional).
 
 ## Cómo lo hace cumplir ESLint
 

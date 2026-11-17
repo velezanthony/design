@@ -37,7 +37,7 @@ sequenceDiagram
   participant Vite as Vite + módulo virtual
   participant Ldr as collections · content/index.ts + loader/index.ts
   participant MD as Sätteri + plugins mdast
-  participant Rt as Rutas inyectadas · astro/routes/
+  participant Rt as Rutas inyectadas · astro/pages/
   participant PF as Pagefind
 
   CLI->>Int: docs(docsConfig) → resolveConfig (zod)
@@ -115,7 +115,7 @@ Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-
 
 ## El módulo virtual
 
-Los contenedores de `src/astro/routes/` necesitan la config resuelta, pero se ejecutan dentro de
+Las páginas de `src/astro/pages/` necesitan la config resuelta, pero se ejecutan dentro de
 Vite, lejos del hook que la conoce. El puente es un **módulo virtual** (el mismo patrón que usa
 Starlight):
 
@@ -124,7 +124,7 @@ Starlight):
   interfaz por idioma en `strings`.
 - `createVirtualConfigPlugin` (`src/astro/virtual/plugin.ts`) sirve ese objeto con
   `JSON.stringify` bajo el id `virtual:@velezanthony/design/config`. Solo datos: nada de funciones.
-- `src/astro/routes/site-config.ts` importa el módulo y le pone su tipo completo.
+- `src/astro/data/site-config.ts` importa el módulo y le pone su tipo completo.
 - `src/astro/content/index.ts` también lo importa: de ahí saca el loader la config. Sin la
   integración registrada, ese import no resuelve y la build falla con un `AstroError` que pide añadir `docs(config)`.
 
@@ -135,7 +135,7 @@ flowchart LR
   astro["astro.config<br/>base · site · trailingSlash"] --> vd
   aa --> vd["createVirtualData<br/>astro/virtual/data.ts"]
   vd --> vp["plugin de Vite<br/>virtual:@velezanthony/design/config"]
-  vp --> sc["routes/site-config.ts"]
+  vp --> sc["data/site-config.ts"]
   vp --> ct["content/index.ts<br/>colección docs"]
   sc --> doc["doc.astro · not-found.astro<br/>sitemap.xml.ts · privacy.astro"]
 ```
