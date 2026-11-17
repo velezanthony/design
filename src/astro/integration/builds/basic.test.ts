@@ -518,3 +518,38 @@ describe('#21 el panel SEO on page no llega a la build', () => {
     expect(referencing).toEqual([]);
   });
 });
+
+describe('JSON-LD declarado por el sitio y por el frontmatter', () => {
+  const blocks = async (page: string) => {
+    const html = await site.read(page);
+    return [...html.matchAll(/<script type="application\/ld\+json">([^<]*)<\/script>/g)].map(
+      (match) => JSON.parse(match[1]),
+    );
+  };
+
+  it('el schema del sitio sale en una página sin frontmatter, con @context', async () => {
+    const found = await blocks('lonely/index.html');
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({ '@context': 'https://schema.org', '@type': 'Organization' });
+  });
+
+  it('también en los idiomas y en las páginas externas', async () => {
+    expect(await blocks('es/index.html')).toHaveLength(1);
+    expect(await blocks('changelog/index.html')).toHaveLength(1);
+  });
+
+  it('una página con `seo.schema` lleva el del sitio y después el suyo', async () => {
+    const found = await blocks('guide/index.html');
+    expect(found.map((block) => block['@type'])).toEqual(['Organization', 'TechArticle']);
+  });
+
+  it('`seo.schema: false` deja la página sin ninguno', async () => {
+    expect(await site.read('hidden/index.html')).not.toContain('application/ld+json');
+  });
+
+  it('un valor con </script> no rompe el HTML: no hay un segundo <script> inyectado', async () => {
+    const html = await site.read('lonely/index.html');
+    expect(html).not.toContain('<script>alert(1)');
+    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)');
+  });
+});

@@ -314,3 +314,59 @@ describe('seo de una página', () => {
     expect(PageSeoOverrideSchema.safeParse({ titleSuffix: true }).success).toBe(false);
   });
 });
+
+describe('seo.schema (JSON-LD)', () => {
+  const org = { '@type': 'Organization', name: 'Acme', sameAs: ['https://acme.dev'] };
+
+  it('la config acepta una lista de objetos con @type y claves libres, tal cual', () => {
+    const cfg = resolveConfig({
+      name: 'X',
+      seo: { schema: [org, { '@type': ['Person', 'Thing'] }] },
+    });
+    expect(cfg.seo.schema?.[0]).toEqual(org);
+  });
+
+  it('sin schema declarado no hay nada: la librería no inventa ninguno', () => {
+    expect(resolveConfig({ name: 'X' }).seo).not.toHaveProperty('schema');
+  });
+
+  it('la página acepta una lista o `false`', () => {
+    expect(PageSeoOverrideSchema.safeParse({ schema: [org] }).success).toBe(true);
+    expect(PageSeoOverrideSchema.safeParse({ schema: false }).success).toBe(true);
+    expect(PageSeoOverrideSchema.safeParse({ schema: true }).success).toBe(false);
+  });
+
+  it("un schema sin @type falla en `seo.schema[1]['@type']`", () => {
+    const [message] = messages({ name: 'X', seo: { schema: [org, { name: 'Sin tipo' }] } });
+    expect(message).toContain("seo.schema[1]['@type']");
+  });
+
+  it('@type vacío, lista vacía o con no-strings fallan en su ruta', () => {
+    for (const type of ['', [], ['Person', 3], 7]) {
+      const [message] = messages({ name: 'X', seo: { schema: [{ '@type': type }] } });
+      expect(message, JSON.stringify(type)).toContain("seo.schema[0]['@type']");
+    }
+  });
+
+  it('una entrada que no es un objeto falla en `seo.schema[i]`', () => {
+    const [message] = messages({ name: 'X', seo: { schema: ['Person'] } });
+    expect(message).toMatch(/^seo\.schema\[0\]:/);
+  });
+
+  it('un valor que no es JSON (función) falla con la ruta del valor', () => {
+    const [message] = messages({
+      name: 'X',
+      seo: { schema: [{ '@type': 'Thing', author: { name: () => 'x' } }] },
+    });
+    expect(message).toContain('seo.schema[0].author.name');
+    expect(message).toContain('JSON');
+  });
+
+  it('en `external[].seo` el error lleva la ruta de la entrada', () => {
+    const [message] = messages({
+      name: 'X',
+      external: [{ slug: 'a', file: 'a.md', seo: { schema: [{ name: 'x' }] } }],
+    });
+    expect(message).toContain("external[0].seo.schema[0]['@type']");
+  });
+});

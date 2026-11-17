@@ -14,6 +14,9 @@ const { head } = Astro.props;
     <title>{content}</title>
   ) : tag === 'meta' ? (
     <meta {...attrs} />
+  ) : tag === 'script' ? (
+    // `content` ya viene escapado por `serializeJsonLd`; `set:html` no lo toca (un escape HTML rompería el JSON).
+    <script {...attrs} set:html={content} />
   ) : (
     <link {...attrs} />
   ),

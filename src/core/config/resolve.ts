@@ -11,6 +11,7 @@ import type { NavItem } from './nav';
 import {
   DocsConfigSchema,
   type ExternalDoc,
+  type JsonLd,
   type Label,
   type SidebarItem,
   type DocsUserConfig,
@@ -24,6 +25,8 @@ export interface ResolvedConfig {
     titleSuffix: Label | false;
     description?: Label;
     image?: { src: string; alt: Label };
+    /** JSON-LD que lleva TODA página (salvo `schema: false`); la librería no pone ninguno por su cuenta. */
+    schema?: JsonLd[];
   };
   /** Favicon de `public/` o URL https; sin definir, el del paquete. */
   favicon?: string;

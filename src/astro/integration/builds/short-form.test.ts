@@ -37,4 +37,9 @@ describe('sitio monolingüe', () => {
     expect(xml).toContain('<loc>https://example.dev/mono/</loc>');
     expect(xml).not.toContain('xhtml:link');
   });
+
+  it('un sitio que no declara JSON-LD no lleva ninguno: la librería no inyecta nada por defecto', async () => {
+    expect(await site.read('index.html')).not.toContain('ld+json');
+    expect(await site.read('404.html')).not.toContain('ld+json');
+  });
 });

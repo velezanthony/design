@@ -47,3 +47,9 @@ describe('formatPath', () => {
     expect(formatPath([])).toBe('');
   });
 });
+
+describe('formatPath: claves de JSON-LD', () => {
+  it("una clave que empieza por @ va entre corchetes: seo.schema[1]['@type']", () => {
+    expect(formatPath(['seo', 'schema', 1, '@type'])).toBe("seo.schema[1]['@type']");
+  });
+});

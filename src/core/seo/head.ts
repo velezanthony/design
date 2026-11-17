@@ -2,13 +2,15 @@ import type { ResolvedConfig } from '../config/resolve';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { resolveFavicon } from './favicon';
+import { serializeJsonLd } from './json-ld';
 import type { ResolvedMeta } from './meta';
 import { composeTitle } from './title';
 
 /** Una etiqueta de `<head>` como dato; `Head.astro` solo la pinta. */
 export interface HeadConfig {
-  tag: 'title' | 'meta' | 'link';
+  tag: 'title' | 'meta' | 'link' | 'script';
   attrs: Record<string, string>;
+  /** Texto de `title`; en `script`, el JSON ya serializado y escapado (se inserta tal cual). */
   content?: string;
 }
 
@@ -38,7 +40,8 @@ const ogLocale = (locale: Locale) => locale.replace('-', '_');
  * Etiquetas del `<head>` de una página como datos puros. El `canonical` y los alternates salen de
  * la disponibilidad de páginas REALES (`av` ya sin las `noindex`): una ruta de reserva apunta a su
  * original, una 404 no tiene canonical y ninguna de las dos emite hreflang. `og:image` es absoluta
- * (`site` + `base` + `src`) salvo que ya sea una URL https.
+ * (`site` + `base` + `src`) salvo que ya sea una URL https. El JSON-LD que declaran el sitio y la
+ * página se emite tal cual, un `<script>` por schema; sin declarar nada no se emite ninguno.
  */
 export function buildHead(
   resolved: ResolvedMeta,
@@ -123,6 +126,15 @@ export function buildHead(
       meta('name', 'twitter:image', imageUrl),
       meta('name', 'twitter:image:alt', image.alt),
     );
+  }
+
+  // Un bloque por schema; las reservas y la 404 también (el sitio decide con `schema: false`).
+  for (const schema of resolved.schemas) {
+    tags.push({
+      tag: 'script',
+      attrs: { type: 'application/ld+json' },
+      content: serializeJsonLd(schema),
+    });
   }
   return tags;
 }

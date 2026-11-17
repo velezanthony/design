@@ -8,6 +8,14 @@ export default defineDocsConfig({
     titleSuffix: 'Fixture docs',
     description: { en: 'Fixture description', es: 'Descripción de la fixture' },
     image: { src: '/og.png', alt: { en: 'Fixture card', es: 'Tarjeta de la fixture' } },
+    /* Con un valor hostil a propósito: el build debe dejarlo inofensivo dentro del <script>. */
+    schema: [
+      {
+        '@type': 'Organization',
+        name: 'Fixture </script><script>alert(1)</script>',
+        url: 'https://example.dev/',
+      },
+    ],
   },
   /* La externa `notes` solo existe en inglés y declara `link`; `changelog` sobrescribe la descripción. */
   external: [
