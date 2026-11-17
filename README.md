@@ -204,7 +204,7 @@ nav: [
 
 ### `footer`
 
-Una fila, igual en todas las páginas (la 404 incluida). Todo es opcional.
+Dos filas, iguales en todas las páginas (la 404 incluida). Todo es opcional.
 
 ```js
 footer: {
@@ -217,14 +217,15 @@ footer: {
 },
 ```
 
-- **Izquierda**: `© <año> <name> by <author>` como una sola frase, y después la licencia. Da solo
-  su nombre (`'MIT'`, `'Apache-2.0'`): la página muestra "MIT License" / "Licencia MIT" (un enlace
-  cuando das `href`).
-- **Derecha** (un `<nav>`): primero tus `links`, y después lo que la configuración ya dice:
-  repositorio y "Report a bug" (`<repo>/issues/new`) a partir de `social.github`, la política de
-  privacidad (se muestra cuando la analítica está activada, o cuando defines `privacyUrl`) y, solo
-  con la analítica activada, un botón "Cookie preferences" que reabre el banner de consentimiento
-  (retirar el consentimiento es tan fácil como darlo).
+- **Fila 1, izquierda**: `© <año> <name> by <author>` como una sola frase.
+- **Fila 1, derecha** (un `<nav>`): primero tus `links`, y después repositorio y "Report a bug"
+  (`<repo>/issues/new`) a partir de `social.github`.
+- **Fila 2** (más pequeña y tenue, una lista): la licencia, la política de privacidad (se muestra
+  cuando la analítica está activada, o cuando defines `privacyUrl`) y, solo con la analítica
+  activada, un botón "Cookie preferences" que reabre el banner de consentimiento (retirar el
+  consentimiento es tan fácil como darlo). Da solo el nombre de la licencia (`'MIT'`,
+  `'Apache-2.0'`): la página muestra "MIT License" / "Licencia MIT" (un enlace cuando das `href`).
+  Solo muestra lo que existe; sin nada, la fila no se pinta.
 - `label` y el label de la licencia pueden ser un string o uno por idioma, con el recurso habitual.
   Un enlace `slug` sigue `translations.missing`; `omit` lo oculta donde la página no está traducida.
 - Rompe el build, con la ruta (`footer.links[1].slug`): un `slug` que no es una página, un enlace con

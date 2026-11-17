@@ -147,7 +147,7 @@ describe('DocsFooter', () => {
     expect(text(await footer({ year: 2030 }))).toContain('© 2030');
   });
 
-  it('enlaces del footer y privacidad solo si se pasan; los propios van antes que la privacidad', async () => {
+  it('fila 1: los enlaces propios en el nav; privacidad y cookies ya no están ahí', async () => {
     const bare = await footer({ footer: { links: [] } });
     expect(bare.querySelector('a')).toBeNull();
     const doc = await footer({
@@ -155,15 +155,51 @@ describe('DocsFooter', () => {
       cookieControl: true,
       footer: { links: [{ label: 'Código', href: 'https://github.com/x/y', external: true }] },
     });
-    expect(text(doc.querySelector('a[href="/privacidad/"]'))).toBe('Política de privacidad');
     const link = doc.querySelector('a[href="https://github.com/x/y"]')!;
     expect(text(link)).toBe('Código');
     expect(link.getAttribute('rel')).toContain('noopener');
     const order = [...doc.querySelectorAll('footer nav a, footer nav button')].map((n) => text(n));
-    expect(order).toEqual(['Código', 'Política de privacidad', 'Preferencias de cookies']);
+    expect(order).toEqual(['Código']);
   });
 
-  it('izquierda: «© año nombre por autor» en una frase y después la licencia (con o sin enlace)', async () => {
+  it('fila 2: licencia, privacidad y cookies en ese orden, separadas por puntos que no se leen', async () => {
+    const doc = await footer({
+      privacyUrl: '/privacidad/',
+      cookieControl: true,
+      footer: { license: { label: 'MIT', href: 'https://x.dev/LICENSE' }, links: [] },
+    });
+    const legal = doc.querySelector('[data-footer-legal]')!;
+    expect([...legal.querySelectorAll('li')].map((n) => text(n).replace(/^·/, ''))).toEqual([
+      'Licencia MIT',
+      'Política de privacidad',
+      'Preferencias de cookies',
+    ]);
+    expect(legal.querySelector('a[href="https://x.dev/LICENSE"]')).not.toBeNull();
+    expect(text(legal.querySelector('a[href="/privacidad/"]'))).toBe('Política de privacidad');
+    const dots = [...legal.querySelectorAll('span[aria-hidden="true"]')];
+    expect(dots.map((n) => text(n))).toEqual(['·', '·']);
+    expect(legal.querySelector('nav')).toBeNull();
+    expect(doc.querySelectorAll('footer nav')).toHaveLength(0);
+  });
+
+  it('fila 2 solo muestra lo que existe y desaparece si no hay nada', async () => {
+    const onlyLicense = await footer({ footer: { license: { label: 'MIT' }, links: [] } });
+    const legal = onlyLicense.querySelector('[data-footer-legal]')!;
+    expect(text(legal)).toBe('Licencia MIT');
+    expect(legal.querySelector('[aria-hidden]')).toBeNull();
+    expect(legal.querySelector('a')).toBeNull();
+
+    const onlyPrivacy = await footer({ privacyUrl: '/privacidad/' });
+    expect(text(onlyPrivacy.querySelector('[data-footer-legal]'))).toBe('Política de privacidad');
+
+    const none = await footer({
+      footer: { links: [{ label: 'A', href: 'https://a.dev', external: true }] },
+    });
+    expect(none.querySelector('[data-footer-legal]')).toBeNull();
+    expect((await footer()).querySelector('[data-footer-legal]')).toBeNull();
+  });
+
+  it('izquierda: «© año nombre por autor» en una frase, sin la licencia', async () => {
     const doc = await footer({
       footer: {
         license: { label: 'MIT', href: 'https://x.dev/LICENSE' },
@@ -171,12 +207,10 @@ describe('DocsFooter', () => {
         links: [],
       },
     });
-    const left = text(doc.querySelector('[data-footer-meta]'));
-    expect(left).toBe('© 2026 Design por Anthony Vélez · Licencia MIT');
-    expect(doc.querySelector('a[href="https://x.dev/LICENSE"]')).not.toBeNull();
+    expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design por Anthony Vélez');
     expect(doc.querySelector('a[href="https://velezanthony.github.io/"]')).not.toBeNull();
     const plain = await footer({ footer: { license: { label: 'MIT' }, links: [] } });
-    expect(text(plain.querySelector('[data-footer-meta]'))).toBe('© 2026 Design · Licencia MIT');
+    expect(text(plain.querySelector('[data-footer-meta]'))).toBe('© 2026 Design');
     expect(plain.querySelector('[data-footer-meta] a')).toBeNull();
   });
 
@@ -188,7 +222,7 @@ describe('DocsFooter', () => {
     expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design by Ana');
   });
 
-  it('los enlaces van en un nav etiquetado; sin enlaces no hay nav', async () => {
+  it('los enlaces del proyecto van en un nav etiquetado; sin enlaces no hay nav', async () => {
     const doc = await footer({
       footer: { links: [{ label: 'A', href: 'https://a.dev', external: true }] },
     });
@@ -216,6 +250,12 @@ describe('DocsFooter', () => {
   it('otro idioma', async () => {
     const doc = await footer({ strings: stringsFor('en'), cookieControl: true });
     expect(text(doc.querySelector('[data-consent-open]'))).toBe('Cookie preferences');
+  });
+
+  it('el control de cookies vive en la fila legal, no en el nav', async () => {
+    const doc = await footer({ cookieControl: true });
+    expect(doc.querySelector('[data-footer-legal] [data-consent-open]')).not.toBeNull();
+    expect(doc.querySelector('footer nav')).toBeNull();
   });
 });
 
