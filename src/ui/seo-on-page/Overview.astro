@@ -7,8 +7,10 @@ import { KIND_LABELS, SEVERITY_PLURALS, SEVERITY_TONES } from './labels';
 interface Props {
   summary: SeoSummary;
   hrefs: {
-    /** La tabla sin filtros. */
+    /** La tabla de problemas (su vista por defecto: errores y avisos). */
     pages: string;
+    /** La tabla de todas las páginas, informativas y sin problemas incluidas. */
+    all: string;
     /** La tabla filtrada por un tipo de problema / por una gravedad. */
     kind: (kind: IssueKind) => string;
     severity: (severity: IssueSeverity) => string;
@@ -18,8 +20,9 @@ interface Props {
 const { summary, hrefs } = Astro.props;
 const stats = [
   { id: 'total', label: 'Páginas (por idioma)', value: summary.total },
-  { id: 'with-issues', label: 'Con problemas', value: summary.withIssues },
-  { id: 'without-issues', label: 'Sin problemas', value: summary.withoutIssues },
+  { id: 'with-problems', label: 'Con problemas', value: summary.withProblems },
+  { id: 'informative-only', label: 'Solo informativas', value: summary.informativeOnly },
+  { id: 'clean', label: 'Sin nada', value: summary.clean },
 ];
 const row = 'flex min-h-8 w-full items-baseline justify-between gap-4 border-b border-rule py-1';
 const link = 'text-accent hover:underline underline-offset-[0.2em]';
@@ -27,7 +30,7 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
 ---
 
 <div class="flex flex-col gap-8">
-  <dl class="grid gap-4 sm:grid-cols-3">
+  <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     {stats.map((stat) => (
       <div class="border border-rule bg-raised p-4" data-stat={stat.id}>
         <dt class="label text-muted">{stat.label}</dt>
@@ -36,8 +39,11 @@ const inlineLink = 'text-accent underline underline-offset-[0.2em]';
     ))}
   </dl>
 
-  <p>
+  <p class="flex flex-wrap gap-x-6 gap-y-1">
     <a href={hrefs.pages} class={inlineLink}>
+      Ver las páginas con problemas
+    </a>
+    <a href={hrefs.all} class={inlineLink}>
       Ver todas las páginas
     </a>
   </p>

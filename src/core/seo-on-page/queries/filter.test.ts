@@ -48,6 +48,14 @@ describe('filterPages', () => {
     expect(ids({ kinds: ['title-too-long'], severities: ['error'] })).toEqual([]);
   });
 
+  it('las tres gravedades a la vez no restringen: entran también las páginas sin problemas', () => {
+    expect(ids({ severities: ['error', 'warning', 'info'] })).toEqual([
+      'install:en',
+      'install:es',
+      'guide/start:en',
+    ]);
+  });
+
   it('por idioma', () => {
     expect(ids({ locales: ['es'] })).toEqual(['install:es']);
   });

@@ -44,3 +44,35 @@ export function serializeFilters(filters: SeoFilters): URLSearchParams {
   if (filters.text !== '') params.set('q', filters.text);
   return params;
 }
+
+/** Las tres gravedades: pedirlas a la vez es «mostrar todo» (ver `filterPages`). */
+export const ALL_SEVERITIES: IssueSeverity[] = [
+  IssueSeverity.ERROR,
+  IssueSeverity.WARNING,
+  IssueSeverity.INFO,
+];
+
+/** Lo que la tabla enseña si la URL no pide otra cosa: lo accionable, sin la información. */
+export const DEFAULT_SEVERITIES: IssueSeverity[] = [IssueSeverity.ERROR, IssueSeverity.WARNING];
+
+/**
+ * Filtros EFECTIVOS de la tabla. `parseFilters` sigue siendo un lector fiel de la URL; este paso
+ * aparte decide el valor por defecto: si la URL no nombra ninguna gravedad ni ningún tipo, la
+ * tabla parte de error + aviso, porque casi todas las páginas tienen la incidencia informativa
+ * «descripción heredada» y ahogaría los avisos reales. En cuanto la URL nombra una gravedad o un
+ * tipo manda lo escrito (un tipo informativo debe verse tal cual), y «todo» se pide con las tres
+ * gravedades. Así ninguna URL es ambigua: la misma query da siempre la misma vista, y el
+ * formulario (cuyas casillas reflejan estos filtros) reenvía exactamente lo que se ve.
+ * `defaulted` avisa a la UI de que hay información oculta, para ofrecer mostrarla.
+ */
+export function filtersFromUrl(params: URLSearchParams): {
+  filters: SeoFilters;
+  defaulted: boolean;
+} {
+  const filters = parseFilters(params);
+  const defaulted = filters.severities.length === 0 && filters.kinds.length === 0;
+  return {
+    filters: defaulted ? { ...filters, severities: [...DEFAULT_SEVERITIES] } : filters,
+    defaulted,
+  };
+}

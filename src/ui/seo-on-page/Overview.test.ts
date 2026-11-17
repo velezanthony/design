@@ -9,13 +9,15 @@ const zero = <K extends string>(keys: readonly K[]) =>
 const props = (extra: Record<string, unknown> = {}) => ({
   summary: {
     total: 10,
-    withIssues: 4,
-    withoutIssues: 6,
+    withProblems: 4,
+    informativeOnly: 5,
+    clean: 1,
     byKind: { ...zero(Object.values(IssueKind)), 'no-h1': 3 },
     bySeverity: { ...zero(Object.values(IssueSeverity)), error: 3 },
   },
   hrefs: {
     pages: '/t/',
+    all: '/t/?all',
     kind: (kind: string) => `/t/?kind=${kind}`,
     severity: (severity: string) => `/t/?severity=${severity}`,
   },
@@ -23,11 +25,12 @@ const props = (extra: Record<string, unknown> = {}) => ({
 });
 
 describe('Overview', () => {
-  it('enseña el total y cuántas páginas tienen problemas', async () => {
+  it('enseña el total y separa con problemas, solo informativas y sin nada', async () => {
     const doc = await render(Overview, props());
     expect(text(doc.querySelector('[data-stat="total"]'))).toContain('10');
-    expect(text(doc.querySelector('[data-stat="with-issues"]'))).toContain('4');
-    expect(text(doc.querySelector('[data-stat="without-issues"]'))).toContain('6');
+    expect(text(doc.querySelector('[data-stat="with-problems"]'))).toContain('4');
+    expect(text(doc.querySelector('[data-stat="informative-only"]'))).toContain('5');
+    expect(text(doc.querySelector('[data-stat="clean"]'))).toContain('1');
   });
 
   it('cada gravedad con incidencias enlaza a la tabla filtrada', async () => {
@@ -43,8 +46,9 @@ describe('Overview', () => {
     expect(doc.querySelector('[data-kind="title-too-long"]')).not.toBeNull();
   });
 
-  it('enlaza a la tabla completa', async () => {
+  it('enlaza a la tabla de problemas y a la de todas las páginas', async () => {
     const doc = await render(Overview, props());
-    expect(doc.querySelector('a[href="/t/"]')).not.toBeNull();
+    expect(text(doc.querySelector('a[href="/t/"]'))).toContain('problemas');
+    expect(text(doc.querySelector('a[href="/t/?all"]'))).toContain('todas');
   });
 });

@@ -1,0 +1,16 @@
+---
+interface Props {
+  /** La misma tabla con todas las gravedades, para ver también lo informativo. */
+  showAllHref: string;
+}
+
+const { showAllHref } = Astro.props;
+---
+
+{/* Aviso de que la vista por defecto oculta algo: sin él, «75 de 151» parecería un fallo. */}
+<p class="border border-rule bg-raised p-3 text-muted" data-info-hidden>
+  Se ocultan las incidencias informativas y las páginas sin problemas.
+  <a href={showAllHref} class="text-accent underline underline-offset-[0.2em]">
+    Mostrar también las informativas
+  </a>
+</p>

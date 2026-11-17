@@ -4,7 +4,7 @@
    los datos ya calculados. */
 import { Font } from 'astro:assets';
 import { summarize } from '../../core/seo-on-page/queries/summary';
-import { EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
+import { ALL_SEVERITIES, EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
 import Overview from '../../ui/seo-on-page/Overview.astro';
 import SeoLayout from '../../ui/seo-on-page/SeoLayout.astro';
 import { urlPolicyOf } from '../routes/pages';
@@ -31,6 +31,7 @@ const summary = summarize(await loadSeoTree(siteConfig));
     summary={summary}
     hrefs={{
       pages: hrefs.pages(),
+      all: hrefs.pages({ ...EMPTY_FILTERS, severities: ALL_SEVERITIES }),
       kind: (kind) => hrefs.pages({ ...EMPTY_FILTERS, kinds: [kind] }),
       severity: (severity) => hrefs.pages({ ...EMPTY_FILTERS, severities: [severity] }),
     }}
