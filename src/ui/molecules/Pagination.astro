@@ -28,29 +28,55 @@ const NEUTRAL_LABELS = {
 
 const { page, pages, href, labels = NEUTRAL_LABELS } = Astro.props;
 
-const items = pageWindow(page, pages);
+/* Sin filas (0 páginas) o con una sola, el paginador se queda, entero e inerte: así la tabla no
+   cambia de forma según los datos. Se trata como «página 1 de 1»; la 1 como actual es el estado
+   vacío más honesto (no hay una «página 0» a la que mirar). */
+const total = Math.max(pages, 1);
+const current = Math.min(Math.max(page, 1), total);
+const items = pageWindow(current, total);
+const hasPrevious = current > 1;
+const hasNext = current < total;
 /* Todos los números comparten caja para que la fila no baile: 32px, por encima de los 24px de WCAG. */
 const box = 'min-h-8 min-w-8 justify-center px-2';
+/* Lo que no lleva a ningún sitio: no es un enlace (sin `href` no entra en el orden de tabulación),
+   pero conserva el rol para que un lector de pantalla lo anuncie como no disponible. */
+const disabled = `inline-flex items-center ${box} cursor-not-allowed text-muted opacity-60`;
 ---
 
-{pages > 1 && (
+{
   /* Enlaces de verdad: funciona sin JavaScript, con teclado y con atrás/adelante. */
   <nav aria-label={labels.nav}>
     <ul class="flex flex-wrap items-center gap-1">
-      {page > 1 && (
-        <li>
-          <Link href={href(page - 1)} rel="prev" class={box}>
+      <li>
+        {hasPrevious ? (
+          <Link href={href(current - 1)} rel="prev" class={box}>
             {labels.previous}
           </Link>
-        </li>
-      )}
+        ) : (
+          <span role="link" aria-disabled="true" class={disabled}>
+            {labels.previous}
+          </span>
+        )}
+      </li>
       {items.map((item) => (
         <li>
           {item === GAP ? (
             <span data-gap aria-hidden="true" class="px-1 text-muted">
               …
             </span>
-          ) : item === page ? (
+          ) : item === current && total === 1 ? (
+            /* Única página: no hay a dónde ir, así que ni siquiera es un enlace a sí misma. */
+            <span
+              data-page
+              aria-current="page"
+              class:list={[
+                'inline-flex items-center border border-accent bg-accent-soft text-ink',
+                box,
+              ]}
+            >
+              {item}
+            </span>
+          ) : item === current ? (
             /* La actual es un enlace a sí misma (se ve y se anuncia como actual), en tinta y con caja. */
             <Link
               data-page
@@ -68,13 +94,17 @@ const box = 'min-h-8 min-w-8 justify-center px-2';
           )}
         </li>
       ))}
-      {page < pages && (
-        <li>
-          <Link href={href(page + 1)} rel="next" class={box}>
+      <li>
+        {hasNext ? (
+          <Link href={href(current + 1)} rel="next" class={box}>
             {labels.next}
           </Link>
-        </li>
-      )}
+        ) : (
+          <span role="link" aria-disabled="true" class={disabled}>
+            {labels.next}
+          </span>
+        )}
+      </li>
     </ul>
   </nav>
-)}
+}
