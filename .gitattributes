@@ -1,0 +1,7 @@
+# Estadísticas de lenguajes de GitHub (Linguist): solo cuenta el código de la librería.
+
+# El playground es un consumidor de ejemplo con docs de otro proyecto, no código de la librería.
+playground/** linguist-documentation
+
+# Generado por el script de migración a partir del mkdocs.yml de snake-orm.
+playground/sidebar.generated.mjs linguist-generated
