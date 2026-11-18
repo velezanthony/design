@@ -72,15 +72,10 @@ export function inspectorHeadings(page: { fixes: number; translations: boolean }
   }));
 }
 
-/**
- * Todo lo que `DocsLayout` necesita para una pantalla del panel, con el mismo molde que `docView`:
- * el idioma por defecto, la cabecera y el pie del sitio y su tema. La barra lateral es la navegación
- * del panel, y la página NUNCA se indexa y no lleva analítica ni aviso de consentimiento (ni
- * `gtmId` ni `privacyUrl`) ni enlace de edición: es una herramienta de desarrollo.
- */
 /** El idioma del panel: es una herramienta de desarrollo y solo existe en español. */
 const PANEL_LOCALE = 'es';
 
+/** Lo que `DocsLayout` necesita para una pantalla del panel: noindex, sin analítica ni edición. */
 export function panelView({
   cfg,
   data,

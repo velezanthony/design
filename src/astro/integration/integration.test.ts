@@ -77,7 +77,7 @@ async function virtualData(userConfig: Parameters<typeof docs>[0], overrides = {
 }
 
 describe('docs(): identidad y config', () => {
-  it('se identifica con INTEGRATION_NAME y expone la config para el loader', () => {
+  it('se identifica con INTEGRATION_NAME y expone su config resuelta', () => {
     const integration = docs({ name: 'x', external: [{ slug: 'changelog', file: '../C.md' }] });
     expect(integration.name).toBe(INTEGRATION_NAME);
     expect(integration.resolvedConfig.external).toEqual([{ slug: 'changelog', file: '../C.md' }]);

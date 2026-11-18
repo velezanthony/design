@@ -25,7 +25,7 @@ import { clientRegistry } from '../data/client-registry';
 import { addClientPagesToSitemap } from './client-sitemap';
 import { overrideWarning, routeOverrides } from './route-overrides';
 
-/** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
+/** Nombre de la integración en `astro.config` (lo que Astro enseña en sus avisos). */
 export const INTEGRATION_NAME = '@velezanthony/design';
 
 export type { DocsUserConfig };
@@ -138,7 +138,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         ownSitemap = own(
           resolvedConfig.sitemap.include.length > 0 ? `/${SITEMAP_PAGES}` : '/sitemap.xml',
         );
-        published = { site: config.site ?? '', base: config.base };
+        published = { site: config.site, base: config.base };
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
         const env = createMarkdownEnv(resolvedConfig, config.root, (message) =>

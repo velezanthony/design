@@ -4,7 +4,7 @@ import { t, type UiKey } from '../../core/i18n/ui-strings';
 import { docsPlugin, type MarkdownEnv } from './env';
 
 /** Tipos de directiva `:::tipo` (design-tokens da un color de estado a cada uno). */
-export const ADMONITION_KINDS = ['note', 'info', 'tip', 'warning', 'danger', 'question'] as const;
+const ADMONITION_KINDS = ['note', 'info', 'tip', 'warning', 'danger', 'question'] as const;
 export type AdmonitionKind = (typeof ADMONITION_KINDS)[number];
 
 const isKind = (name: string): name is AdmonitionKind =>
