@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IssueKind } from '../../tree/types';
+import { IssueKind } from './tree/types';
 import { certaintyOf } from './certainty';
 
 describe('certaintyOf', () => {

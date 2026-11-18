@@ -1,6 +1,6 @@
 import type { Locale } from '../../../i18n/locale';
 import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
-import { certaintyOf, type Certainty } from './certainty';
+import { certaintyOf, type Certainty } from '../../certainty';
 
 /** Un tipo de problema del sitio, con lo que hace falta para decidir si arreglarlo ya. */
 export interface FixPriority {

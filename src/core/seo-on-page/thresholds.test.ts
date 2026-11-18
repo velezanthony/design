@@ -11,6 +11,8 @@ describe('THRESHOLDS', () => {
       titleMin: 15,
       descriptionMax: 160,
       descriptionMin: 70,
+      titleMaxPx: 580,
+      descriptionMaxPx: 920,
       maxH1: 1,
     });
   });

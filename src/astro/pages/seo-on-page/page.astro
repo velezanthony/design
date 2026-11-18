@@ -5,9 +5,9 @@ import { Font } from 'astro:assets';
 import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import Link from '../../../ui/atoms/Link.astro';
+import FixList from '../../../ui/seo-on-page/organisms/FixList.astro';
 import HeadingsOutline from '../../../ui/seo-on-page/organisms/HeadingsOutline.astro';
-import IssuesList from '../../../ui/seo-on-page/organisms/IssuesList.astro';
-import Previews from '../../../ui/seo-on-page/organisms/Previews.astro';
+import InspectorHeader from '../../../ui/seo-on-page/organisms/InspectorHeader.astro';
 import PublishedFacts from '../../../ui/seo-on-page/organisms/PublishedFacts.astro';
 import SchemasList from '../../../ui/seo-on-page/organisms/SchemasList.astro';
 import Translations from '../../../ui/seo-on-page/organisms/Translations.astro';
@@ -23,6 +23,10 @@ const hrefs = devHrefs(urlPolicyOf(siteConfig));
 const { searchParams } = Astro.url;
 const slug = searchParams.get('slug') ?? '';
 const locale = searchParams.get('locale') ?? siteConfig.defaultLocale;
+const docs = await loadDocData();
+/* El enlace de edición, como el de las páginas de docs: `editUrl` de la config más la ruta del archivo
+   respecto a la raíz del repo, que solo conoce el loader. */
+const editPath = docs.find((doc) => doc.slug === slug && doc.locale === locale)?.editPath;
 const model = inspectorModel({
   tree: await loadSeoTree(siteConfig),
   slug,
@@ -30,16 +34,22 @@ const model = inspectorModel({
   links: hrefs,
   site: siteConfig.site,
   asset: (src) => assetHref(siteConfig.base, src),
+  edit: siteConfig.editUrl && editPath ? { url: siteConfig.editUrl, path: editPath } : undefined,
 });
 if (!model) Astro.response.status = 404;
 const title = model ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada';
 const view = panelView({
   cfg: siteConfig,
-  data: await loadDocData(),
+  data: docs,
   hrefs,
   screen: 'pages',
   title,
-  headings: model ? inspectorHeadings() : [],
+  headings: model
+    ? inspectorHeadings({
+        fixes: model.fixes.length,
+        translations: model.translations !== undefined,
+      })
+    : [],
 });
 ---
 
@@ -48,19 +58,15 @@ const view = panelView({
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
-  <PanelIntro title={title} strings={view.strings} />
+  <PanelIntro title={model ? slugLabel(slug) : title} strings={view.strings} />
   {model ? (
     <div class="flex flex-col gap-10">
-      <p class="flex flex-wrap gap-x-6 gap-y-1">
-        <Link href={model.links.pages}>← Todas las páginas</Link>
-        <Link href={model.links.live}>Abrir la página real</Link>
-      </p>
-      <PublishedFacts published={model.published} />
-      <Previews previews={model.previews} />
-      <IssuesList issues={model.issues} />
+      <InspectorHeader header={model.header} links={model.links} />
+      <FixList fixes={model.fixes} />
+      <PublishedFacts published={model.published} previews={model.previews} />
+      {model.translations && <Translations translations={model.translations} />}
       <SchemasList schemas={model.schemas} />
-      <HeadingsOutline outline={model.outline} />
-      <Translations translations={model.translations} slug={model.slug} />
+      <HeadingsOutline headings={model.headings} />
     </div>
   ) : (
     <p class="text-ink">

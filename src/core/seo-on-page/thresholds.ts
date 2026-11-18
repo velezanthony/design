@@ -25,5 +25,11 @@ export const THRESHOLDS = {
    */
   descriptionMin: 70,
   /** Más de un H1 diluye de qué trata la página: debe haber exactamente uno. */
+  /**
+   * Los mismos límites en píxeles, que es como recortan los buscadores: ≈580 px el título y ≈920 px
+   * la descripción en el resultado de escritorio. Se enseñan como estimación.
+   */
+  titleMaxPx: 580,
+  descriptionMaxPx: 920,
   maxH1: 1,
 } as const;

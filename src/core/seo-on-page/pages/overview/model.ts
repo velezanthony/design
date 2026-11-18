@@ -6,7 +6,7 @@ import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
 import type { PanelLinks } from '../links';
 import { coverage, type Coverage } from './coverage';
 import { indexing, type Indexing } from './indexing';
-import type { Certainty } from './certainty';
+import type { Certainty } from '../../certainty';
 import { fixPriorities, type FixPriority } from './priorities';
 
 export interface OverviewModel {

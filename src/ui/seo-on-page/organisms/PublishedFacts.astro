@@ -1,56 +1,93 @@
 ---
 import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
-import Heading from '../../atoms/Heading.astro';
-import { DESCRIPTION_SOURCE_LABELS, INSPECTOR_SECTIONS } from '../labels';
+import Tag from '../../atoms/Tag.astro';
+import LengthMeter from '../atoms/LengthMeter.astro';
+import { DESCRIPTION_SOURCE_LABELS, FIX_LABELS, PUBLISHED_LABELS as L } from '../labels';
+import InspectorSection from '../molecules/InspectorSection.astro';
+import OgPreview from '../molecules/OgPreview.astro';
+import SerpPreview from '../molecules/SerpPreview.astro';
 
 interface Props {
   published: InspectorModel['published'];
+  previews: InspectorModel['previews'];
 }
 
-const { published } = Astro.props;
-const field = 'grid gap-1 border-b border-rule py-2 sm:grid-cols-[10rem_1fr] sm:gap-4';
+const { published, previews } = Astro.props;
+const field = 'grid gap-1 border-b border-rule py-3 sm:grid-cols-[8rem_1fr] sm:gap-4';
+const meta = 'mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm';
 ---
 
-<section aria-labelledby="published" class="flex flex-col">
-  <Heading level={2} size="md" id="published">
-    {INSPECTOR_SECTIONS.published}
-  </Heading>
-  <dl class="mt-3">
-    <div class={field}>
-      <dt class="label text-muted">&lt;title&gt;</dt>
-      <dd>
-        <p class="text-ink">{published.title}</p>
-        <p class="font-mono text-sm text-muted">
-          {published.titleLength} / {published.titleMax}
-        </p>
-      </dd>
-    </div>
-    <div class={field}>
-      <dt class="label text-muted">Descripción</dt>
-      <dd>
-        <p class="text-ink">{published.description ?? '—'}</p>
-        <p class="text-sm text-muted">
-          {DESCRIPTION_SOURCE_LABELS[published.descriptionSource]}
-          {published.descriptionLength !== undefined && (
-            <span class="font-mono">
-              {' '}
-              · {published.descriptionLength} / {published.descriptionMax}
+<InspectorSection section="published">
+  <div class="grid items-start gap-8 lg:grid-cols-2">
+    <dl class="min-w-0">
+      <div class={field} data-field="title">
+        <dt class="label text-muted">{L.title}</dt>
+        <dd class="min-w-0">
+          <p class="text-ink">{published.title}</p>
+          <div class={meta}>
+            <LengthMeter
+              value={published.titleLength}
+              max={published.titleMax}
+              min={published.titleMin}
+            />
+            <span class="font-mono text-muted" title={L.widthHint} data-width="title">
+              {L.width(published.titlePx, published.titleMaxPx)}
             </span>
-          )}
-        </p>
-      </dd>
+            <Tag tone="wip" plain title={FIX_LABELS.recommendationHint}>
+              {FIX_LABELS.recommendation}
+            </Tag>
+          </div>
+        </dd>
+      </div>
+      <div class={field} data-field="description">
+        <dt class="label text-muted">{L.description}</dt>
+        <dd class="min-w-0">
+          <p class="text-ink">{published.description ?? L.noDescription}</p>
+          <div class={meta}>
+            <Tag
+              tone={published.descriptionSource === 'page' ? 'live' : 'wip'}
+              plain
+              data-source={published.descriptionSource}
+            >
+              {DESCRIPTION_SOURCE_LABELS[published.descriptionSource]}
+            </Tag>
+            {published.descriptionLength !== undefined && (
+              <LengthMeter
+                value={published.descriptionLength}
+                max={published.descriptionMax}
+                min={published.descriptionMin}
+              />
+            )}
+            {published.descriptionPx !== undefined && (
+              <span class="font-mono text-muted" title={L.widthHint} data-width="description">
+                {L.width(published.descriptionPx, published.descriptionMaxPx)}
+              </span>
+            )}
+          </div>
+        </dd>
+      </div>
+      <div class={field} data-field="canonical">
+        <dt class="label text-muted">{L.canonical}</dt>
+        <dd class="font-mono text-sm break-all text-ink">{published.canonical}</dd>
+      </div>
+      <div class={field} data-field="noindex">
+        <dt class="label text-muted">{L.noindex}</dt>
+        <dd class="text-ink">{published.noindex ? L.notIndexed : L.indexed}</dd>
+      </div>
+      <div class={field} data-field="file">
+        <dt class="label text-muted">{L.file}</dt>
+        <dd class="font-mono text-sm break-all text-ink">{published.sourcePath}</dd>
+      </div>
+    </dl>
+    <div class="flex min-w-0 flex-col gap-6">
+      <div class="flex flex-col gap-2">
+        <p class="label text-muted">{L.serp}</p>
+        <SerpPreview {...previews.serp} />
+      </div>
+      <div class="flex flex-col gap-2">
+        <p class="label text-muted">{L.og}</p>
+        <OgPreview {...previews.og} />
+      </div>
     </div>
-    <div class={field} data-field="canonical">
-      <dt class="label text-muted">Canonical</dt>
-      <dd class="font-mono text-sm break-all text-ink">{published.canonical}</dd>
-    </div>
-    <div class={field} data-field="noindex">
-      <dt class="label text-muted">noindex</dt>
-      <dd class="text-ink">{published.noindex ? 'Sí' : 'No'}</dd>
-    </div>
-    <div class={field}>
-      <dt class="label text-muted">Archivo</dt>
-      <dd class="font-mono text-sm text-ink">{published.sourcePath}</dd>
-    </div>
-  </dl>
-</section>
+  </div>
+</InspectorSection>

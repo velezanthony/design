@@ -114,16 +114,28 @@ describe('panelView', () => {
 
 describe('inspectorHeadings', () => {
   it('son las secciones del inspector, en su orden y a nivel 2', () => {
-    const headings = inspectorHeadings();
+    const headings = inspectorHeadings({ fixes: 0, translations: true });
     expect(headings.map((heading) => heading.slug)).toEqual([
-      'published',
-      'previews',
       'issues',
+      'published',
+      'translations',
       'schemas',
       'outline',
-      'translations',
     ]);
     expect(headings.every((heading) => heading.depth === 2)).toBe(true);
+  });
+
+  it('«Qué arreglar» lleva cuántos problemas hay', () => {
+    expect(inspectorHeadings({ fixes: 2, translations: true })[0]!.text).toBe('Qué arreglar (2)');
+  });
+
+  it('sin nada que arreglar no hay recuento', () => {
+    expect(inspectorHeadings({ fixes: 0, translations: true })[0]!.text).toBe('Qué arreglar');
+  });
+
+  it('con un solo idioma no hay sección de traducciones', () => {
+    const slugs = inspectorHeadings({ fixes: 0, translations: false }).map((h) => h.slug);
+    expect(slugs).not.toContain('translations');
   });
 });
 
@@ -132,7 +144,10 @@ describe('DocsLayout alimentado por panelView', () => {
     const cfg = site({ gtmId: 'GTM-ABC123', privacyUrl: '/repo/privacy/' });
     return renderDocument(
       DocsLayout,
-      { ...view({ cfg, headings: inspectorHeadings() }), year: 2026 },
+      {
+        ...view({ cfg, headings: inspectorHeadings({ fixes: 1, translations: true }) }),
+        year: 2026,
+      },
       { default: '<p>contenido</p>' },
     );
   };

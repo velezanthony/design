@@ -1,4 +1,6 @@
-import type { Certainty } from '../../core/seo-on-page/pages/overview/certainty';
+import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare';
+import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
+import type { Certainty } from '../../core/seo-on-page/certainty';
 import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
 import type { HaveCell, HaveState } from '../../core/seo-on-page/pages/listing/have';
 import type { HreflangState, MatrixState } from '../../core/seo-on-page/pages/listing/matrix';
@@ -83,13 +85,139 @@ export const SCREEN_LABELS = {
  * página», así no pueden desincronizarse.
  */
 export const INSPECTOR_SECTIONS = {
+  issues: 'Qué arreglar',
   published: 'Lo que se publica',
-  previews: 'Vistas previas',
-  issues: 'Problemas',
+  translations: 'Traducciones',
   schemas: 'Schemas (JSON-LD)',
   outline: 'Encabezados',
-  translations: 'Traducciones',
 } as const;
+
+export type InspectorSection = keyof typeof INSPECTOR_SECTIONS;
+
+/** La línea de «por qué importa» bajo el título de cada sección del inspector. */
+export const INSPECTOR_WHY: Record<InspectorSection, string> = {
+  issues: 'Lo que este idioma de la página necesita, de más a menos grave.',
+  published: 'Lo que leen Google y las redes; a la derecha, cómo lo enseñan.',
+  translations:
+    'Cada idioma compite por separado en Google: compara campo a campo. Se marca lo que difiere de forma sospechosa.',
+  schemas:
+    'Qué dice la página de sí misma a los buscadores. Plegado: casi siempre basta con el tipo.',
+  outline:
+    'Un H1 y sin saltos de nivel: así entienden la estructura los buscadores y los lectores de pantalla.',
+};
+
+/** El texto del enlace de «En esta página» de una sección: con el recuento donde lo hay. */
+export const inspectorTocText = (section: InspectorSection, count?: number): string =>
+  count === undefined ? INSPECTOR_SECTIONS[section] : `${INSPECTOR_SECTIONS[section]} (${count})`;
+
+const countOf = (count: number, one: string, many: string) =>
+  `${count} ${count === 1 ? one : many}`;
+
+/** La cabecera de estado del inspector. */
+export const INSPECTOR_HEADER_LABELS = {
+  back: '← Todas las páginas',
+  kicker: 'Inspector',
+  localeSwitch: 'Idioma',
+  counts: 'Problemas en este idioma',
+  /** «1 aviso», «2 errores», «3 info»: la gravedad en palabras, con su recuento. */
+  count: (severity: IssueSeverity, count: number) =>
+    ({
+      error: countOf(count, 'error', 'errores'),
+      warning: countOf(count, 'aviso', 'avisos'),
+      info: `${count} info`,
+    })[severity],
+  indexable: 'Indexable',
+  noindex: 'noindex',
+  inAll: (total: number) => `En los ${total} idiomas`,
+  only: (locales: readonly string[]) => `Solo ${locales.map((l) => l.toUpperCase()).join(', ')}`,
+  live: 'Abrir la página real',
+  edit: 'Editar el fichero',
+};
+
+/** «Qué arreglar»: las filas de cada problema. */
+export const FIX_LABELS = {
+  empty: 'Nada que arreglar en este idioma.',
+  fix: 'Arreglo',
+  limit: 'Límite',
+  verify: 'Verificar',
+  with: 'Con:',
+  /** El rango recomendado: «70–160 caracteres, ≈920 px». */
+  range: (limit: { min: number; max: number; maxPx: number }) =>
+    `${limit.min}–${limit.max} caracteres, ≈${limit.maxPx} px`,
+  /** Los límites son una heurística, no una regla de Google: se dice con esta etiqueta. */
+  recommendation: 'recomendación',
+  recommendationHint: 'Google no fija este límite: recorta según el ancho',
+};
+
+/** «Lo que se publica». */
+export const PUBLISHED_LABELS = {
+  title: '<title>',
+  description: 'Descripción',
+  canonical: 'Canonical',
+  noindex: 'Noindex',
+  file: 'Fichero',
+  noDescription: '—',
+  /** El ancho es una estimación con la tabla de Arial: se dice siempre. */
+  width: (px: number, max: number) => `≈${px}/${max} px`,
+  widthHint: 'Ancho estimado con una fuente tipo Arial, no medido',
+  indexed: 'No · en el sitemap',
+  notIndexed: 'Sí · fuera del sitemap',
+  serp: 'Resultado de búsqueda',
+  og: 'Open Graph',
+};
+
+/** «Traducciones»: la tabla de comparación. */
+export const COMPARE_LABELS = {
+  caption: 'Comparación de campos entre los idiomas de la página',
+  field: 'Campo',
+  title: 'Título',
+  length: 'Longitud',
+  description: 'Descripción',
+  descriptionLength: 'Longitud desc.',
+  descriptionSource: 'Fuente desc.',
+  issues: 'Problemas',
+  differs: 'difiere',
+  none: '—',
+  noIssues: 'Sin problemas',
+  /** Lo que dice la celda de longitud cuando difiere. */
+  lengthNotes: {
+    low: '(en el mínimo o por debajo)',
+    long: '(largo)',
+    none: '(sin texto)',
+    ok: '',
+  } satisfies Record<LengthClass, string>,
+  missing: (policy: string, declared: boolean) =>
+    `Falta · política ${policy}${declared ? ' (declarada)' : ' (sin declarar)'}`,
+  unknown: 'Sin datos',
+};
+
+/** «Schemas (JSON-LD)». */
+export const SCHEMA_LABELS = {
+  none: 'Esta página no declara ningún schema.',
+  site: 'Del sitio',
+  page: 'De la página',
+  inPages: (pages: number) =>
+    `en ${pages === 1 ? 'la' : 'las'} ${countOf(pages, 'página', 'páginas')}`,
+};
+
+/** «Encabezados». */
+export const HEADINGS_LABELS = {
+  ok: '✓ Un H1 · sin saltos de nivel',
+  empty: 'Sin encabezados.',
+  counts: 'Encabezados por nivel',
+  total: 'Total',
+  outline: 'Esquema de encabezados',
+  problem(problem: HeadingProblem): string {
+    switch (problem.kind) {
+      case 'no-h1':
+        return 'Sin H1';
+      case 'multiple-h1':
+        return `${problem.count} H1: debería haber uno`;
+      case 'skip':
+        return `Salto de H${problem.from} a H${problem.to}`;
+    }
+  },
+};
 
 /** Las etiquetas de una página en la tabla; «Solo EN» lleva el idioma en el que sí existe. */
 export const tagLabel = (tag: PageTag): string =>

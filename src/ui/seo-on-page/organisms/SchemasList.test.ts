@@ -3,45 +3,36 @@ import { render, text } from '../../../testing/render';
 import SchemasList from './SchemasList.astro';
 
 const schemas = [
-  {
-    types: ['Organization'],
-    source: 'site' as const,
-    json: JSON.stringify({ '@type': 'Organization', name: 'Acme' }, null, 2),
-  },
-  {
-    types: ['Person', 'Thing'],
-    source: 'page' as const,
-    json: JSON.stringify(
-      { '@type': ['Person', 'Thing'], name: '</script><b>Ada</b> & co' },
-      null,
-      2,
-    ),
-  },
+  { types: ['Organization'], source: 'site', json: '{\n  "@type": "Organization"\n}', pages: 38 },
+  { types: ['Person', 'Thing'], source: 'page', json: '{"a":1}', pages: undefined },
 ];
 
 describe('SchemasList', () => {
-  it('lista cada schema con su @type, su origen y el JSON formateado', async () => {
+  it('cada schema va plegado en un <details> con su tipo y de dónde viene', async () => {
     const doc = await render(SchemasList, { schemas });
-    const items = [...doc.querySelectorAll('[data-schemas] [data-schema]')];
+    const items = [...doc.querySelectorAll('[data-schemas] details[data-schema]')];
     expect(items).toHaveLength(2);
-    expect(text(items[0])).toContain('Organization');
-    expect(text(items[0])).toContain('sitio');
-    expect(text(items[1])).toContain('Person, Thing');
-    expect(text(items[1])).toContain('página');
-    expect(items[0]!.querySelector('pre')!.textContent).toBe(schemas[0]!.json);
+    expect(items.some((item) => item.hasAttribute('open'))).toBe(false);
+    expect(text(items[0]!.querySelector('summary'))).toContain('Organization');
+    expect(text(items[0]!.querySelector('summary'))).toContain('Del sitio');
+    expect(text(items[1]!.querySelector('summary'))).toContain('Person, Thing');
+    expect(text(items[1]!.querySelector('summary'))).toContain('De la página');
   });
 
-  it('el JSON va escapado para HTML: no se cuela etiqueta alguna', async () => {
+  it('el del sitio dice en cuántas páginas está; el de la página, no', async () => {
     const doc = await render(SchemasList, { schemas });
-    const pre = doc.querySelectorAll('[data-schemas] pre')[1]!;
-    expect(pre.querySelector('b')).toBeNull();
-    expect(pre.textContent).toContain('</script><b>Ada</b> & co');
+    const [site, own] = [...doc.querySelectorAll('summary')];
+    expect(text(site!)).toContain('en las 38 páginas');
+    expect(text(own!)).not.toContain('en las');
   });
 
-  it('sin schemas, el estado vacío', async () => {
+  it('desplegado enseña el JSON tal cual', async () => {
+    const doc = await render(SchemasList, { schemas });
+    expect(doc.querySelectorAll('[data-schemas] pre')[0]!.textContent).toBe(schemas[0]!.json);
+  });
+
+  it('sin schemas lo dice', async () => {
     const doc = await render(SchemasList, { schemas: [] });
-    expect(text(doc.querySelector('[data-schemas]'))).toContain(
-      'Esta página no declara ningún schema.',
-    );
+    expect(text(doc.querySelector('[data-schemas]'))).toContain('no declara ningún schema');
   });
 });

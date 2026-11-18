@@ -1,4 +1,4 @@
-import { IssueKind } from '../../tree/types';
+import { IssueKind } from './tree/types';
 
 /**
  * Cuánto se fía uno del aviso: `rule` es un hecho (dos títulos iguales, falta una traducción) y

@@ -1,26 +1,45 @@
 ---
 import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
-import Heading from '../../atoms/Heading.astro';
-import { INSPECTOR_SECTIONS } from '../labels';
+import { HEADINGS_LABELS as L } from '../labels';
+import InspectorSection from '../molecules/InspectorSection.astro';
 
 interface Props {
-  outline: InspectorModel['outline'];
+  headings: InspectorModel['headings'];
 }
 
-const { outline } = Astro.props;
+const { headings } = Astro.props;
+const { counts, outline } = headings;
 const indent = ['ml-0', 'ml-0', 'ml-4', 'ml-8', 'ml-12', 'ml-16', 'ml-20'];
 ---
 
-<section aria-labelledby="outline" class="flex flex-col gap-2">
-  <Heading level={2} size="md" id="outline">
-    {INSPECTOR_SECTIONS.outline}
-  </Heading>
-  {outline.length === 0 ? (
-    <p class="text-muted" data-outline-empty>
-      Sin encabezados.
+<InspectorSection section="outline">
+  {counts.problems.length === 0 ? (
+    <p class="text-state-live" data-headings-status="ok">
+      {L.ok}
     </p>
   ) : (
-    <ol data-outline class="flex flex-col">
+    <ul class="flex flex-col gap-1 text-state-wip" data-headings-status="problems">
+      {counts.problems.map((problem) => (
+        <li>▲ {L.problem(problem)}</li>
+      ))}
+    </ul>
+  )}
+  <ul class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-sm" aria-label={L.counts} data-counts>
+    {counts.levels.map(({ depth, count }) => (
+      <li class={count === 0 ? 'text-faint' : 'text-ink'} data-zero={count === 0 ? '' : undefined}>
+        H{depth} <strong>{count}</strong>
+      </li>
+    ))}
+    <li class="text-ink">
+      {L.total} <strong>{counts.total}</strong>
+    </li>
+  </ul>
+  {outline.length === 0 ? (
+    <p class="text-muted" data-outline-empty>
+      {L.empty}
+    </p>
+  ) : (
+    <ol data-outline aria-label={L.outline} class="flex flex-col">
       {outline.map((item) => (
         <li
           data-skip={item.skipFrom !== undefined ? '' : undefined}
@@ -37,4 +56,4 @@ const indent = ['ml-0', 'ml-0', 'ml-4', 'ml-8', 'ml-12', 'ml-16', 'ml-20'];
       ))}
     </ol>
   )}
-</section>
+</InspectorSection>

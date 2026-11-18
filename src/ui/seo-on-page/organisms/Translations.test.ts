@@ -2,52 +2,81 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import Translations from './Translations.astro';
 
-const props = (translations: unknown[]) => ({ translations, slug: 'guide' });
+const none = { titleLength: false, descriptionLength: false, descriptionSource: false };
+const present = (locale: string, overrides = {}) => ({
+  state: 'present',
+  locale,
+  current: locale === 'en',
+  href: locale === 'en' ? undefined : `/i/?slug=guide&locale=${locale}`,
+  title: `Guide ${locale}`,
+  titleLength: 20,
+  titleClass: 'ok',
+  description: `Desc ${locale}`,
+  descriptionLength: 93,
+  descriptionClass: 'ok',
+  descriptionSource: 'page',
+  issues: [],
+  differs: none,
+  ...overrides,
+});
 
 describe('Translations', () => {
-  it('van lado a lado y la ausente lleva su política', async () => {
-    const doc = await render(
-      Translations,
-      props([
-        { state: 'present', locale: 'en', current: true, url: '/repo/guide/' },
-        { state: 'missing', locale: 'es', current: false, policy: 'link', declared: false },
-      ]),
-    );
-    const columns = [...doc.querySelectorAll('[data-translation]')];
-    expect(columns.map((c) => c.getAttribute('data-translation'))).toEqual(['en', 'es']);
-    expect(columns[0]!.getAttribute('aria-current')).toBe('true');
-    expect(text(columns[1])).toContain('Falta');
-    expect(text(columns[1])).toContain('link');
-    expect(text(columns[1])).toContain('sin declarar');
+  it('una columna por idioma y una fila por campo', async () => {
+    const doc = await render(Translations, {
+      translations: { columns: [present('en'), present('es')] },
+    });
+    expect(
+      [...doc.querySelectorAll('thead [data-col]')].map((c) => c.getAttribute('data-col')),
+    ).toEqual(['en', 'es']);
+    expect([...doc.querySelectorAll('tbody tr')].map((r) => r.getAttribute('data-row'))).toEqual([
+      'title',
+      'titleLength',
+      'description',
+      'descriptionLength',
+      'descriptionSource',
+      'issues',
+    ]);
   });
 
-  it('una traducción presente enseña su resumen y enlaza a su inspector', async () => {
-    const doc = await render(
-      Translations,
-      props([
-        {
-          state: 'present',
-          locale: 'es',
-          current: false,
-          url: '/repo/es/guide/',
-          summary: { title: 'Guía | Site', description: undefined, problems: 2 },
-          inspectHref: '/i/?slug=guide&locale=es',
-        },
-      ]),
-    );
-    const card = doc.querySelector('[data-translation="es"]')!;
-    expect(card.querySelector('a[href="/i/?slug=guide&locale=es"]')).not.toBeNull();
-    expect(text(card)).toContain('Guía | Site');
-    expect(text(card)).toContain('2 problemas');
+  it('marca como «difiere» solo la celda que se aparta, con su porqué', async () => {
+    const doc = await render(Translations, {
+      translations: {
+        columns: [
+          present('en'),
+          present('es', {
+            descriptionLength: 70,
+            descriptionClass: 'low',
+            differs: { ...none, descriptionLength: true },
+          }),
+        ],
+      },
+    });
+    const marked = doc.querySelectorAll('[data-differs]');
+    expect(marked).toHaveLength(1);
+    expect(text(marked[0]!)).toBe('70 difiere (en el mínimo o por debajo)');
   });
 
-  it('sin resumen enseña solo la URL, y la propia página no se enlaza', async () => {
-    const doc = await render(
-      Translations,
-      props([{ state: 'present', locale: 'en', current: true, url: '/repo/guide/' }]),
+  it('el idioma ausente dice su política en lugar de datos', async () => {
+    const doc = await render(Translations, {
+      translations: {
+        columns: [
+          present('en'),
+          { state: 'missing', locale: 'fr', current: false, policy: 'link', declared: false },
+        ],
+      },
+    });
+    expect(text(doc.querySelector('[data-row="title"]'))).toContain(
+      'Falta · política link (sin declarar)',
     );
-    const card = doc.querySelector('[data-translation="en"]')!;
-    expect(text(card)).toContain('/repo/guide/');
-    expect(card.querySelector('a')).toBeNull();
+  });
+
+  it('enlaza al inspector de los otros idiomas y no al propio', async () => {
+    const doc = await render(Translations, {
+      translations: { columns: [present('en'), present('es')] },
+    });
+    expect(doc.querySelector('[data-col="en"] a')).toBeNull();
+    expect(doc.querySelector('[data-col="es"] a')!.getAttribute('href')).toBe(
+      '/i/?slug=guide&locale=es',
+    );
   });
 });

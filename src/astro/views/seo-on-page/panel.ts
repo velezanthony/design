@@ -7,7 +7,13 @@ import { buildFooter, type FooterView } from '../../../core/navigation/footer';
 import { buildNav, type NavEntry } from '../../../core/navigation/nav-entries';
 import type { SidebarNode } from '../../../core/navigation/sidebar';
 import type { HeadConfig } from '../../../core/seo/head';
-import { INSPECTOR_SECTIONS, PANEL_NAME, SCREEN_LABELS } from '../../../ui/seo-on-page/labels';
+import {
+  INSPECTOR_SECTIONS,
+  PANEL_NAME,
+  SCREEN_LABELS,
+  inspectorTocText,
+  type InspectorSection,
+} from '../../../ui/seo-on-page/labels';
 import { pagesOf, urlPolicyOf, type DocData } from '../pages';
 import type { VirtualConfig } from '../../virtual/data';
 import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
@@ -51,9 +57,20 @@ interface PanelViewInput {
   headings?: PanelHeading[];
 }
 
-/** Los encabezados de las secciones del inspector, para «En esta página». */
-export const inspectorHeadings = (): PanelHeading[] =>
-  Object.entries(INSPECTOR_SECTIONS).map(([slug, text]) => ({ depth: 2, slug, text }));
+/**
+ * Los encabezados de las secciones del inspector, para «En esta página»: «Qué arreglar» dice cuántos
+ * problemas hay (si hay) y «Traducciones» solo está si el sitio tiene más de un idioma.
+ */
+export function inspectorHeadings(page: { fixes: number; translations: boolean }): PanelHeading[] {
+  const sections = (Object.keys(INSPECTOR_SECTIONS) as InspectorSection[]).filter(
+    (section) => section !== 'translations' || page.translations,
+  );
+  return sections.map((slug) => ({
+    depth: 2,
+    slug,
+    text: inspectorTocText(slug, slug === 'issues' && page.fixes > 0 ? page.fixes : undefined),
+  }));
+}
 
 /**
  * Todo lo que `DocsLayout` necesita para una pantalla del panel, con el mismo molde que `docView`:
