@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { contentDirProblem, DEFAULT_CONTENT_DIR, normalizeContentDir } from './content-dir';
+import { contentDirProblem, DEFAULT_CONTENT_DIR, normalizePath } from './content-dir';
 
-describe('normalizeContentDir', () => {
+describe('normalizePath', () => {
   it('el valor por defecto es el de siempre', () => {
     expect(DEFAULT_CONTENT_DIR).toBe('src/content/docs');
   });
@@ -13,7 +13,7 @@ describe('normalizeContentDir', () => {
     ['../site/../docs', '../docs'],
     ['../../docs', '../../docs'],
   ])('«%s» -> «%s»', (input, expected) => {
-    expect(normalizeContentDir(input)).toBe(expected);
+    expect(normalizePath(input)).toBe(expected);
   });
 });
 

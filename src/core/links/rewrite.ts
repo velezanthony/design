@@ -1,5 +1,5 @@
 import type { Page } from '../content/discovery';
-import { DEFAULT_CONTENT_DIR, normalizeContentDir } from '../content/content-dir';
+import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
 import { DocsError } from '../errors';
 import { pageUrl, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
@@ -44,13 +44,7 @@ const stripDot = (path: string) => path.replace(/^(\.\/)+/, '');
 
 /** Resuelve `target` contra el directorio de `fromPath`: `../README.md` + `./A.md` → `../A.md`. */
 function resolvePath(fromPath: string, target: string): string {
-  const stack: string[] = [];
-  for (const segment of [...fromPath.split('/').slice(0, -1), ...target.split('/')]) {
-    if (segment === '' || segment === '.') continue;
-    if (segment === '..' && stack.length > 0 && stack[stack.length - 1] !== '..') stack.pop();
-    else stack.push(segment);
-  }
-  return stack.join('/');
+  return normalizePath([...fromPath.split('/').slice(0, -1), target].join('/'));
 }
 
 /**
@@ -67,7 +61,7 @@ function findTarget(
   index: PageIndex,
 ): Page | undefined {
   const { pages } = index;
-  const contentDir = normalizeContentDir(index.contentDir ?? DEFAULT_CONTENT_DIR);
+  const contentDir = normalizePath(index.contentDir ?? DEFAULT_CONTENT_DIR);
   const sameKind = pages.find(
     (page) => page.kind === from.kind && stripDot(page.sourcePath) === resolved,
   );

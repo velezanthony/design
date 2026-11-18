@@ -1,4 +1,4 @@
-import { DEFAULT_CONTENT_DIR, normalizeContentDir } from '../content/content-dir';
+import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
 import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
@@ -84,7 +84,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   return {
     ...config,
     seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
-    content: normalizeContentDir(config.content ?? DEFAULT_CONTENT_DIR),
+    content: normalizePath(config.content ?? DEFAULT_CONTENT_DIR),
     locales,
     defaultLocale: config.defaultLocale ?? locales[0],
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },
