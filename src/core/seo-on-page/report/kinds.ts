@@ -1,11 +1,9 @@
 import { scopedKey } from '../key-place';
-import { estimateWidth } from '../pixels';
 import { CATALOG } from '../catalog';
 import { IssueKind, type Issue, type SeoPage } from '../tree/types';
+import { measured } from './format';
 
 /** En español porque el informe se pega en una conversación con la IA de quien mantiene un sitio en español. */
-
-type Field = 'title' | 'description';
 
 /** Clave de frontmatter que lo arregla; en una externa vive en su entrada `external[]` de docs.config.mjs. */
 export function keyOf(kind: IssueKind, entry: Pick<SeoPage, 'kind'>): string | undefined {
@@ -18,10 +16,6 @@ export function restrictionFor(kind: IssueKind): string | undefined {
   const { limit, restriction } = CATALOG[kind];
   if (limit) return `${limit.min}–${limit.max} caracteres, ≈${limit.maxPx} px (recomendación)`;
   return restriction;
-}
-
-function measured(text: string, length: number, field: Field) {
-  return `«${text}» (${length} car., ≈${estimateWidth(text, field)} px)`;
 }
 
 /** `text` para leer, `raw` el valor literal para el JSON; sin `raw` no hay valor que copiar. */

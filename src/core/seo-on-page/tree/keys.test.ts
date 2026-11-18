@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageKey, schemaTypes, slugsOf } from './keys';
+import { findEntry, pageKey, schemaTypes, slugLabel, slugsOf } from './keys';
 
 describe('pageKey', () => {
   it('una página en un idioma; el mismo slug en otro idioma es otra clave', () => {
@@ -32,5 +32,27 @@ describe('schemaTypes', () => {
       { schema: { '@type': ['WebSite', 'Person'] }, source: 'site' as const },
     ];
     expect(schemaTypes(schemas)).toEqual(['Person', 'WebSite']);
+  });
+});
+
+describe('slugLabel', () => {
+  it('la portada, que no tiene slug, se llama «/»', () => {
+    expect(slugLabel('')).toBe('/');
+    expect(slugLabel('guide/intro')).toBe('guide/intro');
+  });
+});
+
+describe('findEntry', () => {
+  const pages = [
+    { slug: 'a', locale: 'en' },
+    { slug: 'a', locale: 'es' },
+  ];
+
+  it('busca la página por slug e idioma', () => {
+    expect(findEntry(pages, 'a', 'es')).toBe(pages[1]);
+  });
+
+  it('sin esa combinación no hay entrada', () => {
+    expect(findEntry(pages, 'b', 'en')).toBeUndefined();
   });
 });

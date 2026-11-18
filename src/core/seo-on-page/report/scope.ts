@@ -1,4 +1,5 @@
 import type { Locale } from '../../i18n/locale';
+import { slugLabel } from '../tree/keys';
 import type { ListingSelection } from '../pages/listing/selection';
 import type { HaveColumn } from '../queries/url-filters';
 import type { IssueKind, IssueSeverity, SeoPage, SeoTree } from '../tree/types';
@@ -26,7 +27,7 @@ export interface ReportScope {
 export function pageScope(tree: SeoTree, slug: string): ReportScope {
   return {
     id: `page:${slug}`,
-    title: `\`${slug || '/'}\``,
+    title: `\`${slugLabel(slug)}\``,
     label: 'esta página',
     entries: tree.pages.filter((entry) => entry.slug === slug),
     single: true,

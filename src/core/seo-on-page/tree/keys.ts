@@ -5,6 +5,20 @@ export function pageKey(page: { slug: string; locale: string }): string {
   return `${page.slug}\u0000${page.locale}`;
 }
 
+/** Cómo se nombra una página en los textos: la portada no tiene slug y se dice «/». */
+export function slugLabel(slug: string): string {
+  return slug || '/';
+}
+
+/** La entrada de una página en un idioma. */
+export function findEntry<Entry extends { slug: string; locale: string }>(
+  entries: readonly Entry[],
+  slug: string,
+  locale: string,
+): Entry | undefined {
+  return entries.find((entry) => entry.slug === slug && entry.locale === locale);
+}
+
 /** Las páginas distintas de unas entradas: una página en dos idiomas es una sola. */
 export function slugsOf(entries: readonly { slug: string }[]): Set<string> {
   return new Set(entries.map((entry) => entry.slug));

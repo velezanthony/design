@@ -1,4 +1,5 @@
 import { localizedPath, stripLocale } from '../../i18n/locale';
+import { slugLabel } from '../tree/keys';
 import { scopedKey } from '../key-place';
 import { THRESHOLDS } from '../thresholds';
 import { IssueKind, type Issue, type OgImageSource, type SeoPageKind } from '../tree/types';
@@ -75,7 +76,7 @@ function basename(path: string) {
 }
 
 function slugs(related: Issue['related']) {
-  return (related ?? []).map((other) => `«${other.slug || '/'}»`).join(', ');
+  return (related ?? []).map((other) => `«${slugLabel(other.slug)}»`).join(', ');
 }
 
 export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): string {

@@ -18,7 +18,7 @@ import { localeTone, type LocaleTone } from '../listing/rows';
 import { editHref } from '../../../navigation/edit-href';
 import { ALL_SEVERITIES, SEVERITY_RANK } from '../../severity';
 import { differing, lengthClass, type LengthClass } from './compare';
-import { schemaTypes } from '../../tree/keys';
+import { findEntry, schemaTypes } from '../../tree/keys';
 
 /** Una de las páginas con las que choca un problema (un título duplicado, por ejemplo). */
 export interface RelatedPage {
@@ -266,13 +266,13 @@ export function inspectorModel({
   asset,
   edit,
 }: InspectorInput): InspectorModel | undefined {
-  const page = tree.pages.find((item) => item.slug === slug && item.locale === locale);
+  const page = findEntry(tree.pages, slug, locale);
   if (!page) return undefined;
   const group = tree.pages.filter((item) => item.slug === slug);
   const { meta } = page;
   const displayUrl = new URL(meta.canonical, site).href;
   function titleOf(target: string) {
-    return tree.pages.find((item) => item.slug === target && item.locale === locale)?.meta.title;
+    return findEntry(tree.pages, target, locale)?.meta.title;
   }
   return {
     slug,

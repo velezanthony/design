@@ -1,9 +1,8 @@
 import { CATALOG } from '../catalog';
 import type { Issue, IssueKind, SeoPage, SeoTree } from '../tree/types';
+import { findEntry, slugLabel } from '../tree/keys';
+import { CERTAINTY_TEXT, SEVERITY_TEXT } from './format';
 import { currentValue, keyOf, restrictionFor } from './kinds';
-
-const SEVERITY_TEXT = { error: 'error', warning: 'aviso', info: 'info' } as const;
-const CERTAINTY_TEXT = { rule: 'regla', heuristic: 'heurística' } as const;
 
 interface PromptInput {
   site: string;
@@ -23,13 +22,11 @@ export function issuePrompt({ site, entry, issue, tree, kindLabels }: PromptInpu
   const restriction = restrictionFor(issue.kind);
   const related = issue.related ?? [];
   const relatedFiles = related.map(({ slug, locale }) => {
-    const file = tree.pages.find(
-      (page) => page.slug === slug && page.locale === locale,
-    )?.sourcePath;
-    return `\`${slug || '/'}\`${file ? ` (\`${file}\`)` : ''}`;
+    const file = findEntry(tree.pages, slug, locale)?.sourcePath;
+    return `\`${slugLabel(slug)}\`${file ? ` (\`${file}\`)` : ''}`;
   });
   return [
-    `En el sitio «${site}», la página \`${entry.slug || '/'}\` (idioma ${entry.locale}) tiene este problema de SEO: ${kindLabels[issue.kind]} (${SEVERITY_TEXT[issue.severity]}, ${CERTAINTY_TEXT[certainty]}). ${issue.message}`,
+    `En el sitio «${site}», la página \`${slugLabel(entry.slug)}\` (idioma ${entry.locale}) tiene este problema de SEO: ${kindLabels[issue.kind]} (${SEVERITY_TEXT[issue.severity]}, ${CERTAINTY_TEXT[certainty]}). ${issue.message}`,
     `Fichero: \`${entry.sourcePath}\``,
     ...(key ? [`Clave: \`${key}\``] : []),
     ...(value ? [`Valor actual: ${value.text}`] : []),

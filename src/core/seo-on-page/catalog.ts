@@ -1,4 +1,5 @@
 import { THRESHOLDS } from './thresholds';
+import { slugLabel } from './tree/keys';
 import { IssueKind, IssueSeverity } from './tree/types';
 
 /** `rule` es un hecho; `heuristic` una recomendación (Google no fija límites, recorta por ancho). */
@@ -44,7 +45,7 @@ const DESCRIPTION_LIMIT: Limit = {
 };
 
 function quoted(slugs: readonly string[]) {
-  return slugs.map((slug) => `«${slug || '/'}»`).join(', ');
+  return slugs.map((slug) => `«${slugLabel(slug)}»`).join(', ');
 }
 
 /** «aquí», o «aquí y en …» cuando el duplicado choca con otras páginas. */

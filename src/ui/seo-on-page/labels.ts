@@ -1,6 +1,7 @@
 import type { TagTone } from '../atoms/tones';
 import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare';
 import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
+import { slugLabel } from '../../core/seo-on-page/tree/keys';
 import type { Certainty } from '../../core/seo-on-page/catalog';
 import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
 import {
@@ -75,9 +76,7 @@ export const DESCRIPTION_SOURCE_LABELS: Record<DescriptionSource, string> = {
 };
 
 /** La portada tiene slug vacío; en pantalla se enseña como la raíz. */
-export function slugLabel(slug: string) {
-  return slug === '' ? '/' : slug;
-}
+export { slugLabel };
 
 /** Los textos de la paginación de la tabla: el componente es genérico y el idioma lo pone el panel. */
 export const PAGINATION_LABELS = {
