@@ -39,6 +39,7 @@ flowchart TD
 | Build completo | `astro/integration/builds/` (`basic`, `short-form`, `outside`, `strict`, `content`) | Cada test se llama por el escenario que construye. Fixtures en `builds/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
 | Guardas del repo | `testing/boundaries.test.ts`, `testing/package-contents.test.ts`, `components/styles/theme.test.ts`, `components/coupling.test.ts` | Leen archivos de configuración o código y fallan si alguien relaja una regla. |
 | Migración | `scripts/migrate-mkdocs/**/*.test.ts` | Transformaciones puras de texto. |
+| Mutación | `scripts/mutation/**/*.test.ts` | Reparto en trozos y unión de informes: datos que entran, datos que salen. |
 
 ## Patrones que se repiten
 
@@ -71,3 +72,28 @@ npx vitest run --exclude '**/builds/**'   # solo los rápidos
 
 `vitest.config.ts` usa `getViteConfig` de Astro para que los `.astro`, los alias y el módulo virtual
 se resuelvan en los tests exactamente igual que en el build.
+
+## Cobertura y mutación
+
+La cobertura dice qué líneas ejecutan los tests; la mutación, si los tests **notarían** un cambio en
+ellas. Una línea cubierta por un test que no comprueba nada cuenta como cubierta, pero sus mutantes
+sobreviven.
+
+```sh
+npm run test:coverage   # informe de V8 en coverage/
+npm run test:mutation   # Stryker sobre src/ y scripts/; informe en reports/mutation/
+```
+
+Mutar todo el repositorio son unos 12 000 mutantes y tarda horas, así que en local conviene acotarlo
+con `npx stryker run --mutate "src/core/shared/text.ts"`. Stryker guarda lo medido en
+`.stryker-cache/incremental.json` y en la siguiente ejecución solo repite lo que ha cambiado.
+
+El workflow **Mutation** (`.github/workflows/mutation.yml`) lo hace en CI, solo a mano:
+
+1. `plan` reparte los ficheros mutables en trozos de peso parecido (líneas de código).
+2. Cada trozo corre en su propio job, en paralelo.
+3. `merge` une las bases incrementales de los trozos en una sola y la guarda en la caché de Actions.
+
+La entrada `shards` (1 a 20, por defecto 12) fija cuántos trozos. Lánzalo **sobre `main`**: las cachés
+de una rama no las ven los PR, y esta base es la que leerán después. Para repetir el reparto en
+local: `node scripts/mutation/cli.ts plan --shards 12`.
