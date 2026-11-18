@@ -1,19 +1,14 @@
 ---
 /* La vista «Matriz de idiomas»: una fila por página, una columna por idioma de la config, y lo que
    el `<head>` anuncia a los buscadores (hreflang, x-default). */
-/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
 import Note from '../atoms/Note.astro';
 import type { MatrixRow } from '../../../core/seo-on-page/pages/listing/matrix';
-import Link from '../../atoms/Link.astro';
-import Tag from '../../atoms/Tag.astro';
+import DataTable from '../molecules/DataTable.astro';
+import EmptyNotice from '../molecules/EmptyNotice.astro';
+import RowHeader from '../molecules/RowHeader.astro';
 import StateMark from '../molecules/StateMark.astro';
-import {
-  MATRIX_LABELS as LABELS,
-  PAGES_TABLE_LABELS,
-  slugLabel,
-  TAG_HINTS,
-  tagLabel,
-} from '../labels';
+import { MATRIX_LABELS as LABELS } from '../labels';
+import { CELL, EDGE } from '../tables';
 
 interface Props {
   rows: MatrixRow[];
@@ -24,80 +19,47 @@ interface Props {
 }
 
 const { rows, locales, hreflang } = Astro.props;
-const cell = 'px-3 py-2 align-top';
-const edge = 'border-b border-rule';
 ---
 
 {rows.length === 0 ? (
-  <p class="border border-rule bg-raised p-4 text-muted">{PAGES_TABLE_LABELS.empty}</p>
+  <EmptyNotice />
 ) : (
   <div class="flex flex-col gap-3">
-    <div class="overflow-x-auto" tabindex="0">
-      <table class="w-full border-collapse text-left text-sm">
-        <caption class="sr-only">{LABELS.caption}</caption>
-        <thead>
-          <tr class="label text-muted">
-            <th scope="col" class:list={[cell, edge]}>
-              {LABELS.page}
-            </th>
-            {locales.map((locale) => (
-              <th scope="col" class:list={[cell, edge]}>
-                {locale.toUpperCase()}
-              </th>
+    <DataTable
+      caption={LABELS.caption}
+      columns={[
+        LABELS.page,
+        ...locales.map((locale) => locale.toUpperCase()),
+        ...(hreflang ? [LABELS.hreflang, LABELS.xDefault] : []),
+      ]}
+    >
+      <tbody>
+        {rows.map((row) => (
+          <tr class={EDGE} data-page={row.slug}>
+            <RowHeader slug={row.slug} href={row.href} tags={row.tags} />
+            {row.cells.map(({ locale, state }) => (
+              <td class={CELL} data-locale={locale} data-state={state}>
+                <StateMark {...LABELS.states[state]} />
+              </td>
             ))}
             {hreflang && (
               <>
-                <th scope="col" class:list={[cell, edge]}>
-                  {LABELS.hreflang}
-                </th>
-                <th scope="col" class:list={[cell, edge]}>
-                  {LABELS.xDefault}
-                </th>
+                <td class={CELL} data-hreflang={row.hreflang}>
+                  <StateMark {...LABELS.hreflangStates[row.hreflang]} />
+                </td>
+                <td class={CELL} data-x-default>
+                  {row.xDefault ? (
+                    <StateMark glyph="✓" tone="live" text={row.xDefault} />
+                  ) : (
+                    <span class="text-faint">{LABELS.none}</span>
+                  )}
+                </td>
               </>
             )}
           </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr class={edge} data-page={row.slug}>
-              <th scope="row" class:list={[cell, 'font-normal']}>
-                <Link href={row.href} class="font-mono">
-                  {slugLabel(row.slug)}
-                </Link>
-                {row.tags.length > 0 && (
-                  <span class="ml-1.5 inline-flex flex-wrap gap-1.5">
-                    {row.tags.map((tag) => (
-                      <Tag bordered plain title={TAG_HINTS[tag.kind]} data-tag={tag.kind}>
-                        {tagLabel(tag)}
-                      </Tag>
-                    ))}
-                  </span>
-                )}
-              </th>
-              {row.cells.map(({ locale, state }) => (
-                <td class={cell} data-locale={locale} data-state={state}>
-                  <StateMark {...LABELS.states[state]} />
-                </td>
-              ))}
-              {hreflang && (
-                <>
-                  <td class={cell} data-hreflang={row.hreflang}>
-                    <StateMark {...LABELS.hreflangStates[row.hreflang]} />
-                  </td>
-                  <td class={cell} data-x-default>
-                    {row.xDefault ? (
-                      <StateMark glyph="✓" tone="live" text={row.xDefault} />
-                    ) : (
-                      <span class="text-faint">{LABELS.none}</span>
-                    )}
-                  </td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </DataTable>
     <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label={LABELS.legendLabel}>
       {LABELS.legend.map(({ state, text }) => (
         <li>

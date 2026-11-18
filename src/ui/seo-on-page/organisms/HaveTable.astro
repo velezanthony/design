@@ -2,20 +2,15 @@
 /* La vista «Qué tiene»: una fila por página y una columna por cosa que se le puede dar. Cada
    cabecera es un enlace que alterna `lacks` en la URL: se queda solo con las páginas a las que les
    falta eso propio. */
-/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
 import Note from '../atoms/Note.astro';
 import type { ListingTable } from '../../../core/seo-on-page/pages/listing/model';
 import Link from '../../atoms/Link.astro';
-import Tag from '../../atoms/Tag.astro';
+import DataTable from '../molecules/DataTable.astro';
+import EmptyNotice from '../molecules/EmptyNotice.astro';
+import RowHeader from '../molecules/RowHeader.astro';
 import StateMark from '../molecules/StateMark.astro';
-import {
-  HAVE_LABELS as LABELS,
-  haveCellText,
-  PAGES_TABLE_LABELS,
-  slugLabel,
-  TAG_HINTS,
-  tagLabel,
-} from '../labels';
+import { HAVE_LABELS as LABELS, haveCellText } from '../labels';
+import { CELL, EDGE } from '../tables';
 
 type Have = Extract<ListingTable, { view: 'have' }>;
 
@@ -25,79 +20,54 @@ interface Props {
 }
 
 const { rows, columns } = Astro.props;
-const cell = 'px-3 py-2 align-top';
-const edge = 'border-b border-rule';
 ---
 
 <div class="flex flex-col gap-3">
   <p class="text-sm text-muted">{LABELS.why}</p>
-  <div class="overflow-x-auto" tabindex="0">
-    <table class="w-full border-collapse text-left text-sm">
-      <caption class="sr-only">{LABELS.caption}</caption>
-      <thead>
-        <tr class="label align-bottom text-muted">
-          <th scope="col" class:list={[cell, edge]}>
-            {LABELS.page}
-          </th>
-          {columns.map(({ column, href, pressed, good, total }) => (
-            <th scope="col" class:list={[cell, edge]}>
-              <Link
-                href={href}
-                variant="quiet"
-                aria-current={pressed ? 'true' : undefined}
-                data-have-col={column}
-                class:list={[
-                  'flex-col items-start gap-0.5',
-                  pressed && 'bg-accent-soft text-accent hover:text-accent',
-                ]}
-              >
-                {LABELS.columns[column].name}
-                <span class="text-xs font-semibold normal-case tracking-normal text-ink">
-                  {LABELS.count(column, good, total)}
-                </span>
-                {pressed && (
-                  <span class="text-[0.7rem] font-normal normal-case tracking-normal">
-                    {LABELS.pressed}
-                  </span>
-                )}
-              </Link>
-            </th>
+  <DataTable caption={LABELS.caption} columns={[LABELS.page]} headClass="align-bottom">
+    <Fragment slot="head">
+      {columns.map(({ column, href, pressed, good, total }) => (
+        <th scope="col" class:list={[CELL, EDGE]}>
+          <Link
+            href={href}
+            variant="quiet"
+            aria-current={pressed ? 'true' : undefined}
+            data-have-col={column}
+            class:list={[
+              'flex-col items-start gap-0.5',
+              pressed && 'bg-accent-soft text-accent hover:text-accent',
+            ]}
+          >
+            {LABELS.columns[column].name}
+            <span class="text-xs font-semibold normal-case tracking-normal text-ink">
+              {LABELS.count(column, good, total)}
+            </span>
+            {pressed && (
+              <span class="text-[0.7rem] font-normal normal-case tracking-normal">
+                {LABELS.pressed}
+              </span>
+            )}
+          </Link>
+        </th>
+      ))}
+    </Fragment>
+    <tbody>
+      {rows.map((row) => (
+        <tr class={EDGE} data-page={row.slug}>
+          <RowHeader slug={row.slug} href={row.href} tags={row.tags} />
+          {columns.map(({ column }) => (
+            <td class={CELL} data-col={column} data-state={row.cells[column].state}>
+              <StateMark
+                {...LABELS.states[row.cells[column].state]}
+                text={haveCellText(column, row.cells[column])}
+              />
+            </td>
           ))}
         </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr class={edge} data-page={row.slug}>
-            <th scope="row" class:list={[cell, 'font-normal']}>
-              <Link href={row.href} class="font-mono">
-                {slugLabel(row.slug)}
-              </Link>
-              {row.tags.length > 0 && (
-                <span class="ml-1.5 inline-flex flex-wrap gap-1.5">
-                  {row.tags.map((tag) => (
-                    <Tag bordered plain title={TAG_HINTS[tag.kind]} data-tag={tag.kind}>
-                      {tagLabel(tag)}
-                    </Tag>
-                  ))}
-                </span>
-              )}
-            </th>
-            {columns.map(({ column }) => (
-              <td class={cell} data-col={column} data-state={row.cells[column].state}>
-                <StateMark
-                  {...LABELS.states[row.cells[column].state]}
-                  text={haveCellText(column, row.cells[column])}
-                />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-  {rows.length === 0 && (
-    <p class="border border-rule bg-raised p-4 text-muted">{PAGES_TABLE_LABELS.empty}</p>
-  )}
+      ))}
+    </tbody>
+  </DataTable>
+  {rows.length === 0 && <EmptyNotice />}
   <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label={LABELS.legendLabel}>
     {LABELS.legend.map(({ state, text }) => (
       <li>

@@ -1,0 +1,36 @@
+---
+/* El contenedor con scroll horizontal lleva `tabindex="0"` a propósito: sin él, el teclado no podría
+   desplazar la tabla (igual que `table-scroll` en la prosa). */
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
+import { CELL, EDGE } from '../tables';
+
+interface Props {
+  /** Lo que lee un lector de pantalla antes de la tabla. */
+  caption: string;
+  /** Las cabeceras de columna que son solo texto; las que no, van en el slot `head`, tras estas. */
+  columns?: string[];
+  /** En móvil cada fila pasa a ser una tarjeta (`data-cell` rotula cada celda). */
+  cards?: boolean;
+  /** Clases de la fila de cabeceras, para las que necesitan algo propio. */
+  headClass?: string;
+}
+
+const { caption, columns = [], cards = false, headClass } = Astro.props;
+---
+
+<div class="overflow-x-auto" tabindex="0">
+  <table class:list={[cards && 'table-cards', 'w-full border-collapse text-left text-sm']}>
+    <caption class="sr-only">{caption}</caption>
+    <thead>
+      <tr class:list={['label text-muted', headClass]}>
+        {columns.map((column) => (
+          <th scope="col" class:list={[CELL, EDGE]}>
+            {column}
+          </th>
+        ))}
+        <slot name="head" />
+      </tr>
+    </thead>
+    <slot />
+  </table>
+</div>
