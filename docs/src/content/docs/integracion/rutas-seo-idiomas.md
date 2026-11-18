@@ -40,6 +40,14 @@ redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
 `hreflang`; ni rutas de reserva ni la 404. La página de privacidad propia entra si existe. No hay
 `robots.txt`: es del portfolio, que vive en la raíz del dominio.
 
+Las páginas que el sitio añade en `src/pages/` también entran, leídas de lo que publica su `<head>`
+(`clientSitemapEntries`): solo las indexables y canónicas de sí mismas, con los idiomas que
+declaran sus `hreflang`. En `astro dev` los endpoints las piden al propio servidor
+(`loadClientSitemapEntries`); en el build no hay servidor, así que `astro:build:done`
+(`addClientPagesToSitemap`) reconoce cuáles de las páginas generadas son del cliente por el patrón
+de su ruta, lee su HTML de `dist/` con el mismo `readHead` y las añade al sitemap ya escrito. Una
+página del sitio se saca del sitemap con `<meta name="robots" content="noindex">` en su `<head>`.
+
 Abierto en el navegador, el sitemap se ve con estilo: enlaza `_design/sitemap.css` (ruta relativa,
 vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`ui/styles/sitemap.ts`).
 La paleta se lee de `theme.css` al generar el sitio, sin copiar valores, y el título y la nota salen
