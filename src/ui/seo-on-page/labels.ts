@@ -1,3 +1,4 @@
+import type { TagTone } from '../atoms/tones';
 import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare';
 import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
 import type { Certainty } from '../../core/seo-on-page/certainty';
@@ -68,7 +69,7 @@ export const SEVERITY_TONES = {
   error: 'danger',
   warning: 'wip',
   info: 'neutral',
-} as const satisfies Record<IssueSeverity, 'danger' | 'wip' | 'neutral'>;
+} as const satisfies Record<IssueSeverity, TagTone>;
 
 export const DESCRIPTION_SOURCE_LABELS: Record<DescriptionSource, string> = {
   page: 'De la página',
@@ -371,7 +372,7 @@ export const CLIENT_FAILURE_LABELS = {
 interface MarkLabel {
   glyph: string;
   text: string;
-  tone: 'neutral' | 'accent' | 'faint' | 'live' | 'wip' | 'danger';
+  tone: TagTone;
 }
 
 /** Las vistas de la tabla: el nombre de cada una en el selector y la frase que abre la pantalla. */
@@ -660,7 +661,7 @@ export const CERTAINTY_LABELS: Record<Certainty, { text: string; hint: string }>
 /** Cómo se dice quién pone cada fichero del sitio. */
 export const FILE_STATE_LABELS: Record<
   SiteFileState,
-  { glyph: string; text: string; tone: 'live' | 'faint' | 'neutral' }
+  { glyph: string; text: string; tone: Extract<TagTone, 'live' | 'faint' | 'neutral'> }
 > = {
   generated: { glyph: '✓', text: 'Lo genera la librería', tone: 'live' },
   present: { glyph: '✓', text: 'Lo pone el sitio', tone: 'live' },

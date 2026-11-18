@@ -1,4 +1,6 @@
 ---
+import Tag from '../../atoms/Tag.astro';
+import type { TagTone } from '../../atoms/tones';
 import type { LocaleTone } from '../../../core/seo-on-page/pages/listing/rows';
 import { LOCALE_TONE_LABELS } from '../labels';
 
@@ -11,21 +13,17 @@ interface Props {
 const { locale, tone } = Astro.props;
 
 /* El color nunca va solo: cada tono lleva un glifo y el texto (oculto) para lectores de pantalla. */
-const tones: Record<LocaleTone, { classes: string; glyph: string }> = {
-  error: { classes: 'text-danger', glyph: '■' },
-  warning: { classes: 'text-state-wip', glyph: '▲' },
-  info: { classes: 'text-muted', glyph: '•' },
-  ok: { classes: 'text-state-live', glyph: '' },
-  missing: { classes: 'border-dashed text-faint line-through', glyph: '' },
+const tones: Record<LocaleTone, { tag: TagTone; classes?: string; glyph: string }> = {
+  error: { tag: 'danger', glyph: '■' },
+  warning: { tag: 'wip', glyph: '▲' },
+  info: { tag: 'neutral', glyph: '•' },
+  ok: { tag: 'live', glyph: '' },
+  missing: { tag: 'faint', classes: 'border-dashed line-through', glyph: '' },
 };
-const { classes, glyph } = tones[tone];
+const { tag, classes, glyph } = tones[tone];
 ---
 
-<span
-  class:list={['label inline-flex items-center gap-1 border border-current px-1.5 py-0.5', classes]}
-  data-locale={locale}
-  data-tone={tone}
->
+<Tag bordered tone={tag} class={classes} data-locale={locale} data-tone={tone}>
   {glyph && (
     <span class="text-[0.6rem]" aria-hidden="true">
       {glyph}
@@ -33,4 +31,4 @@ const { classes, glyph } = tones[tone];
   )}
   {locale.toUpperCase()}
   <span class="sr-only">: {LOCALE_TONE_LABELS[tone]}</span>
-</span>
+</Tag>

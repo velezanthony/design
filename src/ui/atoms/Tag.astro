@@ -1,10 +1,9 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
-
-type Tone = 'neutral' | 'accent' | 'faint' | 'live' | 'wip' | 'danger';
+import type { TagTone } from './tones';
 
 interface Props extends Omit<HTMLAttributes<'span'>, 'class'> {
-  tone?: Tone;
+  tone?: TagTone;
   /** Pinta un cuadrado inicial. Lo usan los marcadores de estado. */
   dot?: boolean;
   /** Lo enmarca con el color de su tono: una insignia, no solo un texto coloreado. */
@@ -23,7 +22,7 @@ const {
   ...rest
 } = Astro.props;
 
-const tones: Record<Tone, string> = {
+const tones: Record<TagTone, string> = {
   neutral: 'text-muted',
   accent: 'text-accent',
   faint: 'text-faint',
