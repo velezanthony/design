@@ -5,5 +5,10 @@ import { siteConfig } from './site-config';
 
 /** Lo que pinta la privacidad; lo comparten `privacy.astro` y `privacy-locale.astro`. */
 export async function loadPrivacyView(locale?: string) {
-  return privacyView(locale, siteConfig, await siteImageSizes(siteConfig), await getDocData());
+  return privacyView({
+    locale,
+    cfg: siteConfig,
+    data: await getDocData(),
+    sizes: await siteImageSizes(siteConfig),
+  });
 }

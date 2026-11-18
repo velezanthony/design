@@ -8,7 +8,6 @@ import {
   sitemapIncludes,
   type SitemapEntry,
 } from '../../core/seo/sitemap';
-import type { Locale } from '../../core/i18n/locale';
 import { privacyAvailability } from '../../core/privacy/pages';
 import { orAstroError } from '../errors';
 import type { DocData } from '../loader/schema';
@@ -49,9 +48,8 @@ export function pagesOf(data: DocData[]): Page[] {
  */
 export function sitemapXml(
   data: DocData[],
-  cfg: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site'> & {
-    locales?: Locale[];
-    privacy?: { page: boolean };
+  cfg: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site' | 'locales'> & {
+    privacy: Pick<VirtualConfig['privacy'], 'page'>;
   },
   /** Las páginas del cliente (`src/pages/`), ya decididas, que van después de las de la documentación. */
   extra: readonly SitemapEntry[] = [],
@@ -60,7 +58,7 @@ export function sitemapXml(
   const url = urlPolicyOf(cfg);
   const av = buildAvailability(pages, url);
   // La página de privacidad propia no es contenido: se suma aquí, con su hreflang entre idiomas.
-  if (cfg.privacy?.page && cfg.locales) {
+  if (cfg.privacy.page) {
     for (const [key, urls] of privacyAvailability(cfg.locales, url)) av.set(key, urls);
   }
   return orAstroError('No se puede generar sitemap.xml.', () =>

@@ -43,12 +43,12 @@ describe('notFoundView', () => {
         publicDir: 'file:///site/public/',
       },
     );
-    const view = notFoundView(undefined, withSchema);
+    const view = notFoundView({ locale: undefined, cfg: withSchema });
     expect(view.head.some((tag) => tag.attrs['type'] === 'application/ld+json')).toBe(false);
   });
 
   it('/404 (idioma por defecto): head noindex sin canonical y plantillas del resto', () => {
-    const view = notFoundView(undefined, cfg);
+    const view = notFoundView({ locale: undefined, cfg });
     expect(view.lang).toBe('en');
     expect(view.head[0]).toMatchObject({
       tag: 'title',
@@ -67,8 +67,8 @@ describe('notFoundView', () => {
   });
 
   it('el título del idioma sustituido lleva la plantilla, igual que su propia /es/404/', () => {
-    const swapped = notFoundView(undefined, cfg).others[0]?.title;
-    const own = notFoundView('es', cfg).head[0];
+    const swapped = notFoundView({ locale: undefined, cfg }).others[0]?.title;
+    const own = notFoundView({ locale: 'es', cfg }).head[0];
     expect(own).toMatchObject({ tag: 'title' });
     expect(swapped).toBe(own?.content);
     expect(swapped).toContain('Perdido');
@@ -76,7 +76,7 @@ describe('notFoundView', () => {
   });
 
   it('/es/404/: su idioma directamente, sin plantillas ni sustitución', () => {
-    const view = notFoundView('es', cfg);
+    const view = notFoundView({ locale: 'es', cfg });
     expect(view.lang).toBe('es');
     expect(view.strings['notFound.title']).toBe('Perdido');
     expect(view.others).toEqual([]);
@@ -85,7 +85,7 @@ describe('notFoundView', () => {
   });
 
   it('monolingüe: sin plantillas ni sustitución', () => {
-    const view = notFoundView(undefined, site(['en']));
+    const view = notFoundView({ locale: undefined, cfg: site(['en']) });
     expect(view.others).toEqual([]);
     expect(view.swap).toBeUndefined();
   });
@@ -114,7 +114,7 @@ describe('notFoundView: footer', () => {
   );
 
   it('la 404 lleva el mismo footer, y cada plantilla el de su idioma', () => {
-    const view = notFoundView(undefined, cfg, new Map(), pages);
+    const view = notFoundView({ locale: undefined, cfg, sizes: new Map(), data: pages });
     expect(view.footer.links.map((link) => [link.label, link.href])).toEqual([
       ['Changes', '/repo/changelog/'],
       ['Repository', 'https://github.com/x/y'],
@@ -127,7 +127,7 @@ describe('notFoundView: footer', () => {
   });
 
   it('sin páginas los enlaces a página se omiten, no se rompen', () => {
-    const view = notFoundView(undefined, cfg);
+    const view = notFoundView({ locale: undefined, cfg });
     expect(view.footer.links.map((link) => link.label)).toEqual(['Repository', 'Report a bug']);
   });
 });
@@ -146,7 +146,7 @@ describe('notFoundView: analítica y privacidad', () => {
     );
 
   it('sin analítica la 404 no trae gtmId ni privacidad, tampoco las plantillas', () => {
-    const view = notFoundView(undefined, on(undefined));
+    const view = notFoundView({ locale: undefined, cfg: on(undefined) });
     expect(view.gtmId).toBeUndefined();
     expect(view.privacyUrl).toBeUndefined();
     expect(view.others[0]?.privacyUrl).toBeUndefined();
@@ -154,10 +154,12 @@ describe('notFoundView: analítica y privacidad', () => {
 
   it('con analítica cada 404, y cada plantilla, enlaza la política de su idioma', () => {
     const cfg = on('GTM-ENV0001');
-    const view = notFoundView(undefined, cfg);
+    const view = notFoundView({ locale: undefined, cfg });
     expect(view.gtmId).toBe('GTM-ENV0001');
     expect(view.privacyUrl).toBe('https://velezanthony.github.io/en/privacy/');
     expect(view.others[0]?.privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
-    expect(notFoundView('es', cfg).privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
+    expect(notFoundView({ locale: 'es', cfg }).privacyUrl).toBe(
+      'https://velezanthony.github.io/privacidad/',
+    );
   });
 });

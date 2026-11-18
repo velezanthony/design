@@ -45,16 +45,23 @@ export interface NotFoundView {
   swap?: { base: string; locales: Locale[]; defaultLocale: Locale };
 }
 
+interface NotFoundViewInput {
+  locale: Locale | undefined;
+  cfg: VirtualConfig;
+  data?: DocData[];
+  sizes?: ImageSizes;
+}
+
 /**
  * Datos de una 404. `/404` (sin `locale`) es el idioma por defecto y trae las plantillas de los
  * demás más los datos de la sustitución en sitio; `/<locale>/404/` pinta su idioma directamente.
  */
-export function notFoundView(
-  locale: Locale | undefined,
-  cfg: VirtualConfig,
-  sizes: ImageSizes = new Map(),
-  data: DocData[] = [],
-): NotFoundView {
+export function notFoundView({
+  locale,
+  cfg,
+  data = [],
+  sizes = new Map(),
+}: NotFoundViewInput): NotFoundView {
   const lang = locale ?? cfg.defaultLocale;
   const url = urlPolicyOf(cfg);
   const strings = cfg.strings[lang] as UiStrings;

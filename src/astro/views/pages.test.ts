@@ -8,6 +8,8 @@ const cfg = {
   site: 'https://x.dev',
   trailingSlash: 'always' as const,
   defaultLocale: 'en',
+  locales: ['en', 'es'],
+  privacy: { page: false },
 };
 
 const data = (slug: string, locale: string, extra: Partial<DocData> = {}): DocData => ({

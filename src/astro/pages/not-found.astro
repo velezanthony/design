@@ -12,12 +12,12 @@ export function getStaticPaths() {
   return notFoundRoutes(siteConfig);
 }
 
-const view = notFoundView(
-  Astro.params.locale,
-  siteConfig,
-  await siteImageSizes(siteConfig),
-  await getDocData(),
-);
+const view = notFoundView({
+  locale: Astro.params.locale,
+  cfg: siteConfig,
+  data: await getDocData(),
+  sizes: await siteImageSizes(siteConfig),
+});
 ---
 
 <NotFoundLayout {...view} year={new Date().getFullYear()}>

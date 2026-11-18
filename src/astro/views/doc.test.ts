@@ -72,7 +72,7 @@ describe('docRoutes', () => {
 
 describe('docView: página real', () => {
   const cfg = site({ editUrl: 'https://github.com/o/r/edit/main', repoRoot: '.' });
-  const view = docView(route(docRoutes(all, cfg), 'guide', 'es'), all, cfg);
+  const view = docView({ route: route(docRoutes(all, cfg), 'guide', 'es'), data: all, cfg });
 
   it('idioma, textos del idioma, portada, nombre y base', () => {
     expect(view.lang).toBe('es');
@@ -108,24 +108,24 @@ describe('docView: edición', () => {
   it('editFile es el editPath de la entrada; sin editUrl no hay enlace', () => {
     const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
     const data = [doc('guide', 'en', { editPath: 'docs/guide.md' })];
-    const v = docView(docRoutes(data, cfg)[0]!, data, cfg);
+    const v = docView({ route: docRoutes(data, cfg)[0]!, data, cfg });
     expect(v.editUrl).toBe('https://github.com/o/r/edit/main');
     expect(v.editFile).toBe('docs/guide.md');
     const none = site();
-    expect(docView(docRoutes(data, none)[0]!, data, none).editUrl).toBeUndefined();
+    expect(docView({ route: docRoutes(data, none)[0]!, data, cfg: none }).editUrl).toBeUndefined();
   });
 
   it('sin editPath no se ofrece edición aunque haya editUrl', () => {
     const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
     const data = [doc('guide', 'en')];
-    expect(docView(docRoutes(data, cfg)[0]!, data, cfg).editUrl).toBeUndefined();
+    expect(docView({ route: docRoutes(data, cfg)[0]!, data, cfg }).editUrl).toBeUndefined();
   });
 });
 
 describe('docView: noindex', () => {
   const cfg = site();
   const data = [doc('guide', 'en'), doc('guide', 'es', { seo: { noindex: true } })];
-  const view = docView(route(docRoutes(data, cfg), 'guide', 'es'), data, cfg);
+  const view = docView({ route: route(docRoutes(data, cfg), 'guide', 'es'), data, cfg });
 
   it('robots noindex, no indexable, y sin hreflang entre las gemelas', () => {
     expect(view.indexable).toBe(false);
@@ -144,7 +144,7 @@ describe('docView: ruta de reserva', () => {
     editUrl: 'https://github.com/o/r/edit/main',
   });
   const data = [doc('', 'en'), doc('only-en', 'en', { editPath: 'docs/only-en.md' })];
-  const view = docView(route(docRoutes(data, cfg), 'only-en', 'es'), data, cfg);
+  const view = docView({ route: route(docRoutes(data, cfg), 'only-en', 'es'), data, cfg });
 
   it('idioma de la ruta, aviso con el original, no indexable', () => {
     expect(view.lang).toBe('es');
@@ -174,7 +174,7 @@ describe('docView: ruta de reserva', () => {
 describe('docView: dimensiones de la imagen', () => {
   const cfg = site({ seo: { image: { src: '/og.png', alt: 'Card' } } });
   const head = (sizes?: Map<string, { width: number; height: number }>) =>
-    docView(route(docRoutes(all, cfg), 'guide', 'es'), all, cfg, sizes).head;
+    docView({ route: route(docRoutes(all, cfg), 'guide', 'es'), data: all, cfg, sizes }).head;
   const content = (tags: ReturnType<typeof head>, property: string) =>
     tags.find((h) => h.attrs['property'] === property)?.attrs['content'];
 
@@ -210,7 +210,8 @@ describe('docView: nav con secciones', () => {
     ],
     sidebar: ['index', 'showcase'],
   });
-  const view = (slug: string) => docView(route(docRoutes(pages, cfg), slug, 'en'), pages, cfg);
+  const view = (slug: string) =>
+    docView({ route: route(docRoutes(pages, cfg), slug, 'en'), data: pages, cfg });
 
   it('la barra lateral es la de la sección de la página', () => {
     const slugs = (slug: string) =>
@@ -238,7 +239,11 @@ describe('docView: nav con secciones', () => {
 
   it('sin `nav` la lista es vacía y la barra lateral es la entera', () => {
     const plain = site({ locales: ['en'] });
-    const v = docView(route(docRoutes(pages, plain), 'users/b', 'en'), pages, plain);
+    const v = docView({
+      route: route(docRoutes(pages, plain), 'users/b', 'en'),
+      data: pages,
+      cfg: plain,
+    });
     expect(v.nav).toEqual([]);
     expect(v.sidebar.length).toBeGreaterThan(1);
   });
@@ -254,7 +259,7 @@ describe('docView: footer', () => {
     },
   });
   const footerOf = (locale: string) =>
-    docView(route(docRoutes(pages, cfg), '', locale), pages, cfg).footer;
+    docView({ route: route(docRoutes(pages, cfg), '', locale), data: pages, cfg }).footer;
 
   it('entrega licencia, autor por defecto y los enlaces ya resueltos para el idioma', () => {
     const footer = footerOf('es');
@@ -269,7 +274,7 @@ describe('docView: footer', () => {
 
   it('sin config del footer solo queda el autor', () => {
     const plain = site();
-    const v = docView(route(docRoutes(pages, plain), '', 'en'), pages, plain);
+    const v = docView({ route: route(docRoutes(pages, plain), '', 'en'), data: pages, cfg: plain });
     expect(v.footer).toEqual({
       author: { name: 'Anthony Velez', href: 'https://velezanthony.github.io/' },
       links: [],
@@ -291,11 +296,11 @@ describe('docView: analítica y privacidad', () => {
     );
 
   it('sin analítica no hay gtmId ni enlace de privacidad', () => {
-    const view = docView(
-      route(docRoutes(all, withEnv(undefined)), '', 'en'),
-      all,
-      withEnv(undefined),
-    );
+    const view = docView({
+      route: route(docRoutes(all, withEnv(undefined)), '', 'en'),
+      data: all,
+      cfg: withEnv(undefined),
+    });
     expect(view.gtmId).toBeUndefined();
     expect(view.privacyUrl).toBeUndefined();
   });
@@ -303,8 +308,8 @@ describe('docView: analítica y privacidad', () => {
   it('con analítica cada idioma enlaza la política del portfolio de su idioma', () => {
     const cfg = withEnv('GTM-ENV0001');
     const routes = docRoutes(all, cfg);
-    const en = docView(route(routes, 'guide', 'en'), all, cfg);
-    const es = docView(route(routes, 'guide', 'es'), all, cfg);
+    const en = docView({ route: route(routes, 'guide', 'en'), data: all, cfg });
+    const es = docView({ route: route(routes, 'guide', 'es'), data: all, cfg });
     expect(en.gtmId).toBe('GTM-ENV0001');
     expect(en.privacyUrl).toBe('https://velezanthony.github.io/en/privacy/');
     expect(es.privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
@@ -312,7 +317,7 @@ describe('docView: analítica y privacidad', () => {
 
   it('una privacyUrl explícita sin analítica se enlaza sin gtmId', () => {
     const cfg = withEnv(undefined, { privacyUrl: '/privacy/' });
-    const view = docView(route(docRoutes(all, cfg), '', 'es'), all, cfg);
+    const view = docView({ route: route(docRoutes(all, cfg), '', 'es'), data: all, cfg });
     expect(view.privacyUrl).toBe('/privacy/');
     expect(view.gtmId).toBeUndefined();
   });

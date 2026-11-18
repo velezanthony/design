@@ -85,13 +85,15 @@ export interface DocView {
   layout: ResolvedLayout;
 }
 
+interface DocViewInput {
+  route: DocRoute;
+  cfg: VirtualConfig;
+  data: DocData[];
+  sizes?: ImageSizes;
+}
+
 /** Datos de la página que se renderiza, para el layout. */
-export function docView(
-  route: DocRoute,
-  data: DocData[],
-  cfg: VirtualConfig,
-  sizes: ImageSizes = new Map(),
-): DocView {
+export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): DocView {
   const pages = pagesOf(data);
   const url = urlPolicyOf(cfg);
   const av = buildAvailability(pages, url);

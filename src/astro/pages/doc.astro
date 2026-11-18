@@ -26,12 +26,12 @@ if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slu
 const { Content, headings } = await renderDoc(entry);
 // Solo la imagen de esta página: la de reserva usa la del idioma del contenido, que es `entry`.
 const sizes = await siteImageSizes(siteConfig, [entry.data.seo?.image?.src]);
-const view = docView(
+const view = docView({
   route,
-  entries.map((item) => item.data),
-  siteConfig,
+  cfg: siteConfig,
+  data: entries.map((item) => item.data),
   sizes,
-);
+});
 ---
 
 <DocsLayout {...view} headings={headings} year={new Date().getFullYear()}>

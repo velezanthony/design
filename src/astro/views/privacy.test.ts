@@ -38,7 +38,7 @@ describe('privacyRoutes', () => {
 
 describe('privacyView', () => {
   it('idioma por defecto: título, contenido y responsable por defecto', () => {
-    const view = privacyView(undefined, site());
+    const view = privacyView({ locale: undefined, cfg: site() });
     expect(view.lang).toBe('es');
     expect(view.head[0]).toMatchObject({ content: 'Política de privacidad | Anthony Velez Tapia' });
     expect(JSON.stringify(view.sections)).toContain('Anthony Velez Tapia');
@@ -47,7 +47,7 @@ describe('privacyView', () => {
   });
 
   it('otro idioma: su texto, su home y su selector de idioma', () => {
-    const view = privacyView('en', site());
+    const view = privacyView({ locale: 'en', cfg: site() });
     expect(view.lang).toBe('en');
     expect(view.sections[0]?.title).toBe('Who runs this site');
     expect(view.homeHref).toBe('/repo/en/');
@@ -55,15 +55,15 @@ describe('privacyView', () => {
   });
 
   it('usa el responsable de la config', () => {
-    const view = privacyView(
-      'en',
-      site({ page: true, controller: { name: 'Ada Test', email: 'ada@test.dev' } }),
-    );
+    const view = privacyView({
+      locale: 'en',
+      cfg: site({ page: true, controller: { name: 'Ada Test', email: 'ada@test.dev' } }),
+    });
     expect(JSON.stringify(view.sections)).toContain('mailto:ada@test.dev');
   });
 
   it('es indexable: canonical y hreflang, sin noindex', () => {
-    const { head } = privacyView('en', site());
+    const { head } = privacyView({ locale: 'en', cfg: site() });
     expect(head.some((h) => h.attrs['name'] === 'robots')).toBe(false);
     expect(head).toContainEqual({
       tag: 'link',
@@ -78,7 +78,7 @@ describe('privacyView', () => {
   });
 
   it('el footer enlaza a esta misma página (local) y lleva el consentimiento', () => {
-    const view = privacyView('es', site());
+    const view = privacyView({ locale: 'es', cfg: site() });
     expect(view.privacyUrl).toBe('/repo/privacidad/');
     expect(view.gtmId).toBe('GTM-ENV0001');
   });

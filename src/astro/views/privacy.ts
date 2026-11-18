@@ -42,13 +42,20 @@ export interface PrivacyView {
   updated: { iso: string; text: string };
 }
 
+interface PrivacyViewInput {
+  locale: Locale | undefined;
+  cfg: VirtualConfig;
+  data?: DocData[];
+  sizes?: ImageSizes;
+}
+
 /** Datos de la página de privacidad en un idioma (`undefined` es el idioma por defecto). */
-export function privacyView(
-  locale: Locale | undefined,
-  cfg: VirtualConfig,
-  sizes: ImageSizes = new Map(),
-  data: DocData[] = [],
-): PrivacyView {
+export function privacyView({
+  locale,
+  cfg,
+  data = [],
+  sizes = new Map(),
+}: PrivacyViewInput): PrivacyView {
   const lang = locale ?? cfg.defaultLocale;
   const url = urlPolicyOf(cfg);
   const strings = cfg.strings[lang] as UiStrings;
