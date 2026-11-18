@@ -24,6 +24,11 @@ const KEY: Record<IssueKind, string | undefined> = {
   [IssueKind.HEADING_SKIP]: undefined,
   [IssueKind.TRANSLATION_MISSING]: undefined,
   [IssueKind.TRANSLATION_POLICY_CONFLICT]: 'translations',
+  [IssueKind.CANONICAL_MISMATCH]: undefined,
+  [IssueKind.LINK_TO_NOINDEX]: undefined,
+  [IssueKind.ORPHAN_PAGE]: undefined,
+  [IssueKind.IMAGE_ALT_MISSING]: undefined,
+  [IssueKind.OG_IMAGE_SIZE]: undefined,
 };
 
 /**
@@ -63,6 +68,16 @@ export const WHY: Record<IssueKind, string> = {
   [IssueKind.TRANSLATION_MISSING]: 'El lector en ese idioma no tiene versión propia de la página.',
   [IssueKind.TRANSLATION_POLICY_CONFLICT]:
     'Los archivos del grupo no se ponen de acuerdo y la política que vale es ambigua.',
+  [IssueKind.CANONICAL_MISMATCH]:
+    'Si una versión se declara canónica de otro idioma, Google fusiona las dos y solo indexa una.',
+  [IssueKind.LINK_TO_NOINDEX]:
+    'Una página que se ve en los resultados empuja al lector y al rastreador hacia otra que no se indexa.',
+  [IssueKind.ORPHAN_PAGE]:
+    'Sin enlaces entrantes, el rastreador solo la descubre por el sitemap y le llega poca autoridad.',
+  [IssueKind.IMAGE_ALT_MISSING]:
+    'Sin texto alternativo, los lectores de pantalla y los buscadores no saben qué muestra la imagen.',
+  [IssueKind.OG_IMAGE_SIZE]:
+    'Con otra proporción, las redes recortan la imagen en la tarjeta; más pequeña, se ve borrosa.',
 };
 
 /** Cómo se arregla en general, para cuando el problema afecta a varias páginas con archivos distintos. */
@@ -82,6 +97,13 @@ export const GENERIC_FIX: Record<IssueKind, string> = {
     'Crea la traducción o declara `translations: omit` si es intencionado.',
   [IssueKind.TRANSLATION_POLICY_CONFLICT]:
     'Haz que `translations` valga lo mismo en todos los archivos de la página.',
+  [IssueKind.CANONICAL_MISMATCH]:
+    'No apuntes el canonical a otro idioma: cada versión es canónica de sí misma.',
+  [IssueKind.LINK_TO_NOINDEX]:
+    'Quita el enlace o deja de marcar como noindex la página si debe indexarse.',
+  [IssueKind.ORPHAN_PAGE]: 'Enlaza la página desde otra o declárala en la navegación.',
+  [IssueKind.IMAGE_ALT_MISSING]: 'Escribe un texto alternativo que describa cada imagen.',
+  [IssueKind.OG_IMAGE_SIZE]: 'Usa una imagen social de 1200×630 px.',
 };
 
 /**
@@ -93,6 +115,10 @@ export function restrictionFor(kind: IssueKind): string | undefined {
   if (limit) return `${limit.min}–${limit.max} caracteres, ≈${limit.maxPx} px (recomendación)`;
   if (kind === IssueKind.DUPLICATE_TITLE || kind === IssueKind.DUPLICATE_DESCRIPTION) {
     return 'No cambies el slug ni la URL para distinguirlas.';
+  }
+  if (kind === IssueKind.OG_IMAGE_SIZE) return '1200×630 px (recomendación)';
+  if (kind === IssueKind.IMAGE_ALT_MISSING) {
+    return 'Describe lo que muestra la imagen; no repitas el nombre del archivo ni rellenes con palabras clave.';
   }
   if (kind === IssueKind.TRANSLATION_MISSING) {
     return 'No crees una traducción sin que te lo pidan: declarar la omisión es válido si es intencionado.';
@@ -133,6 +159,11 @@ export function currentValue(
             : measured(description, length, 'description'),
         raw: description,
       };
+    }
+    case IssueKind.OG_IMAGE_SIZE: {
+      const image = meta.ogImage;
+      if (image?.width === undefined || image.height === undefined) return { text: issue.message };
+      return { text: `${image.src} (${image.width}×${image.height})`, raw: image.src };
     }
     case IssueKind.NO_H1:
       return { text: 'sin H1' };

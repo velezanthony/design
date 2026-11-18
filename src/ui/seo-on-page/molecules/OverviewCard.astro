@@ -9,19 +9,16 @@ interface Props {
   why?: string;
   /** Ocupa dos columnas en escritorio; en móvil todas ocupan una. */
   wide?: boolean;
-  /** Borde discontinuo: lo que aún no existe. */
-  dashed?: boolean;
 }
 
-const { id, title, why, wide = false, dashed = false } = Astro.props;
+const { id, title, why, wide = false } = Astro.props;
 ---
 
 <article
   aria-labelledby={id}
   data-card={id}
   class:list={[
-    'flex min-w-0 flex-col gap-3 border bg-raised p-4 sm:p-5',
-    dashed ? 'border-dashed border-faint' : 'border-rule',
+    'flex min-w-0 flex-col gap-3 border border-rule bg-raised p-4 sm:p-5',
     wide && 'lg:col-span-2',
   ]}
 >

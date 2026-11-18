@@ -22,6 +22,11 @@ export const IssueKind = {
   HEADING_SKIP: 'heading-skip',
   TRANSLATION_MISSING: 'translation-missing',
   TRANSLATION_POLICY_CONFLICT: 'translation-policy-conflict',
+  CANONICAL_MISMATCH: 'canonical-mismatch',
+  LINK_TO_NOINDEX: 'link-to-noindex',
+  ORPHAN_PAGE: 'orphan-page',
+  IMAGE_ALT_MISSING: 'image-alt-missing',
+  OG_IMAGE_SIZE: 'og-image-size',
 } as const;
 export type IssueKind = (typeof IssueKind)[keyof typeof IssueKind];
 
@@ -76,6 +81,18 @@ export interface HeadingNode {
   text: string;
 }
 
+/** Una página a la que enlaza el cuerpo (ya resuelta a slug e idioma). */
+export interface PageLink {
+  slug: string;
+  locale: Locale;
+}
+
+/** Una imagen del cuerpo: su ruta tal como se escribió y su texto alternativo (vacío si no lo tiene). */
+export interface PageImage {
+  src: string;
+  alt: string;
+}
+
 /** Cómo está la página en un idioma configurado. */
 export type SeoLocaleEntry =
   | { locale: Locale; status: 'present'; url: string }
@@ -98,6 +115,12 @@ export interface SeoPageFacts {
   sourcePath: string;
   meta: MetaNode;
   headings: HeadingNode[];
+  /**
+   * A qué otras páginas enlaza el cuerpo y qué imágenes lleva. `undefined` es «no se recogió»
+   * (no «no hay»): el análisis que depende de ello no juzga sin el dato.
+   */
+  links?: PageLink[];
+  images?: PageImage[];
   /** JSON-LD que se publica, con su origen (sitio o página); vacío si nadie declara ninguno. */
   schemas: ResolvedSchema[];
   locales: SeoLocaleEntry[];

@@ -7,6 +7,7 @@ import { AstroError } from 'astro/errors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
 import { docsLoader, docsLoaderFromResolved } from './index';
+import { CONTENT_METADATA_KEY } from '../../core/seo-on-page/nodes/content';
 import { docsSchema } from './schema';
 
 let root: string;
@@ -270,6 +271,36 @@ describe('docsLoader: enlaces y anclas', () => {
     const message = await failure({ name: 'T', locales: ['en', 'es'] });
     expect(message).toContain('políticas de traducción distintas');
     expect(message).toContain('no.md');
+  });
+});
+
+describe('docsLoader: lo que el cuerpo enlaza y muestra (para el panel SEO)', () => {
+  const metadataOf = (entry: unknown) =>
+    (entry as { rendered: { metadata: Record<string, unknown> } }).rendered.metadata;
+  const contentOf = (entry: unknown) => metadataOf(entry)[CONTENT_METADATA_KEY];
+
+  it('guarda con la entrada las páginas que enlaza y sus imágenes, junto a los encabezados', async () => {
+    await write(
+      'src/content/docs/a.md',
+      '# A\n\nVer [b](./b.md) y ![](img/x.png), ![logo](https://x.dev/l.png).\n',
+    );
+    await write('src/content/docs/b.md', '# B\n');
+    const { entries } = await load({ name: 'T' });
+    const entry = entries.get('en/a');
+    expect(contentOf(entry)).toEqual({
+      links: [{ slug: 'b', locale: 'en' }],
+      images: [
+        { src: 'img/x.png', alt: '' },
+        { src: 'https://x.dev/l.png', alt: 'logo' },
+      ],
+    });
+    expect(metadataOf(entry)['headings']).toHaveLength(1);
+  });
+
+  it('una página sin enlaces ni imágenes guarda listas vacías, no «sin dato»', async () => {
+    await write('src/content/docs/a.md', '# A\n');
+    const { entries } = await load({ name: 'T' });
+    expect(contentOf(entries.get('en/a'))).toEqual({ links: [], images: [] });
   });
 });
 

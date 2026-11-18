@@ -6,12 +6,16 @@ import {
   type MissingTranslation,
 } from '../../i18n/translation-policy';
 import { resolveSchemas } from '../../seo/json-ld';
+import { analyzeCanonical } from '../analyzers/canonical';
 import { analyzeHeadings } from '../analyzers/headings';
+import { analyzeAltText, analyzeOgImage } from '../analyzers/images';
+import { analyzeLinks } from '../analyzers/links';
 import { analyzeDuplicates, analyzeMetadata } from '../analyzers/metadata';
 import { analyzeMultilingual } from '../analyzers/multilingual';
 import { buildHeadingNodes } from '../nodes/headings';
 import { buildLocaleEntries } from '../nodes/locales';
 import { buildMetaNode } from '../nodes/meta';
+import { navigationLinks } from '../nodes/navigation';
 import type { SeoInput, SeoPageInput } from './input';
 import type { Issue, SeoPage, SeoPageFacts, SeoTree } from './types';
 
@@ -66,6 +70,8 @@ export function buildSeoTree(input: SeoInput): SeoTree {
       sourcePath: page.sourcePath,
       meta: buildMetaNode(page, config, url, imageSizes),
       headings: buildHeadingNodes(page.headings),
+      ...(page.links && { links: page.links }),
+      ...(page.images && { images: page.images }),
       schemas: resolveSchemas(config.seo.schema, page.seo?.schema),
       locales: entries,
       ...(policy !== undefined && { policy }),
@@ -77,6 +83,11 @@ export function buildSeoTree(input: SeoInput): SeoTree {
     duplicates.set(keyOf(issue), [...(duplicates.get(keyOf(issue)) ?? []), issue]);
   }
 
+  const crossPage = new Map<string, Issue[]>();
+  for (const issue of analyzeLinks(facts, navigationLinks(pages, config, url))) {
+    crossPage.set(keyOf(issue), [...(crossPage.get(keyOf(issue)) ?? []), issue]);
+  }
+
   return {
     pages: facts.map((page): SeoPage => ({
       ...page,
@@ -85,6 +96,10 @@ export function buildSeoTree(input: SeoInput): SeoTree {
         ...(duplicates.get(keyOf(page)) ?? []),
         ...analyzeHeadings(page, page.headings),
         ...analyzeMultilingual(page, page.locales, page.policy, config.defaultLocale),
+        ...analyzeCanonical({ ...page, canonical: page.meta.canonical }, page.locales),
+        ...analyzeAltText(page, page.images),
+        ...analyzeOgImage(page, page.meta),
+        ...(crossPage.get(keyOf(page)) ?? []),
       ],
     })),
   };

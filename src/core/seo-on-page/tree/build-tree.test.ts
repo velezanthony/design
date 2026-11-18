@@ -255,3 +255,86 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
     expect(fixes.every((fix) => !fix?.includes('frontmatter'))).toBe(true);
   });
 });
+
+describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
+  const kindsOf = (tree: ReturnType<typeof buildSeoTree>, slug: string) =>
+    tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  const social = resolveConfig({
+    name: 'Design',
+    locales: ['en'],
+    seo: { image: { src: '/og.png', alt: 'Card' } },
+  });
+  const solo = (extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug'>) =>
+    page({ locale: 'en', seo: { description }, ...extra });
+
+  it('sin enlaces ni imágenes recogidos no se juzgan: ni huérfanas ni alt', () => {
+    const tree = buildSeoTree({ config, url, pages: [solo({ slug: 'a' }), solo({ slug: 'b' })] });
+    expect(kindsOf(tree, 'a')).not.toContain('orphan-page');
+    expect(kindsOf(tree, 'a')).not.toContain('image-alt-missing');
+  });
+
+  it('una imagen sin alt del cuerpo llega al árbol como incidencia', () => {
+    const tree = buildSeoTree({
+      config,
+      url,
+      pages: [solo({ slug: 'a', links: [], images: [{ src: 'x.png', alt: '' }] })],
+    });
+    expect(kindsOf(tree, 'a')).toContain('image-alt-missing');
+  });
+
+  it('el grafo une el cuerpo y la navegación: con navegación, nadie es huérfana', () => {
+    const tree = buildSeoTree({
+      config,
+      url,
+      pages: [solo({ slug: 'a', links: [] }), solo({ slug: 'b', links: [] })],
+    });
+    expect(kindsOf(tree, 'a')).not.toContain('orphan-page');
+    expect(kindsOf(tree, 'b')).not.toContain('orphan-page');
+  });
+
+  it('sin enlace en el cuerpo ni en la navegación (sola, fuera de las secciones de `nav`), es huérfana', () => {
+    const sections = resolveConfig({
+      name: 'Design',
+      locales: ['en'],
+      nav: [{ label: 'API', dir: 'api' }],
+    });
+    const tree = buildSeoTree({
+      config: sections,
+      url,
+      pages: [solo({ slug: 'api/a', links: [] }), solo({ slug: 'solo', links: [] })],
+    });
+    expect(kindsOf(tree, 'solo')).toContain('orphan-page');
+    // `api/a` la enlaza la cabecera desde `solo`.
+    expect(kindsOf(tree, 'api/a')).not.toContain('orphan-page');
+  });
+
+  it('un enlace del cuerpo a una página noindex se avisa en la página que enlaza', () => {
+    const tree = buildSeoTree({
+      config,
+      url,
+      pages: [
+        solo({ slug: 'a', links: [{ slug: 'secret', locale: 'en' }] }),
+        solo({ slug: 'secret', links: [], seo: { description, noindex: true } }),
+      ],
+    });
+    expect(kindsOf(tree, 'a')).toContain('link-to-noindex');
+    expect(kindsOf(tree, 'secret')).not.toContain('link-to-noindex');
+  });
+
+  it('la imagen social con otra proporción se avisa con las dimensiones leídas', () => {
+    const tree = buildSeoTree({
+      config: social,
+      url,
+      pages: [solo({ slug: 'a' })],
+      imageSizes: new Map([['/og.png', { width: 800, height: 800 }]]),
+    });
+    expect(kindsOf(tree, 'a')).toContain('og-image-size');
+  });
+
+  it('el canonical de cada versión es la suya: nunca sale este aviso con la URL que genera el sitio', () => {
+    const tree = buildSeoTree(input);
+    expect(tree.pages.flatMap((p) => p.issues).map((i) => i.kind)).not.toContain(
+      'canonical-mismatch',
+    );
+  });
+});

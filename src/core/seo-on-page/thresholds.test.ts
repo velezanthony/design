@@ -14,6 +14,9 @@ describe('THRESHOLDS', () => {
       titleMaxPx: 580,
       descriptionMaxPx: 920,
       maxH1: 1,
+      ogWidth: 1200,
+      ogHeight: 630,
+      ogRatioTolerance: 0.05,
     });
   });
 });

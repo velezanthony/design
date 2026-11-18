@@ -3,6 +3,10 @@ import { IssueKind } from './tree/types';
 import { certaintyOf } from './certainty';
 
 describe('certaintyOf', () => {
+  it('el tamaño de la imagen social es heurística: 1200×630 es lo recomendado, no una regla', () => {
+    expect(certaintyOf(IssueKind.OG_IMAGE_SIZE)).toBe('heuristic');
+  });
+
   it('las comprobaciones de longitud son heurística: Google no da un límite de caracteres', () => {
     for (const kind of [
       IssueKind.TITLE_TOO_LONG,
@@ -20,6 +24,7 @@ describe('certaintyOf', () => {
       'title-too-short',
       'description-too-long',
       'description-too-short',
+      'og-image-size',
     ]);
     for (const kind of Object.values(IssueKind).filter((k) => !heuristics.has(k))) {
       expect(certaintyOf(kind)).toBe('rule');

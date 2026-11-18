@@ -11,6 +11,7 @@ const HEURISTICS: ReadonlySet<IssueKind> = new Set([
   IssueKind.TITLE_TOO_SHORT,
   IssueKind.DESCRIPTION_TOO_LONG,
   IssueKind.DESCRIPTION_TOO_SHORT,
+  IssueKind.OG_IMAGE_SIZE,
 ]);
 
 export const certaintyOf = (kind: IssueKind): Certainty =>

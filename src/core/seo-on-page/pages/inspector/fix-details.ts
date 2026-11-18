@@ -69,5 +69,15 @@ export function verifyFor(kind: IssueKind, related: readonly string[]): string {
       return 'El idioma que faltaba aparece en «Traducciones» como presente.';
     case IssueKind.TRANSLATION_POLICY_CONFLICT:
       return 'Todos los archivos de la página declaran la misma política en `translations`.';
+    case IssueKind.CANONICAL_MISMATCH:
+      return '«Traducciones» muestra para este idioma la misma URL que el canonical de «Lo que se publica».';
+    case IssueKind.LINK_TO_NOINDEX:
+      return 'Este aviso desaparece de aquí (o la página enlazada deja de ser noindex).';
+    case IssueKind.ORPHAN_PAGE:
+      return 'Este aviso desaparece: alguna otra página, o la navegación, ya enlaza a esta.';
+    case IssueKind.IMAGE_ALT_MISSING:
+      return 'Este aviso desaparece: todas las imágenes de la página llevan texto alternativo.';
+    case IssueKind.OG_IMAGE_SIZE:
+      return 'La imagen de «Lo que se publica» mide 1200×630 (o la misma proporción, más grande).';
   }
 }

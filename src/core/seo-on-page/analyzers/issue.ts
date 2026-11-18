@@ -15,6 +15,12 @@ const SEVERITY: Record<IssueKind, IssueSeverity> = {
   [IssueKind.HEADING_SKIP]: IssueSeverity.WARNING,
   [IssueKind.TRANSLATION_MISSING]: IssueSeverity.WARNING,
   [IssueKind.TRANSLATION_POLICY_CONFLICT]: IssueSeverity.ERROR,
+  [IssueKind.CANONICAL_MISMATCH]: IssueSeverity.WARNING,
+  [IssueKind.LINK_TO_NOINDEX]: IssueSeverity.INFO,
+  [IssueKind.ORPHAN_PAGE]: IssueSeverity.INFO,
+  [IssueKind.IMAGE_ALT_MISSING]: IssueSeverity.WARNING,
+  // Warning si la proporción no es la de la tarjeta (se recorta); info si solo es pequeña: lo decide su analizador.
+  [IssueKind.OG_IMAGE_SIZE]: IssueSeverity.WARNING,
 };
 
 type Extra = Partial<Pick<Issue, 'severity' | 'value' | 'limit' | 'related' | 'fix'>>;

@@ -41,6 +41,11 @@ export const KIND_LABELS: Record<IssueKind, string> = {
   'heading-skip': 'Salto de encabezados',
   'translation-missing': 'Traducción ausente',
   'translation-policy-conflict': 'Políticas de traducción en conflicto',
+  'canonical-mismatch': 'Canonical a otro idioma',
+  'link-to-noindex': 'Enlace a página noindex',
+  'orphan-page': 'Página huérfana',
+  'image-alt-missing': 'Imagen sin texto alternativo',
+  'og-image-size': 'Imagen social fuera de 1200×630',
 };
 
 export const SEVERITY_LABELS: Record<IssueSeverity, string> = {
@@ -558,7 +563,7 @@ export const CARD_LABELS = {
     severity: 'Gravedad',
     pages: 'Páginas',
     empty: 'Ningún tipo de problema.',
-    note: 'Las longitudes son una recomendación (heurística): Google no da un límite, recorta según el ancho de la pantalla.',
+    note: 'Las longitudes y el tamaño de la imagen social son una recomendación (heurística): Google no da un límite, recorta según el ancho de la pantalla.',
     clean: (count: number) =>
       `${plural(count, 'comprobación sin problemas', 'comprobaciones sin problemas')}`,
   },
@@ -566,18 +571,6 @@ export const CARD_LABELS = {
     title: 'Ficheros del sitio',
     why: 'Lo que leen los buscadores y los agentes además de las páginas. Que falte uno opcional no es un fallo: aquí solo se dice si está y quién lo pone.',
     open: 'Abrir',
-  },
-  soon: {
-    title: 'Próximamente',
-    why: 'Comprobaciones que aún no se hacen. Están aquí para que nadie dé por hecho que pasan.',
-    pending: 'pendiente',
-    items: [
-      'Canonical coherente entre idiomas',
-      'Enlaces internos a páginas noindex',
-      'Páginas huérfanas (sin enlaces entrantes)',
-      'Texto alternativo de las imágenes',
-      'Imagen OG de 1200×630',
-    ],
   },
 };
 

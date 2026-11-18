@@ -1,6 +1,6 @@
 import type { Page } from '../../content/discovery';
 import { THRESHOLDS } from '../thresholds';
-import { IssueKind, type Issue } from '../tree/types';
+import { IssueKind, type Issue, type OgImageSource } from '../tree/types';
 
 /** De la página, lo que hace falta para decir DÓNDE se arregla algo. */
 export interface FixPage {
@@ -20,6 +20,10 @@ export interface FixDetail {
   defaultLocale?: string;
   /** Idiomas en los que la página existe (para nombrar los archivos del grupo). */
   groupLocales?: string[];
+  /** Rutas (`src`) de las imágenes sin texto alternativo. */
+  images?: string[];
+  /** La imagen social que no cumple: quién la declara y cuánto mide. */
+  og?: { source: OgImageSource; width: number; height: number };
 }
 
 /**
@@ -52,6 +56,8 @@ function where(page: FixPage, key: string): string {
     ? `\`external[].${key}\` de la entrada «${page.slug}» en docs.config.mjs`
     : `\`${key}\` en el frontmatter de \`${page.sourcePath}\``;
 }
+
+const basename = (path: string) => path.split('/').pop() ?? path;
 
 const slugs = (related: Issue['related']) =>
   (related ?? []).map((other) => `«${other.slug || '/'}»`).join(', ');
@@ -94,6 +100,22 @@ export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): 
       return page.kind === 'external'
         ? `Crea ${twin} o declara \`external[].translations\` en la entrada «${page.slug}» de docs.config.mjs.`
         : `Crea ${twin} o declara \`translations: omit\` en el frontmatter de ${file}.`;
+    }
+    case IssueKind.CANONICAL_MISMATCH:
+      return `El canonical sale del slug y el idioma de ${file}; no lo apuntes a otro idioma. Revisa \`locales\` y \`defaultLocale\` en docs.config.mjs.`;
+    case IssueKind.LINK_TO_NOINDEX:
+      return `Quita de ${file} el enlace a ${slugs(detail.related)} o, si debe indexarse, quita \`seo.noindex\` de esa página.`;
+    case IssueKind.ORPHAN_PAGE:
+      return `Enlaza «${page.slug}» desde el cuerpo de otra página de su idioma (\`[texto](./${basename(page.sourcePath)})\`) o declárala en \`nav\` o \`sidebar\` de docs.config.mjs.`;
+    case IssueKind.IMAGE_ALT_MISSING: {
+      const images = (detail.images ?? []).map((src) => `\`${src}\``).join(', ');
+      return `Describe en ${file} ${images ? `las imágenes ${images}` : 'las imágenes sin texto'}: \`![qué se ve](ruta)\`. Si una es decorativa, escríbela como \`<img alt="">\`.`;
+    }
+    case IssueKind.OG_IMAGE_SIZE: {
+      const size = `${THRESHOLDS.ogWidth}×${THRESHOLDS.ogHeight}`;
+      return detail.og?.source === 'page'
+        ? `Sustituye la imagen por una de ${size} px: ${where(page, 'seo.image.src')}.`
+        : `Sustituye la imagen del sitio por una de ${size} px: \`seo.image.src\` en docs.config.mjs.`;
     }
     case IssueKind.TRANSLATION_POLICY_CONFLICT: {
       if (page.kind === 'external') {

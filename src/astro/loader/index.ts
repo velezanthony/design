@@ -17,6 +17,7 @@ import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
 import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
+import { CONTENT_METADATA_KEY, contentFacts } from '../../core/seo-on-page/nodes/content';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
 import { toAstroError } from '../integration/errors';
 import { readFrontmatter } from './frontmatter';
@@ -168,7 +169,16 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
         ...(repoRoot !== undefined && { editPath: path.relative(repoRoot, file) }),
       },
     });
-    const rendered = await ctx.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
+    const markdown = await ctx.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
+    // Los enlaces y las imágenes ya los detectó `rewriteLinks`: se guardan junto a los encabezados
+    // para el panel SEO (huérfanas, enlaces a noindex, texto alternativo) sin releer el Markdown.
+    const rendered = {
+      ...markdown,
+      metadata: {
+        ...markdown.metadata,
+        [CONTENT_METADATA_KEY]: contentFacts(rewritten.refs, rewritten.images, page),
+      },
+    };
     headings.push({
       slug: page.slug,
       locale: page.locale,

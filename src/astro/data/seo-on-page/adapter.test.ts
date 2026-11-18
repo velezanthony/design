@@ -5,9 +5,12 @@ const headings = vi.hoisted(() => ({
   bySlug: {} as Record<string, { depth: number; slug: string; text: string }[]>,
 }));
 
+/* Lo que el loader guarda en `rendered.metadata` de una entrada; sin él, la entrada viene «sin renderizar». */
+const stored = vi.hoisted(() => ({ bySlug: {} as Record<string, Record<string, unknown>> }));
+
 /* `render` no lo trae el doble: se completa con los encabezados de cada página. */
-vi.mock('astro:content', () => ({
-  ...mockedAstroContent({
+vi.mock('astro:content', async () => {
+  const content = mockedAstroContent({
     docs: [
       ['en/index', { slug: '', locale: 'en', title: 'Home', sourcePath: 'index.md' }],
       [
@@ -22,16 +25,26 @@ vi.mock('astro:content', () => ({
         },
       ],
     ],
-  }),
-  render: async (entry: { data: { slug: string } }) => ({
-    headings: headings.bySlug[entry.data.slug] ?? [],
-  }),
-}));
+  });
+  return {
+    ...content,
+    getCollection: async (name: 'docs') =>
+      (await content.getCollection(name)).map((entry) =>
+        stored.bySlug[entry.data.slug]
+          ? { ...entry, rendered: { html: '', metadata: stored.bySlug[entry.data.slug] } }
+          : entry,
+      ),
+    render: async (entry: { data: { slug: string } }) => ({
+      headings: headings.bySlug[entry.data.slug] ?? [],
+    }),
+  };
+});
 
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { loadSeoTree, loadSiteFiles, seoInputOf } from './adapter';
 
 const config = {
@@ -121,6 +134,33 @@ describe('seoInputOf', () => {
     expect(page).toMatchObject({ seo: { noindex: true }, translations: 'omit' });
   });
 
+  it('pasa los enlaces y las imágenes del cuerpo cuando la entrada los trae', () => {
+    const [page] = seoInputOf(
+      [
+        {
+          data: { slug: 'a', locale: 'en', title: 'A', sourcePath: 'a.md' },
+          headings: [],
+          links: [{ slug: 'b', locale: 'en' }],
+          images: [{ src: 'x.png', alt: '' }],
+        },
+      ],
+      config as never,
+    ).pages;
+    expect(page).toMatchObject({
+      links: [{ slug: 'b', locale: 'en' }],
+      images: [{ src: 'x.png', alt: '' }],
+    });
+  });
+
+  it('sin ellos no inventa listas vacías: «no se recogió» no es «no hay»', () => {
+    const [page] = seoInputOf(
+      [{ data: { slug: 'a', locale: 'en', title: 'A', sourcePath: 'a.md' }, headings: [] }],
+      config as never,
+    ).pages;
+    expect(page).not.toHaveProperty('links');
+    expect(page).not.toHaveProperty('images');
+  });
+
   it('no arrastra al análisis los textos de interfaz ni lo propio de Astro (strings)', () => {
     const input = seoInputOf([], { ...config, strings: { en: {} } } as never);
     expect(input.config).not.toHaveProperty('strings');
@@ -143,6 +183,31 @@ describe('loadSeoTree', () => {
     expect(guide.meta.title).toBe('Guía | Site');
     expect(guide.meta.description).toBe('Una guía');
     expect(guide.issues.map((issue) => issue.kind)).toContain('heading-skip');
+  });
+});
+
+describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
+  it('lee de la entrada sus enlaces e imágenes y el árbol los juzga', async () => {
+    const content = { links: [], images: [{ src: 'img/a.png', alt: '' }] };
+    stored.bySlug['guide'] = {
+      headings: [{ depth: 1, slug: 'g', text: 'G' }],
+      [CONTENT_METADATA_KEY]: content,
+    };
+    try {
+      const tree = await loadSeoTree(config as never);
+      const guide = tree.pages.find((page) => page.slug === 'guide')!;
+      expect(guide.images).toEqual(content.images);
+      expect(guide.issues.map((issue) => issue.kind)).toContain('image-alt-missing');
+    } finally {
+      delete stored.bySlug['guide'];
+    }
+  });
+
+  it('una entrada sin esos datos no se juzga (ni alt ni huérfanas)', async () => {
+    const tree = await loadSeoTree(config as never);
+    const kinds = tree.pages.flatMap((page) => page.issues.map((issue) => issue.kind));
+    expect(kinds).not.toContain('image-alt-missing');
+    expect(kinds).not.toContain('orphan-page');
   });
 });
 

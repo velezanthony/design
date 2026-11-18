@@ -32,4 +32,12 @@ export const THRESHOLDS = {
   titleMaxPx: 580,
   descriptionMaxPx: 920,
   maxH1: 1,
+  /**
+   * La imagen social recomendada para las tarjetas grandes (Facebook, LinkedIn, X): 1200×630 px,
+   * proporción ≈1,91:1. Con otra proporción las redes la recortan; más pequeña se ve borrosa.
+   */
+  ogWidth: 1200,
+  ogHeight: 630,
+  /** Cuánto puede desviarse la proporción de la ideal sin que se considere otra (un 5 %). */
+  ogRatioTolerance: 0.05,
 } as const;

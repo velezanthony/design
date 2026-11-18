@@ -2,11 +2,14 @@ import type { ResolvedConfig } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
 import type { UrlPolicy } from '../../i18n/availability';
 import type { ImageSizes } from '../../seo/meta';
-import type { HeadingNode } from './types';
+import type { HeadingNode, PageImage, PageLink } from './types';
 
 /** Una página con lo que el análisis necesita: los datos de `Page` (sin el cuerpo) y sus encabezados. */
 export interface SeoPageInput extends Omit<Page, 'body' | 'order'> {
   headings: HeadingNode[];
+  /** Enlaces internos e imágenes del cuerpo; sin ellos, los análisis que los necesitan no juzgan. */
+  links?: PageLink[];
+  images?: PageImage[];
 }
 
 export interface SeoInput {

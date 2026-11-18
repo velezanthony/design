@@ -48,7 +48,7 @@ describe('FiltersForm', () => {
     const doc = await form();
     expect(doc.querySelectorAll('input[name="severity"]')).toHaveLength(3);
     expect(doc.querySelectorAll('input[name="locale"]')).toHaveLength(2);
-    expect(doc.querySelectorAll('input[name="kind"]')).toHaveLength(13);
+    expect(doc.querySelectorAll('input[name="kind"]')).toHaveLength(18);
   });
 
   it('refleja los filtros activos marcados', async () => {
@@ -103,8 +103,8 @@ describe('FiltersForm', () => {
     it('los tipos sin incidencias van después, deshabilitados y con su propio encabezado', async () => {
       const group = await kinds();
       const disabled = [...group.querySelectorAll('input[name="kind"][disabled]')];
-      expect(disabled).toHaveLength(10);
-      expect(text(group)).toContain('Sin incidencias (10)');
+      expect(disabled).toHaveLength(15);
+      expect(text(group)).toContain('Sin incidencias (15)');
       expect(text(group)).toContain('Con incidencias');
     });
 

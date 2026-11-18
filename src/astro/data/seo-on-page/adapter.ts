@@ -1,7 +1,13 @@
 import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/input';
+import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
-import type { HeadingNode, SeoTree } from '../../../core/seo-on-page/tree/types';
+import type {
+  HeadingNode,
+  PageImage,
+  PageLink,
+  SeoTree,
+} from '../../../core/seo-on-page/tree/types';
 import { readImageSizes, readPublic } from '../../loader/images';
 import { sitemapXml, urlPolicyOf } from '../../views/pages';
 import type { DocData } from '../../views/pages';
@@ -12,6 +18,9 @@ import type { VirtualConfig } from '../../virtual/data';
 export interface SeoEntry {
   data: DocData;
   headings: HeadingNode[];
+  /** Lo que el cuerpo enlaza y muestra; sin ello (la entrada no lo trae) el análisis no lo juzga. */
+  links?: PageLink[];
+  images?: PageImage[];
 }
 
 /**
@@ -26,7 +35,7 @@ export function seoInputOf(
 ): SeoInput {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { strings, ...seoConfig } = config;
-  const pages = entries.map(({ data, headings }): SeoPageInput => ({
+  const pages = entries.map(({ data, headings, links, images }): SeoPageInput => ({
     slug: data.slug,
     locale: data.locale,
     title: data.title,
@@ -35,6 +44,8 @@ export function seoInputOf(
     ...(data.seo && { seo: data.seo }),
     ...(data.translations && { translations: data.translations }),
     headings,
+    ...(links && { links }),
+    ...(images && { images }),
   }));
   return { config: seoConfig, url: urlPolicyOf(config), pages, ...(imageSizes && { imageSizes }) };
 }
@@ -49,6 +60,13 @@ async function headingsOf(entry: DocsEntry): Promise<HeadingNode[]> {
   return stored ?? (await renderDoc(entry)).headings;
 }
 
+/** Lo que el loader guardó del cuerpo de la entrada (enlaces e imágenes); `undefined` si no lo trae. */
+function contentOf(entry: DocsEntry): { links?: PageLink[]; images?: PageImage[] } {
+  const stored = (entry as { rendered?: { metadata?: Record<string, unknown> } }).rendered
+    ?.metadata?.[CONTENT_METADATA_KEY] as { links: PageLink[]; images: PageImage[] } | undefined;
+  return stored ?? {};
+}
+
 /**
  * El único punto del panel que conoce `astro:content`: lee la colección con la que se genera el
  * sitio y devuelve el árbol del análisis. Sin rastreo ni HTML: lo que se analiza es lo que se publica.
@@ -56,7 +74,11 @@ async function headingsOf(entry: DocsEntry): Promise<HeadingNode[]> {
 export async function loadSeoTree(config: VirtualConfig): Promise<SeoTree> {
   const docs = await getDocs();
   const entries = await Promise.all(
-    docs.map(async (entry) => ({ data: entry.data, headings: await headingsOf(entry) })),
+    docs.map(async (entry) => ({
+      data: entry.data,
+      headings: await headingsOf(entry),
+      ...contentOf(entry),
+    })),
   );
   const sizes = await readImageSizes(
     [config.seo.image?.src, ...docs.map((entry) => entry.data.seo?.image?.src)].filter(
