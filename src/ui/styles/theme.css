@@ -101,7 +101,7 @@
   --img-max: 100%;
 }
 
-@media (min-width: 64rem) {
+@media (width >= theme(--breakpoint-lg)) {
   :root[data-left='collapsed'] {
     --col-left: var(--rail);
     --wide-max: 100%;
@@ -1045,7 +1045,7 @@ svg[id^='docs-mermaid-'] .label {
     }
   }
 
-  @media (min-width: 64rem) {
+  @media (width >= theme(--breakpoint-lg)) {
     .docs-nav[open] > .docs-nav-toggle + * {
       margin-top: 0;
     }
@@ -1083,7 +1083,7 @@ svg[id^='docs-mermaid-'] .label {
   }
 
   /* El panel conserva su ancho al plegarse: la columna se estrecha y lo recorta, sin recolocar el texto. */
-  @media (min-width: 64rem) {
+  @media (width >= theme(--breakpoint-lg)) {
     .docs-sidebar-scroll {
       overflow-x: hidden;
     }
@@ -1100,7 +1100,7 @@ svg[id^='docs-mermaid-'] .label {
     max-width: 100%;
   }
 
-  @media (min-width: 64rem) {
+  @media (width >= theme(--breakpoint-lg)) {
     :root[data-left='collapsed'] .docs-sidebar .docs-panel {
       opacity: 0;
       visibility: hidden;
@@ -1182,7 +1182,7 @@ svg[id^='docs-mermaid-'] .label {
    a cada lado; con el ancho completo la columna pega al borde de la ventana y solo lleva el borde
    derecho. Los bordes van como sombra interior para no restar ancho al raíl de 44px. Lo que se
    desplaza es `.docs-sidebar-scroll`, pegajoso dentro del plano. */
-@media (min-width: 64rem) {
+@media (width >= theme(--breakpoint-lg)) {
   .docs-sidebar {
     background-color: var(--color-raised);
     box-shadow:
@@ -1231,7 +1231,7 @@ svg[id^='docs-mermaid-'] .label {
 /* Plegada, la columna no tiene nada que desplazar ni que desbordar: sin esto la barra lateral
    (`overflow-y-auto`, una utilidad) enseñaría su barra de scroll sobre el raíl. Va fuera de las
    capas para ganar a la utilidad. */
-@media (min-width: 64rem) {
+@media (width >= theme(--breakpoint-lg)) {
   :root[data-left='collapsed'] .docs-sidebar-scroll {
     overflow: hidden;
   }

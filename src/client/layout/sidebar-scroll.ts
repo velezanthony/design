@@ -1,5 +1,6 @@
 import { SIDEBAR_SCROLL_KEY, safeSet } from '../preferences/storage';
 import type { RailQuery } from './layout';
+import { RAIL_QUERY } from './rail';
 
 /** Un tramo vertical en coordenadas del contenido (desde el inicio de lo desplazable). */
 export interface Span {
@@ -47,9 +48,6 @@ export function targetScroll({
   return Math.max(0, current.top - (container.height - current.height) / 2);
 }
 
-/** El raíl por debajo de lg no existe: la barra no se desplaza sola y no hay nada que recordar. */
-const WIDE_QUERY = '(min-width: 64rem)';
-
 /**
  * Código del script en línea que restaura el desplazamiento de la barra antes del primer pintado,
  * para que al cambiar de página no vuelva arriba sin que se vea el salto. Va en línea y no puede
@@ -66,7 +64,7 @@ try {
   var isVisible = ${isVisible.toString()};
   var targetScroll = ${targetScroll.toString()};
   var box = document.querySelector('[data-docs-sidebar-scroll]');
-  if (box && matchMedia(${JSON.stringify(WIDE_QUERY)}).matches && document.documentElement.dataset.left !== 'collapsed') {
+  if (box && matchMedia(${JSON.stringify(RAIL_QUERY)}).matches && document.documentElement.dataset.left !== 'collapsed') {
     var stored;
     try { stored = sessionStorage.getItem(${JSON.stringify(SIDEBAR_SCROLL_KEY)}); } catch (e) { stored = null; }
     var link = box.querySelector('[aria-current="page"]');

@@ -2,6 +2,7 @@ import { initHeadingAnchors } from '../../client/layout/anchors';
 import { initConsent } from '../../client/preferences/consent';
 import { initCopyCode } from '../../client/content/copy-code';
 import { initLayout, type RailQuery } from '../../client/layout/layout';
+import { RAIL_QUERY } from '../../client/layout/rail';
 import type { MermaidImporter } from '../../client/diagrams/mermaid';
 import { DIAGRAM_SELECTOR } from '../../client/diagrams/selector';
 import { swapNotFound } from '../../client/not-found';
@@ -28,7 +29,7 @@ export interface BootEnv {
   system: Parameters<typeof initTheme>[0]['system'];
   /** `(prefers-reduced-motion: reduce)`; sin él, las transiciones se permiten. */
   motion?: MotionPreference;
-  /** `(min-width: 64rem)`: desde ahí existe el raíl de los laterales (por debajo, el «Menú»). */
+  /** `RAIL_QUERY`: desde ahí existe el raíl de los laterales (por debajo, el «Menú»). */
   rail?: RailQuery;
   /** Cómo cargar Mermaid y leer los tokens del tema. Sin él, los diagramas se quedan como código. */
   mermaid?: { importer: MermaidImporter; readToken: (name: string) => string };
@@ -46,7 +47,7 @@ const browserEnv = (): BootEnv => ({
   win: window,
   system: matchMedia('(prefers-color-scheme: dark)'),
   motion: matchMedia('(prefers-reduced-motion: reduce)'),
-  rail: matchMedia('(min-width: 64rem)'),
+  rail: matchMedia(RAIL_QUERY),
   /* `import('mermaid')` es un trozo aparte que el navegador solo descarga si una página lo pide. */
   mermaid: {
     importer: () => import('mermaid'),

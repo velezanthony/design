@@ -1,4 +1,5 @@
 ---
+import { navOpenScript } from '../../client/layout/nav-open';
 import { sidebarScrollScript } from '../../client/layout/sidebar-scroll';
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
@@ -143,17 +144,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
             />
             <Sidebar nodes={sidebar} current={current} strings={strings} />
           </details>
-          <script is:inline>
-            (() => {
-              const nav = document.currentScript.previousElementSibling;
-              const wide = matchMedia('(min-width: 64rem)');
-              const sync = () => {
-                nav.open = wide.matches;
-              };
-              sync();
-              wide.addEventListener('change', sync);
-            })();
-          </script>
+          <script is:inline set:html={navOpenScript()} />
         </div>
         {/* Tras la barra, antes del primer pintado: al cambiar de página recupera el desplazamiento (o
         centra la entrada actual) sin que se vea el salto. */}

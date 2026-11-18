@@ -74,7 +74,7 @@ export function layoutBootstrapScript({ toggles }: { toggles: boolean }): string
 }`;
 }
 
-/** `matchMedia('(min-width: 64rem)')`: si el raíl existe en este ancho. */
+/** `matchMedia(RAIL_QUERY)`: si el raíl existe en este ancho. */
 export interface RailQuery {
   matches: boolean;
   addEventListener?(type: 'change', listener: () => void): void;
