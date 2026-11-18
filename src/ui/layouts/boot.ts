@@ -2,7 +2,8 @@ import { initHeadingAnchors } from '../../client/layout/anchors';
 import { initConsent } from '../../client/preferences/consent';
 import { initCopyCode } from '../../client/content/copy-code';
 import { initLayout, type RailQuery } from '../../client/layout/layout';
-import { initMermaid, type MermaidImporter } from '../../client/diagrams/mermaid';
+import type { MermaidImporter } from '../../client/diagrams/mermaid';
+import { DIAGRAM_SELECTOR } from '../../client/diagrams/selector';
 import { swapNotFound } from '../../client/not-found';
 import { initSearch, initSearchShortcut } from '../../client/search';
 import { initSidebarScroll } from '../../client/layout/sidebar-scroll';
@@ -106,7 +107,9 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
     if (zoomLabel && zoomCloseLabel) {
       initZoom(doc, { labels: { open: zoomLabel, close: zoomCloseLabel }, motion: env.motion });
     }
-    if (env.mermaid) {
+    // El código de diagramas solo se descarga en las páginas que tienen alguno.
+    const { mermaid } = env;
+    if (mermaid && doc.querySelector(DIAGRAM_SELECTOR)) {
       /* El visor a pantalla completa necesita todos sus textos (y el de cerrar, que es el de las
          imágenes): sin alguno no se ofrece, en vez de dejar un botón sin nombre. */
       const viewerLabels =
@@ -123,12 +126,9 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
               close: zoomCloseLabel,
             }
           : undefined;
-      void initMermaid(doc, {
-        ...env.mermaid,
-        system: env.system,
-        label: diagramLabel,
-        viewerLabels,
-      });
+      void import('../../client/diagrams/mermaid').then(({ initMermaid }) =>
+        initMermaid(doc, { ...mermaid, system: env.system, label: diagramLabel, viewerLabels }),
+      );
     }
   }
 

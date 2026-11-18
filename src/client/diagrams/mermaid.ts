@@ -1,3 +1,4 @@
+import { DIAGRAM_SELECTOR } from './selector';
 import {
   createDiagramViewer,
   ICONS,
@@ -156,7 +157,7 @@ export async function initMermaid(
   doc: Document,
   { importer, readToken, system, label, viewerLabels, warn = console.warn }: MermaidOptions,
 ): Promise<void> {
-  const blocks = [...doc.querySelectorAll<HTMLElement>('.docs-mermaid[data-mermaid]')];
+  const blocks = [...doc.querySelectorAll<HTMLElement>(DIAGRAM_SELECTOR)];
   if (!blocks.length) return;
 
   let mermaid: MermaidApi;

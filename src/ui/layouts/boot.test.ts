@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { parseHTML } from 'linkedom';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -106,6 +107,12 @@ describe('bootDocs', () => {
       await vi.waitFor(() => expect(e.doc.querySelector('.docs-mermaid-figure')).not.toBeNull());
       expect(e.doc.querySelector('.docs-expand')).toBeNull();
       expect(e.doc.querySelector('dialog')).toBeNull();
+    });
+
+    it('el código de diagramas no va en el script de todas las páginas: se carga solo si hay uno', () => {
+      const source = readFileSync(new URL('./boot.ts', import.meta.url), 'utf8');
+      expect(source).not.toMatch(/^import \{[^}]*\} from '[^']*client\/diagrams\/mermaid';$/m);
+      expect(source).toContain("import('../../client/diagrams/mermaid')");
     });
 
     it('en una página sin diagramas no descarga mermaid', () => {
