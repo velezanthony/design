@@ -8,11 +8,7 @@ export interface MockEntry {
   body: string | undefined;
 }
 
-/**
- * Sustituto de `astro:content` para probar adaptadores sin build (modelo de Starlight). Cada
- * entrada se valida con el `docsSchema()` real, así los datos de prueba no pueden divergir del
- * contrato. Se usa con `vi.mock('astro:content', () => mockedAstroContent({ docs: [...] }))`.
- */
+/** Sustituto de `astro:content` para probar adaptadores sin build; valida cada entrada con el `docsSchema()` real. */
 export function mockedAstroContent({ docs }: { docs: DocsInput[] }) {
   const schema = docsSchema();
   const entries: MockEntry[] = docs.map(([id, data, body]) => ({

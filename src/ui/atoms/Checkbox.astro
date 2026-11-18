@@ -7,11 +7,7 @@ interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'class'> {
   value?: string;
   checked?: boolean;
   disabled?: boolean;
-  /**
-   * `chip`: una ficha en vez de una casilla, para filtros (gravedad, idioma). La casilla sigue
-   * siendo el campo (se envía, se tabula, la lee un lector de pantalla); solo se ve la ficha, que
-   * al marcarse se tiñe y gana un ✓.
-   */
+  /** `chip`: una ficha para filtros en vez de casilla; la casilla sigue siendo el campo (se envía, se tabula). */
   variant?: 'default' | 'chip';
   /** Va a la etiqueta, que es lo que se coloca; el campo va dentro. */
   class?: string;

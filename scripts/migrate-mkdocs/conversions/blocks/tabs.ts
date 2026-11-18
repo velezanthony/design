@@ -3,10 +3,7 @@ import type { BlockResult, LogEntry, Recurse } from '../../pipeline/types.ts';
 
 const TAB = /^(\s*)===\s+"((?:[^"\\]|\\.)*)"\s*$/;
 
-/**
- * Un grupo de pestañas `=== "Etiqueta"` consecutivas (mismo nivel de indentación) pasa a un
- * `::::tabs` con un `:::tab[Etiqueta]` por pestaña. Un texto entre dos `===` parte el grupo en dos.
- */
+/** Un grupo de `=== "x"` consecutivos pasa a `::::tabs`; un texto entre dos `===` parte el grupo. */
 export function convertTabs(
   lines: string[],
   start: number,

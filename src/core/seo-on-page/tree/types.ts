@@ -43,10 +43,7 @@ export interface Issue {
   value?: number;
   /** El límite contra el que se midió `value`. */
   limit?: number;
-  /**
-   * Las OTRAS páginas implicadas, sin la propia (con qué página está duplicado el título, por
-   * ejemplo): sin ellas el aviso dice que hay un problema pero no dónde arreglarlo.
-   */
+  /** Las OTRAS páginas implicadas (p. ej. con cuál se duplica el título): dicen dónde arreglarlo. */
   related?: { slug: string; locale: Locale }[];
 }
 
@@ -105,10 +102,7 @@ export type SeoLocaleEntry =
       declared: boolean;
     };
 
-/**
- * De dónde sale una página: un `.md` de la carpeta de contenido (`native`), una entrada de
- * `external[]` o una página que el cliente añade en `src/pages/` (`client`), leída de su `<head>`.
- */
+/** `native`: un `.md` de contenido; `external`: entrada de `external[]`; `client`: página de `src/pages/` leída de su `<head>`. */
 export type SeoPageKind = Page['kind'] | 'client';
 
 /** Los hechos de una página, antes de juzgarlos. */
@@ -123,10 +117,7 @@ export interface SeoPageFacts {
   sourcePath: string;
   meta: MetaNode;
   headings: HeadingNode[];
-  /**
-   * A qué otras páginas enlaza el cuerpo y qué imágenes lleva. `undefined` es «no se recogió»
-   * (no «no hay»): el análisis que depende de ello no juzga sin el dato.
-   */
+  /** `undefined` es «no se recogió», no «no hay»: el análisis que depende de ello no juzga. */
   links?: PageLink[];
   images?: PageImage[];
   /** JSON-LD que se publica, con su origen (sitio o página); vacío si nadie declara ninguno. */

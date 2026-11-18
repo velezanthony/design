@@ -1,10 +1,4 @@
-/**
- * MkDocs genera ids de encabezado SIN acentos (`el-catalogo`) y la librería los conserva, como
- * GitHub (`el-catálogo`). Un enlace `#el-catalogo` válido en MkDocs rompe aquí.
- *
- * Esta pasada trabaja sobre el conjunto de ficheros ya convertidos: calcula los ids de cada uno y,
- * si un ancla no existe pero coincide con un id al quitarle los acentos, la sustituye por él.
- */
+/** MkDocs genera ids sin acentos (`el-catalogo`) y la librería los conserva (`el-catálogo`): se corrige el ancla si coincide al quitarle los acentos. */
 import path from 'node:path/posix';
 
 export interface AnchorLog {

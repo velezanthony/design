@@ -6,12 +6,7 @@ import { makeIssue } from './issue';
 /** Cuántas imágenes se nombran en el mensaje; el resto se cuenta. */
 const SHOWN = 3;
 
-/**
- * Imágenes del cuerpo sin texto alternativo: una incidencia por página con el recuento. En
- * Markdown `![](x)` no distingue una imagen decorativa de un olvido, así que el alt vacío cuenta
- * como ausente; la decorativa se escribe como `<img alt="">` (HTML), que el análisis no ve. Sin
- * dato de imágenes (`undefined`) no se juzga.
- */
+/** `![](x)` no distingue imagen decorativa de olvido, así que el alt vacío cuenta como ausente; la decorativa es `<img alt="">`. */
 export function analyzeAltText(page: FixPage, images: PageImage[] | undefined): Issue[] {
   const missing = (images ?? []).filter((image) => image.alt === '');
   if (missing.length === 0) return [];
@@ -32,11 +27,7 @@ export function analyzeAltText(page: FixPage, images: PageImage[] | undefined): 
   ];
 }
 
-/**
- * La imagen social contra lo recomendado (1200×630, ≈1,91:1): con otra proporción las redes la
- * recortan (aviso); con la buena pero por debajo de 1200 de ancho solo se ve peor (informativo).
- * Es una recomendación, no una regla. Sin dimensiones (una URL https que no se lee) no se juzga.
- */
+/** Recomendado 1200×630 (≈1,91:1): otra proporción se recorta en redes; menos de 1200 de ancho solo se ve peor. */
 export function analyzeOgImage(
   page: FixPage,
   meta: Pick<MetaNode, 'ogImage' | 'ogImageSource'>,

@@ -20,11 +20,7 @@ function widthOf(value: unknown): LayoutWidth | undefined {
   return WIDTHS.find((width) => width === value);
 }
 
-/**
- * Lo guardado, campo a campo: un valor ausente, desconocido o de otro tipo cae al de `fallback`
- * sin tumbar el resto. Cualquier texto que no sea un objeto JSON (basura, `null`, un array) es
- * «nada guardado».
- */
+/** Lo guardado campo a campo: un valor ausente o inválido cae al de `fallback`; lo que no sea un objeto JSON es «nada guardado». */
 export function parseLayout(raw: string | null | undefined, fallback: LayoutState): LayoutState {
   let value: unknown;
   try {
@@ -54,12 +50,7 @@ export function withWidth(state: LayoutState, width: LayoutWidth): LayoutState {
   return { ...state, width };
 }
 
-/**
- * Código del script en línea que restaura el estado guardado antes del primer pintado: sin él la
- * página se pinta con el de la config y la rejilla salta (o se anima) al cargar el cliente. Va en
- * línea y no puede importar, por eso es una cadena. Solo pisa lo que el servidor puso en `<html>`
- * con valores válidos. Con `toggles: false` no hay script: no hay controles y lo guardado se ignora.
- */
+/** Script en línea (no puede importar, por eso es cadena) que restaura el estado guardado antes del primer pintado; con `toggles: false` no hay script. */
 export function layoutBootstrapScript({ toggles }: { toggles: boolean }): string {
   if (!toggles) return '';
   return `try {
@@ -101,12 +92,7 @@ function readLayout(root: HTMLElement): LayoutState {
   );
 }
 
-/**
- * Cablea los botones de plegado (`[data-layout-toggle="left|right"]`) y los de ancho
- * (`[data-layout-width]`). La fuente de verdad es `<html data-left data-right data-width>`: el
- * servidor lo escribe, el script previo lo restaura y aquí se cambia, se refleja en `aria-*` e
- * `inert` y se guarda. Sin controles en la página (`toggles: false`) no hace nada.
- */
+/** Cablea los botones de plegado y de ancho; la fuente de verdad es `<html data-left data-right data-width>`. */
 export function initLayout({ htmlDocument, storage, rail }: LayoutEnv): void {
   const root = htmlDocument.documentElement;
   const toggles = [...htmlDocument.querySelectorAll<HTMLElement>('[data-layout-toggle]')];
@@ -123,9 +109,7 @@ export function initLayout({ htmlDocument, storage, rail }: LayoutEnv): void {
       button.setAttribute('aria-expanded', String(open));
       const label = open ? button.dataset.collapseLabel : button.dataset.expandLabel;
       if (label) button.setAttribute('aria-label', label);
-      /* Plegado, el panel sigue en el DOM (se anima al volver): `inert` lo saca del tabulador y del
-         árbol de accesibilidad. Solo donde hay raíl: por debajo de lg el lateral es el «Menú»
-         y sus enlaces tienen que poder pulsarse, esté como esté guardado. */
+      /* `inert` solo donde hay raíl: por debajo de lg el lateral es el «Menú» y sus enlaces deben poder pulsarse. */
       const panel = htmlDocument.getElementById(button.getAttribute('aria-controls') ?? '');
       if (open || rail?.matches === false) panel?.removeAttribute('inert');
       else panel?.setAttribute('inert', '');

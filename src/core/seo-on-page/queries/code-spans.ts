@@ -4,11 +4,7 @@ export interface Span {
   code: boolean;
 }
 
-/**
- * Trocea un mensaje en texto y código según las comillas `así`, como en Markdown: los mensajes de
- * «cómo arreglarlo» nombran claves y rutas que deben leerse como código. Una comilla sin pareja se
- * queda como texto, para que un mensaje mal escrito nunca se coma el resto de la frase.
- */
+/** Las comillas sin pareja quedan como texto para que un mensaje mal escrito no se coma el resto. */
 export function codeSpans(message: string): Span[] {
   const spans: Span[] = [];
   function push(text: string, code: boolean) {

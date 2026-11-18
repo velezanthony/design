@@ -2,9 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveConfig } from '../../core/config/resolve';
 import { createVirtualData } from './data';
 
-/* `@velezanthony/design/content` crea el loader con la config que viaja en el módulo virtual, que
-   es JSON. Si una opción dejara de ser serializable (una función, una fecha), el loader la recibiría
-   vacía o cambiada sin ningún error: este test lo hace saltar en cuanto pase. */
+/* El módulo virtual es JSON: si una opción dejara de ser serializable el loader la recibiría cambiada sin error; este test lo detecta. */
 describe('createVirtualData', () => {
   it('la config resuelta sobrevive intacta al viaje por JSON del módulo virtual', () => {
     const resolved = resolveConfig({

@@ -6,11 +6,7 @@ export interface Palette {
   dark: Record<string, string>;
 }
 
-/**
- * La paleta del tema leída de `theme.css`, sin copiar valores: el sitemap es XML y no carga el tema,
- * así que su hoja declara los mismos colores. Por token, el primer valor es el claro y el segundo el
- * oscuro (el orden del tema). Falla si a un token le falta alguno de los dos.
- */
+/** Paleta leída de `theme.css` (el sitemap es XML y no carga el tema); por token, primer valor claro y segundo oscuro; falla si falta alguno. */
 export function themePalette(theme: string, tokens: readonly string[]): Palette {
   const palette: Palette = { light: {}, dark: {} };
   for (const token of tokens) {
@@ -37,12 +33,7 @@ function declare(colors: Record<string, string>) {
     .join(' ');
 }
 
-/**
- * La hoja con la que el navegador pinta `sitemap.xml` para las personas (los buscadores leen el
- * XML y la ignoran). CSS sobre los elementos del XML: el título y la nota van en `content`, cada
- * URL numerada con un contador y sus idiomas salen del `hreflang` de los `xhtml:link`. Sin XSLT,
- * que Chrome retira.
- */
+/** Hoja con la que el navegador pinta `sitemap.xml` para las personas: CSS sobre los elementos del XML, sin XSLT (Chrome lo retira). */
 export function sitemapCss(text: { title: string; note: string }, palette: Palette): string {
   return `@namespace xhtml url(http://www.w3.org/1999/xhtml);
 

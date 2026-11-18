@@ -32,11 +32,7 @@ export interface ClientPage extends ClientPageRef {
 /** Las páginas de error no son contenido: ni se indexan ni se analizan. */
 const ERROR_PAGES = ['/404', '/500'];
 
-/**
- * Las rutas que son páginas del sitio que escribió el cliente en `src/pages/`: las del proyecto,
- * que no son endpoints ni redirecciones ni páginas de error. Las que inyecta la librería no son del
- * proyecto, así que quedan fuera.
- */
+/** Rutas de páginas que el cliente escribió en `src/pages/`, sin endpoints, redirecciones, errores ni las inyectadas por la librería. */
 export function clientRoutes<T extends { pattern: string; origin: string; type: string }>(
   routes: readonly T[],
 ): T[] {
@@ -46,12 +42,7 @@ export function clientRoutes<T extends { pattern: string; origin: string; type: 
   );
 }
 
-/**
- * Las URLs de las páginas del cliente: una por ruta fija y una por cada entrada del
- * `getStaticPaths` de las dinámicas, que da `staticPaths` (quien sabe cargar el módulo). Si una
- * ruta falla al expandirse, se apunta en `failures` y las demás siguen: un error en una página no
- * deja sin datos al resto.
- */
+/** URLs de las páginas del cliente, expandiendo `getStaticPaths` con `staticPaths`; una ruta que falla se anota en `failures` y las demás siguen. */
 export async function clientPagePaths(
   routes: readonly SiteRoute[],
   staticPaths: (route: SiteRoute) => Promise<RouteParams[]>,
@@ -76,11 +67,7 @@ export async function clientPagePaths(
   return { pages: [...pages.values()], failures };
 }
 
-/**
- * De las páginas que generó el build (`astro:build:done`, rutas sin la base: `''`, `cv/`), las que
- * salen de una ruta del cliente. Cada una es de la primera ruta que encaja, en el orden en que Astro
- * las resuelve. Sirve en el build, donde no hay servidor que expanda los `getStaticPaths`.
- */
+/** Páginas del build que salen de una ruta del cliente (la primera que encaja); sirve donde no hay servidor que expanda `getStaticPaths`. */
 export function builtClientPages(
   pathnames: readonly string[],
   routes: readonly SiteRoute[],

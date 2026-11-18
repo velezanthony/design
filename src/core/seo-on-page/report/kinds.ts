@@ -4,11 +4,7 @@ import { THRESHOLDS } from '../thresholds';
 import { limitOf } from '../pages/inspector/fix-details';
 import { IssueKind, type Issue, type SeoPage } from '../tree/types';
 
-/**
- * Lo que el informe sabe de cada tipo de problema además de lo que ya dice el análisis: la clave que
- * se toca, por qué importa y cómo se arregla en general. El texto está en español porque el informe
- * es para pegarlo en una conversación con la IA de quien mantiene un sitio en español.
- */
+/** En español porque el informe se pega en una conversación con la IA de quien mantiene un sitio en español. */
 
 type Field = 'title' | 'description';
 
@@ -35,11 +31,7 @@ const KEY: Record<IssueKind, string | undefined> = {
   [IssueKind.OG_IMAGE_SIZE]: undefined,
 };
 
-/**
- * La clave de frontmatter que arregla el problema (`seo.title`…); `undefined` si se arregla en el
- * cuerpo del archivo o creando otro. En una página externa no hay frontmatter: la clave vive en su
- * entrada `external[]` de docs.config.mjs.
- */
+/** Clave de frontmatter que lo arregla; en una externa vive en su entrada `external[]` de docs.config.mjs. */
 export function keyOf(kind: IssueKind, entry: Pick<SeoPage, 'kind'>): string | undefined {
   const key = KEY[kind];
   return key === undefined ? undefined : scopedKey(key, entry.kind);
@@ -105,10 +97,7 @@ export const GENERIC_FIX: Record<IssueKind, string> = {
   [IssueKind.OG_IMAGE_SIZE]: `Usa una imagen social de ${OG_SIZE} px.`,
 };
 
-/**
- * Lo que NO se debe hacer o el rango que se pide: la longitud (siempre como recomendación, Google no
- * fija límites), el slug en los duplicados y la traducción que nadie ha pedido.
- */
+/** Lo que NO hacer o el rango pedido (longitudes siempre como recomendación). */
 export function restrictionFor(kind: IssueKind): string | undefined {
   const limit = limitOf(kind);
   if (limit) return `${limit.min}–${limit.max} caracteres, ≈${limit.maxPx} px (recomendación)`;
@@ -129,11 +118,7 @@ function measured(text: string, length: number, field: Field) {
   return `«${text}» (${length} car., ≈${estimateWidth(text, field)} px)`;
 }
 
-/**
- * Lo que la página publica ahora mismo en lo que el problema toca. `text` es para leer y `raw` el valor
- * literal (para el bloque JSON); sin `raw` no hay un valor que copiar (no hay descripción, o el
- * problema no es de un campo).
- */
+/** `text` para leer, `raw` el valor literal para el JSON; sin `raw` no hay valor que copiar. */
 export function currentValue(
   entry: SeoPage,
   issue: Issue,

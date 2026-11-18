@@ -5,11 +5,7 @@ import type { Locale } from '../../core/i18n/locale';
 interface Props {
   /** Idioma de la página actual. */
   lang: Locale;
-  /**
-   * URL de cada idioma al que se puede ir. Solo van los que existen: sin gemela no hay clave y
-   * por tanto no hay enlace. El idioma actual puede faltar (ruta de reserva): se pinta marcado y
-   * sin enlace.
-   */
+  /** URL de cada idioma disponible; el actual puede faltar (ruta de reserva) y se pinta marcado y sin enlace. */
   hrefs: Partial<Record<Locale, string>>;
   strings: UiStrings;
   /** Orden en que se listan. Por defecto, el de `hrefs` más el actual si no está. */

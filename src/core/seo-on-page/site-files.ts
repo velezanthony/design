@@ -8,10 +8,7 @@ import { withBase } from '../shared/urls';
 export type SiteFileId =
   'sitemap' | 'robots' | 'llms' | 'not-found' | 'favicon' | 'privacy' | 'pagefind';
 
-/**
- * Quién pone el archivo: la librería lo genera, el consumidor lo tiene en `public/`, no existe
- * (sin más: no es un problema), no aplica con esta config o solo aparece tras la build.
- */
+/** `generated`: la librería lo genera; `public`: lo pone el consumidor; también «no existe», «no aplica» o «tras la build». */
 export type SiteFileState = 'generated' | 'present' | 'absent' | 'not-applicable' | 'build-only';
 
 export interface SiteFile {

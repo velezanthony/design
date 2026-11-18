@@ -8,11 +8,7 @@ import { restoreDirectives } from './restore-directives';
 import { scrollableTables } from './tables';
 import { tabs } from './tabs';
 
-/**
- * Nuestros plugins mdast, en orden: primero los que reclaman directivas y citas, al final
- * `restoreDirectives`, que devuelve a texto las directivas que nadie reclamó. Los `append` del
- * consumidor van antes: sus plugins ya estaban en la lista.
- */
+/** Nuestros plugins mdast en orden: los que reclaman directivas y citas primero, `restoreDirectives` al final; los `append` del consumidor van antes. */
 export function markdownPlugins(
   env: MarkdownEnv,
   langAlias: Readonly<Record<string, string>> = SHIKI_LANG_ALIAS,

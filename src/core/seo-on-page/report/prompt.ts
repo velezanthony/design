@@ -16,11 +16,7 @@ interface PromptInput {
   kindLabels: Record<IssueKind, string>;
 }
 
-/**
- * Un prompt corto y autosuficiente para UN problema de UNA página e idioma: qué pasa, dónde (archivo y
- * clave), qué hay ahora, qué se pide, con qué límite y cómo comprobar que quedó bien. Se pega tal
- * cual en una conversación con la IA, sin el informe entero.
- */
+/** Prompt autosuficiente para UN problema de UNA página e idioma, para pegar sin el informe entero. */
 export function issuePrompt({ site, entry, issue, tree, kindLabels }: PromptInput): string {
   const certainty = certaintyOf(issue.kind);
   const key = keyOf(issue.kind, entry);

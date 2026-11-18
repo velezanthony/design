@@ -1,8 +1,4 @@
-/**
- * Orquestación de `--in-place`: convierte `docs/**\/*.md` y reescribe solo los ficheros que
- * cambian. Toda la E/S llega inyectada (`InPlaceIo`), así se prueba sin disco ni git. La CLI le
- * pasa el sistema de ficheros y git de verdad (`node-io.ts`).
- */
+/** Orquesta `--in-place`: reescribe solo los ficheros que cambian, con la E/S inyectada para probarlo sin disco ni git. */
 import { docsProblem, type Git } from '../io/git-guard.ts';
 import { runPipeline } from '../pipeline/pipeline.ts';
 import { formatLeftovers, formatStubLinks, formatStubs, formatSummary } from '../io/report.ts';

@@ -13,10 +13,7 @@ interface Props extends Omit<HTMLAttributes<'select'>, 'class' | 'id' | 'value'>
   value?: string;
   /** Deja la etiqueta solo para lectores de pantalla. */
   hideLabel?: boolean;
-  /**
-   * Etiqueta y campo en la misma fila, el campo a su ancho natural: para controles compactos
-   * (el pie de una tabla). Por defecto la etiqueta va encima y el campo ocupa su contenedor.
-   */
+  /** Etiqueta y campo en la misma fila y al ancho natural, para controles compactos; por defecto la etiqueta va encima. */
   inline?: boolean;
   disabled?: boolean;
   /** Va al contenedor: el ancho lo decide quien coloca el campo; el campo ocupa todo el suyo. */

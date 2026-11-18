@@ -3,9 +3,7 @@ import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildFixture, type BuiltSite } from '../../../testing/build';
 
-/* Contenido fuera del proyecto de Astro: `fixtures/outside/site` (el proyecto) con las páginas en
-   su hermana `fixtures/outside/docs` (`content: '../docs'`) y el CHANGELOG en la raíz del repo. Se
-   construye UNA vez; cada test comprueba un caso de la opción. */
+/* Contenido fuera del proyecto (`fixtures/outside`), construido UNA vez; cada test comprueba un caso de la opción. */
 
 const root = resolve('src/astro/integration/builds/fixtures/outside/site');
 let site: BuiltSite;

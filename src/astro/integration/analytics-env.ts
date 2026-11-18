@@ -10,11 +10,7 @@ export function modeOf(command: string): 'development' | 'production' {
   return command === 'dev' ? 'development' : 'production';
 }
 
-/**
- * Valor de `PUBLIC_GTM_ID` para este comando. En `astro:config:setup` los `.env` aún no están en
- * `process.env`, así que se leen con `loadEnv` (que deja ganar a las variables del proceso: la CI).
- * Solo decide de dónde sale el dato; si es válido o está vacío lo juzga `resolveAnalytics`.
- */
+/** Valor de `PUBLIC_GTM_ID`: en `astro:config:setup` los `.env` aún no están en `process.env`, así que se leen con `loadEnv`. */
 export function readAnalyticsEnv(
   command: string,
   root: URL,

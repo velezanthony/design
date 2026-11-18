@@ -6,12 +6,7 @@ export type PageWindowItem = number | typeof GAP;
 /** Hasta aquí se enseñan todas las páginas; con más, se condensa. */
 const SHOW_ALL_UP_TO = 7;
 
-/**
- * Qué números de página enseñar en una paginación y dónde van los huecos. Con pocas páginas, todas;
- * con muchas, la primera, la última y las vecinas de la actual (los extremos se pegan a su lado, sin
- * repetir), y entre dos números no contiguos, un hueco. Pura y genérica: no sabe de qué se pagina ni
- * cómo se pinta, así la conoce cualquier lista paginada.
- */
+/** Números de página a enseñar y dónde van los huecos; pura y genérica, no sabe qué se pagina. */
 export function pageWindow(page: number, pages: number): PageWindowItem[] {
   const numbers =
     pages <= SHOW_ALL_UP_TO

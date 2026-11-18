@@ -6,11 +6,7 @@ import { composeTitle } from '../../seo/title';
 import type { SeoPageInput } from '../tree/input';
 import type { DescriptionSource, MetaNode, OgImageSource } from '../tree/types';
 
-/**
- * De dónde sale la descripción. Se reaprovecha la cascada de `resolveMeta` en vez de reescribirla:
- * si QUITANDO la del sitio sigue habiendo descripción, es de la página; si solo aparece con ella,
- * es heredada. Así «misma frase que el sitio» no se confunde con «heredada».
- */
+/** Si sin la descripción del sitio sigue habiendo una, es de la página; si no, es heredada. */
 function descriptionSource(
   base: SeoBase,
   page: SeoPageInput,
@@ -31,10 +27,7 @@ function ogImageSource(page: SeoPageInput, image: MetaNode['ogImage']): OgImageS
   return page.seo?.image ? 'page' : 'site';
 }
 
-/**
- * Metadatos que se publican, calculados con las MISMAS funciones que `buildHead` (cascada, sufijo,
- * canonical), de modo que el panel enseña por construcción lo que sale en el `<head>`.
- */
+/** Mismas funciones que `buildHead`, para que el panel enseñe lo que sale en el `<head>`. */
 export function buildMetaNode(
   page: SeoPageInput,
   config: Pick<ResolvedConfig, 'seo'>,

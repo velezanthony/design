@@ -6,11 +6,7 @@ import { tagsOf, type PageTag } from './rows';
 import { groupBySlug, mainEntry } from './group';
 import { schemaTypes } from '../../tree/keys';
 
-/**
- * Qué tiene una página en una columna: `own` lo dice ella, `site` lo hereda del sitio (no es un
- * fallo: es lo que se publica si no dice nada), `missing` falta, `partial` se cubre con un respaldo,
- * `ok` cumple y `no` es una exclusión (noindex).
- */
+/** `site` es lo heredado del sitio (no es fallo), `partial` se cubre con respaldo y `no` es una exclusión (noindex). */
 export type HaveState = 'own' | 'site' | 'missing' | 'partial' | 'ok' | 'no';
 
 export interface HaveCell {
@@ -126,11 +122,7 @@ function rowOf(slug: string, entries: SeoPage[], input: HaveInput): HaveRow {
   };
 }
 
-/**
- * Las filas de «Qué tiene»: una por página, con lo que tiene en cada columna. Una página en varios
- * idiomas junta los suyos y se queda con el peor (basta que un idioma no tenga lo propio para que
- * la página no lo tenga). Se conserva el orden de entrada.
- */
+/** Una fila por página: junta sus idiomas y se queda con el peor. */
 export function haveRows(entries: readonly SeoPage[], input: HaveInput): HaveRow[] {
   const bySlug = groupBySlug(entries);
   return [...bySlug].map(([slug, group]) => rowOf(slug, group, input));

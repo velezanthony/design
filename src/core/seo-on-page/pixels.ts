@@ -1,9 +1,4 @@
-/**
- * Una ESTIMACIÓN del ancho que ocupa un texto en el resultado de búsqueda. Google no recorta por
- * caracteres sino por píxeles, y la fuente exacta cambia de un dispositivo a otro: aquí se usan los
- * anchos de Arial (la sans-serif que más se le parece) y por eso es un orden de magnitud, no una
- * medida. Siempre se enseña como «≈».
- */
+/** Estimación con anchos de Arial: Google recorta por píxeles, así que se enseña siempre como «≈». */
 
 /** El tamaño de letra de cada campo en el resultado de escritorio: título ~20 px, descripción ~14 px. */
 const FONT_PX = { title: 20, description: 14 } as const;

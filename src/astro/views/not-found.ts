@@ -49,10 +49,7 @@ interface NotFoundViewInput {
   sizes?: ImageSizes;
 }
 
-/**
- * Datos de una 404. `/404` (sin `locale`) es el idioma por defecto y trae las plantillas de los
- * demás más los datos de la sustitución en sitio; `/<locale>/404/` pinta su idioma directamente.
- */
+/** Datos de una 404: `/404` es el idioma por defecto con las plantillas de los demás; `/<locale>/404/` pinta el suyo. */
 export function notFoundView({
   locale,
   config,

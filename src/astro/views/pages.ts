@@ -34,10 +34,7 @@ export function pagesOf(data: DocData[]): Page[] {
   return data.map(pageOf);
 }
 
-/**
- * El único `sitemap.xml` del sitio: solo páginas REALES e indexables (ni rutas de reserva ni 404)
- * más la de privacidad si es propia, con los alternates por idioma. Un fallo del núcleo sale como `AstroError`.
- */
+/** Único `sitemap.xml`: solo páginas REALES e indexables (más privacidad si es propia), con alternates; un fallo del núcleo sale como `AstroError`. */
 export function sitemapXml(
   data: DocData[],
   config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site' | 'locales'> & {
@@ -58,10 +55,7 @@ export function sitemapXml(
   );
 }
 
-/**
- * `sitemap.xml` como índice (con `sitemap.include`): primero el sitemap de las páginas propias, bajo
- * la base, y después los demás sitemaps del dominio. Un fallo del núcleo sale como `AstroError`.
- */
+/** `sitemap.xml` como índice (con `sitemap.include`): el de las páginas propias y luego los demás del dominio. */
 export function sitemapIndexXml(config: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
   const site = new URL(config.site);
   const pages = new URL(withBase(config.base, `/${SITEMAP_PAGES}`), site.origin).href;

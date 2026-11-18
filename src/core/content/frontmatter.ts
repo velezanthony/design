@@ -6,12 +6,7 @@ import type { Frontmatter } from './discovery';
 const FRONTMATTER_OPEN = /^---[ \t]*\r?\n/;
 const FRONTMATTER_CLOSE = /^(---|\.\.\.)[ \t]*$/;
 
-/**
- * Separa el bloque YAML inicial (`---` … `---`) del cuerpo. El bloque se sustituye por líneas en
- * blanco: así las líneas del cuerpo siguen siendo las del archivo y un enlace roto se señala donde
- * de verdad está. Si `---` no es la primera línea no hay frontmatter. Si lo es pero el bloque no se
- * cierra, se marca `unclosed`: el loader lo trata como error (casi seguro es un cierre olvidado).
- */
+/** Separa el YAML inicial del cuerpo, dejándolo en líneas en blanco para conservar los números de línea; sin cierre marca `unclosed`. */
 export function splitFrontmatter(raw: string): {
   yaml: string | undefined;
   body: string;

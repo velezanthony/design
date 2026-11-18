@@ -41,10 +41,7 @@ export function privacyAvailability(locales: readonly Locale[], url: UrlPolicy):
   return new Map([[AVAILABILITY_KEY, privacyPageUrls(locales, url)]]);
 }
 
-/**
- * Parámetros de `getStaticPaths`: `main` es el idioma por defecto (`/[privacy]`, sin prefijo) y
- * `localized` los demás (`/[locale]/[privacy]`).
- */
+/** Parámetros de `getStaticPaths`: `main` es el idioma por defecto (sin prefijo) y `localized` los demás. */
 export function privacyRoutes(locales: readonly Locale[], defaultLocale: Locale) {
   return {
     main: [{ params: { privacy: privacySlug(defaultLocale) } }],

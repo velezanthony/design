@@ -3,11 +3,7 @@ import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import * as pagefind from 'pagefind';
 
-/**
- * Indexa `dist/` con la API de Node de Pagefind y escribe el índice en `dist/pagefind/`. Las URLs
- * del índice salen de las rutas de `dist/`, así que `base` no interviene al indexar: lo aplica el
- * cliente al cargar `pagefind.js` (ver `client/search.ts`).
- */
+/** Indexa `dist/` con Pagefind; `base` no interviene al indexar, lo aplica el cliente al cargar `pagefind.js`. */
 export async function buildPagefindIndex(
   directory: URL,
   logger: AstroIntegrationLogger,

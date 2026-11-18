@@ -3,16 +3,7 @@ import { fixFor } from './fixes';
 import { makeIssue } from './issue';
 import { pageKey } from '../tree/keys';
 
-/**
- * El grafo de enlaces internos, con las páginas del árbol y la navegación de cada una (barra
- * lateral, cabecera y footer: también son enlaces para el rastreador).
- *
- * - Enlaces a páginas `noindex`: solo desde páginas indexables y solo los del CUERPO; el sidebar
- *   enlaza a todo y avisaría en cada página.
- * - Páginas huérfanas: indexables que ninguna otra página enlaza ni desde el cuerpo ni desde la
- *   navegación. La portada no cuenta. Sin los enlaces de TODAS las páginas el grafo está incompleto
- *   y no se juzga a nadie.
- */
+/** Sin los enlaces de TODAS las páginas el grafo está incompleto y no se juzgan huérfanas; el sidebar enlaza a todo, por eso `noindex` solo cuenta desde el cuerpo. */
 export function analyzeLinks(
   pages: SeoPageFacts[],
   navigation: ReadonlyMap<string, readonly PageLink[]>,

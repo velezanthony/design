@@ -3,10 +3,7 @@ import type { SeoLocaleEntry, SeoPage } from '../../tree/types';
 import { tagsOf, type PageTag } from './rows';
 import { groupBySlug, mainEntry } from './group';
 
-/**
- * Cómo está la página en un idioma: existe, falta (no hay fichero y la política enlaza al original),
- * se sirve de respaldo (otro idioma bajo su ruta) u omitida a propósito (política `omit`).
- */
+/** `missing`: sin fichero y la política enlaza al original; `fallback`: otro idioma bajo su ruta; `omit`: omitida a propósito. */
 export type MatrixState = 'exists' | 'missing' | 'fallback' | 'omitted';
 
 /** `reciprocal`: cada versión enlaza a las demás; `unpaired`: solo hay una; `omitted`: noindex. */
@@ -75,12 +72,7 @@ function rowOf(slug: string, entries: SeoPage[], input: MatrixInput): MatrixRow 
   };
 }
 
-/**
- * La matriz de idiomas: una fila por página y una columna por idioma configurado, con el hreflang
- * que el `<head>` emite (mismas reglas que `buildHead`: solo con varias versiones indexables, y
- * `x-default` hacia el idioma por defecto si existe). Las incompletas van primero, que es lo que
- * se viene a buscar; el resto conserva su orden.
- */
+/** Hreflang con las reglas de `buildHead`; las páginas incompletas van primero. */
 export function matrixRows(entries: readonly SeoPage[], input: MatrixInput): Matrix {
   const bySlug = groupBySlug(entries);
   const rows = [...bySlug]

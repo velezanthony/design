@@ -8,11 +8,7 @@ export type Locale = string;
    o `api.config.md` no se confunden con `x.es.md`. */
 const LOCALE_SUFFIX = /^(.*)\.([a-z]{2}(?:-[A-Za-z0-9]{2,8})?)\.md$/;
 
-/**
- * Separa el sufijo de idioma de una ruta relativa: `guide/install.es.md` →
- * `{ stem: 'guide/install', locale: 'es' }`. Sin sufijo es el idioma por defecto. Un sufijo con forma
- * de idioma que no está configurado falla: nunca se trata como parte del slug.
- */
+/** Separa el sufijo de idioma (`install.es.md`); sin sufijo es el idioma por defecto y uno no configurado falla. */
 export function splitLocale(
   relativePath: string,
   locales: Locale[],
@@ -46,10 +42,7 @@ export function stripLocale(path: string, locale: Locale, defaultLocale: Locale)
   return `${path.slice(0, -suffix.length)}.md`;
 }
 
-/**
- * Idioma de una ruta servida: el primer segmento tras `base` si es un idioma configurado (segmento
- * completo) y, si no, el idioma por defecto. Sirve a la 404 en sitio, que corre en el navegador.
- */
+/** Idioma de una ruta servida: el primer segmento tras `base` si está configurado; lo usa la 404 en el navegador. */
 export function localeFromPath(
   pathname: string,
   base: string,

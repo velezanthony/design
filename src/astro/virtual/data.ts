@@ -17,10 +17,7 @@ export interface VirtualConfig extends Omit<ResolvedConfig, 'ui'>, AstroSiteConf
   strings: Record<Locale, UiStrings>;
 }
 
-/**
- * Datos serializables del módulo virtual. `ui` (los overrides) no viaja: va ya fusionado en
- * `strings`, solo para los idiomas del sitio, así los contenedores no vuelven a fusionar nada.
- */
+/** Datos serializables del módulo virtual; `ui` no viaja, va fusionado en `strings` solo para los idiomas del sitio. */
 export function createVirtualData(config: ResolvedConfig, astro: AstroSiteConfig): VirtualConfig {
   const { ui, ...rest } = config;
   return { ...rest, ...astro, strings: siteStrings(ui, config.locales) };

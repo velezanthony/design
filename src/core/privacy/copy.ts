@@ -26,11 +26,7 @@ export const PRIVACY_SECTION_IDS = [
   'rights',
 ] as const;
 
-/**
- * Fecha de la última revisión del texto (ISO). Si cambia un hecho de la política (un tercero
- * nuevo, otra cookie, otro proveedor), cámbialo AQUÍ y sube la versión del consentimiento si lo
- * que el visitante aceptó ya no es lo mismo, para que se le vuelva a preguntar.
- */
+/** Fecha de la última revisión (ISO): si cambia un hecho de la política, actualízala aquí y sube la versión del consentimiento. */
 export const PRIVACY_UPDATED = '2026-11-17';
 
 /** Un bloque de la política ya en un idioma: lo único que conoce el componente. */

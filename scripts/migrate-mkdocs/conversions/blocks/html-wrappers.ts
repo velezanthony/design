@@ -3,12 +3,7 @@ import type { LogEntry } from '../../pipeline/types.ts';
 const HTML_OPEN = /^\s*<div\b[^>]*\bmarkdown\b[^>]*>\s*$/;
 const HTML_CLOSE = /^\s*<\/div>\s*$/;
 
-/**
- * Las tarjetas de Material (`<div class="grid cards" markdown>`) envuelven Markdown en HTML. La
- * librería no lo necesita: se descartan el `<div>`, su cierre y el `---` con cuatro espacios que
- * separa las tarjetas. Es una función de paso (no consume bloques): el contenido de dentro sigue
- * convirtiéndose como cualquier otro, por eso devuelve la profundidad nueva.
- */
+/** Quita el `<div markdown>` de las tarjetas de Material y sus `---`; no consume bloques, por eso devuelve la profundidad nueva. */
 export function stepHtmlWrapper(
   line: string,
   depth: number,

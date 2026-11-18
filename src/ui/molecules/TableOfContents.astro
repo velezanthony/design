@@ -18,11 +18,7 @@ const entries = tocEntries(headings);
 const title = translate(strings, 'toc.title');
 ---
 
-{/*
-  Acompaña a quien lee por una página larga, a su lado: pegajoso en la columna lateral y oculto
-  en móvil, donde no la hay. Con menos de tres entradas es una página, no un documento que
-  merezca índice. Solo marcado: `trackSections` (client/layout/toc.ts) engancha `nav.toc` desde el layout.
-*/}
+{/* Solo marcado (`trackSections` engancha `nav.toc`): oculto en móvil y con menos de tres entradas no merece índice. */}
 {entries.length > 0 && (
   <nav aria-label={title} class="toc hidden md:sticky md:top-8 md:block">
     {toggles ? (

@@ -23,11 +23,7 @@ function withQuery(path: string, params: URLSearchParams) {
   return query === '' ? path : `${path}?${query}`;
 }
 
-/**
- * Enlaces entre las pantallas del panel. Se forman con `pageUrl` (el mismo que usa el sitio), así
- * respetan `base` y `trailingSlash` y funcionan con cualquier config; el idioma por defecto evita
- * que se les añada un prefijo de idioma.
- */
+/** Enlaces del panel con `pageUrl`, para respetar `base` y `trailingSlash`; el idioma por defecto evita el prefijo. */
 export function devHrefs(url: UrlPolicy) {
   function at(route: string) {
     return pageUrl(`${SEO_ON_PAGE_DIR}/${route}`, url.defaultLocale, url);

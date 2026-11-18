@@ -19,10 +19,7 @@ export function codeRanges(line: string): Array<[number, number]> {
   return ranges;
 }
 
-/**
- * Como `String.replace`, pero ignora las coincidencias que empiezan dentro de un span de código
- * en línea. Una coincidencia que empieza fuera y contiene código (`[`Foo`][a.b]`) sí vale.
- */
+/** Como `String.replace`, pero ignora las coincidencias que empiezan dentro de código en línea. */
 export function replaceOutsideCode(
   line: string,
   pattern: RegExp,

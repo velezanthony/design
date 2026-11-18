@@ -4,10 +4,7 @@ import type { Label, SidebarItem } from './schema';
 export const NavIcon = { GITHUB: 'github' } as const;
 export type NavIcon = (typeof NavIcon)[keyof typeof NavIcon];
 
-/**
- * Sección de la cabecera: toda página (nativa o externa) cuyo slug es `dir` o cuelga de `dir/`
- * pertenece a ella. Su barra lateral muestra solo esas páginas; `sidebar` fija el orden.
- */
+/** Sección de la cabecera: la forman las páginas cuyo slug es `dir` o cuelga de `dir/`; `sidebar` fija el orden. */
 export interface NavSection {
   label: Label;
   dir: string;

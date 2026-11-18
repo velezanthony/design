@@ -5,11 +5,7 @@ import type { BlockResult } from '../../pipeline/types.ts';
 const FENCE_OPEN = /^(\s*)(`{3,}|~{3,})\s*(text)?\s*$/;
 const SQL_START = /^(?:SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|WITH)\b/;
 
-/**
- * Lenguaje que se deduce sin riesgo del cuerpo de un bloque sin etiquetar: `console` si la primera
- * línea es una orden (`$ `, con su salida debajo si la hay) y `sql` si empieza por una sentencia.
- * Nunca adivina Python ni nada más: ante la duda, `undefined`.
- */
+/** Lenguaje deducible sin riesgo de un bloque sin etiquetar (`console` o `sql`); ante la duda, `undefined`. */
 function inferLanguage(body: string[]): string | undefined {
   const first = body.find((row) => row.trim() !== '')?.trim();
   if (first === undefined) return undefined;
@@ -30,11 +26,7 @@ function closingIndex(lines: string[], start: number, char: string, length: numb
   return undefined;
 }
 
-/**
- * Un bloque de código con fence, de la apertura al cierre (o al final si no se cierra). Su
- * contenido NO se toca nunca: es la razón de que el resto de unidades no vean el código. Lo único
- * que hace es etiquetar la apertura cuando el lenguaje es inequívoco.
- */
+/** Bloque con fence: su contenido no se toca nunca; solo se etiqueta la apertura si el lenguaje es inequívoco. */
 export function convertFence(
   lines: string[],
   start: number,

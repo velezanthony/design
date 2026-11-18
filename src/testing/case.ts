@@ -3,11 +3,7 @@ import { dirname, relative, resolve } from 'node:path';
 import type { DocsUserConfig } from '../core/config/schema';
 import { buildFixtureFailing, type FailedBuild } from './build';
 
-/**
- * Un proyecto consumidor mínimo descrito como datos: la config y los archivos de la carpeta de
- * contenido (`src/content/docs`, o la de `config.content`: si es una ruta de fuera, p. ej.
- * `../docs`, el proyecto de Astro se escribe en `site/` para que `../docs` caiga dentro del caso).
- */
+/** Un proyecto consumidor mínimo como datos; si `config.content` está fuera, el proyecto se escribe en `site/` para que quede dentro del caso. */
 export interface BuildCase {
   name: string;
   config: DocsUserConfig;
@@ -25,11 +21,7 @@ function importPath(directory: string, target: string): string {
   return path.startsWith('.') ? path : `./${path}`;
 }
 
-/**
- * Escribe el caso en `fixtures/strict/.cases/<name>/` (ignorado por git), lo construye esperando
- * que FALLE, y borra la carpeta. Los casos de reglas estrictas comparten así un único esqueleto
- * en vez de una carpeta de fixture por regla.
- */
+/** Escribe el caso en `fixtures/strict/.cases/<name>/`, lo construye esperando que FALLE y lo borra. */
 export async function buildFailingCase(buildCase: BuildCase): Promise<FailedBuild> {
   const caseDirectory = resolve(casesDir, buildCase.name);
   const contentDir = buildCase.config.content ?? 'src/content/docs';

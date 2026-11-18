@@ -16,10 +16,7 @@ export function rememberClientRoutes(routes: IntegrationResolvedRoute[]): void {
   registry.version += 1;
 }
 
-/**
- * `astro:server:setup`: los módulos de las páginas se cargan con el Vite del servidor (así su
- * `getStaticPaths` ve las colecciones), y cualquier cambio de fichero invalida lo ya leído.
- */
+/** `astro:server:setup`: los módulos se cargan con el Vite del servidor (para que `getStaticPaths` vea las colecciones) y un cambio invalida lo leído. */
 export function watchClientPages(server: Pick<ViteDevServer, 'ssrLoadModule' | 'watcher'>): void {
   const registry = clientRegistry();
   registry.load = (entrypoint) => server.ssrLoadModule(`/${entrypoint}`);

@@ -58,10 +58,7 @@ interface PanelViewInput {
   headings?: PanelHeading[];
 }
 
-/**
- * Los encabezados de las secciones del inspector, para «En esta página»: «Qué arreglar» dice cuántos
- * problemas hay (si hay) y «Traducciones» solo está si el sitio tiene más de un idioma.
- */
+/** Encabezados del inspector para «En esta página»: «Qué arreglar» solo si hay problemas, «Traducciones» solo con varios idiomas. */
 export function inspectorHeadings(page: { fixes: number; translations: boolean }): PanelHeading[] {
   const sections = (Object.keys(INSPECTOR_SECTIONS) as InspectorSection[]).filter(
     (section) => section !== 'translations' || page.translations,
@@ -87,10 +84,7 @@ export function panelView({
 }: PanelViewInput): PanelView {
   const site = siteContext(config, data);
   const { url } = site;
-  /* El panel solo existe en español, así que su interfaz va en español SIEMPRE, sin depender del
-     idioma por defecto del sitio: con el catálogo del sitio si tiene español (respeta sus
-     sobrescrituras de `ui`) y, si no, con el de la librería. Los enlaces de la cabecera y el pie
-     son contenido del sitio: van a su versión española si existe y, si no, a la de su idioma. */
+  /* El panel va SIEMPRE en español: catálogo del sitio si lo tiene (respeta `ui`) o el de la librería; los enlaces de cabecera y pie van a su versión española si existe. */
   const siteLang = config.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : config.defaultLocale;
   const strings = (config.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna

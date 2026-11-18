@@ -16,9 +16,7 @@ const { href, variant = 'inline', external, rel, class: className, ...rest } = A
 
 const isExternal = external ?? /^https?:\/\//.test(href);
 
-/* `min-h-6` en todas las variantes salvo inline: WCAG 2.5.8 pide objetivos de 24px y una etiqueta
-   de 12px sola mide 14px. Los enlaces dentro de una frase están exentos y una caja más alta
-   separaría las líneas. */
+/* `min-h-6` salvo inline: WCAG 2.5.8 pide objetivos de 24px; los enlaces dentro de una frase están exentos. */
 const variants: Record<Variant, string> = {
   inline:
     'text-accent underline decoration-accent-line underline-offset-[0.2em] decoration-1 hover:decoration-2 transition-[text-decoration-thickness]',

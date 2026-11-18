@@ -21,10 +21,7 @@ export async function findRepoRoot(
   }
 }
 
-/**
- * Raíz del repositorio para los enlaces «editar»: `repoRoot` (relativa a la raíz del proyecto) o,
- * por defecto, el ancestro con `.git`. Solo hace falta con `editUrl`; sin raíz lanza un `DocsError`.
- */
+/** Raíz del repo para los enlaces «editar»: `repoRoot` o el ancestro con `.git`; solo con `editUrl`, y sin raíz lanza `DocsError`. */
 export async function resolveRepoRoot(
   config: Pick<ResolvedConfig, 'editUrl' | 'repoRoot'>,
   projectRoot: string,

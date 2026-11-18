@@ -24,10 +24,7 @@ interface RenderOptions {
   features?: Features;
 }
 
-/**
- * Ejecuta Sätteri directamente sobre una cadena, sin Astro ni Vite. Es el modelo de
- * `createPluginTestOptions` de Starlight: los plugins reciben `fileURL` igual que dentro del loader.
- */
+/** Ejecuta Sätteri sobre una cadena, sin Astro ni Vite (modelo de `createPluginTestOptions` de Starlight). */
 export async function renderMarkdown(
   source: string,
   { fileURL, plugins = [], features }: RenderOptions,

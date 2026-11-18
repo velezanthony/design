@@ -1,9 +1,4 @@
-/**
- * Sustituye la 404 del idioma por defecto por la de `locale`, en sitio y sin redirección: copia el
- * contenido de `<template data-locale>` al `<body>`, fija `<html lang>` y `<title>` (`data-title`)
- * y retira `nf-pending`, que mantiene oculto el `<main>` hasta entonces. Sin plantilla para ese
- * idioma se queda lo que hay. Devuelve si sustituyó.
- */
+/** Sustituye la 404 por la de `locale` en sitio (copia `<template data-locale>`, fija `lang` y `title`); devuelve si sustituyó. */
 export function swapNotFound(htmlDocument: Document, locale: string): boolean {
   const root = htmlDocument.documentElement;
   const template = [

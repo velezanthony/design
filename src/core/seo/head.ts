@@ -41,13 +41,7 @@ function ogLocale(locale: Locale) {
   return locale.replace('-', '_');
 }
 
-/**
- * Etiquetas del `<head>` de una página como datos puros. El `canonical` y los alternates salen de
- * la disponibilidad de páginas REALES (`availability` ya sin las `noindex`): una ruta de reserva apunta a su
- * original, una 404 no tiene canonical y ninguna de las dos emite hreflang. `og:image` es absoluta
- * (`site` + `base` + `src`) salvo que ya sea una URL https. El JSON-LD que declaran el sitio y la
- * página se emite tal cual, un `<script>` por schema; sin declarar nada no se emite ninguno.
- */
+/** Etiquetas del `<head>` como datos puros; canonical y alternates salen de las páginas reales, y `og:image` es absoluta salvo que ya sea https. */
 export function buildHead(
   resolved: ResolvedMeta,
   page: PageData,

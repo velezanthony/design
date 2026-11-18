@@ -60,9 +60,7 @@ function nonJsonPaths(value: unknown, path: (string | number)[] = []): (string |
   return [];
 }
 
-/* Un nodo JSON-LD: objeto con `@type` y el resto abierto (schema.org no tiene lista cerrada de
-   propiedades). La config viaja al sitio como JSON, así que los valores deben serlo; el error de
-   `@type` lleva su ruta (`seo.schema[1]['@type']`) en vez de un «Invalid input» genérico. */
+/* Nodo JSON-LD: `@type` más propiedades abiertas, y el error de `@type` lleva su ruta en vez de un «Invalid input». */
 const JsonLdSchema = z
   .looseObject({
     '@type': z.union([z.string().min(1), z.array(z.string().min(1)).min(1)], {
@@ -108,10 +106,7 @@ export const PageSeoOverrideSchema = z.strictObject({
 });
 export type PageSeoOverride = z.infer<typeof PageSeoOverrideSchema>;
 
-/**
- * Entrada del sidebar: un slug o una sección `{ label, slug?, items }`. La portada se escribe
- * `'index'` (su slug interno es vacío). Un slug sin página hace fallar la carga.
- */
+/** Entrada del sidebar: slug o sección `{ label, slug?, items }`; la portada es `'index'` y un slug sin página falla. */
 export type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
 
 const SidebarItemSchema: z.ZodType<SidebarItem, SidebarItem> = z.lazy(() =>
@@ -186,10 +181,7 @@ const ExternalDocSchema = z.strictObject({
 });
 export type ExternalDoc = z.infer<typeof ExternalDocSchema>;
 
-/**
- * Esquema de la config pública `docs({...})`. Única fuente de verdad: `DocsUserConfig` sale de
- * aquí. Los valores por defecto los pone `resolveConfig`, no el esquema.
- */
+/** Esquema de la config pública y fuente de `DocsUserConfig`; los valores por defecto los pone `resolveConfig`. */
 export const DocsConfigSchema = z
   .strictObject({
     name: z.string().min(1),

@@ -4,9 +4,7 @@ import Probe from './fixtures/StringsProbe.astro';
 import { render, text } from './render';
 import { stringsFor } from './strings';
 
-/* Ningún átomo pinta texto propio (Link, Icon, Heading, Tag y Rule solo llevan slot), así que el
-   contrato «el texto sale de la prop `strings` vía `translate()`» se fija con un componente sonda. Las
-   moléculas con texto (fase 7) lo repiten sobre componentes reales. */
+/* Ningún átomo pinta texto propio, así que el contrato «el texto sale de `strings` vía `translate()`» se fija con un componente sonda. */
 describe('contrato de textos por props', () => {
   it('pinta el texto del catálogo del idioma recibido', async () => {
     expect(text((await render(Probe, { strings: stringsFor('es') })).querySelector('h2'))).toBe(

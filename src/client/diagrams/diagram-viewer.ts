@@ -46,21 +46,7 @@ export const ICONS = {
   expand: icon('<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>'),
 };
 
-/**
- * El visor a pantalla completa de los diagramas: un `<dialog>` modal (el mismo patrón que la
- * ampliación de imágenes: Escape, botón de cerrar o clic fuera lo cierran y el foco vuelve al
- * botón que lo abrió) con un lienzo que se mueve y escala con `transform`.
- *
- * - Zoom: botones, `+` `-` `0`, rueda (centrada en el puntero) y pellizco con dos dedos.
- * - Mover: arrastrar con ratón o dedo (eventos de puntero) y flechas, que mueven la VISTA: la
- *   flecha derecha mira hacia la derecha y el diagrama se desplaza a la izquierda.
- * - Empieza ajustado a la pantalla y, mientras nadie toca la vista, vuelve a ajustarse si la
- *   ventana cambia de tamaño.
- *
- * Trabaja sobre un CLON del SVG ya dibujado, así que respeta el tema vigente al abrir. Si el tema
- * cambia con el visor abierto, quien lo gobierna (`initMermaid`) lo cierra: el clon quedaría con
- * los colores viejos y reabrirlo es un clic.
- */
+/** Visor a pantalla completa sobre un CLON del SVG (con el tema vigente al abrir; si el tema cambia, `initMermaid` lo cierra); las flechas mueven la VISTA, no el diagrama. */
 export function createDiagramViewer(
   htmlDocument: Document,
   labels: DiagramViewerLabels,

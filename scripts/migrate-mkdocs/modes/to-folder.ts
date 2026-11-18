@@ -1,8 +1,4 @@
-/**
- * Modo carpeta (`--out`): convierte `docs/` + `mkdocs.yml` y lo escribe en otra carpeta, sin
- * tocar nunca el origen. Es el modo de las migraciones que cambian de sitio los ficheros
- * (reescribe enlaces a código, genera el sidebar y la referencia de API).
- */
+/** Modo carpeta (`--out`): convierte `docs/` + `mkdocs.yml` a otra carpeta sin tocar nunca el origen. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'yaml';

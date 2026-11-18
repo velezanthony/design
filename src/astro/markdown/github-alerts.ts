@@ -14,11 +14,7 @@ const ALERTS = {
 /* El marcador va SOLO en la primera línea: lo que lo sigue en esa línea lo invalida, como en GitHub. */
 const MARKER = /^\[!([A-Za-z]+)\][ \t]*(?:\r?\n([\s\S]*))?$/;
 
-/**
- * Alertas de GitHub (`> [!NOTE]`) → la misma admonición que la directiva. Sin título propio: el
- * título es la etiqueta de GitHub localizada. Un marcador desconocido, o con texto detrás, deja
- * la cita como `<blockquote>` normal y sin error.
- */
+/** Alertas `> [!NOTE]` → la misma admonición que la directiva; un marcador desconocido o con texto detrás deja el `<blockquote>`. */
 export function githubAlerts(env: MarkdownEnv) {
   return docsPlugin(env, ({ strings }) =>
     defineMdastPlugin({

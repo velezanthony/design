@@ -10,20 +10,12 @@ export interface ResolvedSchema {
 
 const SCHEMA_ORG = 'https://schema.org';
 
-/**
- * Completa `@context` con `https://schema.org` SOLO si falta (y lo pone el primero, como se
- * escribe a mano). Es sintaxis, no contenido: casi todo JSON-LD lo lleva y olvidarlo hace que el
- * bloque no valga para nada. Si el sitio declara el suyo, se respeta tal cual.
- */
+/** Añade `@context` de schema.org solo si falta (y primero); si el sitio declara el suyo se respeta. */
 export function withContext(schema: JsonLd): JsonLd {
   return '@context' in schema ? schema : { '@context': SCHEMA_ORG, ...schema };
 }
 
-/**
- * Cascada de schemas, la misma que la de los títulos: página `false` -> ninguno; lista -> los del
- * sitio y después los de la página; ausente -> los del sitio; nada en ningún nivel -> nada. La
- * usan `buildHead` y el árbol del panel, así que lo que se inspecciona es lo que se publica.
- */
+/** Cascada de schemas como la de títulos: página `false` ninguno, lista sitio y página, ausente el del sitio. */
 export function resolveSchemas(
   site: readonly JsonLd[] | undefined,
   page: readonly JsonLd[] | false | undefined,
@@ -38,9 +30,7 @@ export function resolveSchemas(
   return [...(site ?? []).map(tag('site')), ...(page ?? []).map(tag('page'))];
 }
 
-/* `<` evita `</script>` y `<!--`; `>` y `&` no son peligrosos dentro de un <script> pero se
-   escapan por higiene; U+2028/2029 son saltos de línea en JavaScript y rompen el literal si el
-   JSON se evalúa. Todos son escapes JSON válidos: `JSON.parse` devuelve el mismo valor. */
+/* `<` evita `</script>` y `<!--`; `>`, `&` y U+2028/2029 se escapan por higiene; son escapes JSON válidos. */
 const UNSAFE: Record<string, string> = {
   '<': '\\u003c',
   '>': '\\u003e',
@@ -49,11 +39,7 @@ const UNSAFE: Record<string, string> = {
   '\u2029': '\\u2029',
 };
 
-/**
- * JSON listo para ir DENTRO de un `<script type="application/ld+json">`. El contenido de un
- * `<script>` es texto crudo: no se escapa como HTML (`&amp;` rompería el JSON), así que el
- * escapado se hace aquí, una sola vez, y quien lo pinta lo inserta tal cual (`set:html`).
- */
+/** JSON listo para DENTRO de un `<script type="application/ld+json">`: se escapa aquí una vez, no como HTML, y se inserta con `set:html`. */
 export function serializeJsonLd(schema: JsonLd): string {
   return JSON.stringify(schema).replace(/[<>&\u2028\u2029]/g, (char) => UNSAFE[char] ?? char);
 }

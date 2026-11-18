@@ -14,10 +14,7 @@ export interface Frontmatter {
   translations?: MissingTranslation;
 }
 
-/**
- * Un archivo leído por el adaptador. En las nativas `path` es relativo al directorio de contenido;
- * en las externas, relativo a la raíz del proyecto (`../CHANGELOG.es.md`).
- */
+/** Archivo leído: `path` es relativo al contenido en nativas y a la raíz del proyecto en externas. */
 export interface SourceFile {
   kind: 'native' | 'external';
   path: string;
@@ -145,10 +142,7 @@ function externalPages(
   return pages;
 }
 
-/**
- * El idioma por defecto va sin prefijo, así que su página `es/guia` ocuparía `/es/guia/`, la URL de
- * la página `guia` del idioma `es` (y `es` sería su portada). Se reserva todo prefijo de idioma.
- */
+/** `es/guia` en el idioma por defecto chocaría con `guia` en `es`, así que se reserva todo prefijo de idioma. */
 function findLocalePrefixCollisions(pages: Page[], config: DiscoveryConfig): DocsError[] {
   const prefixes = config.locales.filter((locale) => locale !== config.defaultLocale);
   return pages
@@ -168,11 +162,7 @@ function findLocalePrefixCollisions(pages: Page[], config: DiscoveryConfig): Doc
     });
 }
 
-/**
- * Páginas del sitio a partir de los archivos leídos: nativas por su ruta y externas por la config.
- * Reúne TODOS los fallos (sufijo no configurado, colisión de slugs, archivo ausente, sin título) y
- * los lanza juntos en un único `DocsErrors`.
- */
+/** Páginas a partir de los archivos leídos; reúne todos los fallos y los lanza juntos en un `DocsErrors`. */
 export function discoverPages(files: SourceFile[], config: DiscoveryConfig): Page[] {
   const errors: DocsError[] = [];
   const externalFiles = new Map(

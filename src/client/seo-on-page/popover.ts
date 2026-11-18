@@ -1,8 +1,4 @@
-/**
- * Un `<details data-popover>` se comporta como un desplegable: se cierra al pulsar fuera de él o con
- * Escape (y entonces el foco vuelve a su `<summary>`, para no perderlo). Sin JavaScript sigue siendo
- * un `<details>` que se abre y se cierra con su título.
- */
+/** `<details data-popover>` se cierra al pulsar fuera o con Escape (el foco vuelve al `<summary>`). */
 function openPopovers(htmlDocument: Document) {
   return [...htmlDocument.querySelectorAll<HTMLDetailsElement>('details[data-popover][open]')];
 }

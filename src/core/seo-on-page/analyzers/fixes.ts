@@ -37,11 +37,7 @@ export function siblingPath(
   return localizedPath(stripLocale(sourcePath, ownLocale, defaultLocale), locale, defaultLocale);
 }
 
-/**
- * DÓNDE se declara una clave de la página: en una nativa, el frontmatter de su archivo; en una
- * externa (`external[]`, p. ej. el CHANGELOG) no hay frontmatter que valga, vive en la entrada de
- * `docs.config.mjs`. Decirlo mal mandaría a editar un archivo cuyo cambio no tendría efecto.
- */
+/** Una página externa no tiene frontmatter: su clave vive en la entrada de `docs.config.mjs`, no en un archivo. */
 function where(page: FixPage, key: string): string {
   const scoped = `\`${scopedKey(key, page.kind)}\``;
   if (page.kind === 'client')
@@ -82,10 +78,6 @@ function slugs(related: Issue['related']) {
   return (related ?? []).map((other) => `«${other.slug || '/'}»`).join(', ');
 }
 
-/**
- * Qué cambiar y dónde para arreglar un problema, en una frase de acción. Pura: sale del tipo, de la
- * página y del detalle, sin leer nada más.
- */
 export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): string {
   const file = `\`${page.sourcePath}\``;
   const defaultLocale = detail.defaultLocale ?? page.locale;

@@ -32,20 +32,12 @@ function sortPages(pages: SeoPageInput[]) {
   );
 }
 
-/**
- * Los helpers de i18n trabajan con `Page`, y de ella solo leen slug, idioma, política y rutas; el
- * cuerpo no interviene, así que se rellena vacío en vez de duplicar esos helpers.
- */
+/** Los helpers de i18n solo leen slug, idioma, política y rutas: el cuerpo se rellena vacío en vez de duplicarlos. */
 function asPage(page: SeoPageInput): Page {
   return { ...page, body: '' };
 }
 
-/**
- * Árbol de datos del análisis SEO on-page. Primero se componen los HECHOS de cada página con las
- * mismas funciones que genera el sitio (`resolveMeta`, `composeTitle`, `buildAvailability`,
- * políticas de traducción) y después los analizadores los juzgan. Pura y determinista: sin
- * rastreo ni lectura de HTML, el panel enseña por construcción lo que se publica.
- */
+/** Primero los HECHOS con las mismas funciones que genera el sitio, luego los juzgan los analizadores; pura, sin rastreo. */
 export function buildSeoTree(input: SeoInput): SeoTree {
   const { config, url, imageSizes } = input;
   const sorted = sortPages(input.pages);

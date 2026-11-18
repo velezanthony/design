@@ -12,11 +12,7 @@ export function normalizePath(directory: string): string {
   return stack.join('/');
 }
 
-/**
- * Por qué `dir` no vale como carpeta de contenido, o `undefined` si vale. Debe ser una ruta
- * RELATIVA a la raíz del proyecto: una absoluta no sobreviviría a otra máquina ni a CI, y una
- * URL no es una carpeta. Tampoco puede ser la propia raíz: recorrería `node_modules` entero.
- */
+/** Por qué `dir` no vale como carpeta de contenido: debe ser relativa y no la raíz (recorrería `node_modules`). */
 export function contentDirProblem(directory: string): string | undefined {
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(directory)) return 'Debe ser una ruta local, no una URL.';
   if (directory.startsWith('/') || /^[a-z]:[\\/]/i.test(directory)) {

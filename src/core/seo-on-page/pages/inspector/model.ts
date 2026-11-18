@@ -257,11 +257,7 @@ function markDifferences(columns: ComparisonColumn[]): ComparisonColumn[] {
   });
 }
 
-/**
- * Lo que enseña el inspector de una página, una sección por clave. `undefined` si no existe esa
- * página en ese idioma: es la pantalla quien decide qué decir (un 404). Los textos y las etiquetas
- * son de la UI; aquí solo hay datos y enlaces ya formados.
- */
+/** `undefined` si no existe la página en ese idioma: la pantalla decide (404); aquí solo datos y enlaces ya formados. */
 export function inspectorModel({
   tree,
   slug,

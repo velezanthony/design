@@ -1,10 +1,7 @@
 import { defineMdastPlugin } from 'satteri';
 import { docsPlugin, type MarkdownEnv } from './env';
 
-/**
- * Envuelve cada tabla GFM en un contenedor que se desplaza en horizontal por su cuenta: la
- * tabla ancha no desborda la página. Es enfocable para poder desplazarla con el teclado.
- */
+/** Envuelve cada tabla GFM en un contenedor con scroll horizontal, enfocable para usarlo con teclado. */
 export function scrollableTables(env: MarkdownEnv) {
   return docsPlugin(env, () =>
     defineMdastPlugin({

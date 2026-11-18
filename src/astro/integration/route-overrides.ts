@@ -52,12 +52,7 @@ function injectedRoutes(options: RouteOptions): string[] {
   return routes;
 }
 
-/**
- * Las rutas de la librería que el sitio sustituye con un fichero suyo en `src/pages/`: la portada,
- * la 404, el sitemap, el favicon… No es un error: el sitio es libre de reescribir páginas concretas.
- * Astro publica la del sitio, y la integración lo avisa al arrancar (`overrideWarning`) para que
- * nunca pase sin saberlo (el `src/pages/index.astro` del andamio de `npm create astro`, por ejemplo).
- */
+/** Rutas de la librería que el sitio sustituye con un fichero suyo en `src/pages/`; no es error, pero se avisa al arrancar. */
 export function routeOverrides(pagesDir: URL, options: RouteOptions): RouteOverride[] {
   const overrides: RouteOverride[] = [];
   for (const route of injectedRoutes(options)) {

@@ -54,11 +54,7 @@ async function walk(directory: string): Promise<string[]> {
     );
 }
 
-/**
- * Lee del disco los archivos que el núcleo necesita: los nativos (con su frontmatter ya separado
- * y validado) y los externos que existan. Los fallos de frontmatter se devuelven aparte para
- * sumarlos al resto de errores de carga.
- */
+/** Lee del disco los archivos nativos (con frontmatter validado) y los externos; los fallos de frontmatter vuelven aparte. */
 async function readSources(
   root: string,
   config: LoaderConfig,
@@ -103,11 +99,7 @@ function discoverOrErrors(
   }
 }
 
-/**
- * Una carga completa en tres pasadas: descubrir (nativos + externos, políticas), reescribir
- * enlaces y renderizar cada página, y validar anclas e imágenes con los encabezados de TODAS.
- * Los fallos se acumulan y salen en un único error con archivo y línea.
- */
+/** Carga en tres pasadas (descubrir, reescribir y renderizar, validar anclas e imágenes); los fallos se acumulan en un solo error. */
 async function sync(context: LoaderContext, config: LoaderConfig): Promise<void> {
   const root = fileURLToPath(context.config.root);
   const read = await readSources(root, config);
@@ -205,16 +197,10 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
 
 export { docsSchema } from './schema';
 
-/**
- * Lo que el loader necesita de la config: la resuelta, sin los overrides de `ui` (solo los usa la
- * interfaz y en el módulo virtual ya viajan fusionados en `strings`).
- */
+/** Lo que el loader necesita de la config resuelta, sin los overrides de `ui` (ya viajan fusionados en `strings`). */
 export type LoaderConfig = Omit<ResolvedConfig, 'ui'>;
 
-/**
- * Loader a partir de una config YA resuelta. Es lo que usa `@velezanthony/design/content` con la
- * que la integración sirve en el módulo virtual: una sola carga de la config, sin segunda lectura.
- */
+/** Loader a partir de una config YA resuelta (la del módulo virtual): una sola carga, sin segunda lectura. */
 export function docsLoaderFromResolved(docsConfig: LoaderConfig): Loader {
   return createLoader(() => docsConfig);
 }

@@ -1,10 +1,4 @@
-/**
- * Decide qué hacer con los enlaces relativos de un documento migrado.
- *
- * Los que apuntan a páginas o recursos publicados se dejan (la build estricta los valida). Los que
- * apuntan a algo del repositorio que el sitio no lleva (código, páginas excluidas, `coverage/`)
- * pasan a ser enlaces absolutos al repositorio, porque en el sitio no hay nada a lo que apuntar.
- */
+/** Los enlaces a algo que el sitio no lleva (código, páginas excluidas) pasan a ser absolutos al repo; el resto se deja para la build estricta. */
 import path from 'node:path/posix';
 
 export interface LinkRewriterConfig {

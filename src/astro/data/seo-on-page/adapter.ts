@@ -30,11 +30,7 @@ export interface SeoEntry {
   images?: PageImage[];
 }
 
-/**
- * Datos de la colección + config de Astro → entrada del análisis. Pura: no sabe de `astro:content`.
- * Del módulo virtual solo pasa lo que el SEO usa (se descartan `strings` y compañía), para que el
- * análisis no dependa de los textos de interfaz.
- */
+/** Colección + config de Astro → entrada del análisis; solo pasa lo que el SEO usa del módulo virtual. */
 export function seoInputOf(
   entries: readonly SeoEntry[],
   config: VirtualConfig,
@@ -55,10 +51,7 @@ export function seoInputOf(
   };
 }
 
-/**
- * Encabezados de una entrada: los que el loader guardó al renderizar (`rendered.metadata`) o, si la
- * entrada no los trae, los que devuelve `render`. Son los mismos que pinta la página real.
- */
+/** Encabezados guardados por el loader (`rendered.metadata`) o, si faltan, los de `render`. */
 async function headingsOf(entry: DocsEntry): Promise<HeadingNode[]> {
   const stored = (entry as { rendered?: { metadata?: { headings?: HeadingNode[] } } }).rendered
     ?.metadata?.headings;
@@ -92,10 +85,7 @@ export async function loadSeoTree(
   return buildSeoTree({ ...seoInputOf(entries, config, sizes), client });
 }
 
-/**
- * Todo lo que necesita una pantalla del panel, con la colección leída UNA vez. Las páginas de
- * `src/pages/` que no se pudieron leer vuelven en `failures`, para avisar en pantalla.
- */
+/** Lo que necesita una pantalla del panel, con la colección leída UNA vez; las páginas ilegibles vuelven en `failures`. */
 export async function loadPanel(
   config: VirtualConfig,
   origin: string,
@@ -128,10 +118,7 @@ export async function loadPanel(
   };
 }
 
-/**
- * Los archivos de sitio del panel. Las URLs del sitemap son las mismas que sirve en dev, con las
- * páginas de `src/pages/`; `robots.txt` y `llms.txt` se buscan en el `public/` del consumidor.
- */
+/** Archivos de sitio del panel: el sitemap de dev, y `robots.txt`/`llms.txt` del `public/` del consumidor. */
 export async function loadSiteFiles(
   config: VirtualConfig,
   docs: DocData[],

@@ -29,10 +29,7 @@ interface AdmonitionOptions {
   children: (MdastNode | Custom)[];
 }
 
-/**
- * Nodo de una admonición. Es el MISMO marcado que `ui/molecules/Admonition.astro`; lo usan las
- * directivas y las alertas de GitHub, así las dos sintaxis dan una salida idéntica.
- */
+/** Nodo de admonición, el MISMO marcado que `Admonition.astro`, para que directivas y alertas den salida idéntica. */
 export function admonitionNode({
   kind,
   title,
@@ -58,10 +55,7 @@ export function kindTitle(strings: Parameters<typeof translate>[0], key: `admoni
   return translate(strings, key as UiKey);
 }
 
-/**
- * Directivas contenedor `:::tipo[Título]{collapsed}`. Un tipo o un atributo desconocidos fallan
- * con archivo y nombre: una admonición mal escrita es contenido perdido, no algo que ignorar.
- */
+/** Directivas `:::tipo[Título]{collapsed}`: un tipo o atributo desconocido falla con archivo y nombre, porque sería contenido perdido. */
 export function admonitions(env: MarkdownEnv) {
   return docsPlugin(env, ({ file, strings }) =>
     defineMdastPlugin({

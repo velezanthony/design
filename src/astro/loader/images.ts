@@ -38,11 +38,7 @@ function where(ref: ImageRef) {
   return ref.file ? `${ref.file}: ` : '';
 }
 
-/**
- * Comprueba las imágenes SEO: las locales tienen que existir bajo `public/` (error, todos juntos) y
- * se miden con `imageMetadata` de Astro para los avisos de proporción y peso (`checkImage`). Las
- * https no se tocan: sin red ni dimensiones. Cada archivo se lee una sola vez.
- */
+/** Las imágenes SEO locales deben existir bajo `public/` y se miden con `imageMetadata`; las https no se tocan (sin red). Cada archivo se lee una vez. */
 export async function checkSeoImages(
   refs: readonly ImageRef[],
   publicDir: URL,
@@ -66,11 +62,7 @@ export async function checkSeoImages(
   return { errors: imageErrors(refs, existing), warnings };
 }
 
-/**
- * Dimensiones de las imágenes locales (las que cuelgan de `public/`), por su `src`, para emitir
- * `og:image:width/height`. Las https, las ausentes y las ilegibles no figuran: el head las emite
- * sin tamaño (la validación y los avisos ya los dio `checkSeoImages` en la carga).
- */
+/** Dimensiones de las imágenes locales por `src`, para `og:image:width/height`; las https, ausentes e ilegibles no figuran. */
 export async function readImageSizes(
   srcs: Iterable<string>,
   publicDir: URL,

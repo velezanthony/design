@@ -1,8 +1,4 @@
-/**
- * Seguridad de `--in-place`: solo se reescribe `docs/` si el repo es git y `docs/` está limpio,
- * para que `git diff docs/` muestre DESPUÉS únicamente la conversión. La E/S (ejecutar git) llega
- * inyectada: `git(args)` devuelve la salida o lanza si git falla.
- */
+/** `--in-place` solo reescribe si el repo es git y `docs/` está limpio, para que `git diff docs/` muestre solo la conversión. */
 
 export type Git = (gitArguments: string[]) => string;
 

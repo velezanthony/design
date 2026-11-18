@@ -36,10 +36,7 @@ function contextOf(tree: SeoTree, site: ReportSite): ReportContext {
   };
 }
 
-/**
- * Junta el alcance principal de la pantalla con «Un idioma» (si el sitio tiene varios) y genera el
- * informe de cada uno: cada pantalla manda al navegador solo los alcances que ofrece, no todos.
- */
+/** Une el alcance principal con «Un idioma» (si hay varios): cada pantalla manda al navegador solo los alcances que ofrece. */
 function dialogOf(
   tree: SeoTree,
   site: ReportSite,

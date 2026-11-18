@@ -19,10 +19,7 @@ export interface OverviewModel {
     pages: { pages: number; entries: number };
     /** Una por idioma de la config, con sus entradas. */
     locales: { locale: Locale; entries: number }[];
-    /**
-     * Páginas con error o aviso (cada una una vez), cuántas tienen error, cuántas aviso y las entradas
-     * con alguno de los dos; sin problemas, sin enlace.
-     */
+    /** Páginas con error o aviso (una vez cada una); sin problemas, sin enlace. */
     problems: {
       pages: number;
       errors: number;
@@ -74,10 +71,7 @@ interface OverviewInput {
   siteFiles: SiteFile[];
 }
 
-/**
- * Lo que enseña la vista general del panel, calculado: la pantalla y sus componentes solo pintan.
- * Los enlaces llegan hechos (texto) porque el núcleo no sabe formar URLs; ver `PanelLinks`.
- */
+/** Los enlaces llegan hechos porque el núcleo no forma URLs; ver `PanelLinks`. */
 export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewModel {
   const { locales, defaultLocale, links, siteFiles } = input;
   const summary = summarize(tree);

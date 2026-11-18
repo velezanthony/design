@@ -14,10 +14,7 @@ const { strings, baseUrl, id = 'docs-search', class: className } = Astro.props;
 const inputId = `${id}-input`;
 ---
 
-{/*
-  Marcado que cablea `initSearch` (client/search.ts). Los textos de estado viajan como `data-*`
-  porque el cliente no conoce el catálogo; `{query}` lo interpola el cliente.
-*/}
+{/* Marcado que cablea `initSearch`; los textos de estado viajan como `data-*` y el cliente interpola `{query}`. */}
 <div
   data-search
   data-base-url={baseUrl}
@@ -56,9 +53,7 @@ const inputId = `${id}-input`;
 </div>
 
 <style is:global>
-  /* La pista «/» solo se ve si el atajo funciona (`initSearchShortcut` marca `data-shortcut`; sin
-     JS no existe), con el campo vacío y sin foco, y nunca en táctil. Solo entonces el campo le
-     reserva hueco a la derecha: con texto, la «x» nativa de borrar vuelve a su sitio, al final. */
+  /* La pista «/» solo se ve si el atajo funciona, con el campo vacío y sin foco, y nunca en táctil; con texto, la «x» nativa vuelve a su sitio. */
   .docs-search-kbd {
     display: none;
   }
@@ -126,10 +121,7 @@ const inputId = `${id}-input`;
     color: var(--color-muted);
   }
 
-  /* El resultado activo (ratón o flechas) se lee como un bloque: fondo tintado, barra en el verde
-     de la paleta y título en el acento (5.62:1 sobre el tinte). El extracto sube a tinta en vez de
-     teñirse: cuatro líneas en verde se leen peor y las coincidencias dejarían de destacar. El
-     fondo y la barra ya marcan el foco, así que sobra el contorno. */
+  /* El resultado activo se lee como un bloque (fondo tintado, barra, título en acento 5.62:1); el extracto sube a tinta para que las coincidencias destaquen. */
   .docs-search-results a:hover,
   .docs-search-results a:focus-visible {
     background-color: var(--color-accent-soft);

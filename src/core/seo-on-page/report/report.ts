@@ -472,11 +472,7 @@ function lacksReport(column: HaveColumn, scope: ReportScope, context: ReportCont
   };
 }
 
-/**
- * El informe «Copiar para la IA» de un alcance, en Markdown y en JSON. Pura: del árbol, el alcance
- * y los nombres de los tipos sale el texto, sin leer nada más. Lo que afecta a todas las páginas se
- * agrupa una vez (carpeta y clave) en lugar de repetirse por página.
- */
+/** Pura; lo que afecta a todas las páginas se agrupa una vez (carpeta y clave). */
 export function buildReport(scope: ReportScope, context: ReportContext): Report {
   return scope.lacks ? lacksReport(scope.lacks, scope, context) : issuesReport(scope, context);
 }

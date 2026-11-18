@@ -39,11 +39,7 @@ function quoted(slugs: readonly string[]) {
   return slugs.map((slug) => `«${slug || '/'}»`).join(', ');
 }
 
-/**
- * Cómo comprobar que el problema está arreglado, en una frase y sin mirar fuera del panel: dónde
- * cambia lo que se ve. `related` son los slugs de las páginas con las que chocaba (un duplicado
- * desaparece también de ellas).
- */
+/** Dónde cambia lo que se ve; `related` son las páginas con las que chocaba un duplicado. */
 export function verifyFor(kind: IssueKind, related: readonly string[]): string {
   const where = related.length > 0 ? ` aquí y en ${quoted(related)}` : ' aquí';
   switch (kind) {

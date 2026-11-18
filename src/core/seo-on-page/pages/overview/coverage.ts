@@ -29,10 +29,7 @@ interface Input {
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
 
-/**
- * La cobertura de idiomas del sitio, sobre la misma matriz que la vista «Matriz» de Páginas (una
- * sola definición de «completa»). Con un solo idioma no hay nada que cubrir: `undefined`.
- */
+/** Misma matriz que la vista «Matriz» (una sola definición de «completa»); con un idioma, `undefined`. */
 export function coverage(tree: SeoTree, input: Input): Coverage | undefined {
   if (input.locales.length < 2) return undefined;
   const { rows, complete } = matrixRows(tree.pages, input);

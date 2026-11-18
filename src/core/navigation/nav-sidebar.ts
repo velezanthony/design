@@ -61,10 +61,7 @@ export function buildSectionSidebar(context: NavContext, index: number): Sidebar
   );
 }
 
-/**
- * Barra lateral de la página `context.slug`. Sin `nav` es la de siempre, con todas las páginas. Con
- * `nav`, solo la de su sección o, si no pertenece a ninguna, la de las páginas sin sección.
- */
+/** Barra lateral de `context.slug`: con `nav`, la de su sección o la de las páginas sin sección. */
 export function buildScopedSidebar(context: NavContext): SidebarNode[] {
   if (!context.config.nav) {
     return buildSidebar(

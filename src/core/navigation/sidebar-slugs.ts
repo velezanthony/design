@@ -4,10 +4,7 @@ import type { SidebarItem } from '../config/schema';
 /** Nombre con el que la config se refiere a la portada (cuyo slug interno es la cadena vacía). */
 export const HOME_SIDEBAR_SLUG = 'index';
 
-/**
- * Slug interno de lo que se escribe en `sidebar`: `'index'` es la portada (`''`), el resto tal cual.
- * No hay ambigüedad porque ninguna página puede tener el slug `index`: `index.md` colapsa a `''`.
- */
+/** Slug interno de lo escrito en `sidebar`: `'index'` es la portada (`''`), sin ambigüedad porque `index.md` colapsa a `''`. */
 export function toSidebarSlug(slug: string): string {
   return slug === HOME_SIDEBAR_SLUG ? '' : slug;
 }
@@ -33,11 +30,7 @@ export function sidebarSlugRefs(
   });
 }
 
-/**
- * Un error por cada slug de `sidebar` que no corresponde a ninguna página (de cualquier idioma),
- * con su ruta en la config (`sidebar[2].items[0]`). Devuelve la lista para sumarla a los demás
- * fallos de la carga en vez de cortar en el primero.
- */
+/** Un error por slug de `sidebar` sin página en ningún idioma; devuelve la lista para sumarla a los demás fallos. */
 export function validateSidebarSlugs(
   items: readonly SidebarItem[],
   pageSlugs: ReadonlySet<string>,

@@ -5,11 +5,7 @@ export interface OutlineItem extends HeadingNode {
   skipFrom?: number;
 }
 
-/**
- * Esquema de encabezados con los saltos de nivel marcados. Es LA regla del salto: la usan el
- * analizador (`analyzeHeadings`) y el inspector. Solo importa bajar de más; subir de H4 a H2 al
- * cerrar una sección es normal.
- */
+/** Única regla del salto, compartida por `analyzeHeadings` y el inspector; solo importa bajar de más. */
 export function outline(headings: readonly HeadingNode[]): OutlineItem[] {
   return headings.map((heading, index) => {
     const previous = headings[index - 1];

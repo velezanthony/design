@@ -2,10 +2,7 @@ import type { DocsError } from '../../core/errors';
 import { faviconErrors, isLocalFavicon, publicFaviconPath } from '../../core/seo/favicon';
 import { readPublic } from './images';
 
-/**
- * Comprueba que el favicon local de la config existe bajo `public/` (la E/S vive aquí; la decisión,
- * en `faviconErrors`). Las https y la ausencia de `favicon` no se tocan.
- */
+/** Comprueba que el favicon local existe bajo `public/`; la decisión está en `faviconErrors`. */
 export async function checkFavicon(
   favicon: string | undefined,
   publicDir: URL,

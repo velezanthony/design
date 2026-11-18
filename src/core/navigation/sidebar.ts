@@ -127,10 +127,7 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
   return { label, slug, href, ...(badge && { badge }) };
 }
 
-/**
- * `base` es la carpeta que hace de raíz (la de una sección de la cabecera): no cuenta como nivel
- * y sus páginas cuelgan directamente de la raíz del árbol.
- */
+/** `base` es la carpeta raíz de una sección: no cuenta como nivel y sus páginas cuelgan de la raíz del árbol. */
 function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
   function sectionPath(slug: string) {
@@ -241,12 +238,7 @@ function declaredTree(
   return nodes;
 }
 
-/**
- * Árbol de la barra lateral de un idioma, de hasta tres niveles. Sigue el orden declarado en la
- * config; lo no listado va detrás, por `order` del frontmatter y luego por `Intl.Collator` del
- * slug. Los slugs sin traducción en el idioma aplican su política (`link`, `fallback` u `omit`).
- * `base` es la carpeta raíz de una sección de la cabecera: lo no declarado se agrupa por debajo.
- */
+/** Árbol del sidebar de un idioma (hasta tres niveles): orden declarado, luego `order` y `Intl.Collator`; sin traducción aplica su política. */
 export function buildSidebar(
   pages: Page[],
   availability: Availability,

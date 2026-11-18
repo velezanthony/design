@@ -38,11 +38,7 @@ function tokens(value: string | null) {
     .filter(Boolean);
 }
 
-/**
- * Lee del HTML de una página lo que decide su SEO: título, descripción, indexación, canonical,
- * idiomas, encabezados, Open Graph y JSON-LD. Las metas y los enlaces solo cuentan en el `<head>`, como hacen los buscadores. Los
- * enlaces salen absolutos, resueltos contra `url`. Pura: no pide nada a la red.
- */
+/** Lee del HTML lo que decide el SEO; metas y enlaces solo cuentan en `<head>` y los enlaces salen absolutos contra `url`. */
 export function readHead(html: string, url: URL): HeadFacts {
   const { document } = parseHTML(html);
   const head = document.head;

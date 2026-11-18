@@ -3,11 +3,7 @@ import { parseFrontmatter, splitFrontmatter } from '../../core/content/frontmatt
 import type { Frontmatter } from '../../core/content/discovery';
 import { DocsError } from '../../core/errors';
 
-/**
- * Lee el frontmatter de un archivo nativo: separa el bloque (núcleo), lo parsea con `yaml` (I/O de
- * formato, por eso vive aquí) y lo valida (núcleo). Devuelve todos los fallos, con archivo y línea
- * cuando el YAML no se puede parsear.
- */
+/** Separa y parsea con `yaml` el frontmatter de un archivo nativo y devuelve todos los fallos, con línea si el YAML no parsea. */
 export function readFrontmatter(
   raw: string,
   file: string,

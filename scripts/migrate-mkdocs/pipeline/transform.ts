@@ -1,28 +1,4 @@
-/**
- * Pipeline de UN documento: Markdown de MkDocs Material -> Markdown de `@velezanthony/design`.
- *
- * Sin E/S: recibe el texto y unas funciones opcionales de resolución, y devuelve el texto nuevo
- * más un registro de todo lo que ha tocado. Cada conversión vive en su propio módulo (con su
- * test); aquí solo se COMPONEN, siempre en este orden:
- *
- *   1. `frontmatter`   claves que solo entiende MkDocs (`hide`, `search`, `status`).
- *   2. Línea a línea, y la PRIMERA unidad que reconoce la línea la consume:
- *        a. `fences`          bloques de código: se dejan intactos (solo se etiqueta el lenguaje).
- *        b. `admonitions`     `!!!` / `???` / `???+`  (su cuerpo vuelve a pasar por este mismo paso).
- *        c. `tabs`            `=== "x"`               (ídem).
- *        d. `api-directive`   `::: paquete.Símbolo` de mkdocstrings.
- *        e. `html-wrappers`   `<div markdown>` de las tarjetas: se quita el envoltorio.
- *        f. texto corrido, con estas conversiones en este orden:
- *           `heading-ids` -> `autorefs` -> `icons` -> `attr-lists` -> `links`.
- *
- * El orden importa: lo de código va primero para que nada lo toque; las admonitions y pestañas
- * van antes que el texto corrido porque consumen su cuerpo y lo recursan; en el texto, el id del
- * encabezado y las autorrefs van antes de los iconos y atributos para que `{ #id }` o `[X][a.b]`
- * no se confundan con ellos, y los enlaces van los últimos, con el texto ya limpio.
- *
- * Las pasadas que necesitan VARIOS ficheros a la vez (`anchors.ts`) y la comprobación de restos
- * (`leftovers.ts`) no están aquí: las compone `pipeline.ts`.
- */
+/** Pipeline de UN documento, sin E/S: compone las conversiones en orden (código primero para que nada lo toque; los enlaces, los últimos). */
 import { convertAdmonition } from '../conversions/blocks/admonitions.ts';
 import { convertApiDirective } from '../conversions/blocks/api-directive.ts';
 import { removeAttrLists } from '../conversions/inline/attr-lists.ts';

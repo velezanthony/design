@@ -10,10 +10,7 @@ const { strings, class: className } = Astro.props;
 const label = translate(strings, 'theme.toggle');
 ---
 
-{/*
-  Solo marcado. `initTheme` (client/preferences/theme.ts) engancha `[data-theme-toggle]`, sincroniza
-  `aria-pressed` y guarda la elección: lo arranca el layout, no este componente.
-*/}
+{/* Solo marcado: `initTheme` engancha `[data-theme-toggle]` y lo arranca el layout. */}
 <button
   type="button"
   data-theme-toggle

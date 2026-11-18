@@ -1,8 +1,5 @@
 ---
-/* El diálogo «Copiar para la IA». Solo pinta lo que el servidor ya generó: un texto por alcance en
-   `<textarea hidden>` y el cliente (`client/seo-on-page/report.ts`) elige entre ellos. Sin JavaScript
-   no se abre (los botones que lo abren nacen ocultos). El cuerpo es lo único que se desplaza: la
-   cabecera y el pie quedan fijos. */
+/* Diálogo «Copiar para la IA»: solo pinta los textos ya generados por el servidor (`client/seo-on-page/report.ts` elige) y sin JS no se abre; solo el cuerpo se desplaza. */
 import type { ReportText } from '../../../core/seo-on-page/report/texts';
 import Button from '../../atoms/Button.astro';
 import Checkbox from '../../atoms/Checkbox.astro';

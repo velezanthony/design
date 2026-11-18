@@ -43,11 +43,7 @@ interface Group {
   fix: string | undefined;
 }
 
-/**
- * Los tipos de problema ordenados por lo que conviene arreglar antes: gravedad primero y, dentro de
- * ella, a cuántas páginas toca. Lo que afecta a TODAS las páginas (con más de una) va al final de su
- * gravedad: es deuda en bloque (p. ej. la descripción heredada), no una tarea que cerrar.
- */
+/** Gravedad primero y luego páginas afectadas; lo que toca a TODAS (con más de una) va al final: es deuda en bloque. */
 export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): FixPriority[] {
   const total = slugsOf(tree.pages).size;
   const groups = new Map<IssueKind, Group>();

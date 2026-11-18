@@ -11,10 +11,7 @@ export interface PageIndex {
   url: UrlPolicy;
   /** Rutas (como las de `sourcePath`, ya normalizadas) de recursos publicados que no son páginas. */
   assets?: ReadonlySet<string>;
-  /**
-   * Carpeta de las páginas nativas relativa a la raíz del proyecto (normalizada); sus `sourcePath`
-   * cuelgan de ella. Puede estar fuera del proyecto (`../docs`). Por defecto, `src/content/docs`.
-   */
+  /** Carpeta de las páginas nativas relativa a la raíz del proyecto; puede estar fuera de él (`../docs`). */
   contentDir?: string;
 }
 
@@ -49,13 +46,7 @@ function resolvePath(fromPath: string, target: string): string {
   return normalizePath([...fromPath.split('/').slice(0, -1), target].join('/'));
 }
 
-/**
- * Página a la que apunta `resolved`. Los `sourcePath` nativos cuelgan de la carpeta de contenido y
- * los external de la raíz del proyecto, así que entre tipos distintos se cambia de referencia:
- * un nativo que enlaza a un external lo hace con su ruta real (se vuelve a resolver desde la raíz)
- * y un external que enlaza a un nativo apunta dentro de la carpeta de contenido (se le quita ese
- * prefijo). La búsqueda es siempre por la ruta real del archivo, esté donde esté la carpeta.
- */
+/** Página a la que apunta `resolved`; los `sourcePath` nativos cuelgan del contenido y los externos de la raíz, así que se busca por ruta real. */
 function findTarget(
   resolved: string,
   decoded: string,
@@ -108,11 +99,7 @@ interface Context {
   errors: DocsError[];
 }
 
-/**
- * Imagen relativa sin `./` (`img/a.png`) con el `./` puesto. Astro importa las imágenes de una
- * página como módulos y una ruta sin `./` ni `../` sería un módulo «bare»: no la encontraría aunque
- * en Markdown sea una ruta relativa al archivo. Lo demás (URLs, rutas del sitio, `./`, `../`) no se toca.
- */
+/** Pone `./` a las imágenes sin él: Astro las importa como módulos y una ruta «bare» no se encontraría. */
 function dotImageTarget(rawTarget: string): string {
   const angled = rawTarget.startsWith('<');
   const target = angled ? rawTarget.slice(1, -1) : rawTarget;
@@ -177,12 +164,7 @@ function brokenLink(target: string, from: Page, line: number, reason: string): D
   });
 }
 
-/**
- * Reescribe los enlaces relativos del cuerpo hacia la URL de la página publicada de destino y
- * devuelve los enlaces internos (para validar sus anclas), las imágenes y los enlaces rotos
- * (archivo, línea y destino).
- * Ignora bloques de código, código en línea, URLs externas, rutas absolutas del sitio e imágenes.
- */
+/** Reescribe los enlaces relativos hacia la URL destino y devuelve enlaces, imágenes y rotos; ignora código, externos y rutas absolutas. */
 export function rewriteLinks(
   body: string,
   from: Page,

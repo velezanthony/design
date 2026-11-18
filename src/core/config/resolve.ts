@@ -59,11 +59,7 @@ export interface ResolvedConfig {
 const DEFAULT_LOCALES = ['en'];
 const DEFAULT_MISSING_TRANSLATION: MissingTranslation = 'link';
 
-/**
- * Valida la config del consumidor y le aplica los valores por defecto. Pura y determinista: el
- * loader (plan B) y la integración la llaman con la misma entrada y obtienen lo mismo. Si es
- * inválida lanza un `DocsErrors` con la ruta de cada campo (`external[0].seo.image.src`).
- */
+/** Valida la config y aplica los valores por defecto; si es inválida lanza `DocsErrors` con la ruta de cada campo. */
 export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   const result = DocsConfigSchema.safeParse(user);
   if (!result.success) {

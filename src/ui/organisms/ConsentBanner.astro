@@ -17,11 +17,7 @@ const button =
   'label inline-flex min-h-10 cursor-pointer items-center justify-center border border-ink px-5 text-ink transition-colors hover:border-accent hover:text-accent';
 ---
 
-{/*
-  Oculto hasta que el script no encuentre una elección guardada. Es una región, no un diálogo: no
-  atrapa el foco ni bloquea la página, solo pregunta. `initConsent` (client/preferences/consent.ts) lo arranca
-  el layout.
-*/}
+{/* Oculto hasta que `initConsent` no halle elección guardada; es una región, no un diálogo: no atrapa el foco. */}
 <section
   data-consent-banner
   data-gtm-id={gtmId}

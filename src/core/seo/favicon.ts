@@ -32,10 +32,7 @@ export function publicFaviconPath(favicon: string): string {
   return favicon.replace(/^\/+/, '');
 }
 
-/**
- * Decide el favicon de la página: el propio del paquete si no hay config, una URL https tal cual,
- * o un archivo de `public/` con la base delante (`favicon.svg` y `/favicon.svg` son lo mismo).
- */
+/** Favicon: el del paquete sin config, una URL https tal cual o un archivo de `public/` con la base delante. */
 export function resolveFavicon(favicon: string | undefined, base: string): FaviconLink {
   const prefix = trimBase(base);
   const href =

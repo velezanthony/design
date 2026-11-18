@@ -20,12 +20,7 @@ export function codeText(pre: Element): string {
   return (pre.textContent ?? '').replace(/\n$/, '');
 }
 
-/**
- * Añade un botón «copiar» a cada bloque resaltado (`pre.astro-code`). El botón no va dentro del
- * `pre`, para no colarse en el texto copiado: se envuelve el bloque en `.docs-code` y el botón
- * es su hermano. Sin API de portapapeles (contexto inseguro) no se añade nada: un botón que
- * no puede funcionar es peor que ninguno.
- */
+/** Añade un botón «copiar» a cada `pre.astro-code`, como hermano (no dentro) del `pre` para no colarse en lo copiado; sin portapapeles no añade nada. */
 export function initCopyCode(
   htmlDocument: Document,
   {

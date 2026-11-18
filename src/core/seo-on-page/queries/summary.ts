@@ -7,10 +7,7 @@ export type SchemaScope = 'site' | 'home' | 'pages';
 
 export interface SeoSummary {
   total: number;
-  /**
-   * Salud: páginas (no idiomas) sin errores NI avisos sobre el total; las informativas no restan.
-   * Se publican las dos cifras además del porcentaje para que la UI pueda explicar la cuenta.
-   */
+  /** Salud: páginas sin errores NI avisos sobre el total; las informativas no restan. */
   health: { healthy: number; total: number; percent: number };
   /** Incidencias (no páginas) por tipo; todas las claves presentes aunque valgan 0. */
   byKind: Record<IssueKind, number>;
@@ -50,10 +47,7 @@ function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
   };
 }
 
-/**
- * Salud por página, no por idioma: una página está sana si ninguno de sus idiomas tiene un error o un
- * aviso. Contar entradas daba otra cifra que «Páginas» y no se podía explicar con el total a la vista.
- */
+/** Por página, no por idioma: contar entradas daba una cifra distinta de «Páginas». */
 function healthOf(tree: SeoTree): SeoSummary['health'] {
   const slugs = slugsOf(tree.pages);
   const unhealthy = new Set(

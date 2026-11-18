@@ -572,9 +572,7 @@ describe('astro:config:setup: vigilar docs.config', () => {
 });
 
 describe('astro:config:setup: contenido fuera del proyecto', () => {
-  /* Vite solo sirve en dev lo que está bajo la raíz del workspace: sin `server.fs.allow`, las
-     imágenes de `../docs` darían 403 en `astro dev`. La función que calcula las carpetas tiene sus
-     tests; este comprueba que la integración de verdad la aplica. */
+  /* Sin `server.fs.allow`, Vite daría 403 en las imágenes de `../docs`; aquí se comprueba que la integración lo aplica. */
   function viteAllow(updateConfig: ReturnType<typeof vi.fn>) {
     return updateConfig.mock.calls
       .map(([partial]) => partial as { vite?: { server?: { fs?: { allow?: string[] } } } })

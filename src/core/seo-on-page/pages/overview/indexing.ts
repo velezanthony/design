@@ -41,10 +41,7 @@ function hasOwnCanonical(page: SeoPage) {
   );
 }
 
-/**
- * Qué se indexa y qué no, y por qué. «Fuera del sitemap» es una resta (indexables menos URLs del
- * sitemap, sin bajar de cero): el panel solo conoce cuántas URLs tiene, no cuáles.
- */
+/** «Fuera del sitemap» es una resta: el panel solo conoce cuántas URLs hay, no cuáles. */
 export function indexing(tree: SeoTree, { sitemapUrls, fallbacks }: Input): Indexing {
   const slugs = slugsOf(tree.pages);
   const noindexSlugs = new Set(

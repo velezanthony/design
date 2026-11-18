@@ -1,9 +1,6 @@
 import { withTransition, type MotionPreference } from '../transition';
 
-/**
- * El índice al que lleva una tecla desde la pestaña actual: flechas con vuelta, Inicio y Fin.
- * `undefined` para cualquier otra tecla, que no se toca.
- */
+/** Índice al que lleva una tecla desde la pestaña actual; `undefined` para cualquier otra. */
 export function nextTabIndex(key: string, current: number, count: number): number | undefined {
   if (count < 1) return undefined;
   switch (key) {
@@ -22,15 +19,7 @@ export function nextTabIndex(key: string, current: number, count: number): numbe
 
 let groups = 0;
 
-/**
- * Convierte cada `.docs-tabs` en un patrón de pestañas accesible: añade una `tablist` con un
- * `tab` por panel (`.docs-tab-panel`, cuya etiqueta es su `.docs-tab-label`), un solo panel
- * visible y teclado con flechas, Inicio y Fin. Sin JavaScript el marcado sigue siendo legible:
- * paneles apilados, cada uno con su etiqueta. El grupo mejorado recibe `data-enhanced`, que el
- * CSS usa para mostrar la lista y ocultar las etiquetas. Al cambiar de pestaña el grupo hace un
- * fundido cruzado (View Transition con el grupo como único elemento nombrado, para que no se anime
- * la página entera), salvo que `motion` pida reducir el movimiento.
- */
+/** Convierte cada `.docs-tabs` en pestañas accesibles (`data-enhanced`); sin JS los paneles quedan apilados con su etiqueta. */
 export function initTabs(
   htmlDocument: Document,
   motion: MotionPreference = { matches: false },

@@ -1,11 +1,6 @@
 import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
 
-/**
- * Qué archivos Markdown transforman nuestros plugins: la documentación nativa (la carpeta de
- * `content`, `src/content/docs/` por defecto, que puede estar fuera del proyecto) y los `external`
- * resueltos. El resto del proyecto (páginas `.md` sueltas)
- * no es nuestro y no se toca.
- */
+/** Qué Markdown transforman nuestros plugins: la documentación nativa (puede estar fuera del proyecto) y los `external`; el resto no se toca. */
 export interface Scope {
   /** Prefijo (con barra final) del directorio de documentación nativa. */
   docsPrefix: string;
@@ -18,12 +13,7 @@ function withSlash(root: URL) {
   return root.href.endsWith('/') ? root : new URL(`${root.href}/`);
 }
 
-/**
- * @param root raíz del proyecto consumidor.
- * @param contentDir carpeta de las páginas nativas respecto a `root` (`../docs` es válida).
- * @param externalFiles rutas de los `external` respecto a `root` (p. ej. `externalCandidates`);
- * pueden empezar por `./` o salir de la raíz (`../README.md`).
- */
+/** `externalFiles` son rutas respecto a `root`; pueden empezar por `./` o salir de la raíz (`../README.md`). */
 export function createScope(
   root: URL,
   externalFiles: readonly string[],

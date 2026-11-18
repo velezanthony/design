@@ -57,11 +57,7 @@ export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
   );
 }
 
-/**
- * Identidad tipada para `docs.config.mjs`: el consumidor declara la config UNA vez y se la pasa a
- * `docs()` (astro.config.mjs) y a `docsLoader()` (content.config.ts). Plan B del test #1: Astro
- * descarta las propiedades extra de la integración, así que el loader no puede leerla de ella.
- */
+/** Identidad tipada para `docs.config.mjs`: se pasa a `docs()` y a `docsLoader()` porque Astro descarta las propiedades extra de la integración. */
 export function defineDocsConfig(config: DocsUserConfig): DocsUserConfig {
   return config;
 }
@@ -106,9 +102,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         addWatchFile,
         logger,
       }) => {
-        /* `astro.config.mjs` importa `docs.config.mjs`, pero Astro solo reinicia `dev` cuando cambia
-           el propio astro.config, no lo que importa: sin esto, editar la config del sitio no tendría
-           efecto hasta reiniciar a mano. Solo se vigila; el archivo lo carga el import del consumidor. */
+        /* Astro no reinicia `dev` al cambiar lo que importa `astro.config.mjs`: se vigila `docs.config.mjs` para que editarlo surta efecto. */
         for (const file of CONFIG_FILES) {
           const url = new URL(file, config.root);
           if (existsSync(url)) addWatchFile(url);
@@ -218,9 +212,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
             });
           }
         }
-        /* Panel SEO on page: SOLO con `astro dev`. Con `build` no se inyecta nada, así que ni sus
-           rutas ni su código entran en el sitio publicado. `prerender: false` porque las pantallas
-           leen la query de la URL (filtros, página elegida), que una ruta prerenderizada no ve. */
+        /* Panel SEO on page SOLO en `astro dev` (nada entra en el sitio publicado); `prerender: false` porque lee la query de la URL. */
         if (command === 'dev') {
           for (const { pattern, file } of SEO_ON_PAGE_ROUTES) {
             injectRoute({ pattern, entrypoint: route(`seo-on-page/${file}`), prerender: false });

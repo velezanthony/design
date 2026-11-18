@@ -15,10 +15,7 @@ export function kindsWithIssues(tree: SeoTree): IssueKind[] {
   return Object.values(IssueKind).filter((kind) => present.has(kind));
 }
 
-/**
- * Las casillas del desplegable «Tipo de problema». «Todos» marcado equivale a no filtrar por tipo
- * (`kinds` vacío), igual que en la URL: así no hay dos formas de pedir lo mismo.
- */
+/** «Todos» marcado equivale a `kinds` vacío, como en la URL: una sola forma de pedirlo. */
 export function kindOptions(tree: SeoTree, selected: readonly IssueKind[]): KindOptions {
   const slugsByKind = new Map<IssueKind, Set<string>>();
   for (const page of tree.pages) {

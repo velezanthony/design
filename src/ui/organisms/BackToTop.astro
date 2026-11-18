@@ -9,10 +9,7 @@ interface Props {
 const { strings } = Astro.props;
 ---
 
-{/*
-  `href="#top"` no necesita elemento destino ni script: la especificación de HTML manda al inicio
-  del documento para ese fragmento.
-*/}
+{/* `href="#top"` no necesita destino ni script: HTML lleva al inicio del documento. */}
 <a href="#top" class="back-to-top" aria-label={translate(strings, 'backToTop')}>
   <Icon name="arrow" size={16} />
 </a>

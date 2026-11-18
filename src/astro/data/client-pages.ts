@@ -24,12 +24,7 @@ interface Deps {
 
 const cache = new WeakMap<ClientRegistry, { key: string; result: ClientPages }>();
 
-/**
- * Las páginas que el cliente añade en `src/pages/`, leídas como las ve un visitante: cada URL se
- * pide al servidor de desarrollo y se lee su `<head>`. Las dinámicas se expanden con su
- * `getStaticPaths`. Sin servidor (fuera de dev) no hay con qué cargar los módulos y no devuelve
- * nada. Lo leído se reutiliza hasta que cambia un fichero o una ruta.
- */
+/** Páginas de `src/pages/` leídas como un visitante (pidiendo cada URL al servidor de dev); sin servidor no devuelve nada. */
 export async function loadClientPages(
   where: Where,
   deps: Deps = { registry: clientRegistry(), fetch: (url) => fetch(url) },
@@ -73,10 +68,7 @@ export async function loadClientPages(
   return result;
 }
 
-/**
- * Las páginas del cliente como entradas del sitemap, para los endpoints en dev. En el build no hay
- * servidor del que leerlas y devuelve nada: allí las añade `astro:build:done` desde `dist/`.
- */
+/** Páginas del cliente para el sitemap en dev; en build las añade `astro:build:done` desde `dist/`. */
 export async function loadClientSitemapEntries(where: Where, deps?: Deps): Promise<SitemapEntry[]> {
   const { pages } = await loadClientPages(where, deps);
   return clientSitemapEntries(pages, new URL(where.site));

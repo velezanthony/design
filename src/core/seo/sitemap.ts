@@ -4,10 +4,7 @@ import type { Availability } from '../i18n/availability';
 import { excludeNoindex } from './indexable';
 import { baseUrl } from '../shared/urls';
 
-/**
- * Hoja de estilo del sitemap, bajo `/_design/` (como el favicon) para no chocar con un `public/` del
- * consumidor. Es CSS y no XSLT: Chrome retira XSLT, y Google ignora la instrucción en ambos casos.
- */
+/** Hoja de estilo bajo `/_design/` para no chocar con `public/`; es CSS porque Chrome retira XSLT. */
 export const SITEMAP_STYLESHEET_PATH = '/_design/sitemap.css';
 
 /** El sitemap del sitio: las páginas o, con `sitemap.include`, el índice. */
@@ -33,11 +30,7 @@ function escapeXml(text: string) {
     .replace(/"/g, '&quot;');
 }
 
-/**
- * Sitemap de las páginas REALES indexables, con sus alternates `xhtml:link` por idioma. Las rutas
- * de reserva y la 404 no están en `availability`, así que no aparecen. Las URLs en `noindex` se excluyen y
- * se quitan de los alternates de sus gemelas. Lanza si hay más URLs de las que cabe en un archivo.
- */
+/** Sitemap de las páginas reales indexables con alternates por idioma; las `noindex` se excluyen y lanza si no caben en un archivo. */
 export function buildSitemap(
   availability: Availability,
   site: URL,
@@ -100,11 +93,7 @@ function urlElement({ loc, alternates }: SitemapEntry) {
     .join('')}</url>`;
 }
 
-/**
- * Las páginas que el cliente añade en `src/pages/`, como entradas del sitemap: las que dice su
- * `<head>` que se indexan y que son canónicas de sí mismas (el sitemap solo lleva URLs canónicas),
- * con los idiomas que declaran sus `hreflang`.
- */
+/** Páginas del cliente como entradas del sitemap: las indexables y canónicas de sí mismas, con los idiomas de su `hreflang`. */
 export function clientSitemapEntries(pages: readonly ClientPage[], site: URL): SitemapEntry[] {
   return pages.flatMap(({ path, head }) => {
     const loc = new URL(path, site).href;
@@ -113,11 +102,7 @@ export function clientSitemapEntries(pages: readonly ClientPage[], site: URL): S
   });
 }
 
-/**
- * Añade entradas a un sitemap ya escrito por `buildSitemap`, antes de su cierre; la que ya tenía la
- * misma URL se sustituye. Es lo que hace el
- * build con las páginas del cliente, que solo existen leídas cuando el sitio ya está generado.
- */
+/** Añade entradas a un sitemap ya escrito, antes del cierre, sustituyendo la que tenga la misma URL; las páginas del cliente solo se leen tras el build. */
 export function appendToSitemap(xml: string, extra: readonly SitemapEntry[]): string {
   if (extra.length === 0) return xml;
   // La que ya estaba con la misma URL se quita: la del cliente la sustituye (una `<url>` por línea).
@@ -152,12 +137,7 @@ export function buildSitemapIndex(urls: readonly string[]): string {
   );
 }
 
-/**
- * Los sitemaps de `sitemap.include` como URLs absolutas. Una ruta (`/lib/sitemap.xml`) se resuelve
- * contra el ORIGEN del sitio, no contra su base: en GitHub Pages cada proyecto es una carpeta del
- * mismo dominio. Lanza si una es de otro dominio (el protocolo solo admite sitemaps del mismo sitio)
- * o si es el propio índice o el de páginas, que se apuntarían a sí mismos.
- */
+/** Sitemaps de `sitemap.include` como URLs absolutas contra el ORIGEN del sitio (en GitHub Pages cada proyecto es una carpeta); lanza si son de otro dominio o los propios. */
 export function sitemapIncludes(include: readonly string[], site: URL, base = '/'): string[] {
   const root = baseUrl(base);
   const own = new Set(

@@ -1,7 +1,4 @@
-/**
- * Tipos compartidos por las unidades de conversión. Cada unidad es una función pura (sin E/S) que
- * recibe texto y devuelve `{ output, log }`: el texto nuevo y un registro de lo que ha tocado.
- */
+/** Tipos de las unidades de conversión: funciones puras que devuelven `{ output, log }`. */
 
 export type LogKind =
   | 'admonition'
@@ -42,18 +39,10 @@ export interface LinesResult {
   log: LogEntry[];
 }
 
-/**
- * Resultado de una unidad de bloque: lo que sustituye a las líneas consumidas y el índice de la
- * primera línea que NO ha consumido.
- */
+/** Resultado de una unidad de bloque: lo que sustituye a las líneas consumidas y el índice de la primera sin consumir. */
 export interface BlockResult extends LinesResult {
   next: number;
 }
 
-/**
- * Convierte el cuerpo de un bloque con TODAS las unidades (es la recursión del pipeline). Las
- * unidades de bloque la reciben en vez de importar el pipeline: así no hay dependencia circular y
- * cada una se prueba sola con una recursión de mentira. `offset` es la línea del original justo
- * antes del cuerpo, para que el registro apunte donde toca.
- */
+/** Recursión del pipeline, inyectada para evitar la dependencia circular; `offset` es la línea del original antes del cuerpo. */
 export type Recurse = (lines: string[], offset: number) => LinesResult;

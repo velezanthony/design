@@ -38,9 +38,7 @@ const group = 'flex flex-wrap items-center gap-2';
 const separator = 'hidden w-px self-stretch bg-rule sm:block';
 ---
 
-{/* Sin JavaScript: un GET con la query de `parseFilters`. Atrás/adelante y compartir la URL funcionan.
-    Con él, las fichas y la búsqueda envían al cambiar (`client/seo-on-page/auto-submit.ts`); el desplegable
-    de tipos tiene su botón, porque marcar varios tipos no debe recargar la página tras cada uno. */}
+{/* Sin JS es un GET con la query de `parseFilters`; con JS las fichas y la búsqueda envían al cambiar, pero el desplegable de tipos tiene botón para no recargar por cada marca. */}
 <form
   method="get"
   action={action}

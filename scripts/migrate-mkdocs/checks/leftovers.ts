@@ -1,11 +1,4 @@
-/**
- * Comprobación de restos: sintaxis de MkDocs que la conversión NO ha entendido y que seguirá en
- * el Markdown de salida. Es una red de seguridad: la detección es línea a línea (igual que la de
- * Python-Markdown) y el riesgo está en convertir bloques anidados o con sangrías raras, así que
- * se mira el RESULTADO, no se confía en que la conversión lo haya cogido todo.
- *
- * También reconoce los «stubs» de snippet: páginas cuyo cuerpo es solo `--8<-- "FICHERO"`.
- */
+/** Red de seguridad: lista la sintaxis de MkDocs que la conversión no entendió, mirando el RESULTADO, y reconoce los stubs de snippet. */
 import { FENCE } from '../pipeline/lines.ts';
 
 export type LeftoverKind = 'admonition' | 'tab' | 'icon' | 'snippet';
@@ -78,11 +71,7 @@ export function findLeftovers(file: string, markdown: string): Leftover[] {
   return found;
 }
 
-/**
- * Una página cuyo cuerpo (sin frontmatter, comentarios HTML, líneas en blanco ni un título) es solo includes de
- * snippet. No se convierte ni se borra: se avisa de que ese fichero se publica mejor como
- * `external[]`. Con varios includes devuelve el primero.
- */
+/** Página cuyo cuerpo son solo includes de snippet: no se convierte, se avisa de que mejor se publica como `external[]` (devuelve el primero). */
 export function findSnippetStub(file: string, markdown: string): SnippetStub | undefined {
   const lines = markdown.split('\n');
   let start = 0;

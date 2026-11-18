@@ -97,11 +97,7 @@ function othersIn(group: SeoPageFacts[], page: SeoPageFacts) {
   return group.filter((other) => other !== page).map(({ slug, locale }) => ({ slug, locale }));
 }
 
-/**
- * Títulos y descripciones repetidos entre páginas del MISMO idioma (el mismo título en `en` y `es`
- * es lo normal). Las `noindex` no compiten en los resultados, así que no cuentan; y la descripción
- * heredada del sitio ya tiene su propio aviso, no es un «duplicado».
- */
+/** Duplicados solo dentro del MISMO idioma; las `noindex` y la descripción heredada (que tiene su propio aviso) no cuentan. */
 export function analyzeDuplicates(pages: SeoPageFacts[]): Issue[] {
   const indexable = pages.filter((page) => !page.meta.noindex);
   // `\u0000` separa idioma y texto sin que ningún texto real pueda confundirse con la clave.

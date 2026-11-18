@@ -18,12 +18,7 @@ const NAME = 'docs-zoom';
 /** Por debajo de este lado declarado (px) una imagen es un icono o una línea: no se amplía. */
 const MIN_SIDE = 96;
 
-/**
- * Si una imagen merece ampliarse: tiene texto alternativo (sin él es decorativa, y el botón no
- * tendría nombre), no es diminuta, no está dentro de un enlace o botón (ya tiene su acción) y no
- * se excluyó con `data-no-zoom`. El tamaño sale de los atributos `width`/`height`: al cablear la
- * página la imagen puede no haberse cargado aún.
- */
+/** Una imagen se amplía si tiene `alt`, no es diminuta (por `width`/`height`: aún puede no estar cargada), no va en un enlace o botón y no lleva `data-no-zoom`. */
 export function isZoomable(img: Element): boolean {
   if (!img.getAttribute('alt')?.trim()) return false;
   if (img.hasAttribute('data-no-zoom') || img.closest('a, button')) return false;
@@ -34,14 +29,7 @@ export function isZoomable(img: Element): boolean {
   return true;
 }
 
-/**
- * Hace ampliables las imágenes del contenido (`.prose img`). Cada una se envuelve en un
- * `<button class="docs-zoom">`, operable con teclado, que abre un `<dialog>` modal: Escape, el
- * botón de cerrar y un clic en el fondo o en la imagen lo cierran y el foco vuelve al botón.
- * La miniatura se transforma en la imagen grande (y vuelve) con una View Transition; sin la API
- * o con movimiento reducido el diálogo se abre y se cierra sin animación. Sin JavaScript las
- * imágenes quedan como estaban.
- */
+/** Envuelve cada `.prose img` en un botón que abre un `<dialog>` modal; la miniatura se transforma con una View Transition si hay API y movimiento. */
 export function initZoom(
   htmlDocument: Document,
   { labels, motion = { matches: false } }: ZoomOptions,

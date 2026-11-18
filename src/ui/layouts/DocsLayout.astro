@@ -131,9 +131,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
           />
         )}
         <div id="docs-nav-panel" class="docs-panel">
-          {/* En móvil la navegación entera iría antes del contenido: se pliega tras un «Menú». Llega
-          abierta (sin JS se ve como siempre) y el script la cierra por debajo de lg antes de pintar;
-          desde lg el botón no existe y queda abierta. */}
+          {/* En móvil la navegación se pliega tras un «Menú»: llega abierta (sin JS) y el script la cierra por debajo de lg. */}
           <details class="docs-nav" open data-docs-nav>
             <summary class="docs-nav-toggle lg:hidden">
               {translate(strings, 'sidebar.toggle')}

@@ -28,9 +28,7 @@ const NEUTRAL_LABELS = {
 
 const { page, pages, href, labels = NEUTRAL_LABELS } = Astro.props;
 
-/* Sin filas (0 páginas) o con una sola, el paginador se queda, entero e inerte: así la tabla no
-   cambia de forma según los datos. Se trata como «página 1 de 1»; la 1 como actual es el estado
-   vacío más honesto (no hay una «página 0» a la que mirar). */
+/* Con 0 o 1 páginas el paginador se queda inerte como «página 1 de 1», para que la tabla no cambie de forma. */
 const total = Math.max(pages, 1);
 const current = Math.min(Math.max(page, 1), total);
 const items = pageWindow(current, total);

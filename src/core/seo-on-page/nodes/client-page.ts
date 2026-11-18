@@ -51,12 +51,7 @@ function metaOf(page: ClientPage): MetaNode {
   };
 }
 
-/**
- * Los hechos de las páginas que el cliente añade en `src/pages/`, sacados de lo que publica su
- * `<head>` (no hay frontmatter ni config que leer). Las versiones de una página en otros idiomas
- * se reconocen por sus `hreflang` y comparten el slug de la del idioma por defecto. Los enlaces y
- * las imágenes del cuerpo no se recogen: los análisis que los necesitan no las juzgan.
- */
+/** Se lee del `<head>`, sin frontmatter; los otros idiomas se reconocen por `hreflang` y comparten el slug del idioma por defecto. */
 export function clientFacts(pages: readonly ClientPage[], context: ClientContext): SeoPageFacts[] {
   return pages.map((page) => {
     const { head } = page;

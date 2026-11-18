@@ -25,10 +25,7 @@ import type {
 import { plainText } from '../../core/seo-on-page/queries/code-spans';
 import { listOf, plural } from '../../core/shared/text';
 
-/* Datos de presentación del panel (textos y tonos), no un componente: por eso vive en la raíz de
-   `seo-on-page/` y no en un nivel atómico. Lo consumen átomos, moléculas, organismos y el contenedor.
-   El panel es una herramienta de desarrollo en español: no pasa por el catálogo de textos de la
-   interfaz (que es de las páginas del sitio, por idioma). Todo su texto de dominio vive aquí. */
+/* Datos de presentación del panel, en español y fuera del catálogo de la interfaz (que es del sitio, por idioma). */
 
 export const KIND_LABELS: Record<IssueKind, string> = {
   'title-too-long': 'Título demasiado largo',
@@ -113,11 +110,7 @@ export const SCREEN_LABELS = {
   pages: 'Páginas',
 } as const;
 
-/**
- * Las secciones del inspector: el `id` de cada encabezado y su texto, en el orden de la página. Es la
- * única fuente: el inspector pinta de aquí sus encabezados y el panel construye con ellos «En esta
- * página», así no pueden desincronizarse.
- */
+/** Secciones del inspector (`id` y texto): única fuente de sus encabezados y de «En esta página», para que no se desincronicen. */
 export const INSPECTOR_SECTIONS = {
   issues: 'Qué arreglar',
   published: 'Lo que se publica',
@@ -529,11 +522,7 @@ export const HAVE_LABELS = {
   note: '«Del sitio» no es un fallo: es lo que se publica si la página no dice nada. Esta vista sirve para decidir a cuáles merece la pena darles lo suyo, empezando por las de entrada (portada, guías).',
 };
 
-/**
- * Lo que dice una celda de «Qué tiene»: la palabra del estado, con su detalle si lo hay («falta es»,
- * «respaldo es», el tipo del schema propio) y, si el estado es «propio» y no hay detalle, con el
- * género de la columna («propia», «propio»).
- */
+/** Lo que dice una celda de «Qué tiene»: el estado con su detalle o, si es «propio» sin detalle, con el género de la columna. */
 export function haveCellText(column: HaveColumn, cell: HaveCell): string {
   const { state, detail } = cell;
   if (state === 'own')
@@ -685,10 +674,7 @@ export const FILE_STATE_LABELS: Record<
   'build-only': { glyph: '', text: 'Solo en la build', tone: 'neutral' },
 };
 
-/**
- * Cada fichero: cómo se llama y qué es (con `código` entre comillas inversas). Los textos son de la
- * interfaz y no de los datos: ausente un robots.txt o un llms.txt no es un problema, y aquí se dice.
- */
+/** Nombre y descripción de cada fichero, con `código` entre comillas inversas; que falte un robots.txt o un llms.txt no es un problema y aquí se dice. */
 export const FILE_LABELS: Record<
   SiteFileId,
   { name: string; describe: (file: SiteFile, locales: readonly string[]) => string; tag?: string }
@@ -741,11 +727,7 @@ export const FILE_LABELS: Record<
   },
 };
 
-/**
- * Lo que dicen los filtros de la tabla, en una frase para el informe: «errores + avisos · idioma es ·
- * sin descripción propia». Sin ninguno, todas las páginas. Es lo que el informe del «filtro actual»
- * llama su alcance.
- */
+/** Los filtros de la tabla en una frase para el informe («errores + avisos · idioma es»); sin ninguno, todas las páginas. */
 export function reportFilterText(filters: SeoFilters, view: ViewState): string {
   const parts = [
     filters.severities.length > 0 && filters.severities.length < 3

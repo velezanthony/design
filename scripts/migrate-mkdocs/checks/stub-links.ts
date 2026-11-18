@@ -1,10 +1,4 @@
-/**
- * Enlaces a una página stub. Al publicar el fichero incluido con `external[]` y borrar el stub,
- * esos enlaces apuntarían a una página que ya no existe: la librería los enlaza al archivo real
- * por su ruta relativa (`../../CONTRIBUTING.md`), que además sigue funcionando en GitHub. Esta
- * función solo AVISA (con la sustitución exacta): reescribirlos ahora, con el stub aún en pie,
- * rompería la build hasta que se declare el `external`.
- */
+/** Avisa (sin reescribir) de enlaces a un stub: reescribirlos antes de declarar el `external` rompería la build. */
 import path from 'node:path/posix';
 import { maskInlineCode, proseLines, type SnippetStub } from './leftovers.ts';
 

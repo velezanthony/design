@@ -3,11 +3,7 @@ import type { BlockResult } from '../../pipeline/types.ts';
 
 const API_DIRECTIVE = /^(\s*):::\s+([A-Za-z_][\w.]*)\s*$/;
 
-/**
- * `::: paquete.Símbolo` de mkdocstrings, con sus opciones indentadas debajo. Se sustituye por el
- * Markdown que genera `resolveApi`; sin él queda una nota, porque el contenido sale de las
- * docstrings del repositorio original y no se puede inventar.
- */
+/** `::: paquete.Símbolo` de mkdocstrings: se sustituye por lo que genere `resolveApi`; sin él queda una nota, porque no se puede inventar la docstring. */
 export function convertApiDirective(
   lines: string[],
   start: number,

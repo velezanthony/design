@@ -1,7 +1,5 @@
 ---
-/* Contenedor de una página de docs. Lee el módulo virtual y `astro:content`, llama al núcleo y
-   pasa a `DocsLayout` (presentacional) los datos ya calculados. `render(entry)` va AQUÍ, no en el
-   layout: renderizar en un layout rompe el `<head>` en dev (astro#13724). */
+/* Contenedor de una página de docs; `render(entry)` va AQUÍ y no en el layout, porque en dev rompe el `<head>` (astro#13724). */
 import Fonts from './Fonts.astro';
 import DocsLayout from '../../ui/layouts/DocsLayout.astro';
 import { docRoutes, docView, type DocRoute } from '../views/doc';

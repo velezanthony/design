@@ -3,12 +3,7 @@ import { AstroError } from 'astro/errors';
 import type { MarkdownEnv } from './env';
 import { markdownPlugins } from './register';
 
-/**
- * Extiende EN SITIO el processor de Markdown de la config (como Starlight): respeta lo que el
- * consumidor ya configuró y solo añade directivas y nuestros plugins (alertas, admoniciones, pestañas, tablas, Mermaid, lenguajes de código). `restoreDirectives` va el
- * último para devolver a texto lo que nadie reclamó. Si el processor no es Sätteri, falla: las
- * admoniciones forman parte del contenido y no se pueden degradar en silencio.
- */
+/** Extiende EN SITIO el processor (como Starlight) con directivas y nuestros plugins; si no es Sätteri falla, porque las admoniciones no se pueden degradar en silencio. */
 export function extendMarkdownProcessor(
   processor: { name: string },
   env: MarkdownEnv,

@@ -33,10 +33,7 @@ function defaultImporter(url: string): Promise<unknown> {
   return import(/* @vite-ignore */ url);
 }
 
-/**
- * Carga y configura Pagefind. `undefined` si no se puede: sin índice (servidor de desarrollo,
- * donde aún no hay build) la importación falla, y eso es un estado normal, no un error.
- */
+/** Carga y configura Pagefind; `undefined` si no hay índice (en desarrollo aún no hay build), que es un estado normal. */
 export async function loadPagefind(
   base: string,
   importer: (url: string) => Promise<unknown> = defaultImporter,
@@ -68,11 +65,7 @@ export async function runSearch(
   );
 }
 
-/**
- * Trocea un extracto de Pagefind en texto y coincidencias. Solo reconoce `<mark>`: cualquier otra
- * etiqueta queda como texto, así que lo que se pinte con esto nunca ejecuta HTML. Descodifica
- * las entidades que Pagefind escapa.
- */
+/** Trocea un extracto de Pagefind en texto y coincidencias; solo reconoce `<mark>`, lo demás es texto, así que nunca se ejecuta HTML. */
 export function excerptParts(excerpt: string): { text: string; mark: boolean }[] {
   function decode(text: string) {
     return text
@@ -97,14 +90,7 @@ export interface SearchOptions {
   limit?: number;
 }
 
-/**
- * Cablea el control `[data-search]`: `[data-search-input]`, `[data-search-status]` (con
- * `role="status"`) y `[data-search-results]`. Lee del propio elemento `data-base-url`, y los
- * textos `data-requires-build` y `data-no-results` (el catálogo de UI ya fusionado). Carga
- * Pagefind al primer uso; si no hay índice explica que existe tras el build, sin errores en
- * consola. Teclado: Flecha abajo salta del campo a los resultados y entre ellos, Flecha arriba
- * vuelve, Escape vacía.
- */
+/** Cablea `[data-search]` (los textos vienen de `data-*`); Pagefind se carga al primer uso y sin índice se explica sin errores en consola. */
 export function initSearch(
   root: HTMLElement,
   {
@@ -216,12 +202,7 @@ function isTyping(target: EventTarget | null): boolean {
   );
 }
 
-/**
- * Atajo de teclado: «/» lleva el foco al buscador (el primero de la página). Se ignora mientras se
- * escribe en un campo, con Ctrl, Meta o Alt (Mayús no cuenta: en muchos teclados la barra es
- * Mayús+7) y si otro manejador ya atendió la tecla. Sin buscador no hace nada y la tecla sigue su
- * curso.
- */
+/** Atajo «/» al buscador; se ignora al escribir en un campo, con Ctrl/Meta/Alt (no Mayús: la barra es Mayús+7 en muchos teclados) o si otro manejador ya lo atendió. */
 export function initSearchShortcut(htmlDocument: Document): void {
   /* La pista «/» del campo solo se enseña con esta marca: sin JS el atajo no existe y no se anuncia. */
   for (const root of htmlDocument.querySelectorAll('[data-search]'))

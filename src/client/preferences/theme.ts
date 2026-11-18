@@ -26,23 +26,14 @@ export function syncToggle(button: Element, dark: boolean): void {
   button.setAttribute('aria-pressed', String(dark));
 }
 
-/**
- * `<meta name="theme-color">` viene en dos, una por preferencia del sistema, así que una elección
- * contraria al sistema dejaría la barra del navegador en el otro tema. Una elección da a ambas
- * su color.
- */
+/** Hay dos `<meta name="theme-color">` (una por preferencia del sistema): una elección explícita da a ambas su color. */
 export function syncThemeColor(htmlDocument: Document, color: string): void {
   for (const meta of htmlDocument.querySelectorAll('meta[name="theme-color"]')) {
     meta.setAttribute('content', color);
   }
 }
 
-/**
- * Código del script en línea que se ejecuta antes del primer pintado: sin él la página se pinta
- * con el tema del sistema y luego salta, que es el parpadeo que todo conmutador debe evitar. Va
- * en línea y no puede importar, por eso es una cadena (`<script is:inline set:html={...}>`) con
- * la clave y los colores ya incrustados. Usa `document` y `localStorage` globales.
- */
+/** Script en línea (no puede importar, por eso es cadena) que fija el tema antes del primer pintado para evitar el parpadeo. */
 export function themeBootstrapScript(colors: ThemeColors): string {
   return `try {
   var saved = localStorage.getItem(${JSON.stringify(THEME_KEY)});
@@ -69,10 +60,7 @@ export interface ThemeEnv {
   motion?: MotionPreference;
 }
 
-/**
- * Las variables del efecto «revelado»: el centro del botón y el radio que alcanza la esquina más
- * lejana de la ventana, para que el círculo cubra toda la página justo al terminar.
- */
+/** Variables del efecto «revelado»: centro del botón y radio hasta la esquina más lejana. */
 export function revealVars(
   button: Element,
   browserWindow: Pick<Window, 'innerWidth' | 'innerHeight'>,

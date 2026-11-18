@@ -7,11 +7,7 @@ export interface DocsEntry {
   data: DocEntryData;
 }
 
-/**
- * La colección `docs` la declara el `content.config.ts` del CONSUMIDOR, así que dentro del paquete
- * `astro:content` no conoce su nombre (el tipo de `getCollection` queda en `never`). Este es el
- * único punto donde se asume: los contenedores piden las entradas aquí, ya tipadas.
- */
+/** La colección `docs` la declara el consumidor, así que `astro:content` no conoce su nombre; este es el único punto donde se asume. */
 export function getDocs() {
   return (getCollection as unknown as (name: 'docs') => Promise<DocsEntry[]>)('docs');
 }

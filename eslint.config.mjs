@@ -6,19 +6,7 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-/* Regla de dependencia entre capas (ver `design.md`). Cada capa declara qué NO puede importar:
-
-     core/    solo `core/` y `astro/zod` (la única excepción: el esquema de la config). Nada de
-              `astro`, `astro:*`, `virtual:*`, `node:*` ni de `client/`, `ui/` o `astro/`.
-     client/  solo tipos de `core/` (`import type`); nunca valores, ni `ui/`, `astro/`, `astro:*`
-              ni `virtual:*`.
-     ui/      `core/` y `client/` sí; `astro` y `astro:*` (incluido `astro:content`), `virtual:*` y
-              la carpeta `astro/` no: es presentacional y solo recibe props.
-     astro/   sin restricciones: es la única capa que conoce Astro.
-
-   Los imports relativos se detectan por expresión regular sobre el nombre de la carpeta; los
-   paquetes y esquemas (`astro:*`, `virtual:*`, `node:*`), por patrón. El test
-   `src/testing/boundaries.test.ts` comprueba cada regla: si alguien la relaja, falla. */
+/* Dependencia entre capas (ver `design.md`): cada capa declara lo que NO puede importar; `src/testing/boundaries.test.ts` fija cada regla. */
 
 /** Import relativo que entra en alguna de las carpetas dadas, p. ej. `../../ui/atoms/Link`. */
 function relativeTo(/** @type {string[]} */ folders) {
@@ -97,11 +85,7 @@ export default defineConfig(
   ]),
   layer('ui', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
 
-  /* Valores cerrados: nada de `enum` de TypeScript. No es sintaxis borrable y publicamos `.ts` sin
-     build. En su lugar, un objeto `as const` más un tipo derivado:
-
-       export const Kind = { A: 'a', B: 'b' } as const;
-       export type Kind = (typeof Kind)[keyof typeof Kind];  */
+  /* Nada de `enum` de TypeScript (no es sintaxis borrable y publicamos `.ts` sin build): un objeto `as const` más un tipo derivado. */
   {
     files: ['src/**/*.{ts,astro}'],
     rules: {
@@ -129,9 +113,7 @@ export default defineConfig(
     rules: { 'id-length': ['error', { min: 2, properties: 'never' }] },
   },
 
-  /* Palabras enteras: nada de `cfg`, `ctx` ni `el`. Quedan fuera `dir` (clave pública de `nav`), `doc` (una
-     página de docs), `fn` (`vi.fn` en tipos), `desc` y `md` (claves de datos), `info`, `ref`, `prev`, `params`
-     y `src`, que son vocabulario del dominio, de Astro o del HTML. */
+  /* Palabras enteras (nada de `cfg`, `ctx`, `el`); quedan fuera las claves públicas y el vocabulario de Astro/HTML (`dir`, `doc`, `fn`, `ref`, `src`…). */
   {
     files: ['**/*.{ts,mjs,astro}'],
     rules: {

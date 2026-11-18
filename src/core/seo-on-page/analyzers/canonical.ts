@@ -2,12 +2,7 @@ import { IssueKind, type Issue, type SeoLocaleEntry } from '../tree/types';
 import { fixFor, type FixPage } from './fixes';
 import { makeIssue } from './issue';
 
-/**
- * Cada versión de idioma se declara a sí misma como canónica: su `canonical` ha de ser SU URL (la
- * que figura para ese idioma en la lista de traducciones, la misma fuente del hreflang) y nunca la
- * de otro idioma, porque Google fusionaría las versiones y solo indexaría una. Sin URL propia en la
- * lista no hay contra qué comparar.
- */
+/** Cada idioma es canónico de sí mismo: apuntar al de otro hace que Google fusione las versiones e indexe solo una. */
 export function analyzeCanonical(
   page: FixPage & { canonical: string },
   locales: SeoLocaleEntry[],

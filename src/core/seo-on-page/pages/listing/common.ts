@@ -22,13 +22,7 @@ interface Seen {
   fixes: Set<string | undefined>;
 }
 
-/**
- * Los tipos de problema que afectan al 100 % de las páginas dadas (las ya filtradas): repetirlos en
- * cada fila solo tapa las diferencias entre páginas, así que la pantalla los enseña una vez aparte.
- * Con menos de dos páginas no hay nada «común» (sería quitar todo de la única fila), y los tipos
- * en `ignore` (los que el usuario filtró a propósito) se quedan siempre en las filas. Solo cuentan las
- * gravedades de `severities` (las que se están viendo): un aviso común de algo oculto no se explica.
- */
+/** Tipos presentes en todas las páginas dadas (con 2 o más); los de `ignore` y las gravedades no vistas se quedan en las filas. */
 export function commonIssues(
   entries: readonly SeoPage[],
   {

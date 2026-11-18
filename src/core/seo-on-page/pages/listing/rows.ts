@@ -50,11 +50,7 @@ export interface PageRow {
   tags: PageTag[];
   /** Uno por idioma configurado, en el orden de la config. */
   locales: LocaleDetail[];
-  /**
-   * Cada problema propio una vez, con los idiomas donde ocurre; el más grave primero. `issue` es el
-   * representante (el más grave) para pintar la insignia; sin `value` ni `limit` si cambian de un
-   * idioma a otro, para no enseñar una medida que solo es cierta en uno.
-   */
+  /** El representante (el más grave) pinta la insignia; sin `value` ni `limit` si cambian entre idiomas. */
   issues: { kind: IssueKind; severity: IssueSeverity; locales: Locale[]; issue: Issue }[];
   /** La peor gravedad de la página, contando también los problemas comunes; `undefined` si no tiene. */
   severity: IssueSeverity | undefined;
@@ -66,10 +62,7 @@ interface RowsInput {
   defaultLocale: Locale;
   /** Tipos comunes a todas las páginas: se quitan de las filas (ver `commonIssues`). */
   common: readonly IssueKind[];
-  /**
-   * Gravedades que se están viendo: los problemas de las filas las respetan (sin ellas, todas). Las
-   * insignias de idioma no: dicen cómo está el idioma de verdad, se vea o no el problema.
-   */
+  /** Las insignias de idioma ignoran las gravedades vistas: dicen el estado real del idioma. */
   severities?: readonly IssueSeverity[];
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
@@ -162,11 +155,7 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
   };
 }
 
-/**
- * Las filas de la tabla: una por página (slug), no por idioma. Cada fila resume sus idiomas, junta
- * los problemas iguales (cada uno una vez, con dónde ocurre) y las filas salen de la peor gravedad
- * a la mejor; en los empates se conserva el orden de entrada. Un `Array.sort` es estable.
- */
+/** Una fila por página (slug), no por idioma; peor gravedad primero y empates en orden de entrada. */
 export function pageRows(entries: readonly SeoPage[], input: RowsInput): PageRow[] {
   const bySlug = groupBySlug(entries);
   function rank(row: PageRow) {

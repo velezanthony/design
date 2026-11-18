@@ -24,10 +24,7 @@ export type FooterLicense = string | { label: Label; href: string };
 /** Autor: nombre y enlace (https). `false` lo oculta. */
 export type FooterAuthor = { name: string; href: string } | false;
 
-/**
- * Footer del sitio, todo opcional. El repositorio, «informar de un error», la privacidad y las
- * preferencias de cookies no se declaran aquí: salen de `social.github`, `privacyUrl` y `gtmId`.
- */
+/** Footer del sitio, todo opcional; repositorio, errores, privacidad y cookies salen de `social.github`, `privacyUrl` y `gtmId`. */
 export interface FooterConfig {
   license?: FooterLicense;
   author?: FooterAuthor;

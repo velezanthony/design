@@ -19,10 +19,7 @@ export interface NavEntry {
   icon?: NavIcon;
 }
 
-/**
- * Items de la cabecera para una página. Un item sin destino en este idioma (su página no existe y
- * la política es `omit`) se quita en vez de dejar un enlace roto. Sin `nav` no hay entradas.
- */
+/** Items de la cabecera de una página; quita los sin destino en este idioma (`omit`) y sin `nav` no hay entradas. */
 export function buildNav(nav: readonly NavItem[] | undefined, context: NavContext): NavEntry[] {
   if (!nav) return [];
   const { locale, config } = context;

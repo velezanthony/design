@@ -1,13 +1,6 @@
 import { fill } from '../text';
 
-/**
- * El desplegable «Tipo de problema» tiene una casilla «Todos» (`data-kinds-all`) por encima de las
- * de cada tipo (`data-kind`), todas dentro de un `[data-kinds]`. Sin JavaScript son campos de un GET
- * y el servidor lee «todos marcados» como «sin filtro». Con él, «Todos» marca o desmarca a la vez
- * todos los tipos que se pueden elegir (los deshabilitados, sin incidencias, quedan fuera), se pone
- * indeterminada si solo hay unos pocos y el resumen del título (`data-kinds-count`) cuenta cuántos.
- * Los textos del resumen viajan en `data-label-all` y `data-label-some` (con `{on}` y `{total}`).
- */
+/** La casilla «Todos» (`data-kinds-all`) marca o desmarca los tipos elegibles de `[data-kinds]`, se pone indeterminada si hay solo algunos y actualiza el resumen (`data-label-all`/`data-label-some`). */
 function enabledKinds(group: Element) {
   return [...group.querySelectorAll<HTMLInputElement>('[data-kind]')].filter(
     (input) => !input.disabled,

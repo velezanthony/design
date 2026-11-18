@@ -38,12 +38,7 @@ function capitalize(word: string) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-/**
- * `!!! tipo "Título"` (y `???` / `???+`) con su cuerpo indentado. Sin título y con equivalente 1:1
- * sale como alerta de GitHub; con título, plegada o anidada, como directiva `:::tipo[Título]`.
- * Los alias de Material y los tipos desconocidos se reducen a un tipo de la librería (y se
- * registran, porque pierden matiz). `recurse` convierte el cuerpo: es lo que permite anidar.
- */
+/** `!!!`/`???` con cuerpo indentado: alerta de GitHub si es 1:1 y sin título, directiva `:::tipo[Título]` en el resto. */
 export function convertAdmonition(
   lines: string[],
   start: number,

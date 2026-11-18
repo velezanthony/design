@@ -1,10 +1,6 @@
 const OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 
-/**
- * Una entrada por línea del cuerpo: `true` si la línea está dentro de un bloque de código con
- * fence (incluidas las líneas del propio fence). Reconoce ``` y ~~~; el cierre ha de usar el mismo
- * carácter y al menos tantos como la apertura, y un fence sin cerrar llega hasta el final.
- */
+/** Marca por línea si está dentro de un fence (``` o ~~~); el cierre usa el mismo carácter y un fence sin cerrar llega al final. */
 export function fenceMask(body: string): boolean[] {
   const mask: boolean[] = [];
   let open: { char: string; size: number } | undefined;

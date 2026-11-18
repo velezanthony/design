@@ -17,11 +17,7 @@ function groupBySlug(pages: Page[]): Map<string, Page[]> {
   return groups;
 }
 
-/**
- * Política efectiva de cada grupo: la declarada por alguna de sus páginas (frontmatter o
- * `external[].translations`) o, si ninguna la declara, la base. Dos archivos del mismo grupo con
- * valores distintos es un error que nombra ambos.
- */
+/** Política de cada grupo: la declarada por alguna página o la base; dos valores distintos en un grupo es un error. */
 export function resolvePolicies(
   pages: Page[],
   base: MissingTranslation,
@@ -49,10 +45,7 @@ export function resolvePolicies(
   return { policies, errors };
 }
 
-/**
- * Idioma cuyo contenido se enlaza o se sirve: el idioma por defecto si el grupo lo tiene y, si no,
- * el primero de `locales` que exista en el grupo.
- */
+/** Idioma que se enlaza o sirve: el por defecto si el grupo lo tiene y si no el primero de `locales` presente. */
 export function sourceLocale(
   available: Partial<Record<Locale, string>>,
   locales: Locale[],
@@ -62,11 +55,7 @@ export function sourceLocale(
   return locales.find((locale) => locale in available) ?? defaultLocale;
 }
 
-/**
- * Grupos incompletos en los que ningún archivo declara `translations`: son traducciones que quizá
- * se olvidaron. Declarar la política (aunque coincida con la base) los silencia. Un sitio de un
- * solo idioma nunca devuelve nada.
- */
+/** Grupos incompletos sin `translations` declarado (traducciones quizá olvidadas); un sitio monolingüe no devuelve nada. */
 export function undeclaredMissing(
   pages: Page[],
   locales: Locale[],
@@ -96,10 +85,7 @@ export interface RouteSpec {
   canonical: string;
 }
 
-/**
- * Rutas de reserva: una por cada idioma ausente de los grupos con política `fallback`. No entran en
- * `Availability` (no son traducciones), que se queda con las páginas reales.
- */
+/** Rutas de reserva por idioma ausente en grupos `fallback`; no entran en `Availability` porque no son traducciones. */
 export function fallbackRoutes(
   availability: Availability,
   policies: TranslationPolicies,

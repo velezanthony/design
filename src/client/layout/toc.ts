@@ -1,9 +1,4 @@
-/**
- * La sección que se lee: la última cuyo encabezado ya pasó la línea de lectura, algo por debajo
- * del borde superior del viewport. Antes del primer encabezado es la primera, así que el índice
- * siempre marca una. Al final de la página es la última: una sección final corta acaba la
- * página antes de que su encabezado llegue a la línea y, si no, nunca se marcaría.
- */
+/** Sección que se lee: la última cuyo encabezado pasó la línea de lectura; al final de la página, la última, porque una sección corta nunca llegaría a la línea. */
 export function currentHeading(
   sections: { id: string; top: number }[],
   readingLine: number,
@@ -31,11 +26,7 @@ export interface TrackOptions {
   host?: ScrollHost;
 }
 
-/**
- * Mantiene el `aria-current` del índice en la sección que se lee. El índice enlaza a los h2 y h3
- * de la página; los enlaces sin encabezado se ignoran. Una lectura de las posiciones por
- * fotograma, solo al hacer scroll.
- */
+/** Mantiene el `aria-current` del índice en la sección que se lee (h2 y h3), leyendo posiciones por fotograma solo al hacer scroll. */
 export function trackSections(
   nav: Element,
   {

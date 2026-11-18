@@ -47,10 +47,7 @@ export function footerPageHrefs(
   return (links ?? []).filter(isFooterPage).flatMap((link) => footerPageHref(link, context) ?? []);
 }
 
-/**
- * Footer de una página en el idioma de `context`. Un enlace a una página sin destino en este idioma
- * (no existe y la política es `omit`) se quita en vez de dejar un enlace roto.
- */
+/** Footer de una página en el idioma de `context`; quita el enlace sin destino (política `omit`) en vez de dejarlo roto. */
 export function buildFooter(
   source: FooterSource,
   context: NavContext,
@@ -92,10 +89,7 @@ export function buildFooter(
   };
 }
 
-/**
- * Un error por cada enlace a una página que no existe, con su ruta (`footer.links[1].slug`). Lo que
- * se juzga sin páginas (forma, https) lo valida el esquema.
- */
+/** Un error por enlace a una página inexistente; lo que se juzga sin páginas lo valida el esquema. */
 export function validateFooter(
   links: readonly FooterLink[],
   pageSlugs: ReadonlySet<string>,

@@ -1,10 +1,6 @@
 import { fill } from '../text';
 
-/**
- * Añade un ancla permanente al final de cada encabezado h2-h4 con `id` del contenido (`<main>`).
- * El enlace lleva `aria-label` (el `#` visible no es un nombre) y `data-pagefind-ignore` para que
- * nunca entre en un índice que se construya sobre el DOM. `label` lleva `{title}`.
- */
+/** Añade un ancla al final de cada h2-h4 con `id` de `<main>`, con `aria-label` (`label` lleva `{title}`) y `data-pagefind-ignore`. */
 export function initHeadingAnchors(htmlDocument: Document, label: string): void {
   for (const heading of htmlDocument.querySelectorAll('main h2[id], main h3[id], main h4[id]')) {
     if (heading.querySelector(':scope > a.heading-anchor')) continue;

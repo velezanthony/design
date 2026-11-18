@@ -76,18 +76,12 @@ export interface ListingModel {
     /** Lo que cuenta cada ficha de gravedad: entradas en «Por idioma», páginas en las demás. */
     severityCounts: Record<keyof SeverityCounts, number>;
   };
-  /**
-   * Los tipos de problema que comparten todas las páginas filtradas: se enseñan una vez, no por
-   * fila. En las vistas de inventario (matriz y «Qué tiene») no hay: no son listas de problemas.
-   */
+  /** Se enseñan una vez, no por fila; las vistas de inventario no los tienen. */
   common: { issues: CommonIssue[]; overviewHref: string };
   /** La tabla de la vista pedida, con las filas de la página actual. */
   table: ListingTable;
   footer: {
-    /**
-     * Los filtros ESCRITOS en la URL: en la vista por defecto no llevan `severity`, así pasar de
-     * página o cambiar el tamaño no la convierte en una vista con filtros explícitos.
-     */
+    /** Filtros escritos en la URL: en la vista por defecto sin `severity`, para que paginar no la haga explícita. */
     filters: SeoFilters;
     perPage: number;
     action: string;
@@ -109,14 +103,7 @@ interface ListingInput {
   links: Pick<PanelLinks, 'pages' | 'inspector' | 'overview'>;
 }
 
-/**
- * Todo lo que enseña la tabla de páginas: qué filtros y vista rigen, las filas de la página pedida
- * y los números de la paginación. La pantalla solo lee la URL, llama a esto y pinta.
- *
- * Los filtros eligen PÁGINAS (una entrada que los cumple basta). Las vistas por página, matriz y
- * «Qué tiene» enseñan la página entera, con todos sus idiomas; «Por idioma» enseña solo las
- * entradas que cumplen. Las filas salen ya agrupadas y se paginan contando filas de esa vista.
- */
+/** Los filtros eligen PÁGINAS (basta una entrada que cumpla); las vistas por página, matriz y «Qué tiene» enseñan todos sus idiomas. */
 export function listingModel({
   tree,
   params,

@@ -11,11 +11,7 @@ import { kindsWithIssues } from './kinds';
 import { ALL_SEVERITIES } from '../../severity';
 import { slugsOf } from '../../tree/keys';
 
-/**
- * Pedir TODOS los tipos con incidencias es no filtrar por tipo («Todos» marcado): sin esto, enviar
- * el formulario sin tocar nada fijaría una lista y la vista dejaría de ser la de por defecto. Si el
- * árbol no tiene incidencias no hay «todos» que equivaler, y lo escrito se respeta.
- */
+/** Sin esto, enviar el formulario sin tocar nada fijaría una lista y dejaría la vista por defecto; sin incidencias se respeta lo escrito. */
 function withoutAllKinds(params: URLSearchParams, tree: SeoTree): URLSearchParams {
   const available = kindsWithIssues(tree);
   const asked = params.getAll('kind');
@@ -31,10 +27,7 @@ export interface ListingSelection {
   filters: SeoFilters;
   /** La URL no nombra gravedad ni tipo: la vista por defecto oculta lo informativo. */
   defaulted: boolean;
-  /**
-   * Los filtros ESCRITOS en la URL: sin gravedad si la URL no la nombra (aunque una vista de
-   * inventario enseñe todas), para que los enlaces no conviertan lo implícito en explícito.
-   */
+  /** Filtros escritos en la URL: sin gravedad si no la nombra, para no volver explícito lo implícito. */
   written: SeoFilters;
   /** Las entradas (página + idioma) que cumplen los filtros. */
   matching: SeoPage[];
@@ -46,15 +39,7 @@ export interface ListingSelection {
   severities: IssueSeverity[] | undefined;
 }
 
-/**
- * Qué páginas elige la URL de la tabla. Es la única fuente: la tabla y el informe «Copiar para la IA»
- * parten de aquí, así lo que se copia es exactamente lo que se ve.
- *
- * Los filtros eligen PÁGINAS (una entrada que los cumple basta). La matriz y «Qué tiene» son
- * inventario, no lista de problemas: sin filtros en la URL enseñan todas las páginas. Con el «error +
- * aviso» por defecto, una página limpia sin schema propio desaparecería justo de la vista que sirve
- * para encontrarla.
- */
+/** Fuente única de la tabla y del informe «Copiar para la IA»; matriz y «Qué tiene» son inventario: sin filtros enseñan todas las páginas. */
 /** Las vistas de inventario (matriz, «Qué tiene») listan todas las páginas, no solo las con problemas. */
 export function isInventoryView(view: SeoView): boolean {
   return view === SeoView.MATRIX || view === SeoView.HAVE;

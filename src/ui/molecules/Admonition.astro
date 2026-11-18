@@ -16,10 +16,7 @@ const { kind, title, collapsed = false, strings } = Astro.props;
 const heading = title ?? translate(strings, `admonition.${kind}` satisfies UiKey);
 ---
 
-{/*
-  Mismo marcado que emiten los plugins de Markdown (directivas y alertas de GitHub). Los estilos
-  cuelgan de `.admonition[data-kind]` y `.admonition-title` en theme.css.
-*/}
+{/* Mismo marcado que emiten los plugins de Markdown; los estilos cuelgan de `.admonition[data-kind]` en theme.css. */}
 {collapsed ? (
   <details class="admonition" data-kind={kind}>
     <summary class="admonition-title">{heading}</summary>

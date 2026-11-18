@@ -1,8 +1,4 @@
-/**
- * Los campos marcados con `data-auto-submit` envían su formulario en cuanto cambian: el GET de
- * siempre, sin botón que pulsar. Se escucha en el documento (delegación), así sirve para campos que
- * aparezcan después. Sin JavaScript el formulario conserva su botón dentro de `<noscript>`.
- */
+/** Los campos `data-auto-submit` envían su formulario al cambiar (delegación en el documento); sin JS conserva su botón en `<noscript>`. */
 export function initAutoSubmit(htmlDocument: Document): void {
   htmlDocument.addEventListener('change', (event) => {
     const field = event.target as HTMLElement | null;

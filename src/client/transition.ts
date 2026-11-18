@@ -17,13 +17,7 @@ type StartViewTransition = (update: () => void | Promise<void>) => { finished: P
    vieja y su limpieza no debe borrar las marcas de la nueva. */
 let latest = 0;
 
-/**
- * Ejecuta `update` dentro de una View Transition del documento si el navegador la tiene y quien
- * visita no pidió reducir el movimiento; si no, lo ejecuta al instante y de forma síncrona. Con
- * `kind` y `vars` deja marcas en `<html>` mientras dura, para que el CSS dé a cada uso su efecto
- * sin tocar las demás transiciones. La promesa resuelve al acabar, y nunca rechaza: una
- * transición saltada o interrumpida no es un error de quien llama.
- */
+/** Ejecuta `update` en una View Transition si hay API y no se pidió reducir movimiento (si no, al instante); `kind`/`vars` marcan `<html>` y la promesa nunca rechaza. */
 export async function withTransition(
   update: () => void | Promise<void>,
   { htmlDocument, motion, kind, vars = {} }: TransitionOptions,

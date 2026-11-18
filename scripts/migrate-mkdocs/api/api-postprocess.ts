@@ -1,10 +1,4 @@
-/**
- * Limpieza del Markdown que genera griffe2md para que pase la build estricta.
- *
- * griffe2md enlaza cada símbolo a un `#ancla` con el nombre completo (`#a.b.Clase`), pero no
- * emite ningún `id` que la respalde: el build estricto las vería rotas. Se dejan como texto. Y
- * los tipos vienen envueltos en HTML `<code>`, que aquí se convierte a código en línea.
- */
+/** Limpia el Markdown de griffe2md: las anclas `#a.b.Clase` sin `id` que las respalde rompen la build estricta, y `<code>` pasa a código en línea. */
 
 export interface CleanedApi {
   markdown: string;

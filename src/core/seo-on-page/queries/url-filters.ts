@@ -21,11 +21,7 @@ function values(params: URLSearchParams, name: string) {
   return [...new Set(params.getAll(name).filter((value) => value !== ''))];
 }
 
-/**
- * Filtros desde la query de la URL. Lo que no se reconoce se ignora en vez de fallar: la URL la
- * puede haber escrito (o estropeado) cualquiera. Los idiomas no se validan aquí porque este módulo
- * no conoce la config; un idioma inexistente simplemente no filtra a nadie.
- */
+/** Lo no reconocido se ignora: la URL la puede escribir cualquiera; los idiomas no se validan aquí (no conoce la config). */
 export function parseFilters(params: URLSearchParams): SeoFilters {
   return {
     kinds: values(params, 'kind').filter((value): value is IssueKind => KINDS.includes(value)),
@@ -37,23 +33,13 @@ export function parseFilters(params: URLSearchParams): SeoFilters {
   };
 }
 
-/**
- * Página de la tabla: un entero ≥ 1; lo que no lo sea (vacío, texto, 0, negativo, decimal) es la
- * 1. No vive en `SeoFilters` a propósito: así cualquier enlace que se forma desde los filtros
- * (cambiar la gravedad, «mostrar también lo informativo») vuelve a la página 1 sin acordarse de
- * reiniciarla. Que la pasada del final se acote lo decide `paginate`, que conoce el total.
- */
+/** Entero ≥ 1, o la 1. No vive en `SeoFilters` para que cambiar un filtro vuelva a la página 1; `paginate` acota el final. */
 export function parsePage(params: URLSearchParams): number {
   const raw = params.get('page') ?? '';
   return /^[1-9]\d*$/.test(raw) ? Number(raw) : 1;
 }
 
-/**
- * Filas por página: solo valen los tamaños de `PAGE_SIZES`; cualquier otra cosa (vacío, texto,
- * un número que no se ofrece) es el de por defecto. Como `page`, no vive en `SeoFilters`: los
- * enlaces que se forman desde los filtros lo pasan aparte para conservarlo, y el formulario lo
- * envía como un campo más, así cambiarlo reinicia la página (el formulario no lleva `page`).
- */
+/** Solo valen los tamaños de `PAGE_SIZES`. No vive en `SeoFilters`: cambiarlo reinicia la página. */
 export function parsePerPage(params: URLSearchParams): number {
   const size = PAGE_SIZES.find((candidate) => String(candidate) === params.get('per'));
   return size ?? PAGE_SIZE;
@@ -83,12 +69,7 @@ export interface ViewState {
   lacks?: HaveColumn;
 }
 
-/**
- * Vista de la tabla desde la query. Un valor que no se reconoce es la vista por página, igual que
- * ningún valor: la URL la puede haber escrito cualquiera. `lacks` solo significa algo en «Qué
- * tiene», así que en las demás vistas se descarta. Como `page`, no vive en `SeoFilters`: no filtra
- * qué páginas hay, cambia cómo se ven.
- */
+/** Valor desconocido es la vista por página; `lacks` solo vale en «Qué tiene». No vive en `SeoFilters`: no filtra, cambia cómo se ve. */
 export function parseView(params: URLSearchParams): ViewState {
   const asked = params.get('view') ?? '';
   const view = VIEWS.find((candidate): candidate is SeoView => candidate === asked) ?? SeoView.PAGE;
@@ -97,11 +78,7 @@ export function parseView(params: URLSearchParams): ViewState {
   return view === SeoView.HAVE && column ? { view, lacks: column } : { view };
 }
 
-/**
- * Inversa de `parseFilters`, `parsePage`, `parsePerPage` y `parseView`: solo emite lo que filtra, en
- * un orden estable. La página 1, el tamaño por defecto y la vista por página no se escriben, para
- * que la URL canónica de la tabla no cambie.
- */
+/** Inversa de los `parse*`: solo emite lo que filtra, en orden estable; página 1, tamaño y vista por defecto no se escriben. */
 export function serializeFilters(
   filters: SeoFilters,
   page = 1,
@@ -122,13 +99,7 @@ export function serializeFilters(
   return params;
 }
 
-/**
- * Los filtros como pares nombre/valor, listos para campos ocultos de un formulario GET que no es el
- * de filtros (el selector de filas por página). Sale de `serializeFilters`, no de una copia de sus
- * reglas, así la URL que envía ese formulario es la canónica. Lleva también la vista: cambiar el
- * tamaño no debe devolver a «Por página». Sin página ni tamaño: quien envía el
- * formulario pone el suyo, y no llevar `page` es lo que lo devuelve a la primera.
- */
+/** Pares para campos ocultos del selector de filas, salidos de `serializeFilters` para ser canónicos; con vista, sin página ni tamaño. */
 export function filterFields(
   filters: SeoFilters,
   view?: ViewState,
@@ -139,16 +110,7 @@ export function filterFields(
   }));
 }
 
-/**
- * Filtros EFECTIVOS de la tabla. `parseFilters` sigue siendo un lector fiel de la URL; este paso
- * aparte decide el valor por defecto: si la URL no nombra ninguna gravedad ni ningún tipo, la
- * tabla parte de error + aviso, porque casi todas las páginas tienen la incidencia informativa
- * «descripción heredada» y ahogaría los avisos reales. En cuanto la URL nombra una gravedad o un
- * tipo manda lo escrito (un tipo informativo debe verse tal cual), y «todo» se pide con las tres
- * gravedades. Así ninguna URL es ambigua: la misma query da siempre la misma vista, y el
- * formulario (cuyas casillas reflejan estos filtros) reenvía exactamente lo que se ve.
- * `defaulted` avisa a la UI de que hay información oculta, para ofrecer mostrarla.
- */
+/** Por defecto (sin gravedad ni tipo en la URL) parte de error + aviso: la informativa «descripción heredada» ahogaría los avisos reales; `defaulted` avisa a la UI. */
 export function filtersFromUrl(params: URLSearchParams): {
   filters: SeoFilters;
   defaulted: boolean;

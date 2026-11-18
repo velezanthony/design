@@ -25,10 +25,7 @@ function firstHeading(body: string): string | undefined {
   return undefined;
 }
 
-/**
- * Título de la página: el `title` del frontmatter si existe y, si no, el primer H1. Una página sin
- * ninguno de los dos es un error (el título alimenta la barra lateral, el `<title>` y el SEO).
- */
+/** Título: el del frontmatter o el primer H1; sin ninguno es un error. */
 export function resolveTitle(body: string, frontmatterTitle?: string, file?: string): string {
   const declared = frontmatterTitle?.trim();
   if (declared) return declared;

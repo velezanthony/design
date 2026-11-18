@@ -1,9 +1,6 @@
 import type { BundledTheme } from 'shiki';
 
-/**
- * Temas de Shiki para todo bloque resaltado: los fences de Markdown y cualquier visual de código.
- * Un único sitio, para que nunca se desincronicen.
- */
+/** Temas de Shiki para todo bloque resaltado, en un único sitio para que no se desincronicen. */
 export const codeThemes = {
   light: 'github-light-default',
   dark: 'github-dark-default',

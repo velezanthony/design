@@ -7,29 +7,15 @@ import { docs, type DocsUserConfig } from './index';
 export const DEFAULT_SITE = 'https://velezanthony.github.io';
 
 export interface DocsSiteOptions {
-  /**
-   * Ruta bajo la que se sirve el sitio. OBLIGATORIA, sin valor por defecto: cada repo tiene la suya
-   * (`/mi-repo` en una página de proyecto). `'/'` vale para un sitio de usuario u organización.
-   */
+  /** Ruta bajo la que se sirve el sitio, OBLIGATORIA (`/mi-repo` en página de proyecto; `'/'` para usuario u organización). */
   base: string;
   /** Origen absoluto del sitio (sitemap y URLs canónicas). Por defecto, el de GitHub Pages del propietario. */
   site?: string;
-  /**
-   * Cualquier otra config de Astro, que se FUSIONA con la de la librería: `integrations` y
-   * `vite.plugins` se añaden DESPUÉS de `docs()` y de Tailwind; el resto de claves de `vite` se
-   * fusionan en superficial; las demás claves de primer nivel pisan los valores por defecto.
-   * `site` y `base` van en las opciones, no aquí.
-   */
+  /** Otra config de Astro, fusionada con la de la librería (`integrations` y `vite.plugins` van después de `docs()`); `site` y `base` van en las opciones. */
   astro?: Omit<AstroUserConfig, 'site' | 'base'>;
 }
 
-/**
- * Función pura que devuelve la config de Astro de un sitio de docs: `docs()`, Tailwind, `site`,
- * `base` y `trailingSlash: 'always'` (como sirve GitHub Pages los directorios). No carga archivos
- * ni toca globales: `docs.config.mjs` sigue importándose desde `astro.config.mjs`, así la
- * integración puede vigilarlo. `markdown.processor` no se protege aquí: `docs()` ya falla con un
- * mensaje claro si no es Sätteri.
- */
+/** Config de Astro de un sitio de docs, pura; `docs.config.mjs` se sigue importando desde `astro.config.mjs` para que la integración lo vigile. */
 export function defineDocsSite(
   docsConfig: DocsUserConfig,
   options: DocsSiteOptions,

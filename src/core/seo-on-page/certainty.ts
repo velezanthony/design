@@ -1,9 +1,6 @@
 import { IssueKind } from './tree/types';
 
-/**
- * Cuánto se fía uno del aviso: `rule` es un hecho (dos títulos iguales, falta una traducción) y
- * `heuristic` una recomendación (las longitudes: Google no fija un límite, recorta por ancho).
- */
+/** `rule` es un hecho; `heuristic` una recomendación (Google no fija límites, recorta por ancho). */
 export type Certainty = 'rule' | 'heuristic';
 
 const HEURISTICS: ReadonlySet<IssueKind> = new Set([

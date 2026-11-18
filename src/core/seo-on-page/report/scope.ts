@@ -55,11 +55,7 @@ export function siteScope(tree: SeoTree): ReportScope {
   };
 }
 
-/**
- * Lo que la tabla de páginas enseña con su URL actual. `label` es lo que dicen los filtros, redactado
- * por quien tiene los textos. Un filtro por tipo recorta también los problemas (quien filtra por
- * «título duplicado» no quiere el resto en su informe), pero las páginas son las mismas que en la tabla.
- */
+/** `label` lo redacta quien tiene los textos; filtrar por tipo recorta también los problemas, no las páginas. */
 export function filterScope(selection: ListingSelection, label: string): ReportScope {
   const { filters, view, byEntry, matching, selected, severities } = selection;
   return {

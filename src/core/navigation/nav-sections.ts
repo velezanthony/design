@@ -12,11 +12,7 @@ export function sectionIndexOf(nav: readonly NavItem[] | undefined, slug: string
   return (nav ?? []).findIndex((item) => isNavSection(item) && slugInDir(item.dir, slug));
 }
 
-/**
- * Un error por cada incoherencia de `nav` con las páginas reales, con su ruta en la config
- * (`nav[1].dir`). Lo que se puede juzgar sin páginas (solape de dirs, https) lo valida el esquema.
- * Devuelve la lista para sumarla a los demás fallos de la carga en vez de cortar en el primero.
- */
+/** Un error por incoherencia de `nav` con las páginas reales; devuelve la lista para sumarla a los demás fallos de la carga. */
 export function validateNav(nav: readonly NavItem[], pageSlugs: ReadonlySet<string>): DocsError[] {
   const errors: DocsError[] = [];
   const sections = nav.filter(isNavSection);

@@ -1,12 +1,7 @@
 import type { Locale } from '../../i18n/locale';
 import type { SeoTree } from '../tree/types';
 
-/**
- * La carpeta de contenido de cada idioma: el prefijo común, por carpetas enteras, de los archivos de
- * sus páginas nativas. Las externas y las del cliente se quedan fuera (sus archivos viven donde
- * diga la config o en `src/pages/`). Es lo que
- * permite al informe decir «en cada fichero de `src/content/docs/es/`» sin listarlos uno a uno.
- */
+/** Prefijo común, por carpetas enteras, de las páginas nativas; externas y del cliente quedan fuera. */
 export function contentDirs(tree: SeoTree): Partial<Record<Locale, string>> {
   const folders = new Map<Locale, string[][]>();
   for (const page of tree.pages) {

@@ -1,13 +1,4 @@
-/**
- * «Copiar para la IA». El servidor deja en la página el informe de cada alcance ya generado
- * (`<textarea hidden data-report-text="<alcance>">`, con su bloque JSON en `data-report-json-text`) y el
- * diálogo (`[data-report-dialog]`) solo elige entre ellos: nada se recalcula aquí. El alcance «Un
- * idioma» guarda un texto por idioma bajo `locale:<idioma>`. Los botones que abren el diálogo
- * (`data-report-open="<alcance>"`) y el «Copiar prompt» de cada problema (`data-copy-prompt="<texto>"`)
- * nacen con `hidden`: sin JavaScript o sin portapapeles no se ofrece lo que no puede funcionar.
- *
- * Los textos vienen del marcado: `data-copied` y `data-failed` en el diálogo y en cada botón de prompt.
- */
+/** «Copiar para la IA»: el servidor deja un informe por alcance (`data-report-text`) y el diálogo solo elige; los botones nacen `hidden` y los textos vienen de `data-*`. */
 import { copyWithFeedback } from '../clipboard';
 
 /** Lo que separa el Markdown del bloque JSON; el servidor calcula el tamaño con el mismo. */

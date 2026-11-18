@@ -61,11 +61,7 @@ function browserEnv(): BootEnv {
   };
 }
 
-/**
- * Cablea todo el cliente de una página de docs: tema, columnas plegables y ancho, consentimiento, buscadores, pestañas, botón
- * de copiar, ampliación de imágenes, diagramas de Mermaid, anclas de encabezado e índice de contenidos. Cada `init*` ignora lo que la página no
- * tenga. Los textos vienen de `data-*` de `<main>` (el catálogo de la página ya resuelto).
- */
+/** Cablea todo el cliente de una página de docs; cada `init*` ignora lo que la página no tenga y los textos vienen de `data-*` de `<main>`. */
 export function bootDocs(env: BootEnv = browserEnv()): void {
   const { htmlDocument } = env;
   initTheme({
@@ -153,11 +149,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
   if (toc) trackSections(toc, { htmlDocument });
 }
 
-/**
- * La 404 de GitHub Pages es una sola (`<base>/404.html`, idioma por defecto): según la URL pedida
- * sustituye el cuerpo por el de ese idioma y SOLO DESPUÉS cablea el cliente, así que los `init*`
- * ven ya el DOM definitivo. Los datos de la sustitución viajan en `data-nf-*` de `<html>`.
- */
+/** La 404 de GitHub Pages es una sola: sustituye el cuerpo por el del idioma pedido y SOLO DESPUÉS cablea el cliente (datos en `data-nf-*` de `<html>`). */
 export function bootNotFound(env: BootEnv = browserEnv()): void {
   const { htmlDocument } = env;
   const { nfBase, nfLocales, nfDefault } = htmlDocument.documentElement.dataset;

@@ -29,11 +29,7 @@ async function builtHtml(directory: URL, pathname: string): Promise<string | und
   );
 }
 
-/**
- * `astro:build:done`: añade al sitemap que generó la librería las páginas del cliente
- * (`src/pages/`), leídas del HTML que se acaba de generar con el mismo `readHead` que usa el panel.
- * Solo entran las indexables y canónicas de sí mismas. Devuelve cuántas añadió.
- */
+/** `astro:build:done`: añade al sitemap las páginas del cliente indexables y canónicas de sí mismas, leídas del HTML generado. */
 export async function addClientPagesToSitemap(
   built: Built,
   registry: ClientRegistry = clientRegistry(),

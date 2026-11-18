@@ -8,10 +8,7 @@ export interface Span {
   height: number;
 }
 
-/**
- * Lo guardado, si es un desplazamiento válido: un número finito y no negativo. Cualquier otra
- * cosa (vacío, basura, `-5`, `12px`) es «nada guardado».
- */
+/** Lo guardado, si es un desplazamiento válido (número finito y no negativo); si no, «nada guardado». */
 export function parseScroll(stored: string | null | undefined): number | undefined {
   if (stored === null || stored === undefined || stored.trim() === '') return undefined;
   const value = Number(stored);
@@ -23,12 +20,7 @@ export function isVisible(item: Span, view: Span): boolean {
   return item.top >= view.top && item.top + item.height <= view.top + view.height;
 }
 
-/**
- * El `scrollTop` que debe tener la barra al cargar. Lo guardado manda mientras deje a la vista la
- * página actual; si no hay nada guardado o la dejaría fuera, se centra la entrada actual. Sin
- * ninguna de las dos no hay nada que aplicar (`undefined`). `current` va en coordenadas del
- * contenido, no de la ventana.
- */
+/** `scrollTop` inicial de la barra: lo guardado si deja a la vista la página actual (`current`, en coordenadas del contenido) y, si no, centra la entrada actual. */
 export function targetScroll({
   stored,
   container,
@@ -48,15 +40,7 @@ export function targetScroll({
   return Math.max(0, current.top - (container.height - current.height) / 2);
 }
 
-/**
- * Código del script en línea que restaura el desplazamiento de la barra antes del primer pintado,
- * para que al cambiar de página no vuelva arriba sin que se vea el salto. Va en línea y no puede
- * importar, así que se arma con el texto de las funciones probadas de este módulo. Usa `document`,
- * `sessionStorage` y `matchMedia` globales. Solo actúa desde lg y con el raíl desplegado; con el
- * almacenamiento bloqueado queda el centrado de la entrada actual. Va envuelto en una función:
- * un `var` suelto en un script clásico es global, y `top` (como `name`) es de solo lectura en
- * `window`, así que asignarlo no hace nada.
- */
+/** Script en línea que restaura el scroll de la barra; va en una función porque `top` es de solo lectura en `window` y un `var` suelto no lo asignaría. */
 export function sidebarScrollScript(): string {
   return `(function () {
 try {
@@ -91,11 +75,7 @@ export interface SidebarScrollEnv {
   rail?: Pick<RailQuery, 'matches'>;
 }
 
-/**
- * Guarda el desplazamiento de la barra al salir de la página (`pagehide`) y al pulsar uno de sus
- * enlaces, para que el script previo al pintado de la página siguiente lo restaure. Por debajo de
- * lg, o con el raíl plegado, no guarda: lo ya guardado se conserva.
- */
+/** Guarda el scroll de la barra al salir y al pulsar uno de sus enlaces; por debajo de lg o con el raíl plegado conserva lo ya guardado. */
 export function initSidebarScroll({
   htmlDocument,
   storage,

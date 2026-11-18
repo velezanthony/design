@@ -16,13 +16,7 @@ type NavigationConfig = Pick<
   'locales' | 'defaultLocale' | 'sidebar' | 'nav' | 'footer' | 'translations'
 >;
 
-/**
- * A qué páginas enlaza la NAVEGACIÓN de cada página (barra lateral de su sección, cabecera y
- * footer), por clave `slug\0idioma`. Se construye con los mismos árboles que pinta el layout
- * (`buildScopedSidebar` en el fondo), no con una regla aparte: lo que el panel cuenta como enlace
- * es lo que el visitante tiene delante. Los destinos que no son páginas reales (rutas de reserva,
- * enlaces externos) quedan fuera, y una página no se cuenta a sí misma.
- */
+/** Mismos árboles que pinta el layout; quedan fuera destinos no reales y la propia página. */
 export function navigationLinks(
   pages: Page[],
   config: NavigationConfig,

@@ -1,16 +1,4 @@
-/**
- * Pipeline de un CONJUNTO de documentos, puro (sin E/S). Orden fijo:
- *
- *   1. `newlines`    cada fichero se normaliza a LF (se restaura al final).
- *   2. `leftovers`   los stubs de snippet (`--8<-- "X"`) se apartan: no se convierten.
- *   3. `transform`   el pipeline de un documento (frontmatter, bloques, texto corrido).
- *   4. `anchors`     las anclas sin acentos de MkDocs, con todos los ficheros a la vista.
- *   5. `leftovers`   comprobación de restos sobre el RESULTADO.
- *   6. `stub-links`  enlaces que apuntan a un stub (se avisa, no se reescriben).
- *
- * Los enlaces `.md` relativos no se tocan salvo que se pase `rewriteHref` (el modo carpeta lo
- * necesita; `--in-place` no, porque la librería resuelve los `.md` relativos ella sola).
- */
+/** Pipeline puro de un CONJUNTO de documentos: newlines, stubs aparte, transform, anclas, restos y stub-links, en ese orden. */
 import { fixAccentAnchors } from '../checks/anchors.ts';
 import { findStubLinks, type StubLink } from '../checks/stub-links.ts';
 import {
