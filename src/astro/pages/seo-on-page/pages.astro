@@ -76,3 +76,9 @@ const report = listingReport(tree, Astro.url.searchParams, siteConfig);
   </div>
   <ReportDialog {...report} />
 </DocsLayout>
+
+<script>
+  import { bootPanel } from '../../../client/seo-on-page/boot';
+
+  bootPanel();
+</script>

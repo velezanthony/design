@@ -131,17 +131,8 @@ describe('bootDocs', () => {
     expect(() => bootDocs(env('<p>x</p>'))).not.toThrow();
   });
 
-  it('muestra los botones de «Copiar para la IA» y de cada prompt (nacen ocultos)', () => {
-    const e = env(
-      '<button data-report-open="site" hidden>IA</button><button data-copy-prompt="x" hidden>P</button>',
-    );
-    bootDocs(e);
-    expect(e.doc.querySelector('[data-report-open]')!.hasAttribute('hidden')).toBe(false);
-    expect(e.doc.querySelector('[data-copy-prompt]')!.hasAttribute('hidden')).toBe(false);
-  });
-
-  it('sin portapapeles dejan de ofrecerse los botones de «Copiar para la IA»', () => {
-    const e = env('<button data-report-open="site" hidden>IA</button>', { clipboard: undefined });
+  it('no arranca el panel SEO: su JS solo va en las pantallas del panel', () => {
+    const e = env('<button data-report-open="site" hidden>IA</button>');
     bootDocs(e);
     expect(e.doc.querySelector('[data-report-open]')!.hasAttribute('hidden')).toBe(true);
   });

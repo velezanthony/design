@@ -274,7 +274,7 @@ export const METER_LABELS = {
   max: (max: number) => `máximo ${max}`,
 };
 
-/** El desplegable «Tipo de problema»: el resumen cambia en vivo con `client/forms/kinds-all.ts`. */
+/** El desplegable «Tipo de problema»: el resumen cambia en vivo con `client/seo-on-page/kinds-all.ts`. */
 export const KINDS_LABELS = {
   summary: 'Tipo de problema',
   all: 'Todos',
