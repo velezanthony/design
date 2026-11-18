@@ -344,6 +344,7 @@ describe('inspectorModel', () => {
         descriptionSource: 'site',
         issues: [{ kind: 'no-h1', severity: 'error' }],
         href: '/i/?slug=guide&locale=es',
+        tone: 'error',
       });
     });
 
@@ -369,12 +370,18 @@ describe('inspectorModel', () => {
         current: false,
         policy: 'link',
         declared: true,
+        tone: 'missing',
       });
     });
 
     it('una presente sin página en el árbol queda como ausente de datos: solo la URL', () => {
       const column = run([en])!.translations!.columns[1]!;
-      expect(column).toMatchObject({ state: 'unknown', locale: 'es', url: '/repo/es/guide/' });
+      expect(column).toMatchObject({
+        state: 'unknown',
+        locale: 'es',
+        url: '/repo/es/guide/',
+        tone: 'ok',
+      });
     });
 
     it('con un solo idioma configurado no hay comparación', () => {

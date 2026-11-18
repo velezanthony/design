@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
-import { pageRows } from './rows';
+import { localeTone, pageRows } from './rows';
 
 const issue = (kind: IssueKind, severity: IssueSeverity): Issue => ({
   kind,
@@ -237,5 +237,19 @@ describe('pageRows', () => {
     it('una página completa y corriente no lleva etiquetas', () => {
       expect(rows([entry('a', 'en'), entry('a', 'es')])[0]?.tags).toEqual([]);
     });
+  });
+});
+
+describe('localeTone', () => {
+  it('sin página es «missing»', () => {
+    expect(localeTone(undefined)).toBe('missing');
+  });
+
+  it('sin incidencias es «ok»', () => {
+    expect(localeTone(entry('a', 'en'))).toBe('ok');
+  });
+
+  it('con incidencias es la peor gravedad', () => {
+    expect(localeTone(entry('a', 'en', { issues: [info(), warn()] }))).toBe('warning');
   });
 });

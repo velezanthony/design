@@ -6,6 +6,7 @@ const none = { titleLength: false, descriptionLength: false, descriptionSource: 
 const present = (locale: string, overrides = {}) => ({
   state: 'present',
   locale,
+  tone: 'ok',
   current: locale === 'en',
   href: locale === 'en' ? undefined : `/i/?slug=guide&locale=${locale}`,
   title: `Guide ${locale}`,
@@ -61,7 +62,14 @@ describe('Translations', () => {
       translations: {
         columns: [
           present('en'),
-          { state: 'missing', locale: 'fr', current: false, policy: 'link', declared: false },
+          {
+            state: 'missing',
+            locale: 'fr',
+            current: false,
+            policy: 'link',
+            declared: false,
+            tone: 'missing',
+          },
         ],
       },
     });

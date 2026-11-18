@@ -16,6 +16,14 @@ export type PageTag =
 /** El color de la insignia de un idioma: su peor gravedad, «ok» sin incidencias, «missing» si no existe. */
 export type LocaleTone = IssueSeverity | 'ok' | 'missing';
 
+/** El color de la insignia de una entrada: su peor gravedad, o «missing» si la página no existe en ese idioma. */
+export function localeTone(entry: SeoPage): Exclude<LocaleTone, 'missing'>;
+export function localeTone(entry: SeoPage | undefined): LocaleTone;
+export function localeTone(entry: SeoPage | undefined): LocaleTone {
+  if (!entry) return 'missing';
+  return worst(entry.issues.map((issue) => issue.severity)) ?? 'ok';
+}
+
 /** Un idioma de la página: el que existe lleva lo necesario para el detalle desplegable. */
 export type LocaleDetail =
   | { locale: Locale; tone: 'missing'; present: false }
@@ -110,7 +118,7 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
     if (!entry) return { locale, tone: 'missing', present: false };
     return {
       locale,
-      tone: worst(entry.issues.map((issue) => issue.severity)) ?? 'ok',
+      tone: localeTone(entry),
       present: true,
       href: inspector({ slug, locale }),
       title: entry.meta.title,

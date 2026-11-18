@@ -14,8 +14,9 @@ import type {
   SeoTree,
 } from '../../tree/types';
 import type { PanelLinks } from '../links';
-import type { LocaleTone } from '../listing/rows';
-import { ALL_SEVERITIES, SEVERITY_RANK, worst } from '../../severity';
+import { localeTone, type LocaleTone } from '../listing/rows';
+import { editHref } from '../../../navigation/edit-href';
+import { ALL_SEVERITIES, SEVERITY_RANK } from '../../severity';
 import { differing, lengthClass, type LengthClass } from './compare';
 import { limitOf, verifyFor, type Limit } from './fix-details';
 import { schemaTypes } from '../../tree/keys';
@@ -50,12 +51,21 @@ export interface LocaleSwitchItem {
 
 /** Cómo está un idioma de la página en la comparación de traducciones. */
 export type ComparisonColumn =
-  | { state: 'missing'; locale: Locale; current: false; policy: string; declared: boolean }
+  | {
+      state: 'missing';
+      locale: Locale;
+      current: false;
+      policy: string;
+      declared: boolean;
+      tone: 'missing';
+    }
   /** Existe pero no está en el árbol: solo se sabe su URL. */
-  | { state: 'unknown'; locale: Locale; current: false; url: string }
+  | { state: 'unknown'; locale: Locale; current: false; url: string; tone: 'ok' }
   | {
       state: 'present';
       locale: Locale;
+      /** Su peor gravedad: el color de su insignia. */
+      tone: Exclude<LocaleTone, 'missing'>;
       current: boolean;
       href: string | undefined;
       title: string;
@@ -182,15 +192,24 @@ function columnOf(
       current: false,
       policy: entry.policy,
       declared: entry.declared,
+      tone: 'missing',
     };
   }
   const sibling = group.find((item) => item.locale === entry.locale);
-  if (!sibling) return { state: 'unknown', locale: entry.locale, current: false, url: entry.url };
+  if (!sibling)
+    return {
+      state: 'unknown',
+      locale: entry.locale,
+      current: false,
+      url: entry.url,
+      tone: 'ok',
+    };
   const current = entry.locale === page.locale;
   const { meta } = sibling;
   return {
     state: 'present',
     locale: entry.locale,
+    tone: localeTone(sibling),
     current,
     href: current ? undefined : links.inspector({ slug: page.slug, locale: entry.locale }),
     title: meta.title,
@@ -272,9 +291,7 @@ export function inspectorModel({
             : undefined;
         return {
           locale: entry.locale,
-          tone: sibling
-            ? (worst(sibling.issues.map((issue) => issue.severity)) ?? 'ok')
-            : 'missing',
+          tone: localeTone(sibling),
           current,
           href: sibling && !current ? links.inspector({ slug, locale: entry.locale }) : undefined,
         };
@@ -292,10 +309,7 @@ export function inspectorModel({
     links: {
       pages: links.pages(),
       live: meta.canonical,
-      edit:
-        edit?.url && edit.path
-          ? `${edit.url.replace(/\/+$/, '')}/${edit.path.replace(/^\/+/, '')}`
-          : undefined,
+      edit: edit?.url && edit.path ? editHref(edit.url, edit.path) : undefined,
     },
     // `sort` es estable: a igual gravedad, se conserva el orden del análisis.
     fixes: [...page.issues]

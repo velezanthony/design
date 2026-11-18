@@ -3,6 +3,7 @@ import { sidebarScrollScript } from '../../client/layout/sidebar-scroll';
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { editHref } from '../../core/navigation/edit-href';
 import type { FooterView } from '../../core/navigation/footer';
 import type { NavEntry } from '../../core/navigation/nav-entries';
 import type { SidebarNode } from '../../core/navigation/sidebar';
@@ -189,7 +190,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
         <slot />
       </div>
       <div data-pagefind-ignore>
-        {editUrl && editFile && <EditLink editUrl={editUrl} file={editFile} strings={strings} />}
+        {editUrl && editFile && <EditLink href={editHref(editUrl, editFile)} strings={strings} />}
         <PrevNext prev={prev} next={next} strings={strings} />
       </div>
     </main>
