@@ -1,10 +1,8 @@
 import type { Locale } from '../../../i18n/locale';
-import type { SeoLocaleEntry, SeoPage } from '../../tree/types';
+import type { SeoPage } from '../../tree/types';
+import { localeCells, type LocaleCell } from '../../tree/locale-cells';
 import { tagsOf, type PageTag } from './rows';
 import { groupBySlug, mainEntry } from './group';
-
-/** `missing`: sin fichero y la política enlaza al original; `fallback`: otro idioma bajo su ruta; `omit`: omitida a propósito. */
-export type MatrixState = 'exists' | 'missing' | 'fallback' | 'omitted';
 
 /** `reciprocal`: cada versión enlaza a las demás; `unpaired`: solo hay una; `omitted`: noindex. */
 export type HreflangState = 'reciprocal' | 'unpaired' | 'omitted';
@@ -15,7 +13,7 @@ export interface MatrixRow {
   href: string;
   tags: PageTag[];
   /** Una por idioma configurado, en el orden de la config. */
-  cells: { locale: Locale; state: MatrixState }[];
+  cells: LocaleCell[];
   hreflang: HreflangState;
   /** El idioma al que apunta `x-default`; `undefined` si la página no lo emite. */
   xDefault: Locale | undefined;
@@ -35,20 +33,6 @@ interface MatrixInput {
   locales: readonly Locale[];
   defaultLocale: Locale;
   inspector: (target: { slug: string; locale: Locale }) => string;
-}
-
-/** Cómo está la página en cada idioma configurado, en el orden de la config. Lo lee de `entry.locales`. */
-export function localeCells(
-  group: readonly SeoLocaleEntry[],
-  locales: readonly Locale[],
-): MatrixRow['cells'] {
-  return locales.map((locale) => {
-    const found = group.find((entry) => entry.locale === locale);
-    if (found?.status === 'present') return { locale, state: 'exists' as const };
-    if (found?.status !== 'missing') return { locale, state: 'missing' as const };
-    const state = { link: 'missing', fallback: 'fallback', omit: 'omitted' } as const;
-    return { locale, state: state[found.policy] };
-  });
 }
 
 function rowOf(slug: string, entries: SeoPage[], input: MatrixInput): MatrixRow {

@@ -1,4 +1,4 @@
-import { LACKS_PHRASES, HAVE_CELLS, isGood } from '../pages/listing/have';
+import { LACKS_PHRASES, HAVE_CELLS, isGood } from '../have';
 import type { HaveColumn } from '../queries/url-filters';
 import { keyPlace, scopedKey } from '../key-place';
 import { IssueKind, type SeoPage } from '../tree/types';

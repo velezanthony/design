@@ -1,7 +1,6 @@
 import type { Locale } from '../../i18n/locale';
 import { slugLabel } from '../tree/keys';
-import type { ListingSelection } from '../pages/listing/selection';
-import type { HaveColumn } from '../queries/url-filters';
+import type { HaveColumn, SeoFilters, ViewState } from '../queries/url-filters';
 import type { IssueKind, IssueSeverity, SeoPage, SeoTree } from '../tree/types';
 
 /** De qué trata un informe: qué entradas del árbol entran y qué problemas se cuentan de ellas. */
@@ -56,8 +55,19 @@ export function siteScope(tree: SeoTree): ReportScope {
   };
 }
 
+/** Lo que el informe toma de la selección del listado (la pantalla le pasa la suya entera). */
+export interface ScopeSelection {
+  view: ViewState;
+  filters: SeoFilters;
+  /** «Por idioma» cuenta entradas; las demás vistas, páginas. */
+  byEntry: boolean;
+  matching: SeoPage[];
+  selected: SeoPage[];
+  severities: IssueSeverity[] | undefined;
+}
+
 /** `label` lo redacta quien tiene los textos; filtrar por tipo recorta también los problemas, no las páginas. */
-export function filterScope(selection: ListingSelection, label: string): ReportScope {
+export function filterScope(selection: ScopeSelection, label: string): ReportScope {
   const { filters, view, byEntry, matching, selected, severities } = selection;
   return {
     id: 'filter',

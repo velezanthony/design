@@ -4,12 +4,9 @@ import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-coun
 import { slugLabel } from '../../core/seo-on-page/tree/keys';
 import type { Certainty } from '../../core/seo-on-page/catalog';
 import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
-import {
-  LACKS_PHRASES,
-  type HaveCell,
-  type HaveState,
-} from '../../core/seo-on-page/pages/listing/have';
-import type { HreflangState, MatrixState } from '../../core/seo-on-page/pages/listing/matrix';
+import { LACKS_PHRASES, type HaveCell, type HaveState } from '../../core/seo-on-page/have';
+import type { HreflangState } from '../../core/seo-on-page/pages/listing/matrix';
+import type { MatrixState } from '../../core/seo-on-page/tree/locale-cells';
 import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
 import type { LocaleTone, PageTag } from '../../core/seo-on-page/pages/listing/rows';
 import type {
