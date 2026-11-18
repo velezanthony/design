@@ -1,6 +1,8 @@
 import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/input';
 import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
+import type { ClientPage } from '../../../core/seo/client-pages';
+import { loadClientPages } from '../client-pages';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type {
   HeadingNode,
@@ -70,8 +72,12 @@ function contentOf(entry: DocsEntry): { links?: PageLink[]; images?: PageImage[]
 /**
  * El único punto del panel que conoce `astro:content`: lee la colección con la que se genera el
  * sitio y devuelve el árbol del análisis. Sin rastreo ni HTML: lo que se analiza es lo que se publica.
+ * Las páginas que el cliente añade en `src/pages/` (`loadClientPages`) se suman ya leídas.
  */
-export async function loadSeoTree(config: VirtualConfig): Promise<SeoTree> {
+export async function loadSeoTree(
+  config: VirtualConfig,
+  client: ClientPage[] = [],
+): Promise<SeoTree> {
   const docs = await getDocs();
   const entries = await Promise.all(
     docs.map(async (entry) => ({
@@ -86,7 +92,16 @@ export async function loadSeoTree(config: VirtualConfig): Promise<SeoTree> {
     ),
     new URL(config.publicDir ?? 'file:///'),
   );
-  return buildSeoTree(seoInputOf(entries, config, sizes));
+  return buildSeoTree({ ...seoInputOf(entries, config, sizes), client });
+}
+
+/**
+ * El árbol del panel con todo lo que publica el sitio: la colección y las páginas que el cliente
+ * añade en `src/pages/`, que se piden al servidor de desarrollo en el que corre el propio panel.
+ */
+export async function loadPanelTree(config: VirtualConfig, origin: string): Promise<SeoTree> {
+  const { pages } = await loadClientPages({ origin, site: config.site, base: config.base });
+  return loadSeoTree(config, pages);
 }
 
 /** Los datos de la colección tal cual, para que la cabecera y el pie del panel se resuelvan como los del sitio. */

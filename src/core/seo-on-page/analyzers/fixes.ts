@@ -1,12 +1,12 @@
-import type { Page } from '../../content/discovery';
+import { clientTag } from '../client-tags';
 import { THRESHOLDS } from '../thresholds';
-import { IssueKind, type Issue, type OgImageSource } from '../tree/types';
+import { IssueKind, type Issue, type OgImageSource, type SeoPageKind } from '../tree/types';
 
 /** De la página, lo que hace falta para decir DÓNDE se arregla algo. */
 export interface FixPage {
   slug: string;
   locale: string;
-  kind: Page['kind'];
+  kind: SeoPageKind;
   /** Archivo fuente de ESTA página (en una externa, el de su idioma). */
   sourcePath: string;
 }
@@ -52,9 +52,35 @@ export function siblingPath(
  * `docs.config.mjs`. Decirlo mal mandaría a editar un archivo cuyo cambio no tendría efecto.
  */
 function where(page: FixPage, key: string): string {
+  if (page.kind === 'client') {
+    return `\`${clientTag(key)}\` de \`${page.sourcePath}\` (o lo que le pase a su layout)`;
+  }
   return page.kind === 'external'
     ? `\`external[].${key}\` de la entrada «${page.slug}» en docs.config.mjs`
     : `\`${key}\` en el frontmatter de \`${page.sourcePath}\``;
+}
+
+/** Los arreglos que en un `.astro` se dicen en HTML (encabezados, idiomas, canonical). */
+function clientFix(kind: IssueKind, file: string, detail: FixDetail): string | undefined {
+  switch (kind) {
+    case IssueKind.NO_H1:
+      return `Añade un \`<h1>\` a ${file}.`;
+    case IssueKind.MULTIPLE_H1:
+      return `Deja un solo \`<h1>\` en ${file} y baja los demás a \`<h2>\`.`;
+    case IssueKind.HEADING_SKIP: {
+      const { heading } = detail;
+      if (!heading) return `Corrige en ${file} el encabezado que salta de nivel.`;
+      return `En ${file}, cambia «${heading.text}» de \`<h${heading.depth}>\` a \`<h${heading.skipFrom + 1}>\`: sigue a un \`<h${heading.skipFrom}>\`.`;
+    }
+    case IssueKind.TRANSLATION_MISSING: {
+      const locale = detail.missingLocale ?? '';
+      return `Crea la versión en ${locale} y declárala con \`<link rel="alternate" hreflang="${locale}">\` en ${file}.`;
+    }
+    case IssueKind.CANONICAL_MISMATCH:
+      return `Haz que el \`<link rel="canonical">\` de ${file} apunte a su propia URL.`;
+    default:
+      return undefined;
+  }
 }
 
 const basename = (path: string) => path.split('/').pop() ?? path;
@@ -69,6 +95,8 @@ const slugs = (related: Issue['related']) =>
 export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): string {
   const file = `\`${page.sourcePath}\``;
   const defaultLocale = detail.defaultLocale ?? page.locale;
+  const own = page.kind === 'client' ? clientFix(kind, file, detail) : undefined;
+  if (own) return own;
   switch (kind) {
     case IssueKind.TITLE_TOO_LONG:
       return `Acorta el título a ${THRESHOLDS.titleMax} caracteres o menos: ${where(page, 'seo.title')}.`;

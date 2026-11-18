@@ -15,7 +15,7 @@ import {
 } from '../tree/types';
 import { contentDirs } from './content-dirs';
 import { LACKS } from './lacks';
-import { currentValue, GENERIC_FIX, keyOf, restrictionFor, scoped, WHY } from './kinds';
+import { currentValue, GENERIC_FIX, keyOf, placeOf, restrictionFor, scoped, WHY } from './kinds';
 import type { ReportScope } from './scope';
 
 /** Lo que el informe necesita saber del sitio, además del alcance. */
@@ -88,9 +88,22 @@ function dirsText(ctx: ReportContext, locales: readonly Locale[]): string {
   return [...byDir].map(([dir, own]) => `${code(dir)} (${own.join(', ')})`).join(' · ');
 }
 
+/** Cómo se marca en la lista una página que no es un `.md` de la carpeta de contenido. */
+const KIND_MARK: Record<SeoPage['kind'], string> = {
+  native: '',
+  external: ', externa',
+  client: ', página Astro',
+};
+
+/** Cómo se nombran juntas, cuando un problema afecta a todas, las que no tienen frontmatter. */
+const NO_FRONTMATTER = [
+  { kind: 'external', label: 'Las externas', place: 'en su entrada de docs.config.mjs' },
+  { kind: 'client', label: 'Las páginas Astro', place: 'en su <head>' },
+] as const;
+
 /** Una entrada como línea de lista: su archivo, su página y su idioma. */
 const entryLine = (entry: SeoPage, extra = '') => {
-  const where = `${code(entry.slug ? entry.slug : '/')}, ${entry.locale}${entry.kind === 'external' ? ', externa' : ''}`;
+  const where = `${code(entry.slug ? entry.slug : '/')}, ${entry.locale}${KIND_MARK[entry.kind]}`;
   return `  - ${code(entry.sourcePath)} (${where})${extra}`;
 };
 
@@ -207,24 +220,24 @@ function sectionOf(
       ),
     );
     const where = dirs ? `cada fichero de ${dirs}` : 'cada fichero de las páginas afectadas';
-    const externals = unique(
-      hits.filter(({ entry }) => entry.kind === 'external').map(({ entry }) => slugOf(entry.slug)),
-    );
-    const external = keyOf(kind, { kind: 'external' });
     lines.push(`- Ficheros y clave: ${key ? `${code(key)} en el frontmatter de ` : ''}${where}`);
-    if (externals.length > 0 && external) {
-      lines.push(
-        `  - Las externas (${externals.join(', ')}) no tienen frontmatter: ${code(external)} en su entrada de docs.config.mjs`,
+    for (const { kind: pageKind, label, place } of NO_FRONTMATTER) {
+      const pages = unique(
+        hits.filter(({ entry }) => entry.kind === pageKind).map(({ entry }) => slugOf(entry.slug)),
       );
+      const own = keyOf(kind, { kind: pageKind });
+      if (pages.length > 0 && own) {
+        lines.push(
+          `  - ${label} (${pages.join(', ')}) no tienen frontmatter: ${code(own)} ${place}`,
+        );
+      }
     }
   } else {
     lines.push(`- ${key ? `Ficheros y clave: ${code(key)} en` : 'Ficheros:'}`);
     for (const { entry, issue } of hits) {
-      const external = entry.kind === 'external' ? keyOf(kind, entry) : undefined;
+      const own = entry.kind === 'native' ? undefined : keyOf(kind, entry);
       const value = stated ? '' : ` — ${currentValue(entry, issue)?.text ?? ''}`;
-      lines.push(
-        entryLine(entry, `${external ? ` — ${code(external)} en docs.config.mjs` : ''}${value}`),
-      );
+      lines.push(entryLine(entry, `${own ? ` — ${code(own)} ${placeOf(entry)}` : ''}${value}`));
     }
   }
   if (sameEverywhere) {
@@ -408,7 +421,7 @@ function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext)
     lines.push('- Páginas y ficheros:');
     for (const entry of lacking) {
       const external =
-        key && entry.kind === 'external' ? ` — ${code(scoped(key, entry))} en docs.config.mjs` : '';
+        key && entry.kind !== 'native' ? ` — ${code(scoped(key, entry))} ${placeOf(entry)}` : '';
       lines.push(entryLine(entry, `${external} — ${lackNote(column, entry, ctx)}`));
     }
     lines.push('', ...DO_NOT_TOUCH);

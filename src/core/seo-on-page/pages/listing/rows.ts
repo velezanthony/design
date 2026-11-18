@@ -3,7 +3,11 @@ import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types'
 
 /** Una etiqueta de la página. Los textos los pone la UI. */
 export type PageTag =
-  { kind: 'home' } | { kind: 'only'; locale: Locale } | { kind: 'external' } | { kind: 'noindex' };
+  | { kind: 'home' }
+  | { kind: 'only'; locale: Locale }
+  | { kind: 'external' }
+  | { kind: 'client' }
+  | { kind: 'noindex' };
 
 /** El color de la insignia de un idioma: su peor gravedad, «ok» sin incidencias, «missing» si no existe. */
 export type LocaleTone = IssueSeverity | 'ok' | 'missing';
@@ -81,6 +85,7 @@ export function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]):
     tags.push({ kind: 'only', locale: entries[0].locale });
   }
   if (entries.some((entry) => entry.kind === 'external')) tags.push({ kind: 'external' });
+  if (entries.some((entry) => entry.kind === 'client')) tags.push({ kind: 'client' });
   if (entries.some((entry) => entry.meta.noindex)) tags.push({ kind: 'noindex' });
   return tags;
 }

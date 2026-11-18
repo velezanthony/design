@@ -17,7 +17,7 @@ import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
 import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
-import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
+import { loadDocData, loadPanelTree } from '../../data/seo-on-page/adapter';
 import { assetHref, devHrefs } from '../../views/seo-on-page/hrefs';
 import { fixPrompts, inspectorReport } from '../../views/seo-on-page/report';
 import { inspectorHeadings, panelView } from '../../views/seo-on-page/panel';
@@ -30,7 +30,7 @@ const docs = await loadDocData();
 /* El enlace de edición, como el de las páginas de docs: `editUrl` de la config más la ruta del archivo
    respecto a la raíz del repo, que solo conoce el loader. */
 const editPath = docs.find((doc) => doc.slug === slug && doc.locale === locale)?.editPath;
-const tree = await loadSeoTree(siteConfig);
+const tree = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = inspectorModel({
   tree,
   slug,

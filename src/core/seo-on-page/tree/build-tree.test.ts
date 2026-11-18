@@ -4,6 +4,8 @@ import { buildAvailability, pageUrl } from '../../i18n/availability';
 import { buildHead } from '../../seo/head';
 import { excludeNoindex, noindexUrls } from '../../seo/indexable';
 import { resolveMeta, withImageSize } from '../../seo/meta';
+import type { ClientPage } from '../../seo/client-pages';
+import type { HeadFacts } from '../../seo/html-head';
 import { buildSeoTree } from './build-tree';
 import type { SeoInput, SeoPageInput } from './input';
 
@@ -336,5 +338,70 @@ describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
     expect(tree.pages.flatMap((p) => p.issues).map((i) => i.kind)).not.toContain(
       'canonical-mismatch',
     );
+  });
+});
+
+describe('buildSeoTree: páginas del cliente', () => {
+  const clientPage = (path: string, extra: Partial<HeadFacts> = {}): ClientPage => ({
+    path,
+    pattern: path,
+    entrypoint: `src/pages${path}index.astro`,
+    head: {
+      lang: 'en',
+      title: 'About this design system and its whole portfolio',
+      description,
+      noindex: false,
+      alternates: [],
+      headings: [h(1, 'About')],
+      og: {},
+      jsonLd: [],
+      ...extra,
+    },
+  });
+  const kindsAt = (tree: ReturnType<typeof buildSeoTree>, slug: string) =>
+    tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+
+  it('entran en el árbol como «client», ordenadas con las demás', () => {
+    const tree = buildSeoTree({ ...input, client: [clientPage('/repo/about/')] });
+    expect(tree.pages.map((p) => `${p.slug}:${p.kind}`)).toEqual([
+      'about:client',
+      'guide:native',
+      'install:native',
+      'install:native',
+    ]);
+  });
+
+  it('pasan por los mismos analizadores que las demás', () => {
+    const tree = buildSeoTree({
+      ...input,
+      client: [clientPage('/repo/about/', { title: 'About', headings: [] })],
+    });
+    expect(kindsAt(tree, 'about')).toEqual(expect.arrayContaining(['title-too-short', 'no-h1']));
+  });
+
+  it('un título repetido entre una página del cliente y una de la documentación se avisa en las dos', () => {
+    const tree = buildSeoTree({
+      config,
+      url,
+      pages: [
+        page({ slug: 'guide', locale: 'en', seo: { title: 'Same title for both of these pages' } }),
+      ],
+      client: [
+        clientPage('/repo/about/', { title: 'Same title for both of these pages | Design' }),
+      ],
+    });
+    expect(kindsAt(tree, 'about')).toContain('duplicate-title');
+    expect(kindsAt(tree, 'guide')).toContain('duplicate-title');
+  });
+
+  it('no entran en el grafo de enlaces: ni salen huérfanas ni impiden juzgar a las demás', () => {
+    const tree = buildSeoTree({
+      config,
+      url,
+      pages: [page({ slug: 'solo', locale: 'en', links: [] })],
+      client: [clientPage('/repo/about/')],
+    });
+    expect(kindsAt(tree, 'about')).not.toContain('orphan-page');
+    expect(kindsAt(tree, 'solo')).toContain('orphan-page');
   });
 });

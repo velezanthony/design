@@ -239,12 +239,14 @@ export const tagLabel = (tag: PageTag): string =>
     home: 'Portada',
     only: `Solo ${tag.kind === 'only' ? tag.locale.toUpperCase() : ''}`,
     external: 'Externa',
+    client: 'Astro',
     noindex: 'noindex',
   })[tag.kind];
 
 /** Ayuda al ratón de las etiquetas que no se explican solas. */
 export const TAG_HINTS: Partial<Record<PageTag['kind'], string>> = {
   external: 'Generada desde un fichero fuera de las docs',
+  client: 'Página del sitio en src/pages/, leída de lo que publica su <head>',
   noindex: 'Los buscadores no deben indexarla',
 };
 

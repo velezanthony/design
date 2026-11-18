@@ -18,13 +18,13 @@ import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
-import { loadDocData, loadSeoTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
+import { loadDocData, loadPanelTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
 import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const tree = await loadSeoTree(siteConfig);
+const tree = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = overviewModel(tree, {
   locales: siteConfig.locales,
   defaultLocale: siteConfig.defaultLocale,

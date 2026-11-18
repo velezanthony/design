@@ -16,7 +16,7 @@ import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { urlPolicyOf } from '../../views/pages';
 import { headCount, VIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
-import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
+import { loadDocData, loadPanelTree } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
 import { listingReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
@@ -29,7 +29,7 @@ const view = panelView({
   screen: 'pages',
   title: 'Páginas',
 });
-const tree = await loadSeoTree(siteConfig);
+const tree = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = listingModel({
   tree,
   params: Astro.url.searchParams,

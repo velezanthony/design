@@ -191,6 +191,14 @@ describe('pageRows', () => {
       expect(tags).toEqual([{ kind: 'external' }, { kind: 'noindex' }]);
     });
 
+    it('una página que el sitio añade en src/pages/ lleva su etiqueta', () => {
+      const tags = rows([
+        entry('a', 'en', { kind: 'client' }),
+        entry('a', 'es', { kind: 'client' }),
+      ])[0]?.tags;
+      expect(tags).toEqual([{ kind: 'client' }]);
+    });
+
     it('con un solo idioma configurado, existir en uno solo no es «Solo»', () => {
       const [row] = pageRows([entry('a', 'en')], {
         locales: ['en'],

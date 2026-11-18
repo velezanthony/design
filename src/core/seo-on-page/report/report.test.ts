@@ -624,3 +624,59 @@ describe('JSON_SEPARATOR', () => {
     expect(JSON_SEPARATOR).toBe('\n\n');
   });
 });
+
+describe('buildReport: páginas del cliente (.astro)', () => {
+  const astro = (issues: Issue[] = [], extra: Partial<SeoPage> = {}) =>
+    seoPage({
+      slug: 'cv',
+      locale: 'en',
+      kind: 'client',
+      sourcePath: 'src/pages/cv.astro',
+      issues,
+      ...extra,
+    });
+
+  it('se marcan como página Astro y nombran la etiqueta de su <head>, no una clave de frontmatter', () => {
+    const own: SeoTree = {
+      pages: [astro([issue(IssueKind.TITLE_TOO_SHORT, IssueSeverity.WARNING)]), page('a', 'en')],
+    };
+    const text = md(siteScope(own), own);
+    expect(text).toContain(
+      '  - `src/pages/cv.astro` (`cv`, en, página Astro) — `<title>` en su <head>',
+    );
+  });
+
+  it('si el problema es de todas, las páginas Astro se nombran aparte con su etiqueta', () => {
+    const mixed: SeoTree = {
+      pages: [
+        page('a', 'en', [issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)]),
+        astro([issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)]),
+      ],
+    };
+    expect(md(siteScope(mixed), mixed)).toContain(
+      'Las páginas Astro (`cv`) no tienen frontmatter: `<meta name="description">` en su <head>',
+    );
+  });
+
+  it('en «Qué tiene» y en el JSON también se nombra la etiqueta', () => {
+    const lacking: SeoTree = {
+      pages: [astro([], { meta: meta({ descriptionSource: 'none', description: undefined }) })],
+    };
+    const { markdown, json } = buildReport(
+      filterScope(
+        selectListing(lacking, new URLSearchParams('view=have&lacks=desc')),
+        'sin descripción',
+      ),
+      ctxOf(lacking),
+    );
+    expect(markdown).toContain('`<meta name="description">` en su <head> — sin descripción');
+    expect(JSON.parse(json.replace(/^```json\n|\n```$/g, '')).pages[0].key).toBe(
+      '<meta name="description">',
+    );
+  });
+
+  it('su carpeta no es una carpeta de contenido', () => {
+    const own: SeoTree = { pages: [page('a', 'en'), astro()] };
+    expect(md(siteScope(own), own)).toContain('Contenido: `docs/` (en)');
+  });
+});

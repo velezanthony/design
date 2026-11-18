@@ -186,6 +186,23 @@ describe('loadSeoTree', () => {
   });
 });
 
+describe('loadSeoTree: páginas del cliente', () => {
+  it('las páginas de src/pages/ que se le pasan entran en el árbol junto a la colección', async () => {
+    const tree = await loadSeoTree(config as never, [
+      {
+        path: '/repo/cv/',
+        pattern: '/cv',
+        entrypoint: 'src/pages/cv.astro',
+        head: { title: 'CV', noindex: false, alternates: [], headings: [], og: {}, jsonLd: [] },
+      },
+    ]);
+    expect(tree.pages.find((page) => page.kind === 'client')).toMatchObject({
+      slug: 'cv',
+      sourcePath: 'src/pages/cv.astro',
+    });
+  });
+});
+
 describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
   it('lee de la entrada sus enlaces e imágenes y el árbol los juzga', async () => {
     const content = { links: [], images: [{ src: 'img/a.png', alt: '' }] };

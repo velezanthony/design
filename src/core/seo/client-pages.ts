@@ -1,3 +1,5 @@
+import type { HeadFacts } from './html-head';
+
 /** Los params de una URL concreta de una ruta dinámica (`{ lang: 'en', slug: 'uno' }`). */
 export type RouteParams = Record<string, string | undefined>;
 
@@ -17,6 +19,11 @@ export interface ClientPageRef {
   path: string;
   pattern: string;
   entrypoint: string;
+}
+
+/** Una página del cliente con lo que dice su `<head>`. */
+export interface ClientPage extends ClientPageRef {
+  head: HeadFacts;
 }
 
 /** Las páginas de error no son contenido: ni se indexan ni se analizan. */

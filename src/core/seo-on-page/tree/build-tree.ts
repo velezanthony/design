@@ -14,6 +14,7 @@ import { analyzeDuplicates, analyzeMetadata } from '../analyzers/metadata';
 import { analyzeMultilingual } from '../analyzers/multilingual';
 import { buildHeadingNodes } from '../nodes/headings';
 import { buildLocaleEntries } from '../nodes/locales';
+import { clientFacts } from '../nodes/client-page';
 import { buildMetaNode } from '../nodes/meta';
 import { navigationLinks } from '../nodes/navigation';
 import type { SeoInput, SeoPageInput } from './input';
@@ -78,18 +79,32 @@ export function buildSeoTree(input: SeoInput): SeoTree {
     };
   });
 
+  const client = clientFacts(input.client ?? [], {
+    locales: config.locales,
+    defaultLocale: config.defaultLocale,
+    missing: config.translations.missing,
+    base: url.base,
+  });
+  const all = [...facts, ...client].sort(
+    (a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale),
+  );
+
+  // Los duplicados se buscan entre TODAS: un título repetido entre una página del cliente y una
+  // de la documentación compite igual en los resultados.
   const duplicates = new Map<string, Issue[]>();
-  for (const issue of analyzeDuplicates(facts)) {
+  for (const issue of analyzeDuplicates(all)) {
     duplicates.set(keyOf(issue), [...(duplicates.get(keyOf(issue)) ?? []), issue]);
   }
 
+  // El grafo de enlaces es solo de la documentación: de las páginas del cliente no se recogen sus
+  // enlaces, y meterlas saldría en falsos «huérfana» (o impediría juzgar a las demás).
   const crossPage = new Map<string, Issue[]>();
   for (const issue of analyzeLinks(facts, navigationLinks(pages, config, url))) {
     crossPage.set(keyOf(issue), [...(crossPage.get(keyOf(issue)) ?? []), issue]);
   }
 
   return {
-    pages: facts.map((page): SeoPage => ({
+    pages: all.map((page): SeoPage => ({
       ...page,
       issues: [
         ...analyzeMetadata(page),

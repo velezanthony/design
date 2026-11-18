@@ -105,13 +105,19 @@ export type SeoLocaleEntry =
       declared: boolean;
     };
 
+/**
+ * De dónde sale una página: un `.md` de la carpeta de contenido (`native`), una entrada de
+ * `external[]` o una página que el cliente añade en `src/pages/` (`client`), leída de su `<head>`.
+ */
+export type SeoPageKind = Page['kind'] | 'client';
+
 /** Los hechos de una página, antes de juzgarlos. */
 export interface SeoPageFacts {
   slug: string;
   locale: Locale;
   /** Título de la página (el H1), no el `<title>`. */
   title: string;
-  kind: Page['kind'];
+  kind: SeoPageKind;
   sourcePath: string;
   meta: MetaNode;
   headings: HeadingNode[];

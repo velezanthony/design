@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
 import type { UrlPolicy } from '../../i18n/availability';
+import type { ClientPage } from '../../seo/client-pages';
 import type { ImageSizes } from '../../seo/meta';
 import type { HeadingNode, PageImage, PageLink } from './types';
 
@@ -19,4 +20,6 @@ export interface SeoInput {
   pages: SeoPageInput[];
   /** Dimensiones de las imágenes locales, si el adaptador las leyó (completan `og:image:*`). */
   imageSizes?: ImageSizes;
+  /** Las páginas que el cliente añade en `src/pages/`, leídas de su `<head>` (solo en dev). */
+  client?: ClientPage[];
 }

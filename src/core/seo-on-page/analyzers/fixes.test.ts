@@ -142,3 +142,57 @@ describe('fixFor', () => {
     }
   });
 });
+
+describe('fixFor: páginas del cliente (.astro)', () => {
+  const client = {
+    slug: 'cv',
+    locale: 'es',
+    kind: 'client' as const,
+    sourcePath: 'src/pages/cv.astro',
+  };
+
+  it.each([
+    [IssueKind.TITLE_TOO_LONG, '<title>'],
+    [IssueKind.DUPLICATE_TITLE, '<title>'],
+    [IssueKind.DESCRIPTION_MISSING, '<meta name="description">'],
+    [IssueKind.DESCRIPTION_TOO_LONG, '<meta name="description">'],
+  ])('%s: nombra la etiqueta del <head> y el .astro, nunca el frontmatter', (kind, tag) => {
+    const fix = fixFor(kind, client);
+    expect(fix).toContain(`\`${tag}\``);
+    expect(fix).toContain('`src/pages/cv.astro`');
+    expect(fix).not.toContain('frontmatter');
+  });
+
+  it('la imagen social propia se cambia en su og:image', () => {
+    const fix = fixFor(IssueKind.OG_IMAGE_SIZE, client, {
+      og: { source: 'page', width: 100, height: 100 },
+    });
+    expect(fix).toContain('`og:image`');
+    expect(fix).toContain('`src/pages/cv.astro`');
+  });
+
+  it('los encabezados se nombran en HTML, no en Markdown', () => {
+    expect(fixFor(IssueKind.NO_H1, client)).toBe('Añade un `<h1>` a `src/pages/cv.astro`.');
+    expect(fixFor(IssueKind.MULTIPLE_H1, client)).toBe(
+      'Deja un solo `<h1>` en `src/pages/cv.astro` y baja los demás a `<h2>`.',
+    );
+    expect(
+      fixFor(IssueKind.HEADING_SKIP, client, {
+        heading: { text: 'Experiencia', depth: 4, skipFrom: 2 },
+      }),
+    ).toBe('En `src/pages/cv.astro`, cambia «Experiencia» de `<h4>` a `<h3>`: sigue a un `<h2>`.');
+  });
+
+  it('la traducción que falta se declara con hreflang, no con un .md hermano', () => {
+    const fix = fixFor(IssueKind.TRANSLATION_MISSING, client, { missingLocale: 'en' });
+    expect(fix).toBe(
+      'Crea la versión en en y declárala con `<link rel="alternate" hreflang="en">` en `src/pages/cv.astro`.',
+    );
+  });
+
+  it('el canonical se corrige en su <link rel="canonical">', () => {
+    expect(fixFor(IssueKind.CANONICAL_MISMATCH, client)).toBe(
+      'Haz que el `<link rel="canonical">` de `src/pages/cv.astro` apunte a su propia URL.',
+    );
+  });
+});

@@ -1,11 +1,6 @@
-import { clientPagePaths, type ClientPageRef, type RouteParams } from '../../core/seo/client-pages';
-import { readHead, type HeadFacts } from '../../core/seo/html-head';
+import { clientPagePaths, type ClientPage, type RouteParams } from '../../core/seo/client-pages';
+import { readHead } from '../../core/seo/html-head';
 import { clientRegistry, type ClientRegistry } from './client-registry';
-
-/** Una página del cliente con lo que dice su `<head>`. */
-export interface ClientPage extends ClientPageRef {
-  head: HeadFacts;
-}
 
 export interface ClientPages {
   pages: ClientPage[];
