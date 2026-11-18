@@ -26,7 +26,7 @@ const edge = 'border-b border-rule';
   <p class="border border-rule bg-raised p-4 text-muted">{PAGES_TABLE_LABELS.empty}</p>
 ) : (
   <div class="overflow-x-auto" tabindex="0">
-    <table class="w-full border-collapse text-left text-sm">
+    <table class="table-cards w-full border-collapse text-left text-sm">
       <caption class="sr-only">{PAGES_TABLE_LABELS.caption}</caption>
       <thead>
         <tr class="label text-muted">
@@ -46,7 +46,7 @@ const edge = 'border-b border-rule';
       </thead>
       {rows.map((row) => (
         /* Un `<tbody>` por página: la fila y su detalle quedan juntos y el borde las separa de la siguiente. */
-        <tbody class={edge} data-page={row.slug}>
+        <tbody class={edge} data-page={row.slug} data-card>
           <tr>
             <th scope="row" class:list={[cell, 'font-normal']}>
               <Link href={row.href} class="font-mono">
@@ -63,21 +63,21 @@ const edge = 'border-b border-rule';
                 </p>
               )}
             </th>
-            <td class={cell}>
+            <td class={cell} data-cell="Idiomas">
               <div class="flex flex-wrap gap-1.5">
                 {row.locales.map(({ locale, tone }) => (
                   <LocaleBadge locale={locale} tone={tone} />
                 ))}
               </div>
             </td>
-            <td class={cell}>
+            <td class={cell} data-cell={'<title>'}>
               <LengthMeter
                 value={row.titleLength}
                 max={THRESHOLDS.titleMax}
                 min={THRESHOLDS.titleMin}
               />
             </td>
-            <td class={cell}>
+            <td class={cell} data-cell={PAGES_TABLE_LABELS.issues}>
               {row.issues.length === 0 ? (
                 <span class="text-muted">{PAGES_TABLE_LABELS.noOwnIssues}</span>
               ) : (

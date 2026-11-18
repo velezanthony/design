@@ -492,6 +492,30 @@ svg[id^='docs-mermaid-'] .label {
   }
 }
 
+/* Tabla que en pantallas estrechas pasa a una tarjeta por elemento `[data-card]` (una fila o un
+   `<tbody>`): sin desplazamiento horizontal, cada celda dice su columna con `data-cell`. */
+@utility table-cards {
+  @variant max-md {
+    & thead {
+      @apply sr-only;
+    }
+    &,
+    & tbody,
+    & tr,
+    & th,
+    & td {
+      @apply block w-full;
+    }
+    & [data-card] {
+      @apply mt-3 border border-rule;
+    }
+    & [data-cell]::before {
+      content: attr(data-cell);
+      @apply mb-1 block label text-faint;
+    }
+  }
+}
+
 @utility prose {
   /* El texto conserva su medida; lo ancho (código, tablas, pestañas, capturas) la desborda hasta
      `--wide-max`. La caja de `prose` ocupa toda la columna: la medida va en los hijos. */

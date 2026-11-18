@@ -31,7 +31,7 @@ const edge = 'border-b border-rule';
   <div class="flex flex-col gap-2">
     <p class="text-sm text-muted">{LABELS.recommendation}</p>
     <div class="overflow-x-auto" tabindex="0">
-      <table class="w-full border-collapse text-left text-sm">
+      <table class="table-cards w-full border-collapse text-left text-sm">
         <caption class="sr-only">{LABELS.caption}</caption>
         <thead>
           <tr class="label text-muted">
@@ -54,24 +54,24 @@ const edge = 'border-b border-rule';
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr class={edge} data-entry={`${row.slug}/${row.locale}`}>
+            <tr class={edge} data-entry={`${row.slug}/${row.locale}`} data-card>
               <th scope="row" class:list={[cell, 'font-normal']}>
                 <Link href={row.href} class="font-mono">
                   {slugLabel(row.slug)}
                 </Link>
                 <p class="text-ink">{row.title}</p>
               </th>
-              <td class={cell}>
+              <td class={cell} data-cell={LABELS.locale}>
                 <LocaleBadge locale={row.locale} tone={row.tone} />
               </td>
-              <td class={cell}>
+              <td class={cell} data-cell={LABELS.title}>
                 <LengthMeter
                   value={row.titleLength}
                   max={THRESHOLDS.titleMax}
                   min={THRESHOLDS.titleMin}
                 />
               </td>
-              <td class={cell}>
+              <td class={cell} data-cell={LABELS.description}>
                 <p class="text-muted">{DESCRIPTION_SOURCE_LABELS[row.descriptionSource]}</p>
                 {row.descriptionLength !== undefined && (
                   <LengthMeter
@@ -81,7 +81,7 @@ const edge = 'border-b border-rule';
                   />
                 )}
               </td>
-              <td class={cell}>
+              <td class={cell} data-cell={LABELS.issues}>
                 {row.issues.length === 0 ? (
                   <span class="text-muted">{LABELS.noOwnIssues}</span>
                 ) : (
