@@ -43,31 +43,31 @@ export function isZoomable(img: Element): boolean {
  * imágenes quedan como estaban.
  */
 export function initZoom(
-  doc: Document,
+  htmlDocument: Document,
   { labels, motion = { matches: false } }: ZoomOptions,
 ): void {
-  const images = [...doc.querySelectorAll<HTMLImageElement>('.prose img')].filter(
+  const images = [...htmlDocument.querySelectorAll<HTMLImageElement>('.prose img')].filter(
     (img) => !img.closest('.docs-zoom') && isZoomable(img),
   );
   if (!images.length) return;
 
-  const dialog = doc.createElement('dialog');
+  const dialog = htmlDocument.createElement('dialog');
   dialog.className = 'docs-zoom-dialog';
-  const big = doc.createElement('img');
+  const big = htmlDocument.createElement('img');
   big.className = 'docs-zoom-img';
-  const closeButton = doc.createElement('button');
+  const closeButton = htmlDocument.createElement('button');
   closeButton.type = 'button';
   closeButton.className = 'docs-zoom-close';
   closeButton.setAttribute('aria-label', labels.close);
   closeButton.textContent = '×';
   dialog.append(big, closeButton);
-  doc.body.append(dialog);
+  htmlDocument.body.append(dialog);
 
   let current: { trigger: HTMLElement; thumb: HTMLImageElement } | undefined;
   let closing = false;
 
-  function name(el: Element, on: boolean) {
-    const style = (el as HTMLElement).style;
+  function name(element: Element, on: boolean) {
+    const style = (element as HTMLElement).style;
     if (on) style.setProperty('view-transition-name', NAME);
     else style.removeProperty('view-transition-name');
   }
@@ -89,7 +89,7 @@ export function initZoom(
         /* La foto «después» se toma al resolver esta promesa: sin decodificar saldría vacía. */
         await Promise.resolve(big.decode?.()).catch(() => {});
       },
-      { doc, motion, kind: 'zoom' },
+      { htmlDocument, motion, kind: 'zoom' },
     ).then(() => name(big, false));
   }
 
@@ -104,7 +104,7 @@ export function initZoom(
         name(thumb, true);
         dialog.close();
       },
-      { doc, motion, kind: 'zoom' },
+      { htmlDocument, motion, kind: 'zoom' },
     ).then(() => name(thumb, false));
   }
 
@@ -127,7 +127,7 @@ export function initZoom(
   dialog.addEventListener('click', close);
 
   for (const thumb of images) {
-    const trigger = doc.createElement('button');
+    const trigger = htmlDocument.createElement('button');
     trigger.type = 'button';
     trigger.className = 'docs-zoom';
     trigger.setAttribute('aria-label', fill(labels.open, { alt: thumb.alt }));

@@ -27,25 +27,25 @@ export function codeText(pre: Element): string {
  * no puede funcionar es peor que ninguno.
  */
 export function initCopyCode(
-  doc: Document,
+  htmlDocument: Document,
   {
     clipboard,
     labels,
     resetAfterMs = 2000,
-    schedule = (cb, ms) => void setTimeout(cb, ms),
+    schedule = (callback, ms) => void setTimeout(callback, ms),
   }: CopyCodeOptions,
 ): void {
   if (!clipboard) return;
 
-  for (const pre of doc.querySelectorAll('pre.astro-code')) {
+  for (const pre of htmlDocument.querySelectorAll('pre.astro-code')) {
     if (pre.parentElement?.classList.contains('docs-code')) continue;
 
-    const wrapper = doc.createElement('div');
+    const wrapper = htmlDocument.createElement('div');
     wrapper.className = 'docs-code';
     pre.replaceWith(wrapper);
     wrapper.append(pre);
 
-    const button = doc.createElement('button');
+    const button = htmlDocument.createElement('button');
     button.type = 'button';
     button.className = 'docs-copy';
     button.setAttribute('aria-label', labels.copy);

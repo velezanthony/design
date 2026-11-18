@@ -107,8 +107,12 @@ describe('clientPagePaths', () => {
   });
 
   it('una URL repetida (dos entradas con los mismos params) sale una vez', async () => {
-    const dup = route('/[slug]', ['slug']);
-    const { pages } = await clientPagePaths([dup], async () => [{ slug: 'a' }, { slug: 'a' }], '/');
+    const duplicateIssue = route('/[slug]', ['slug']);
+    const { pages } = await clientPagePaths(
+      [duplicateIssue],
+      async () => [{ slug: 'a' }, { slug: 'a' }],
+      '/',
+    );
     expect(pages).toHaveLength(1);
   });
 });

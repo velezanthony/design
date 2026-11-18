@@ -29,11 +29,11 @@ describe('Admonition', () => {
   });
 
   it('el título por defecto respeta un override de strings', async () => {
-    const doc = await admonition({
+    const htmlDocument = await admonition({
       kind: 'note',
       strings: stringsFor('es', { 'admonition.note': 'Ojo' }),
     });
-    expect(text(doc.querySelector('.admonition-title'))).toBe('Ojo');
+    expect(text(htmlDocument.querySelector('.admonition-title'))).toBe('Ojo');
   });
 
   it.each(['note', 'info', 'tip', 'warning', 'danger', 'question'])(
@@ -46,9 +46,9 @@ describe('Admonition', () => {
   );
 
   it('con collapsed es un details cerrado cuyo summary es el título', async () => {
-    const doc = await admonition({ kind: 'tip', title: 'Más detalles', collapsed: true });
-    const details = doc.querySelector('details')!;
-    expect(doc.querySelector('aside')).toBeNull();
+    const htmlDocument = await admonition({ kind: 'tip', title: 'Más detalles', collapsed: true });
+    const details = htmlDocument.querySelector('details')!;
+    expect(htmlDocument.querySelector('aside')).toBeNull();
     expect(details.classList.contains('admonition')).toBe(true);
     expect(details.getAttribute('data-kind')).toBe('tip');
     expect(details.hasAttribute('open')).toBe(false);
@@ -59,13 +59,16 @@ describe('Admonition', () => {
   });
 
   it('el desplegable sin título usa el del tipo', async () => {
-    const doc = await admonition({ kind: 'warning', collapsed: true });
-    expect(text(doc.querySelector('summary'))).toBe('Advertencia');
+    const htmlDocument = await admonition({ kind: 'warning', collapsed: true });
+    expect(text(htmlDocument.querySelector('summary'))).toBe('Advertencia');
   });
 
   it('un cuerpo con bloques anidados se conserva', async () => {
-    const doc = await admonition({ kind: 'note' }, '<ul><li>a</li></ul><pre><code>x</code></pre>');
-    expect(doc.querySelector('aside ul li')).not.toBeNull();
-    expect(doc.querySelector('aside pre code')).not.toBeNull();
+    const htmlDocument = await admonition(
+      { kind: 'note' },
+      '<ul><li>a</li></ul><pre><code>x</code></pre>',
+    );
+    expect(htmlDocument.querySelector('aside ul li')).not.toBeNull();
+    expect(htmlDocument.querySelector('aside pre code')).not.toBeNull();
   });
 });

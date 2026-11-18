@@ -89,8 +89,8 @@ const blocked = {
 } as unknown as Storage;
 
 /** linkedom no calcula geometría: cada elemento la declara. */
-function geometry(el: Element, rect: { top: number; height: number }) {
-  Object.defineProperty(el, 'getBoundingClientRect', {
+function geometry(element: Element, rect: { top: number; height: number }) {
+  Object.defineProperty(element, 'getBoundingClientRect', {
     value: () => ({ top: rect.top, height: rect.height, bottom: rect.top + rect.height }),
   });
 }
@@ -119,12 +119,12 @@ function page({
 
 describe('sidebarScrollScript', () => {
   function run(
-    doc: Document,
+    htmlDocument: Document,
     session: Storage | 'throws',
     { wide = true }: { wide?: boolean } = {},
   ) {
     return new Function('document', 'sessionStorage', 'matchMedia', sidebarScrollScript())(
-      doc,
+      htmlDocument,
       session === 'throws' ? blocked : session,
       (query: string) => ({ matches: query === LG && wide }),
     );
@@ -215,10 +215,17 @@ describe('initSidebarScroll', () => {
   }: { storage?: Storage; wide?: boolean; left?: string; scrollTop?: number } = {}) {
     const { document, box } = page({ left, scrollTop });
     const listeners = new Map<string, () => void>();
-    const win = {
-      addEventListener: vi.fn((type: string, cb: () => void) => void listeners.set(type, cb)),
+    const browserWindow = {
+      addEventListener: vi.fn(
+        (type: string, callback: () => void) => void listeners.set(type, callback),
+      ),
     };
-    initSidebarScroll({ doc: document, storage, win, rail: { matches: wide } });
+    initSidebarScroll({
+      htmlDocument: document,
+      storage,
+      browserWindow,
+      rail: { matches: wide },
+    });
     return { document, box, storage, listeners };
   }
 
@@ -257,8 +264,13 @@ describe('initSidebarScroll', () => {
 
   it('sin barra lateral en la página no hace nada', () => {
     const { document } = parseHTML('<!doctype html><html><body></body></html>');
-    const win = { addEventListener: vi.fn() };
-    initSidebarScroll({ doc: document, storage: memory(), win, rail: { matches: true } });
-    expect(win.addEventListener).not.toHaveBeenCalled();
+    const browserWindow = { addEventListener: vi.fn() };
+    initSidebarScroll({
+      htmlDocument: document,
+      storage: memory(),
+      browserWindow,
+      rail: { matches: true },
+    });
+    expect(browserWindow.addEventListener).not.toHaveBeenCalled();
   });
 });

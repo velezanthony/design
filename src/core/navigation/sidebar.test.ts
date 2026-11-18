@@ -203,14 +203,22 @@ describe('buildSidebar: portada en la config', () => {
   });
 });
 
-const cfg = { locales: ['en', 'es'], defaultLocale: 'en' };
+const localeConfig = { locales: ['en', 'es'], defaultLocale: 'en' };
 
 describe('missingEntry', () => {
   const available = { en: '/repo/changelog/' };
 
   it('link: hoja hacia el original con la insignia del idioma de origen', () => {
     expect(
-      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.LINK, cfg, url),
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.LINK,
+        localeConfig,
+        url,
+      ),
     ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/changelog/', badge: 'en' });
   });
 
@@ -221,7 +229,7 @@ describe('missingEntry', () => {
       { es: '/repo/es/x/' },
       'en',
       MissingTranslation.LINK,
-      cfg,
+      localeConfig,
       url,
     );
     expect(entry).toMatchObject({ href: '/repo/es/x/', badge: 'es' });
@@ -235,7 +243,7 @@ describe('missingEntry', () => {
         available,
         'es',
         MissingTranslation.FALLBACK,
-        cfg,
+        localeConfig,
         url,
       ),
     ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/es/changelog/' });
@@ -243,7 +251,15 @@ describe('missingEntry', () => {
 
   it('omit: sin hoja', () => {
     expect(
-      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.OMIT, cfg, url),
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.OMIT,
+        localeConfig,
+        url,
+      ),
     ).toBeNull();
   });
 });

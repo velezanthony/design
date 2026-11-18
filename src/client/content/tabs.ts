@@ -31,19 +31,24 @@ let groups = 0;
  * fundido cruzado (View Transition con el grupo como único elemento nombrado, para que no se anime
  * la página entera), salvo que `motion` pida reducir el movimiento.
  */
-export function initTabs(doc: Document, motion: MotionPreference = { matches: false }): void {
-  for (const root of doc.querySelectorAll<HTMLElement>('.docs-tabs:not([data-enhanced])')) {
+export function initTabs(
+  htmlDocument: Document,
+  motion: MotionPreference = { matches: false },
+): void {
+  for (const root of htmlDocument.querySelectorAll<HTMLElement>(
+    '.docs-tabs:not([data-enhanced])',
+  )) {
     const panels = [...root.querySelectorAll<HTMLElement>(':scope > .docs-tab-panel')];
     if (!panels.length) continue;
 
     const group = ++groups;
-    const list = doc.createElement('div');
+    const list = htmlDocument.createElement('div');
     list.className = 'docs-tablist';
     list.setAttribute('role', 'tablist');
 
     const tabs = panels.map((panel, index) => {
       const label = panel.querySelector('.docs-tab-label')?.textContent?.trim();
-      const tab = doc.createElement('button');
+      const tab = htmlDocument.createElement('button');
       tab.type = 'button';
       tab.className = 'docs-tab';
       tab.id = `docs-tabs-${group}-tab-${index}`;
@@ -71,7 +76,7 @@ export function initTabs(doc: Document, motion: MotionPreference = { matches: fa
     function show(index: number) {
       if (tabs[index]!.getAttribute('aria-selected') === 'true') return;
       root.style.setProperty('view-transition-name', 'docs-tabs');
-      void withTransition(() => select(index), { doc, motion, kind: 'tabs' }).then(() =>
+      void withTransition(() => select(index), { htmlDocument, motion, kind: 'tabs' }).then(() =>
         root.style.removeProperty('view-transition-name'),
       );
     }

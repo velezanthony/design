@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { InPlaceIo } from '../modes/in-place.ts';
 
-function walk(dir: string, root: string): string[] {
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const full = path.join(dir, entry.name);
+function walk(directory: string, root: string): string[] {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(directory, entry.name);
     return entry.isDirectory() ? walk(full, root) : [path.relative(root, full)];
   });
 }
@@ -21,6 +21,7 @@ export function nodeInPlaceIo(repo: string): InPlaceIo {
         .sort(),
     read: (file) => fs.readFileSync(path.join(docs, file), 'utf8'),
     write: (file, text) => fs.writeFileSync(path.join(docs, file), text),
-    git: (args) => execFileSync('git', args, { cwd: repo, encoding: 'utf8', stdio: 'pipe' }),
+    git: (gitArguments) =>
+      execFileSync('git', gitArguments, { cwd: repo, encoding: 'utf8', stdio: 'pipe' }),
   };
 }

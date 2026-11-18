@@ -9,14 +9,14 @@ function intro() {
 
 describe('PanelIntro', () => {
   it('el título de la pantalla es el h1', async () => {
-    const doc = await intro();
-    expect(text(doc.querySelector('h1'))).toBe('Resumen');
+    const htmlDocument = await intro();
+    expect(text(htmlDocument.querySelector('h1'))).toBe('Resumen');
   });
 
   it('avisa de que es una herramienta solo de desarrollo, como nota', async () => {
-    const doc = await intro();
-    expect(doc.querySelector('aside[role="note"]')).not.toBeNull();
-    expect(text(doc)).toMatch(/solo en desarrollo/i);
+    const htmlDocument = await intro();
+    expect(htmlDocument.querySelector('aside[role="note"]')).not.toBeNull();
+    expect(text(htmlDocument)).toMatch(/solo en desarrollo/i);
   });
 
   it('con una frase de apoyo la pone bajo el título; sin ella no pinta un párrafo vacío', async () => {
@@ -29,15 +29,17 @@ describe('PanelIntro', () => {
   });
 
   it('la ranura «actions» pone sus botones junto al título', async () => {
-    const doc = await render(
+    const htmlDocument = await render(
       PanelIntro,
       { title: 'Resumen', strings: stringsFor('es') },
       { actions: '<button data-x>Acción</button>' },
     );
-    expect(doc.querySelector('[data-x]')).not.toBeNull();
-    expect(doc.querySelector('h1')!.parentElement!.contains(doc.querySelector('[data-x]'))).toBe(
-      true,
-    );
+    expect(htmlDocument.querySelector('[data-x]')).not.toBeNull();
+    expect(
+      htmlDocument
+        .querySelector('h1')!
+        .parentElement!.contains(htmlDocument.querySelector('[data-x]')),
+    ).toBe(true);
   });
 
   it('sin acciones no pinta una zona vacía', async () => {

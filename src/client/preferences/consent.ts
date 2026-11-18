@@ -92,23 +92,23 @@ export function analyticsCookiesToDelete(cookieJar: string, hostname: string): s
 const GTM_SCRIPT_ID = 'gtm-script';
 
 /** Idempotente: el contenedor se carga una vez por muchas veces que se conceda el consentimiento. */
-function loadGtm(doc: Document, id: string): boolean {
-  if (doc.getElementById(GTM_SCRIPT_ID)) return false;
+function loadGtm(htmlDocument: Document, id: string): boolean {
+  if (htmlDocument.getElementById(GTM_SCRIPT_ID)) return false;
 
-  const win = doc.defaultView as unknown as { dataLayer?: unknown[] };
-  win.dataLayer ??= [];
-  win.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
+  const browserWindow = htmlDocument.defaultView as unknown as { dataLayer?: unknown[] };
+  browserWindow.dataLayer ??= [];
+  browserWindow.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
 
-  const script = doc.createElement('script');
+  const script = htmlDocument.createElement('script');
   script.id = GTM_SCRIPT_ID;
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(id)}`;
-  doc.head.appendChild(script);
+  htmlDocument.head.appendChild(script);
   return true;
 }
 
 export interface ConsentEnv {
-  doc: Document;
+  htmlDocument: Document;
   storage: Storage | undefined;
   hostname: string;
   reload: () => void;
@@ -123,8 +123,8 @@ export interface ConsentEnv {
  * marcha no se puede descargar, así que un rechazo tras una concesión borra las cookies y
  * recarga la página.
  */
-export function initConsent({ doc, storage, hostname, reload }: ConsentEnv): void {
-  const foundBanner = doc.querySelector<HTMLElement>('[data-consent-banner]');
+export function initConsent({ htmlDocument, storage, hostname, reload }: ConsentEnv): void {
+  const foundBanner = htmlDocument.querySelector<HTMLElement>('[data-consent-banner]');
   if (!foundBanner) return;
   /* Las declaraciones de abajo no heredan el descarte de `null`: se fija en una constante. */
   const banner = foundBanner;
@@ -135,15 +135,18 @@ export function initConsent({ doc, storage, hostname, reload }: ConsentEnv): voi
   /* El banner va fijo abajo; la página reserva sitio para que nunca tape el pie. */
   function show() {
     banner.removeAttribute('hidden');
-    doc.documentElement.style.setProperty('--consent-space', `${banner.offsetHeight ?? 0}px`);
+    htmlDocument.documentElement.style.setProperty(
+      '--consent-space',
+      `${banner.offsetHeight ?? 0}px`,
+    );
   }
   function hide() {
     banner.setAttribute('hidden', '');
-    doc.documentElement.style.removeProperty('--consent-space');
+    htmlDocument.documentElement.style.removeProperty('--consent-space');
   }
 
   function grant() {
-    if (gtmId) loaded = loadGtm(doc, gtmId) || loaded;
+    if (gtmId) loaded = loadGtm(htmlDocument, gtmId) || loaded;
   }
 
   function choose(choice: Consent) {
@@ -151,14 +154,15 @@ export function initConsent({ doc, storage, hostname, reload }: ConsentEnv): voi
     hide();
     if (choice === 'granted') return grant();
     if (!loaded) return;
-    for (const cookie of analyticsCookiesToDelete(doc.cookie, hostname)) doc.cookie = cookie;
+    for (const cookie of analyticsCookiesToDelete(htmlDocument.cookie, hostname))
+      htmlDocument.cookie = cookie;
     reload();
   }
 
   banner.querySelector('[data-consent-accept]')?.addEventListener('click', () => choose('granted'));
   banner.querySelector('[data-consent-reject]')?.addEventListener('click', () => choose('denied'));
 
-  for (const opener of doc.querySelectorAll('[data-consent-open]')) {
+  for (const opener of htmlDocument.querySelectorAll('[data-consent-open]')) {
     opener.addEventListener('click', () => {
       show();
       /* Quien usa teclado pulsó un control del pie: la elección es donde aterriza. */

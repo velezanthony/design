@@ -25,16 +25,16 @@ function present(locale: string, overrides = {}) {
 
 describe('Translations', () => {
   it('una columna por idioma y una fila por campo', async () => {
-    const doc = await render(Translations, {
+    const htmlDocument = await render(Translations, {
       translations: { columns: [present('en'), present('es')] },
     });
     expect(
-      [...doc.querySelectorAll('thead [data-col]')].map((column) =>
+      [...htmlDocument.querySelectorAll('thead [data-col]')].map((column) =>
         column.getAttribute('data-col'),
       ),
     ).toEqual(['en', 'es']);
     expect(
-      [...doc.querySelectorAll('tbody tr')].map((row) => row.getAttribute('data-row')),
+      [...htmlDocument.querySelectorAll('tbody tr')].map((row) => row.getAttribute('data-row')),
     ).toEqual([
       'title',
       'titleLength',
@@ -46,7 +46,7 @@ describe('Translations', () => {
   });
 
   it('marca como «difiere» solo la celda que se aparta, con su porqué', async () => {
-    const doc = await render(Translations, {
+    const htmlDocument = await render(Translations, {
       translations: {
         columns: [
           present('en'),
@@ -58,13 +58,13 @@ describe('Translations', () => {
         ],
       },
     });
-    const marked = doc.querySelectorAll('[data-differs]');
+    const marked = htmlDocument.querySelectorAll('[data-differs]');
     expect(marked).toHaveLength(1);
     expect(text(marked[0]!)).toBe('70 difiere (al límite)');
   });
 
   it('el idioma ausente dice su política en lugar de datos', async () => {
-    const doc = await render(Translations, {
+    const htmlDocument = await render(Translations, {
       translations: {
         columns: [
           present('en'),
@@ -79,17 +79,17 @@ describe('Translations', () => {
         ],
       },
     });
-    expect(text(doc.querySelector('[data-row="title"]'))).toContain(
+    expect(text(htmlDocument.querySelector('[data-row="title"]'))).toContain(
       'Falta · política link (sin declarar)',
     );
   });
 
   it('enlaza al inspector de los otros idiomas y no al propio', async () => {
-    const doc = await render(Translations, {
+    const htmlDocument = await render(Translations, {
       translations: { columns: [present('en'), present('es')] },
     });
-    expect(doc.querySelector('[data-col="en"] a')).toBeNull();
-    expect(doc.querySelector('[data-col="es"] a')!.getAttribute('href')).toBe(
+    expect(htmlDocument.querySelector('[data-col="en"] a')).toBeNull();
+    expect(htmlDocument.querySelector('[data-col="es"] a')!.getAttribute('href')).toBe(
       '/i/?slug=guide&locale=es',
     );
   });

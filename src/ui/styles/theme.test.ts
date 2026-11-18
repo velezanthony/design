@@ -142,10 +142,10 @@ describe.each([
   ['claro', light],
   ['oscuro', palette(darkChosen)],
 ])('contraste (%s)', (_label, colors) => {
-  it.each(pairs)('%s sobre %s ≥ %d:1', (fg, bg, min) => {
-    expect(colors[fg], `falta --color-${fg}`).toBeDefined();
-    expect(colors[bg], `falta --color-${bg}`).toBeDefined();
-    expect(contrast(colors[fg]!, colors[bg]!)).toBeGreaterThanOrEqual(min);
+  it.each(pairs)('%s sobre %s ≥ %d:1', (foreground, background, min) => {
+    expect(colors[foreground], `falta --color-${foreground}`).toBeDefined();
+    expect(colors[background], `falta --color-${background}`).toBeDefined();
+    expect(contrast(colors[foreground]!, colors[background]!)).toBeGreaterThanOrEqual(min);
   });
 });
 

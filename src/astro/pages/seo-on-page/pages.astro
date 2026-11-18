@@ -22,7 +22,7 @@ import { panelView } from '../../views/seo-on-page/panel';
 
 const { docs, tree, failures, hrefs } = await loadPanel(siteConfig, Astro.url.origin);
 const view = panelView({
-  cfg: siteConfig,
+  config: siteConfig,
   data: docs,
   hrefs,
   screen: 'pages',

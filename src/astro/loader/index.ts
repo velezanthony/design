@@ -36,21 +36,21 @@ function contentDir(root: string, config: Pick<LoaderConfig, 'content'>) {
 }
 
 /** Falla con la ruta ya resuelta si la carpeta de contenido no existe o no es una carpeta. */
-async function assertContentDir(dir: string, config: Pick<LoaderConfig, 'content'>) {
-  const info = await stat(dir).catch(() => undefined);
+async function assertContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
+  const info = await stat(directory).catch(() => undefined);
   if (info?.isDirectory()) return;
-  throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${dir}.`, {
+  throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${directory}.`, {
     hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
   });
 }
 
 /** Rutas de los `.md` bajo `dir`, relativas a él y con `/` aunque el sistema use otro separador. */
-async function walk(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { recursive: true, withFileTypes: true });
+async function walk(directory: string): Promise<string[]> {
+  const entries = await readdir(directory, { recursive: true, withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
     .map((entry) =>
-      path.relative(dir, path.join(entry.parentPath, entry.name)).split(path.sep).join('/'),
+      path.relative(directory, path.join(entry.parentPath, entry.name)).split(path.sep).join('/'),
     );
 }
 
@@ -108,8 +108,8 @@ function discoverOrErrors(
  * enlaces y renderizar cada página, y validar anclas e imágenes con los encabezados de TODAS.
  * Los fallos se acumulan y salen en un único error con archivo y línea.
  */
-async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
-  const root = fileURLToPath(ctx.config.root);
+async function sync(context: LoaderContext, config: LoaderConfig): Promise<void> {
+  const root = fileURLToPath(context.config.root);
   const read = await readSources(root, config);
   const errors: DocsError[] = [...read.errors];
   const discovered = discoverOrErrors(read.files, config);
@@ -128,7 +128,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
     );
   }
   for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {
-    ctx.logger.warn(
+    context.logger.warn(
       `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`translations\` para elegir qué ve quien no tiene traducción.`,
     );
   }
@@ -139,10 +139,10 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
   // Sin páginas no hay nada más que validar: se cuentan los fallos y se corta.
   if (pages.length === 0) collectErrors(errors);
 
-  ctx.store.clear();
+  context.store.clear();
   const index = {
     pages,
-    url: urlPolicyOf(ctx.config, config.defaultLocale),
+    url: urlPolicyOf(context.config, config.defaultLocale),
     contentDir: config.content,
   };
   const refs: LinkRef[] = [];
@@ -154,7 +154,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
     errors.push(...rewritten.errors);
     refs.push(...rewritten.refs);
 
-    const data = await ctx.parseData({
+    const data = await context.parseData({
       id,
       data: {
         slug: page.slug,
@@ -168,7 +168,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
         ...(repoRoot !== undefined && { editPath: path.relative(repoRoot, file) }),
       },
     });
-    const markdown = await ctx.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
+    const markdown = await context.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
     // Los enlaces y las imágenes ya los detectó `rewriteLinks`: se guardan junto a los encabezados
     // para el panel SEO (huérfanas, enlaces a noindex, texto alternativo) sin releer el Markdown.
     const rendered = {
@@ -183,7 +183,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
       locale: page.locale,
       headings: rendered.metadata?.headings ?? [],
     });
-    ctx.store.set({
+    context.store.set({
       id,
       data,
       body: rewritten.body,
@@ -196,10 +196,10 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
   errors.push(...validateAnchors(refs, buildHeadingIndex(headings)));
   const images = await checkSeoImages(
     collectImageRefs(config.seo.image, pages),
-    ctx.config.publicDir,
+    context.config.publicDir,
   );
-  errors.push(...images.errors, ...(await checkFavicon(config.favicon, ctx.config.publicDir)));
-  for (const warning of images.warnings) ctx.logger.warn(warning);
+  errors.push(...images.errors, ...(await checkFavicon(config.favicon, context.config.publicDir)));
+  for (const warning of images.warnings) context.logger.warn(warning);
   collectErrors(errors);
 }
 
@@ -228,24 +228,24 @@ function createLoader(getConfig: () => LoaderConfig): Loader {
   return {
     name: '@velezanthony/design/loader',
     schema: docsSchema(),
-    async load(ctx) {
+    async load(context) {
       const docsConfig = getConfig();
       async function run() {
-        return sync(ctx, docsConfig).catch((error: unknown) => {
+        return sync(context, docsConfig).catch((error: unknown) => {
           throw toAstroError(error, LOAD_ERROR);
         });
       }
       await run();
 
-      if (ctx.watcher) {
-        const root = fileURLToPath(ctx.config.root);
-        watchSources(ctx.watcher, {
+      if (context.watcher) {
+        const root = fileURLToPath(context.config.root);
+        watchSources(context.watcher, {
           nativeDir: contentDir(root, docsConfig),
           files: externalCandidates(docsConfig).map((file) => path.resolve(root, file)),
           reload: createReloader(run, (error) => {
             const text = error instanceof Error ? error.message : String(error);
             const hint = (error as { hint?: string }).hint;
-            ctx.logger.error(hint ? `${text}\n${hint}` : text);
+            context.logger.error(hint ? `${text}\n${hint}` : text);
           }),
         });
       }

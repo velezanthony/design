@@ -83,7 +83,7 @@ export interface RailQuery {
 }
 
 export interface LayoutEnv {
-  doc: Document;
+  htmlDocument: Document;
   storage: Storage | undefined;
   /** Sin él se asume que el raíl existe (escritorio). */
   rail?: RailQuery;
@@ -107,10 +107,10 @@ function readLayout(root: HTMLElement): LayoutState {
  * servidor lo escribe, el script previo lo restaura y aquí se cambia, se refleja en `aria-*` e
  * `inert` y se guarda. Sin controles en la página (`toggles: false`) no hace nada.
  */
-export function initLayout({ doc, storage, rail }: LayoutEnv): void {
-  const root = doc.documentElement;
-  const toggles = [...doc.querySelectorAll<HTMLElement>('[data-layout-toggle]')];
-  const widths = [...doc.querySelectorAll<HTMLElement>('[data-layout-width]')];
+export function initLayout({ htmlDocument, storage, rail }: LayoutEnv): void {
+  const root = htmlDocument.documentElement;
+  const toggles = [...htmlDocument.querySelectorAll<HTMLElement>('[data-layout-toggle]')];
+  const widths = [...htmlDocument.querySelectorAll<HTMLElement>('[data-layout-width]')];
   if (!toggles.length && !widths.length) return;
 
   function apply(state: LayoutState) {
@@ -126,7 +126,7 @@ export function initLayout({ doc, storage, rail }: LayoutEnv): void {
       /* Plegado, el panel sigue en el DOM (se anima al volver): `inert` lo saca del tabulador y del
          árbol de accesibilidad. Solo donde hay raíl: por debajo de lg el lateral es el «Menú»
          y sus enlaces tienen que poder pulsarse, esté como esté guardado. */
-      const panel = doc.getElementById(button.getAttribute('aria-controls') ?? '');
+      const panel = htmlDocument.getElementById(button.getAttribute('aria-controls') ?? '');
       if (open || rail?.matches === false) panel?.removeAttribute('inert');
       else panel?.setAttribute('inert', '');
     }

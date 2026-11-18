@@ -22,7 +22,7 @@ const tree: SeoTree = {
     }),
   ],
 };
-const ctx = {
+const context = {
   site: 'S',
   locales: ['en'],
   tree,
@@ -33,7 +33,7 @@ const ctx = {
 };
 
 describe('reportTexts', () => {
-  const texts = reportTexts({ page: pageScope(tree, 'a'), site: siteScope(tree) }, ctx);
+  const texts = reportTexts({ page: pageScope(tree, 'a'), site: siteScope(tree) }, context);
 
   it('trae un texto por alcance, con el nombre que se le dio', () => {
     expect(Object.keys(texts)).toEqual(['page', 'site']);

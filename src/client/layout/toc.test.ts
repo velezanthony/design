@@ -59,19 +59,19 @@ describe('trackSections', () => {
     const host = {
       scrollY: atBottom ? 1000 : 0,
       innerHeight: 500,
-      addEventListener: (_type: 'scroll', cb: () => void) => void scrolls.push(cb),
-      requestAnimationFrame: (cb: () => void) => void frames.push(cb),
+      addEventListener: (_type: 'scroll', callback: () => void) => void scrolls.push(callback),
+      requestAnimationFrame: (callback: () => void) => void frames.push(callback),
     };
     Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1500 });
-    trackSections(document.querySelector('nav')!, { doc: document, host });
+    trackSections(document.querySelector('nav')!, { htmlDocument: document, host });
     function current() {
       return [...document.querySelectorAll('nav a')]
         .filter((anchor) => anchor.getAttribute('aria-current') === 'location')
         .map((anchor) => anchor.getAttribute('href'));
     }
     function scroll() {
-      for (const cb of scrolls) cb();
-      for (const cb of frames.splice(0)) cb();
+      for (const callback of scrolls) callback();
+      for (const callback of frames.splice(0)) callback();
     }
     return { current, scroll, scrolls, frames, document };
   }
@@ -114,7 +114,7 @@ describe('trackSections', () => {
     const { document } = parseHTML('<nav><a href="#x">x</a></nav>');
     let added = 0;
     trackSections(document.querySelector('nav')!, {
-      doc: document,
+      htmlDocument: document,
       host: {
         scrollY: 0,
         innerHeight: 1,

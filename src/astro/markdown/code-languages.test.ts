@@ -71,15 +71,21 @@ describe('resaltado con los alias', () => {
   };
 
   it.each(Object.keys(sample))('«%s» se resalta (no cae a texto plano)', async (lang) => {
-    const hl = await createShikiHighlighter({ themes, langAlias: { ...SHIKI_LANG_ALIAS } });
-    const html = await hl.codeToHtml(sample[lang]!, lang, {});
+    const highlighter = await createShikiHighlighter({
+      themes,
+      langAlias: { ...SHIKI_LANG_ALIAS },
+    });
+    const html = await highlighter.codeToHtml(sample[lang]!, lang, {});
     expect(html).toContain('data-language="' + lang + '"');
     expect(html).toMatch(/<span style="color:#/);
   });
 
   it('un texto plano no lleva colores de token', async () => {
-    const hl = await createShikiHighlighter({ themes, langAlias: { ...SHIKI_LANG_ALIAS } });
-    const html = await hl.codeToHtml('KEY=value', 'plaintext', {});
+    const highlighter = await createShikiHighlighter({
+      themes,
+      langAlias: { ...SHIKI_LANG_ALIAS },
+    });
+    const html = await highlighter.codeToHtml('KEY=value', 'plaintext', {});
     expect(html).not.toMatch(/<span style="color:#/);
   });
 });

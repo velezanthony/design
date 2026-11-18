@@ -18,8 +18,8 @@ import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 
 /** Parámetros de `getStaticPaths` de la página de privacidad (ver `core/privacy/pages`). */
-export function privacyRoutes(cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) {
-  return routesOf(cfg.locales, cfg.defaultLocale);
+export function privacyRoutes(config: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) {
+  return routesOf(config.locales, config.defaultLocale);
 }
 
 /** Todo lo que `PrivacyLayout` necesita, ya calculado: el contenedor solo lo pasa. */
@@ -43,7 +43,7 @@ export interface PrivacyView {
 
 interface PrivacyViewInput {
   locale: Locale | undefined;
-  cfg: VirtualConfig;
+  config: VirtualConfig;
   data?: DocData[];
   sizes?: ImageSizes;
 }
@@ -51,18 +51,18 @@ interface PrivacyViewInput {
 /** Datos de la página de privacidad en un idioma (`undefined` es el idioma por defecto). */
 export function privacyView({
   locale,
-  cfg,
+  config,
   data = [],
   sizes = new Map(),
 }: PrivacyViewInput): PrivacyView {
-  const lang = locale ?? cfg.defaultLocale;
-  const site = siteContext(cfg, data);
+  const lang = locale ?? config.defaultLocale;
+  const site = siteContext(config, data);
   const { url } = site;
-  const strings = cfg.strings[lang] as UiStrings;
-  const av = privacyAvailability(cfg.locales, url);
+  const strings = config.strings[lang] as UiStrings;
+  const availability = privacyAvailability(config.locales, url);
   const title = strings['consent.privacy'];
   const meta = withImageSize(
-    resolveMeta(cfg.seo, { description: strings['privacy.description'] }, { title }, lang),
+    resolveMeta(config.seo, { description: strings['privacy.description'] }, { title }, lang),
     sizes,
   );
   // Es una página normal e indexable: canonical y hreflang salen de su entrada de disponibilidad.
@@ -70,29 +70,29 @@ export function privacyView({
     meta,
     {
       kind: 'page',
-      slug: [...av.keys()][0] ?? '',
+      slug: [...availability.keys()][0] ?? '',
       locale: lang,
       url: pageUrl(privacySlug(lang), lang, url),
     },
-    av,
-    new URL(cfg.site),
-    cfg,
+    availability,
+    new URL(config.site),
+    config,
     url,
   );
   const navContext = navContextOf(site, lang, '');
   return {
     lang,
     head,
-    siteName: cfg.name,
+    siteName: config.name,
     homeHref: pageUrl('', lang, url),
-    hrefs: [...av.values()][0] ?? {},
+    hrefs: [...availability.values()][0] ?? {},
     strings,
-    nav: buildNav(cfg.nav, navContext),
-    footer: buildFooter(cfg, navContext, strings),
-    baseUrl: baseUrl(cfg.base),
-    ...consentOf(cfg, lang),
+    nav: buildNav(config.nav, navContext),
+    footer: buildFooter(config, navContext, strings),
+    baseUrl: baseUrl(config.base),
+    ...consentOf(config, lang),
     title,
-    sections: privacyCopy(lang, cfg.privacy.controller),
+    sections: privacyCopy(lang, config.privacy.controller),
     updated: { iso: PRIVACY_UPDATED, text: formatPrivacyDate(lang, PRIVACY_UPDATED) },
   };
 }

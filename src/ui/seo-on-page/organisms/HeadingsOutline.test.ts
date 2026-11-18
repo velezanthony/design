@@ -15,23 +15,23 @@ function props(headings: ReturnType<typeof heading>[]) {
 
 describe('HeadingsOutline', () => {
   it('una estructura buena dice «Un H1 · sin saltos de nivel»', async () => {
-    const doc = await render(HeadingsOutline, props([heading(1), heading(2), heading(3)]));
-    expect(text(doc.querySelector('[data-headings-status="ok"]'))).toBe(
+    const htmlDocument = await render(HeadingsOutline, props([heading(1), heading(2), heading(3)]));
+    expect(text(htmlDocument.querySelector('[data-headings-status="ok"]'))).toBe(
       '✓ Un H1 · sin saltos de nivel',
     );
   });
 
   it('una mala lista cada problema en lugar del visto bueno', async () => {
-    const doc = await render(HeadingsOutline, props([heading(2), heading(4)]));
-    expect(doc.querySelector('[data-headings-status="ok"]')).toBeNull();
-    const status = text(doc.querySelector('[data-headings-status="problems"]'));
+    const htmlDocument = await render(HeadingsOutline, props([heading(2), heading(4)]));
+    expect(htmlDocument.querySelector('[data-headings-status="ok"]')).toBeNull();
+    const status = text(htmlDocument.querySelector('[data-headings-status="problems"]'));
     expect(status).toContain('Sin H1');
     expect(status).toContain('Salto de H2 a H4');
   });
 
   it('el contador enseña los seis niveles y el total, y apaga los que valen cero', async () => {
-    const doc = await render(HeadingsOutline, props([heading(1), heading(2), heading(2)]));
-    const items = [...doc.querySelectorAll('[data-counts] li')];
+    const htmlDocument = await render(HeadingsOutline, props([heading(1), heading(2), heading(2)]));
+    const items = [...htmlDocument.querySelectorAll('[data-counts] li')];
     expect(items.map((item) => text(item))).toEqual([
       'H1 1',
       'H2 2',
@@ -45,17 +45,17 @@ describe('HeadingsOutline', () => {
   });
 
   it('el esquema sangra por nivel y marca el salto', async () => {
-    const doc = await render(
+    const htmlDocument = await render(
       HeadingsOutline,
       props([heading(1, 'Uno'), heading(2, 'Dos'), heading(4, 'Cuatro')]),
     );
-    const items = [...doc.querySelectorAll('[data-outline] li')];
+    const items = [...htmlDocument.querySelectorAll('[data-outline] li')];
     expect(items.map((item) => item.hasAttribute('data-skip'))).toEqual([false, false, true]);
     expect(text(items[2]!)).toContain('Salto H2 → H4');
   });
 
   it('sin encabezados lo dice', async () => {
-    const doc = await render(HeadingsOutline, props([]));
-    expect(text(doc.querySelector('[data-outline-empty]'))).toContain('Sin encabezados');
+    const htmlDocument = await render(HeadingsOutline, props([]));
+    expect(text(htmlDocument.querySelector('[data-outline-empty]'))).toContain('Sin encabezados');
   });
 });

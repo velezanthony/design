@@ -18,19 +18,19 @@ function png(width: number, height: number, extra = 0): Buffer {
   return Buffer.concat([header, Buffer.alloc(extra)]);
 }
 
-let dir: string;
+let directory: string;
 let publicDir: URL;
 
 beforeEach(async () => {
-  dir = await mkdtemp(path.join(tmpdir(), 'docs-images-'));
-  await mkdir(path.join(dir, 'public/img'), { recursive: true });
-  publicDir = pathToFileURL(`${path.join(dir, 'public')}/`);
+  directory = await mkdtemp(path.join(tmpdir(), 'docs-images-'));
+  await mkdir(path.join(directory, 'public/img'), { recursive: true });
+  publicDir = pathToFileURL(`${path.join(directory, 'public')}/`);
 });
-afterEach(() => rm(dir, { recursive: true, force: true }));
+afterEach(() => rm(directory, { recursive: true, force: true }));
 
 describe('checkSeoImages', () => {
   it('una imagen 1200x630 ligera no da errores ni avisos', async () => {
-    await writeFile(path.join(dir, 'public/og.png'), png(1200, 630));
+    await writeFile(path.join(directory, 'public/og.png'), png(1200, 630));
     const result = await checkSeoImages([{ src: '/og.png', field: 'seo.image.src' }], publicDir);
     expect(result).toEqual({ errors: [], warnings: [] });
   });
@@ -56,7 +56,7 @@ describe('checkSeoImages', () => {
   });
 
   it('avisa de proporción y de peso con el archivo de origen', async () => {
-    await writeFile(path.join(dir, 'public/cuadrada.png'), png(1000, 1000, 400 * 1024));
+    await writeFile(path.join(directory, 'public/cuadrada.png'), png(1000, 1000, 400 * 1024));
     const { errors, warnings } = await checkSeoImages(
       [{ src: '/cuadrada.png', field: 'seo.image.src', file: 'a.md' }],
       publicDir,
@@ -69,7 +69,7 @@ describe('checkSeoImages', () => {
   });
 
   it('una imagen que no se deja leer avisa en vez de romper', async () => {
-    await writeFile(path.join(dir, 'public/rota.png'), 'no soy una imagen');
+    await writeFile(path.join(directory, 'public/rota.png'), 'no soy una imagen');
     const { errors, warnings } = await checkSeoImages(
       [{ src: '/rota.png', field: 'seo.image.src' }],
       publicDir,
@@ -80,7 +80,7 @@ describe('checkSeoImages', () => {
   });
 
   it('una ruta que se sale de public/ cuenta como ausente', async () => {
-    await writeFile(path.join(dir, 'secreto.png'), png(1200, 630));
+    await writeFile(path.join(directory, 'secreto.png'), png(1200, 630));
     const { errors } = await checkSeoImages(
       [{ src: '/../secreto.png', field: 'seo.image.src' }],
       publicDir,
@@ -89,7 +89,7 @@ describe('checkSeoImages', () => {
   });
 
   it('la misma imagen en varias páginas se lee una sola vez pero avisa en cada una', async () => {
-    await writeFile(path.join(dir, 'public/sq.png'), png(500, 500));
+    await writeFile(path.join(directory, 'public/sq.png'), png(500, 500));
     const { warnings } = await checkSeoImages(
       [
         { src: '/sq.png', field: 'seo.image.src', file: 'a.md' },
@@ -103,8 +103,8 @@ describe('checkSeoImages', () => {
 
 describe('readImageSizes', () => {
   it('lee las dimensiones de las locales y omite https, ausentes e ilegibles', async () => {
-    await writeFile(path.join(dir, 'public/og.png'), png(1200, 630));
-    await writeFile(path.join(dir, 'public/roto.png'), 'no es una imagen');
+    await writeFile(path.join(directory, 'public/og.png'), png(1200, 630));
+    await writeFile(path.join(directory, 'public/roto.png'), 'no es una imagen');
     const sizes = await readImageSizes(
       ['/og.png', '/og.png', 'https://cdn.dev/x.png', '/falta.png', '/roto.png'],
       publicDir,

@@ -22,12 +22,12 @@ describe('ui/ sin acoplamiento al portfolio', () => {
 });
 
 describe('subpath ./components/*', () => {
-  const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
+  const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
     exports: Record<string, string>;
   };
 
   it('apunta a src/ui', () => {
-    expect(pkg.exports['./components/*']).toBe('./src/ui/*');
+    expect(packageJson.exports['./components/*']).toBe('./src/ui/*');
   });
 
   it.each(['Link', 'Icon', 'Heading', 'Tag', 'Button', 'Input', 'Checkbox'])(

@@ -15,16 +15,16 @@ const kpis = {
 
 describe('OverviewKpis', () => {
   it('la salud enseña el porcentaje con la cuenta que lo explica', async () => {
-    const doc = await render(OverviewKpis, { kpis });
-    const health = text(doc.querySelector('[data-kpi="health"]'));
+    const htmlDocument = await render(OverviewKpis, { kpis });
+    const health = text(htmlDocument.querySelector('[data-kpi="health"]'));
     expect(health).toContain('92');
     expect(health).toContain('35 sin errores ni avisos ÷ 38 páginas');
   });
 
   it('con problemas e informativas enlazan a la tabla; sin ellas no hay enlace', async () => {
-    const doc = await render(OverviewKpis, { kpis });
-    expect(doc.querySelector('[data-kpi="problems"] a')!.getAttribute('href')).toBe('/t/');
-    expect(doc.querySelector('[data-kpi="info"] a')!.getAttribute('href')).toBe(
+    const htmlDocument = await render(OverviewKpis, { kpis });
+    expect(htmlDocument.querySelector('[data-kpi="problems"] a')!.getAttribute('href')).toBe('/t/');
+    expect(htmlDocument.querySelector('[data-kpi="info"] a')!.getAttribute('href')).toBe(
       '/t/?severity=info',
     );
     const none = await render(OverviewKpis, {
@@ -40,7 +40,7 @@ describe('OverviewKpis', () => {
   });
 
   it('los idiomas dicen cuántas entradas tiene cada uno', async () => {
-    const doc = await render(OverviewKpis, { kpis });
-    expect(text(doc.querySelector('[data-kpi="locales"]'))).toContain('en (38) · es (37)');
+    const htmlDocument = await render(OverviewKpis, { kpis });
+    expect(text(htmlDocument.querySelector('[data-kpi="locales"]'))).toContain('en (38) · es (37)');
   });
 });

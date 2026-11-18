@@ -32,8 +32,8 @@ function form(filters: SeoFilters = none, perPage = 25, view: ViewState = { view
     action: '/repo/seo-on-page/pages/',
   });
 }
-function checked(doc: Document, name: string) {
-  return [...doc.querySelectorAll(`input[name="${name}"]`)]
+function checked(htmlDocument: Document, name: string) {
+  return [...htmlDocument.querySelectorAll(`input[name="${name}"]`)]
     .filter((input) => input.hasAttribute('checked'))
     .map((input) => input.getAttribute('value'));
 }
@@ -46,29 +46,29 @@ describe('FiltersForm', () => {
   });
 
   it('ofrece cada gravedad, cada idioma de la config y cada tipo de problema', async () => {
-    const doc = await form();
-    expect(doc.querySelectorAll('input[name="severity"]')).toHaveLength(3);
-    expect(doc.querySelectorAll('input[name="locale"]')).toHaveLength(2);
-    expect(doc.querySelectorAll('input[name="kind"]')).toHaveLength(18);
+    const htmlDocument = await form();
+    expect(htmlDocument.querySelectorAll('input[name="severity"]')).toHaveLength(3);
+    expect(htmlDocument.querySelectorAll('input[name="locale"]')).toHaveLength(2);
+    expect(htmlDocument.querySelectorAll('input[name="kind"]')).toHaveLength(18);
   });
 
   it('refleja los filtros activos marcados', async () => {
-    const doc = await form({
+    const htmlDocument = await form({
       kinds: ['no-h1'],
       severities: ['error', 'warning'],
       locales: ['es'],
       text: 'orm',
     });
-    expect(checked(doc, 'kind')).toEqual(['no-h1']);
-    expect(checked(doc, 'severity')).toEqual(['error', 'warning']);
-    expect(checked(doc, 'locale')).toEqual(['es']);
-    expect(doc.querySelector('input[name="q"]')!.getAttribute('value')).toBe('orm');
+    expect(checked(htmlDocument, 'kind')).toEqual(['no-h1']);
+    expect(checked(htmlDocument, 'severity')).toEqual(['error', 'warning']);
+    expect(checked(htmlDocument, 'locale')).toEqual(['es']);
+    expect(htmlDocument.querySelector('input[name="q"]')!.getAttribute('value')).toBe('orm');
   });
 
   it('sin filtros no marca ninguna gravedad ni idioma', async () => {
-    const doc = await form();
-    expect(checked(doc, 'severity')).toEqual([]);
-    expect(checked(doc, 'locale')).toEqual([]);
+    const htmlDocument = await form();
+    expect(checked(htmlDocument, 'severity')).toEqual([]);
+    expect(checked(htmlDocument, 'locale')).toEqual([]);
   });
 
   describe('Tipo de problema', () => {
@@ -139,31 +139,35 @@ describe('FiltersForm', () => {
   });
 
   it('el botón de limpiar enlaza a donde dice el modelo (la vista se conserva)', async () => {
-    const doc = await form({ ...none, text: 'x' }, 25, { view: 'locale' });
-    expect(doc.querySelector('a[data-clear]')!.getAttribute('href')).toBe(
+    const htmlDocument = await form({ ...none, text: 'x' }, 25, { view: 'locale' });
+    expect(htmlDocument.querySelector('a[data-clear]')!.getAttribute('href')).toBe(
       '/repo/seo-on-page/pages/',
     );
   });
 
   it('las gravedades y los idiomas son fichas: la casilla se esconde y la ficha dice el recuento', async () => {
-    const doc = await form();
-    const warning = doc.querySelector('input[name="severity"][value="warning"]')!;
+    const htmlDocument = await form();
+    const warning = htmlDocument.querySelector('input[name="severity"][value="warning"]')!;
     expect(warning.classList.contains('sr-only')).toBe(true);
     expect(text(warning.closest('label'))).toContain('Avisos');
     expect(text(warning.closest('label'))).toContain('3');
-    expect(text(doc.querySelector('input[name="locale"][value="es"]')!.closest('label'))).toContain(
-      'ES',
-    );
+    expect(
+      text(htmlDocument.querySelector('input[name="locale"][value="es"]')!.closest('label')),
+    ).toContain('ES');
   });
 
   it('las fichas y la búsqueda envían solas; el desplegable de tipos, con su botón', async () => {
-    const doc = await form();
-    expect(doc.querySelector('input[name="q"]')!.hasAttribute('data-auto-submit')).toBe(true);
+    const htmlDocument = await form();
+    expect(htmlDocument.querySelector('input[name="q"]')!.hasAttribute('data-auto-submit')).toBe(
+      true,
+    );
     expect(
-      doc.querySelector('input[name="severity"]')!.closest('[data-auto-submit]'),
+      htmlDocument.querySelector('input[name="severity"]')!.closest('[data-auto-submit]'),
     ).not.toBeNull();
-    expect(doc.querySelector('input[name="locale"]')!.closest('[data-auto-submit]')).not.toBeNull();
-    const kinds = doc.querySelector('[data-kinds]')!;
+    expect(
+      htmlDocument.querySelector('input[name="locale"]')!.closest('[data-auto-submit]'),
+    ).not.toBeNull();
+    const kinds = htmlDocument.querySelector('[data-kinds]')!;
     expect(kinds.closest('[data-auto-submit]')).toBeNull();
     expect(kinds.querySelector('button[type="submit"]')).not.toBeNull();
   });
@@ -182,15 +186,15 @@ describe('FiltersForm', () => {
   });
 
   it('el desplegable de tipos y el botón de filtrar son clicables y lo parecen', async () => {
-    const doc = await form();
-    expect(doc.querySelector('summary')!.classList.contains('cursor-pointer')).toBe(true);
-    const submit = doc.querySelector('button[type="submit"]')!;
+    const htmlDocument = await form();
+    expect(htmlDocument.querySelector('summary')!.classList.contains('cursor-pointer')).toBe(true);
+    const submit = htmlDocument.querySelector('button[type="submit"]')!;
     expect(submit.classList.contains('cursor-pointer')).toBe(true);
   });
 
   it('ya no ofrece las filas por página: es un control de la tabla, no un filtro', async () => {
-    const doc = await form(none, 50);
-    expect(doc.querySelector('select')).toBeNull();
+    const htmlDocument = await form(none, 50);
+    expect(htmlDocument.querySelector('select')).toBeNull();
   });
 
   it('conserva un tamaño de página distinto del de por defecto con un campo oculto', async () => {

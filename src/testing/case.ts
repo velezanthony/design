@@ -20,8 +20,8 @@ export interface BuildCase {
 const casesDir = resolve('src/astro/integration/builds/fixtures/strict/.cases');
 
 /** `import` relativo (con `./`) desde un archivo de `dir` hasta `target`. */
-function importPath(dir: string, target: string): string {
-  const path = relative(dir, resolve(target)).split('\\').join('/');
+function importPath(directory: string, target: string): string {
+  const path = relative(directory, resolve(target)).split('\\').join('/');
   return path.startsWith('.') ? path : `./${path}`;
 }
 
@@ -31,16 +31,16 @@ function importPath(dir: string, target: string): string {
  * en vez de una carpeta de fixture por regla.
  */
 export async function buildFailingCase(buildCase: BuildCase): Promise<FailedBuild> {
-  const caseDir = resolve(casesDir, buildCase.name);
+  const caseDirectory = resolve(casesDir, buildCase.name);
   const contentDir = buildCase.config.content ?? 'src/content/docs';
   // Con contenido fuera del proyecto, este vive en `site/` y `..` cae dentro de la carpeta del caso.
-  const root = contentDir.startsWith('..') ? resolve(caseDir, 'site') : caseDir;
+  const root = contentDir.startsWith('..') ? resolve(caseDirectory, 'site') : caseDirectory;
   async function write(relativePath: string, content: string | Uint8Array) {
     const file = resolve(root, relativePath);
     await mkdir(dirname(file), { recursive: true });
     await writeFile(file, content);
   }
-  await rm(caseDir, { recursive: true, force: true });
+  await rm(caseDirectory, { recursive: true, force: true });
   try {
     await write(
       'astro.config.mjs',
@@ -80,6 +80,6 @@ export const collections = {
     }
     return await buildFixtureFailing(root);
   } finally {
-    await rm(caseDir, { recursive: true, force: true });
+    await rm(caseDirectory, { recursive: true, force: true });
   }
 }

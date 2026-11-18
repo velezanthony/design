@@ -152,7 +152,7 @@ está mal de una vez, con archivo y línea:
    cada uno. Después resuelve las políticas de traducción y valida `sidebar`, `nav` y `footer.links`
    contra los slugs reales.
 2. **Reescribir y renderizar.** Para cada página: `rewriteLinks` convierte los enlaces `.md`
-   relativos en URLs del sitio (y recoge referencias para validar), `ctx.renderMarkdown` produce el
+   relativos en URLs del sitio (y recoge referencias para validar), `context.renderMarkdown` produce el
    HTML con el pipeline de Markdown, y se guarda en el _store_ con sus datos (`docsSchema`):
    `slug`, `locale`, `title`, `sourcePath`, `order`, `seo`, `translations` y `editPath`.
 3. **Validar.** Con los encabezados de TODAS las páginas ya conocidos, `validateAnchors` comprueba

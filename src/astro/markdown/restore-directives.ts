@@ -8,20 +8,23 @@ import { defineMdastPlugin } from 'satteri';
 export const restoreDirectives = defineMdastPlugin({
   name: 'restore-directives',
   options: { position: true },
-  textDirective(node, ctx) {
-    restore(node, ctx);
+  textDirective(node, context) {
+    restore(node, context);
   },
-  leafDirective(node, ctx) {
-    restore(node, ctx);
+  leafDirective(node, context) {
+    restore(node, context);
   },
 });
 
 function restore(
   node: { position?: { start: { offset?: number }; end: { offset?: number } } },
-  ctx: { source: string; replaceNode(node: never, newNode: { type: 'text'; value: string }): void },
+  context: {
+    source: string;
+    replaceNode(node: never, newNode: { type: 'text'; value: string }): void;
+  },
 ): void {
   const start = node.position?.start.offset;
   const end = node.position?.end.offset;
   if (start === undefined || end === undefined) return;
-  ctx.replaceNode(node as never, { type: 'text', value: ctx.source.slice(start, end) });
+  context.replaceNode(node as never, { type: 'text', value: context.source.slice(start, end) });
 }

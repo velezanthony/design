@@ -14,7 +14,7 @@ export function getStaticPaths() {
 
 const view = notFoundView({
   locale: Astro.params.locale,
-  cfg: siteConfig,
+  config: siteConfig,
   data: await getDocData(),
   sizes: await siteImageSizes(siteConfig),
 });

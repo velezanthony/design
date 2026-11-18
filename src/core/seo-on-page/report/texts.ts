@@ -16,11 +16,11 @@ export interface ReportText {
 /** Genera el informe de cada alcance, bajo el nombre con el que el diálogo lo elige. */
 export function reportTexts(
   scopes: Record<string, ReportScope>,
-  ctx: ReportContext,
+  context: ReportContext,
 ): Record<string, ReportText> {
   return Object.fromEntries(
     Object.entries(scopes).map(([name, scope]) => {
-      const { markdown, json, pages } = buildReport(scope, ctx);
+      const { markdown, json, pages } = buildReport(scope, context);
       return [
         name,
         {

@@ -24,22 +24,22 @@ describe('noindexUrls', () => {
 });
 
 describe('excludeNoindex', () => {
-  const av: Availability = new Map([
+  const availability: Availability = new Map([
     ['a', { en: '/repo/a/', es: '/repo/es/a/' }],
     ['b', { en: '/repo/b/' }],
   ]);
 
   it('quita las URLs excluidas, también de los alternates de sus gemelas', () => {
-    const result = excludeNoindex(av, new Set(['/repo/es/a/']));
+    const result = excludeNoindex(availability, new Set(['/repo/es/a/']));
     expect(result.get('a')).toEqual({ en: '/repo/a/' });
   });
 
   it('un grupo que se queda sin idiomas desaparece', () => {
-    expect(excludeNoindex(av, new Set(['/repo/b/'])).has('b')).toBe(false);
+    expect(excludeNoindex(availability, new Set(['/repo/b/'])).has('b')).toBe(false);
   });
 
   it('no muta la entrada', () => {
-    excludeNoindex(av, new Set(['/repo/es/a/']));
-    expect(av.get('a')).toEqual({ en: '/repo/a/', es: '/repo/es/a/' });
+    excludeNoindex(availability, new Set(['/repo/es/a/']));
+    expect(availability.get('a')).toEqual({ en: '/repo/a/', es: '/repo/es/a/' });
   });
 });

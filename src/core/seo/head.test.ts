@@ -7,7 +7,7 @@ import { resolveMeta, type ResolvedMeta } from './meta';
 
 const site = new URL('https://x.dev');
 const url = { base: '/repo' };
-const cfg: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'] });
+const config: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'] });
 
 function meta(extra: Partial<ResolvedMeta> = {}): ResolvedMeta {
   return {
@@ -25,8 +25,8 @@ const pair: Availability = new Map([
 ]);
 const single: Availability = new Map([['install', { en: '/repo/install/' }]]);
 
-function head(resolvedMeta: ResolvedMeta, page: PageData, av: Availability) {
-  return buildHead(resolvedMeta, page, av, site, cfg, url);
+function head(resolvedMeta: ResolvedMeta, page: PageData, availability: Availability) {
+  return buildHead(resolvedMeta, page, availability, site, config, url);
 }
 
 function metaTag(tags: HeadConfig[], key: 'name' | 'property', value: string) {
@@ -144,7 +144,7 @@ describe('buildHead: imagen', () => {
   });
 
   it('con base terminada en barra no duplica la barra', () => {
-    const tags = buildHead(meta({ image }), enPage, single, site, cfg, { base: '/repo/' });
+    const tags = buildHead(meta({ image }), enPage, single, site, config, { base: '/repo/' });
     expect(value(tags, 'property', 'og:image')).toBe('https://x.dev/repo/og.png');
   });
 
@@ -240,21 +240,21 @@ describe('buildHead: favicon', () => {
   });
 
   it('el favicon de la config manda: ruta con base o https tal cual', () => {
-    const local = { ...cfg, favicon: 'favicon.svg' };
+    const local = { ...config, favicon: 'favicon.svg' };
     const tags = buildHead(meta(), enPage, single, site, local, url);
     expect(icons(tags)[0].attrs).toEqual({
       rel: 'icon',
       href: '/repo/favicon.svg',
       type: 'image/svg+xml',
     });
-    const remote = { ...cfg, favicon: 'https://cdn.dev/i.ico' };
+    const remote = { ...config, favicon: 'https://cdn.dev/i.ico' };
     expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0].attrs.href).toBe(
       'https://cdn.dev/i.ico',
     );
   });
 
   it('extensión desconocida: sin atributo type', () => {
-    const odd = { ...cfg, favicon: '/i.webp' };
+    const odd = { ...config, favicon: '/i.webp' };
     expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0].attrs).toEqual({
       rel: 'icon',
       href: '/repo/i.webp',

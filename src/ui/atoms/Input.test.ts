@@ -14,9 +14,9 @@ function props(extra: Record<string, unknown> = {}) {
 
 describe('Input', () => {
   it('asocia la etiqueta con el campo por for/id', async () => {
-    const doc = await render(Input, props());
-    const input = doc.querySelector('input')!;
-    const label = doc.querySelector('label')!;
+    const htmlDocument = await render(Input, props());
+    const input = htmlDocument.querySelector('input')!;
+    const label = htmlDocument.querySelector('label')!;
     expect(input.getAttribute('id')).toBe('q');
     expect(label.getAttribute('for')).toBe('q');
     expect(text(label)).toBe('Buscar');
@@ -52,11 +52,16 @@ describe('Input', () => {
   });
 
   it('propaga atributos al campo y la clase al contenedor', async () => {
-    const doc = await render(Input, props({ required: true, autocomplete: 'off', class: 'w-64' }));
-    const input = doc.querySelector('input')!;
+    const htmlDocument = await render(
+      Input,
+      props({ required: true, autocomplete: 'off', class: 'w-64' }),
+    );
+    const input = htmlDocument.querySelector('input')!;
     expect(input.hasAttribute('required')).toBe(true);
     expect(input.getAttribute('autocomplete')).toBe('off');
     expect(input.classList.contains('w-64')).toBe(false);
-    expect(doc.querySelector('label')!.parentElement!.classList.contains('w-64')).toBe(true);
+    expect(htmlDocument.querySelector('label')!.parentElement!.classList.contains('w-64')).toBe(
+      true,
+    );
   });
 });

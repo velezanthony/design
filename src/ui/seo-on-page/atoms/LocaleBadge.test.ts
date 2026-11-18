@@ -8,9 +8,9 @@ async function badge(tone: 'error' | 'warning' | 'info' | 'ok' | 'missing') {
 
 describe('LocaleBadge', () => {
   it('muestra el idioma en mayúsculas y la gravedad también como texto oculto', async () => {
-    const el = await badge('warning');
-    expect(text(el)).toContain('EN');
-    expect(el.querySelector('.sr-only')!.textContent).toContain('aviso');
+    const element = await badge('warning');
+    expect(text(element)).toContain('EN');
+    expect(element.querySelector('.sr-only')!.textContent).toContain('aviso');
   });
 
   it('el color nunca va solo: errores, avisos e informativos llevan un glifo distinto', async () => {
@@ -23,9 +23,9 @@ describe('LocaleBadge', () => {
   });
 
   it('un idioma que no existe va tachado y con borde discontinuo', async () => {
-    const el = await badge('missing');
-    expect(el.classList.contains('line-through')).toBe(true);
-    expect(el.classList.contains('border-dashed')).toBe(true);
-    expect(el.querySelector('.sr-only')!.textContent).toContain('no existe');
+    const element = await badge('missing');
+    expect(element.classList.contains('line-through')).toBe(true);
+    expect(element.classList.contains('border-dashed')).toBe(true);
+    expect(element.querySelector('.sr-only')!.textContent).toContain('no existe');
   });
 });

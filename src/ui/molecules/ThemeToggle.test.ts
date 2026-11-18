@@ -11,9 +11,9 @@ async function button(props: Record<string, unknown>) {
 describe('ThemeToggle', () => {
   /* Es el gancho que `initTheme` busca: sin él nadie lo cablea. */
   it('es un botón con el atributo data-theme-toggle y no envía formularios', async () => {
-    const el = await button({ strings: stringsFor('en') });
-    expect(el.hasAttribute('data-theme-toggle')).toBe(true);
-    expect(el.getAttribute('type')).toBe('button');
+    const element = await button({ strings: stringsFor('en') });
+    expect(element.hasAttribute('data-theme-toggle')).toBe(true);
+    expect(element.getAttribute('type')).toBe('button');
   });
 
   it('nace sin pulsar: aria-pressed lo sincroniza el cliente', async () => {
@@ -32,9 +32,9 @@ describe('ThemeToggle', () => {
   });
 
   it('sobrescribir la clave en strings cambia el nombre accesible', async () => {
-    const el = await button({ strings: stringsFor('en', { 'theme.toggle': 'Dark mode' }) });
-    expect(el.getAttribute('aria-label')).toBe('Dark mode');
-    expect(el.getAttribute('title')).toBe('Dark mode');
+    const element = await button({ strings: stringsFor('en', { 'theme.toggle': 'Dark mode' }) });
+    expect(element.getAttribute('aria-label')).toBe('Dark mode');
+    expect(element.getAttribute('title')).toBe('Dark mode');
   });
 
   it('lleva los dos iconos decorativos', async () => {

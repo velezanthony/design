@@ -22,8 +22,8 @@ function footer(filters: SeoFilters = none, perPage = 25, view: ViewState = { vi
 
 describe('TableFooter', () => {
   it('lleva las filas por página en su propio formulario GET, con el tamaño actual', async () => {
-    const doc = await footer(none, 50);
-    const form = doc.querySelector('form')!;
+    const htmlDocument = await footer(none, 50);
+    const form = htmlDocument.querySelector('form')!;
     expect(form.getAttribute('method')?.toLowerCase()).toBe('get');
     expect(form.getAttribute('action')).toBe('/repo/seo-on-page/pages/');
     const select = form.querySelector('select[name="per"]')!;
@@ -31,7 +31,7 @@ describe('TableFooter', () => {
       [...select.querySelectorAll('option')].map((option) => option.getAttribute('value')),
     ).toEqual(['10', '25', '50', '100']);
     expect(select.querySelector('option[selected]')!.getAttribute('value')).toBe('50');
-    expect(doc.querySelector(`label[for="${select.id}"]`)!.textContent).toContain(
+    expect(htmlDocument.querySelector(`label[for="${select.id}"]`)!.textContent).toContain(
       'Filas por página',
     );
   });
@@ -42,13 +42,13 @@ describe('TableFooter', () => {
   });
 
   it('conserva los filtros activos como campos ocultos, y nunca la página', async () => {
-    const doc = await footer({
+    const htmlDocument = await footer({
       kinds: ['no-h1'],
       severities: ['error', 'warning'],
       locales: ['es'],
       text: 'orm',
     });
-    const hidden = [...doc.querySelectorAll('form input[type="hidden"]')].map(
+    const hidden = [...htmlDocument.querySelectorAll('form input[type="hidden"]')].map(
       (input) => `${input.getAttribute('name')}=${input.getAttribute('value')}`,
     );
     expect(hidden).toEqual([
@@ -65,14 +65,14 @@ describe('TableFooter', () => {
   });
 
   it('reúne en una barra el recuento y el paginador', async () => {
-    const doc = await footer();
-    expect(text(doc)).toContain('1–10 de 75 páginas');
-    expect(doc.querySelector('nav[aria-label]')).not.toBeNull();
+    const htmlDocument = await footer();
+    expect(text(htmlDocument)).toContain('1–10 de 75 páginas');
+    expect(htmlDocument.querySelector('nav[aria-label]')).not.toBeNull();
   });
 
   it('conserva la vista (y la columna de «Qué tiene») como campos ocultos', async () => {
-    const doc = await footer(none, 25, { view: 'have', lacks: 'og' });
-    const hidden = [...doc.querySelectorAll('form input[type="hidden"]')].map((input) => [
+    const htmlDocument = await footer(none, 25, { view: 'have', lacks: 'og' });
+    const hidden = [...htmlDocument.querySelectorAll('form input[type="hidden"]')].map((input) => [
       input.getAttribute('name'),
       input.getAttribute('value'),
     ]);

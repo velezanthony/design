@@ -21,11 +21,11 @@ async function readIfExists(url: URL) {
 }
 
 /** El HTML de una página generada, con `build.format` de carpetas (`cv/index.html`) o de ficheros (`cv.html`). */
-async function builtHtml(dir: URL, pathname: string): Promise<string | undefined> {
+async function builtHtml(directory: URL, pathname: string): Promise<string | undefined> {
   const folder = pathname === '' || pathname.endsWith('/') ? pathname : `${pathname}/`;
   return (
-    (await readIfExists(new URL(`${folder}index.html`, dir))) ??
-    (await readIfExists(new URL(`${pathname.replace(/\/$/, '')}.html`, dir)))
+    (await readIfExists(new URL(`${folder}index.html`, directory))) ??
+    (await readIfExists(new URL(`${pathname.replace(/\/$/, '')}.html`, directory)))
   );
 }
 

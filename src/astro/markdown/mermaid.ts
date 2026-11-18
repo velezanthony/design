@@ -25,9 +25,9 @@ export function mermaid(env: MarkdownEnv) {
   return docsPlugin(env, () =>
     defineMdastPlugin({
       name: 'mermaid',
-      code(node, ctx) {
+      code(node, context) {
         if (node.lang?.toLowerCase() !== 'mermaid') return;
-        ctx.replaceNode(node, {
+        context.replaceNode(node, {
           type: 'html',
           value: `<div class="docs-mermaid" data-mermaid><pre class="astro-code" data-language="${escapeHtml(node.lang)}" tabindex="0"><code>${escapeHtml(node.value)}</code></pre></div>`,
         });

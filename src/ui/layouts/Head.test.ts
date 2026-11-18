@@ -13,39 +13,43 @@ describe('Head', () => {
   ];
 
   it('un <title> con el contenido', async () => {
-    const doc = await renderDocument(Head, { head: tags });
-    expect(doc.querySelector('title')!.textContent).toBe('Guide · Docs');
+    const htmlDocument = await renderDocument(Head, { head: tags });
+    expect(htmlDocument.querySelector('title')!.textContent).toBe('Guide · Docs');
   });
 
   it('cada etiqueta de datos es una meta/link con sus atributos, sin transformar nada más', async () => {
-    const doc = await renderDocument(Head, { head: tags });
-    expect(doc.querySelector('meta[name="description"]')!.getAttribute('content')).toBe(
+    const htmlDocument = await renderDocument(Head, { head: tags });
+    expect(htmlDocument.querySelector('meta[name="description"]')!.getAttribute('content')).toBe(
       'Una "guía" & más',
     );
-    expect(doc.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
+    expect(htmlDocument.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
       'https://x.dev/repo/guide/',
     );
-    expect(doc.querySelector('meta[property="og:title"]')!.getAttribute('content')).toBe('Guide');
+    expect(htmlDocument.querySelector('meta[property="og:title"]')!.getAttribute('content')).toBe(
+      'Guide',
+    );
   });
 
   it('mantiene el orden de los datos', async () => {
-    const doc = await renderDocument(Head, { head: tags });
-    const names = [...doc.querySelectorAll('title, meta, link')].map((el) => el.tagName);
+    const htmlDocument = await renderDocument(Head, { head: tags });
+    const names = [...htmlDocument.querySelectorAll('title, meta, link')].map(
+      (element) => element.tagName,
+    );
     expect(names).toEqual(['TITLE', 'META', 'LINK', 'META']);
   });
 
   it('sin datos no pinta nada', async () => {
-    const doc = await renderDocument(Head, { head: [] });
-    expect(doc.querySelectorAll('title, meta, link')).toHaveLength(0);
+    const htmlDocument = await renderDocument(Head, { head: [] });
+    expect(htmlDocument.querySelectorAll('title, meta, link')).toHaveLength(0);
   });
 
   it('un <script> JSON-LD lleva su contenido tal cual, sin escapar a HTML ni dejarlo crudo', async () => {
     const content = String.raw`{"name":"\u003c/script\u003e & \u0026"}`;
-    const doc = await renderDocument(Head, {
+    const htmlDocument = await renderDocument(Head, {
       head: [{ tag: 'script', attrs: { type: 'application/ld+json' }, content }],
     });
-    const script = doc.querySelector('script[type="application/ld+json"]')!;
+    const script = htmlDocument.querySelector('script[type="application/ld+json"]')!;
     expect(script.textContent).toBe(content);
-    expect(doc.querySelectorAll('script')).toHaveLength(1);
+    expect(htmlDocument.querySelectorAll('script')).toHaveLength(1);
   });
 });

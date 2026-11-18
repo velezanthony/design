@@ -23,20 +23,24 @@ export interface ReportOptions {
 
 function find(root: ParentNode, name: string, key: string): HTMLElement | undefined {
   return [...root.querySelectorAll<HTMLElement>(`[${name}]`)].find(
-    (el) => el.getAttribute(name) === key,
+    (element) => element.getAttribute(name) === key,
   );
 }
 
 export function initReport(
-  doc: Document,
-  { clipboard, resetAfterMs = 1800, schedule = (cb, ms) => void setTimeout(cb, ms) }: ReportOptions,
+  htmlDocument: Document,
+  {
+    clipboard,
+    resetAfterMs = 1800,
+    schedule = (callback, ms) => void setTimeout(callback, ms),
+  }: ReportOptions,
 ): void {
   if (!clipboard) return;
-  for (const button of doc.querySelectorAll('[data-report-open], [data-copy-prompt]')) {
+  for (const button of htmlDocument.querySelectorAll('[data-report-open], [data-copy-prompt]')) {
     button.removeAttribute('hidden');
   }
 
-  const dialog = doc.querySelector<HTMLDialogElement>('[data-report-dialog]');
+  const dialog = htmlDocument.querySelector<HTMLDialogElement>('[data-report-dialog]');
   function part<T extends HTMLElement>(name: string) {
     return dialog?.querySelector<T>(`[${name}]`);
   }
@@ -82,7 +86,7 @@ export function initReport(
     else dialog?.removeAttribute('open');
   }
 
-  doc.addEventListener('click', (event) => {
+  htmlDocument.addEventListener('click', (event) => {
     const target = event.target as Element | null;
     if (!target?.closest) return;
 
@@ -118,7 +122,7 @@ export function initReport(
     }
   });
 
-  doc.addEventListener('change', (event) => {
+  htmlDocument.addEventListener('change', (event) => {
     const field = event.target as Element | null;
     if (!dialog || !field?.closest || !field.closest('[data-report-dialog]')) return;
     if (field.matches('[data-report-locale]')) {

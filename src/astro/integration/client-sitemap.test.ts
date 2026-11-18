@@ -8,15 +8,16 @@ import { buildSitemap } from '../../core/seo/sitemap';
 import type { ClientRegistry } from '../data/client-registry';
 import { addClientPagesToSitemap } from './client-sitemap';
 
-const dirs: string[] = [];
+const directories: string[] = [];
 afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const directory of directories.splice(0))
+    rmSync(directory, { recursive: true, force: true });
 });
 
 /** Un `dist/` con los ficheros dados (ruta → contenido) y su URL. */
 function dist(files: Record<string, string>): URL {
   const root = mkdtempSync(join(tmpdir(), 'design-dist-'));
-  dirs.push(root);
+  directories.push(root);
   for (const [file, content] of Object.entries(files)) {
     mkdirSync(join(root, file, '..'), { recursive: true });
     writeFileSync(join(root, file), content);
@@ -44,7 +45,7 @@ const where = { site: 'https://x.dev', base: '/', pagesFile: 'sitemap.xml' };
 
 describe('addClientPagesToSitemap', () => {
   it('añade al sitemap las páginas del cliente indexables, leídas de lo que se generó', async () => {
-    const dir = dist({
+    const directory = dist({
       'sitemap.xml': docsSitemap,
       'cv/index.html': html(),
       'privacy/index.html': html('<meta name="robots" content="noindex">'),
@@ -52,13 +53,13 @@ describe('addClientPagesToSitemap', () => {
     });
     const added = await addClientPagesToSitemap(
       {
-        dir,
+        dir: directory,
         pages: [{ pathname: 'cv/' }, { pathname: 'privacy/' }, { pathname: 'guide/' }],
         ...where,
       },
       registry([route('/cv', /^\/cv\/$/), route('/privacy', /^\/privacy\/$/)]),
     );
-    const xml = readFileSync(new URL('sitemap.xml', dir), 'utf8');
+    const xml = readFileSync(new URL('sitemap.xml', directory), 'utf8');
     expect(added).toBe(1);
     expect(xml).toContain('<loc>https://x.dev/guide/</loc>');
     expect(xml).toContain('<loc>https://x.dev/cv/</loc>');
@@ -66,38 +67,42 @@ describe('addClientPagesToSitemap', () => {
   });
 
   it('un canonical relativo se resuelve contra la URL publicada: la página sigue siendo canónica', async () => {
-    const dir = dist({
+    const directory = dist({
       'sitemap.xml': docsSitemap,
       'cv/index.html': html('<link rel="canonical" href="./">'),
     });
     const added = await addClientPagesToSitemap(
-      { dir, pages: [{ pathname: 'cv/' }], ...where },
+      { dir: directory, pages: [{ pathname: 'cv/' }], ...where },
       registry([route('/cv', /^\/cv\/$/)]),
     );
     expect(added).toBe(1);
   });
 
   it('con un índice de sitemaps, escribe en el de páginas', async () => {
-    const dir = dist({ 'sitemap-pages.xml': docsSitemap, 'cv/index.html': html() });
+    const directory = dist({ 'sitemap-pages.xml': docsSitemap, 'cv/index.html': html() });
     await addClientPagesToSitemap(
-      { dir, pages: [{ pathname: 'cv/' }], ...where, pagesFile: 'sitemap-pages.xml' },
+      { dir: directory, pages: [{ pathname: 'cv/' }], ...where, pagesFile: 'sitemap-pages.xml' },
       registry([route('/cv', /^\/cv\/$/)]),
     );
-    expect(readFileSync(new URL('sitemap-pages.xml', dir), 'utf8')).toContain('https://x.dev/cv/');
+    expect(readFileSync(new URL('sitemap-pages.xml', directory), 'utf8')).toContain(
+      'https://x.dev/cv/',
+    );
   });
 
   it('también lee el formato de build por ficheros (`cv.html`)', async () => {
-    const dir = dist({ 'sitemap.xml': docsSitemap, 'cv.html': html() });
+    const directory = dist({ 'sitemap.xml': docsSitemap, 'cv.html': html() });
     const added = await addClientPagesToSitemap(
-      { dir, pages: [{ pathname: 'cv' }], ...where },
+      { dir: directory, pages: [{ pathname: 'cv' }], ...where },
       registry([route('/cv', /^\/cv$/)]),
     );
     expect(added).toBe(1);
   });
 
   it('sin páginas del cliente no toca el sitemap', async () => {
-    const dir = dist({ 'sitemap.xml': docsSitemap });
-    expect(await addClientPagesToSitemap({ dir, pages: [], ...where }, registry([]))).toBe(0);
-    expect(readFileSync(new URL('sitemap.xml', dir), 'utf8')).toBe(docsSitemap);
+    const directory = dist({ 'sitemap.xml': docsSitemap });
+    expect(
+      await addClientPagesToSitemap({ dir: directory, pages: [], ...where }, registry([])),
+    ).toBe(0);
+    expect(readFileSync(new URL('sitemap.xml', directory), 'utf8')).toBe(docsSitemap);
   });
 });

@@ -11,9 +11,9 @@ import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 
 /** Rutas `[locale]/404`: una por idioma que no es el de defecto (`/404` sirve el de defecto). */
-export function notFoundRoutes(cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) {
-  return cfg.locales
-    .filter((locale) => locale !== cfg.defaultLocale)
+export function notFoundRoutes(config: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) {
+  return config.locales
+    .filter((locale) => locale !== config.defaultLocale)
     .map((locale) => ({ params: { locale } }));
 }
 
@@ -44,7 +44,7 @@ export interface NotFoundView {
 
 interface NotFoundViewInput {
   locale: Locale | undefined;
-  cfg: VirtualConfig;
+  config: VirtualConfig;
   data?: DocData[];
   sizes?: ImageSizes;
 }
@@ -55,21 +55,21 @@ interface NotFoundViewInput {
  */
 export function notFoundView({
   locale,
-  cfg,
+  config,
   data = [],
   sizes = new Map(),
 }: NotFoundViewInput): NotFoundView {
-  const lang = locale ?? cfg.defaultLocale;
-  const site = siteContext(cfg, data);
+  const lang = locale ?? config.defaultLocale;
+  const site = siteContext(config, data);
   const { url } = site;
-  const strings = cfg.strings[lang] as UiStrings;
+  const strings = config.strings[lang] as UiStrings;
   // La 404 no es una página: el contexto solo sirve para resolver a dónde apuntan los enlaces del footer.
   function footerFor(locale: Locale) {
-    return buildFooter(cfg, navContextOf(site, locale, ''), cfg.strings[locale] as UiStrings);
+    return buildFooter(config, navContextOf(site, locale, ''), config.strings[locale] as UiStrings);
   }
   const meta = withImageSize(
     resolveMeta(
-      cfg.seo,
+      config.seo,
       /* Sin los schemas del sitio: describen el proyecto y sus páginas, no una página que no existe. */
       { description: strings['notFound.description'], schema: false },
       { title: strings['notFound.title'] },
@@ -81,23 +81,23 @@ export function notFoundView({
     { ...meta, noindex: true },
     { kind: 'notFound', slug: '', locale: lang, url: pageUrl('', lang, url) },
     new Map(),
-    new URL(cfg.site),
-    cfg,
+    new URL(config.site),
+    config,
     url,
   );
   const others: NotFoundOther[] =
     locale === undefined
-      ? cfg.locales
-          .filter((other) => other !== cfg.defaultLocale)
+      ? config.locales
+          .filter((other) => other !== config.defaultLocale)
           .map((other) => {
-            const otherStrings = cfg.strings[other] as UiStrings;
-            const { privacyUrl } = consentOf(cfg, other);
+            const otherStrings = config.strings[other] as UiStrings;
+            const { privacyUrl } = consentOf(config, other);
             return {
               lang: other,
               // El <title> de la plantilla se compone igual que el de su propia `/<locale>/404/`.
               title: composeTitle(
                 otherStrings['notFound.title'],
-                resolveTitleSuffix(undefined, cfg.seo.titleSuffix, other),
+                resolveTitleSuffix(undefined, config.seo.titleSuffix, other),
               ),
               homeHref: pageUrl('', other, url),
               strings: otherStrings,
@@ -109,18 +109,18 @@ export function notFoundView({
   return {
     lang,
     head,
-    siteName: cfg.name,
+    siteName: config.name,
     homeHref: pageUrl('', lang, url),
     strings,
     footer: footerFor(lang),
-    baseUrl: baseUrl(cfg.base),
-    ...consentOf(cfg, lang),
+    baseUrl: baseUrl(config.base),
+    ...consentOf(config, lang),
     others,
     ...(others.length > 0 && {
       swap: {
-        base: baseUrl(cfg.base),
-        locales: cfg.locales,
-        defaultLocale: cfg.defaultLocale,
+        base: baseUrl(config.base),
+        locales: config.locales,
+        defaultLocale: config.defaultLocale,
       },
     }),
   };

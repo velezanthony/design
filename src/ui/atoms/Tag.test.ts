@@ -16,8 +16,10 @@ describe('Tag', () => {
     ['live', 'text-state-live'],
     ['wip', 'text-state-wip'],
     ['danger', 'text-danger'],
-  ])('el tono %s usa %s', async (tone, cls) => {
-    expect((await render(Tag, { tone })).querySelector('span')!.classList.contains(cls)).toBe(true);
+  ])('el tono %s usa %s', async (tone, className) => {
+    expect((await render(Tag, { tone })).querySelector('span')!.classList.contains(className)).toBe(
+      true,
+    );
   });
 
   it('el punto es decorativo', async () => {

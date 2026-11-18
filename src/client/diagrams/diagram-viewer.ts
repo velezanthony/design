@@ -61,22 +61,25 @@ export const ICONS = {
  * cambia con el visor abierto, quien lo gobierna (`initMermaid`) lo cierra: el clon quedaría con
  * los colores viejos y reabrirlo es un clic.
  */
-export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels): DiagramViewer {
-  const dialog = doc.createElement('dialog');
+export function createDiagramViewer(
+  htmlDocument: Document,
+  labels: DiagramViewerLabels,
+): DiagramViewer {
+  const dialog = htmlDocument.createElement('dialog');
   dialog.className = 'docs-zoom-dialog docs-diagram-dialog';
 
-  const stage = doc.createElement('div');
+  const stage = htmlDocument.createElement('div');
   stage.className = 'docs-diagram-stage';
   /* Tiene que poder recibir foco para que las teclas lleguen a él y no a la página de detrás. */
   stage.tabIndex = 0;
-  const canvas = doc.createElement('div');
+  const canvas = htmlDocument.createElement('div');
   canvas.className = 'docs-diagram-canvas';
   stage.append(canvas);
 
-  const toolbar = doc.createElement('div');
+  const toolbar = htmlDocument.createElement('div');
   toolbar.className = 'docs-diagram-toolbar';
   function tool(label: string, svg: string, run: () => void) {
-    const button = doc.createElement('button');
+    const button = htmlDocument.createElement('button');
     button.type = 'button';
     button.className = 'docs-diagram-tool';
     button.setAttribute('aria-label', label);
@@ -86,7 +89,7 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
   }
 
   dialog.append(stage, toolbar);
-  doc.body.append(dialog);
+  htmlDocument.body.append(dialog);
 
   let current: { trigger: HTMLElement; content: Size } | undefined;
   let view: View = { scale: 1, x: 0, y: 0 };
@@ -233,7 +236,7 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
     if (event.target === dialog || event.target === stage) close();
   });
 
-  doc.defaultView?.addEventListener('resize', () => {
+  htmlDocument.defaultView?.addEventListener('resize', () => {
     if (current && fitted) fit();
   });
 

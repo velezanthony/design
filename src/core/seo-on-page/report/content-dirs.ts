@@ -14,7 +14,7 @@ export function contentDirs(tree: SeoTree): Partial<Record<Locale, string>> {
     const parts = page.sourcePath.split('/').slice(0, -1);
     folders.set(page.locale, [...(folders.get(page.locale) ?? []), parts]);
   }
-  const dirs: Partial<Record<Locale, string>> = {};
+  const directories: Partial<Record<Locale, string>> = {};
   for (const [locale, all] of folders) {
     const [first = [], ...rest] = all;
     const common = rest.reduce((prefix, parts) => {
@@ -22,7 +22,7 @@ export function contentDirs(tree: SeoTree): Partial<Record<Locale, string>> {
       while (length < prefix.length && prefix[length] === parts[length]) length++;
       return prefix.slice(0, length);
     }, first);
-    dirs[locale] = common.length === 0 ? '' : `${common.join('/')}/`;
+    directories[locale] = common.length === 0 ? '' : `${common.join('/')}/`;
   }
-  return dirs;
+  return directories;
 }

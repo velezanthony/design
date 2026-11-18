@@ -9,9 +9,9 @@ async function svg(props: Record<string, unknown>) {
 
 describe('Icon', () => {
   it('es decorativo: oculto a la accesibilidad y sin foco', async () => {
-    const el = await svg({ name: 'arrow' });
-    expect(el.getAttribute('aria-hidden')).toBe('true');
-    expect(el.getAttribute('focusable')).toBe('false');
+    const element = await svg({ name: 'arrow' });
+    expect(element.getAttribute('aria-hidden')).toBe('true');
+    expect(element.getAttribute('focusable')).toBe('false');
   });
 
   it('respeta el tamaño y por defecto mide 16', async () => {

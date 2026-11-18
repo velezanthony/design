@@ -101,16 +101,16 @@ export interface RouteSpec {
  * `Availability` (no son traducciones), que se queda con las páginas reales.
  */
 export function fallbackRoutes(
-  av: Availability,
+  availability: Availability,
   policies: TranslationPolicies,
-  cfg: LocaleConfig,
+  config: LocaleConfig,
   url: UrlPolicy,
 ): RouteSpec[] {
   const routes: RouteSpec[] = [];
-  for (const [slug, available] of av) {
+  for (const [slug, available] of availability) {
     if (policies.get(slug) !== MissingTranslation.FALLBACK) continue;
-    const source = sourceLocale(available, cfg.locales, cfg.defaultLocale);
-    for (const locale of cfg.locales) {
+    const source = sourceLocale(available, config.locales, config.defaultLocale);
+    for (const locale of config.locales) {
       if (locale in available) continue;
       routes.push({
         slug,

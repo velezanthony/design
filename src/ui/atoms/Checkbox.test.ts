@@ -9,8 +9,8 @@ async function checkbox(props: Record<string, unknown> = {}, label = 'Errores') 
 
 describe('Checkbox', () => {
   it('es un input checkbox dentro de su etiqueta, así que pulsar el texto lo marca', async () => {
-    const doc = await checkbox();
-    const input = doc.querySelector('input')!;
+    const htmlDocument = await checkbox();
+    const input = htmlDocument.querySelector('input')!;
     expect(input.getAttribute('type')).toBe('checkbox');
     expect(input.closest('label')).not.toBeNull();
     expect(text(input.closest('label'))).toBe('Errores');
@@ -40,19 +40,19 @@ describe('Checkbox', () => {
 
   /* Se puede pulsar tanto el cuadro como el texto: los dos llevan el puntero. */
   it('el campo y su etiqueta llevan cursor-pointer', async () => {
-    const doc = await checkbox();
-    expect(doc.querySelector('input')!.classList.contains('cursor-pointer')).toBe(true);
-    expect(doc.querySelector('label')!.classList.contains('cursor-pointer')).toBe(true);
+    const htmlDocument = await checkbox();
+    expect(htmlDocument.querySelector('input')!.classList.contains('cursor-pointer')).toBe(true);
+    expect(htmlDocument.querySelector('label')!.classList.contains('cursor-pointer')).toBe(true);
   });
 
   it('deshabilitado marca el campo y usa cursor-not-allowed en vez del puntero', async () => {
-    const doc = await checkbox({ disabled: true });
-    const input = doc.querySelector('input')!;
-    const label = doc.querySelector('label')!;
+    const htmlDocument = await checkbox({ disabled: true });
+    const input = htmlDocument.querySelector('input')!;
+    const label = htmlDocument.querySelector('label')!;
     expect(input.hasAttribute('disabled')).toBe(true);
-    for (const el of [input, label]) {
-      expect(el.classList.contains('cursor-not-allowed')).toBe(true);
-      expect(el.classList.contains('cursor-pointer')).toBe(false);
+    for (const element of [input, label]) {
+      expect(element.classList.contains('cursor-not-allowed')).toBe(true);
+      expect(element.classList.contains('cursor-pointer')).toBe(false);
     }
   });
 
@@ -61,9 +61,9 @@ describe('Checkbox', () => {
   });
 
   it('propaga atributos al campo y la clase a la etiqueta', async () => {
-    const doc = await checkbox({ id: 'sev-error', class: 'extra' });
-    expect(doc.querySelector('input')!.getAttribute('id')).toBe('sev-error');
-    expect(doc.querySelector('label')!.classList.contains('extra')).toBe(true);
+    const htmlDocument = await checkbox({ id: 'sev-error', class: 'extra' });
+    expect(htmlDocument.querySelector('input')!.getAttribute('id')).toBe('sev-error');
+    expect(htmlDocument.querySelector('label')!.classList.contains('extra')).toBe(true);
   });
 
   describe('variante chip', () => {

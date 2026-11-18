@@ -20,11 +20,11 @@ export function tabs(env: MarkdownEnv) {
     defineMdastPlugin({
       name: 'tabs',
       options: { position: true },
-      containerDirective(node, ctx) {
+      containerDirective(node, context) {
         const where = `${file}${node.position ? `:${node.position.start.line}` : ''}`;
         if (node.name === 'tab') {
           // Las pestañas de un grupo también se visitan (el reemplazo del grupo es posterior).
-          const parent = ctx.parent(node);
+          const parent = context.parent(node);
           if (parent?.type === 'containerDirective' && parent.name === 'tabs') return;
           throw new AstroError(
             `La directiva «:::tab» solo puede ir dentro de «::::tabs» (${where}).`,
@@ -43,7 +43,7 @@ export function tabs(env: MarkdownEnv) {
           const [first, ...body] = child.children;
           const label =
             first?.type === 'paragraph' && first.data?.directiveLabel === true
-              ? ctx.textContent(first).trim()
+              ? context.textContent(first).trim()
               : '';
           if (!label) {
             throw new AstroError(
@@ -56,7 +56,7 @@ export function tabs(env: MarkdownEnv) {
             ...body,
           ]);
         });
-        ctx.replaceNode(node, element('div', 'docs-tabs', panels));
+        context.replaceNode(node, element('div', 'docs-tabs', panels));
       },
     }),
   );

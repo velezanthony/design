@@ -83,10 +83,10 @@ try {
 }
 
 export interface SidebarScrollEnv {
-  doc: Document;
+  htmlDocument: Document;
   /** `sessionStorage`: la posición vale para esta pestaña, no para la siguiente visita. */
   storage: Storage | undefined;
-  win: Pick<Window, 'addEventListener'>;
+  browserWindow: Pick<Window, 'addEventListener'>;
   /** Sin él se asume que el raíl existe (escritorio). */
   rail?: Pick<RailQuery, 'matches'>;
 }
@@ -96,19 +96,25 @@ export interface SidebarScrollEnv {
  * enlaces, para que el script previo al pintado de la página siguiente lo restaure. Por debajo de
  * lg, o con el raíl plegado, no guarda: lo ya guardado se conserva.
  */
-export function initSidebarScroll({ doc, storage, win, rail }: SidebarScrollEnv): void {
-  const foundBox = doc.querySelector<HTMLElement>('[data-docs-sidebar-scroll]');
+export function initSidebarScroll({
+  htmlDocument,
+  storage,
+  browserWindow,
+  rail,
+}: SidebarScrollEnv): void {
+  const foundBox = htmlDocument.querySelector<HTMLElement>('[data-docs-sidebar-scroll]');
   if (!foundBox) return;
   /* `save` es una declaración y no hereda el descarte de `null`: se fija en una constante. */
   const box = foundBox;
 
   function save() {
-    if (rail?.matches === false || doc.documentElement.dataset.left === 'collapsed') return;
+    if (rail?.matches === false || htmlDocument.documentElement.dataset.left === 'collapsed')
+      return;
     safeSet(storage, SIDEBAR_SCROLL_KEY, String(Math.round(box.scrollTop)));
   }
 
   box.addEventListener('click', (event) => {
     if ((event.target as Element | null)?.closest?.('a')) save();
   });
-  win.addEventListener('pagehide', save);
+  browserWindow.addEventListener('pagehide', save);
 }

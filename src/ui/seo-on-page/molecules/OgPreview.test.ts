@@ -14,18 +14,18 @@ function props(extra: Record<string, unknown> = {}) {
 
 describe('OgPreview', () => {
   it('pinta la imagen con su alt, el dominio, el título y la descripción', async () => {
-    const doc = await render(OgPreview, props());
-    const img = doc.querySelector('img')!;
+    const htmlDocument = await render(OgPreview, props());
+    const img = htmlDocument.querySelector('img')!;
     expect(img.getAttribute('src')).toBe('/repo/og.png');
     expect(img.getAttribute('alt')).toBe('Card');
-    expect(text(doc)).toContain('x.dev');
-    expect(text(doc)).toContain('Guide');
-    expect(text(doc)).toContain('A description.');
+    expect(text(htmlDocument)).toContain('x.dev');
+    expect(text(htmlDocument)).toContain('Guide');
+    expect(text(htmlDocument)).toContain('A description.');
   });
 
   it('sin imagen lo dice en vez de dejar un hueco', async () => {
-    const doc = await render(OgPreview, props({ image: undefined }));
-    expect(doc.querySelector('img')).toBeNull();
-    expect(text(doc)).toContain('Sin imagen');
+    const htmlDocument = await render(OgPreview, props({ image: undefined }));
+    expect(htmlDocument.querySelector('img')).toBeNull();
+    expect(text(htmlDocument)).toContain('Sin imagen');
   });
 });

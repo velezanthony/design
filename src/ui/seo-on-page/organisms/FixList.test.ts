@@ -22,8 +22,8 @@ function block(overrides = {}) {
 
 describe('FixList', () => {
   it('un problema lleva su gravedad, su certeza, el enunciado, el arreglo con el código resaltado y cómo verificarlo', async () => {
-    const doc = await render(FixList, { fixes: [block()] });
-    const item = doc.querySelector('[data-fix-block="duplicate-title"]')!;
+    const htmlDocument = await render(FixList, { fixes: [block()] });
+    const item = htmlDocument.querySelector('[data-fix-block="duplicate-title"]')!;
     expect(item.querySelector('[data-severity="warning"]')).not.toBeNull();
     expect(item.querySelector('[data-certainty="rule"]')).not.toBeNull();
     expect(text(item)).toContain('Otra página publica el mismo título.');
@@ -32,20 +32,20 @@ describe('FixList', () => {
   });
 
   it('el límite solo sale en los problemas de longitud, con su rango y la palabra «recomendación»', async () => {
-    const doc = await render(FixList, {
+    const htmlDocument = await render(FixList, {
       fixes: [
         block({ limit: { min: 70, max: 160, maxPx: 920 }, certainty: 'heuristic' }),
         block({ issue: { ...block().issue, kind: 'no-h1' } }),
       ],
     });
-    const limits = doc.querySelectorAll('[data-limit]');
+    const limits = htmlDocument.querySelectorAll('[data-limit]');
     expect(limits).toHaveLength(1);
     expect(text(limits[0]!)).toContain('70–160 caracteres, ≈920 px');
     expect(text(limits[0]!)).toContain('recomendación');
   });
 
   it('un duplicado enlaza a la página con la que choca, con su título', async () => {
-    const doc = await render(FixList, {
+    const htmlDocument = await render(FixList, {
       fixes: [
         block({
           related: [
@@ -54,23 +54,27 @@ describe('FixList', () => {
         }),
       ],
     });
-    const link = doc.querySelector<HTMLAnchorElement>('a[data-related]')!;
+    const link = htmlDocument.querySelector<HTMLAnchorElement>('a[data-related]')!;
     expect(link.getAttribute('href')).toBe('/i/?slug=ref/guide&locale=en');
-    expect(text(doc.querySelector('[data-fix-block]'))).toContain('ref/guide — «Ref | Site»');
+    expect(text(htmlDocument.querySelector('[data-fix-block]'))).toContain(
+      'ref/guide — «Ref | Site»',
+    );
   });
 
   it('sin problemas lo dice claro', async () => {
-    const doc = await render(FixList, { fixes: [] });
-    expect(text(doc.querySelector('[data-empty]'))).toBe('Nada que arreglar en este idioma.');
-    expect(doc.querySelector('[data-fix-block]')).toBeNull();
+    const htmlDocument = await render(FixList, { fixes: [] });
+    expect(text(htmlDocument.querySelector('[data-empty]'))).toBe(
+      'Nada que arreglar en este idioma.',
+    );
+    expect(htmlDocument.querySelector('[data-fix-block]')).toBeNull();
   });
 
   it('cada problema con prompt lleva su botón «Copiar prompt» con ese texto', async () => {
-    const doc = await render(FixList, {
+    const htmlDocument = await render(FixList, {
       fixes: [block(), block({ issue: { ...block().issue, kind: 'no-h1' } })],
       prompts: ['Prompt uno', 'Prompt dos'],
     });
-    const buttons = [...doc.querySelectorAll('[data-fix-block] [data-copy-prompt]')];
+    const buttons = [...htmlDocument.querySelectorAll('[data-fix-block] [data-copy-prompt]')];
     expect(buttons.map((button) => button.getAttribute('data-copy-prompt'))).toEqual([
       'Prompt uno',
       'Prompt dos',
@@ -78,12 +82,15 @@ describe('FixList', () => {
   });
 
   it('sin prompts no hay botones', async () => {
-    const doc = await render(FixList, { fixes: [block()] });
-    expect(doc.querySelector('[data-copy-prompt]')).toBeNull();
+    const htmlDocument = await render(FixList, { fixes: [block()] });
+    expect(htmlDocument.querySelector('[data-copy-prompt]')).toBeNull();
   });
 
   it('un problema sin prompt (la lista es más corta) no lleva botón', async () => {
-    const doc = await render(FixList, { fixes: [block(), block()], prompts: ['solo uno'] });
-    expect(doc.querySelectorAll('[data-copy-prompt]')).toHaveLength(1);
+    const htmlDocument = await render(FixList, {
+      fixes: [block(), block()],
+      prompts: ['solo uno'],
+    });
+    expect(htmlDocument.querySelectorAll('[data-copy-prompt]')).toHaveLength(1);
   });
 });

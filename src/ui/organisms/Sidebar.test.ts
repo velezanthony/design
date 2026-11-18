@@ -41,8 +41,8 @@ describe('Sidebar', () => {
   });
 
   it('marca solo la página actual con aria-current=page', async () => {
-    const doc = await sidebar();
-    const current = [...doc.querySelectorAll('[aria-current]')];
+    const htmlDocument = await sidebar();
+    const current = [...htmlDocument.querySelectorAll('[aria-current]')];
     expect(current).toHaveLength(1);
     expect(current[0]!.getAttribute('aria-current')).toBe('page');
     expect(current[0]!.getAttribute('href')).toBe('/repo/es/guide/install/');
@@ -60,14 +60,16 @@ describe('Sidebar', () => {
   });
 
   it('pinta tres niveles anidados (sección, sección, hoja)', async () => {
-    const doc = await sidebar();
-    expect(doc.querySelector('nav > ul > li > ul > li > ul > li > a')).not.toBeNull();
-    expect(text(doc.querySelector('nav > ul > li > ul > li > ul a'))).toBe('Plugins');
+    const htmlDocument = await sidebar();
+    expect(htmlDocument.querySelector('nav > ul > li > ul > li > ul > li > a')).not.toBeNull();
+    expect(text(htmlDocument.querySelector('nav > ul > li > ul > li > ul a'))).toBe('Plugins');
   });
 
   it('una sección sin índice muestra su etiqueta sin enlace', async () => {
-    const doc = await sidebar();
-    const label = [...doc.querySelectorAll('span, p')].find((el) => text(el) === 'Avanzado')!;
+    const htmlDocument = await sidebar();
+    const label = [...htmlDocument.querySelectorAll('span, p')].find(
+      (element) => text(element) === 'Avanzado',
+    )!;
     expect(label.closest('a')).toBeNull();
   });
 
@@ -87,11 +89,11 @@ describe('Sidebar', () => {
   });
 
   it('el nombre de la insignia respeta un override y un idioma desconocido muestra su código', async () => {
-    const doc = await sidebar({
+    const htmlDocument = await sidebar({
       nodes: [{ label: 'X', href: '/x/', slug: 'x', badge: 'xx' }],
       strings: stringsFor('es', { 'translation.badgeLabel': 'Solo en {locale}' }),
     });
-    expect(doc.querySelector('[aria-label]:not(nav)')!.getAttribute('aria-label')).toBe(
+    expect(htmlDocument.querySelector('[aria-label]:not(nav)')!.getAttribute('aria-label')).toBe(
       'Solo en xx',
     );
   });

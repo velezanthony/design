@@ -37,8 +37,8 @@ class FakeWatcher extends EventEmitter {
   }
 }
 
-/** `ctx` mínimo del content layer: store en memoria, `parseData` con el schema real y Markdown simulado. */
-function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: string } = {}) {
+/** `context` mínimo del content layer: store en memoria, `parseData` con el schema real y Markdown simulado. */
+function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: string } = {}) {
   /* Raíz del proyecto de Astro: `root`, o una subcarpeta (`site`) si el contenido vive fuera de ella. */
   const projectRoot = options.project ? path.join(root, options.project) : root;
   const entries = new Map<
@@ -48,7 +48,7 @@ function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: stri
   const warnings: string[] = [];
   const errors: string[] = [];
   const rendered: string[] = [];
-  const ctx = {
+  const context = {
     config: {
       root: pathToFileURL(`${projectRoot}/`),
       base: options.base ?? '/',
@@ -80,17 +80,17 @@ function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: stri
     },
     watcher: options.watcher,
   };
-  return { ctx: ctx as never, entries, warnings, errors, rendered };
+  return { context: context as never, entries, warnings, errors, rendered };
 }
 
-async function load(config: DocsUserConfig, made = makeCtx()) {
+async function load(config: DocsUserConfig, made = makeContext()) {
   return docsLoader(config)
-    .load(made.ctx)
+    .load(made.context)
     .then(() => made);
 }
 
 /** Captura el `AstroError` de una carga fallida con todos los mensajes (título + pista). */
-async function failure(config: DocsUserConfig, made = makeCtx()) {
+async function failure(config: DocsUserConfig, made = makeContext()) {
   const error = await load(config, made).then(
     () => undefined,
     (caught: unknown) => caught,
@@ -224,7 +224,7 @@ describe('docsLoader: enlaces y anclas', () => {
   it('reescribe los enlaces relativos a la URL de la página, también bajo base', async () => {
     await write('src/content/docs/a.md', '# A\n\nVer [b](./b.md#seccion).\n');
     await write('src/content/docs/b.md', '# B\n\n## Seccion\n');
-    const { rendered } = await load({ name: 'T' }, makeCtx({ base: '/repo' }));
+    const { rendered } = await load({ name: 'T' }, makeContext({ base: '/repo' }));
     expect(rendered.join('\n')).toContain('[b](/repo/b/#seccion)');
   });
 
@@ -396,7 +396,7 @@ describe('docsLoader: slugs del sidebar', () => {
 describe('docsLoader: raíz del repositorio', () => {
   it('editUrl sin raíz del repo rompe con una pista accionable', async () => {
     await write('src/content/docs/a.md', '# A\n');
-    const made = makeCtx();
+    const made = makeContext();
     // Raíz de proyecto fuera de cualquier repo: el directorio temporal no tiene .git arriba.
     const message = await failure({ name: 'T', editUrl: 'https://x/edit/main' }, made);
     expect(message).toContain('repoRoot');
@@ -419,7 +419,7 @@ describe('docsLoader: dev (watcher)', () => {
   it('un cambio recarga todo: la entrada refleja el archivo nuevo', async () => {
     await write('src/content/docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
-    const made = makeCtx({ watcher });
+    const made = makeContext({ watcher });
     await load({ name: 'T' }, made);
     expect(made.entries.size).toBe(1);
 
@@ -438,7 +438,7 @@ describe('docsLoader: dev (watcher)', () => {
     const watcher = new FakeWatcher();
     await load(
       { name: 'T', external: [{ slug: 'changelog', file: './CHANGELOG.md' }] },
-      makeCtx({ watcher }),
+      makeContext({ watcher }),
     );
     expect(watcher.added).toEqual([
       path.join(root, 'src/content/docs'),
@@ -449,7 +449,7 @@ describe('docsLoader: dev (watcher)', () => {
   it('un error al recargar se informa por logger.error y el watcher sigue vivo', async () => {
     await write('src/content/docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
-    const made = makeCtx({ watcher });
+    const made = makeContext({ watcher });
     await load({ name: 'T' }, made);
 
     await write('src/content/docs/a.md', '# A\n\n[x](./no.md)\n');
@@ -465,7 +465,7 @@ describe('docsLoader: dev (watcher)', () => {
 
 describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   function site() {
-    return makeCtx({ project: 'site', base: '/repo' });
+    return makeContext({ project: 'site', base: '/repo' });
   }
   function config(extra: Partial<DocsUserConfig> = {}): DocsUserConfig {
     return {
@@ -499,7 +499,7 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
     await write('docs/users/guia.md', '# Guía\n\n![c](img/captura.png)\n');
     const made = site();
     const urls: string[] = [];
-    const render = made.ctx as unknown as {
+    const render = made.context as unknown as {
       renderMarkdown: (body: string, options: { fileURL: URL }) => Promise<unknown>;
     };
     const original = render.renderMarkdown;
@@ -570,7 +570,7 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   it('vigila la carpeta externa y una edición en ella recarga', async () => {
     await write('docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
-    const made = makeCtx({ project: 'site', watcher });
+    const made = makeContext({ project: 'site', watcher });
     await load(config(), made);
     expect(watcher.added).toEqual([path.join(root, 'docs')]);
 
@@ -583,8 +583,8 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
 describe('docsLoaderFromResolved', () => {
   it('carga con una config ya resuelta, igual que docsLoader(config)', async () => {
     await write('src/content/docs/index.md', '# Home\n');
-    const made = makeCtx();
-    await docsLoaderFromResolved(resolveConfigOrThrow({ name: 'Resuelta' })).load(made.ctx);
+    const made = makeContext();
+    await docsLoaderFromResolved(resolveConfigOrThrow({ name: 'Resuelta' })).load(made.context);
     expect([...made.entries.keys()]).toEqual(['en/index']);
   });
 });

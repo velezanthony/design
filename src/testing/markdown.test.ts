@@ -38,8 +38,8 @@ describe('renderMarkdown', () => {
       fileURL: docFileURL('a.es.md'),
       features: { directive: true },
       plugins: [
-        (ctx) => {
-          seen.push(ctx.fileURL?.pathname ?? 'sin-url');
+        (context) => {
+          seen.push(context.fileURL?.pathname ?? 'sin-url');
           return { name: 'espía', textDirective() {} };
         },
       ],

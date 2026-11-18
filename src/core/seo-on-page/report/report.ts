@@ -84,15 +84,18 @@ function localesOf(entries: readonly SeoPage[], order: readonly Locale[]) {
   return order.filter((locale) => entries.some((entry) => entry.locale === locale));
 }
 
-function dirsText(ctx: ReportContext, locales: readonly Locale[]): string {
-  const dirs = contentDirs(ctx.tree);
+function dirsText(context: ReportContext, locales: readonly Locale[]): string {
+  const directories = contentDirs(context.tree);
   // Los idiomas que comparten carpeta (`a.md` y `a.es.md`) se dicen juntos, no repetidos.
-  const byDir = new Map<string, Locale[]>();
+  const byDirectory = new Map<string, Locale[]>();
   for (const locale of locales) {
-    const dir = dirs[locale];
-    if (dir !== undefined) byDir.set(dir, [...(byDir.get(dir) ?? []), locale]);
+    const directory = directories[locale];
+    if (directory !== undefined)
+      byDirectory.set(directory, [...(byDirectory.get(directory) ?? []), locale]);
   }
-  return [...byDir].map(([dir, own]) => `${code(dir)} (${own.join(', ')})`).join(' · ');
+  return [...byDirectory]
+    .map(([directory, own]) => `${code(directory)} (${own.join(', ')})`)
+    .join(' · ');
 }
 
 /** Cómo se marca en la lista una página que no es un `.md` de la carpeta de contenido. */
@@ -114,17 +117,17 @@ function entryLine(entry: SeoPage, extra = '') {
   return `  - ${code(entry.sourcePath)} (${where})${extra}`;
 }
 
-function introOf(scope: ReportScope, ctx: ReportContext): string[] {
+function introOf(scope: ReportScope, context: ReportContext): string[] {
   const pages = unique(scope.entries.map((entry) => entry.slug)).length;
-  const locales = localesOf(scope.entries, ctx.locales);
+  const locales = localesOf(scope.entries, context.locales);
   const where = `idiomas ${locales.map(code).join(', ')} (${plural(scope.entries.length, 'entrada', 'entradas')})`;
   const range = scope.single ? where : `${plural(pages, 'página', 'páginas')} · ${where}`;
-  const dirs = dirsText(ctx, locales);
+  const directories = dirsText(context, locales);
   return [
-    `# SEO on page — ${ctx.site} · ${scope.title}`,
+    `# SEO on page — ${context.site} · ${scope.title}`,
     '',
     `Alcance: ${scope.label} · ${range}`,
-    ...(dirs ? [`Contenido: ${dirs}`] : []),
+    ...(directories ? [`Contenido: ${directories}`] : []),
     'Certeza: **regla** = hecho comprobable · **heurística** = recomendación (no la cumplas a costa del sentido)',
   ];
 }
@@ -173,7 +176,7 @@ interface IssueEntry {
 }
 
 /** Con qué páginas chocan los problemas, sin las que ya están en la lista. */
-function relatedLines(hits: readonly Hit[], ctx: ReportContext): string[] {
+function relatedLines(hits: readonly Hit[], context: ReportContext): string[] {
   const listed = new Set(hits.map(({ entry }) => pageKey(entry)));
   const seen = new Set<string>();
   const lines: string[] = [];
@@ -182,7 +185,7 @@ function relatedLines(hits: readonly Hit[], ctx: ReportContext): string[] {
       const key = pageKey({ slug, locale });
       if (listed.has(key) || seen.has(key)) continue;
       seen.add(key);
-      const other = ctx.tree.pages.find((page) => page.slug === slug && page.locale === locale);
+      const other = context.tree.pages.find((page) => page.slug === slug && page.locale === locale);
       lines.push(`  - ${other ? `${code(other.sourcePath)} ` : ''}(${slugOf(slug)}, ${locale})`);
     }
   }
@@ -194,7 +197,7 @@ function sectionOf(
   item: IssueEntry,
   priority: { pages: number; percent: number; entries: number; locales: Locale[] },
   scope: ReportScope,
-  ctx: ReportContext,
+  context: ReportContext,
 ): string[] {
   const { kind, hits, bulk } = item;
   const key = keyOf(kind, { kind: 'native' });
@@ -203,7 +206,7 @@ function sectionOf(
   }
   const values = unique(hits.map(valueOf));
   // «El mismo en todas», o el mismo en todas las de cada idioma (la descripción del sitio por idioma).
-  const byLocale = ctx.locales
+  const byLocale = context.locales
     .map((locale) => ({
       locale,
       values: unique(hits.filter(({ entry }) => entry.locale === locale).map(valueOf)),
@@ -217,20 +220,22 @@ function sectionOf(
     : `${plural(priority.pages, 'página', 'páginas')} (${priority.percent} %), ${bulk ? plural(priority.entries, 'entrada', 'entradas') : listOf(priority.locales)}`;
   const lines = [
     '',
-    `## ${index}. ${ctx.kindLabels[kind]} — ${SEVERITY_TEXT[item.severity]} — ${CERTAINTY_TEXT[item.certainty]} — ${extent}`,
+    `## ${index}. ${context.kindLabels[kind]} — ${SEVERITY_TEXT[item.severity]} — ${CERTAINTY_TEXT[item.certainty]} — ${extent}`,
   ];
 
   // Agrupar solo vale si decir «en todos» no esconde nada: con valores distintos, cada fichero cuenta.
   const grouped = bulk && stated;
   if (grouped) {
-    const dirs = dirsText(
-      ctx,
+    const directories = dirsText(
+      context,
       localesOf(
         hits.map(({ entry }) => entry),
-        ctx.locales,
+        context.locales,
       ),
     );
-    const where = dirs ? `cada fichero de ${dirs}` : 'cada fichero de las páginas afectadas';
+    const where = directories
+      ? `cada fichero de ${directories}`
+      : 'cada fichero de las páginas afectadas';
     lines.push(`- Ficheros y clave: ${key ? `${code(key)} en el frontmatter de ` : ''}${where}`);
     for (const { kind: pageKind, label, place } of NO_FRONTMATTER) {
       const pages = unique(
@@ -260,7 +265,7 @@ function sectionOf(
     const repeated = hits.length > byLocale.length ? ' (el mismo en todas las de cada idioma)' : '';
     lines.push(`- Valor actual: ${own.join(' · ')}${repeated}`);
   }
-  lines.push(...relatedLines(hits, ctx));
+  lines.push(...relatedLines(hits, context));
   lines.push(`- Por qué: ${WHY[kind]}`);
   const fixes = unique(hits.map(({ issue }) => issue.fix));
   const fix = fixes.length === 1 && fixes[0] !== undefined && !bulk ? fixes[0] : GENERIC_FIX[kind];
@@ -308,7 +313,7 @@ const LIMITS = {
 };
 
 /** El informe de problemas: una sección por tipo, del más al menos urgente (como «Qué arreglar primero»). */
-function issuesReport(scope: ReportScope, ctx: ReportContext): Report {
+function issuesReport(scope: ReportScope, context: ReportContext): Report {
   const hits = hitsOf(scope);
   const slugs = unique(scope.entries.map((entry) => entry.slug));
   // Se ordena igual que el resumen: con solo lo que este alcance cuenta, no con el sitio entero.
@@ -319,7 +324,7 @@ function issuesReport(scope: ReportScope, ctx: ReportContext): Report {
         issues: hits.filter((hit) => hit.entry === entry).map((hit) => hit.issue),
       })),
     },
-    { locales: ctx.locales, inspector: () => '' },
+    { locales: context.locales, inspector: () => '' },
   );
   const items = priorities.map((priority) => {
     const own = hits.filter(({ issue }) => issue.kind === priority.kind);
@@ -336,17 +341,17 @@ function issuesReport(scope: ReportScope, ctx: ReportContext): Report {
     };
   });
 
-  const lines = introOf(scope, ctx);
+  const lines = introOf(scope, context);
   if (scope.single) lines.push('', ...pageTable(scope.entries));
   if (items.length === 0) lines.push('', 'Sin problemas en este alcance.');
   items.forEach(({ priority, item }, index) => {
-    lines.push(...sectionOf(index + 1, item, priority, scope, ctx));
+    lines.push(...sectionOf(index + 1, item, priority, scope, context));
   });
   if (items.length > 0) lines.push('', ...DO_NOT_TOUCH);
   if (scope.single) lines.push('', ...pageContext(scope.entries));
 
   const json = {
-    site: ctx.site,
+    site: context.site,
     scope: scope.id,
     limits: LIMITS,
     issues: items.map(({ item }) => ({
@@ -377,8 +382,8 @@ function issuesReport(scope: ReportScope, ctx: ReportContext): Report {
 }
 
 /** Lo que cada entrada tiene en la columna (para decir qué le falta). */
-function lackNote(column: HaveColumn, entry: SeoPage, ctx: ReportContext): string {
-  const cell = HAVE_CELLS[column](entry, ctx.locales);
+function lackNote(column: HaveColumn, entry: SeoPage, context: ReportContext): string {
+  const cell = HAVE_CELLS[column](entry, context.locales);
   switch (column) {
     case 'desc':
       return entry.meta.descriptionSource === 'site' ? 'heredada del sitio' : 'sin descripción';
@@ -406,13 +411,15 @@ function lackNote(column: HaveColumn, entry: SeoPage, ctx: ReportContext): strin
 }
 
 /** «Qué tiene» filtrado por lo que falta: las páginas y, de cada una, el archivo y la clave que no tiene. */
-function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext): Report {
-  const lacking = scope.entries.filter((entry) => !isGood(HAVE_CELLS[column](entry, ctx.locales)));
+function lacksReport(column: HaveColumn, scope: ReportScope, context: ReportContext): Report {
+  const lacking = scope.entries.filter(
+    (entry) => !isGood(HAVE_CELLS[column](entry, context.locales)),
+  );
   const slugs = unique(lacking.map((entry) => entry.slug));
   const info = LACKS[column];
   const key = info.key;
   // El alcance cuenta lo que se entrega (las páginas a las que les falta), no todo lo filtrado.
-  const lines = introOf({ ...scope, entries: lacking }, ctx);
+  const lines = introOf({ ...scope, entries: lacking }, context);
   lines.push(
     '',
     `## Páginas sin ${LACKS_PHRASES[column]} — ${plural(slugs.length, 'página', 'páginas')}`,
@@ -439,12 +446,12 @@ function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext)
         key && entry.kind !== 'native'
           ? ` — ${code(scopedKey(key, entry.kind))} ${keyPlace(entry.kind)}`
           : '';
-      lines.push(entryLine(entry, `${external} — ${lackNote(column, entry, ctx)}`));
+      lines.push(entryLine(entry, `${external} — ${lackNote(column, entry, context)}`));
     }
     lines.push('', ...DO_NOT_TOUCH);
   }
   const json = {
-    site: ctx.site,
+    site: context.site,
     scope: scope.id,
     limits: LIMITS,
     lacks: column,
@@ -454,7 +461,7 @@ function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext)
       file: entry.sourcePath,
       key: key ? scopedKey(key, entry.kind) : null,
       current: column === 'desc' ? (entry.meta.description ?? null) : null,
-      detail: lackNote(column, entry, ctx),
+      detail: lackNote(column, entry, context),
     })),
   };
   return {
@@ -470,6 +477,6 @@ function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext)
  * y los nombres de los tipos sale el texto, sin leer nada más. Lo que afecta a todas las páginas se
  * agrupa una vez (carpeta y clave) en lugar de repetirse por página.
  */
-export function buildReport(scope: ReportScope, ctx: ReportContext): Report {
-  return scope.lacks ? lacksReport(scope.lacks, scope, ctx) : issuesReport(scope, ctx);
+export function buildReport(scope: ReportScope, context: ReportContext): Report {
+  return scope.lacks ? lacksReport(scope.lacks, scope, context) : issuesReport(scope, context);
 }

@@ -242,11 +242,11 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
       'astro:config:done': ({ injectTypes }) => {
         injectTypes({ filename: 'virtual.d.ts', content: virtualTypes() });
       },
-      'astro:build:done': async ({ dir, pages, logger }) => {
-        await buildPagefindIndex(dir, logger);
+      'astro:build:done': async ({ dir: directory, pages, logger }) => {
+        await buildPagefindIndex(directory, logger);
         if (!ownSitemap) return;
         const added = await addClientPagesToSitemap({
-          dir,
+          dir: directory,
           pages,
           ...published,
           pagesFile: sitemap.pages,

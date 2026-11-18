@@ -27,7 +27,7 @@ export interface ScrollHost {
 
 export interface TrackOptions {
   readingLine?: number;
-  doc?: Document;
+  htmlDocument?: Document;
   host?: ScrollHost;
 }
 
@@ -40,7 +40,7 @@ export function trackSections(
   nav: Element,
   {
     readingLine = 120,
-    doc = document,
+    htmlDocument = document,
     host = globalThis as unknown as ScrollHost,
   }: TrackOptions = {},
 ): void {
@@ -49,18 +49,20 @@ export function trackSections(
   }
   const links = [...nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')];
   const targets = links
-    .map((link) => doc.getElementById(idOf(link)))
-    .filter((el): el is HTMLElement => el !== null);
+    .map((link) => htmlDocument.getElementById(idOf(link)))
+    .filter((element): element is HTMLElement => element !== null);
   if (!targets.length) return;
 
   let queued = false;
   function update() {
     queued = false;
     const id = currentHeading(
-      targets.map((el) => ({ id: el.id, top: el.getBoundingClientRect().top })),
+      targets.map((element) => ({ id: element.id, top: element.getBoundingClientRect().top })),
       readingLine,
       /* Un píxel de holgura: el zoom y las posiciones fraccionarias rara vez caen justo al final. */
-      { atBottom: host.scrollY + host.innerHeight >= doc.documentElement.scrollHeight - 1 },
+      {
+        atBottom: host.scrollY + host.innerHeight >= htmlDocument.documentElement.scrollHeight - 1,
+      },
     );
     for (const link of links) {
       if (idOf(link) === id) link.setAttribute('aria-current', 'location');

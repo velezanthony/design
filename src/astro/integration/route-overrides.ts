@@ -63,7 +63,7 @@ export function routeOverrides(pagesDir: URL, options: RouteOptions): RouteOverr
   for (const route of injectedRoutes(options)) {
     // Las rutas con extensión (`sitemap.xml`) valen tal cual o como endpoint (`sitemap.xml.ts`).
     const named = /\.[a-z]+$/.test(route);
-    for (const extension of ['', ...PAGE_EXTENSIONS.map((ext) => `.${ext}`)]) {
+    for (const extension of ['', ...PAGE_EXTENSIONS.map((pageExtension) => `.${pageExtension}`)]) {
       if (!named && extension === '') continue;
       const file = `${route}${extension}`;
       if (existsSync(new URL(file, pagesDir))) overrides.push({ file: `src/pages/${file}`, route });

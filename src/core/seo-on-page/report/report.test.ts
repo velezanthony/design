@@ -38,7 +38,7 @@ function meta(overrides: Partial<SeoPage['meta']>): SeoPage['meta'] {
   };
 }
 
-function ctxOf(tree: SeoTree): ReportContext {
+function contextOf(tree: SeoTree): ReportContext {
   return {
     site: 'SnakeORM',
     locales: ['en', 'es'],
@@ -47,7 +47,10 @@ function ctxOf(tree: SeoTree): ReportContext {
   };
 }
 
-function dup(related: { slug: string; locale: string }[] = [], fix = 'Cambia `seo.title`.') {
+function duplicateIssue(
+  related: { slug: string; locale: string }[] = [],
+  fix = 'Cambia `seo.title`.',
+) {
   return issue(IssueKind.DUPLICATE_TITLE, IssueSeverity.WARNING, { fix, related });
 }
 
@@ -60,7 +63,7 @@ const tree: SeoTree = {
           slug,
           locale,
           [
-            dup(
+            duplicateIssue(
               [{ slug: slug === 'a' ? 'b' : 'a', locale }],
               `Cambia seo.title de ${slug} (${locale}).`,
             ),
@@ -100,9 +103,9 @@ const tree: SeoTree = {
 };
 
 function report(scope = siteScope(tree), seoTree = tree) {
-  return buildReport(scope, ctxOf(seoTree));
+  return buildReport(scope, contextOf(seoTree));
 }
-function md(scope = siteScope(tree), seoTree = tree) {
+function reportMarkdown(scope = siteScope(tree), seoTree = tree) {
   return report(scope, seoTree).markdown;
 }
 function sections(text: string) {
@@ -111,7 +114,7 @@ function sections(text: string) {
 
 describe('buildReport: cabecera', () => {
   it('abre con el título, el alcance con sus números y la leyenda de certeza', () => {
-    const lines = md().split('\n');
+    const lines = reportMarkdown().split('\n');
     expect(lines[0]).toBe('# SEO on page — SnakeORM · todo el sitio');
     expect(lines).toContain('Alcance: todo el sitio · 3 páginas · idiomas `en`, `es` (6 entradas)');
     expect(lines).toContain(
@@ -120,7 +123,7 @@ describe('buildReport: cabecera', () => {
   });
 
   it('dice dónde vive el contenido de cada idioma', () => {
-    expect(md()).toContain('Contenido: `docs/` (en) · `docs/es/` (es)');
+    expect(reportMarkdown()).toContain('Contenido: `docs/` (en) · `docs/es/` (es)');
   });
 
   it('devuelve cuántas páginas y entradas cubre', () => {
@@ -130,7 +133,7 @@ describe('buildReport: cabecera', () => {
 
 describe('buildReport: orden y secciones', () => {
   it('las secciones salen como «Qué arreglar primero»: el error antes que los avisos y lo informativo al final', () => {
-    expect(sections(md())).toEqual([
+    expect(sections(reportMarkdown())).toEqual([
       expect.stringContaining('1. «no-h1» — error'),
       expect.stringContaining('2. «duplicate-title» — aviso'),
       expect.stringContaining('3. «title-too-short» — aviso'),
@@ -140,20 +143,20 @@ describe('buildReport: orden y secciones', () => {
   });
 
   it('cada cabecera lleva gravedad, certeza, páginas y porcentaje', () => {
-    const text = md();
+    const text = reportMarkdown();
     expect(text).toContain('## 2. «duplicate-title» — aviso — regla — 2 páginas (67 %), en y es');
     expect(text).toContain('## 3. «title-too-short» — aviso — heurística — 1 página (33 %), en');
   });
 
   it('lo que afecta a todas las páginas lleva el número de entradas en vez de los idiomas', () => {
-    expect(md()).toContain(
+    expect(reportMarkdown()).toContain(
       '## 4. «description-inherited» — info — regla — 3 páginas (100 %), 5 entradas',
     );
   });
 
   it('sin problemas en el alcance lo dice y no pide «No toques»', () => {
     const clean: SeoTree = { pages: [page('a', 'en'), page('b', 'en')] };
-    const text = md(siteScope(clean), clean);
+    const text = reportMarkdown(siteScope(clean), clean);
     expect(text).toContain('Sin problemas en este alcance.');
     expect(sections(text)).toEqual([]);
   });
@@ -161,7 +164,7 @@ describe('buildReport: orden y secciones', () => {
 
 describe('buildReport: detalle de un tipo', () => {
   function duplicate() {
-    const text = md();
+    const text = reportMarkdown();
     const start = text.indexOf('## 2.');
     return text.slice(start, text.indexOf('## 3.'));
   }
@@ -183,11 +186,11 @@ describe('buildReport: detalle de un tipo', () => {
   it('si el valor cambia de una a otra, va en la línea de cada fichero', () => {
     const different: SeoTree = {
       pages: [
-        page('a', 'en', [dup()], { meta: meta({ title: 'Uno', titleLength: 3 }) }),
-        page('b', 'en', [dup()], { meta: meta({ title: 'Dos', titleLength: 3 }) }),
+        page('a', 'en', [duplicateIssue()], { meta: meta({ title: 'Uno', titleLength: 3 }) }),
+        page('b', 'en', [duplicateIssue()], { meta: meta({ title: 'Dos', titleLength: 3 }) }),
       ],
     };
-    const text = md(siteScope(different), different);
+    const text = reportMarkdown(siteScope(different), different);
     expect(text).toContain('  - `docs/a.md` (`a`, en) — «Uno» (3 car.');
     expect(text).toContain('  - `docs/b.md` (`b`, en) — «Dos» (3 car.');
     expect(text).not.toContain('- Valor actual:');
@@ -201,12 +204,12 @@ describe('buildReport: detalle de un tipo', () => {
 
   it('con varias páginas y archivos distintos el arreglo es el general; con una, el suyo', () => {
     expect(duplicate()).toContain('- Arreglo: Dale a cada página un título que la distinga');
-    const one: SeoTree = { pages: [page('a', 'en', [dup()])] };
-    expect(md(siteScope(one), one)).toContain('- Arreglo: Cambia `seo.title`.');
+    const one: SeoTree = { pages: [page('a', 'en', [duplicateIssue()])] };
+    expect(reportMarkdown(siteScope(one), one)).toContain('- Arreglo: Cambia `seo.title`.');
   });
 
   it('los problemas de longitud son una recomendación; los demás no llevan restricción inventada', () => {
-    const text = md();
+    const text = reportMarkdown();
     expect(text).toContain('- Restricción: 15–60 caracteres, ≈580 px (recomendación)');
     const h1 = text.slice(text.indexOf('## 1.'), text.indexOf('## 2.'));
     expect(h1).not.toContain('Restricción');
@@ -218,7 +221,7 @@ describe('buildReport: detalle de un tipo', () => {
 
   it('nombra las páginas implicadas que quedan fuera del alcance, con su archivo', () => {
     const scope = localeScope(tree, 'en');
-    const only: ReportContext = ctxOf(tree);
+    const only: ReportContext = contextOf(tree);
     const outside = buildReport(
       { ...scope, entries: scope.entries.filter(({ slug }) => slug === 'a') },
       only,
@@ -228,32 +231,38 @@ describe('buildReport: detalle de un tipo', () => {
   });
 
   it('si el problema afecta a todas las páginas el arreglo es el general, aunque todas digan el mismo', () => {
-    const same: SeoTree = { pages: [page('a', 'en', [dup()]), page('b', 'en', [dup()])] };
-    const text = md(siteScope(same), same);
+    const same: SeoTree = {
+      pages: [page('a', 'en', [duplicateIssue()]), page('b', 'en', [duplicateIssue()])],
+    };
+    const text = reportMarkdown(siteScope(same), same);
     expect(text).toContain('- Arreglo: Dale a cada página un título que la distinga');
     expect(text).not.toContain('- Arreglo: Cambia `seo.title`.');
   });
 
   it('con una sola página afectada no dice «el mismo en todas»', () => {
-    const one: SeoTree = { pages: [page('a', 'en', [dup()]), page('b', 'en')] };
-    const text = md(siteScope(one), one);
+    const one: SeoTree = { pages: [page('a', 'en', [duplicateIssue()]), page('b', 'en')] };
+    const text = reportMarkdown(siteScope(one), one);
     expect(text).toContain('- Valor actual: «Guide | Site»');
     expect(text).not.toContain('(el mismo en todas)');
   });
 
   it('no nombra como «fuera del alcance» las páginas que ya están en la lista', () => {
-    expect(md(localeScope(tree, 'en'))).not.toContain('Con las que choca');
+    expect(reportMarkdown(localeScope(tree, 'en'))).not.toContain('Con las que choca');
   });
 
   it('una página implicada desde varias se nombra una sola vez', () => {
     function toZ() {
-      return dup([{ slug: 'z', locale: 'en' }]);
+      return duplicateIssue([{ slug: 'z', locale: 'en' }]);
     }
     const shared: SeoTree = {
-      pages: [page('x', 'en', [toZ()]), page('y', 'en', [toZ()]), page('z', 'en', [dup()])],
+      pages: [
+        page('x', 'en', [toZ()]),
+        page('y', 'en', [toZ()]),
+        page('z', 'en', [duplicateIssue()]),
+      ],
     };
     const scope = siteScope(shared);
-    const text = md(
+    const text = reportMarkdown(
       { ...scope, entries: scope.entries.filter(({ slug }) => slug !== 'z') },
       shared,
     );
@@ -262,9 +271,14 @@ describe('buildReport: detalle de un tipo', () => {
 
   it('una página externa dice dónde vive su clave', () => {
     const external: SeoTree = {
-      pages: [page('changelog', 'en', [dup()], { kind: 'external', sourcePath: 'CHANGELOG.md' })],
+      pages: [
+        page('changelog', 'en', [duplicateIssue()], {
+          kind: 'external',
+          sourcePath: 'CHANGELOG.md',
+        }),
+      ],
     };
-    const text = md(siteScope(external), external);
+    const text = reportMarkdown(siteScope(external), external);
     expect(text).toContain(
       '(`changelog`, en, externa) — `external[].seo.title` en docs.config.mjs',
     );
@@ -273,7 +287,7 @@ describe('buildReport: detalle de un tipo', () => {
 
 describe('buildReport: lo común se agrupa una vez', () => {
   it('lo que afecta a todas las páginas no lista fichero a fichero: dice las carpetas y la clave', () => {
-    const text = md();
+    const text = reportMarkdown();
     const bulk = text.slice(text.indexOf('## 4.'), text.indexOf('## No toques'));
     expect(bulk).toContain(
       '- Ficheros y clave: `seo.description` en el frontmatter de cada fichero de `docs/` (en) · `docs/es/` (es)',
@@ -282,7 +296,7 @@ describe('buildReport: lo común se agrupa una vez', () => {
   });
 
   it('el valor común va una vez', () => {
-    const text = md();
+    const text = reportMarkdown();
     const bulk = text.slice(text.indexOf('## 4.'), text.indexOf('## No toques'));
     expect(bulk).toContain(
       '- Valor actual: «Del sitio» (heredada del sitio, 9 car.) (el mismo en todas)',
@@ -303,7 +317,7 @@ describe('buildReport: lo común se agrupa una vez', () => {
         ),
       ),
     };
-    const text = md(siteScope(bySite), bySite);
+    const text = reportMarkdown(siteScope(bySite), bySite);
     expect(text).toContain('cada fichero de `docs/` (en) · `docs/es/` (es)');
     expect(text).toContain(
       '- Valor actual: en «Site» (heredada del sitio, 4 car.) · es «Sitio» (heredada del sitio, 4 car.) (el mismo en todas las de cada idioma)',
@@ -314,11 +328,11 @@ describe('buildReport: lo común se agrupa una vez', () => {
   it('una página con un valor por idioma lo dice por idioma, sin «el mismo en todas»', () => {
     const own: SeoTree = {
       pages: [
-        page('a', 'en', [dup()], { meta: meta({ title: 'Uno', titleLength: 3 }) }),
-        page('a', 'es', [dup()], { meta: meta({ title: 'Uno es', titleLength: 6 }) }),
+        page('a', 'en', [duplicateIssue()], { meta: meta({ title: 'Uno', titleLength: 3 }) }),
+        page('a', 'es', [duplicateIssue()], { meta: meta({ title: 'Uno es', titleLength: 6 }) }),
       ],
     };
-    const text = md(pageScope(own, 'a'), own);
+    const text = reportMarkdown(pageScope(own, 'a'), own);
     expect(text).toContain('- Valor actual: en «Uno» (3 car., ≈37 px) · es «Uno es» (6 car.');
     expect(text).not.toContain('de cada idioma)');
   });
@@ -333,13 +347,13 @@ describe('buildReport: lo común se agrupa una vez', () => {
         }),
       ],
     };
-    expect(md(siteScope(mixed), mixed)).toContain(
+    expect(reportMarkdown(siteScope(mixed), mixed)).toContain(
       'Las externas (`changelog`) no tienen frontmatter: `external[].seo.description` en su entrada de docs.config.mjs',
     );
   });
 
   it('en una sola página nada es «común»: se listan sus idiomas', () => {
-    const text = md(pageScope(tree, 'a'));
+    const text = reportMarkdown(pageScope(tree, 'a'));
     expect(text).toContain('  - `docs/a.md` (`a`, en)');
     expect(text).toContain('  - `docs/es/a.md` (`a`, es)');
   });
@@ -347,7 +361,7 @@ describe('buildReport: lo común se agrupa una vez', () => {
 
 describe('buildReport: alcances', () => {
   it('una página lleva su tabla por idioma y su contexto, y no habla de porcentajes', () => {
-    const text = md(pageScope(tree, 'a'));
+    const text = reportMarkdown(pageScope(tree, 'a'));
     expect(text).toContain('# SEO on page — SnakeORM · `a`');
     expect(text).toContain('Alcance: esta página · idiomas `en`, `es` (2 entradas)');
     expect(text).toContain('| Idioma | Fichero | Título | Descripción |');
@@ -360,11 +374,11 @@ describe('buildReport: alcances', () => {
 
   it('una página sin encabezados lo dice en su contexto', () => {
     const bare: SeoTree = { pages: [page('a', 'en', [], { headings: [] })] };
-    expect(md(pageScope(bare, 'a'), bare)).toContain('- Encabezados (en): ninguno');
+    expect(reportMarkdown(pageScope(bare, 'a'), bare)).toContain('- Encabezados (en): ninguno');
   });
 
   it('un idioma cubre solo las entradas de ese idioma', () => {
-    const text = md(localeScope(tree, 'es'));
+    const text = reportMarkdown(localeScope(tree, 'es'));
     expect(text).toContain('# SEO on page — SnakeORM · solo `es`');
     expect(text).toContain('Contenido: `docs/es/` (es)');
     expect(text).not.toContain('`docs/a.md`');
@@ -372,14 +386,14 @@ describe('buildReport: alcances', () => {
 
   it('el filtro actual respeta las gravedades: por defecto no cuenta lo informativo', () => {
     const selection = selectListing(tree, new URLSearchParams());
-    const text = md(filterScope(selection, 'errores + avisos'), tree);
+    const text = reportMarkdown(filterScope(selection, 'errores + avisos'), tree);
     expect(text).toContain('Alcance: errores + avisos · 3 páginas');
     expect(sections(text).join('\n')).not.toContain('description-inherited');
   });
 
   it('el filtro por tipo deja solo ese tipo en el informe', () => {
     const selection = selectListing(tree, new URLSearchParams('kind=duplicate-title'));
-    const text = md(filterScope(selection, 'tipo'), tree);
+    const text = reportMarkdown(filterScope(selection, 'tipo'), tree);
     expect(sections(text)).toEqual([expect.stringContaining('«duplicate-title»'), '## No toques']);
   });
 });
@@ -388,7 +402,7 @@ describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
   function have(query: string, seoTree = tree) {
     return buildReport(
       filterScope(selectListing(seoTree, new URLSearchParams(query)), 'sin descripción propia'),
-      ctxOf(seoTree),
+      contextOf(seoTree),
     );
   }
 
@@ -624,7 +638,7 @@ describe('buildReport: bloque JSON', () => {
         seoPage({ slug: 'a', locale: 'es', sourcePath: 'docs/a.es.md' }),
       ],
     };
-    expect(md(siteScope(shared), shared)).toContain('Contenido: `docs/` (en, es)');
+    expect(reportMarkdown(siteScope(shared), shared)).toContain('Contenido: `docs/` (en, es)');
   });
 
   it('el orden de los problemas es el del Markdown', () => {
@@ -660,7 +674,7 @@ describe('buildReport: páginas del cliente (.astro)', () => {
     const own: SeoTree = {
       pages: [astro([issue(IssueKind.TITLE_TOO_SHORT, IssueSeverity.WARNING)]), page('a', 'en')],
     };
-    const text = md(siteScope(own), own);
+    const text = reportMarkdown(siteScope(own), own);
     expect(text).toContain(
       '  - `src/pages/cv.astro` (`cv`, en, página Astro) — `<title>` en su <head>',
     );
@@ -673,7 +687,7 @@ describe('buildReport: páginas del cliente (.astro)', () => {
         astro([issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)]),
       ],
     };
-    expect(md(siteScope(mixed), mixed)).toContain(
+    expect(reportMarkdown(siteScope(mixed), mixed)).toContain(
       'Las páginas Astro (`cv`) no tienen frontmatter: `<meta name="description">` en su <head>',
     );
   });
@@ -687,7 +701,7 @@ describe('buildReport: páginas del cliente (.astro)', () => {
         selectListing(lacking, new URLSearchParams('view=have&lacks=desc')),
         'sin descripción',
       ),
-      ctxOf(lacking),
+      contextOf(lacking),
     );
     expect(markdown).toContain('`<meta name="description">` en su <head> — sin descripción');
     expect(JSON.parse(json.replace(/^```json\n|\n```$/g, '')).pages[0].key).toBe(
@@ -697,6 +711,6 @@ describe('buildReport: páginas del cliente (.astro)', () => {
 
   it('su carpeta no es una carpeta de contenido', () => {
     const own: SeoTree = { pages: [page('a', 'en'), astro()] };
-    expect(md(siteScope(own), own)).toContain('Contenido: `docs/` (en)');
+    expect(reportMarkdown(siteScope(own), own)).toContain('Contenido: `docs/` (en)');
   });
 });

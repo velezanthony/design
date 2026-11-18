@@ -32,9 +32,9 @@ function sync(group: Element): void {
   }
 }
 
-export function initKindsAll(doc: Document): void {
-  for (const group of doc.querySelectorAll('[data-kinds]')) sync(group);
-  doc.addEventListener('change', (event) => {
+export function initKindsAll(htmlDocument: Document): void {
+  for (const group of htmlDocument.querySelectorAll('[data-kinds]')) sync(group);
+  htmlDocument.addEventListener('change', (event) => {
     const field = event.target as HTMLElement | null;
     const group = field?.closest?.('[data-kinds]');
     if (!field || !group) return;

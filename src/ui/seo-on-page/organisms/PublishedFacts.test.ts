@@ -38,19 +38,19 @@ const previews = {
 
 describe('PublishedFacts', () => {
   it('el ancho en píxeles va como estimación («≈») contra su límite', async () => {
-    const doc = await render(PublishedFacts, { published, previews });
-    expect(text(doc.querySelector('[data-width="title"]'))).toBe('≈190/580 px');
-    expect(text(doc.querySelector('[data-width="description"]'))).toBe('≈120/920 px');
+    const htmlDocument = await render(PublishedFacts, { published, previews });
+    expect(text(htmlDocument.querySelector('[data-width="title"]'))).toBe('≈190/580 px');
+    expect(text(htmlDocument.querySelector('[data-width="description"]'))).toBe('≈120/920 px');
   });
 
   it('el título y la descripción llevan la etiqueta «recomendación» y el origen de la descripción', async () => {
-    const doc = await render(PublishedFacts, { published, previews });
-    expect(text(doc.querySelector('[data-field="title"]'))).toContain('recomendación');
-    expect(text(doc.querySelector('[data-source="site"]'))).toBe('Heredada del sitio');
+    const htmlDocument = await render(PublishedFacts, { published, previews });
+    expect(text(htmlDocument.querySelector('[data-field="title"]'))).toContain('recomendación');
+    expect(text(htmlDocument.querySelector('[data-source="site"]'))).toBe('Heredada del sitio');
   });
 
   it('sin descripción no hay ancho ni barra para ella', async () => {
-    const doc = await render(PublishedFacts, {
+    const htmlDocument = await render(PublishedFacts, {
       published: {
         ...published,
         description: undefined,
@@ -60,21 +60,23 @@ describe('PublishedFacts', () => {
       },
       previews,
     });
-    expect(doc.querySelector('[data-width="description"]')).toBeNull();
-    expect(doc.querySelector('[data-field="description"] [data-meter]')).toBeNull();
+    expect(htmlDocument.querySelector('[data-width="description"]')).toBeNull();
+    expect(htmlDocument.querySelector('[data-field="description"] [data-meter]')).toBeNull();
   });
 
   it('noindex dice si está en el sitemap', async () => {
-    const doc = await render(PublishedFacts, {
+    const htmlDocument = await render(PublishedFacts, {
       published: { ...published, noindex: true },
       previews,
     });
-    expect(text(doc.querySelector('[data-field="noindex"]'))).toContain('fuera del sitemap');
+    expect(text(htmlDocument.querySelector('[data-field="noindex"]'))).toContain(
+      'fuera del sitemap',
+    );
   });
 
   it('enseña a su lado el resultado de búsqueda y la tarjeta Open Graph', async () => {
-    const doc = await render(PublishedFacts, { published, previews });
-    expect(doc.querySelector('[data-serp="card"]')).not.toBeNull();
-    expect(doc.querySelector('[data-og-card]')).not.toBeNull();
+    const htmlDocument = await render(PublishedFacts, { published, previews });
+    expect(htmlDocument.querySelector('[data-serp="card"]')).not.toBeNull();
+    expect(htmlDocument.querySelector('[data-og-card]')).not.toBeNull();
   });
 });

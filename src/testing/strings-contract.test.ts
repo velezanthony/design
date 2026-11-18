@@ -18,12 +18,14 @@ describe('contrato de textos por props', () => {
   });
 
   it('sobrescribir una clave en la prop cambia la salida', async () => {
-    const doc = await render(Probe, { strings: stringsFor('en', { 'toc.title': 'Contents' }) });
-    expect(text(doc.querySelector('h2'))).toBe('Contents');
+    const htmlDocument = await render(Probe, {
+      strings: stringsFor('en', { 'toc.title': 'Contents' }),
+    });
+    expect(text(htmlDocument.querySelector('h2'))).toBe('Contents');
   });
 
   it('interpola variables con translate()', async () => {
-    const doc = await render(Probe, { strings: stringsFor('es'), locale: 'English' });
-    expect(doc.querySelector('p')?.textContent).toBe('Disponible en English');
+    const htmlDocument = await render(Probe, { strings: stringsFor('es'), locale: 'English' });
+    expect(htmlDocument.querySelector('p')?.textContent).toBe('Disponible en English');
   });
 });

@@ -35,17 +35,17 @@ function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
 }
 
 /** Todas las rutas del sitio: las páginas reales y, con política `fallback`, las de reserva. */
-export function docRoutes(data: DocData[], cfg: VirtualConfig): DocRoute[] {
-  const { pages, url, av, policies } = siteContext(cfg, data);
+export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
+  const { pages, url, availability, policies } = siteContext(config, data);
   const real = pages.map((page): DocRoute => ({
-    param: paramOf(page.slug, page.locale, cfg.defaultLocale),
+    param: paramOf(page.slug, page.locale, config.defaultLocale),
     kind: 'page',
     slug: page.slug,
     locale: page.locale,
     contentLocale: page.locale,
   }));
-  const fallback = fallbackRoutes(av, policies, cfg, url).map((spec): DocRoute => ({
-    param: paramOf(spec.slug, spec.locale, cfg.defaultLocale),
+  const fallback = fallbackRoutes(availability, policies, config, url).map((spec): DocRoute => ({
+    param: paramOf(spec.slug, spec.locale, config.defaultLocale),
     kind: 'fallback',
     slug: spec.slug,
     locale: spec.locale,
@@ -83,15 +83,15 @@ export interface DocView {
 
 interface DocViewInput {
   route: DocRoute;
-  cfg: VirtualConfig;
+  config: VirtualConfig;
   data: DocData[];
   sizes?: ImageSizes;
 }
 
 /** Datos de la página que se renderiza, para el layout. */
-export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): DocView {
-  const site = siteContext(cfg, data);
-  const { pages, url, av } = site;
+export function docView({ route, config, data, sizes = new Map() }: DocViewInput): DocView {
+  const site = siteContext(config, data);
+  const { pages, url, availability } = site;
   const original = data.find(
     (item) => item.slug === route.slug && item.locale === route.contentLocale,
   );
@@ -99,7 +99,7 @@ export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): 
 
   const isFallback = route.kind === 'fallback';
   const meta = withImageSize(
-    resolveMeta(cfg.seo, original.seo, { title: original.title }, route.locale),
+    resolveMeta(config.seo, original.seo, { title: original.title }, route.locale),
     sizes,
   );
   const pageUrlOfRoute = pageUrl(route.slug, route.locale, url);
@@ -113,9 +113,9 @@ export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): 
   const head = buildHead(
     meta,
     pageData,
-    excludeNoindex(av, noindexUrls(pages, url)),
-    new URL(cfg.site),
-    cfg,
+    excludeNoindex(availability, noindexUrls(pages, url)),
+    new URL(config.site),
+    config,
     url,
   );
 
@@ -125,27 +125,27 @@ export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): 
   function link(leaf?: { label: string; href: string }) {
     return leaf && { label: leaf.label, href: leaf.href };
   }
-  const editable = cfg.editUrl !== undefined && original.editPath !== undefined;
+  const editable = config.editUrl !== undefined && original.editPath !== undefined;
   const { prev, next } = { prev: link(neighbours.prev), next: link(neighbours.next) };
 
   return {
     lang: route.locale,
     head,
-    siteName: cfg.name,
+    siteName: config.name,
     homeHref: pageUrl('', route.locale, url),
-    hrefs: av.get(route.slug) ?? {},
-    strings: cfg.strings[route.locale] as UiStrings,
+    hrefs: availability.get(route.slug) ?? {},
+    strings: config.strings[route.locale] as UiStrings,
     sidebar,
-    nav: buildNav(cfg.nav, navContext),
-    footer: buildFooter(cfg, navContext, cfg.strings[route.locale] as UiStrings),
+    nav: buildNav(config.nav, navContext),
+    footer: buildFooter(config, navContext, config.strings[route.locale] as UiStrings),
     current: pageUrlOfRoute,
     ...(prev && { prev }),
     ...(next && { next }),
-    ...(editable && { editUrl: cfg.editUrl, editFile: original.editPath }),
-    ...consentOf(cfg, route.locale),
+    ...(editable && { editUrl: config.editUrl, editFile: original.editPath }),
+    ...consentOf(config, route.locale),
     indexable: !isFallback && !meta.noindex,
-    baseUrl: baseUrl(cfg.base),
-    layout: cfg.layout,
+    baseUrl: baseUrl(config.base),
+    layout: config.layout,
     ...(isFallback && {
       fallback: { originalLocale: route.contentLocale, href: route.canonical ?? '' },
     }),

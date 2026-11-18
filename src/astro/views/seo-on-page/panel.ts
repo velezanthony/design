@@ -48,7 +48,7 @@ export interface PanelView {
 }
 
 interface PanelViewInput {
-  cfg: VirtualConfig;
+  config: VirtualConfig;
   /** La colección, para que cabecera y pie se resuelvan como en el resto del sitio. */
   data: DocData[];
   hrefs: DevHrefs;
@@ -78,21 +78,21 @@ const PANEL_LOCALE = 'es';
 
 /** Lo que `DocsLayout` necesita para una pantalla del panel: noindex, sin analítica ni edición. */
 export function panelView({
-  cfg,
+  config,
   data,
   hrefs,
   screen,
   title,
   headings = [],
 }: PanelViewInput): PanelView {
-  const site = siteContext(cfg, data);
+  const site = siteContext(config, data);
   const { url } = site;
   /* El panel solo existe en español, así que su interfaz va en español SIEMPRE, sin depender del
      idioma por defecto del sitio: con el catálogo del sitio si tiene español (respeta sus
      sobrescrituras de `ui`) y, si no, con el de la librería. Los enlaces de la cabecera y el pie
      son contenido del sitio: van a su versión española si existe y, si no, a la de su idioma. */
-  const siteLang = cfg.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : cfg.defaultLocale;
-  const strings = (cfg.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
+  const siteLang = config.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : config.defaultLocale;
+  const strings = (config.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna
      sección de `nav`, así que la cabecera no marca nada como actual. */
   const context = navContextOf(site, siteLang, SEO_ON_PAGE_DIR);
@@ -107,7 +107,7 @@ export function panelView({
       { tag: 'title', attrs: {}, content: `${title} · ${PANEL_NAME}` },
       { tag: 'meta', attrs: { name: 'robots', content: 'noindex' } },
     ],
-    siteName: cfg.name,
+    siteName: config.name,
     homeHref: pageUrl('', siteLang, url),
     hrefs: {},
     strings,
@@ -120,15 +120,15 @@ export function panelView({
         })),
       },
     ],
-    nav: buildNav(cfg.nav, context),
-    footer: buildFooter(cfg, context, strings),
+    nav: buildNav(config.nav, context),
+    footer: buildFooter(config, context, strings),
     current: screens[screen].href,
     headings,
     indexable: false,
-    baseUrl: baseUrl(cfg.base),
+    baseUrl: baseUrl(config.base),
     /* A ancho completo: la tabla y las vistas previas no caben en la columna de lectura. El resto
        de la disposición es la del sitio, y el conmutador sigue permitiendo cambiarla. */
-    layout: { ...cfg.layout, width: LayoutWidth.FULL },
+    layout: { ...config.layout, width: LayoutWidth.FULL },
     prose: false,
   };
 }

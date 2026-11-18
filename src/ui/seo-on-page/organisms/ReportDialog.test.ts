@@ -53,10 +53,10 @@ describe('ReportDialog', () => {
 
   it('un texto oculto por alcance, con su tamaño, y el JSON aparte', async () => {
     const detail = await dialog();
-    const md = detail.querySelector('[data-report-text="page"]')!;
-    expect(md.hasAttribute('hidden')).toBe(true);
-    expect(md.getAttribute('data-size-plain')).toBe('2 líneas');
-    expect(md.getAttribute('data-size-json')).toBe('5 líneas');
+    const reportMarkdown = detail.querySelector('[data-report-text="page"]')!;
+    expect(reportMarkdown.hasAttribute('hidden')).toBe(true);
+    expect(reportMarkdown.getAttribute('data-size-plain')).toBe('2 líneas');
+    expect(reportMarkdown.getAttribute('data-size-json')).toBe('5 líneas');
     expect(detail.querySelector('[data-report-json-text="page"]')!.textContent).toBe(
       '```json\n{}\n```',
     );
@@ -64,9 +64,9 @@ describe('ReportDialog', () => {
   });
 
   it('el HTML del informe va escapado: un `<` del Markdown no abre una etiqueta ni cierra el textarea', async () => {
-    const md = (await dialog()).querySelector('[data-report-text="page"]')!;
-    expect(md.innerHTML).toBe('# Informe &lt;b&gt;&amp;&lt;/b&gt;');
-    expect(md.querySelector('b')).toBeNull();
+    const reportMarkdown = (await dialog()).querySelector('[data-report-text="page"]')!;
+    expect(reportMarkdown.innerHTML).toBe('# Informe &lt;b&gt;&amp;&lt;/b&gt;');
+    expect(reportMarkdown.querySelector('b')).toBeNull();
   });
 
   it('trae la casilla del JSON, la vista previa, el tamaño y el botón de copiar', async () => {

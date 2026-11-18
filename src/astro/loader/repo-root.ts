@@ -15,9 +15,9 @@ export async function findRepoRoot(
   start: string,
   markers: readonly string[] = ['.git'],
 ): Promise<string | undefined> {
-  for (let dir = path.resolve(start); ; dir = path.dirname(dir)) {
-    for (const marker of markers) if (await exists(path.join(dir, marker))) return dir;
-    if (path.dirname(dir) === dir) return undefined;
+  for (let directory = path.resolve(start); ; directory = path.dirname(directory)) {
+    for (const marker of markers) if (await exists(path.join(directory, marker))) return directory;
+    if (path.dirname(directory) === directory) return undefined;
   }
 }
 
@@ -26,12 +26,12 @@ export async function findRepoRoot(
  * por defecto, el ancestro con `.git`. Solo hace falta con `editUrl`; sin raíz lanza un `DocsError`.
  */
 export async function resolveRepoRoot(
-  cfg: Pick<ResolvedConfig, 'editUrl' | 'repoRoot'>,
+  config: Pick<ResolvedConfig, 'editUrl' | 'repoRoot'>,
   projectRoot: string,
   markers?: readonly string[],
 ): Promise<string | undefined> {
-  if (cfg.editUrl === undefined) return undefined;
-  if (cfg.repoRoot !== undefined) return path.resolve(projectRoot, cfg.repoRoot);
+  if (config.editUrl === undefined) return undefined;
+  if (config.repoRoot !== undefined) return path.resolve(projectRoot, config.repoRoot);
   const found = await findRepoRoot(projectRoot, markers);
   if (!found) {
     throw new DocsError('`editUrl` está definida pero no se encuentra la raíz del repositorio.', {

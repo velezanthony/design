@@ -20,12 +20,12 @@ import { themeColors } from '../styles/theme-colors';
 
 /** El navegador que necesitan los `init*`; inyectable para probarlos sin globales. */
 export interface BootEnv {
-  doc: Document;
+  htmlDocument: Document;
   storage: Storage | undefined;
   /** `sessionStorage`, para el desplazamiento de la barra lateral. */
   session?: Storage;
   /** La ventana, para saber cuándo se sale de la página (`pagehide`). Sin ella no se recuerda. */
-  win?: Pick<Window, 'addEventListener'>;
+  browserWindow?: Pick<Window, 'addEventListener'>;
   system: Parameters<typeof initTheme>[0]['system'];
   /** `(prefers-reduced-motion: reduce)`; sin él, las transiciones se permiten. */
   motion?: MotionPreference;
@@ -42,10 +42,10 @@ export interface BootEnv {
 /** El entorno real. Se lee al ejecutar el script, nunca al importar el módulo. */
 function browserEnv(): BootEnv {
   return {
-    doc: document,
+    htmlDocument: document,
     storage: storageOf('localStorage'),
     session: storageOf('sessionStorage'),
-    win: window,
+    browserWindow: window,
     system: matchMedia('(prefers-color-scheme: dark)'),
     motion: matchMedia('(prefers-reduced-motion: reduce)'),
     rail: matchMedia(RAIL_QUERY),
@@ -67,25 +67,31 @@ function browserEnv(): BootEnv {
  * tenga. Los textos vienen de `data-*` de `<main>` (el catálogo de la página ya resuelto).
  */
 export function bootDocs(env: BootEnv = browserEnv()): void {
-  const { doc } = env;
+  const { htmlDocument } = env;
   initTheme({
-    doc,
+    htmlDocument,
     storage: env.storage,
     system: env.system,
     colors: themeColors,
     motion: env.motion,
   });
-  initLayout({ doc, storage: env.storage, rail: env.rail });
-  if (env.win) {
-    initSidebarScroll({ doc, storage: env.session, win: env.win, rail: env.rail });
+  initLayout({ htmlDocument, storage: env.storage, rail: env.rail });
+  if (env.browserWindow) {
+    initSidebarScroll({
+      htmlDocument,
+      storage: env.session,
+      browserWindow: env.browserWindow,
+      rail: env.rail,
+    });
   }
-  initConsent({ doc, storage: env.storage, hostname: env.hostname, reload: env.reload });
-  for (const search of doc.querySelectorAll<HTMLElement>('[data-search]')) initSearch(search);
-  initSearchShortcut(doc);
-  initCurrentYear(doc);
-  initTabs(doc, env.motion);
+  initConsent({ htmlDocument, storage: env.storage, hostname: env.hostname, reload: env.reload });
+  for (const search of htmlDocument.querySelectorAll<HTMLElement>('[data-search]'))
+    initSearch(search);
+  initSearchShortcut(htmlDocument);
+  initCurrentYear(htmlDocument);
+  initTabs(htmlDocument, env.motion);
 
-  const main = doc.querySelector<HTMLElement>('main');
+  const main = htmlDocument.querySelector<HTMLElement>('main');
   if (main) {
     const {
       copyLabel,
@@ -101,18 +107,21 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
       diagramFitLabel,
     } = main.dataset;
     if (copyLabel && copiedLabel && copyFailedLabel) {
-      initCopyCode(doc, {
+      initCopyCode(htmlDocument, {
         clipboard: env.clipboard,
         labels: { copy: copyLabel, copied: copiedLabel, failed: copyFailedLabel },
       });
     }
-    if (anchorLabel) initHeadingAnchors(doc, anchorLabel);
+    if (anchorLabel) initHeadingAnchors(htmlDocument, anchorLabel);
     if (zoomLabel && zoomCloseLabel) {
-      initZoom(doc, { labels: { open: zoomLabel, close: zoomCloseLabel }, motion: env.motion });
+      initZoom(htmlDocument, {
+        labels: { open: zoomLabel, close: zoomCloseLabel },
+        motion: env.motion,
+      });
     }
     // El código de diagramas solo se descarga en las páginas que tienen alguno.
     const { mermaid } = env;
-    if (mermaid && doc.querySelector(DIAGRAM_SELECTOR)) {
+    if (mermaid && htmlDocument.querySelector(DIAGRAM_SELECTOR)) {
       /* El visor a pantalla completa necesita todos sus textos (y el de cerrar, que es el de las
          imágenes): sin alguno no se ofrece, en vez de dejar un botón sin nombre. */
       const viewerLabels =
@@ -130,13 +139,18 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
             }
           : undefined;
       void import('../../client/diagrams/mermaid').then(({ initMermaid }) =>
-        initMermaid(doc, { ...mermaid, system: env.system, label: diagramLabel, viewerLabels }),
+        initMermaid(htmlDocument, {
+          ...mermaid,
+          system: env.system,
+          label: diagramLabel,
+          viewerLabels,
+        }),
       );
     }
   }
 
-  const toc = doc.querySelector('nav.toc');
-  if (toc) trackSections(toc, { doc });
+  const toc = htmlDocument.querySelector('nav.toc');
+  if (toc) trackSections(toc, { htmlDocument });
 }
 
 /**
@@ -145,10 +159,13 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
  * ven ya el DOM definitivo. Los datos de la sustitución viajan en `data-nf-*` de `<html>`.
  */
 export function bootNotFound(env: BootEnv = browserEnv()): void {
-  const { doc } = env;
-  const { nfBase, nfLocales, nfDefault } = doc.documentElement.dataset;
+  const { htmlDocument } = env;
+  const { nfBase, nfLocales, nfDefault } = htmlDocument.documentElement.dataset;
   if (nfBase !== undefined && nfLocales !== undefined && nfDefault !== undefined) {
-    swapNotFound(doc, localeFromPath(env.pathname, nfBase, nfLocales.split(','), nfDefault));
+    swapNotFound(
+      htmlDocument,
+      localeFromPath(env.pathname, nfBase, nfLocales.split(','), nfDefault),
+    );
   }
   bootDocs(env);
 }

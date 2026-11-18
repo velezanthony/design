@@ -20,10 +20,12 @@ function slugOf(path: string, base: string) {
 }
 
 /** `<html lang="en-US">` cuenta como `en`; un idioma que no es de la config, como el por defecto. */
-function localeOf(lang: string | undefined, ctx: ClientContext): Locale {
-  if (!lang) return ctx.defaultLocale;
+function localeOf(lang: string | undefined, context: ClientContext): Locale {
+  if (!lang) return context.defaultLocale;
   const short = lang.toLowerCase().split('-')[0]!;
-  return ctx.locales.find((locale) => locale === lang || locale === short) ?? ctx.defaultLocale;
+  return (
+    context.locales.find((locale) => locale === lang || locale === short) ?? context.defaultLocale
+  );
 }
 
 function isObject(value: unknown): value is JsonLd {
@@ -55,19 +57,19 @@ function metaOf(page: ClientPage): MetaNode {
  * se reconocen por sus `hreflang` y comparten el slug de la del idioma por defecto. Los enlaces y
  * las imágenes del cuerpo no se recogen: los análisis que los necesitan no las juzgan.
  */
-export function clientFacts(pages: readonly ClientPage[], ctx: ClientContext): SeoPageFacts[] {
+export function clientFacts(pages: readonly ClientPage[], context: ClientContext): SeoPageFacts[] {
   return pages.map((page) => {
     const { head } = page;
-    const locale = localeOf(head.lang, ctx);
+    const locale = localeOf(head.lang, context);
     const declared = new Map(head.alternates.map(({ hreflang, href }) => [hreflang, href]));
-    const main = declared.get(ctx.defaultLocale);
-    const slug = slugOf(main ? new URL(main).pathname : page.path, ctx.base);
-    const locales = ctx.locales.map((other): SeoLocaleEntry => {
+    const main = declared.get(context.defaultLocale);
+    const slug = slugOf(main ? new URL(main).pathname : page.path, context.base);
+    const locales = context.locales.map((other): SeoLocaleEntry => {
       if (other === locale) return { locale: other, status: 'present', url: page.path };
       const href = declared.get(other);
       return href
         ? { locale: other, status: 'present', url: new URL(href).pathname }
-        : { locale: other, status: 'missing', policy: ctx.missing, declared: false };
+        : { locale: other, status: 'missing', policy: context.missing, declared: false };
     });
     const schemas: ResolvedSchema[] = head.jsonLd
       .flat()
@@ -83,7 +85,7 @@ export function clientFacts(pages: readonly ClientPage[], ctx: ClientContext): S
       headings: head.headings,
       schemas,
       locales,
-      policy: ctx.missing,
+      policy: context.missing,
     };
   });
 }

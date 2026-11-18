@@ -9,13 +9,13 @@ function page(body: string) {
 
 describe('codeText', () => {
   it('es el texto del bloque sin el salto final que añade el resaltado', () => {
-    const doc = page('<pre><code><span>npm</span> <span>i</span>\n</code></pre>');
-    expect(codeText(doc.querySelector('pre')!)).toBe('npm i');
+    const htmlDocument = page('<pre><code><span>npm</span> <span>i</span>\n</code></pre>');
+    expect(codeText(htmlDocument.querySelector('pre')!)).toBe('npm i');
   });
 
   it('conserva las líneas internas y la sangría', () => {
-    const doc = page('<pre><code>a\n  b\n</code></pre>');
-    expect(codeText(doc.querySelector('pre')!)).toBe('a\n  b');
+    const htmlDocument = page('<pre><code>a\n  b\n</code></pre>');
+    expect(codeText(htmlDocument.querySelector('pre')!)).toBe('a\n  b');
   });
 });
 
@@ -32,7 +32,7 @@ describe('initCopyCode', () => {
       clipboard: { writeText },
       labels,
       resetAfterMs: 1500,
-      schedule: (cb) => void timers.push(cb),
+      schedule: (callback) => void timers.push(callback),
     });
     function button() {
       return document.querySelector<HTMLButtonElement>('button.docs-copy');

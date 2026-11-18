@@ -20,26 +20,26 @@ const links = { pages: '/p/', live: '/repo/guide/', edit: 'https://gh/edit/main/
 
 describe('InspectorHeader', () => {
   it('el conmutador enlaza a los otros idiomas y marca el actual', async () => {
-    const doc = await render(InspectorHeader, { header, links });
-    const nav = doc.querySelector('[data-locale-switch]')!;
+    const htmlDocument = await render(InspectorHeader, { header, links });
+    const nav = htmlDocument.querySelector('[data-locale-switch]')!;
     expect(nav.querySelectorAll('a')).toHaveLength(1);
     expect(nav.querySelector('a')!.getAttribute('href')).toBe('/i/?slug=guide&locale=es');
     expect(nav.querySelector('[aria-current="true"] [data-locale="en"]')).not.toBeNull();
   });
 
   it('con un solo idioma no hay conmutador', async () => {
-    const doc = await render(InspectorHeader, {
+    const htmlDocument = await render(InspectorHeader, {
       header: { ...header, locales: [header.locales[0]], total: 1, presentIn: ['en'] },
       links,
     });
-    expect(doc.querySelector('[data-locale-switch]')).toBeNull();
-    expect(doc.querySelector('[data-tag="coverage"]')).toBeNull();
+    expect(htmlDocument.querySelector('[data-locale-switch]')).toBeNull();
+    expect(htmlDocument.querySelector('[data-tag="coverage"]')).toBeNull();
   });
 
   it('los recuentos van en palabras, con singular y plural', async () => {
-    const doc = await render(InspectorHeader, { header, links });
+    const htmlDocument = await render(InspectorHeader, { header, links });
     expect(
-      [...doc.querySelectorAll('[data-counts] [data-severity]')].map((tag) => text(tag)),
+      [...htmlDocument.querySelectorAll('[data-counts] [data-severity]')].map((tag) => text(tag)),
     ).toEqual(['1 aviso', '2 info']);
   });
 
@@ -65,12 +65,12 @@ describe('InspectorHeader', () => {
   });
 
   it('la ranura «actions» va junto a los enlaces de la página real y del fichero', async () => {
-    const doc = await render(
+    const htmlDocument = await render(
       InspectorHeader,
       { header, links },
       { actions: '<button data-x>IA</button>' },
     );
-    const action = doc.querySelector('[data-x]')!;
+    const action = htmlDocument.querySelector('[data-x]')!;
     expect(
       action.closest('[data-inspector-actions]')!.querySelector('a[data-edit]'),
     ).not.toBeNull();

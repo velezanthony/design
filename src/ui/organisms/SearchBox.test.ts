@@ -18,11 +18,11 @@ describe('SearchBox', () => {
   });
 
   it('el campo tiene etiqueta visible para lectores y placeholder localizados', async () => {
-    const doc = await box();
-    const input = doc.querySelector('input')!;
+    const htmlDocument = await box();
+    const input = htmlDocument.querySelector('input')!;
     expect(input.getAttribute('type')).toBe('search');
     expect(input.getAttribute('placeholder')).toBe('Buscar en la documentación');
-    const label = doc.querySelector(`label[for="${input.id}"]`)!;
+    const label = htmlDocument.querySelector(`label[for="${input.id}"]`)!;
     expect(text(label)).toBe('Buscar');
   });
 
@@ -48,8 +48,8 @@ describe('SearchBox', () => {
   });
 
   it('la lista de resultados está vacía y el estado no se anuncia sin JS', async () => {
-    const doc = await box();
-    expect(doc.querySelector('[data-search-results]')!.children).toHaveLength(0);
-    expect(text(doc.querySelector('[data-search-status]'))).toBe('');
+    const htmlDocument = await box();
+    expect(htmlDocument.querySelector('[data-search-results]')!.children).toHaveLength(0);
+    expect(text(htmlDocument.querySelector('[data-search-status]'))).toBe('');
   });
 });

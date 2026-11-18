@@ -40,21 +40,21 @@ export function pagesOf(data: DocData[]): Page[] {
  */
 export function sitemapXml(
   data: DocData[],
-  cfg: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site' | 'locales'> & {
+  config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site' | 'locales'> & {
     privacy: Pick<VirtualConfig['privacy'], 'page'>;
   },
   /** Las páginas del cliente (`src/pages/`), ya decididas, que van después de las de la documentación. */
   extra: readonly SitemapEntry[] = [],
 ): string {
   const pages = pagesOf(data);
-  const url = urlPolicyOf(cfg, cfg.defaultLocale);
-  const av = buildAvailability(pages, url);
+  const url = urlPolicyOf(config, config.defaultLocale);
+  const availability = buildAvailability(pages, url);
   // La página de privacidad propia no es contenido: se suma aquí, con su hreflang entre idiomas.
-  if (cfg.privacy.page) {
-    for (const [key, urls] of privacyAvailability(cfg.locales, url)) av.set(key, urls);
+  if (config.privacy.page) {
+    for (const [key, urls] of privacyAvailability(config.locales, url)) availability.set(key, urls);
   }
   return orAstroError('No se puede generar sitemap.xml.', () =>
-    buildSitemap(av, new URL(cfg.site), noindexUrls(pages, url), extra),
+    buildSitemap(availability, new URL(config.site), noindexUrls(pages, url), extra),
   );
 }
 
@@ -62,10 +62,10 @@ export function sitemapXml(
  * `sitemap.xml` como índice (con `sitemap.include`): primero el sitemap de las páginas propias, bajo
  * la base, y después los demás sitemaps del dominio. Un fallo del núcleo sale como `AstroError`.
  */
-export function sitemapIndexXml(cfg: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
-  const site = new URL(cfg.site);
-  const pages = new URL(withBase(cfg.base, `/${SITEMAP_PAGES}`), site.origin).href;
+export function sitemapIndexXml(config: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
+  const site = new URL(config.site);
+  const pages = new URL(withBase(config.base, `/${SITEMAP_PAGES}`), site.origin).href;
   return orAstroError('No se puede generar el índice sitemap.xml.', () =>
-    buildSitemapIndex([pages, ...sitemapIncludes(cfg.sitemap.include, site, cfg.base)]),
+    buildSitemapIndex([pages, ...sitemapIncludes(config.sitemap.include, site, config.base)]),
   );
 }

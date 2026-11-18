@@ -24,6 +24,6 @@ export function estimateSize(text: string): TextSize {
 
 /** «78 líneas · 3,2 KB · ≈800 tokens (estimado)»; los tokens van como estimación a la vista. */
 export function sizeLabel({ lines, bytes, tokens }: TextSize): string {
-  const kb = (bytes / 1024).toFixed(1).replace('.', ',');
-  return `${plural(lines, 'línea', 'líneas')} · ${kb} KB · ≈${tokens} tokens (estimado)`;
+  const kilobytes = (bytes / 1024).toFixed(1).replace('.', ',');
+  return `${plural(lines, 'línea', 'líneas')} · ${kilobytes} KB · ≈${tokens} tokens (estimado)`;
 }

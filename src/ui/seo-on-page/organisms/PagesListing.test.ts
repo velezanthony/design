@@ -58,9 +58,11 @@ const tables: Record<keyof typeof marks, ListingTable> = {
 describe('PagesListing', () => {
   for (const view of Object.keys(marks) as (keyof typeof marks)[]) {
     it(`en la vista «${view}» pinta su tabla y ninguna otra`, async () => {
-      const doc = await render(PagesListing, { table: tables[view] });
+      const htmlDocument = await render(PagesListing, { table: tables[view] });
       for (const [other, selector] of Object.entries(marks)) {
-        expect(doc.querySelector(selector) !== null, `${view} → ${other}`).toBe(other === view);
+        expect(htmlDocument.querySelector(selector) !== null, `${view} → ${other}`).toBe(
+          other === view,
+        );
       }
     });
   }

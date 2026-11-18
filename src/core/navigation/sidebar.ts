@@ -55,14 +55,14 @@ function humanize(segment: string): string {
 
 function toEntries(
   pages: Page[],
-  av: Availability,
+  availability: Availability,
   locale: Locale,
-  cfg: SidebarConfig,
+  config: SidebarConfig,
   policies: TranslationPolicies,
   url: UrlPolicy,
 ): Entry[] {
   const entries: Entry[] = [];
-  for (const [slug, available] of av) {
+  for (const [slug, available] of availability) {
     const own = pages.find((page) => page.slug === slug && page.locale === locale);
     if (own) {
       const href = available[locale] ?? '';
@@ -73,11 +73,11 @@ function toEntries(
       });
       continue;
     }
-    const source = sourceLocale(available, cfg.locales, cfg.defaultLocale);
+    const source = sourceLocale(available, config.locales, config.defaultLocale);
     const original = pages.find((page) => page.slug === slug && page.locale === source);
     if (!original) continue;
     const policy = policies.get(slug) ?? MissingTranslation.LINK;
-    const leaf = missingEntry(slug, original.title, available, locale, policy, cfg, url);
+    const leaf = missingEntry(slug, original.title, available, locale, policy, config, url);
     if (leaf) {
       entries.push({ slug, leaf, ...(original.order !== undefined && { order: original.order }) });
     }
@@ -92,12 +92,12 @@ export function missingEntry(
   available: Partial<Record<Locale, string>>,
   locale: Locale,
   policy: MissingTranslation,
-  cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
+  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
   url: UrlPolicy,
 ): SidebarLeaf | null {
   switch (policy) {
     case MissingTranslation.LINK: {
-      const source = sourceLocale(available, cfg.locales, cfg.defaultLocale);
+      const source = sourceLocale(available, config.locales, config.defaultLocale);
       return {
         label: title,
         slug,
@@ -249,18 +249,18 @@ function declaredTree(
  */
 export function buildSidebar(
   pages: Page[],
-  av: Availability,
+  availability: Availability,
   locale: Locale,
-  cfg: SidebarConfig,
+  config: SidebarConfig,
   policies: TranslationPolicies,
   url: UrlPolicy,
   base = '',
 ): SidebarNode[] {
   const collator = new Intl.Collator(locale, { numeric: true });
-  const entries = toEntries(pages, av, locale, cfg, policies, url);
+  const entries = toEntries(pages, availability, locale, config, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
   const used = new Set<string>();
-  const declared = declaredTree(cfg.sidebar ?? [], bySlug, used, locale, cfg.defaultLocale);
+  const declared = declaredTree(config.sidebar ?? [], bySlug, used, locale, config.defaultLocale);
   const rest = autoTree(
     entries.filter((entry) => !used.has(entry.slug)),
     collator,

@@ -15,7 +15,7 @@ const { buildPagefindIndex } = await import('./pagefind');
 const info = vi.fn();
 const fork = vi.fn(() => ({ info }));
 const logger = { fork } as never;
-const dir = new URL('file:///tmp/dist/');
+const directory = new URL('file:///tmp/dist/');
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe('buildPagefindIndex', () => {
   it('crea, indexa, escribe en dist/pagefind/ y cierra', async () => {
-    await buildPagefindIndex(dir, logger);
+    await buildPagefindIndex(directory, logger);
     expect(index.addDirectory).toHaveBeenCalledWith({ path: '/tmp/dist/' });
     expect(index.writeFiles).toHaveBeenCalledWith({ outputPath: '/tmp/dist/pagefind/' });
     expect(pagefind.close).toHaveBeenCalledOnce();
@@ -34,7 +34,7 @@ describe('buildPagefindIndex', () => {
   });
 
   it('registra con un logger propio', async () => {
-    await buildPagefindIndex(dir, logger);
+    await buildPagefindIndex(directory, logger);
     expect(fork).toHaveBeenCalledWith('design:pagefind');
   });
 
@@ -44,7 +44,7 @@ describe('buildPagefindIndex', () => {
     ['escribir', () => index.writeFiles.mockResolvedValue({ errors: ['e3'] })],
   ])('un error al %s se convierte en excepción y aun así cierra', async (_name, arrange) => {
     arrange();
-    await expect(buildPagefindIndex(dir, logger)).rejects.toThrow(/Pagefind/);
+    await expect(buildPagefindIndex(directory, logger)).rejects.toThrow(/Pagefind/);
     expect(pagefind.close).toHaveBeenCalledOnce();
   });
 });

@@ -32,9 +32,9 @@ describe('restoreDirectives', () => {
   it('no toca una directiva que otro plugin ya reclamó', async () => {
     const claim = defineMdastPlugin({
       name: 'reclama',
-      textDirective(node, ctx) {
+      textDirective(node, context) {
         if (node.name === 'badge') {
-          ctx.replaceNode(node, { type: 'html', value: '<b>reclamada</b>' });
+          context.replaceNode(node, { type: 'html', value: '<b>reclamada</b>' });
         }
       },
     });

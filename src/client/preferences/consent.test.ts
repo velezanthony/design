@@ -190,7 +190,7 @@ describe('initConsent', () => {
       },
     });
     const reload = vi.fn();
-    initConsent({ doc: document, storage, hostname: 'example.com', reload });
+    initConsent({ htmlDocument: document, storage, hostname: 'example.com', reload });
     const banner = document.querySelector('[data-consent-banner]')!;
     function click(selector: string) {
       return document
@@ -309,7 +309,12 @@ describe('initConsent', () => {
   it('no hace nada en una página sin banner', () => {
     const { document } = parseHTML('<!doctype html><html><body></body></html>');
     expect(() =>
-      initConsent({ doc: document, storage: memory(), hostname: 'x.com', reload: vi.fn() }),
+      initConsent({
+        htmlDocument: document,
+        storage: memory(),
+        hostname: 'x.com',
+        reload: vi.fn(),
+      }),
     ).not.toThrow();
   });
 });

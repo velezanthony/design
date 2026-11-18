@@ -11,14 +11,14 @@ function setup() {
     '<!doctype html><html><body><button id="trigger">abrir</button>' +
       '<div id="source"><svg id="docs-mermaid-0" viewBox="0 0 400 200" style="max-width: 400px; min-width: 300px;"><g></g></svg></div></body></html>',
   );
-  const win = document.defaultView!;
+  const browserWindow = document.defaultView!;
   const viewer = createDiagramViewer(document, labels);
   const dialog = document.querySelector<HTMLDialogElement>('dialog.docs-diagram-dialog')!;
   Object.assign(dialog, {
     showModal: vi.fn(() => dialog.setAttribute('open', '')),
     close: vi.fn(() => {
       dialog.removeAttribute('open');
-      dialog.dispatchEvent(new win.Event('close'));
+      dialog.dispatchEvent(new browserWindow.Event('close'));
     }),
   });
   const stage = dialog.querySelector<HTMLElement>('.docs-diagram-stage')!;
@@ -33,10 +33,10 @@ function setup() {
   trigger.focus = vi.fn();
   const svg = document.querySelector<SVGElement>('#source svg')! as unknown as SVGElement;
 
-  function fire(el: Element, type: string, props: Record<string, unknown> = {}) {
-    const event = new win.Event(type, { bubbles: true, cancelable: true });
+  function fire(element: Element, type: string, props: Record<string, unknown> = {}) {
+    const event = new browserWindow.Event(type, { bubbles: true, cancelable: true });
     Object.assign(event, props);
-    el.dispatchEvent(event);
+    element.dispatchEvent(event);
     return event;
   }
   function key(name: string, extra: Record<string, unknown> = {}) {
@@ -119,14 +119,14 @@ describe('createDiagramViewer', () => {
         'un clic en el fondo, fuera del diagrama',
         (viewer: ReturnType<typeof setup>) => viewer.fire(viewer.stage, 'click'),
       ],
-    ])('con %s cierra, devuelve el foco al botón y vacía el visor', (_label, act) => {
-      const ctx = setup();
-      ctx.viewer.open(ctx.svg, 'x', ctx.trigger);
-      act(ctx);
-      expect(ctx.dialog.hasAttribute('open')).toBe(false);
-      expect(ctx.trigger.focus).toHaveBeenCalled();
-      expect(ctx.canvas.querySelector('svg')).toBeNull();
-      expect(ctx.viewer.isOpen).toBe(false);
+    ])('con %s cierra, devuelve el foco al botón y vacía el visor', (_label, action) => {
+      const context = setup();
+      context.viewer.open(context.svg, 'x', context.trigger);
+      action(context);
+      expect(context.dialog.hasAttribute('open')).toBe(false);
+      expect(context.trigger.focus).toHaveBeenCalled();
+      expect(context.canvas.querySelector('svg')).toBeNull();
+      expect(context.viewer.isOpen).toBe(false);
     });
 
     it('un clic sobre el propio diagrama no cierra', () => {

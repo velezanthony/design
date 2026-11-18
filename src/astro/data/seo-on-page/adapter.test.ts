@@ -236,12 +236,12 @@ describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
 
 describe('loadSiteFiles', () => {
   async function withPublic(files: string[], run: (publicDir: string) => Promise<void>) {
-    const dir = await mkdtemp(path.join(tmpdir(), 'seo-public-'));
+    const directory = await mkdtemp(path.join(tmpdir(), 'seo-public-'));
     try {
-      for (const file of files) await writeFile(path.join(dir, file), 'x');
-      await run(pathToFileURL(`${dir}${path.sep}`).href);
+      for (const file of files) await writeFile(path.join(directory, file), 'x');
+      await run(pathToFileURL(`${directory}${path.sep}`).href);
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await rm(directory, { recursive: true, force: true });
     }
   }
   function byId(files: Awaited<ReturnType<typeof loadSiteFiles>>, id: string) {

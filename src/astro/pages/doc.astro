@@ -28,7 +28,7 @@ const { Content, headings } = await renderDoc(entry);
 const sizes = await siteImageSizes(siteConfig, [entry.data.seo?.image?.src]);
 const view = docView({
   route,
-  cfg: siteConfig,
+  config: siteConfig,
   data: entries.map((item) => item.data),
   sizes,
 });

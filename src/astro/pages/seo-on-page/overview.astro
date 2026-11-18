@@ -34,7 +34,7 @@ const model = overviewModel(tree, {
   siteFiles: await loadSiteFiles(siteConfig, docs, client),
 });
 const view = panelView({
-  cfg: siteConfig,
+  config: siteConfig,
   data: docs,
   hrefs,
   screen: 'overview',

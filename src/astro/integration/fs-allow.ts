@@ -9,8 +9,8 @@ import { searchForWorkspaceRoot } from 'vite';
  * (y no se toca `allow`, para no quitarle al consumidor el comportamiento por defecto).
  */
 export function contentFsAllow(projectRoot: string, content: string): string[] {
-  const dir = path.resolve(projectRoot, content);
-  const relative = path.relative(projectRoot, dir);
+  const directory = path.resolve(projectRoot, content);
+  const relative = path.relative(projectRoot, directory);
   if (!relative.startsWith('..') && !path.isAbsolute(relative)) return [];
-  return [searchForWorkspaceRoot(projectRoot), dir];
+  return [searchForWorkspaceRoot(projectRoot), directory];
 }

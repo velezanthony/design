@@ -79,9 +79,9 @@ describe('initZoom', () => {
     const trigger = document.querySelector<HTMLButtonElement>('button.docs-zoom');
     if (trigger) trigger.focus = vi.fn();
     const Event = document.defaultView!.Event;
-    function fire(el: Element, type: string, init: EventInit = { bubbles: true }) {
+    function fire(element: Element, type: string, init: EventInit = { bubbles: true }) {
       const event = new Event(type, { cancelable: true, ...init });
-      el.dispatchEvent(event);
+      element.dispatchEvent(event);
       return event;
     }
     function settle() {

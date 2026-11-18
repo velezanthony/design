@@ -57,12 +57,12 @@ describe('pageUrl', () => {
 
 describe('buildAvailability', () => {
   it('lista, por slug, los idiomas reales y su URL', () => {
-    const av = buildAvailability(
+    const availability = buildAvailability(
       [page('install', 'en'), page('install', 'es'), page('changelog', 'en')],
       policy(),
     );
-    expect(av.get('install')).toEqual({ en: '/install/', es: '/es/install/' });
-    expect(av.get('changelog')).toEqual({ en: '/changelog/' });
-    expect(av.has('es-only')).toBe(false);
+    expect(availability.get('install')).toEqual({ en: '/install/', es: '/es/install/' });
+    expect(availability.get('changelog')).toEqual({ en: '/changelog/' });
+    expect(availability.has('es-only')).toBe(false);
   });
 });

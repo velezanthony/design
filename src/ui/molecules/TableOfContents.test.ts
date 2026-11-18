@@ -18,8 +18,8 @@ function toc(props: Record<string, unknown>) {
 
 describe('TableOfContents', () => {
   it('lista los encabezados h2 y h3, no h1 ni h4', async () => {
-    const doc = await toc({});
-    const links = [...doc.querySelectorAll('nav a')].map((anchor) => [
+    const htmlDocument = await toc({});
+    const links = [...htmlDocument.querySelectorAll('nav a')].map((anchor) => [
       text(anchor),
       anchor.getAttribute('href'),
     ]);
@@ -32,9 +32,11 @@ describe('TableOfContents', () => {
   });
 
   it('marca la profundidad del h3 para sangrarlo', async () => {
-    const doc = await toc({});
-    expect(doc.querySelector('a[href="#detalle"]')?.getAttribute('data-depth')).toBe('3');
-    expect(doc.querySelector('a[href="#el-problema"]')?.getAttribute('data-depth')).toBe('2');
+    const htmlDocument = await toc({});
+    expect(htmlDocument.querySelector('a[href="#detalle"]')?.getAttribute('data-depth')).toBe('3');
+    expect(htmlDocument.querySelector('a[href="#el-problema"]')?.getAttribute('data-depth')).toBe(
+      '2',
+    );
   });
 
   it('es un landmark nav con nombre y título sacados de strings', async () => {
@@ -47,9 +49,9 @@ describe('TableOfContents', () => {
 
   /* Contrato con `trackSections`: el cliente engancha `nav.toc` y sus `a[href^="#"]`. */
   it('lleva la clase toc y solo enlaces de ancla', async () => {
-    const doc = await toc({});
-    expect(doc.querySelector('nav')!.classList.contains('toc')).toBe(true);
-    for (const anchor of doc.querySelectorAll('nav a'))
+    const htmlDocument = await toc({});
+    expect(htmlDocument.querySelector('nav')!.classList.contains('toc')).toBe(true);
+    for (const anchor of htmlDocument.querySelectorAll('nav a'))
       expect(anchor.getAttribute('href')).toMatch(/^#/);
   });
 
@@ -66,22 +68,22 @@ describe('TableOfContents', () => {
 
 describe('TableOfContents: raíl plegable', () => {
   it('sin `toggles` no hay botón ni etiqueta de raíl', async () => {
-    const doc = await toc({});
-    expect(doc.querySelector('button')).toBeNull();
-    expect(doc.querySelector('.docs-rail-label')).toBeNull();
+    const htmlDocument = await toc({});
+    expect(htmlDocument.querySelector('button')).toBeNull();
+    expect(htmlDocument.querySelector('.docs-rail-label')).toBeNull();
   });
 
   it('con `toggles` el botón controla la lista, y el índice conserva su título', async () => {
-    const doc = await toc({ toggles: true, open: false });
-    const button = doc.querySelector('nav button[data-layout-toggle="right"]')!;
+    const htmlDocument = await toc({ toggles: true, open: false });
+    const button = htmlDocument.querySelector('nav button[data-layout-toggle="right"]')!;
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(button.getAttribute('aria-label')).toBe('Desplegar el índice');
     expect(button.getAttribute('data-collapse-label')).toBe('Plegar el índice');
     expect(button.getAttribute('data-expand-label')).toBe('Desplegar el índice');
     expect(
-      doc.getElementById(button.getAttribute('aria-controls')!)!.querySelector('a'),
+      htmlDocument.getElementById(button.getAttribute('aria-controls')!)!.querySelector('a'),
     ).not.toBeNull();
-    expect(text(doc.querySelector('.docs-rail-label'))).toBe('Índice');
-    expect(text(doc.querySelector('.docs-panel-title'))).toBe('En esta página');
+    expect(text(htmlDocument.querySelector('.docs-rail-label'))).toBe('Índice');
+    expect(text(htmlDocument.querySelector('.docs-panel-title'))).toBe('En esta página');
   });
 });

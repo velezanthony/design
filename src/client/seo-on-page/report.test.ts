@@ -50,11 +50,11 @@ function setup({
   function query<T extends Element = HTMLElement>(selector: string) {
     return document.querySelector<T>(selector)!;
   }
-  function click(el: Element) {
-    return el.dispatchEvent(new window.Event('click', { bubbles: true }));
+  function click(element: Element) {
+    return element.dispatchEvent(new window.Event('click', { bubbles: true }));
   }
-  function change(el: Element) {
-    return el.dispatchEvent(new window.Event('change', { bubbles: true }));
+  function change(element: Element) {
+    return element.dispatchEvent(new window.Event('change', { bubbles: true }));
   }
   /** linkedom no desmarca los demás radios del grupo ni deja asignar `select.value`: se hace a mano. */
   function choose(value: string) {

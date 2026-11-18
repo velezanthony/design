@@ -5,8 +5,8 @@ import { render, text } from './render';
 
 describe('render', () => {
   it('devuelve un documento consultable con el HTML del componente', async () => {
-    const doc = await render(Icon, { name: 'arrow' });
-    expect(doc.querySelector('svg')).not.toBeNull();
+    const htmlDocument = await render(Icon, { name: 'arrow' });
+    expect(htmlDocument.querySelector('svg')).not.toBeNull();
   });
 
   it('pasa las props al componente', async () => {

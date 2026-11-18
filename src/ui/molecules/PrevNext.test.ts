@@ -12,9 +12,9 @@ function nav(props: Record<string, unknown>) {
 
 describe('PrevNext', () => {
   it('página intermedia: anterior y siguiente con rel y texto del catálogo', async () => {
-    const doc = await nav({ prev, next });
-    const previousLink = doc.querySelector('a[rel="prev"]')!;
-    const nextLink = doc.querySelector('a[rel="next"]')!;
+    const htmlDocument = await nav({ prev, next });
+    const previousLink = htmlDocument.querySelector('a[rel="prev"]')!;
+    const nextLink = htmlDocument.querySelector('a[rel="next"]')!;
     expect(previousLink.getAttribute('href')).toBe('/install/');
     expect(text(previousLink)).toContain('Anterior');
     expect(text(previousLink)).toContain('Instalación');
@@ -23,14 +23,14 @@ describe('PrevNext', () => {
   });
 
   it('primera página: solo siguiente', async () => {
-    const doc = await nav({ next });
-    expect(doc.querySelector('a[rel="prev"]')).toBeNull();
-    expect(doc.querySelectorAll('a')).toHaveLength(1);
+    const htmlDocument = await nav({ next });
+    expect(htmlDocument.querySelector('a[rel="prev"]')).toBeNull();
+    expect(htmlDocument.querySelectorAll('a')).toHaveLength(1);
   });
 
   it('última página: solo anterior', async () => {
-    const doc = await nav({ prev });
-    expect(doc.querySelector('a[rel="next"]')).toBeNull();
+    const htmlDocument = await nav({ prev });
+    expect(htmlDocument.querySelector('a[rel="next"]')).toBeNull();
   });
 
   it('sin vecinas no pinta nada', async () => {
@@ -38,12 +38,12 @@ describe('PrevNext', () => {
   });
 
   it('es un landmark nav con nombre y los textos salen de strings', async () => {
-    const doc = await nav({
+    const htmlDocument = await nav({
       prev,
       next,
       strings: stringsFor('en', { 'pagination.prev': 'Back', 'pagination.label': 'Pager' }),
     });
-    expect(doc.querySelector('nav')!.getAttribute('aria-label')).toBe('Pager');
-    expect(text(doc.querySelector('a[rel="prev"]'))).toContain('Back');
+    expect(htmlDocument.querySelector('nav')!.getAttribute('aria-label')).toBe('Pager');
+    expect(text(htmlDocument.querySelector('a[rel="prev"]'))).toContain('Back');
   });
 });

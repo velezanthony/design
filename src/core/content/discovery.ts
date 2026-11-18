@@ -49,8 +49,8 @@ export function externalPath(file: string, locale: Locale, defaultLocale: Locale
 }
 
 /** Idiomas en los que una entrada externa PUEDE existir (los declarados o, si no, todos los del sitio). */
-function externalLocales(entry: ExternalDoc, cfg: Pick<ResolvedConfig, 'locales'>): Locale[] {
-  return entry.locales ?? cfg.locales;
+function externalLocales(entry: ExternalDoc, config: Pick<ResolvedConfig, 'locales'>): Locale[] {
+  return entry.locales ?? config.locales;
 }
 
 /** Lo que el descubrimiento lee de la config: nada de `ui`, que el loader no recibe del módulo virtual. */
@@ -60,11 +60,11 @@ type ExternalDoc = ResolvedConfig['external'][number];
 
 /** Todas las rutas externas que el adaptador debe intentar leer; las que no existan, se omiten. */
 export function externalCandidates(
-  cfg: Pick<ResolvedConfig, 'external' | 'locales' | 'defaultLocale'>,
+  config: Pick<ResolvedConfig, 'external' | 'locales' | 'defaultLocale'>,
 ): string[] {
-  return cfg.external.flatMap((entry) =>
-    externalLocales(entry, cfg).map((locale) =>
-      externalPath(entry.file, locale, cfg.defaultLocale),
+  return config.external.flatMap((entry) =>
+    externalLocales(entry, config).map((locale) =>
+      externalPath(entry.file, locale, config.defaultLocale),
     ),
   );
 }
@@ -82,8 +82,14 @@ function attempt<T>(errors: DocsError[], build: () => T): T | undefined {
   }
 }
 
-function nativePage(file: SourceFile, cfg: DiscoveryConfig, errors: DocsError[]): Page | undefined {
-  const located = attempt(errors, () => splitLocale(file.path, cfg.locales, cfg.defaultLocale));
+function nativePage(
+  file: SourceFile,
+  config: DiscoveryConfig,
+  errors: DocsError[],
+): Page | undefined {
+  const located = attempt(errors, () =>
+    splitLocale(file.path, config.locales, config.defaultLocale),
+  );
   if (!located) return undefined;
   const title = attempt(errors, () => resolveTitle(file.body, file.frontmatter?.title, file.path));
   if (title === undefined) return undefined;
@@ -103,17 +109,17 @@ function nativePage(file: SourceFile, cfg: DiscoveryConfig, errors: DocsError[])
 function externalPages(
   entry: ExternalDoc,
   files: Map<string, SourceFile>,
-  cfg: DiscoveryConfig,
+  config: DiscoveryConfig,
   errors: DocsError[],
 ): Page[] {
   const declared = entry.locales !== undefined;
   const pages: Page[] = [];
-  for (const locale of externalLocales(entry, cfg)) {
-    const path = externalPath(entry.file, locale, cfg.defaultLocale);
+  for (const locale of externalLocales(entry, config)) {
+    const path = externalPath(entry.file, locale, config.defaultLocale);
     const file = files.get(path);
     if (!file) {
       // Con idiomas declarados todos son obligatorios; sin declarar, solo el idioma por defecto.
-      if (declared || locale === cfg.defaultLocale) {
+      if (declared || locale === config.defaultLocale) {
         errors.push(
           new DocsError(`Falta el archivo externo «${entry.slug}»: ${path}.`, {
             file: path,
@@ -143,10 +149,10 @@ function externalPages(
  * El idioma por defecto va sin prefijo, así que su página `es/guia` ocuparía `/es/guia/`, la URL de
  * la página `guia` del idioma `es` (y `es` sería su portada). Se reserva todo prefijo de idioma.
  */
-function findLocalePrefixCollisions(pages: Page[], cfg: DiscoveryConfig): DocsError[] {
-  const prefixes = cfg.locales.filter((locale) => locale !== cfg.defaultLocale);
+function findLocalePrefixCollisions(pages: Page[], config: DiscoveryConfig): DocsError[] {
+  const prefixes = config.locales.filter((locale) => locale !== config.defaultLocale);
   return pages
-    .filter((page) => page.locale === cfg.defaultLocale)
+    .filter((page) => page.locale === config.defaultLocale)
     .flatMap((page) => {
       const prefix = prefixes.find((locale) => page.slug.split('/')[0] === locale);
       if (prefix === undefined) return [];
@@ -155,7 +161,7 @@ function findLocalePrefixCollisions(pages: Page[], cfg: DiscoveryConfig): DocsEr
           `El slug «${page.slug}» de «${page.sourcePath}» empieza por el código de idioma «${prefix}» y colisiona con las URLs de ese idioma (/${prefix}/…).`,
           {
             file: page.sourcePath,
-            hint: `Renombra el archivo (el idioma por defecto «${cfg.defaultLocale}» va sin prefijo, y «${prefix}» está reservado para sus traducciones).`,
+            hint: `Renombra el archivo (el idioma por defecto «${config.defaultLocale}» va sin prefijo, y «${prefix}» está reservado para sus traducciones).`,
           },
         ),
       ];
@@ -167,7 +173,7 @@ function findLocalePrefixCollisions(pages: Page[], cfg: DiscoveryConfig): DocsEr
  * Reúne TODOS los fallos (sufijo no configurado, colisión de slugs, archivo ausente, sin título) y
  * los lanza juntos en un único `DocsErrors`.
  */
-export function discoverPages(files: SourceFile[], cfg: DiscoveryConfig): Page[] {
+export function discoverPages(files: SourceFile[], config: DiscoveryConfig): Page[] {
   const errors: DocsError[] = [];
   const externalFiles = new Map(
     files.filter((file) => file.kind === 'external').map((file) => [normalize(file.path), file]),
@@ -175,10 +181,10 @@ export function discoverPages(files: SourceFile[], cfg: DiscoveryConfig): Page[]
   const pages = [
     ...files
       .filter((file) => file.kind === 'native')
-      .flatMap((file) => nativePage(file, cfg, errors) ?? []),
-    ...cfg.external.flatMap((entry) => externalPages(entry, externalFiles, cfg, errors)),
+      .flatMap((file) => nativePage(file, config, errors) ?? []),
+    ...config.external.flatMap((entry) => externalPages(entry, externalFiles, config, errors)),
   ];
-  errors.push(...findLocalePrefixCollisions(pages, cfg));
+  errors.push(...findLocalePrefixCollisions(pages, config));
   errors.push(
     ...findSlugCollisions(
       pages.map((page) => ({ slug: page.slug, locale: page.locale, file: page.sourcePath })),

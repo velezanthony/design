@@ -55,9 +55,9 @@ export function runToFolder(options: ToFolderOptions): number {
     );
   }
 
-  function walk(dir: string): string[] {
-    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-      const full = path.join(dir, entry.name);
+  function walk(directory: string): string[] {
+    return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const full = path.join(directory, entry.name);
       return entry.isDirectory() ? walk(full) : [path.relative(docs, full)];
     });
   }

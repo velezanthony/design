@@ -31,11 +31,11 @@ function doc(slug: string, locale: string): DocData {
 const data = [doc('', 'en'), doc('guide', 'en')];
 
 function view(extra: Partial<Parameters<typeof panelView>[0]> = {}) {
-  const cfg = extra.cfg ?? site();
+  const config = extra.config ?? site();
   return panelView({
-    cfg,
+    config,
     data,
-    hrefs: devHrefs(cfg),
+    hrefs: devHrefs(config),
     screen: 'overview',
     title: 'Resumen',
     ...extra,
@@ -66,10 +66,10 @@ describe('panelView', () => {
   });
 
   it('el panel va en español; con español en el sitio, su cabecera y su pie también', () => {
-    const cfg = site({ nav: [{ label: { en: 'Guide', es: 'Guía' }, slug: 'guide' }] });
-    const built = view({ cfg });
+    const config = site({ nav: [{ label: { en: 'Guide', es: 'Guía' }, slug: 'guide' }] });
+    const built = view({ config });
     expect(built.lang).toBe('es');
-    expect(built.strings).toBe(cfg.strings.es);
+    expect(built.strings).toBe(config.strings.es);
     expect(built.siteName).toBe('Docs');
     expect(built.homeHref).toBe('/repo/es/');
     expect(built.nav.map((entry) => entry.label)).toEqual(['Guía']);
@@ -77,7 +77,7 @@ describe('panelView', () => {
   });
 
   it('sin español en el sitio, la interfaz sigue en español y los enlaces van a su idioma', () => {
-    const cfg = createVirtualData(
+    const config = createVirtualData(
       resolveConfig({ name: 'Docs', locales: ['en'], nav: [{ label: 'Guide', slug: 'guide' }] }),
       {
         base: '/repo',
@@ -87,7 +87,7 @@ describe('panelView', () => {
         publicDir: 'file:///site/public/',
       },
     );
-    const built = view({ cfg });
+    const built = view({ config });
     expect(built.lang).toBe('es');
     expect(built.strings).toEqual(defaultStrings.es);
     expect(built.homeHref).toBe('/repo/');
@@ -96,7 +96,7 @@ describe('panelView', () => {
 
   it('sin analítica, sin consentimiento y sin enlace de edición, aunque el sitio los tenga', () => {
     const built = view({
-      cfg: site({ gtmId: 'GTM-ABC123', editUrl: 'https://github.com/o/r/edit/main' }),
+      config: site({ gtmId: 'GTM-ABC123', editUrl: 'https://github.com/o/r/edit/main' }),
     });
     expect(built).not.toHaveProperty('gtmId');
     expect(built).not.toHaveProperty('privacyUrl');
@@ -104,11 +104,11 @@ describe('panelView', () => {
   });
 
   it('se abre a ancho completo: tablas y vistas previas no caben en el de lectura', () => {
-    const cfg = site({ layout: { width: 'reading' } });
-    const built = view({ cfg });
+    const config = site({ layout: { width: 'reading' } });
+    const built = view({ config });
     expect(built.layout.width).toBe('full');
     // El resto de la disposición (barras plegables, conmutadores) sigue siendo la del sitio.
-    expect({ ...built.layout, width: cfg.layout.width }).toEqual(cfg.layout);
+    expect({ ...built.layout, width: config.layout.width }).toEqual(config.layout);
   });
 
   it('el contenido va sin prosa: el panel trae su propio marcado', () => {
@@ -153,11 +153,11 @@ describe('inspectorHeadings', () => {
 
 describe('DocsLayout alimentado por panelView', () => {
   function page() {
-    const cfg = site({ gtmId: 'GTM-ABC123', privacyUrl: '/repo/privacy/' });
+    const config = site({ gtmId: 'GTM-ABC123', privacyUrl: '/repo/privacy/' });
     return renderDocument(
       DocsLayout,
       {
-        ...view({ cfg, headings: inspectorHeadings({ fixes: 1, translations: true }) }),
+        ...view({ config, headings: inspectorHeadings({ fixes: 1, translations: true }) }),
         year: 2026,
       },
       { default: '<p>contenido</p>' },
@@ -165,25 +165,27 @@ describe('DocsLayout alimentado por panelView', () => {
   }
 
   it('pinta cabecera, barra lateral con la pantalla actual y el contenido en <main>', async () => {
-    const doc = await page();
-    expect(doc.querySelector('header')).not.toBeNull();
-    expect(doc.querySelector('main#main-content')).not.toBeNull();
-    expect(text(doc.querySelector('main'))).toContain('contenido');
-    expect(doc.querySelector('aside a[aria-current="page"]')!.getAttribute('href')).toBe(
+    const htmlDocument = await page();
+    expect(htmlDocument.querySelector('header')).not.toBeNull();
+    expect(htmlDocument.querySelector('main#main-content')).not.toBeNull();
+    expect(text(htmlDocument.querySelector('main'))).toContain('contenido');
+    expect(htmlDocument.querySelector('aside a[aria-current="page"]')!.getAttribute('href')).toBe(
       '/repo/seo-on-page/',
     );
   });
 
   it('no se indexa, ni en el head ni en Pagefind, y no carga analítica', async () => {
-    const doc = await page();
-    expect(doc.querySelector('meta[name="robots"]')!.getAttribute('content')).toBe('noindex');
-    expect(doc.querySelector('[data-pagefind-body]')).toBeNull();
-    expect(doc.querySelector('[data-consent-banner]')).toBeNull();
+    const htmlDocument = await page();
+    expect(htmlDocument.querySelector('meta[name="robots"]')!.getAttribute('content')).toBe(
+      'noindex',
+    );
+    expect(htmlDocument.querySelector('[data-pagefind-body]')).toBeNull();
+    expect(htmlDocument.querySelector('[data-consent-banner]')).toBeNull();
   });
 
   it('«En esta página» lista las secciones del inspector', async () => {
-    const doc = await page();
-    expect(doc.querySelector('a[href="#published"]')).not.toBeNull();
-    expect(doc.querySelector('a[href="#translations"]')).not.toBeNull();
+    const htmlDocument = await page();
+    expect(htmlDocument.querySelector('a[href="#published"]')).not.toBeNull();
+    expect(htmlDocument.querySelector('a[href="#translations"]')).not.toBeNull();
   });
 });

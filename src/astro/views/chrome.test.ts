@@ -17,7 +17,7 @@ describe('consentOf', () => {
   });
 
   it('resuelve la política de privacidad del idioma pedido', () => {
-    const cfg = { ...base, privacyUrl: { en: '/privacy/', es: '/privacidad/' } };
-    expect(consentOf(cfg, 'es')).toEqual({ privacyUrl: '/privacidad/' });
+    const config = { ...base, privacyUrl: { en: '/privacy/', es: '/privacidad/' } };
+    expect(consentOf(config, 'es')).toEqual({ privacyUrl: '/privacidad/' });
   });
 });

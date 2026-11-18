@@ -9,9 +9,9 @@ async function button(props: Record<string, unknown> = {}) {
 
 describe('Button', () => {
   it('es un <button> con su texto', async () => {
-    const el = await button();
-    expect(el.tagName).toBe('BUTTON');
-    expect(text(el)).toBe('Filtrar');
+    const element = await button();
+    expect(element.tagName).toBe('BUTTON');
+    expect(text(element)).toBe('Filtrar');
   });
 
   /* Sin `type`, un <button> dentro de un formulario envía el formulario: aquí es opt-in. */
@@ -24,17 +24,17 @@ describe('Button', () => {
   });
 
   it('con disabled lo marca y no promete clic', async () => {
-    const el = await button({ disabled: true });
-    expect(el.hasAttribute('disabled')).toBe(true);
-    expect(el.classList.contains('cursor-not-allowed')).toBe(true);
-    expect(el.classList.contains('cursor-pointer')).toBe(false);
+    const element = await button({ disabled: true });
+    expect(element.hasAttribute('disabled')).toBe(true);
+    expect(element.classList.contains('cursor-not-allowed')).toBe(true);
+    expect(element.classList.contains('cursor-pointer')).toBe(false);
   });
 
   /* Tailwind 4 pone `cursor: default` a los <button>: el puntero tiene que ser explícito. */
   it('habilitado lleva cursor-pointer', async () => {
-    const el = await button();
-    expect(el.classList.contains('cursor-pointer')).toBe(true);
-    expect(el.classList.contains('cursor-not-allowed')).toBe(false);
+    const element = await button();
+    expect(element.classList.contains('cursor-pointer')).toBe(true);
+    expect(element.classList.contains('cursor-not-allowed')).toBe(false);
   });
 
   it.each(['primary', 'secondary', 'quiet'])(
@@ -54,15 +54,15 @@ describe('Button', () => {
   });
 
   it('propaga name, value, aria-* y class', async () => {
-    const el = await button({
+    const element = await button({
       name: 'intent',
       value: 'save',
       'aria-label': 'Guardar',
       class: 'extra',
     });
-    expect(el.getAttribute('name')).toBe('intent');
-    expect(el.getAttribute('value')).toBe('save');
-    expect(el.getAttribute('aria-label')).toBe('Guardar');
-    expect(el.classList.contains('extra')).toBe(true);
+    expect(element.getAttribute('name')).toBe('intent');
+    expect(element.getAttribute('value')).toBe('save');
+    expect(element.getAttribute('aria-label')).toBe('Guardar');
+    expect(element.classList.contains('extra')).toBe(true);
   });
 });

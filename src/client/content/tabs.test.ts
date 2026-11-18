@@ -127,7 +127,7 @@ describe('initTabs', () => {
 
   it('los grupos son independientes y sus ids no chocan', () => {
     const { document, tabs, event } = setup(group(['a', 'b']) + group(['c', 'd']));
-    const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
+    const ids = [...document.querySelectorAll('[id]')].map((element) => element.id);
     expect(new Set(ids).size).toBe(ids.length);
     tabs()[1]!.dispatchEvent(event('click'));
     expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([

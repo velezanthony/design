@@ -7,7 +7,7 @@ import { siteConfig } from './site-config';
 export async function loadPrivacyView(locale?: string) {
   return privacyView({
     locale,
-    cfg: siteConfig,
+    config: siteConfig,
     data: await getDocData(),
     sizes: await siteImageSizes(siteConfig),
   });

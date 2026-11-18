@@ -35,16 +35,16 @@ function escapeXml(text: string) {
 
 /**
  * Sitemap de las páginas REALES indexables, con sus alternates `xhtml:link` por idioma. Las rutas
- * de reserva y la 404 no están en `av`, así que no aparecen. Las URLs en `noindex` se excluyen y
+ * de reserva y la 404 no están en `availability`, así que no aparecen. Las URLs en `noindex` se excluyen y
  * se quitan de los alternates de sus gemelas. Lanza si hay más URLs de las que cabe en un archivo.
  */
 export function buildSitemap(
-  av: Availability,
+  availability: Availability,
   site: URL,
   noindex: ReadonlySet<string> = new Set(),
   extra: readonly SitemapEntry[] = [],
 ): string {
-  const indexable = excludeNoindex(av, noindex);
+  const indexable = excludeNoindex(availability, noindex);
   // Una página del cliente con la URL de una de la librería la sustituye: Astro publica la suya.
   const taken = new Set(extra.map(({ loc }) => loc));
   function absolute(href: string) {

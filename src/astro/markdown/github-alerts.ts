@@ -23,7 +23,7 @@ export function githubAlerts(env: MarkdownEnv) {
   return docsPlugin(env, ({ strings }) =>
     defineMdastPlugin({
       name: 'github-alerts',
-      blockquote(node, ctx) {
+      blockquote(node, context) {
         const [paragraph, ...rest] = node.children;
         if (paragraph?.type !== 'paragraph') return;
         const [head, ...inline] = paragraph.children;
@@ -37,7 +37,7 @@ export function githubAlerts(env: MarkdownEnv) {
 
         const content: (MdastNode | Custom)[] = [...inline];
         if (after) content.unshift({ type: 'text', value: after });
-        ctx.replaceNode(
+        context.replaceNode(
           node,
           admonitionNode({
             kind: entry[0],

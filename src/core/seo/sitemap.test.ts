@@ -23,13 +23,13 @@ function locs(xml: string) {
 }
 
 describe('buildSitemap', () => {
-  const av: Availability = new Map([
+  const availability: Availability = new Map([
     ['install', { en: '/repo/install/', es: '/repo/es/install/' }],
     ['changelog', { en: '/repo/changelog/' }],
   ]);
 
   it('es un único urlset con URLs absolutas', () => {
-    const xml = buildSitemap(av, site);
+    const xml = buildSitemap(availability, site);
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
     expect(xml).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
@@ -41,13 +41,13 @@ describe('buildSitemap', () => {
   });
 
   it('enlaza su hoja de estilo con una ruta relativa, para que funcione bajo cualquier base', () => {
-    const [, stylesheet] = buildSitemap(av, site).split('\n');
+    const [, stylesheet] = buildSitemap(availability, site).split('\n');
     expect(stylesheet).toBe('<?xml-stylesheet type="text/css" href="_design/sitemap.css"?>');
     expect(SITEMAP_STYLESHEET_PATH).toBe('/_design/sitemap.css');
   });
 
   it('una pareja lista ambos alternates en cada URL', () => {
-    const xml = buildSitemap(av, site);
+    const xml = buildSitemap(availability, site);
     const block = xml.split('<url>')[1];
     expect(block).toContain('rel="alternate" hreflang="en" href="https://x.dev/repo/install/"');
     expect(block).toContain('rel="alternate" hreflang="es" href="https://x.dev/repo/es/install/"');
@@ -73,7 +73,7 @@ describe('buildSitemap', () => {
   });
 
   it('las páginas noindex salen y desaparecen de los alternates de sus gemelas', () => {
-    const xml = buildSitemap(av, site, new Set(['/repo/es/install/']));
+    const xml = buildSitemap(availability, site, new Set(['/repo/es/install/']));
     expect(locs(xml)).toEqual(['https://x.dev/repo/install/', 'https://x.dev/repo/changelog/']);
     expect(xml).not.toContain('hreflang="es"');
     expect(xml).not.toContain('xhtml:link');
@@ -201,7 +201,7 @@ describe('clientSitemapEntries', () => {
 });
 
 describe('buildSitemap con páginas del cliente', () => {
-  const av: Availability = new Map([['install', { en: '/repo/install/' }]]);
+  const availability: Availability = new Map([['install', { en: '/repo/install/' }]]);
   const cv = {
     loc: 'https://x.dev/repo/cv/',
     alternates: [
@@ -211,7 +211,7 @@ describe('buildSitemap con páginas del cliente', () => {
   };
 
   it('van después de las de la documentación, con sus alternates', () => {
-    const xml = buildSitemap(av, site, new Set(), [cv]);
+    const xml = buildSitemap(availability, site, new Set(), [cv]);
     expect(locs(xml)).toEqual(['https://x.dev/repo/install/', 'https://x.dev/repo/cv/']);
     expect(xml).toContain(
       '<url><loc>https://x.dev/repo/cv/</loc><xhtml:link rel="alternate" hreflang="es" href="https://x.dev/repo/cv/"/><xhtml:link rel="alternate" hreflang="en" href="https://x.dev/repo/en/cv/"/></url>',
@@ -220,7 +220,7 @@ describe('buildSitemap con páginas del cliente', () => {
 
   it('una del cliente con la URL de una de la documentación la sustituye: no sale dos veces', () => {
     const own = { loc: 'https://x.dev/repo/install/', alternates: [] };
-    const xml = buildSitemap(av, site, new Set(), [own]);
+    const xml = buildSitemap(availability, site, new Set(), [own]);
     expect(locs(xml)).toEqual(['https://x.dev/repo/install/']);
     expect(xml).toContain('<url><loc>https://x.dev/repo/install/</loc></url>');
   });

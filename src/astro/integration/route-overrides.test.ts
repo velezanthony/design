@@ -5,12 +5,12 @@ import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { overrideWarning, routeOverrides, type RouteOptions } from './route-overrides';
 
-const dirs: string[] = [];
+const directories: string[] = [];
 
 /** Crea un `src/pages/` temporal con los ficheros dados y devuelve su URL. */
 function pagesWith(...files: string[]): URL {
   const root = mkdtempSync(join(tmpdir(), 'design-pages-'));
-  dirs.push(root);
+  directories.push(root);
   for (const file of files) {
     const path = join(root, 'pages', file);
     mkdirSync(join(path, '..'), { recursive: true });
@@ -20,7 +20,8 @@ function pagesWith(...files: string[]): URL {
 }
 
 afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const directory of directories.splice(0))
+    rmSync(directory, { recursive: true, force: true });
 });
 
 const site: RouteOptions = { locales: ['en', 'es'], defaultLocale: 'en' };

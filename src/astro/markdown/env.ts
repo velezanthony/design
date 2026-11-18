@@ -82,7 +82,7 @@ export interface DocContext {
 export function docsPlugin(
   env: MarkdownEnv,
   build: (doc: DocContext) => MdastPluginDefinition,
-): (ctx: PluginFactoryContext) => MdastPluginDefinition | null {
+): (context: PluginFactoryContext) => MdastPluginDefinition | null {
   return ({ fileURL }) => {
     if (!fileURL || !shouldTransform(fileURL, env.scope)) return null;
     return build({ fileURL, file: fileLabel(env, fileURL), strings: stringsOf(env, fileURL), env });

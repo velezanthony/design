@@ -9,8 +9,8 @@ export function scrollableTables(env: MarkdownEnv) {
   return docsPlugin(env, () =>
     defineMdastPlugin({
       name: 'scrollable-tables',
-      table(node, ctx) {
-        ctx.wrapNode(node, {
+      table(node, context) {
+        context.wrapNode(node, {
           type: 'docsElement',
           data: {
             hName: 'div',

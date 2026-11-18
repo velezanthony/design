@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runInPlace, type InPlaceIo } from './in-place';
 
-function md(...lines: string[]) {
+function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';
 }
 
@@ -16,18 +16,18 @@ function fakeIo(files: Record<string, string>, git: InPlaceIo['git'] = cleanGit)
   return { io, written };
 }
 
-function cleanGit(args: string[]) {
-  return args[0] === 'rev-parse' ? 'true\n' : '';
+function cleanGit(gitArguments: string[]) {
+  return gitArguments[0] === 'rev-parse' ? 'true\n' : '';
 }
 
 describe('runInPlace', () => {
-  const converted = md('!!! note "N"', '', '    x');
+  const converted = reportMarkdown('!!! note "N"', '', '    x');
 
   it('reescribe solo los ficheros que cambian', () => {
-    const { io, written } = fakeIo({ 'a.md': converted, 'b.md': md('# B') });
+    const { io, written } = fakeIo({ 'a.md': converted, 'b.md': reportMarkdown('# B') });
     const out = runInPlace(io, { force: false });
     expect([...written.keys()]).toEqual(['a.md']);
-    expect(written.get('a.md')).toBe(md(':::note[N]', 'x', ':::'));
+    expect(written.get('a.md')).toBe(reportMarkdown(':::note[N]', 'x', ':::'));
     expect(out.exitCode).toBe(0);
   });
 
@@ -39,8 +39,8 @@ describe('runInPlace', () => {
   });
 
   it('con docs/ sucio se niega, no escribe nada y sale con error', () => {
-    function dirty(args: string[]) {
-      return args[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
+    function dirty(gitArguments: string[]) {
+      return gitArguments[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
     }
     const { io, written } = fakeIo({ 'a.md': converted }, dirty);
     const out = runInPlace(io, { force: false });
@@ -59,8 +59,8 @@ describe('runInPlace', () => {
   });
 
   it('con --force sigue adelante pero avisa', () => {
-    function dirty(args: string[]) {
-      return args[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
+    function dirty(gitArguments: string[]) {
+      return gitArguments[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
     }
     const { io, written } = fakeIo({ 'a.md': converted }, dirty);
     const out = runInPlace(io, { force: true });
@@ -69,7 +69,7 @@ describe('runInPlace', () => {
   });
 
   it('con restos los lista y sale con error', () => {
-    const { io, written } = fakeIo({ 'a.md': md('===+ "A"', '    x') });
+    const { io, written } = fakeIo({ 'a.md': reportMarkdown('===+ "A"', '    x') });
     const out = runInPlace(io, { force: false });
     expect(written.size).toBe(0);
     expect(out.exitCode).not.toBe(0);
@@ -77,7 +77,7 @@ describe('runInPlace', () => {
   });
 
   it('los stubs no se escriben, se listan aparte y no hacen fallar', () => {
-    const { io, written } = fakeIo({ 'changelog.md': md('--8<-- "CHANGELOG.md"') });
+    const { io, written } = fakeIo({ 'changelog.md': reportMarkdown('--8<-- "CHANGELOG.md"') });
     const out = runInPlace(io, { force: false });
     expect(written.size).toBe(0);
     expect(out.exitCode).toBe(0);
@@ -100,8 +100,8 @@ describe('runInPlace', () => {
 
   it('lista aparte los enlaces a un stub con su sustitución, sin hacer fallar', () => {
     const { io } = fakeIo({
-      'contributing.md': md('--8<-- "CONTRIBUTING.md"'),
-      'a.md': md('[c](contributing.md)'),
+      'contributing.md': reportMarkdown('--8<-- "CONTRIBUTING.md"'),
+      'a.md': reportMarkdown('[c](contributing.md)'),
     });
     const out = runInPlace(io, { force: false });
     expect(out.exitCode).toBe(0);

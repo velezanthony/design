@@ -2,7 +2,7 @@
 export type MotionPreference = Pick<MediaQueryList, 'matches'>;
 
 export interface TransitionOptions {
-  doc: Document;
+  htmlDocument: Document;
   /** `matches` es verdadero si quien visita pidió reducir el movimiento; se lee en cada llamada. */
   motion: MotionPreference;
   /** Nombre de la transición: queda en `<html data-transition>` para que el CSS elija su efecto. */
@@ -26,22 +26,22 @@ let latest = 0;
  */
 export async function withTransition(
   update: () => void | Promise<void>,
-  { doc, motion, kind, vars = {} }: TransitionOptions,
+  { htmlDocument, motion, kind, vars = {} }: TransitionOptions,
 ): Promise<void> {
-  const start = (doc as Document & { startViewTransition?: StartViewTransition })
+  const start = (htmlDocument as Document & { startViewTransition?: StartViewTransition })
     .startViewTransition;
   if (typeof start !== 'function' || motion.matches) {
     void update();
     return;
   }
 
-  const root = doc.documentElement;
+  const root = htmlDocument.documentElement;
   const id = ++latest;
   if (kind) root.dataset.transition = kind;
   for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value);
 
   try {
-    await start.call(doc, update).finished;
+    await start.call(htmlDocument, update).finished;
   } catch {
     /* Saltada o interrumpida: el cambio de estado ya ocurrió, solo falta limpiar. */
   } finally {

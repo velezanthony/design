@@ -59,8 +59,10 @@ describe('privacyPageUrls', () => {
 
 describe('privacyAvailability', () => {
   it('es una sola entrada con una URL por idioma (hreflang entre ellas)', () => {
-    const av = privacyAvailability(['es', 'en'], url('es'));
-    expect([...av.values()]).toEqual([{ es: '/repo/privacidad/', en: '/repo/en/privacy/' }]);
+    const availability = privacyAvailability(['es', 'en'], url('es'));
+    expect([...availability.values()]).toEqual([
+      { es: '/repo/privacidad/', en: '/repo/en/privacy/' },
+    ]);
   });
 });
 

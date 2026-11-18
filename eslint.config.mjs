@@ -129,6 +129,47 @@ export default defineConfig(
     rules: { 'id-length': ['error', { min: 2, properties: 'never' }] },
   },
 
+  /* Palabras enteras: nada de `cfg`, `ctx` ni `el`. Quedan fuera `dir` (clave pública de `nav`), `doc` (una
+     página de docs), `fn` (`vi.fn` en tipos), `desc` y `md` (claves de datos), `info`, `ref`, `prev`, `params`
+     y `src`, que son vocabulario del dominio, de Astro o del HTML. */
+  {
+    files: ['**/*.{ts,mjs,astro}'],
+    rules: {
+      'id-denylist': [
+        'error',
+        'cfg',
+        'ctx',
+        'av',
+        'el',
+        'btn',
+        'idx',
+        'msg',
+        'opts',
+        'err',
+        'tmp',
+        'str',
+        'obj',
+        'arr',
+        'val',
+        'cb',
+        'args',
+        'ext',
+        'pkg',
+        'win',
+        'bg',
+        'fg',
+        'cls',
+        'dup',
+        'hl',
+        'kb',
+        'reg',
+        'pref',
+        'abs',
+        'act',
+      ],
+    },
+  },
+
   /* El último, para que el formato sea cosa solo de Prettier. */
   prettier,
 );

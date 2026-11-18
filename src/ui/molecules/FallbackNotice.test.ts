@@ -25,15 +25,15 @@ describe('FallbackNotice', () => {
   });
 
   it('es una nota accesible, en el idioma de la página', async () => {
-    const el = (await notice()).querySelector('[role="note"]')!;
-    expect(el).not.toBeNull();
+    const element = (await notice()).querySelector('[role="note"]')!;
+    expect(element).not.toBeNull();
   });
 
   it('el texto sale de strings: sobrescribir la clave lo cambia', async () => {
-    const doc = await notice({
+    const htmlDocument = await notice({
       strings: stringsFor('es', { 'translation.fallbackNotice': 'Solo en inglés.' }),
     });
-    expect(text(doc)).toContain('Solo en inglés.');
+    expect(text(htmlDocument)).toContain('Solo en inglés.');
   });
 
   it('un idioma sin nombre conocido usa su código', async () => {

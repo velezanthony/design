@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { docsProblem } from './git-guard';
 
 function fakeGit(answers: Record<string, string | Error>) {
-  return (args: string[]): string => {
-    const answer = answers[args.join(' ')];
-    if (answer === undefined) throw new Error(`git inesperado: ${args.join(' ')}`);
+  return (gitArguments: string[]): string => {
+    const answer = answers[gitArguments.join(' ')];
+    if (answer === undefined) throw new Error(`git inesperado: ${gitArguments.join(' ')}`);
     if (answer instanceof Error) throw answer;
     return answer;
   };

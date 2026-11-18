@@ -26,8 +26,8 @@ function matrix(rows: MatrixRow[], hreflang = true, locales = ['en', 'es']) {
 
 describe('LanguageMatrix', () => {
   it('una columna por idioma, más hreflang y x-default', async () => {
-    const doc = await matrix([row()]);
-    expect([...doc.querySelectorAll('thead th')].map((th) => text(th))).toEqual([
+    const htmlDocument = await matrix([row()]);
+    expect([...htmlDocument.querySelectorAll('thead th')].map((th) => text(th))).toEqual([
       'Página',
       'EN',
       'ES',
@@ -37,12 +37,19 @@ describe('LanguageMatrix', () => {
   });
 
   it('con un solo idioma no hay columnas de hreflang', async () => {
-    const doc = await matrix([row({ cells: [{ locale: 'en', state: 'exists' }] })], false, ['en']);
-    expect([...doc.querySelectorAll('thead th')].map((th) => text(th))).toEqual(['Página', 'EN']);
+    const htmlDocument = await matrix(
+      [row({ cells: [{ locale: 'en', state: 'exists' }] })],
+      false,
+      ['en'],
+    );
+    expect([...htmlDocument.querySelectorAll('thead th')].map((th) => text(th))).toEqual([
+      'Página',
+      'EN',
+    ]);
   });
 
   it('cada celda dice el estado en palabras y lo lleva en un atributo', async () => {
-    const doc = await matrix([
+    const htmlDocument = await matrix([
       row({
         cells: [
           { locale: 'en', state: 'exists' },
@@ -52,16 +59,20 @@ describe('LanguageMatrix', () => {
         xDefault: undefined,
       }),
     ]);
-    expect(text(doc.querySelector('td[data-locale="en"]'))).toContain('sí');
-    expect(doc.querySelector('td[data-locale="es"]')!.getAttribute('data-state')).toBe('omitted');
-    expect(text(doc.querySelector('td[data-locale="es"]'))).toContain('omitida por política');
-    expect(text(doc.querySelector('td[data-hreflang]'))).toContain('sin par');
-    expect(text(doc.querySelector('td[data-x-default]'))).toBe('–');
+    expect(text(htmlDocument.querySelector('td[data-locale="en"]'))).toContain('sí');
+    expect(htmlDocument.querySelector('td[data-locale="es"]')!.getAttribute('data-state')).toBe(
+      'omitted',
+    );
+    expect(text(htmlDocument.querySelector('td[data-locale="es"]'))).toContain(
+      'omitida por política',
+    );
+    expect(text(htmlDocument.querySelector('td[data-hreflang]'))).toContain('sin par');
+    expect(text(htmlDocument.querySelector('td[data-x-default]'))).toBe('–');
   });
 
   it('el hreflang omitido por noindex lo dice', async () => {
-    const doc = await matrix([row({ hreflang: 'omitted', xDefault: undefined })]);
-    expect(text(doc.querySelector('td[data-hreflang]'))).toContain('omitido (noindex)');
+    const htmlDocument = await matrix([row({ hreflang: 'omitted', xDefault: undefined })]);
+    expect(text(htmlDocument.querySelector('td[data-hreflang]'))).toContain('omitido (noindex)');
   });
 
   it('x-default dice a qué idioma apunta', async () => {
@@ -69,10 +80,14 @@ describe('LanguageMatrix', () => {
   });
 
   it('la fila enlaza al inspector y trae la leyenda y la nota', async () => {
-    const doc = await matrix([row()]);
-    expect(doc.querySelector('tbody th a')!.getAttribute('href')).toBe('/i/?slug=guide&locale=en');
-    expect(text(doc.querySelector('ul[aria-label="Leyenda"]'))).toContain('falta (no hay fichero)');
-    expect(text(doc)).toContain('hreflang solo cuenta si es recíproco');
+    const htmlDocument = await matrix([row()]);
+    expect(htmlDocument.querySelector('tbody th a')!.getAttribute('href')).toBe(
+      '/i/?slug=guide&locale=en',
+    );
+    expect(text(htmlDocument.querySelector('ul[aria-label="Leyenda"]'))).toContain(
+      'falta (no hay fichero)',
+    );
+    expect(text(htmlDocument)).toContain('hreflang solo cuenta si es recíproco');
   });
 
   it('sin filas dice que ninguna cumple', async () => {

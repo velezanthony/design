@@ -67,7 +67,7 @@ export function admonitions(env: MarkdownEnv) {
     defineMdastPlugin({
       name: 'admonitions',
       options: { position: true },
-      containerDirective(node, ctx) {
+      containerDirective(node, context) {
         if (FOREIGN.has(node.name)) return;
         const where = `${file}${node.position ? `:${node.position.start.line}` : ''}`;
         if (!isKind(node.name)) {
@@ -87,8 +87,8 @@ export function admonitions(env: MarkdownEnv) {
         }
         const [first, ...rest] = node.children;
         const hasLabel = first?.type === 'paragraph' && first.data?.directiveLabel === true;
-        const label = hasLabel ? ctx.textContent(first).trim() : '';
-        ctx.replaceNode(
+        const label = hasLabel ? context.textContent(first).trim() : '';
+        context.replaceNode(
           node,
           admonitionNode({
             kind: node.name,

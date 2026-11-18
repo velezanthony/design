@@ -5,19 +5,19 @@ import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { checkFavicon } from './favicon';
 
-let dir: string;
+let directory: string;
 let publicDir: URL;
 
 beforeEach(async () => {
-  dir = await mkdtemp(path.join(tmpdir(), 'docs-favicon-'));
-  await mkdir(path.join(dir, 'public'), { recursive: true });
-  publicDir = pathToFileURL(`${path.join(dir, 'public')}/`);
+  directory = await mkdtemp(path.join(tmpdir(), 'docs-favicon-'));
+  await mkdir(path.join(directory, 'public'), { recursive: true });
+  publicDir = pathToFileURL(`${path.join(directory, 'public')}/`);
 });
-afterEach(() => rm(dir, { recursive: true, force: true }));
+afterEach(() => rm(directory, { recursive: true, force: true }));
 
 describe('checkFavicon', () => {
   it('un favicon de public/ que existe (con o sin barra) no da errores', async () => {
-    await writeFile(path.join(dir, 'public/favicon.svg'), '<svg/>');
+    await writeFile(path.join(directory, 'public/favicon.svg'), '<svg/>');
     expect(await checkFavicon('favicon.svg', publicDir)).toEqual([]);
     expect(await checkFavicon('/favicon.svg', publicDir)).toEqual([]);
   });
@@ -29,7 +29,7 @@ describe('checkFavicon', () => {
   });
 
   it('una ruta que se sale de public/ cuenta como ausente', async () => {
-    await writeFile(path.join(dir, 'secreto.svg'), '<svg/>');
+    await writeFile(path.join(directory, 'secreto.svg'), '<svg/>');
     expect(await checkFavicon('/../secreto.svg', publicDir)).toHaveLength(1);
   });
 

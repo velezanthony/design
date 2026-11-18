@@ -11,8 +11,8 @@ function notice(extra: object = {}) {
 
 describe('CommonIssueNotice', () => {
   it('dice el tipo, a cuántas páginas y entradas afecta, y por qué no se repite', async () => {
-    const doc = await notice();
-    const aside = doc.querySelector('aside')!;
+    const htmlDocument = await notice();
+    const aside = htmlDocument.querySelector('aside')!;
     expect(text(aside)).toContain('Descripción heredada del sitio');
     expect(text(aside)).toContain('Afecta a las 38 páginas (75 entradas), así que');
     expect(text(aside)).toContain('no se repite en cada fila');

@@ -134,7 +134,7 @@ describe('initSearch', () => {
   function setup(importer: (url: string) => Promise<unknown>) {
     const { document } = parseHTML(`<!doctype html><html><body>${markup}</body></html>`);
     const root = document.querySelector<HTMLElement>('[data-search]')!;
-    initSearch(root, { importer, debounceMs: 0, schedule: (cb) => cb() });
+    initSearch(root, { importer, debounceMs: 0, schedule: (callback) => callback() });
     const input = document.querySelector<HTMLInputElement>('[data-search-input]')!;
     const status = document.querySelector('[data-search-status]')!;
     function items() {

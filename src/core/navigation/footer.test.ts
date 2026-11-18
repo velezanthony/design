@@ -22,12 +22,12 @@ function page(slug: string, locale = 'en'): Page {
 
 const pages = [page(''), page('changelog'), page('changelog', 'es'), page('only-en')];
 
-function ctx(locale = 'en'): NavContext {
+function context(locale = 'en'): NavContext {
   return {
     pages,
-    av: buildAvailability(pages, url),
+    availability: buildAvailability(pages, url),
     locale,
-    cfg: { locales: ['en', 'es'], defaultLocale: 'en' },
+    config: { locales: ['en', 'es'], defaultLocale: 'en' },
     policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
     url,
     slug: '',
@@ -37,8 +37,8 @@ function ctx(locale = 'en'): NavContext {
 function strings(locale: string) {
   return defaultStrings[locale] as UiStrings;
 }
-function view(cfg: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') {
-  return buildFooter(cfg, ctx(locale), strings(locale));
+function view(config: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') {
+  return buildFooter(config, context(locale), strings(locale));
 }
 
 describe('buildFooter: derivaciones', () => {
@@ -113,7 +113,7 @@ describe('buildFooter: enlaces propios', () => {
     const omitted = buildFooter(
       { footer: { links: [{ label: 'Solo', slug: 'only-en' }] } },
       {
-        ...ctx('es'),
+        ...context('es'),
         policies: resolvePolicies(pages, MissingTranslation.OMIT).policies,
       },
       strings('es'),

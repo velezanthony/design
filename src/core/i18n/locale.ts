@@ -14,18 +14,21 @@ const LOCALE_SUFFIX = /^(.*)\.([a-z]{2}(?:-[A-Za-z0-9]{2,8})?)\.md$/;
  * de idioma que no está configurado falla: nunca se trata como parte del slug.
  */
 export function splitLocale(
-  relPath: string,
+  relativePath: string,
   locales: Locale[],
   defaultLocale: Locale,
 ): { stem: string; locale: Locale } {
-  const match = LOCALE_SUFFIX.exec(relPath);
-  if (!match) return { stem: relPath.replace(/\.md$/, ''), locale: defaultLocale };
+  const match = LOCALE_SUFFIX.exec(relativePath);
+  if (!match) return { stem: relativePath.replace(/\.md$/, ''), locale: defaultLocale };
   const [, stem, locale] = match;
   if (!locales.includes(locale)) {
-    throw new DocsError(`El sufijo de idioma «${locale}» de «${relPath}» no está configurado.`, {
-      file: relPath,
-      hint: `Idiomas configurados: ${locales.join(', ')}. Añade «${locale}» a \`locales\` o renombra el archivo.`,
-    });
+    throw new DocsError(
+      `El sufijo de idioma «${locale}» de «${relativePath}» no está configurado.`,
+      {
+        file: relativePath,
+        hint: `Idiomas configurados: ${locales.join(', ')}. Añade «${locale}» a \`locales\` o renombra el archivo.`,
+      },
+    );
   }
   return { stem, locale };
 }

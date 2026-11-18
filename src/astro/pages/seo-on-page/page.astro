@@ -53,7 +53,7 @@ const prompts =
     : [];
 const title = model ? `${slugLabel(slug)} · ${locale}` : PANEL_LABELS.pageNotFound;
 const view = panelView({
-  cfg: siteConfig,
+  config: siteConfig,
   data: docs,
   hrefs,
   screen: 'pages',

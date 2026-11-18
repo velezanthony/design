@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { findStubLinks } from './stub-links';
 
-function md(...lines: string[]) {
+function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';
 }
 const stubs = [{ file: 'contributing.md', include: 'CONTRIBUTING.md' }];
@@ -9,7 +9,10 @@ const stubs = [{ file: 'contributing.md', include: 'CONTRIBUTING.md' }];
 describe('findStubLinks', () => {
   it('encuentra los enlaces a un stub y propone la ruta real al fichero incluido', () => {
     const files = new Map([
-      ['contributors/engineering.md', md('# E', '', 'Mira [guía](../contributing.md#pr).')],
+      [
+        'contributors/engineering.md',
+        reportMarkdown('# E', '', 'Mira [guía](../contributing.md#pr).'),
+      ],
     ]);
     expect(findStubLinks(files, stubs)).toEqual([
       {
@@ -22,12 +25,12 @@ describe('findStubLinks', () => {
   });
 
   it('desde la raíz de docs/ la ruta sube un solo nivel', () => {
-    const files = new Map([['index.md', md('[c](contributing.md)')]]);
+    const files = new Map([['index.md', reportMarkdown('[c](contributing.md)')]]);
     expect(findStubLinks(files, stubs)[0].suggestion).toBe('../CONTRIBUTING.md');
   });
 
   it('el fichero incluido puede estar en una subcarpeta del repo', () => {
-    const files = new Map([['index.md', md('[c](a.md)')]]);
+    const files = new Map([['index.md', reportMarkdown('[c](a.md)')]]);
     const found = findStubLinks(files, [{ file: 'a.md', include: 'meta/A.md' }]);
     expect(found[0].suggestion).toBe('../meta/A.md');
   });
@@ -36,7 +39,7 @@ describe('findStubLinks', () => {
     const files = new Map([
       [
         'index.md',
-        md(
+        reportMarkdown(
           '[a](other.md) [b](https://x.dev/contributing.md)',
           '`[c](contributing.md)`',
           '```',
@@ -49,11 +52,11 @@ describe('findStubLinks', () => {
   });
 
   it('sin stubs no hay nada que buscar', () => {
-    expect(findStubLinks(new Map([['a.md', md('[x](b.md)')]]), [])).toEqual([]);
+    expect(findStubLinks(new Map([['a.md', reportMarkdown('[x](b.md)')]]), [])).toEqual([]);
   });
 
   it('el propio stub no cuenta como origen', () => {
-    const files = new Map([['contributing.md', md('--8<-- "CONTRIBUTING.md"')]]);
+    const files = new Map([['contributing.md', reportMarkdown('--8<-- "CONTRIBUTING.md"')]]);
     expect(findStubLinks(files, stubs)).toEqual([]);
   });
 });

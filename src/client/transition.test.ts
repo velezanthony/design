@@ -6,16 +6,16 @@ import { withTransition } from './transition';
 /** Un documento cuyo `startViewTransition` ejecuta el callback y acaba al instante. */
 function page(withApi: boolean) {
   const { document } = parseHTML('<!doctype html><html><body></body></html>');
-  const doc = document;
+  const htmlDocument = document;
   const seen: { kind?: string; vars: Record<string, string> }[] = [];
   const start = vi.fn((update: () => void | Promise<void>) => {
-    const root = doc.documentElement;
+    const root = htmlDocument.documentElement;
     seen.push({ kind: root.dataset.transition, vars: { x: root.style.getPropertyValue('--x') } });
     void update();
     return { finished: Promise.resolve() };
   });
-  if (withApi) Object.assign(doc, { startViewTransition: start });
-  return { doc, start, seen };
+  if (withApi) Object.assign(htmlDocument, { startViewTransition: start });
+  return { htmlDocument, start, seen };
 }
 
 const motion = { matches: false };
@@ -23,74 +23,76 @@ const reduced = { matches: true };
 
 describe('withTransition', () => {
   it('usa la API cuando existe y el movimiento está permitido', async () => {
-    const { doc, start } = page(true);
+    const { htmlDocument, start } = page(true);
     const update = vi.fn();
-    await withTransition(update, { doc, motion });
+    await withTransition(update, { htmlDocument, motion });
     expect(start).toHaveBeenCalledOnce();
     expect(update).toHaveBeenCalledOnce();
   });
 
   it('sin la API ejecuta el cambio al instante', async () => {
-    const { doc } = page(false);
+    const { htmlDocument } = page(false);
     const update = vi.fn();
-    const done = withTransition(update, { doc, motion });
+    const done = withTransition(update, { htmlDocument, motion });
     expect(update).toHaveBeenCalledOnce();
     await done;
   });
 
   it('con movimiento reducido no anima aunque exista la API', async () => {
-    const { doc, start } = page(true);
+    const { htmlDocument, start } = page(true);
     const update = vi.fn();
-    const done = withTransition(update, { doc, motion: reduced });
+    const done = withTransition(update, { htmlDocument, motion: reduced });
     expect(start).not.toHaveBeenCalled();
     expect(update).toHaveBeenCalledOnce();
     await done;
   });
 
   it('lee la preferencia en cada llamada, no al configurarla', async () => {
-    const { doc, start } = page(true);
-    const pref = { matches: false };
-    await withTransition(vi.fn(), { doc, motion: pref });
-    pref.matches = true;
-    await withTransition(vi.fn(), { doc, motion: pref });
+    const { htmlDocument, start } = page(true);
+    const preference = { matches: false };
+    await withTransition(vi.fn(), { htmlDocument, motion: preference });
+    preference.matches = true;
+    await withTransition(vi.fn(), { htmlDocument, motion: preference });
     expect(start).toHaveBeenCalledOnce();
   });
 
   it('marca el tipo y las variables durante la transición y los quita al acabar', async () => {
-    const { doc, seen } = page(true);
+    const { htmlDocument, seen } = page(true);
     const done = withTransition(vi.fn(), {
-      doc,
+      htmlDocument,
       motion,
       kind: 'theme',
       vars: { '--x': '10px' },
     });
     expect(seen[0]).toEqual({ kind: 'theme', vars: { x: '10px' } });
     await done;
-    expect(doc.documentElement.dataset.transition).toBeUndefined();
-    expect(doc.documentElement.style.getPropertyValue('--x')).toBe('');
+    expect(htmlDocument.documentElement.dataset.transition).toBeUndefined();
+    expect(htmlDocument.documentElement.style.getPropertyValue('--x')).toBe('');
   });
 
   it('sin la API no deja marcas en <html>', async () => {
-    const { doc } = page(false);
-    await withTransition(vi.fn(), { doc, motion, kind: 'theme', vars: { '--x': '1px' } });
-    expect(doc.documentElement.dataset.transition).toBeUndefined();
-    expect(doc.documentElement.style.getPropertyValue('--x')).toBe('');
+    const { htmlDocument } = page(false);
+    await withTransition(vi.fn(), { htmlDocument, motion, kind: 'theme', vars: { '--x': '1px' } });
+    expect(htmlDocument.documentElement.dataset.transition).toBeUndefined();
+    expect(htmlDocument.documentElement.style.getPropertyValue('--x')).toBe('');
   });
 
   it('una transición que falla no deja la marca puesta ni propaga el error', async () => {
-    const { doc } = page(true);
-    Object.assign(doc, {
+    const { htmlDocument } = page(true);
+    Object.assign(htmlDocument, {
       startViewTransition: () => ({ finished: Promise.reject(new Error('skipped')) }),
     });
-    await expect(withTransition(vi.fn(), { doc, motion, kind: 'tabs' })).resolves.toBeUndefined();
-    expect(doc.documentElement.dataset.transition).toBeUndefined();
+    await expect(
+      withTransition(vi.fn(), { htmlDocument, motion, kind: 'tabs' }),
+    ).resolves.toBeUndefined();
+    expect(htmlDocument.documentElement.dataset.transition).toBeUndefined();
   });
 
   it('la limpieza de una transición vieja no pisa la marca de la nueva', async () => {
-    const { doc } = page(true);
+    const { htmlDocument } = page(true);
     let finishFirst!: () => void;
     let calls = 0;
-    Object.assign(doc, {
+    Object.assign(htmlDocument, {
       startViewTransition: () => ({
         finished:
           ++calls === 1
@@ -98,10 +100,10 @@ describe('withTransition', () => {
             : new Promise<void>(() => {}),
       }),
     });
-    const first = withTransition(vi.fn(), { doc, motion, kind: 'theme' });
-    void withTransition(vi.fn(), { doc, motion, kind: 'zoom' });
+    const first = withTransition(vi.fn(), { htmlDocument, motion, kind: 'theme' });
+    void withTransition(vi.fn(), { htmlDocument, motion, kind: 'zoom' });
     finishFirst();
     await first;
-    expect(doc.documentElement.dataset.transition).toBe('zoom');
+    expect(htmlDocument.documentElement.dataset.transition).toBe('zoom');
   });
 });

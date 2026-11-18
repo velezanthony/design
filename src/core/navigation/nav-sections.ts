@@ -3,8 +3,8 @@ import { isNavPage, isNavSection, type NavItem, type NavSection } from '../confi
 import { HOME_SIDEBAR_SLUG, sidebarSlugRefs, toSidebarSlug } from './sidebar-slugs';
 
 /** ¿Pertenece `slug` a la carpeta `dir`? Es la propia carpeta o cuelga de ella: `users-extra` no. */
-export function slugInDir(dir: string, slug: string): boolean {
-  return slug === dir || slug.startsWith(`${dir}/`);
+export function slugInDir(directory: string, slug: string): boolean {
+  return slug === directory || slug.startsWith(`${directory}/`);
 }
 
 /** Posición en `nav` de la sección a la que pertenece `slug`, o `-1` si no pertenece a ninguna. */
@@ -53,8 +53,8 @@ function validateSection(
   index: number,
   pageSlugs: ReadonlySet<string>,
 ): DocsError[] {
-  const inDir = [...pageSlugs].filter((slug) => slugInDir(section.dir, slug));
-  if (inDir.length === 0) {
+  const inDirectory = [...pageSlugs].filter((slug) => slugInDir(section.dir, slug));
+  if (inDirectory.length === 0) {
     return [
       new DocsError(
         `${formatPath(['nav', index, 'dir'])}: no hay ninguna página en «${section.dir}».`,
@@ -62,7 +62,7 @@ function validateSection(
       ),
     ];
   }
-  const inside = new Set(inDir);
+  const inside = new Set(inDirectory);
   return sidebarSlugRefs(section.sidebar ?? [], ['nav', index, 'sidebar']).flatMap(
     ({ slug, path }): DocsError[] => {
       const at = formatPath(path);

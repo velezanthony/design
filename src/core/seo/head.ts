@@ -43,7 +43,7 @@ function ogLocale(locale: Locale) {
 
 /**
  * Etiquetas del `<head>` de una página como datos puros. El `canonical` y los alternates salen de
- * la disponibilidad de páginas REALES (`av` ya sin las `noindex`): una ruta de reserva apunta a su
+ * la disponibilidad de páginas REALES (`availability` ya sin las `noindex`): una ruta de reserva apunta a su
  * original, una 404 no tiene canonical y ninguna de las dos emite hreflang. `og:image` es absoluta
  * (`site` + `base` + `src`) salvo que ya sea una URL https. El JSON-LD que declaran el sitio y la
  * página se emite tal cual, un `<script>` por schema; sin declarar nada no se emite ninguno.
@@ -51,9 +51,9 @@ function ogLocale(locale: Locale) {
 export function buildHead(
   resolved: ResolvedMeta,
   page: PageData,
-  av: Availability,
+  availability: Availability,
   site: URL,
-  cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon'>,
+  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon'>,
   url: Pick<UrlPolicy, 'base'>,
 ): HeadConfig[] {
   function absolute(path: string) {
@@ -63,8 +63,8 @@ export function buildHead(
   const canonicalPath = isPage ? page.url : page.kind === 'fallback' ? page.canonical : undefined;
   const canonical = canonicalPath === undefined ? undefined : absolute(canonicalPath);
   const noindex = resolved.noindex || !isPage;
-  const available = isPage && !noindex ? (av.get(page.slug) ?? {}) : {};
-  const languages = cfg.locales.filter((locale) => available[locale] !== undefined);
+  const available = isPage && !noindex ? (availability.get(page.slug) ?? {}) : {};
+  const languages = config.locales.filter((locale) => available[locale] !== undefined);
 
   const tags: HeadConfig[] = [
     {
@@ -73,7 +73,7 @@ export function buildHead(
       content: composeTitle(resolved.title, resolved.titleSuffix),
     },
   ];
-  tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(cfg.favicon, url.base) } });
+  tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(config.favicon, url.base) } });
   if (resolved.description) tags.push(meta('name', 'description', resolved.description));
   if (canonical) tags.push({ tag: 'link', attrs: { rel: 'canonical', href: canonical } });
   if (noindex) tags.push(meta('name', 'robots', 'noindex'));
@@ -85,7 +85,7 @@ export function buildHead(
         attrs: { rel: 'alternate', hreflang: locale, href: absolute(available[locale] ?? '') },
       });
     }
-    const fallback = available[cfg.defaultLocale];
+    const fallback = available[config.defaultLocale];
     if (fallback) {
       tags.push({
         tag: 'link',
@@ -99,7 +99,7 @@ export function buildHead(
   if (canonical) tags.push(meta('property', 'og:url', canonical));
   tags.push(
     meta('property', 'og:type', 'article'),
-    meta('property', 'og:site_name', cfg.name),
+    meta('property', 'og:site_name', config.name),
     meta('property', 'og:locale', ogLocale(page.locale)),
   );
   if (languages.length > 1) {

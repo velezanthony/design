@@ -135,7 +135,7 @@ describe('themeBootstrapScript', () => {
 
 describe('initTheme', () => {
   function setup(
-    opts: {
+    options: {
       storage?: Storage;
       systemDark?: boolean;
       theme?: string;
@@ -145,7 +145,7 @@ describe('initTheme', () => {
   ) {
     const document = page();
     const seen: { kind?: string; x: string; y: string; r: string }[] = [];
-    if (opts.api) {
+    if (options.api) {
       const start = vi.fn((update: () => void) => {
         const root = document.documentElement;
         seen.push({
@@ -159,14 +159,20 @@ describe('initTheme', () => {
       });
       Object.assign(document, { startViewTransition: start });
     }
-    if (opts.theme) document.documentElement.dataset.theme = opts.theme;
+    if (options.theme) document.documentElement.dataset.theme = options.theme;
     const listeners: (() => void)[] = [];
     const system = {
-      matches: opts.systemDark ?? false,
-      addEventListener: (_type: string, cb: () => void) => void listeners.push(cb),
+      matches: options.systemDark ?? false,
+      addEventListener: (_type: string, callback: () => void) => void listeners.push(callback),
     };
-    const storage = opts.storage ?? memory();
-    initTheme({ doc: document, storage, system, colors, motion: { matches: !!opts.reduced } });
+    const storage = options.storage ?? memory();
+    initTheme({
+      htmlDocument: document,
+      storage,
+      system,
+      colors,
+      motion: { matches: !!options.reduced },
+    });
     const buttons = [...document.querySelectorAll('[data-theme-toggle]')];
     function click(index = 0) {
       return buttons[index]!.dispatchEvent(new document.defaultView!.Event('click'));
@@ -210,7 +216,7 @@ describe('initTheme', () => {
   it('sin elección, un cambio del sistema actualiza el botón', () => {
     const { buttons, system, listeners } = setup({ systemDark: false });
     system.matches = true;
-    for (const cb of listeners) cb();
+    for (const callback of listeners) callback();
     expect(buttons[0]!.getAttribute('aria-pressed')).toBe('true');
   });
 
@@ -254,7 +260,7 @@ describe('initTheme', () => {
     const spy = vi.fn();
     expect(() =>
       initTheme({
-        doc: document,
+        htmlDocument: document,
         storage: memory(),
         system: { matches: false, addEventListener: spy },
         colors,

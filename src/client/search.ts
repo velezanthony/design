@@ -110,7 +110,7 @@ export function initSearch(
   {
     importer,
     debounceMs = 150,
-    schedule = (cb, ms) => void setTimeout(cb, ms),
+    schedule = (callback, ms) => void setTimeout(callback, ms),
     limit = 8,
   }: SearchOptions = {},
 ): void {
@@ -123,7 +123,7 @@ export function initSearch(
   const status = foundStatus;
   const list = foundList;
 
-  const doc = root.ownerDocument;
+  const htmlDocument = root.ownerDocument;
   const base = root.dataset.baseUrl ?? '/';
   let api: Promise<PagefindApi | undefined> | undefined;
   let latest = 0;
@@ -137,19 +137,19 @@ export function initSearch(
   function render(hits: SearchHit[]) {
     list.replaceChildren(
       ...hits.map((hit) => {
-        const item = doc.createElement('li');
-        const link = doc.createElement('a');
+        const item = htmlDocument.createElement('li');
+        const link = htmlDocument.createElement('a');
         link.setAttribute('href', hit.url);
-        const title = doc.createElement('span');
+        const title = htmlDocument.createElement('span');
         title.textContent = hit.title;
-        const excerpt = doc.createElement('span');
+        const excerpt = htmlDocument.createElement('span');
         for (const part of excerptParts(hit.excerpt)) {
           if (part.mark) {
-            const mark = doc.createElement('mark');
+            const mark = htmlDocument.createElement('mark');
             mark.textContent = part.text;
             excerpt.append(mark);
           } else {
-            excerpt.append(doc.createTextNode(part.text));
+            excerpt.append(htmlDocument.createTextNode(part.text));
           }
         }
         link.append(title, excerpt);
@@ -222,14 +222,15 @@ function isTyping(target: EventTarget | null): boolean {
  * Mayús+7) y si otro manejador ya atendió la tecla. Sin buscador no hace nada y la tecla sigue su
  * curso.
  */
-export function initSearchShortcut(doc: Document): void {
+export function initSearchShortcut(htmlDocument: Document): void {
   /* La pista «/» del campo solo se enseña con esta marca: sin JS el atajo no existe y no se anuncia. */
-  for (const root of doc.querySelectorAll('[data-search]')) root.setAttribute('data-shortcut', '');
-  doc.addEventListener('keydown', (event) => {
+  for (const root of htmlDocument.querySelectorAll('[data-search]'))
+    root.setAttribute('data-shortcut', '');
+  htmlDocument.addEventListener('keydown', (event) => {
     const { key, ctrlKey, metaKey, altKey, defaultPrevented } = event as KeyboardEvent;
     if (key !== '/' || ctrlKey || metaKey || altKey || defaultPrevented) return;
     if (isTyping(event.target)) return;
-    const input = doc.querySelector<HTMLInputElement>('[data-search-input]');
+    const input = htmlDocument.querySelector<HTMLInputElement>('[data-search-input]');
     if (!input) return;
     event.preventDefault();
     input.focus();

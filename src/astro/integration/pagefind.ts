@@ -8,9 +8,12 @@ import * as pagefind from 'pagefind';
  * del índice salen de las rutas de `dist/`, así que `base` no interviene al indexar: lo aplica el
  * cliente al cargar `pagefind.js` (ver `client/search.ts`).
  */
-export async function buildPagefindIndex(dir: URL, logger: AstroIntegrationLogger): Promise<void> {
+export async function buildPagefindIndex(
+  directory: URL,
+  logger: AstroIntegrationLogger,
+): Promise<void> {
   const log = logger.fork('design:pagefind');
-  const path = fileURLToPath(dir);
+  const path = fileURLToPath(directory);
   try {
     const { index, errors } = await pagefind.createIndex();
     if (!index) throw new AstroError('Pagefind no pudo crear el índice.', errors.join('\n'));
@@ -19,7 +22,7 @@ export async function buildPagefindIndex(dir: URL, logger: AstroIntegrationLogge
       throw new AstroError('Pagefind no pudo indexar `dist/`.', added.errors.join('\n'));
     }
     const written = await index.writeFiles({
-      outputPath: fileURLToPath(new URL('pagefind/', dir)),
+      outputPath: fileURLToPath(new URL('pagefind/', directory)),
     });
     if (written.errors.length > 0) {
       throw new AstroError('Pagefind no pudo escribir el índice.', written.errors.join('\n'));

@@ -1,15 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { fixAccentAnchors } from './anchors';
 
-function md(...lines: string[]) {
+function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';
 }
 
 describe('fixAccentAnchors', () => {
   it('repone los acentos que MkDocs quitaba de los ids (`catalogo` -> `catálogo`)', () => {
     const files = new Map([
-      ['a.es.md', md('# A', '', 'Ver [el catálogo](b.es.md#el-catalogo-de-capacidades).')],
-      ['b.es.md', md('# B', '', '## El catálogo de capacidades')],
+      [
+        'a.es.md',
+        reportMarkdown('# A', '', 'Ver [el catálogo](b.es.md#el-catalogo-de-capacidades).'),
+      ],
+      ['b.es.md', reportMarkdown('# B', '', '## El catálogo de capacidades')],
     ]);
     const out = fixAccentAnchors(files);
     expect(out.files.get('a.es.md')).toContain('(b.es.md#el-catálogo-de-capacidades)');
@@ -17,24 +20,30 @@ describe('fixAccentAnchors', () => {
   });
 
   it('resuelve las anclas del mismo fichero', () => {
-    const files = new Map([['a.md', md('# A', '', '[x](#qué-falta)', '', '## Qué falta')]]);
+    const files = new Map([
+      ['a.md', reportMarkdown('# A', '', '[x](#qué-falta)', '', '## Qué falta')],
+    ]);
     expect(fixAccentAnchors(files).files.get('a.md')).toContain('(#qué-falta)');
-    const stripped = new Map([['a.md', md('# A', '', '[x](#que-falta)', '', '## Qué falta')]]);
+    const stripped = new Map([
+      ['a.md', reportMarkdown('# A', '', '[x](#que-falta)', '', '## Qué falta')],
+    ]);
     expect(fixAccentAnchors(stripped).files.get('a.md')).toContain('(#qué-falta)');
   });
 
   it('no toca las anclas que ya existen ni las que no tienen equivalente', () => {
-    const files = new Map([['a.md', md('# A', '[x](#a) [y](#nada)')]]);
-    expect(fixAccentAnchors(files).files.get('a.md')).toBe(md('# A', '[x](#a) [y](#nada)'));
+    const files = new Map([['a.md', reportMarkdown('# A', '[x](#a) [y](#nada)')]]);
+    expect(fixAccentAnchors(files).files.get('a.md')).toBe(
+      reportMarkdown('# A', '[x](#a) [y](#nada)'),
+    );
   });
 
   it('ignora encabezados y enlaces dentro de bloques de código', () => {
-    const files = new Map([['a.md', md('# A', '```md', '## Qué', '```', '[x](#que)')]]);
+    const files = new Map([['a.md', reportMarkdown('# A', '```md', '## Qué', '```', '[x](#que)')]]);
     expect(fixAccentAnchors(files).files.get('a.md')).toContain('(#que)');
   });
 
   it('numera los encabezados repetidos como github-slugger', () => {
-    const files = new Map([['a.md', md('# A', '## Año', '## Año', '[x](#ano-1)')]]);
+    const files = new Map([['a.md', reportMarkdown('# A', '## Año', '## Año', '[x](#ano-1)')]]);
     expect(fixAccentAnchors(files).files.get('a.md')).toContain('(#año-1)');
   });
 
@@ -42,9 +51,9 @@ describe('fixAccentAnchors', () => {
     /* mkdocs-static-i18n resuelve `commands.md` a la gemela del idioma de la página; la
        librería también. El id que importa es el del encabezado en español. */
     const files = new Map([
-      ['index.es.md', md('# Inicio', '', '[c](users/commands.md#codigos-de-salida)')],
-      ['users/commands.md', md('# Commands', '', '## Exit codes')],
-      ['users/commands.es.md', md('# Comandos', '', '## Códigos de salida')],
+      ['index.es.md', reportMarkdown('# Inicio', '', '[c](users/commands.md#codigos-de-salida)')],
+      ['users/commands.md', reportMarkdown('# Commands', '', '## Exit codes')],
+      ['users/commands.es.md', reportMarkdown('# Comandos', '', '## Códigos de salida')],
     ]);
     const out = fixAccentAnchors(files);
     expect(out.files.get('index.es.md')).toContain('(users/commands.md#códigos-de-salida)');
@@ -52,17 +61,17 @@ describe('fixAccentAnchors', () => {
 
   it('en la página sin traducir sigue usando el fichero tal cual', () => {
     const files = new Map([
-      ['index.md', md('# Home', '', '[c](users/commands.md#codigos-de-salida)')],
-      ['users/commands.md', md('# Commands', '', '## Códigos de salida')],
-      ['users/commands.es.md', md('# Comandos', '', '## Otra cosa')],
+      ['index.md', reportMarkdown('# Home', '', '[c](users/commands.md#codigos-de-salida)')],
+      ['users/commands.md', reportMarkdown('# Commands', '', '## Códigos de salida')],
+      ['users/commands.es.md', reportMarkdown('# Comandos', '', '## Otra cosa')],
     ]);
     expect(fixAccentAnchors(files).files.get('index.md')).toContain('#códigos-de-salida');
   });
 
   it('si la gemela no existe, cae al fichero literal', () => {
     const files = new Map([
-      ['index.es.md', md('# Inicio', '', '[c](b.md#qué-tal)', '[d](b.md#que-tal)')],
-      ['b.md', md('# B', '', '## Qué tal')],
+      ['index.es.md', reportMarkdown('# Inicio', '', '[c](b.md#qué-tal)', '[d](b.md#que-tal)')],
+      ['b.md', reportMarkdown('# B', '', '## Qué tal')],
     ]);
     expect(fixAccentAnchors(files).files.get('index.es.md')).toContain('(b.md#qué-tal)');
   });

@@ -156,7 +156,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
     '%s: título, descripción, canonical y og:image coinciden con buildHead',
     (_name, source) => {
       const base = pages.map((original) => ({ ...original, body: '' }));
-      const av = excludeNoindex(buildAvailability(base, url), noindexUrls(base, url));
+      const availability = excludeNoindex(buildAvailability(base, url), noindexUrls(base, url));
       const resolved = withImageSize(
         resolveMeta(config.seo, source.seo, source, source.locale),
         imageSizes,
@@ -167,7 +167,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
         locale: source.locale,
         url: pageUrl(source.slug, source.locale, url),
       } as const;
-      const tags = buildHead(resolved, data, av, site, config, url);
+      const tags = buildHead(resolved, data, availability, site, config, url);
 
       const node = tree.pages.find(
         (treePage) => treePage.slug === source.slug && treePage.locale === source.locale,

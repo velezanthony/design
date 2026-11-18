@@ -3,8 +3,8 @@
  * siempre, sin botón que pulsar. Se escucha en el documento (delegación), así sirve para campos que
  * aparezcan después. Sin JavaScript el formulario conserva su botón dentro de `<noscript>`.
  */
-export function initAutoSubmit(doc: Document): void {
-  doc.addEventListener('change', (event) => {
+export function initAutoSubmit(htmlDocument: Document): void {
+  htmlDocument.addEventListener('change', (event) => {
     const field = event.target as HTMLElement | null;
     if (!field?.closest || !field.closest('[data-auto-submit]')) return;
     const form = field.closest('form');

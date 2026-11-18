@@ -18,7 +18,7 @@ async function probe() {
   return JSON.parse(await readFile(resolve(root, 'probe.json'), 'utf8'));
 }
 
-describe('#1 el loader lee la config de ctx.config.integrations (plan A) o de docs.config.mjs (plan B)', () => {
+describe('#1 el loader lee la config de context.config.integrations (plan A) o de docs.config.mjs (plan B)', () => {
   it('plan A inviable: Astro descarta la config adjunta a la integración', async () => {
     expect((await probe()).ownKeys).not.toContain('resolvedConfig');
   });

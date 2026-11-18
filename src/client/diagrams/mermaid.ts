@@ -22,7 +22,7 @@ export interface MermaidOptions {
   readToken: (name: string) => string;
   /** La preferencia del sistema, para el tema cuando nadie ha elegido uno. */
   system: Pick<MediaQueryList, 'matches'> & {
-    addEventListener(type: 'change', cb: () => void): void;
+    addEventListener(type: 'change', callback: () => void): void;
   };
   /** Nombre accesible de un diagrama que no declara `accTitle`; ya localizado. */
   label?: string;
@@ -109,11 +109,11 @@ export function mermaidConfig(
  * botón de copiar, el de ampliar y el SVG viven en él. Si el de copiar no lo creó (sin API de
  * portapapeles), se crea aquí.
  */
-function codeFrame(doc: Document, block: HTMLElement): HTMLElement {
+function codeFrame(htmlDocument: Document, block: HTMLElement): HTMLElement {
   const pre = block.querySelector('pre')!;
   const parent = pre.parentElement!;
   if (parent.classList.contains('docs-code')) return parent;
-  const frame = doc.createElement('div');
+  const frame = htmlDocument.createElement('div');
   frame.className = 'docs-code';
   pre.replaceWith(frame);
   frame.append(pre);
@@ -122,13 +122,13 @@ function codeFrame(doc: Document, block: HTMLElement): HTMLElement {
 
 /** El botón de «pantalla completa» del marco; abre una copia del SVG que la figura tenga EN ESE MOMENTO. */
 function addExpandButton(
-  doc: Document,
+  htmlDocument: Document,
   frame: HTMLElement,
   figure: HTMLElement,
   viewer: DiagramViewer,
   label: string,
 ): void {
-  const button = doc.createElement('button');
+  const button = htmlDocument.createElement('button');
   button.type = 'button';
   button.className = 'docs-expand';
   button.setAttribute('aria-label', label);
@@ -156,10 +156,10 @@ export function accessibleTitle(source: string): string | undefined {
  * primer dibujado (las tareas siguientes, las del cambio de tema, se encadenan por detrás).
  */
 export async function initMermaid(
-  doc: Document,
+  htmlDocument: Document,
   { importer, readToken, system, label, viewerLabels, warn = console.warn }: MermaidOptions,
 ): Promise<void> {
-  const blocks = [...doc.querySelectorAll<HTMLElement>(DIAGRAM_SELECTOR)];
+  const blocks = [...htmlDocument.querySelectorAll<HTMLElement>(DIAGRAM_SELECTOR)];
   if (!blocks.length) return;
 
   let mermaid: MermaidApi;
@@ -170,10 +170,10 @@ export async function initMermaid(
     return;
   }
 
-  const root = doc.documentElement;
+  const root = htmlDocument.documentElement;
   let counter = 0;
   const viewer: DiagramViewer | undefined = viewerLabels
-    ? createDiagramViewer(doc, viewerLabels)
+    ? createDiagramViewer(htmlDocument, viewerLabels)
     : undefined;
 
   async function renderAll() {
@@ -185,13 +185,13 @@ export async function initMermaid(
         const { svg } = await mermaid.render(`docs-mermaid-${counter++}`, source);
         let figure = block.querySelector<HTMLElement>('.docs-mermaid-figure');
         if (!figure) {
-          const frame = codeFrame(doc, block);
-          figure = doc.createElement('div');
+          const frame = codeFrame(htmlDocument, block);
+          figure = htmlDocument.createElement('div');
           figure.className = 'docs-mermaid-figure';
           figure.setAttribute('role', 'img');
           frame.querySelector('pre')!.after(figure);
           if (viewer && viewerLabels)
-            addExpandButton(doc, frame, figure, viewer, viewerLabels.expand);
+            addExpandButton(htmlDocument, frame, figure, viewer, viewerLabels.expand);
         }
         const name = accessibleTitle(source) ?? label;
         if (name) figure.setAttribute('aria-label', name);
@@ -214,7 +214,7 @@ export async function initMermaid(
     viewer?.close();
     chain = chain.then(renderAll);
   }
-  const Observer = doc.defaultView?.MutationObserver;
+  const Observer = htmlDocument.defaultView?.MutationObserver;
   if (Observer) {
     new Observer(redraw).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }

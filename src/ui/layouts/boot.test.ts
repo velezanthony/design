@@ -9,7 +9,7 @@ function env(html: string, extra: Partial<BootEnv> = {}): BootEnv {
     `<!doctype html><html lang="en"><head></head><body>${html}</body></html>`,
   );
   return {
-    doc: document,
+    htmlDocument: document,
     storage: undefined,
     system: { matches: false, addEventListener: vi.fn() },
     clipboard: { writeText: vi.fn(async () => {}) },
@@ -33,12 +33,12 @@ describe('bootDocs', () => {
   it('cablea tema, pestañas, botón de copiar y anclas de encabezado', () => {
     const bootEnv = env(content);
     bootDocs(bootEnv);
-    expect(bootEnv.doc.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed')).toBe(
-      'false',
-    );
-    expect(bootEnv.doc.querySelector('.docs-tabs[data-enhanced]')).not.toBeNull();
-    expect(bootEnv.doc.querySelector('button.docs-copy')!.textContent).toBe('Copiar');
-    expect(bootEnv.doc.querySelector('a.heading-anchor')!.getAttribute('aria-label')).toBe(
+    expect(
+      bootEnv.htmlDocument.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed'),
+    ).toBe('false');
+    expect(bootEnv.htmlDocument.querySelector('.docs-tabs[data-enhanced]')).not.toBeNull();
+    expect(bootEnv.htmlDocument.querySelector('button.docs-copy')!.textContent).toBe('Copiar');
+    expect(bootEnv.htmlDocument.querySelector('a.heading-anchor')!.getAttribute('aria-label')).toBe(
       'Enlace a Uno',
     );
   });
@@ -46,7 +46,7 @@ describe('bootDocs', () => {
   it('pone el año del visitante donde está marcado', () => {
     const bootEnv = env('<span data-current-year>1999</span>');
     bootDocs(bootEnv);
-    expect(bootEnv.doc.querySelector('[data-current-year]')!.textContent).toBe(
+    expect(bootEnv.htmlDocument.querySelector('[data-current-year]')!.textContent).toBe(
       String(new Date().getFullYear()),
     );
   });
@@ -54,10 +54,10 @@ describe('bootDocs', () => {
   it('hace ampliables las imágenes del contenido, con los textos de <main>', () => {
     const bootEnv = env(content);
     bootDocs(bootEnv);
-    expect(bootEnv.doc.querySelector('button.docs-zoom')!.getAttribute('aria-label')).toBe(
+    expect(bootEnv.htmlDocument.querySelector('button.docs-zoom')!.getAttribute('aria-label')).toBe(
       'Ampliar: Esquema',
     );
-    expect(bootEnv.doc.querySelector('.docs-zoom-close')!.getAttribute('aria-label')).toBe(
+    expect(bootEnv.htmlDocument.querySelector('.docs-zoom-close')!.getAttribute('aria-label')).toBe(
       'Cerrar',
     );
   });
@@ -65,7 +65,7 @@ describe('bootDocs', () => {
   it('sin los textos del zoom no toca las imágenes', () => {
     const bootEnv = env(content.replace(/ data-zoom-label="[^"]*"/, ''));
     bootDocs(bootEnv);
-    expect(bootEnv.doc.querySelector('button.docs-zoom')).toBeNull();
+    expect(bootEnv.htmlDocument.querySelector('button.docs-zoom')).toBeNull();
   });
 
   describe('diagramas de Mermaid', () => {
@@ -84,24 +84,26 @@ describe('bootDocs', () => {
       const bootEnv = env(diagram, { mermaid: fakeMermaid });
       bootDocs(bootEnv);
       await vi.waitFor(() =>
-        expect(bootEnv.doc.querySelector('.docs-mermaid-figure')!.getAttribute('aria-label')).toBe(
-          'Diagrama',
-        ),
+        expect(
+          bootEnv.htmlDocument.querySelector('.docs-mermaid-figure')!.getAttribute('aria-label'),
+        ).toBe('Diagrama'),
       );
     });
 
     it('cada diagrama lleva copiar y pantalla completa, con los textos de <main>', async () => {
       const bootEnv = env(diagram, { mermaid: mermaid() });
       bootDocs(bootEnv);
-      await vi.waitFor(() => expect(bootEnv.doc.querySelector('.docs-expand')).not.toBeNull());
-      const frame = bootEnv.doc.querySelector('.docs-mermaid .docs-code')!;
+      await vi.waitFor(() =>
+        expect(bootEnv.htmlDocument.querySelector('.docs-expand')).not.toBeNull(),
+      );
+      const frame = bootEnv.htmlDocument.querySelector('.docs-mermaid .docs-code')!;
       expect(frame.querySelector('button.docs-copy')!.getAttribute('aria-label')).toBe('Copiar');
       expect(frame.querySelector('button.docs-expand')!.getAttribute('aria-label')).toBe(
         'Pantalla completa',
       );
-      const labels = [...bootEnv.doc.querySelectorAll('dialog.docs-diagram-dialog button')].map(
-        (button) => button.getAttribute('aria-label'),
-      );
+      const labels = [
+        ...bootEnv.htmlDocument.querySelectorAll('dialog.docs-diagram-dialog button'),
+      ].map((button) => button.getAttribute('aria-label'));
       expect(labels).toEqual(['Alejar', 'Acercar', 'Ajustar', 'Cerrar']);
     });
 
@@ -111,10 +113,10 @@ describe('bootDocs', () => {
       });
       bootDocs(bootEnv);
       await vi.waitFor(() =>
-        expect(bootEnv.doc.querySelector('.docs-mermaid-figure')).not.toBeNull(),
+        expect(bootEnv.htmlDocument.querySelector('.docs-mermaid-figure')).not.toBeNull(),
       );
-      expect(bootEnv.doc.querySelector('.docs-expand')).toBeNull();
-      expect(bootEnv.doc.querySelector('dialog')).toBeNull();
+      expect(bootEnv.htmlDocument.querySelector('.docs-expand')).toBeNull();
+      expect(bootEnv.htmlDocument.querySelector('dialog')).toBeNull();
     });
 
     it('el código de diagramas no va en el script de todas las páginas: se carga solo si hay uno', () => {
@@ -135,11 +137,11 @@ describe('bootDocs', () => {
       `<button data-layout-toggle="left" aria-controls="nav" data-collapse-label="Plegar" data-expand-label="Desplegar"></button><div id="nav"></div><button data-layout-width="full"></button>`,
     );
     bootDocs(bootEnv);
-    (bootEnv.doc.querySelector('[data-layout-toggle]') as HTMLElement).click();
-    expect(bootEnv.doc.documentElement.dataset.left).toBe('collapsed');
-    expect(bootEnv.doc.getElementById('nav')!.hasAttribute('inert')).toBe(true);
-    (bootEnv.doc.querySelector('[data-layout-width]') as HTMLElement).click();
-    expect(bootEnv.doc.documentElement.dataset.width).toBe('full');
+    (bootEnv.htmlDocument.querySelector('[data-layout-toggle]') as HTMLElement).click();
+    expect(bootEnv.htmlDocument.documentElement.dataset.left).toBe('collapsed');
+    expect(bootEnv.htmlDocument.getElementById('nav')!.hasAttribute('inert')).toBe(true);
+    (bootEnv.htmlDocument.querySelector('[data-layout-width]') as HTMLElement).click();
+    expect(bootEnv.htmlDocument.documentElement.dataset.width).toBe('full');
   });
 
   it('sin <main> ni controles no hace nada (ni falla)', () => {
@@ -149,13 +151,15 @@ describe('bootDocs', () => {
   it('no arranca el panel SEO: su JS solo va en las pantallas del panel', () => {
     const bootEnv = env('<button data-report-open="site" hidden>IA</button>');
     bootDocs(bootEnv);
-    expect(bootEnv.doc.querySelector('[data-report-open]')!.hasAttribute('hidden')).toBe(true);
+    expect(bootEnv.htmlDocument.querySelector('[data-report-open]')!.hasAttribute('hidden')).toBe(
+      true,
+    );
   });
 
   it('sin portapapeles no añade el botón de copiar', () => {
     const bootEnv = env(content, { clipboard: undefined });
     bootDocs(bootEnv);
-    expect(bootEnv.doc.querySelector('button.docs-copy')).toBeNull();
+    expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
   });
 });
 
@@ -168,7 +172,7 @@ describe('bootNotFound', () => {
     );
   }
   function prepare(bootEnv: BootEnv) {
-    const root = bootEnv.doc.documentElement;
+    const root = bootEnv.htmlDocument.documentElement;
     root.setAttribute('data-nf-base', '/repo/');
     root.setAttribute('data-nf-locales', 'en,es');
     root.setAttribute('data-nf-default', 'en');
@@ -179,23 +183,23 @@ describe('bootNotFound', () => {
   it('sustituye el cuerpo según la URL pedida (localeFromPath con base)', () => {
     const bootEnv = prepare(page('/repo/es/no-existe/'));
     bootNotFound(bootEnv);
-    expect(bootEnv.doc.documentElement.getAttribute('lang')).toBe('es');
-    expect(bootEnv.doc.body.querySelector('main')!.textContent).toBe('ES');
-    expect(bootEnv.doc.title).toBe('Perdida');
+    expect(bootEnv.htmlDocument.documentElement.getAttribute('lang')).toBe('es');
+    expect(bootEnv.htmlDocument.body.querySelector('main')!.textContent).toBe('ES');
+    expect(bootEnv.htmlDocument.title).toBe('Perdida');
   });
 
   it('una ruta del idioma por defecto deja el cuerpo y retira nf-pending', () => {
     const bootEnv = prepare(page('/repo/otra/'));
     bootNotFound(bootEnv);
-    expect(bootEnv.doc.documentElement.getAttribute('lang')).toBe('en');
-    expect(bootEnv.doc.body.querySelector('main')!.textContent).toBe('EN');
-    expect(bootEnv.doc.documentElement.classList.contains('nf-pending')).toBe(false);
+    expect(bootEnv.htmlDocument.documentElement.getAttribute('lang')).toBe('en');
+    expect(bootEnv.htmlDocument.body.querySelector('main')!.textContent).toBe('EN');
+    expect(bootEnv.htmlDocument.documentElement.classList.contains('nf-pending')).toBe(false);
   });
 
   it('segmento completo: /repo/esx/ no es es', () => {
     const bootEnv = prepare(page('/repo/esx/a'));
     bootNotFound(bootEnv);
-    expect(bootEnv.doc.documentElement.getAttribute('lang')).toBe('en');
+    expect(bootEnv.htmlDocument.documentElement.getAttribute('lang')).toBe('en');
   });
 
   it('tras sustituir, los controles del cuerpo nuevo quedan cableados', () => {
@@ -206,9 +210,9 @@ describe('bootNotFound', () => {
       ),
     );
     bootNotFound(bootEnv);
-    expect(bootEnv.doc.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed')).toBe(
-      'false',
-    );
+    expect(
+      bootEnv.htmlDocument.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed'),
+    ).toBe('false');
   });
 });
 
@@ -226,11 +230,12 @@ describe('bootDocs: desplazamiento de la barra lateral', () => {
     };
     const bootEnv = env('<aside data-docs-sidebar-scroll></aside>', {
       session: session as unknown as Storage,
-      win: {
-        addEventListener: (type: string, cb: () => void) => void listeners.set(type, cb),
+      browserWindow: {
+        addEventListener: (type: string, callback: () => void) =>
+          void listeners.set(type, callback),
       } as never,
     });
-    (bootEnv.doc.querySelector('aside') as HTMLElement).scrollTop = 123;
+    (bootEnv.htmlDocument.querySelector('aside') as HTMLElement).scrollTop = 123;
     bootDocs(bootEnv);
     listeners.get('pagehide')!();
     expect(session.items.get('docs:sidebar-scroll')).toBe('123');

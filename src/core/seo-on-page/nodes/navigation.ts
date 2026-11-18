@@ -29,13 +29,13 @@ export function navigationLinks(
   // Lo que `buildSeoTree` ya calculó: aquí no se repite.
   {
     url,
-    availability: av,
+    availability,
     policies,
   }: { url: UrlPolicy; availability: Availability; policies: TranslationPolicies },
 ): Map<string, PageLink[]> {
   const byHref = new Map<string, PageLink>();
   for (const page of pages) {
-    byHref.set((av.get(page.slug) ?? {})[page.locale] ?? '', {
+    byHref.set((availability.get(page.slug) ?? {})[page.locale] ?? '', {
       slug: page.slug,
       locale: page.locale,
     });
@@ -47,21 +47,21 @@ export function navigationLinks(
     const key = `${page.locale}\u0000${index}`;
     const cached = shared.get(key);
     if (cached) return cached;
-    const ctx: NavContext = {
+    const context: NavContext = {
       pages,
-      av,
+      availability,
       locale: page.locale,
-      cfg: config,
+      config,
       policies,
       url,
       slug: page.slug,
     };
     const hrefs = [
-      ...flatten(buildSectionSidebar(ctx, index)).map((leaf) => leaf.href),
-      ...buildNav(config.nav, ctx)
+      ...flatten(buildSectionSidebar(context, index)).map((leaf) => leaf.href),
+      ...buildNav(config.nav, context)
         .filter((entry) => !entry.external)
         .map((entry) => entry.href),
-      ...footerPageHrefs(config.footer?.links, ctx),
+      ...footerPageHrefs(config.footer?.links, context),
     ];
     shared.set(key, hrefs);
     return hrefs;

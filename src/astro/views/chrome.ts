@@ -11,40 +11,40 @@ import { pagesOf } from './pages';
 
 /** Lo que cabecera y pie necesitan del sitio, calculado una sola vez por vista. */
 export interface SiteContext {
-  cfg: VirtualConfig;
+  config: VirtualConfig;
   pages: Page[];
   url: UrlPolicy;
-  av: Availability;
+  availability: Availability;
   policies: TranslationPolicies;
 }
 
-export function siteContext(cfg: VirtualConfig, data: DocData[]): SiteContext {
+export function siteContext(config: VirtualConfig, data: DocData[]): SiteContext {
   const pages = pagesOf(data);
-  const url = urlPolicyOf(cfg, cfg.defaultLocale);
+  const url = urlPolicyOf(config, config.defaultLocale);
   return {
-    cfg,
+    config,
     pages,
     url,
-    av: buildAvailability(pages, url),
-    policies: resolvePolicies(pages, cfg.translations.missing).policies,
+    availability: buildAvailability(pages, url),
+    policies: resolvePolicies(pages, config.translations.missing).policies,
   };
 }
 
 /** El contexto del núcleo para construir cabecera, pie y barra lateral de una página. */
 export function navContextOf(site: SiteContext, locale: Locale, slug: string): NavContext {
-  const { cfg, pages, av, policies, url } = site;
-  return { pages, av, locale, cfg, policies, url, slug };
+  const { config, pages, availability, policies, url } = site;
+  return { pages, availability, locale, config, policies, url, slug };
 }
 
 /** Enlace a la política de privacidad y ID de analítica; cada clave solo está si existe. */
 export function consentOf(
-  cfg: Pick<VirtualConfig, 'privacyUrl' | 'gtmId' | 'defaultLocale'>,
+  config: Pick<VirtualConfig, 'privacyUrl' | 'gtmId' | 'defaultLocale'>,
   locale: Locale,
 ): { privacyUrl?: string; gtmId?: string } {
   return {
-    ...(cfg.privacyUrl !== undefined && {
-      privacyUrl: resolveLabel(cfg.privacyUrl, locale, cfg.defaultLocale),
+    ...(config.privacyUrl !== undefined && {
+      privacyUrl: resolveLabel(config.privacyUrl, locale, config.defaultLocale),
     }),
-    ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
+    ...(config.gtmId !== undefined && { gtmId: config.gtmId }),
   };
 }

@@ -543,15 +543,15 @@ describe('astro:config:setup: vigilar docs.config', () => {
   /* `astro.config.mjs` importa `docs.config.mjs`, pero Astro solo reinicia `dev` cuando cambia el
      propio astro.config: sin `addWatchFile`, editar la config del sitio no tendría efecto. */
   async function watched(files: string[]) {
-    const dir = mkdtempSync(join(tmpdir(), 'design-watch-'));
-    for (const file of files) writeFileSync(join(dir, file), 'export default {};\n');
+    const directory = mkdtempSync(join(tmpdir(), 'design-watch-'));
+    for (const file of files) writeFileSync(join(directory, file), 'export default {};\n');
     const addWatchFile = vi.fn();
-    const setup = setupContext(satteri(), {}, { root: pathToFileURL(`${dir}/`) });
+    const setup = setupContext(satteri(), {}, { root: pathToFileURL(`${directory}/`) });
     await docs({ name: 'x' }).hooks['astro:config:setup']?.({
       ...(setup.context as object),
       addWatchFile,
     } as never);
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(directory, { recursive: true, force: true });
     return addWatchFile.mock.calls.map(([url]) => basename(fileURLToPath(url as URL)));
   }
 

@@ -18,11 +18,11 @@ describe('ConsentBanner', () => {
   });
 
   it('es una región con nombre, no un diálogo modal', async () => {
-    const el = await banner();
-    expect(el.tagName).toBe('SECTION');
-    expect(el.getAttribute('aria-label')).toBe('Aviso de cookies');
-    expect(el.getAttribute('role')).toBeNull();
-    expect(el.getAttribute('aria-modal')).toBeNull();
+    const element = await banner();
+    expect(element.tagName).toBe('SECTION');
+    expect(element.getAttribute('aria-label')).toBe('Aviso de cookies');
+    expect(element.getAttribute('role')).toBeNull();
+    expect(element.getAttribute('aria-modal')).toBeNull();
   });
 
   it('entrega gtmId por props al script', async () => {
@@ -32,15 +32,15 @@ describe('ConsentBanner', () => {
 
   it('enlaza a la privacidad que se le pasa, tal cual', async () => {
     expect((await banner()).querySelector('a')!.getAttribute('href')).toBe('/privacidad/');
-    const abs = await banner({ privacyUrl: 'https://example.com/privacy' });
-    expect(abs.querySelector('a')!.getAttribute('href')).toBe('https://example.com/privacy');
-    expect(text(abs.querySelector('a'))).toBe('Política de privacidad');
+    const absolute = await banner({ privacyUrl: 'https://example.com/privacy' });
+    expect(absolute.querySelector('a')!.getAttribute('href')).toBe('https://example.com/privacy');
+    expect(text(absolute.querySelector('a'))).toBe('Política de privacidad');
   });
 
   it('acepta y rechaza con el mismo aspecto', async () => {
-    const el = await banner();
-    const accept = el.querySelector('[data-consent-accept]')!;
-    const reject = el.querySelector('[data-consent-reject]')!;
+    const element = await banner();
+    const accept = element.querySelector('[data-consent-accept]')!;
+    const reject = element.querySelector('[data-consent-reject]')!;
     expect(text(accept)).toBe('Aceptar');
     expect(text(reject)).toBe('Rechazar');
     expect(accept.tagName).toBe('BUTTON');
@@ -48,10 +48,10 @@ describe('ConsentBanner', () => {
   });
 
   it('textos del catálogo: otro idioma y override', async () => {
-    const el = await banner({ strings: stringsFor('en', { 'consent.accept': 'Yes' }) });
-    expect(text(el.querySelector('[data-consent-accept]'))).toBe('Yes');
-    expect(text(el.querySelector('[data-consent-reject]'))).toBe('Reject');
-    expect(el.getAttribute('aria-label')).toBe('Cookie notice');
+    const element = await banner({ strings: stringsFor('en', { 'consent.accept': 'Yes' }) });
+    expect(text(element.querySelector('[data-consent-accept]'))).toBe('Yes');
+    expect(text(element.querySelector('[data-consent-reject]'))).toBe('Reject');
+    expect(element.getAttribute('aria-label')).toBe('Cookie notice');
   });
 });
 

@@ -31,8 +31,8 @@ export function syncToggle(button: Element, dark: boolean): void {
  * contraria al sistema dejaría la barra del navegador en el otro tema. Una elección da a ambas
  * su color.
  */
-export function syncThemeColor(doc: Document, color: string): void {
-  for (const meta of doc.querySelectorAll('meta[name="theme-color"]')) {
+export function syncThemeColor(htmlDocument: Document, color: string): void {
+  for (const meta of htmlDocument.querySelectorAll('meta[name="theme-color"]')) {
     meta.setAttribute('content', color);
   }
 }
@@ -58,11 +58,11 @@ export function themeBootstrapScript(colors: ThemeColors): string {
 }
 
 export interface ThemeEnv {
-  doc: Document;
+  htmlDocument: Document;
   storage: Storage | undefined;
   /** La preferencia del sistema (`matchMedia('(prefers-color-scheme: dark)')`). */
   system: Pick<MediaQueryList, 'matches'> & {
-    addEventListener(type: 'change', cb: () => void): void;
+    addEventListener(type: 'change', callback: () => void): void;
   };
   colors: ThemeColors;
   /** Si quien visita pidió reducir el movimiento, el cambio es instantáneo. Sin él, se anima. */
@@ -73,13 +73,16 @@ export interface ThemeEnv {
  * Las variables del efecto «revelado»: el centro del botón y el radio que alcanza la esquina más
  * lejana de la ventana, para que el círculo cubra toda la página justo al terminar.
  */
-export function revealVars(button: Element, win: Pick<Window, 'innerWidth' | 'innerHeight'>) {
+export function revealVars(
+  button: Element,
+  browserWindow: Pick<Window, 'innerWidth' | 'innerHeight'>,
+) {
   const rect = button.getBoundingClientRect();
   const centreX = rect.left + rect.width / 2;
   const centreY = rect.top + rect.height / 2;
   const radius = Math.hypot(
-    Math.max(centreX, win.innerWidth - centreX),
-    Math.max(centreY, win.innerHeight - centreY),
+    Math.max(centreX, browserWindow.innerWidth - centreX),
+    Math.max(centreY, browserWindow.innerHeight - centreY),
   );
   return {
     '--reveal-x': `${centreX}px`,
@@ -90,14 +93,14 @@ export function revealVars(button: Element, win: Pick<Window, 'innerWidth' | 'in
 
 /** Cablea los botones `[data-theme-toggle]`: cambian el tema, la barra y lo recuerdan. */
 export function initTheme({
-  doc,
+  htmlDocument,
   storage,
   system,
   colors,
   motion = { matches: false },
 }: ThemeEnv): void {
-  const root = doc.documentElement;
-  const buttons = doc.querySelectorAll('[data-theme-toggle]');
+  const root = htmlDocument.documentElement;
+  const buttons = htmlDocument.querySelectorAll('[data-theme-toggle]');
   if (!buttons.length) return;
 
   function chosen() {
@@ -115,15 +118,15 @@ export function initTheme({
       void withTransition(
         () => {
           root.dataset.theme = next;
-          syncThemeColor(doc, colors[next]);
+          syncThemeColor(htmlDocument, colors[next]);
           safeSet(storage, THEME_KEY, next);
           sync();
         },
         {
-          doc,
+          htmlDocument,
           motion,
           kind: 'theme',
-          vars: revealVars(button, doc.defaultView ?? { innerWidth: 0, innerHeight: 0 }),
+          vars: revealVars(button, htmlDocument.defaultView ?? { innerWidth: 0, innerHeight: 0 }),
         },
       );
     });

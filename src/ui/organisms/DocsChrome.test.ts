@@ -36,14 +36,14 @@ describe('DocsHeader: nav', () => {
   });
 
   it('pinta los items en orden dentro de un nav etiquetado, tras el nombre del sitio', async () => {
-    const doc = await header({ nav: navEntries });
-    const nav = doc.querySelector('header nav[aria-label="Secciones"]')!;
+    const htmlDocument = await header({ nav: navEntries });
+    const nav = htmlDocument.querySelector('header nav[aria-label="Secciones"]')!;
     expect(
       [...nav.querySelectorAll('a')].map((anchor) =>
         text(anchor).replace(/\s*Enlace externo$/, ''),
       ),
     ).toEqual(['Guía', 'Changelog', 'Contribuir', 'GitHub', 'Blog']);
-    const home = doc.querySelector('header a[href="/repo/es/"]')!;
+    const home = htmlDocument.querySelector('header a[href="/repo/es/"]')!;
     expect(home.compareDocumentPosition(nav) & 4).toBeTruthy();
   });
 
@@ -95,8 +95,8 @@ describe('DocsHeader: nav', () => {
 
 describe('DocsHeader', () => {
   it('el enlace de salto es lo primero y apunta al contenido principal', async () => {
-    const doc = await header();
-    const first = doc.querySelector('a, button')!;
+    const htmlDocument = await header();
+    const first = htmlDocument.querySelector('a, button')!;
     expect(first.getAttribute('href')).toBe('#main-content');
     expect(text(first)).toBe('Saltar al contenido');
   });
@@ -107,14 +107,14 @@ describe('DocsHeader', () => {
   });
 
   it('tiene un único landmark header con el nombre del sitio enlazando a la portada', async () => {
-    const doc = await header();
-    expect(doc.querySelectorAll('header')).toHaveLength(1);
-    const home = doc.querySelector('header a[href="/repo/es/"]')!;
+    const htmlDocument = await header();
+    expect(htmlDocument.querySelectorAll('header')).toHaveLength(1);
+    const home = htmlDocument.querySelector('header a[href="/repo/es/"]')!;
     expect(text(home)).toBe('Design');
   });
 
   it('incluye selector de idioma y de tema, y una ranura para lo demás', async () => {
-    const doc = await render(
+    const htmlDocument = await render(
       DocsHeader,
       {
         siteName: 'D',
@@ -125,9 +125,9 @@ describe('DocsHeader', () => {
       },
       { default: '<div id="extra">buscador</div>' },
     );
-    expect(doc.querySelector('header nav[aria-label="Idioma"]')).not.toBeNull();
-    expect(doc.querySelector('header [data-theme-toggle]')).not.toBeNull();
-    expect(doc.querySelector('header #extra')).not.toBeNull();
+    expect(htmlDocument.querySelector('header nav[aria-label="Idioma"]')).not.toBeNull();
+    expect(htmlDocument.querySelector('header [data-theme-toggle]')).not.toBeNull();
+    expect(htmlDocument.querySelector('header #extra')).not.toBeNull();
   });
 
   it('sin rutas ni textos del portfolio', async () => {
@@ -147,9 +147,9 @@ function footer(props: Record<string, unknown> = {}) {
 
 describe('DocsFooter', () => {
   it('es el landmark footer con el copyright que se le pasa', async () => {
-    const doc = await footer();
-    expect(doc.querySelectorAll('footer')).toHaveLength(1);
-    expect(text(doc.querySelector('footer'))).toContain('© 2026 Design');
+    const htmlDocument = await footer();
+    expect(htmlDocument.querySelectorAll('footer')).toHaveLength(1);
+    expect(text(htmlDocument.querySelector('footer'))).toContain('© 2026 Design');
   });
 
   it('el año va por props: la misma salida siempre', async () => {
@@ -164,27 +164,27 @@ describe('DocsFooter', () => {
   it('fila 1: los enlaces propios en el nav; privacidad y cookies ya no están ahí', async () => {
     const bare = await footer({ footer: { links: [] } });
     expect(bare.querySelector('a')).toBeNull();
-    const doc = await footer({
+    const htmlDocument = await footer({
       privacyUrl: '/privacidad/',
       cookieControl: true,
       footer: { links: [{ label: 'Código', href: 'https://github.com/x/y', external: true }] },
     });
-    const link = doc.querySelector('a[href="https://github.com/x/y"]')!;
+    const link = htmlDocument.querySelector('a[href="https://github.com/x/y"]')!;
     expect(text(link)).toBe('Código');
     expect(link.getAttribute('rel')).toContain('noopener');
-    const order = [...doc.querySelectorAll('footer nav a, footer nav button')].map((button) =>
-      text(button),
+    const order = [...htmlDocument.querySelectorAll('footer nav a, footer nav button')].map(
+      (button) => text(button),
     );
     expect(order).toEqual(['Código']);
   });
 
   it('fila 2: licencia, privacidad y cookies en ese orden, separadas por puntos que no se leen', async () => {
-    const doc = await footer({
+    const htmlDocument = await footer({
       privacyUrl: '/privacidad/',
       cookieControl: true,
       footer: { license: { label: 'MIT', href: 'https://x.dev/LICENSE' }, links: [] },
     });
-    const legal = doc.querySelector('[data-footer-legal]')!;
+    const legal = htmlDocument.querySelector('[data-footer-legal]')!;
     expect([...legal.querySelectorAll('li')].map((item) => text(item).replace(/^·/, ''))).toEqual([
       'Licencia MIT',
       'Política de privacidad',
@@ -195,7 +195,7 @@ describe('DocsFooter', () => {
     const dots = [...legal.querySelectorAll('span[aria-hidden="true"]')];
     expect(dots.map((dot) => text(dot))).toEqual(['·', '·']);
     expect(legal.querySelector('nav')).toBeNull();
-    expect(doc.querySelectorAll('footer nav')).toHaveLength(0);
+    expect(htmlDocument.querySelectorAll('footer nav')).toHaveLength(0);
   });
 
   it('fila 2 solo muestra lo que existe y desaparece si no hay nada', async () => {
@@ -216,41 +216,45 @@ describe('DocsFooter', () => {
   });
 
   it('izquierda: «© año nombre por autor» en una frase, sin la licencia', async () => {
-    const doc = await footer({
+    const htmlDocument = await footer({
       footer: {
         license: { label: 'MIT', href: 'https://x.dev/LICENSE' },
         author: { name: 'Anthony Velez', href: 'https://velezanthony.github.io/' },
         links: [],
       },
     });
-    expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design por Anthony Velez');
-    expect(doc.querySelector('a[href="https://velezanthony.github.io/"]')).not.toBeNull();
+    expect(text(htmlDocument.querySelector('[data-footer-meta]'))).toBe(
+      '© 2026 Design por Anthony Velez',
+    );
+    expect(htmlDocument.querySelector('a[href="https://velezanthony.github.io/"]')).not.toBeNull();
     const plain = await footer({ footer: { license: { label: 'MIT' }, links: [] } });
     expect(text(plain.querySelector('[data-footer-meta]'))).toBe('© 2026 Design');
     expect(plain.querySelector('[data-footer-meta] a')).toBeNull();
   });
 
   it('en inglés dice «by»', async () => {
-    const doc = await footer({
+    const htmlDocument = await footer({
       strings: stringsFor('en'),
       footer: { author: { name: 'Ana', href: 'https://ana.dev' }, links: [] },
     });
-    expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design by Ana');
+    expect(text(htmlDocument.querySelector('[data-footer-meta]'))).toBe('© 2026 Design by Ana');
   });
 
   it('los enlaces del proyecto van en un nav etiquetado; sin enlaces no hay nav', async () => {
-    const doc = await footer({
+    const htmlDocument = await footer({
       footer: { links: [{ label: 'A', href: 'https://a.dev', external: true }] },
     });
-    expect(doc.querySelector('footer nav')!.getAttribute('aria-label')).toBe('Enlaces del sitio');
+    expect(htmlDocument.querySelector('footer nav')!.getAttribute('aria-label')).toBe(
+      'Enlaces del sitio',
+    );
     expect((await footer()).querySelector('footer nav')).toBeNull();
   });
 
   it('un enlace interno no se abre en otra pestaña', async () => {
-    const doc = await footer({
+    const htmlDocument = await footer({
       footer: { links: [{ label: 'Cambios', href: '/repo/changelog/', external: false }] },
     });
-    const link = doc.querySelector('footer nav a')!;
+    const link = htmlDocument.querySelector('footer nav a')!;
     expect(link.getAttribute('target')).toBeNull();
     expect(link.getAttribute('rel')).toBeNull();
   });
@@ -264,14 +268,14 @@ describe('DocsFooter', () => {
   });
 
   it('otro idioma', async () => {
-    const doc = await footer({ strings: stringsFor('en'), cookieControl: true });
-    expect(text(doc.querySelector('[data-consent-open]'))).toBe('Cookie preferences');
+    const htmlDocument = await footer({ strings: stringsFor('en'), cookieControl: true });
+    expect(text(htmlDocument.querySelector('[data-consent-open]'))).toBe('Cookie preferences');
   });
 
   it('el control de cookies vive en la fila legal, no en el nav', async () => {
-    const doc = await footer({ cookieControl: true });
-    expect(doc.querySelector('[data-footer-legal] [data-consent-open]')).not.toBeNull();
-    expect(doc.querySelector('footer nav')).toBeNull();
+    const htmlDocument = await footer({ cookieControl: true });
+    expect(htmlDocument.querySelector('[data-footer-legal] [data-consent-open]')).not.toBeNull();
+    expect(htmlDocument.querySelector('footer nav')).toBeNull();
   });
 });
 
@@ -281,8 +285,10 @@ describe('DocsHeader: ancho de lectura', () => {
   });
 
   it('con `layoutToggles` hay un grupo con dos botones y su nombre accesible', async () => {
-    const doc = await header({ layoutToggles: true, layoutWidth: 'full' });
-    const group = doc.querySelector('header [role="group"][aria-label="Ancho de la página"]')!;
+    const htmlDocument = await header({ layoutToggles: true, layoutWidth: 'full' });
+    const group = htmlDocument.querySelector(
+      'header [role="group"][aria-label="Ancho de la página"]',
+    )!;
     const buttons = [...group.querySelectorAll('button[data-layout-width]')];
     expect(buttons.map((button) => button.getAttribute('data-layout-width'))).toEqual([
       'reading',
@@ -305,10 +311,12 @@ describe('DocsHeader: ancho de lectura', () => {
   });
 
   it('los textos salen del catálogo del idioma', async () => {
-    const doc = await header({ layoutToggles: true, strings: stringsFor('en') });
-    expect(doc.querySelector('[role="group"]')!.getAttribute('aria-label')).toBe('Page width');
-    expect(doc.querySelector('[data-layout-width="full"]')!.getAttribute('aria-label')).toBe(
-      'Full',
+    const htmlDocument = await header({ layoutToggles: true, strings: stringsFor('en') });
+    expect(htmlDocument.querySelector('[role="group"]')!.getAttribute('aria-label')).toBe(
+      'Page width',
     );
+    expect(
+      htmlDocument.querySelector('[data-layout-width="full"]')!.getAttribute('aria-label'),
+    ).toBe('Full');
   });
 });

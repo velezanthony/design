@@ -39,8 +39,8 @@ function registry(routes: SiteRoute[], modules: Record<string, unknown> = {}): C
   };
 }
 
-function load(reg: ClientRegistry, fetch: (url: URL) => Promise<Response>, base = '/') {
-  return loadClientPages({ origin, site, base }, { registry: reg, fetch });
+function load(clientRegistry: ClientRegistry, fetch: (url: URL) => Promise<Response>, base = '/') {
+  return loadClientPages({ origin, site, base }, { registry: clientRegistry, fetch });
 }
 
 describe('loadClientPages', () => {
@@ -59,12 +59,12 @@ describe('loadClientPages', () => {
   it('expande las rutas dinámicas con el getStaticPaths de su módulo', async () => {
     const { fetch } = server({ '/a/': page('A'), '/b/': page('B') });
     const projects = route('/[slug]', ['slug']);
-    const reg = registry([projects], {
+    const clientRegistry = registry([projects], {
       [projects.entrypoint]: {
         getStaticPaths: () => [{ params: { slug: 'a' } }, { params: { slug: 'b' } }],
       },
     });
-    const { pages } = await load(reg, fetch);
+    const { pages } = await load(clientRegistry, fetch);
     expect(pages.map(({ head }) => head.title)).toEqual(['A', 'B']);
   });
 
@@ -77,8 +77,8 @@ describe('loadClientPages', () => {
   it('una página que no responde 200 o un módulo sin getStaticPaths se apuntan como fallos', async () => {
     const { fetch } = server({});
     const dynamic = route('/[slug]', ['slug']);
-    const reg = registry([route('/cv'), dynamic], { [dynamic.entrypoint]: {} });
-    const { pages, failures } = await load(reg, fetch);
+    const clientRegistry = registry([route('/cv'), dynamic], { [dynamic.entrypoint]: {} });
+    const { pages, failures } = await load(clientRegistry, fetch);
     expect(pages).toEqual([]);
     expect(failures.map(({ entrypoint }) => entrypoint).sort()).toEqual([
       'src/pages/[slug].astro',
@@ -91,19 +91,19 @@ describe('loadClientPages', () => {
 
   it('sin servidor de desarrollo (no hay con qué cargar módulos) no hay páginas del cliente', async () => {
     const { fetch, asked } = server({ '/cv/': page('CV') });
-    const reg: ClientRegistry = { routes: [route('/cv')], version: 1 };
-    expect(await load(reg, fetch)).toEqual({ pages: [], failures: [] });
+    const clientRegistry: ClientRegistry = { routes: [route('/cv')], version: 1 };
+    expect(await load(clientRegistry, fetch)).toEqual({ pages: [], failures: [] });
     expect(asked).toEqual([]);
   });
 
   it('mientras no cambie nada reutiliza lo leído; tras un cambio vuelve a pedirlo', async () => {
     const { fetch, asked } = server({ '/cv/': page('CV') });
-    const reg = registry([route('/cv')]);
-    await load(reg, fetch);
-    await load(reg, fetch);
+    const clientRegistry = registry([route('/cv')]);
+    await load(clientRegistry, fetch);
+    await load(clientRegistry, fetch);
     expect(asked).toEqual(['/cv/']);
-    reg.version += 1;
-    await load(reg, fetch);
+    clientRegistry.version += 1;
+    await load(clientRegistry, fetch);
     expect(asked).toEqual(['/cv/', '/cv/']);
   });
 });

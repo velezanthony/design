@@ -33,28 +33,32 @@ export interface FooterView {
 /** Lo que el footer necesita de la config. */
 export type FooterSource = Pick<ResolvedConfig, 'footer' | 'social'>;
 
-/** Destino de un enlace del footer a una página en el idioma de `ctx`; `undefined` si no tiene (política `omit`). */
-function footerPageHref(link: FooterPage, ctx: NavContext): string | undefined {
+/** Destino de un enlace del footer a una página en el idioma de `context`; `undefined` si no tiene (política `omit`). */
+function footerPageHref(link: FooterPage, context: NavContext): string | undefined {
   const slug = toSidebarSlug(link.slug);
-  return flatten(buildSidebarFor(ctx, (candidate) => candidate === slug))[0]?.href;
+  return flatten(buildSidebarFor(context, (candidate) => candidate === slug))[0]?.href;
 }
 
 /** Los destinos de los enlaces del footer que son páginas del sitio (los https quedan fuera). */
 export function footerPageHrefs(
   links: readonly FooterLink[] | undefined,
-  ctx: NavContext,
+  context: NavContext,
 ): string[] {
-  return (links ?? []).filter(isFooterPage).flatMap((link) => footerPageHref(link, ctx) ?? []);
+  return (links ?? []).filter(isFooterPage).flatMap((link) => footerPageHref(link, context) ?? []);
 }
 
 /**
- * Footer de una página en el idioma de `ctx`. Un enlace a una página sin destino en este idioma
+ * Footer de una página en el idioma de `context`. Un enlace a una página sin destino en este idioma
  * (no existe y la política es `omit`) se quita en vez de dejar un enlace roto.
  */
-export function buildFooter(source: FooterSource, ctx: NavContext, strings: UiStrings): FooterView {
+export function buildFooter(
+  source: FooterSource,
+  context: NavContext,
+  strings: UiStrings,
+): FooterView {
   const { footer, social } = source;
-  const { locale } = ctx;
-  const defaultLocale = ctx.cfg.defaultLocale;
+  const { locale } = context;
+  const defaultLocale = context.config.defaultLocale;
   function label(value: Label) {
     return resolveLabel(value, locale, defaultLocale);
   }
@@ -62,7 +66,7 @@ export function buildFooter(source: FooterSource, ctx: NavContext, strings: UiSt
   const custom = (footer?.links ?? []).flatMap((link): FooterEntry[] => {
     const text = label(link.label);
     if (!isFooterPage(link)) return [{ label: text, href: link.href, external: true }];
-    const href = footerPageHref(link, ctx);
+    const href = footerPageHref(link, context);
     return href === undefined ? [] : [{ label: text, href, external: false }];
   });
 

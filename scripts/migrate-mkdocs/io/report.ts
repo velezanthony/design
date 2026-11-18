@@ -24,12 +24,12 @@ export function formatStubLinks(links: StubLink[]): string[] {
   );
 }
 
-export function formatStubs(stubs: SnippetStub[], docsDir: string): string[] {
+export function formatStubs(stubs: SnippetStub[], docsDirectory: string): string[] {
   if (stubs.length === 0) return [];
   const lines = ['Páginas que solo incluyen otro fichero (`--8<--`); no se han tocado:'];
   const entries = new Set<string>();
   for (const stub of stubs) {
-    lines.push(`  ${docsDir}/${stub.file}  incluye  ${stub.include}`);
+    lines.push(`  ${docsDirectory}/${stub.file}  incluye  ${stub.include}`);
     /* `changelog.es.md` es la gemela de `changelog.md`: la misma entrada `external` las cubre. */
     const include = /\.[a-z]{2}(?:-[A-Za-z]{2,})?\.md$/.test(stub.file)
       ? stub.include.replace(/\.[a-z]{2}(?:-[A-Za-z]{2,})?\.md$/, '.md')

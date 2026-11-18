@@ -149,10 +149,10 @@ describe('DocsErrors se usa con resolvePolicies', () => {
 });
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const cfg = { locales: ['en', 'es'], defaultLocale: 'en' };
+const config = { locales: ['en', 'es'], defaultLocale: 'en' };
 
 describe('fallbackRoutes', () => {
-  const av = new Map([
+  const availability = new Map([
     ['changelog', { en: '/repo/changelog/' }],
     ['install', { en: '/repo/install/', es: '/repo/es/install/' }],
     ['faq', { en: '/repo/faq/' }],
@@ -164,7 +164,7 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(av, policies, cfg, url)).toEqual([
+    expect(fallbackRoutes(availability, policies, config, url)).toEqual([
       {
         slug: 'changelog',
         locale: 'es',
@@ -181,13 +181,13 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(av, policies, cfg, url)).toEqual([]);
+    expect(fallbackRoutes(availability, policies, config, url)).toEqual([]);
   });
 
   it('no cambia Availability: las rutas de reserva no son traducciones', () => {
-    const before = structuredClone([...av]);
-    fallbackRoutes(av, new Map([['changelog', 'fallback']]), cfg, url);
-    expect([...av]).toEqual(before);
+    const before = structuredClone([...availability]);
+    fallbackRoutes(availability, new Map([['changelog', 'fallback']]), config, url);
+    expect([...availability]).toEqual(before);
   });
 
   it('con tres idiomas genera una ruta por cada idioma ausente', () => {
