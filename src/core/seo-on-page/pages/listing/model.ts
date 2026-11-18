@@ -1,13 +1,10 @@
 import type { Locale } from '../../../i18n/locale';
-import { filterPages } from '../../queries/filter';
 import { paginate, type Paginated } from '../../queries/paginate';
 import {
   ALL_SEVERITIES,
   EMPTY_FILTERS,
-  filtersFromUrl,
   parsePage,
   parsePerPage,
-  parseView,
   SeoView,
   type HaveColumn,
   type SeoFilters,
@@ -18,9 +15,10 @@ import type { PanelLinks } from '../links';
 import { commonIssues, type CommonIssue } from './common';
 import { entryRows, type EntryRow } from './entries';
 import { HAVE_COLUMNS, haveCounts, haveRows, lacking, type HaveRow } from './have';
-import { kindOptions, kindsWithIssues, type KindOptions } from './kinds';
+import { kindOptions, type KindOptions } from './kinds';
 import { matrixRows, type MatrixRow } from './matrix';
 import { pageRows, type PageRow } from './rows';
+import { selectListing } from './selection';
 import { severityCounts, type SeverityCounts } from './severities';
 
 /** Lo que pinta la tabla según la vista; cada una trae sus filas, ya paginadas. */
@@ -111,20 +109,6 @@ interface ListingInput {
 }
 
 /**
- * Pedir TODOS los tipos con incidencias es no filtrar por tipo («Todos» marcado): sin esto, enviar
- * el formulario sin tocar nada fijaría una lista y la vista dejaría de ser la de por defecto. Si el
- * árbol no tiene incidencias no hay «todos» que equivaler, y lo escrito se respeta.
- */
-function withoutAllKinds(params: URLSearchParams, tree: SeoTree): URLSearchParams {
-  const available = kindsWithIssues(tree);
-  const asked = params.getAll('kind');
-  if (available.length === 0 || !available.every((kind) => asked.includes(kind))) return params;
-  const normalized = new URLSearchParams(params);
-  normalized.delete('kind');
-  return normalized;
-}
-
-/**
  * Todo lo que enseña la tabla de páginas: qué filtros y vista rigen, las filas de la página pedida
  * y los números de la paginación. La pantalla solo lee la URL, llama a esto y pinta.
  *
@@ -139,23 +123,10 @@ export function listingModel({
   defaultLocale,
   links,
 }: ListingInput): ListingModel {
-  const view = parseView(params);
-  const parsed = filtersFromUrl(withoutAllKinds(params, tree));
-  // La matriz y «Qué tiene» son inventario, no lista de problemas: sin filtros en la URL enseñan
-  // todas las páginas. Con el «error + aviso» por defecto, una página limpia sin schema propio
-  // desaparecería justo de la vista que sirve para encontrarla.
-  const inventory = view.view === SeoView.MATRIX || view.view === SeoView.HAVE;
-  const { filters, defaulted } =
-    inventory && parsed.defaulted
-      ? { filters: { ...parsed.filters, severities: [...ALL_SEVERITIES] }, defaulted: false }
-      : parsed;
+  const { view, filters, defaulted, written, matching, selected, byEntry, severities } =
+    selectListing(tree, params);
   const perPage = parsePerPage(params);
-  const matching = filterPages(tree, filters);
-  const slugs = new Set(matching.map((entry) => entry.slug));
-  const selected = tree.pages.filter((entry) => slugs.has(entry.slug));
-  const byEntry = view.view === SeoView.LOCALE;
-  // Sin gravedad en la URL (solo tipos) se ven todas: no se filtra por gravedad.
-  const severities = filters.severities.length > 0 ? filters.severities : undefined;
+  const inventory = view.view === SeoView.MATRIX || view.view === SeoView.HAVE;
   const common = inventory
     ? []
     : commonIssues(byEntry ? matching : selected, {
@@ -163,7 +134,6 @@ export function listingModel({
         ...(severities && { severities }),
       });
   const commonKinds = common.map(({ kind }) => kind);
-  const written = parsed.defaulted ? { ...filters, severities: [] } : filters;
   const href = (to: ViewState, page = 1) => links.pages(written, page, perPage, to);
 
   const tableOf = (): { table: ListingTable; paging: Omit<Paginated<unknown>, 'rows'> } => {
