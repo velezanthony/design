@@ -16,11 +16,13 @@ describe('Switch', () => {
     expect(text(htmlDocument.querySelector('label'))).toBe('Avisarme');
   });
 
-  it('aria-checked refleja el estado inicial', async () => {
-    expect((await toggle()).querySelector('input')!.getAttribute('aria-checked')).toBe('false');
+  it('el estado va en el checked nativo, sin un aria-checked que se quede viejo al pulsar', async () => {
+    const off = (await toggle()).querySelector('input')!;
+    expect(off.hasAttribute('checked')).toBe(false);
+    expect(off.hasAttribute('aria-checked')).toBe(false);
     const on = (await toggle({ checked: true })).querySelector('input')!;
-    expect(on.getAttribute('aria-checked')).toBe('true');
     expect(on.hasAttribute('checked')).toBe(true);
+    expect(on.hasAttribute('aria-checked')).toBe(false);
   });
 
   it('required, disabled e invalid se reflejan', async () => {
