@@ -1,5 +1,6 @@
 ---
-import { CLIENT_FAILURE_LABELS } from '../labels';
+import { CLIENT_FAILURE_LABELS as L } from '../labels';
+import PanelNotice from '../molecules/PanelNotice.astro';
 
 interface Props {
   /** Las páginas de `src/pages/` que no se pudieron leer, con el motivo tal como llegó. */
@@ -11,23 +12,17 @@ const { failures } = Astro.props;
 
 {/* Sin pulir a propósito: basta con ver qué fichero falla y por qué para poder arreglarlo. */}
 {failures.length > 0 && (
-  <aside
-    class="mb-6 border border-dashed border-danger p-3 text-sm text-muted"
-    aria-label={CLIENT_FAILURE_LABELS.region}
+  <PanelNotice
+    tone="danger"
+    label={L.region}
+    title={L.title(failures.length)}
+    why={L.why}
     data-client-failures
   >
-    <p>
-      <strong class="font-semibold text-danger">
-        {CLIENT_FAILURE_LABELS.title(failures.length)}
-      </strong>
-      . {CLIENT_FAILURE_LABELS.why}
-    </p>
-    <ul class="mt-2 list-disc pl-5">
-      {failures.map(({ entrypoint, message }) => (
-        <li>
-          <code>{entrypoint}</code> — {message}
-        </li>
-      ))}
-    </ul>
-  </aside>
+    {failures.map(({ entrypoint, message }) => (
+      <li>
+        <code>{entrypoint}</code> — {message}
+      </li>
+    ))}
+  </PanelNotice>
 )}

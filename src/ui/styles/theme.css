@@ -346,6 +346,11 @@
   }
 }
 
+/* El marco de los avisos del panel: discontinuo; el color del borde lo pone cada aviso. */
+@utility notice-frame {
+  @apply border border-dashed p-3 text-sm text-muted;
+}
+
 @utility label {
   font-family: var(--font-mono);
   font-size: var(--text-label);
