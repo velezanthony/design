@@ -1,0 +1,72 @@
+name: Mutation
+
+# Solo a mano y sobre main: la caché que deja cada trozo es la base incremental que leerán los PR.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: mutation (${{ matrix.shard.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - name: core
+            mutate: src/core/**/*.ts,!src/core/seo-on-page/**
+          - name: seo-on-page-analysis
+            mutate: src/core/seo-on-page/analyzers/**/*.ts,src/core/seo-on-page/nodes/**/*.ts,src/core/seo-on-page/tree/**/*.ts
+          - name: seo-on-page-screens
+            mutate: src/core/seo-on-page/pages/**/*.ts,src/core/seo-on-page/queries/**/*.ts,src/core/seo-on-page/report/**/*.ts,src/core/seo-on-page/*.ts
+          - name: astro
+            mutate: src/astro/**/*.ts
+          - name: client-components
+            mutate: src/client/**/*.ts,src/components/**/*.ts
+          - name: scripts
+            mutate: scripts/**/*.ts
+    env:
+      EXCLUDED: '!**/*.test.ts,!**/*.d.ts,!src/testing/**,!**/fixtures/**'
+      INCREMENTAL_FILE: .stryker-cache/${{ matrix.shard.name }}.json
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Restaurar la base incremental del trozo
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.INCREMENTAL_FILE }}
+          key: stryker-${{ matrix.shard.name }}-${{ github.sha }}
+          restore-keys: stryker-${{ matrix.shard.name }}-
+
+      - name: Mutar el trozo
+        run: >
+          npx stryker run
+          --mutate "${{ matrix.shard.mutate }},${EXCLUDED}"
+          --incrementalFile "${INCREMENTAL_FILE}"
+          --reporters clear-text,html,json
+
+      # Se guarda aunque el paso anterior falle: lo ya medido sirve de base la próxima vez.
+      - name: Guardar la base incremental del trozo
+        if: always() && hashFiles(env.INCREMENTAL_FILE) != ''
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.INCREMENTAL_FILE }}
+          key: stryker-${{ matrix.shard.name }}-${{ github.sha }}
+
+      - name: Subir el informe
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-${{ matrix.shard.name }}
+          path: reports/mutation/
+          if-no-files-found: ignore
