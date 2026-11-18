@@ -16,7 +16,7 @@ describe('ClientPageFailures', () => {
       ],
     });
     const aside = doc.querySelector('aside')!;
-    expect(text(aside)).toContain('2 páginas de src/pages/ no se pudieron leer');
+    expect(text(aside)).toContain('2 páginas de src/pages/ no se pudieron leer. No salen');
     const items = [...aside.querySelectorAll('li')].map(text);
     expect(items).toEqual([
       'src/pages/cv.astro — /cv/ responde 500.',
