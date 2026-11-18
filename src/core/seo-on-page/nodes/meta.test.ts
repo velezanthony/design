@@ -72,4 +72,36 @@ describe('buildMetaNode', () => {
     const node = buildMetaNode(page({ seo: { image: { src: '/og.png' } } }), config, url, sizes);
     expect(node.ogImage).toEqual({ src: '/og.png', alt: 'Install', width: 1200, height: 630 });
   });
+
+  it('og:image de la página: origen «page»', () => {
+    const config = resolveConfig({ name: 'D', seo: { image: { src: '/site.png', alt: 'Alt' } } });
+    const node = buildMetaNode(
+      page({ seo: { image: { src: '/og.png', alt: 'Alt' } } }),
+      config,
+      url,
+    );
+    expect(node.ogImageSource).toBe('page');
+  });
+
+  it('og:image heredada del sitio: origen «site»', () => {
+    const config = resolveConfig({ name: 'D', seo: { image: { src: '/site.png', alt: 'Alt' } } });
+    const node = buildMetaNode(page(), config, url);
+    expect(node.ogImageSource).toBe('site');
+  });
+
+  it('una página con la misma imagen que el sitio sigue siendo «page»', () => {
+    const config = resolveConfig({ name: 'D', seo: { image: { src: '/og.png', alt: 'Alt' } } });
+    const node = buildMetaNode(
+      page({ seo: { image: { src: '/og.png', alt: 'Alt' } } }),
+      config,
+      url,
+    );
+    expect(node.ogImageSource).toBe('page');
+  });
+
+  it('sin imagen en ningún nivel: origen «none» y sin ogImage', () => {
+    const node = buildMetaNode(page(), resolveConfig({ name: 'D' }), url);
+    expect(node.ogImageSource).toBe('none');
+    expect(node).not.toHaveProperty('ogImage');
+  });
 });

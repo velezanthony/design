@@ -16,6 +16,7 @@ const facts = (slug: string, meta: Partial<MetaNode> = {}, locale = 'en'): SeoPa
     description: `Description of ${slug}`,
     descriptionLength: 100,
     ogTitle: slug,
+    ogImageSource: 'none',
     canonical: `/${slug}/`,
     noindex: false,
     ...meta,

@@ -4,7 +4,7 @@ import { pageUrl } from '../../i18n/availability';
 import { resolveMeta, withImageSize, type ImageSizes, type SeoBase } from '../../seo/meta';
 import { composeTitle } from '../../seo/title';
 import type { SeoPageInput } from '../tree/input';
-import type { DescriptionSource, MetaNode } from '../tree/types';
+import type { DescriptionSource, MetaNode, OgImageSource } from '../tree/types';
 
 /**
  * De dónde sale la descripción. Se reaprovecha la cascada de `resolveMeta` en vez de reescribirla:
@@ -23,6 +23,12 @@ function descriptionSource(
   };
   const own = resolveMeta(withoutSite, page.seo, page, page.locale).description;
   return own === undefined ? 'site' : 'page';
+}
+
+/** La imagen es una unidad en la cascada (`resolveMeta`): o la declara la página o viene del sitio. */
+function ogImageSource(page: SeoPageInput, image: MetaNode['ogImage']): OgImageSource {
+  if (!image) return 'none';
+  return page.seo?.image ? 'page' : 'site';
 }
 
 /**
@@ -46,6 +52,7 @@ export function buildMetaNode(
     ogTitle: resolved.title,
     ...(description !== undefined && { ogDescription: description }),
     ...(image && { ogImage: image }),
+    ogImageSource: ogImageSource(page, image),
     canonical: pageUrl(page.slug, page.locale, url),
     noindex: resolved.noindex,
   };

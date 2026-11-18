@@ -21,6 +21,7 @@ export function seoPage(overrides: Partial<SeoPage> = {}): SeoPage {
       descriptionLength: 27,
       ogTitle: 'Guide',
       ogDescription: 'A description of the guide.',
+      ogImageSource: 'none',
       canonical: `/repo/${slug}/`,
       noindex: false,
     },

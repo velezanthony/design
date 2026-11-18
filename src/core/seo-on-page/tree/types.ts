@@ -48,6 +48,9 @@ export interface Issue {
 /** Origen de la descripción final: la de la página, la heredada del sitio o ninguna. */
 export type DescriptionSource = 'page' | 'site' | 'none';
 
+/** Origen de la imagen social: la de la página, la heredada del sitio o ninguna. */
+export type OgImageSource = 'page' | 'site' | 'none';
+
 /** Lo que el `<head>` publica de la página (hechos, sin juicio). */
 export interface MetaNode {
   /** `<title>` final, con sufijo. */
@@ -60,6 +63,7 @@ export interface MetaNode {
   ogTitle: string;
   ogDescription?: string;
   ogImage?: { src: string; alt: string; width?: number; height?: number };
+  ogImageSource: OgImageSource;
   /** Ruta canónica con `base` (el panel no conoce `site`; `buildHead` la hace absoluta). */
   canonical: string;
   noindex: boolean;
