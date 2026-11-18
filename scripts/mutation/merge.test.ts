@@ -118,6 +118,14 @@ describe('mergeReports', () => {
     expect(() => mergeReports([one, one])).toThrow(/src\/a\.ts.*disjuntos/);
   });
 
+  it('falla si un mutante apunta a un test que su informe no tiene (formato de Stryker cambiado)', () => {
+    const broken = report({
+      files: { 'src/a.ts': [{ coveredBy: ['0', '7'], killedBy: ['7'] }] },
+      tests: { 'src/a.test.ts': [{ id: '0', name: 'a', line: 1 }] },
+    });
+    expect(() => mergeReports([broken])).toThrow(/src\/a\.ts.*7.*formato/s);
+  });
+
   it('falla sin informes', () => {
     expect(() => mergeReports([])).toThrow(/ningún informe/);
   });

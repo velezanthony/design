@@ -32,12 +32,21 @@ function testKey(file: string, test: IncrementalTest, occurrence: number): strin
   return [file, test.name, line, column, occurrence].join('\0');
 }
 
+/** Un id que el informe no define delata un cambio de formato: se para en vez de reutilizar a medias en silencio. */
 function mapIds(
   ids: string[] | undefined,
   translate: Map<string, string>,
-  prefix: string,
+  file: string,
 ): string[] | undefined {
-  return ids?.map((id) => translate.get(id) ?? `${prefix}-${id}`);
+  return ids?.map((id) => {
+    const mapped = translate.get(id);
+    if (mapped === undefined) {
+      throw new Error(
+        `Un mutante de ${file} apunta al test ${id}, que su informe no define: ¿ha cambiado el formato del informe incremental de Stryker?`,
+      );
+    }
+    return mapped;
+  });
 }
 
 /** Los ids de cada trozo arrancan en "0": se prefijan y los tests repetidos se funden en el primero. */
@@ -92,8 +101,8 @@ export function mergeReports(reports: IncrementalReport[]): IncrementalReport {
         ...entry,
         mutants: entry.mutants.map((mutant) => {
           const copy = { ...mutant };
-          const coveredBy = mapIds(mutant.coveredBy, translate, String(position));
-          const killedBy = mapIds(mutant.killedBy, translate, String(position));
+          const coveredBy = mapIds(mutant.coveredBy, translate, file);
+          const killedBy = mapIds(mutant.killedBy, translate, file);
           if (coveredBy) copy.coveredBy = coveredBy;
           if (killedBy) copy.killedBy = killedBy;
           return copy;
