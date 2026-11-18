@@ -40,6 +40,13 @@ redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
 `hreflang`; ni rutas de reserva ni la 404. La página de privacidad propia entra si existe. No hay
 `robots.txt`: es del portfolio, que vive en la raíz del dominio.
 
+Abierto en el navegador, el sitemap se ve con estilo: enlaza `_design/sitemap.css` (ruta relativa,
+vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`ui/styles/sitemap.ts`).
+La paleta se lee de `theme.css` al generar el sitio, sin copiar valores, y el título y la nota salen
+de `sitemap.title` y `sitemap.note` del idioma por defecto. Es CSS y no XSLT porque Chrome retira
+XSLT. Los buscadores ignoran la hoja: leen el XML. Un XML no puede llevar `<meta viewport>`, así que
+en el móvil se ve con el ancho de escritorio.
+
 ## SEO
 
 La cascada se resuelve **campo a campo** en `resolveMeta` (`src/core/seo/meta.ts`):

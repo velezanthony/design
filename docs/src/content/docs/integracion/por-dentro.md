@@ -46,7 +46,7 @@ sequenceDiagram
   Int->>Int: assertNoRouteCollision, assertNoFontConflict
   Int->>MD: extendMarkdownProcessor (directivas + plugins)
   Int->>Vite: updateConfig (shikiConfig, fonts, plugin virtual)
-  Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml, favicon, privacidad
+  Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml y su hoja, favicon, privacidad
   CLI->>Int: astro:config:done → injectTypes(virtual.d.ts)
   CLI->>Ldr: sincroniza la colección docs (config del módulo virtual)
   Ldr->>Ldr: lee <content>/**.md + external[]
@@ -97,6 +97,7 @@ Es donde ocurre casi todo. En orden:
 | --- | --- | --- |
 | `/[...slug]` | `doc.astro` | Siempre: todas las páginas de docs, en todos los idiomas. |
 | `/sitemap.xml` | `sitemap.xml.ts` | Siempre. |
+| `/_design/sitemap.css` | `sitemap.css.ts` | Siempre (la hoja con la que el navegador pinta el sitemap). |
 | `/_design/favicon.png` | `favicon.png.ts` | Siempre (el favicon por defecto, con espacio de nombres propio). |
 | `/404` | `not-found.astro` | Siempre. |
 | `/[locale]/404` | `not-found.astro` | Con más de un idioma. |
