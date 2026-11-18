@@ -13,7 +13,8 @@ import type {
   SeoTree,
 } from '../../../core/seo-on-page/tree/types';
 import { readPublic } from '../../loader/images';
-import { pageOf, sitemapXml, urlPolicyOf } from '../../views/pages';
+import { urlPolicyOf } from '../../config';
+import { pageOf, sitemapXml } from '../../views/pages';
 import type { DocData } from '../../loader/schema';
 import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
 import { siteImageSizes } from '../image-sizes';
@@ -46,7 +47,12 @@ export function seoInputOf(
     const { body, order, ...page } = pageOf(data);
     return { ...page, headings, ...(links && { links }), ...(images && { images }) };
   });
-  return { config: seoConfig, url: urlPolicyOf(config), pages, ...(imageSizes && { imageSizes }) };
+  return {
+    config: seoConfig,
+    url: urlPolicyOf(config, config.defaultLocale),
+    pages,
+    ...(imageSizes && { imageSizes }),
+  };
 }
 
 /**
@@ -114,7 +120,7 @@ export async function loadPanel(
     client: pages,
     failures,
     overrides: clientRegistry().overrides ?? [],
-    hrefs: devHrefs(urlPolicyOf(config)),
+    hrefs: devHrefs(urlPolicyOf(config, config.defaultLocale)),
   };
 }
 
@@ -131,7 +137,7 @@ export async function loadSiteFiles(
   const exists = async (file: string) => (await readPublic(publicDir, file)) !== undefined;
   const sitemap = sitemapXml(docs, config, clientSitemapEntries(client, new URL(config.site)));
   return siteFiles({
-    url: urlPolicyOf(config),
+    url: urlPolicyOf(config, config.defaultLocale),
     locales: config.locales,
     sitemapUrls: sitemap.split('<loc>').length - 1,
     robots: await exists('/robots.txt'),

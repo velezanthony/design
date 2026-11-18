@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DocData } from '../loader/schema';
-import { pagesOf, sitemapIndexXml, sitemapXml, urlPolicyOf } from './pages';
+import { pagesOf, sitemapIndexXml, sitemapXml } from './pages';
 
 const cfg = {
   base: '/repo',
@@ -18,16 +18,6 @@ const data = (slug: string, locale: string, extra: Partial<DocData> = {}): DocDa
   title: slug || 'Home',
   sourcePath: `${slug || 'index'}.md`,
   ...extra,
-});
-
-describe('urlPolicyOf', () => {
-  it('toma base, barra final e idioma por defecto de la config', () => {
-    expect(urlPolicyOf(cfg)).toEqual({
-      base: '/repo',
-      trailingSlash: 'always',
-      defaultLocale: 'en',
-    });
-  });
 });
 
 describe('pagesOf', () => {

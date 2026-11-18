@@ -1,5 +1,5 @@
 import type { Page } from '../../core/content/discovery';
-import { buildAvailability, type UrlPolicy } from '../../core/i18n/availability';
+import { buildAvailability } from '../../core/i18n/availability';
 import { noindexUrls } from '../../core/seo/indexable';
 import {
   buildSitemap,
@@ -9,19 +9,11 @@ import {
   type SitemapEntry,
 } from '../../core/seo/sitemap';
 import { privacyAvailability } from '../../core/privacy/pages';
+import { urlPolicyOf } from '../config';
 import { orAstroError } from '../errors';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { withBase } from '../../core/shared/urls';
-
-/** Cómo se forman las URLs: lo que hace falta de la config del módulo virtual. */
-export const urlPolicyOf = (
-  cfg: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale'>,
-): UrlPolicy => ({
-  base: cfg.base,
-  trailingSlash: cfg.trailingSlash,
-  defaultLocale: cfg.defaultLocale,
-});
 
 /** `Page` del núcleo a partir de los datos de la colección; el cuerpo no se arrastra. */
 export function pageOf(item: DocData): Page {
@@ -55,7 +47,7 @@ export function sitemapXml(
   extra: readonly SitemapEntry[] = [],
 ): string {
   const pages = pagesOf(data);
-  const url = urlPolicyOf(cfg);
+  const url = urlPolicyOf(cfg, cfg.defaultLocale);
   const av = buildAvailability(pages, url);
   // La página de privacidad propia no es contenido: se suma aquí, con su hreflang entre idiomas.
   if (cfg.privacy.page) {

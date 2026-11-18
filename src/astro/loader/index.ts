@@ -19,6 +19,7 @@ import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
 import { CONTENT_METADATA_KEY, contentFacts } from '../../core/seo-on-page/nodes/content';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
+import { urlPolicyOf } from '../config';
 import { toAstroError } from '../errors';
 import { readFrontmatter } from './frontmatter';
 import { checkFavicon } from './favicon';
@@ -139,11 +140,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
   ctx.store.clear();
   const index = {
     pages,
-    url: {
-      base: ctx.config.base,
-      trailingSlash: ctx.config.trailingSlash,
-      defaultLocale: config.defaultLocale,
-    },
+    url: urlPolicyOf(ctx.config, config.defaultLocale),
     contentDir: config.content,
   };
   const refs: LinkRef[] = [];

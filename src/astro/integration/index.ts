@@ -20,6 +20,7 @@ import { mergeLangAlias } from '../markdown/register';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
 import { readAnalyticsEnv } from './analytics-env';
+import { urlPolicyOf } from '../config';
 import { orAstroError } from '../errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
@@ -117,11 +118,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         const siteConfig = applyAnalyticsOrThrow(
           resolvedConfig,
           readAnalyticsEnv(command, config.root),
-          {
-            base: config.base,
-            trailingSlash: config.trailingSlash,
-            defaultLocale: resolvedConfig.defaultLocale,
-          },
+          urlPolicyOf(config, resolvedConfig.defaultLocale),
         );
         // El sitio puede sustituir páginas de la librería con las suyas: se avisa, y las rutas
         // exactas que ya son suyas no se inyectan (Astro no registra dos para la misma URL).

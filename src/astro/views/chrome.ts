@@ -6,7 +6,8 @@ import type { NavContext } from '../../core/navigation/nav-entries';
 import type { Page } from '../../core/content/discovery';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
-import { pagesOf, urlPolicyOf } from './pages';
+import { urlPolicyOf } from '../config';
+import { pagesOf } from './pages';
 
 /** Lo que cabecera y pie necesitan del sitio, calculado una sola vez por vista. */
 export interface SiteContext {
@@ -19,7 +20,7 @@ export interface SiteContext {
 
 export function siteContext(cfg: VirtualConfig, data: DocData[]): SiteContext {
   const pages = pagesOf(data);
-  const url = urlPolicyOf(cfg);
+  const url = urlPolicyOf(cfg, cfg.defaultLocale);
   return {
     cfg,
     pages,
