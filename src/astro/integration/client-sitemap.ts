@@ -3,6 +3,7 @@ import { builtClientPages, type ClientPage } from '../../core/seo/client-pages';
 import { readHead } from '../../core/seo/html-head';
 import { appendToSitemap, clientSitemapEntries, SITEMAP_PAGES } from '../../core/seo/sitemap';
 import { clientRegistry, type ClientRegistry } from '../data/client-registry';
+import { trimBase } from '../../core/shared/urls';
 
 interface Built {
   /** La carpeta del build (`dist/`). */
@@ -42,7 +43,7 @@ export async function addClientPagesToSitemap(
   );
   const pages: ClientPage[] = [];
   for (const ref of refs) {
-    const pathname = ref.path.slice(built.base.replace(/\/$/, '').length + 1);
+    const pathname = ref.path.slice(trimBase(built.base).length + 1);
     const html = await builtHtml(built.dir, pathname);
     if (html) pages.push({ ...ref, head: readHead(html, new URL(ref.path, built.site)) });
   }

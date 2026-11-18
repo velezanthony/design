@@ -2,6 +2,7 @@ import { DocsError } from '../errors';
 import type { ClientPage } from './client-pages';
 import type { Availability } from '../i18n/availability';
 import { excludeNoindex } from './indexable';
+import { baseUrl } from '../shared/urls';
 
 /**
  * Hoja de estilo del sitemap, bajo `/_design/` (como el favicon) para no chocar con un `public/` del
@@ -140,7 +141,7 @@ export function buildSitemapIndex(urls: readonly string[]): string {
  * o si es el propio índice o el de páginas, que se apuntarían a sí mismos.
  */
 export function sitemapIncludes(include: readonly string[], site: URL, base = '/'): string[] {
-  const root = `${base.replace(/\/$/, '')}/`;
+  const root = baseUrl(base);
   const own = new Set(
     ['sitemap.xml', SITEMAP_PAGES].map((file) => new URL(`${root}${file}`, site.origin).href),
   );

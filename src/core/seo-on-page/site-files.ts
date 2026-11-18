@@ -2,6 +2,7 @@ import { pageUrl, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { privacyPageUrls } from '../privacy/pages';
 import { DEFAULT_FAVICON_PATH, isLocalFavicon, resolveFavicon } from '../seo/favicon';
+import { withBase } from '../shared/urls';
 
 /** Los archivos de sitio que el panel enseña, en este orden. */
 export type SiteFileId =
@@ -40,8 +41,6 @@ export interface SiteFilesFacts {
   /** El `favicon` de la config; sin él se usa el del paquete. */
   favicon?: string;
 }
-
-const withBase = (base: string, path: string) => `${base.replace(/\/+$/, '')}${path}`;
 
 /** Archivo que el consumidor puede tener en `public/`: ausente es un estado, no una incidencia. */
 function publicFile(id: 'robots' | 'llms', url: UrlPolicy, exists: boolean): SiteFile {

@@ -16,6 +16,7 @@ import { buildHead, type HeadConfig } from '../../core/seo/head';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import { pagesOf, urlPolicyOf, type DocData } from './pages';
 import type { VirtualConfig } from '../virtual/data';
+import { baseUrl } from '../../core/shared/urls';
 
 /** Parámetros de `getStaticPaths` de la página de privacidad (ver `core/privacy/pages`). */
 export const privacyRoutes = (cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) =>
@@ -89,7 +90,7 @@ export function privacyView(
     strings,
     nav: buildNav(cfg.nav, navContext),
     footer: buildFooter(cfg, navContext, strings),
-    baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
+    baseUrl: baseUrl(cfg.base),
     ...(cfg.privacyUrl !== undefined && {
       privacyUrl: resolveLabel(cfg.privacyUrl, lang, cfg.defaultLocale),
     }),

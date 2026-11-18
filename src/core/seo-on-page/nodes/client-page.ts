@@ -4,6 +4,7 @@ import type { MissingTranslation } from '../../i18n/translation-policy';
 import type { ClientPage } from '../../seo/client-pages';
 import type { ResolvedSchema } from '../../seo/json-ld';
 import type { MetaNode, SeoLocaleEntry, SeoPageFacts } from '../tree/types';
+import { trimBase } from '../../shared/urls';
 
 interface ClientContext {
   locales: readonly Locale[];
@@ -15,7 +16,7 @@ interface ClientContext {
 
 /** La ruta sin la base ni las barras de los extremos: el slug, como en la documentación. */
 const slugOf = (path: string, base: string) =>
-  path.slice(base.replace(/\/$/, '').length).replace(/^\/+|\/+$/g, '');
+  path.slice(trimBase(base).length).replace(/^\/+|\/+$/g, '');
 
 /** `<html lang="en-US">` cuenta como `en`; un idioma que no es de la config, como el por defecto. */
 function localeOf(lang: string | undefined, ctx: ClientContext): Locale {

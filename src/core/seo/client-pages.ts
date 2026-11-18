@@ -1,4 +1,5 @@
 import type { HeadFacts } from './html-head';
+import { withBase } from '../shared/urls';
 
 /** Los params de una URL concreta de una ruta dinámica (`{ lang: 'en', slug: 'uno' }`). */
 export type RouteParams = Record<string, string | undefined>;
@@ -44,8 +45,6 @@ export function clientRoutes<T extends { pattern: string; origin: string; type: 
       route.origin === 'project' && route.type === 'page' && !ERROR_PAGES.includes(route.pattern),
   );
 }
-
-const withBase = (base: string, path: string) => `${base.replace(/\/$/, '')}${path}`;
 
 /**
  * Las URLs de las páginas del cliente: una por ruta fija y una por cada entrada del

@@ -12,6 +12,7 @@ import type { Locale } from '../../core/i18n/locale';
 import { privacyAvailability } from '../../core/privacy/pages';
 import { toAstroError } from '../integration/errors';
 import type { VirtualConfig } from '../virtual/data';
+import { withBase } from '../../core/shared/urls';
 
 /** Lo que el loader guarda de cada página (`docsSchema`); es lo que ven los contenedores. */
 export interface DocData {
@@ -87,7 +88,7 @@ export function sitemapXml(
  */
 export function sitemapIndexXml(cfg: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
   const site = new URL(cfg.site);
-  const pages = new URL(`${cfg.base.replace(/\/$/, '')}/${SITEMAP_PAGES}`, site.origin).href;
+  const pages = new URL(withBase(cfg.base, `/${SITEMAP_PAGES}`), site.origin).href;
   try {
     return buildSitemapIndex([pages, ...sitemapIncludes(cfg.sitemap.include, site, cfg.base)]);
   } catch (error) {

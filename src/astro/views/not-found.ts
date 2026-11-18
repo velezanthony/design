@@ -11,6 +11,7 @@ import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta
 import { composeTitle, resolveTitleSuffix } from '../../core/seo/title';
 import { pagesOf, urlPolicyOf, type DocData } from './pages';
 import type { VirtualConfig } from '../virtual/data';
+import { baseUrl } from '../../core/shared/urls';
 
 /** Rutas `[locale]/404`: una por idioma que no es el de defecto (`/404` sirve el de defecto). */
 export const notFoundRoutes = (cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) =>
@@ -119,7 +120,7 @@ export function notFoundView(
     homeHref: pageUrl('', lang, url),
     strings,
     footer: footerFor(lang),
-    baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
+    baseUrl: baseUrl(cfg.base),
     ...(cfg.privacyUrl !== undefined && {
       privacyUrl: resolveLabel(cfg.privacyUrl, lang, cfg.defaultLocale),
     }),
@@ -127,7 +128,7 @@ export function notFoundView(
     others,
     ...(others.length > 0 && {
       swap: {
-        base: `${cfg.base.replace(/\/+$/, '')}/`,
+        base: baseUrl(cfg.base),
         locales: cfg.locales,
         defaultLocale: cfg.defaultLocale,
       },

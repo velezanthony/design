@@ -5,6 +5,7 @@ import { resolveFavicon } from './favicon';
 import { serializeJsonLd } from './json-ld';
 import type { ResolvedMeta } from './meta';
 import { composeTitle } from './title';
+import { withBase } from '../shared/urls';
 
 /** Una etiqueta de `<head>` como dato; `Head.astro` solo la pinta. */
 export interface HeadConfig {
@@ -104,9 +105,7 @@ export function buildHead(
   const { image } = resolved;
   const imageUrl =
     image &&
-    (image.src.startsWith('https://')
-      ? image.src
-      : absolute(`${url.base.replace(/\/+$/, '')}${image.src}`));
+    (image.src.startsWith('https://') ? image.src : absolute(withBase(url.base, image.src)));
   if (image && imageUrl) {
     tags.push(meta('property', 'og:image', imageUrl));
     if (image.width !== undefined)

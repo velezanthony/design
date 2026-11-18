@@ -1,4 +1,5 @@
 import { DocsError } from '../errors';
+import { trimBase } from '../shared/urls';
 
 /** Código de idioma del sitio (`en`, `es`, `pt-BR`…). Es configurable, por eso es una cadena. */
 export type Locale = string;
@@ -39,7 +40,7 @@ export function localeFromPath(
   locales: Locale[],
   defaultLocale: Locale,
 ): Locale {
-  const prefix = base.replace(/\/+$/, '');
+  const prefix = trimBase(base);
   if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) return defaultLocale;
   const [segment] = pathname.slice(prefix.length).split('/').filter(Boolean);
   return segment !== undefined && locales.includes(segment) ? segment : defaultLocale;

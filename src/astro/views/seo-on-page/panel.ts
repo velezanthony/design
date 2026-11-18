@@ -17,6 +17,7 @@ import {
 import { pagesOf, urlPolicyOf, type DocData } from '../pages';
 import type { VirtualConfig } from '../../virtual/data';
 import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
+import { baseUrl } from '../../../core/shared/urls';
 
 type Screen = keyof typeof SCREEN_LABELS;
 
@@ -133,7 +134,7 @@ export function panelView({
     current: screens[screen].href,
     headings,
     indexable: false,
-    baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
+    baseUrl: baseUrl(cfg.base),
     /* A ancho completo: la tabla y las vistas previas no caben en la columna de lectura. El resto
        de la disposición es la del sitio, y el conmutador sigue permitiendo cambiarla. */
     layout: { ...cfg.layout, width: LayoutWidth.FULL },

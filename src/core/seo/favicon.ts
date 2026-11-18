@@ -1,4 +1,5 @@
 import { DocsError } from '../errors';
+import { trimBase } from '../shared/urls';
 
 /** Ruta del favicon propio del paquete (la sirve un endpoint inyectado, con la base delante). */
 export const DEFAULT_FAVICON_PATH = '/_design/favicon.png';
@@ -32,7 +33,7 @@ export const publicFaviconPath = (favicon: string): string => favicon.replace(/^
  * o un archivo de `public/` con la base delante (`favicon.svg` y `/favicon.svg` son lo mismo).
  */
 export function resolveFavicon(favicon: string | undefined, base: string): FaviconLink {
-  const prefix = base.replace(/\/+$/, '');
+  const prefix = trimBase(base);
   const href =
     favicon === undefined
       ? `${prefix}${DEFAULT_FAVICON_PATH}`

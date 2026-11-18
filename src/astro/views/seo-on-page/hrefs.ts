@@ -6,6 +6,7 @@ import {
   type SeoFilters,
   type ViewState,
 } from '../../../core/seo-on-page/queries/url-filters';
+import { withBase } from '../../../core/shared/urls';
 
 /** Carpeta común de las rutas del panel: lo que un consumidor no debería usar para sus páginas. */
 export const SEO_ON_PAGE_DIR = 'seo-on-page';
@@ -44,4 +45,4 @@ export type DevHrefs = ReturnType<typeof devHrefs>;
 
 /** `src` de una imagen para el navegador: la local cuelga de `base` (igual que `og:image`), la https no se toca. */
 export const assetHref = (base: string, src: string) =>
-  src.startsWith('https://') ? src : `${base.replace(/\/+$/, '')}${src}`;
+  src.startsWith('https://') ? src : withBase(base, src);

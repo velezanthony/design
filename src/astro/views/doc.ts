@@ -14,6 +14,7 @@ import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import { pagesOf, urlPolicyOf, type DocData } from './pages';
 import type { VirtualConfig } from '../virtual/data';
+import { baseUrl } from '../../core/shared/urls';
 
 /** Una ruta que sirve `doc.astro`: una página real o una ruta de reserva (`fallback`). */
 export interface DocRoute {
@@ -148,7 +149,7 @@ export function docView(
     }),
     ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
     indexable: !isFallback && !meta.noindex,
-    baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
+    baseUrl: baseUrl(cfg.base),
     layout: cfg.layout,
     ...(isFallback && {
       fallback: { originalLocale: route.contentLocale, href: route.canonical ?? '' },
