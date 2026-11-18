@@ -10,6 +10,7 @@ import { storageOf } from '../../client/preferences/storage';
 import { initTabs } from '../../client/content/tabs';
 import { initAutoSubmit } from '../../client/forms/auto-submit';
 import { initKindsAll } from '../../client/forms/kinds-all';
+import { initPopovers } from '../../client/forms/popover';
 import { initReport } from '../../client/seo-on-page/report';
 import { initTheme } from '../../client/preferences/theme';
 import type { MotionPreference } from '../../client/transition';
@@ -84,6 +85,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
   initCurrentYear(doc);
   initAutoSubmit(doc);
   initKindsAll(doc);
+  initPopovers(doc);
   initReport(doc, { clipboard: env.clipboard });
   initTabs(doc, env.motion);
 

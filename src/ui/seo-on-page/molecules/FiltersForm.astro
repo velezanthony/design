@@ -89,7 +89,7 @@ const separator = 'hidden w-px self-stretch bg-rule sm:block';
   </fieldset>
   <span class={separator} aria-hidden="true"></span>
   {/* «Todos» marcado equivale a no filtrar por tipo. `client/forms/kinds-all.ts` lo sincroniza con las casillas; sin JavaScript cada una es un campo normal y el servidor lee «todas marcadas» como «sin filtro». */}
-  <details class="relative">
+  <details class="relative" data-popover>
     <summary class="inline-flex min-h-8 cursor-pointer list-none items-center gap-1.5 border border-rule bg-canvas px-3 text-sm text-ink after:text-xs after:text-faint after:content-['▾'] hover:border-accent-line open:border-accent-line [&::-webkit-details-marker]:hidden">
       {KINDS_LABELS.summary}
       <span
