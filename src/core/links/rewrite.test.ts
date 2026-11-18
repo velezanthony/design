@@ -285,3 +285,29 @@ describe('rewriteLinks: imágenes relativas sin `./`', () => {
     expect(rewriteLinks('![c](img/a.png)', from('guide.md'), index).errors).toEqual([]);
   });
 });
+
+/* Las imágenes se detectan aquí, en la misma pasada que los enlaces: una sola regla para «qué es
+   una imagen del cuerpo» (la usa el panel SEO para el texto alternativo). */
+describe('rewriteLinks: imágenes del cuerpo', () => {
+  const images = (body: string) => rewriteLinks(body, from('guide.md'), index).images;
+
+  it('devuelve cada imagen con su ruta original, su alt y su línea', () => {
+    expect(images('uno\n\n![captura](img/a.png)\n![](https://x.dev/b.png "T")')).toEqual([
+      { file: 'guide.md', line: 3, src: 'img/a.png', alt: 'captura' },
+      { file: 'guide.md', line: 4, src: 'https://x.dev/b.png', alt: '' },
+    ]);
+  });
+
+  it('la forma con `<...>` devuelve la ruta sin los ángulos', () => {
+    expect(images('![c](<img/mi foto.png>)')[0]?.src).toBe('img/mi foto.png');
+  });
+
+  it('ignora las de bloques de código y las de código en línea', () => {
+    const body = ['```md', '![c](a.png)', '```', '`![c](b.png)`'].join('\n');
+    expect(images(body)).toEqual([]);
+  });
+
+  it('un enlace normal no es una imagen', () => {
+    expect(images('[x](./install.md)')).toEqual([]);
+  });
+});
