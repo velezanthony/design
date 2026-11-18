@@ -106,6 +106,27 @@ informativo. La regla es una sola y no depende del estado:
   gravedad, así que solo ahí aparecen también las páginas sin ninguna incidencia.
 - Las casillas del formulario reflejan los filtros efectivos, de modo que enviarlo reenvía lo que se ve.
 
+### Vistas de la tabla
+
+El parámetro `view` cambia cómo se ve la misma selección de páginas; un valor desconocido es
+`page`. El selector es un grupo de enlaces, así que funciona sin JavaScript y se comparte.
+
+- `page` (por defecto), **Por página**: una fila por página, con sus idiomas como insignias.
+- `locale`, **Por idioma**: una fila por entrada (página + idioma); el recuento dice «N entradas
+  página + idioma».
+- `matrix`, **Matriz de idiomas**: una columna por idioma configurado (existe, falta, respaldo u
+  omitida por política) y el hreflang y el `x-default` que el `<head>` emite. Sale del mismo estado
+  que usa `buildHead`: «recíproco» con al menos dos versiones indexables, «sin par» con una y
+  «omitido» si la página es `noindex`. Con un solo idioma no hay hreflang y esas columnas no salen.
+- `have`, **Qué tiene**: descripción, schema, imagen OG, H1 único, traducida e indexable, cada una
+  propia, heredada del sitio, ausente, de respaldo o cumplida. Cada cabecera es un enlace que
+  alterna `lacks=<desc|schema|og|h1|i18n|index>` y deja solo las páginas a las que les falta eso
+  propio; los «N/M» cuentan las páginas filtradas. Aquí no sale el aviso de lo común a todas las
+  páginas: la columna de descripción ya lo dice.
+
+La paginación cuenta filas de la vista que se esté viendo, y los enlaces de página, el selector de
+filas y el formulario de filtros conservan `view` y `lacks`.
+
 ### Paginación
 
 La tabla enseña 25 filas por página por defecto (`PAGE_SIZE`: cada fila pinta varias insignias y 25 se
