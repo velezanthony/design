@@ -4,8 +4,8 @@ import type { HTMLAttributes } from 'astro/types';
 interface Props extends Omit<HTMLAttributes<'select'>, 'class' | 'id' | 'value'> {
   /** Obligatorio: es lo que une la etiqueta con el campo (`for`/`id`). */
   id: string;
-  /** Texto de la etiqueta. Un campo sin etiqueta no es accesible. */
-  label: string;
+  /** Texto de la etiqueta. Sin él solo se pinta el campo y quien lo usa pone la etiqueta (`FormField`). */
+  label?: string;
   name: string;
   /** Opciones en el orden en que se pintan. */
   options: { value: string; label: string }[];
@@ -16,6 +16,9 @@ interface Props extends Omit<HTMLAttributes<'select'>, 'class' | 'id' | 'value'>
   /** Etiqueta y campo en la misma fila y al ancho natural, para controles compactos; por defecto la etiqueta va encima. */
   inline?: boolean;
   disabled?: boolean;
+  required?: boolean;
+  /** Marca el campo con `aria-invalid`; el mensaje lo pone quien lo usa (`FieldError`). */
+  invalid?: boolean;
   /** Va al contenedor: el ancho lo decide quien coloca el campo; el campo ocupa todo el suyo. */
   class?: string;
 }
@@ -28,30 +31,25 @@ const {
   hideLabel = false,
   inline = false,
   disabled = false,
+  required = false,
+  invalid = false,
   class: className,
   ...rest
 } = Astro.props;
+const selectClass = [
+  'min-h-8 border border-rule bg-canvas px-2 text-ink focus-visible:border-accent aria-invalid:border-danger',
+  !inline && 'w-full',
+  disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+];
 ---
 
-<div
-  data-select
-  data-layout={inline ? 'inline' : 'stacked'}
-  class:list={[inline ? 'flex items-center gap-2' : 'flex flex-col gap-1', className]}
->
-  <label
-    for={id}
-    class:list={[hideLabel ? 'sr-only' : 'label text-muted', inline && 'whitespace-nowrap']}
-  >
-    {label}
-  </label>
+{label === undefined ? (
   <select
     id={id}
     disabled={disabled}
-    class:list={[
-      'min-h-8 border border-rule bg-canvas px-2 text-ink focus-visible:border-accent',
-      !inline && 'w-full',
-      disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-    ]}
+    required={required}
+    aria-invalid={invalid ? 'true' : undefined}
+    class:list={[selectClass, 'w-full', className]}
     {...rest}
   >
     {options.map((option) => (
@@ -60,4 +58,31 @@ const {
       </option>
     ))}
   </select>
-</div>
+) : (
+  <div
+    data-select
+    data-layout={inline ? 'inline' : 'stacked'}
+    class:list={[inline ? 'flex items-center gap-2' : 'flex flex-col gap-1', className]}
+  >
+    <label
+      for={id}
+      class:list={[hideLabel ? 'sr-only' : 'label text-muted', inline && 'whitespace-nowrap']}
+    >
+      {label}
+    </label>
+    <select
+      id={id}
+      disabled={disabled}
+      required={required}
+      aria-invalid={invalid ? 'true' : undefined}
+      class:list={selectClass}
+      {...rest}
+    >
+      {options.map((option) => (
+        <option value={option.value} selected={option.value === value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </div>
+)}

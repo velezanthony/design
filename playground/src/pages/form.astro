@@ -1,0 +1,87 @@
+---
+// Demo: los componentes de formulario, en el tema de la librería; `noindex`, fuera del sitemap.
+import { Font } from 'astro:assets';
+import Button from '@velezanthony/design/components/atoms/actions/Button.astro';
+import Checkbox from '@velezanthony/design/components/atoms/form/Checkbox.astro';
+import Radio from '@velezanthony/design/components/atoms/form/Radio.astro';
+import Switch from '@velezanthony/design/components/atoms/form/Switch.astro';
+import FormField from '@velezanthony/design/components/molecules/form/FormField.astro';
+import RadioGroup from '@velezanthony/design/components/molecules/form/RadioGroup.astro';
+import Shell from '@velezanthony/design/components/layouts/Shell.astro';
+
+const head: { tag: 'title' | 'meta'; attrs: Record<string, string>; content?: string }[] = [
+  { tag: 'title', attrs: {}, content: 'Form components' },
+  { tag: 'meta', attrs: { name: 'robots', content: 'noindex' } },
+];
+const plans = [
+  { value: 'free', label: 'Free' },
+  { value: 'team', label: 'Team' },
+  { value: 'enterprise', label: 'Enterprise (contact us)', disabled: true },
+];
+---
+
+<Shell lang="en" head={head}>
+  <Font slot="head" cssVariable="--font-plex-sans" preload />
+  <Font slot="head" cssVariable="--font-plex-mono" />
+  <main id="main-content" class="demo">
+    <h1>Form components</h1>
+    <p>Every control below is wired with ids and <code>aria-*</code>; click a label to toggle its control.</p>
+    <form method="get" action="#" novalidate>
+      <FormField name="email" label="Email" type="email" required help="We never share it." placeholder="you@example.com" />
+      <FormField name="username" label="Username" value="a b" error="Usernames cannot contain spaces." required />
+      <FormField control="textarea" name="bio" label="Bio" help="A line or two." />
+      <FormField
+        control="select"
+        name="language"
+        label="Language"
+        value="es"
+        options={[
+          { value: 'en', label: 'English' },
+          { value: 'es', label: 'Español' },
+        ]}
+      />
+      <FormField name="referral" label="Referral code" value="LOCKED" disabled help="Disabled: it is not sent." />
+      <RadioGroup name="plan" legend="Plan" value="free" options={plans} required help="Pick one." />
+      <RadioGroup name="contact" legend="Contact by" error="Choose a contact method." options={[{ value: 'mail', label: 'Mail' }, { value: 'phone', label: 'Phone' }]} />
+      <fieldset class="group">
+        <legend>Preferences</legend>
+        <Switch name="notify" checked>Email me about releases</Switch>
+        <Switch name="beta">Join the beta</Switch>
+        <Switch name="legacy" disabled>Legacy mode (disabled)</Switch>
+        <Checkbox name="terms" required>I accept the terms</Checkbox>
+        <Checkbox name="spam" disabled>Marketing (disabled)</Checkbox>
+        <Radio name="single" value="one">Standalone radio</Radio>
+      </fieldset>
+      <Button type="submit">Send</Button>
+    </form>
+  </main>
+</Shell>
+
+<style is:global>
+  .demo {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 36rem;
+    padding: 2.5rem 1.5rem;
+  }
+  .demo form,
+  .demo .group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .demo .group {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .demo h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .demo .group legend {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+</style>

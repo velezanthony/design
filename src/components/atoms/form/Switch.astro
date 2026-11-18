@@ -1,0 +1,56 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'role' | 'class'> {
+  name: string;
+  value?: string;
+  checked?: boolean;
+  required?: boolean;
+  disabled?: boolean;
+  /** Marca el campo con `aria-invalid`; el mensaje lo pone quien lo usa (`FieldError`). */
+  invalid?: boolean;
+  /** Va a la etiqueta, que es lo que se coloca; el campo va dentro. */
+  class?: string;
+}
+
+const {
+  checked = false,
+  required = false,
+  disabled = false,
+  invalid = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const pointer = disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer';
+---
+
+<!-- Un checkbox nativo con `role="switch"`: se envía, se tabula y se activa con Espacio sin JavaScript.
+     `aria-checked` solo da el estado inicial; el navegador sigue el `checked` nativo al pulsar. -->
+<label
+  class:list={[
+    'inline-flex min-h-6 w-fit items-center gap-2 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent',
+    pointer,
+    className,
+  ]}
+>
+  <input
+    type="checkbox"
+    role="switch"
+    checked={checked}
+    required={required}
+    disabled={disabled}
+    aria-checked={checked ? 'true' : 'false'}
+    aria-invalid={invalid ? 'true' : undefined}
+    class="peer sr-only"
+    {...rest}
+  />
+  <span
+    aria-hidden="true"
+    class:list={[
+      'relative inline-block h-5 w-9 shrink-0 rounded-full border border-rule bg-raised transition-colors after:absolute after:top-0.5 after:left-0.5 after:size-3.5 after:rounded-full after:bg-muted after:transition-transform after:content-[""] peer-checked:border-accent-line peer-checked:bg-accent peer-checked:after:translate-x-4 peer-checked:after:bg-canvas peer-aria-invalid:border-danger',
+      pointer,
+    ]}
+  ></span>
+  <slot />
+</label>

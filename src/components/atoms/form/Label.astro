@@ -1,0 +1,20 @@
+---
+interface Props {
+  /** El `id` del campo que etiqueta. */
+  for: string;
+  /** Añade el asterisco; el campo lleva el `required` nativo, así que el lector no lo oye dos veces. */
+  required?: boolean;
+  class?: string;
+}
+
+const { for: fieldId, required = false, class: className } = Astro.props;
+---
+
+<label for={fieldId} class:list={['label text-muted', className]}>
+  <slot />
+  {required && (
+    <span aria-hidden="true" class="ml-1">
+      *
+    </span>
+  )}
+</label>

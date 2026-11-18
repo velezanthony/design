@@ -64,4 +64,22 @@ describe('Input', () => {
       true,
     );
   });
+
+  it('invalid pone aria-invalid; required y disabled son los nativos', async () => {
+    const input = (
+      await render(Input, props({ invalid: true, required: true, disabled: true }))
+    ).querySelector('input')!;
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(input.hasAttribute('required')).toBe(true);
+    expect(input.hasAttribute('disabled')).toBe(true);
+    expect(
+      (await render(Input, props())).querySelector('input')!.hasAttribute('aria-invalid'),
+    ).toBe(false);
+  });
+
+  it('sin label pinta solo el campo: quien lo usa pone la etiqueta (FormField)', async () => {
+    const htmlDocument = await render(Input, { id: 'q', name: 'q' });
+    expect(htmlDocument.querySelector('label')).toBeNull();
+    expect(htmlDocument.querySelector('input')!.getAttribute('id')).toBe('q');
+  });
 });

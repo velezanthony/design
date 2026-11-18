@@ -99,4 +99,11 @@ describe('Checkbox', () => {
       expect(off.classList.contains('cursor-pointer')).toBe(false);
     });
   });
+
+  it('invalid pone aria-invalid; required es el nativo', async () => {
+    const input = (await checkbox({ invalid: true, required: true })).querySelector('input')!;
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(input.hasAttribute('required')).toBe(true);
+    expect((await checkbox()).querySelector('input')!.hasAttribute('aria-invalid')).toBe(false);
+  });
 });

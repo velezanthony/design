@@ -105,4 +105,22 @@ describe('Select', () => {
       true,
     );
   });
+
+  it('invalid pone aria-invalid; required y disabled son los nativos', async () => {
+    const select = (
+      await render(Select, props({ invalid: true, required: true, disabled: true }))
+    ).querySelector('select')!;
+    expect(select.getAttribute('aria-invalid')).toBe('true');
+    expect(select.hasAttribute('required')).toBe(true);
+    expect(select.hasAttribute('disabled')).toBe(true);
+    expect(
+      (await render(Select, props())).querySelector('select')!.hasAttribute('aria-invalid'),
+    ).toBe(false);
+  });
+
+  it('sin label pinta solo el campo: quien lo usa pone la etiqueta (FormField)', async () => {
+    const htmlDocument = await render(Select, { id: 'per', name: 'per', options });
+    expect(htmlDocument.querySelector('label')).toBeNull();
+    expect(htmlDocument.querySelectorAll('option')).toHaveLength(3);
+  });
 });

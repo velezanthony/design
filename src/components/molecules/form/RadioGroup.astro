@@ -1,0 +1,71 @@
+---
+import FieldError from '../../atoms/form/FieldError.astro';
+import HelpText from '../../atoms/form/HelpText.astro';
+import Radio from '../../atoms/form/Radio.astro';
+import { describedBy } from './describedby';
+
+interface Props {
+  name: string;
+  /** Lo que lee el lector de pantalla antes de cada opción. */
+  legend: string;
+  options: { value: string; label: string; disabled?: boolean }[];
+  /** Valor de la opción marcada. */
+  value?: string;
+  /** Sin él, `group-<name>`: estable entre servidor y navegador, sin contadores. */
+  id?: string;
+  help?: string;
+  /** Con error el grupo se marca `aria-invalid` (un radio suelto no lo admite) y el mensaje se enlaza con `aria-describedby`. */
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  class?: string;
+}
+
+const {
+  name,
+  legend,
+  options,
+  value,
+  id: givenId,
+  help,
+  error,
+  required = false,
+  disabled = false,
+  class: className,
+} = Astro.props;
+
+const id = givenId ?? `group-${name}`;
+const helpId = `${id}-help`;
+const errorId = `${id}-error`;
+---
+
+<fieldset
+  id={id}
+  role="radiogroup"
+  disabled={disabled}
+  aria-invalid={error ? 'true' : undefined}
+  aria-describedby={describedBy(help && helpId, error && errorId)}
+  class:list={['m-0 flex min-w-0 flex-col gap-1 border-0 p-0', className]}
+>
+  <legend class="label mb-1 p-0 text-muted">
+    {legend}
+    {required && (
+      <span aria-hidden="true" class="ml-1">
+        *
+      </span>
+    )}
+  </legend>
+  {options.map((option) => (
+    <Radio
+      name={name}
+      value={option.value}
+      checked={option.value === value}
+      required={required}
+      disabled={disabled || option.disabled}
+    >
+      {option.label}
+    </Radio>
+  ))}
+  {help && <HelpText id={helpId}>{help}</HelpText>}
+  {error && <FieldError id={errorId}>{error}</FieldError>}
+</fieldset>
