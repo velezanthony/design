@@ -13,24 +13,21 @@ import TableHead from '../../../ui/seo-on-page/molecules/TableHead.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
 import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
-import { urlPolicyOf } from '../../views/pages';
 import { headCount, VIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
 import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
-import { loadDocData, loadPanelTree } from '../../data/seo-on-page/adapter';
-import { devHrefs } from '../../views/seo-on-page/hrefs';
+import { loadPanel } from '../../data/seo-on-page/adapter';
 import { listingReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
-const hrefs = devHrefs(urlPolicyOf(siteConfig));
+const { docs, tree, failures, hrefs } = await loadPanel(siteConfig, Astro.url.origin);
 const view = panelView({
   cfg: siteConfig,
-  data: await loadDocData(),
+  data: docs,
   hrefs,
   screen: 'pages',
   title: 'Páginas',
 });
-const { tree, failures } = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = listingModel({
   tree,
   params: Astro.url.searchParams,

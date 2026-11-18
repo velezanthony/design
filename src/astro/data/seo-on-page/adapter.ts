@@ -12,10 +12,12 @@ import type {
   PageLink,
   SeoTree,
 } from '../../../core/seo-on-page/tree/types';
-import { readImageSizes, readPublic } from '../../loader/images';
+import { readPublic } from '../../loader/images';
 import { pageOf, sitemapXml, urlPolicyOf } from '../../views/pages';
 import type { DocData } from '../../loader/schema';
 import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
+import { siteImageSizes } from '../image-sizes';
+import { devHrefs, type DevHrefs } from '../../views/seo-on-page/hrefs';
 import type { VirtualConfig } from '../../virtual/data';
 
 /** Una entrada de la colección con sus encabezados ya resueltos. */
@@ -64,16 +66,12 @@ function contentOf(entry: DocsEntry): { links?: PageLink[]; images?: PageImage[]
   return stored ?? {};
 }
 
-/**
- * El único punto del panel que conoce `astro:content`: lee la colección con la que se genera el
- * sitio y devuelve el árbol del análisis. Sin rastreo ni HTML: lo que se analiza es lo que se publica.
- * Las páginas que el cliente añade en `src/pages/` (`loadClientPages`) se suman ya leídas.
- */
+/** El árbol del análisis con la colección y las páginas de `src/pages/` ya leídas: lo que se publica. */
 export async function loadSeoTree(
   config: VirtualConfig,
+  docs: readonly DocsEntry[],
   client: ClientPage[] = [],
 ): Promise<SeoTree> {
-  const docs = await getDocs();
   const entries = await Promise.all(
     docs.map(async (entry) => ({
       data: entry.data,
@@ -81,46 +79,43 @@ export async function loadSeoTree(
       ...contentOf(entry),
     })),
   );
-  const sizes = await readImageSizes(
-    [config.seo.image?.src, ...docs.map((entry) => entry.data.seo?.image?.src)].filter(
-      (src) => src !== undefined,
-    ),
-    new URL(config.publicDir),
+  const sizes = await siteImageSizes(
+    config,
+    docs.map((entry) => entry.data.seo?.image?.src),
   );
   return buildSeoTree({ ...seoInputOf(entries, config, sizes), client });
 }
 
 /**
- * El árbol del panel con todo lo que publica el sitio: la colección y las páginas que el cliente
- * añade en `src/pages/`, que se piden al servidor de desarrollo en el que corre el propio panel. Las
- * que no se pudieron leer vuelven aparte, para avisar en pantalla en vez de que desaparezcan.
+ * Todo lo que necesita una pantalla del panel, con la colección leída UNA vez. Las páginas de
+ * `src/pages/` que no se pudieron leer vuelven en `failures`, para avisar en pantalla.
  */
-export async function loadPanelTree(
+export async function loadPanel(
   config: VirtualConfig,
   origin: string,
 ): Promise<{
+  /** Los datos de la colección, para la cabecera, el pie y el enlace de edición. */
+  docs: DocData[];
   tree: SeoTree;
-  /** Las páginas de `src/pages/` ya leídas, para quien las necesite además del árbol. */
   client: ClientPage[];
   failures: ClientPages['failures'];
   overrides: NonNullable<ClientRegistry['overrides']>;
+  hrefs: DevHrefs;
 }> {
+  const entries = await getDocs();
   const { pages, failures } = await loadClientPages({
     origin,
     site: config.site,
     base: config.base,
   });
   return {
-    tree: await loadSeoTree(config, pages),
+    docs: entries.map((entry) => entry.data),
+    tree: await loadSeoTree(config, entries, pages),
     client: pages,
     failures,
     overrides: clientRegistry().overrides ?? [],
+    hrefs: devHrefs(urlPolicyOf(config)),
   };
-}
-
-/** Los datos de la colección tal cual, para que la cabecera y el pie del panel se resuelvan como los del sitio. */
-export async function loadDocData(): Promise<DocData[]> {
-  return (await getDocs()).map((entry) => entry.data);
 }
 
 /**
@@ -129,15 +124,12 @@ export async function loadDocData(): Promise<DocData[]> {
  */
 export async function loadSiteFiles(
   config: VirtualConfig,
+  docs: DocData[],
   client: ClientPage[] = [],
 ): Promise<SiteFile[]> {
   const publicDir = new URL(config.publicDir);
   const exists = async (file: string) => (await readPublic(publicDir, file)) !== undefined;
-  const sitemap = sitemapXml(
-    await loadDocData(),
-    config,
-    clientSitemapEntries(client, new URL(config.site)),
-  );
+  const sitemap = sitemapXml(docs, config, clientSitemapEntries(client, new URL(config.site)));
   return siteFiles({
     url: urlPolicyOf(config),
     locales: config.locales,

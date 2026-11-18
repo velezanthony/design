@@ -16,26 +16,26 @@ import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
 import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
-import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
 import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
 import RouteOverridesNotice from '../../../ui/seo-on-page/organisms/RouteOverridesNotice.astro';
-import { loadDocData, loadPanelTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
-import { devHrefs } from '../../views/seo-on-page/hrefs';
+import { loadPanel, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
-const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const { tree, client, failures, overrides } = await loadPanelTree(siteConfig, Astro.url.origin);
+const { docs, tree, client, failures, overrides, hrefs } = await loadPanel(
+  siteConfig,
+  Astro.url.origin,
+);
 const model = overviewModel(tree, {
   locales: siteConfig.locales,
   defaultLocale: siteConfig.defaultLocale,
   links: hrefs,
-  siteFiles: await loadSiteFiles(siteConfig, client),
+  siteFiles: await loadSiteFiles(siteConfig, docs, client),
 });
 const view = panelView({
   cfg: siteConfig,
-  data: await loadDocData(),
+  data: docs,
   hrefs,
   screen: 'overview',
   title: 'Resumen',

@@ -18,3 +18,8 @@ export const getDocs = () =>
 /** `render` con el mismo motivo: acepta una entrada de `docs` aunque el tipo del paquete no la conozca. */
 export const renderDoc = (entry: DocsEntry) =>
   (render as unknown as (entry: DocsEntry) => ReturnType<typeof render>)(entry);
+
+/** Solo los datos de cada entrada: lo que piden las vistas. */
+export async function getDocData(): Promise<DocEntryData[]> {
+  return (await getDocs()).map((entry) => entry.data);
+}

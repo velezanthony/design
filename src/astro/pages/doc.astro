@@ -4,14 +4,13 @@
    layout: renderizar en un layout rompe el `<head>` en dev (astro#13724). */
 import { Font } from 'astro:assets';
 import DocsLayout from '../../ui/layouts/DocsLayout.astro';
-import { readImageSizes } from '../loader/images';
 import { docRoutes, docView, type DocRoute } from '../views/doc';
-import { getDocs, renderDoc } from '../data/docs-collection';
+import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
+import { siteImageSizes } from '../data/image-sizes';
 import { siteConfig } from '../data/site-config';
 
 export async function getStaticPaths() {
-  const data = (await getDocs()).map((entry) => entry.data);
-  return docRoutes(data, siteConfig).map((route) => ({
+  return docRoutes(await getDocData(), siteConfig).map((route) => ({
     params: { slug: route.param },
     props: { route },
   }));
@@ -25,14 +24,14 @@ const entry = entries.find(
 if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slug}.`);
 
 const { Content, headings } = await renderDoc(entry);
-const data = entries.map((item) => item.data);
-const sizes = await readImageSizes(
-  [siteConfig.seo.image?.src, ...data.map((item) => item.seo?.image?.src)].filter(
-    (src) => src !== undefined,
-  ),
-  new URL(siteConfig.publicDir),
+// Solo la imagen de esta página: la de reserva usa la del idioma del contenido, que es `entry`.
+const sizes = await siteImageSizes(siteConfig, [entry.data.seo?.image?.src]);
+const view = docView(
+  route,
+  entries.map((item) => item.data),
+  siteConfig,
+  sizes,
 );
-const view = docView(route, data, siteConfig, sizes);
 ---
 
 <DocsLayout {...view} headings={headings} year={new Date().getFullYear()}>
