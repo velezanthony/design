@@ -1,0 +1,17 @@
+---
+// Demo: una página del sitio en inglés y en español, agrupada en el panel por sus hreflang.
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: 'es' } }];
+}
+const { lang } = Astro.params;
+const en = 'https://velezanthony.github.io/snake-orm/about/';
+const es = 'https://velezanthony.github.io/snake-orm/es/about/';
+---
+<html lang={lang ?? 'en'}>
+  <head>
+    <title>{lang ? 'Sobre el proyecto' : 'About'}</title>
+    <link rel="alternate" hreflang="en" href={en} />
+    <link rel="alternate" hreflang="es" href={es} />
+  </head>
+  <body><h1>{lang ? 'Sobre el proyecto' : 'About the project'}</h1><h3>Equipo</h3></body>
+</html>
