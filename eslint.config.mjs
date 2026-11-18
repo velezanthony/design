@@ -135,6 +135,7 @@ export default defineConfig(
       message: 'Solo `routes/` conoce a la vez los datos y los componentes.',
     },
   ]),
+  // Sin la valla de dev a propósito: el loader guarda los datos del panel (`nodes/content`) pero no publica nada de él.
   layer(
     'astro/loader',
     [],
