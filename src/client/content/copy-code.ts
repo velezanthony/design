@@ -1,3 +1,5 @@
+import { copyWithFeedback } from '../clipboard';
+
 export interface CopyLabels {
   copy: string;
   copied: string;
@@ -57,13 +59,13 @@ export function initCopyCode(
     };
 
     button.addEventListener('click', () => {
-      clipboard
-        .writeText(codeText(pre))
-        .then(
-          () => show(labels.copied, 'copied'),
-          () => show(labels.failed, 'error'),
-        )
-        .finally(() => schedule(() => show(labels.copy), resetAfterMs));
+      void copyWithFeedback(clipboard, codeText(pre), {
+        done: () => show(labels.copied, 'copied'),
+        failed: () => show(labels.failed, 'error'),
+        reset: () => show(labels.copy),
+        schedule,
+        resetAfterMs,
+      });
     });
   }
 }

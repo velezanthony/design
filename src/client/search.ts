@@ -1,3 +1,5 @@
+import { fill } from './text';
+
 /** La parte de la API de Pagefind que usamos (el módulo `pagefind.js` generado en el build). */
 export interface PagefindApi {
   options(options: { baseUrl: string; bundlePath: string }): Promise<void>;
@@ -170,11 +172,7 @@ export function initSearch(
     if (ticket !== latest) return;
     render(hits);
     if (hits.length) setState('results');
-    else
-      setState(
-        'empty',
-        (root.dataset.noResults ?? '').replace('{query}', () => query),
-      );
+    else setState('empty', fill(root.dataset.noResults ?? '', { query }));
   };
 
   input.addEventListener('input', () => schedule(() => void search(), debounceMs));

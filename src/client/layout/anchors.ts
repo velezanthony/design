@@ -1,3 +1,5 @@
+import { fill } from '../text';
+
 /**
  * Añade un ancla permanente al final de cada encabezado h2-h4 con `id` del contenido (`<main>`).
  * El enlace lleva `aria-label` (el `#` visible no es un nombre) y `data-pagefind-ignore` para que
@@ -9,10 +11,7 @@ export function initHeadingAnchors(doc: Document, label: string): void {
     const anchor = doc.createElement('a');
     anchor.className = 'heading-anchor';
     anchor.setAttribute('href', `#${heading.id}`);
-    anchor.setAttribute(
-      'aria-label',
-      label.replace('{title}', () => heading.textContent ?? ''),
-    );
+    anchor.setAttribute('aria-label', fill(label, { title: heading.textContent ?? '' }));
     anchor.setAttribute('data-pagefind-ignore', '');
     anchor.textContent = '#';
     heading.append(anchor);

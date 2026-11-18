@@ -1,4 +1,5 @@
 import { withTransition, type MotionPreference } from '../transition';
+import { fill } from '../text';
 
 export interface ZoomLabels {
   /** Nombre accesible del botón de cada imagen; lleva `{alt}`. */
@@ -129,10 +130,7 @@ export function initZoom(
     const trigger = doc.createElement('button');
     trigger.type = 'button';
     trigger.className = 'docs-zoom';
-    trigger.setAttribute(
-      'aria-label',
-      labels.open.replace('{alt}', () => thumb.alt),
-    );
+    trigger.setAttribute('aria-label', fill(labels.open, { alt: thumb.alt }));
     thumb.replaceWith(trigger);
     trigger.append(thumb);
     trigger.addEventListener('click', () => open(trigger, thumb));

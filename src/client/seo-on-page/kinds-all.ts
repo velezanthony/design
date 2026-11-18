@@ -1,3 +1,5 @@
+import { fill } from '../text';
+
 /**
  * El desplegable «Tipo de problema» tiene una casilla «Todos» (`data-kinds-all`) por encima de las
  * de cada tipo (`data-kind`), todas dentro de un `[data-kinds]`. Sin JavaScript son campos de un GET
@@ -23,7 +25,7 @@ function sync(group: Element): void {
     count.textContent =
       on === kinds.length
         ? labelAll
-        : labelSome.replace('{on}', String(on)).replace('{total}', String(kinds.length));
+        : fill(labelSome, { on: String(on), total: String(kinds.length) });
   }
 }
 

@@ -8,6 +8,7 @@
  *
  * Los textos vienen del marcado: `data-copied` y `data-failed` en el diálogo y en cada botón de prompt.
  */
+import { copyWithFeedback } from '../clipboard';
 
 /** Lo que separa el Markdown del bloque JSON; el servidor calcula el tamaño con el mismo. */
 const JSON_SEPARATOR = '\n\n';
@@ -76,14 +77,6 @@ export function initReport(
     else dialog?.removeAttribute('open');
   };
 
-  /** Confirma una copia en `target` y, pasado un rato, deja lo que había. */
-  const confirm = (target: HTMLElement, text: string, original: string) => {
-    target.textContent = text;
-    schedule(() => {
-      target.textContent = original;
-    }, resetAfterMs);
-  };
-
   doc.addEventListener('click', (event) => {
     const target = event.target as Element | null;
     if (!target?.closest) return;
@@ -96,10 +89,13 @@ export function initReport(
       const label = prompt.querySelector<HTMLElement>('[data-label]') ?? prompt;
       // La etiqueta de siempre se guarda la primera vez: pulsar dos veces no fija «Copiado».
       const original = (label.dataset.original ??= label.textContent ?? '');
-      void clipboard.writeText(prompt.getAttribute('data-copy-prompt') ?? '').then(
-        () => confirm(label, prompt.dataset.copied ?? '', original),
-        () => confirm(label, prompt.dataset.failed ?? '', original),
-      );
+      void copyWithFeedback(clipboard, prompt.getAttribute('data-copy-prompt') ?? '', {
+        done: () => (label.textContent = prompt.dataset.copied ?? ''),
+        failed: () => (label.textContent = prompt.dataset.failed ?? ''),
+        reset: () => (label.textContent = original),
+        schedule,
+        resetAfterMs,
+      });
       return;
     }
 
@@ -107,14 +103,13 @@ export function initReport(
     if (target === dialog || target.closest('[data-report-close]')) return close();
     if (target.closest('[data-report-copy]')) {
       const text = part('data-report-preview')?.textContent ?? '';
-      const done = (message: string | undefined) => {
-        setStatus(message ?? '');
-        schedule(() => setStatus(''), resetAfterMs);
-      };
-      void clipboard.writeText(text).then(
-        () => done(dialog.dataset.copied),
-        () => done(dialog.dataset.failed),
-      );
+      void copyWithFeedback(clipboard, text, {
+        done: () => setStatus(dialog.dataset.copied ?? ''),
+        failed: () => setStatus(dialog.dataset.failed ?? ''),
+        reset: () => setStatus(''),
+        schedule,
+        resetAfterMs,
+      });
     }
   });
 
