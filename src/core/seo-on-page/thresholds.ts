@@ -27,10 +27,3 @@ export const THRESHOLDS = {
   /** Más de un H1 diluye de qué trata la página: debe haber exactamente uno. */
   maxH1: 1,
 } as const;
-
-/**
- * Un `<title>` fuera de [`titleMin`, `titleMax`] (largo o corto) es el que la interfaz marca; los
- * límites son los de `THRESHOLDS`, los mismos con los que el análisis levanta la incidencia.
- */
-export const isTitleOutOfRange = (length: number) =>
-  length > THRESHOLDS.titleMax || length < THRESHOLDS.titleMin;

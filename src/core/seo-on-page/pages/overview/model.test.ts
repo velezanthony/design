@@ -11,6 +11,7 @@ const links: PanelLinks = {
     return query === '' ? '/t/' : `/t/?${query}`;
   },
   inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
+  overview: () => '/o/',
 };
 
 const issue = (kind: IssueKind, severity: IssueSeverity): Issue => ({

@@ -12,4 +12,6 @@ export interface PanelLinks {
   pages(filters?: SeoFilters, page?: number, perPage?: number): string;
   /** El inspector de una página e idioma (slug vacío = portada). */
   inspector(target: { slug: string; locale: Locale }): string;
+  /** La vista general del panel. */
+  overview(): string;
 }

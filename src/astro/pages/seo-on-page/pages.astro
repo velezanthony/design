@@ -6,10 +6,12 @@ import { listingModel } from '../../../core/seo-on-page/pages/listing/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import FiltersForm from '../../../ui/seo-on-page/molecules/FiltersForm.astro';
 import InfoHiddenNote from '../../../ui/seo-on-page/molecules/InfoHiddenNote.astro';
+import CommonIssueNotice from '../../../ui/seo-on-page/organisms/CommonIssueNotice.astro';
 import PagesTable from '../../../ui/seo-on-page/organisms/PagesTable.astro';
 import TableFooter from '../../../ui/seo-on-page/molecules/TableFooter.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import { urlPolicyOf } from '../../views/pages';
+import { PAGES_TABLE_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
 import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
@@ -27,6 +29,7 @@ const model = listingModel({
   tree: await loadSeoTree(siteConfig),
   params: Astro.url.searchParams,
   locales: siteConfig.locales,
+  defaultLocale: siteConfig.defaultLocale,
   links: hrefs,
 });
 const { footer } = model;
@@ -37,10 +40,13 @@ const { footer } = model;
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
-  <PanelIntro title="Páginas" strings={view.strings} />
+  <PanelIntro title="Páginas" lede={PAGES_TABLE_LABELS.lede} strings={view.strings} />
   <div class="flex flex-col gap-6">
     <FiltersForm {...model.form} />
     {model.showAllHref && <InfoHiddenNote showAllHref={model.showAllHref} />}
+    {model.common.issues.map((issue) => (
+      <CommonIssueNotice issue={issue} overviewHref={model.common.overviewHref} />
+    ))}
     <PagesTable rows={model.rows} />
     <TableFooter
       filters={footer.filters}

@@ -16,4 +16,13 @@ describe('PanelIntro', () => {
     expect(doc.querySelector('aside[role="note"]')).not.toBeNull();
     expect(text(doc)).toMatch(/solo en desarrollo/i);
   });
+
+  it('con una frase de apoyo la pone bajo el título; sin ella no pinta un párrafo vacío', async () => {
+    const strings = stringsFor('es');
+    const withLede = await render(PanelIntro, { title: 'Páginas', lede: 'Ordenadas.', strings });
+    expect(text(withLede)).toContain('Ordenadas.');
+    const without = (await intro()).querySelectorAll('p').length;
+    expect(withLede.querySelectorAll('p')).toHaveLength(without + 1);
+    expect(text(await intro())).not.toContain('Ordenadas.');
+  });
 });

@@ -1,12 +1,13 @@
 ---
-import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
+import type { KindOptions } from '../../../core/seo-on-page/pages/listing/kinds';
+import { IssueSeverity } from '../../../core/seo-on-page/tree/types';
 import type { SeoFilters } from '../../../core/seo-on-page/queries/url-filters';
 import Button from '../../atoms/Button.astro';
 import Checkbox from '../../atoms/Checkbox.astro';
 import Input from '../../atoms/Input.astro';
 import Link from '../../atoms/Link.astro';
 import { PAGE_SIZE } from '../../../core/seo-on-page/queries/paginate';
-import { KIND_LABELS, SEVERITY_PLURALS } from '../labels';
+import { KIND_LABELS, KINDS_LABELS, SEVERITY_PLURALS } from '../labels';
 
 interface Props {
   filters: SeoFilters;
@@ -14,11 +15,13 @@ interface Props {
   perPage: number;
   /** Idiomas de la config del sitio. */
   locales: string[];
+  /** Las casillas del desplegable de tipos: «Todos», los que tienen incidencias y los que no. */
+  kinds: KindOptions;
   /** Ruta de la tabla: el formulario es un GET a ella, así los filtros viven en la URL. */
   action: string;
 }
 
-const { filters, perPage, locales, action } = Astro.props;
+const { filters, perPage, locales, kinds, action } = Astro.props;
 const group = 'flex flex-wrap items-center gap-x-4 gap-y-1';
 ---
 
@@ -51,14 +54,50 @@ const group = 'flex flex-wrap items-center gap-x-4 gap-y-1';
       ))}
     </fieldset>
   </div>
-  <details open={filters.kinds.length > 0}>
-    <summary class="label min-h-6 cursor-pointer text-muted">Tipo de problema</summary>
-    <div class="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-      {Object.values(IssueKind).map((kind) => (
-        <Checkbox name="kind" value={kind} checked={filters.kinds.includes(kind)}>
+  {/* «Todos» marcado equivale a no filtrar por tipo. `client/forms/kinds-all.ts` lo sincroniza con las casillas; sin JavaScript cada una es un campo normal y el servidor lee «todas marcadas» como «sin filtro». */}
+  <details class="relative" open={!kinds.all.checked}>
+    <summary class="label min-h-6 cursor-pointer text-muted">
+      {KINDS_LABELS.summary}
+      <span
+        data-kinds-count
+        data-label-all={KINDS_LABELS.countAll}
+        data-label-some={KINDS_LABELS.countSome}
+        class="font-mono normal-case"
+      >
+        {kinds.all.checked
+          ? KINDS_LABELS.countAll
+          : KINDS_LABELS.countSome
+              .replace('{on}', String(kinds.withIssues.filter(({ checked }) => checked).length))
+              .replace('{total}', String(kinds.all.count))}
+      </span>
+    </summary>
+    <div data-kinds class="mt-2 grid gap-y-0.5 border border-rule bg-canvas p-2 sm:max-w-sm">
+      <Checkbox
+        data-kinds-all
+        checked={kinds.all.checked}
+        class="w-full border-b border-rule pb-1.5 font-semibold"
+      >
+        {KINDS_LABELS.all}
+        <span class="ml-auto font-mono text-xs text-faint">{kinds.all.count}</span>
+      </Checkbox>
+      <p class="label px-1 pt-1.5 text-muted">{KINDS_LABELS.withIssues}</p>
+      {kinds.withIssues.map(({ kind, count, checked }) => (
+        <Checkbox name="kind" value={kind} checked={checked} data-kind class="w-full">
           {KIND_LABELS[kind]}
+          <span class="ml-auto font-mono text-xs text-faint">{count}</span>
         </Checkbox>
       ))}
+      {kinds.without.length > 0 && (
+        <>
+          <p class="label px-1 pt-1.5 text-muted">{KINDS_LABELS.without(kinds.without.length)}</p>
+          {kinds.without.map((kind) => (
+            <Checkbox name="kind" value={kind} disabled data-kind class="w-full">
+              {KIND_LABELS[kind]}
+              <span class="ml-auto font-mono text-xs text-faint">0</span>
+            </Checkbox>
+          ))}
+        </>
+      )}
     </div>
   </details>
   <div class="flex flex-wrap items-end gap-4">

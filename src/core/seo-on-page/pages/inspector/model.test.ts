@@ -9,6 +9,7 @@ import { inspectorModel } from './model';
 const links: PanelLinks = {
   pages: (filters = EMPTY_FILTERS) => `/p/${serializeFilters(filters).toString()}`,
   inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
+  overview: () => '/o/',
 };
 
 const run = (pages: SeoPage[], slug = 'guide', locale = 'en') => {

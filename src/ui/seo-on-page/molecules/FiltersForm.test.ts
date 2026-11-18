@@ -1,13 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import type { SeoFilters } from '../../../core/seo-on-page/queries/url-filters';
-import { render } from '../../../testing/render';
+import type { KindOptions } from '../../../core/seo-on-page/pages/listing/kinds';
+import { IssueKind } from '../../../core/seo-on-page/tree/types';
+import { render, text } from '../../../testing/render';
 import FiltersForm from './FiltersForm.astro';
 
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
+/** Tres tipos con incidencias y el resto sin, como un árbol real; `selected` vacío = «Todos». */
+const WITH: IssueKind[] = [IssueKind.NO_H1, IssueKind.DUPLICATE_TITLE, IssueKind.TITLE_TOO_SHORT];
+const kindOptions = (selected: IssueKind[] = []): KindOptions => {
+  const all = selected.length === 0;
+  return {
+    all: { checked: all, count: WITH.length },
+    withIssues: WITH.map((kind, index) => ({
+      kind,
+      count: 3 - index,
+      checked: all || selected.includes(kind),
+    })),
+    without: Object.values(IssueKind).filter((kind) => !WITH.includes(kind)),
+    summary: all ? 'todos' : `${selected.length} de ${WITH.length}`,
+  };
+};
 const form = (filters: SeoFilters = none, perPage = 25) =>
   render(FiltersForm, {
     filters,
     perPage,
+    kinds: kindOptions(filters.kinds),
     locales: ['en', 'es'],
     action: '/repo/seo-on-page/pages/',
   });
@@ -43,10 +61,69 @@ describe('FiltersForm', () => {
     expect(doc.querySelector('input[name="q"]')!.getAttribute('value')).toBe('orm');
   });
 
-  it('sin filtros no marca nada', async () => {
+  it('sin filtros no marca ninguna gravedad ni idioma', async () => {
     const doc = await form();
-    expect(checked(doc, 'kind')).toEqual([]);
     expect(checked(doc, 'severity')).toEqual([]);
+    expect(checked(doc, 'locale')).toEqual([]);
+  });
+
+  describe('Tipo de problema', () => {
+    const kinds = async (filters: SeoFilters = none) =>
+      (await form(filters)).querySelector('[data-kinds]')!;
+
+    it('«Todos» va arriba, sin nombre (no viaja) y con el recuento de tipos con incidencias', async () => {
+      const group = await kinds();
+      const first = group.querySelector('input')!;
+      expect(first.hasAttribute('data-kinds-all')).toBe(true);
+      expect(first.hasAttribute('name')).toBe(false);
+      const label = first.closest('label')!;
+      expect(text(label)).toContain('Todos');
+      expect(text(label.querySelector('span'))).toBe('3');
+    });
+
+    it('sin filtro de tipo «Todos» y todos los que tienen incidencias van marcados', async () => {
+      const group = await kinds();
+      expect(group.querySelector('[data-kinds-all]')!.hasAttribute('checked')).toBe(true);
+      expect(
+        [...group.querySelectorAll('input[name="kind"]:not([disabled])')].every((i) =>
+          i.hasAttribute('checked'),
+        ),
+      ).toBe(true);
+    });
+
+    it('con un filtro, «Todos» va desmarcado y solo el elegido marcado', async () => {
+      const group = await kinds({ ...none, kinds: ['no-h1'] });
+      expect(group.querySelector('[data-kinds-all]')!.hasAttribute('checked')).toBe(false);
+      expect(checked(group.ownerDocument, 'kind')).toEqual(['no-h1']);
+    });
+
+    it('los tipos sin incidencias van después, deshabilitados y con su propio encabezado', async () => {
+      const group = await kinds();
+      const disabled = [...group.querySelectorAll('input[name="kind"][disabled]')];
+      expect(disabled).toHaveLength(10);
+      expect(text(group)).toContain('Sin incidencias (10)');
+      expect(text(group)).toContain('Con incidencias');
+    });
+
+    it('cada tipo lleva su recuento de páginas', async () => {
+      const count = async (kind: string) =>
+        text(
+          (await kinds())
+            .querySelector(`input[value="${kind}"]`)!
+            .closest('label')!
+            .querySelector('span'),
+        );
+      expect(await count('no-h1')).toBe('3');
+      expect(await count('duplicate-title')).toBe('2');
+    });
+
+    it('el resumen dice «todos» o «N de M» y trae las plantillas para el cliente', async () => {
+      const all = (await form()).querySelector('[data-kinds-count]')!;
+      expect(text(all)).toBe('· todos');
+      expect(all.getAttribute('data-label-some')).toBe('· {on} de {total}');
+      const some = (await form({ ...none, kinds: ['no-h1'] })).querySelector('[data-kinds-count]')!;
+      expect(text(some)).toBe('· 1 de 3');
+    });
   });
 
   it('un filtro de tipo activo deja abierto el desplegable de tipos', async () => {
