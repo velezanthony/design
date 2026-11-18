@@ -34,7 +34,7 @@ const route = (pattern: string, regex: RegExp): SiteRoute => ({
 const registry = (routes: SiteRoute[]): ClientRegistry => ({ routes, version: 1 });
 const html = (head = '') => `<html><head><title>x</title>${head}</head><body></body></html>`;
 const docsSitemap = buildSitemap(new Map([['guide', { en: '/guide/' }]]), new URL('https://x.dev'));
-const where = { site: 'https://x.dev', base: '/', index: false };
+const where = { site: 'https://x.dev', base: '/', pagesFile: 'sitemap.xml' };
 
 describe('addClientPagesToSitemap', () => {
   it('añade al sitemap las páginas del cliente indexables, leídas de lo que se generó', async () => {
@@ -74,7 +74,7 @@ describe('addClientPagesToSitemap', () => {
   it('con un índice de sitemaps, escribe en el de páginas', async () => {
     const dir = dist({ 'sitemap-pages.xml': docsSitemap, 'cv/index.html': html() });
     await addClientPagesToSitemap(
-      { dir, pages: [{ pathname: 'cv/' }], ...where, index: true },
+      { dir, pages: [{ pathname: 'cv/' }], ...where, pagesFile: 'sitemap-pages.xml' },
       registry([route('/cv', /^\/cv\/$/)]),
     );
     expect(readFileSync(new URL('sitemap-pages.xml', dir), 'utf8')).toContain('https://x.dev/cv/');

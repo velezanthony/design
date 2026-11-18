@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { builtClientPages, type ClientPage } from '../../core/seo/client-pages';
 import { readHead } from '../../core/seo/html-head';
-import { appendToSitemap, clientSitemapEntries, SITEMAP_PAGES } from '../../core/seo/sitemap';
+import { appendToSitemap, clientSitemapEntries } from '../../core/seo/sitemap';
 import { clientRegistry, type ClientRegistry } from '../data/client-registry';
 import { trimBase } from '../../core/shared/urls';
 
@@ -12,8 +12,8 @@ interface Built {
   pages: { pathname: string }[];
   site: string;
   base: string;
-  /** `sitemap.xml` es un índice (hay `sitemap.include`): las páginas van en `sitemap-pages.xml`. */
-  index: boolean;
+  /** El fichero con las páginas propias (`sitemapFiles`). */
+  pagesFile: string;
 }
 
 const readIfExists = (url: URL) => readFile(url, 'utf8').catch(() => undefined);
@@ -49,7 +49,7 @@ export async function addClientPagesToSitemap(
   }
   const entries = clientSitemapEntries(pages, new URL(built.site));
   if (entries.length === 0) return 0;
-  const file = new URL(built.index ? SITEMAP_PAGES : 'sitemap.xml', built.dir);
+  const file = new URL(built.pagesFile, built.dir);
   const xml = await readIfExists(file);
   if (xml === undefined) return 0;
   await writeFile(file, appendToSitemap(xml, entries));

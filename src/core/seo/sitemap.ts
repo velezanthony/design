@@ -10,8 +10,17 @@ import { baseUrl } from '../shared/urls';
  */
 export const SITEMAP_STYLESHEET_PATH = '/_design/sitemap.css';
 
+/** El sitemap del sitio: las páginas o, con `sitemap.include`, el índice. */
+export const SITEMAP_FILE = 'sitemap.xml';
+
 /** Las páginas propias cuando `sitemap.xml` es un índice (con `sitemap.include`). */
 export const SITEMAP_PAGES = 'sitemap-pages.xml';
+
+/** Qué ficheros genera el sitio: si `sitemap.xml` es índice y dónde van las páginas propias. */
+export function sitemapFiles(include: readonly string[]): { index: boolean; pages: string } {
+  const index = include.length > 0;
+  return { index, pages: index ? SITEMAP_PAGES : SITEMAP_FILE };
+}
 
 /** Un único `sitemap.xml` admite hasta 50 000 URLs (protocolo sitemaps.org). */
 const SITEMAP_LIMIT = 50_000;
@@ -143,7 +152,7 @@ export function buildSitemapIndex(urls: readonly string[]): string {
 export function sitemapIncludes(include: readonly string[], site: URL, base = '/'): string[] {
   const root = baseUrl(base);
   const own = new Set(
-    ['sitemap.xml', SITEMAP_PAGES].map((file) => new URL(`${root}${file}`, site.origin).href),
+    [SITEMAP_FILE, SITEMAP_PAGES].map((file) => new URL(`${root}${file}`, site.origin).href),
   );
   return include.map((entry, index) => {
     const url = new URL(entry, site.origin);

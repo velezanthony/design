@@ -12,6 +12,7 @@ import {
   buildSitemapIndex,
   SITEMAP_PAGES,
   SITEMAP_STYLESHEET_PATH,
+  sitemapFiles,
   sitemapIncludes,
 } from './sitemap';
 
@@ -248,5 +249,15 @@ describe('appendToSitemap', () => {
     expect(appendToSitemap(xml, [{ loc: 'https://x.dev/?a=1&b=2', alternates: [] }])).toContain(
       '?a=1&amp;b=2',
     );
+  });
+});
+
+describe('sitemapFiles', () => {
+  it('sin otros sitemaps, las páginas van en sitemap.xml y no hay índice', () => {
+    expect(sitemapFiles([])).toEqual({ index: false, pages: 'sitemap.xml' });
+  });
+
+  it('con otros sitemaps, sitemap.xml es el índice y las páginas van aparte', () => {
+    expect(sitemapFiles(['/lib/sitemap.xml'])).toEqual({ index: true, pages: SITEMAP_PAGES });
   });
 });

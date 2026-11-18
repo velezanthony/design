@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { privacySlug } from '../../core/privacy/pages';
 import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
-import { SITEMAP_PAGES, SITEMAP_STYLESHEET_PATH } from '../../core/seo/sitemap';
+import { SITEMAP_FILE, SITEMAP_PAGES, SITEMAP_STYLESHEET_PATH } from '../../core/seo/sitemap';
 import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
 
 /** Extensiones con las que Astro enruta un fichero de `src/pages/` (páginas y endpoints). */
@@ -30,7 +30,7 @@ export interface RouteOverride {
 /** Rutas que la integración inyecta, como ruta de fichero sin extensión (`es/404`). */
 function injectedRoutes(options: RouteOptions): string[] {
   const routes = [
-    'sitemap.xml',
+    SITEMAP_FILE,
     ...(options.sitemapIndex ? [SITEMAP_PAGES] : []),
     SITEMAP_STYLESHEET_PATH.slice(1),
     DEFAULT_FAVICON_PATH.slice(1),
