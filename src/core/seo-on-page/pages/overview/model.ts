@@ -2,7 +2,8 @@ import type { Locale } from '../../../i18n/locale';
 import type { SiteFile } from '../../site-files';
 import { summarize, type SeoSummary } from '../../queries/summary';
 import { EMPTY_FILTERS } from '../../queries/url-filters';
-import { ACTIONABLE_SEVERITIES, ALL_SEVERITIES } from '../../severity';
+import { ALL_SEVERITIES, isActionable } from '../../severity';
+import { severityCounts } from '../listing/severities';
 import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
 import type { PanelLinks } from '../links';
 import { coverage, type Coverage } from './coverage';
@@ -80,18 +81,11 @@ interface OverviewInput {
 export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewModel {
   const { locales, defaultLocale, links, siteFiles } = input;
   const summary = summarize(tree);
-  const pagesWith = (severities: readonly IssueSeverity[]) =>
-    new Set(
-      tree.pages
-        .filter((page) => page.issues.some((issue) => severities.includes(issue.severity)))
-        .map((page) => page.slug),
-    ).size;
-  const entriesWith = (severities: readonly IssueSeverity[]) =>
-    tree.pages.filter((page) => page.issues.some((issue) => severities.includes(issue.severity)))
-      .length;
-  const problemSeverities = ACTIONABLE_SEVERITIES;
-  const problemPages = pagesWith(problemSeverities);
-  const infoPages = pagesWith([IssueSeverity.INFO]);
+  const counts = severityCounts(tree.pages);
+  const problemPages = summary.health.total - summary.health.healthy;
+  const problemEntries = tree.pages.filter((page) =>
+    page.issues.some((issue) => isActionable(issue.severity)),
+  ).length;
 
   const priorities = fixPriorities(tree, { locales, inspector: links.inspector });
   const kindHref = (kind: IssueKind) => links.pages({ ...EMPTY_FILTERS, kinds: [kind] });
@@ -115,14 +109,14 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
       })),
       problems: {
         pages: problemPages,
-        errors: pagesWith([IssueSeverity.ERROR]),
-        warnings: pagesWith([IssueSeverity.WARNING]),
-        entries: entriesWith(problemSeverities),
+        errors: counts.error.pages,
+        warnings: counts.warning.pages,
+        entries: problemEntries,
         href: problemPages > 0 ? links.pages() : undefined,
       },
       info: {
-        pages: infoPages,
-        entries: entriesWith([IssueSeverity.INFO]),
+        pages: counts.info.pages,
+        entries: counts.info.entries,
         kinds: Object.values(IssueKind).filter((kind) =>
           tree.pages.some((page) =>
             page.issues.some(
@@ -131,7 +125,7 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
           ),
         ),
         href:
-          infoPages > 0
+          counts.info.pages > 0
             ? links.pages({ ...EMPTY_FILTERS, severities: [IssueSeverity.INFO] })
             : undefined,
       },
