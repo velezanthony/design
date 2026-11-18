@@ -41,7 +41,8 @@ es público en la página de todos modos):
     PUBLIC_GTM_ID: ${{ secrets.PUBLIC_GTM_ID }}
 ```
 
-Este sitio **no tiene analítica**: ni `gtmId` en su config ni `PUBLIC_GTM_ID` en su workflow.
+Este sitio lo usa así: no declara `gtmId` en su config y su workflow pasa `PUBLIC_GTM_ID` desde el
+secreto del repo. Un build local o el de un fork sale sin rastreo, sin necesitar nada aparte.
 
 ## El consentimiento en el navegador
 

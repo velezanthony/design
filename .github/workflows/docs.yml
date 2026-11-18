@@ -42,8 +42,12 @@ jobs:
       # desde `src/` (`file:..`): el sitio se construye con el código de este mismo commit.
       - run: npm ci
 
-      # Sin `PUBLIC_GTM_ID`: este sitio no tiene analítica, así que no hay banner ni GTM.
+      # Analítica: el id de GTM llega del secreto del repo, como en el portfolio. Sin el secreto
+      # la variable queda vacía y el sitio sale sin banner ni GTM; con él, nada se carga hasta que
+      # el visitante acepta.
       - run: npm run docs:build
+        env:
+          PUBLIC_GTM_ID: ${{ secrets.PUBLIC_GTM_ID }}
 
       - uses: actions/upload-pages-artifact@v5
         with:
