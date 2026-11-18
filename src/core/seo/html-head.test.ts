@@ -25,10 +25,13 @@ describe('readHead: lo que dice la página de sí misma', () => {
     expect(readHead(html('<meta name="Description" content="x">'), page).description).toBe('x');
   });
 
-  it('los textos de cada H1 del cuerpo, en orden', () => {
-    expect(readHead(html('', '<h1> Uno </h1><section><h1>Dos</h1></section>'), page).h1).toEqual([
-      'Uno',
-      'Dos',
+  it('los encabezados del cuerpo en orden, con su nivel, su id y su texto', () => {
+    const body =
+      '<h1 id="cv"> Mi CV </h1><section><h2 id="exp">Experiencia</h2><h4>Sin id</h4></section>';
+    expect(readHead(html('', body), page).headings).toEqual([
+      { depth: 1, slug: 'cv', text: 'Mi CV' },
+      { depth: 2, slug: 'exp', text: 'Experiencia' },
+      { depth: 4, slug: '', text: 'Sin id' },
     ]);
   });
 });
@@ -96,5 +99,75 @@ describe('readHead: canonical e idiomas', () => {
       page,
     );
     expect(facts.alternates).toEqual([]);
+  });
+});
+
+describe('readHead: lo que se comparte en redes', () => {
+  it('título, descripción e imagen Open Graph, con la imagen absoluta y su tamaño', () => {
+    const facts = readHead(
+      html(
+        '<meta property="og:title" content="CV">' +
+          '<meta property="og:description" content="Mi CV">' +
+          '<meta property="og:image" content="/og.png">' +
+          '<meta property="og:image:alt" content="Retrato">' +
+          '<meta property="og:image:width" content="1200">' +
+          '<meta property="og:image:height" content="630">',
+      ),
+      page,
+    );
+    expect(facts.og).toEqual({
+      title: 'CV',
+      description: 'Mi CV',
+      image: { src: 'https://x.dev/og.png', alt: 'Retrato', width: 1200, height: 630 },
+    });
+  });
+
+  it('sin Open Graph no hay nada que contar', () => {
+    expect(readHead(html(''), page).og).toEqual({});
+  });
+
+  it('un tamaño que no es un número no se inventa', () => {
+    const facts = readHead(
+      html(
+        '<meta property="og:image" content="/og.png"><meta property="og:image:width" content="ancho">',
+      ),
+      page,
+    );
+    expect(facts.og.image).toEqual({ src: 'https://x.dev/og.png', alt: '' });
+  });
+
+  it('un tamaño negativo o cero tampoco', () => {
+    const facts = readHead(
+      html(
+        '<meta property="og:image" content="/og.png">' +
+          '<meta property="og:image:width" content="-1200"><meta property="og:image:height" content="0">',
+      ),
+      page,
+    );
+    expect(facts.og.image).toEqual({ src: 'https://x.dev/og.png', alt: '' });
+  });
+});
+
+describe('readHead: datos estructurados', () => {
+  it('cada bloque JSON-LD del <head>, ya interpretado', () => {
+    const facts = readHead(
+      html(
+        '<script type="application/ld+json">{"@type":"Person","name":"A"}</script>' +
+          '<script type="application/ld+json">[{"@type":"WebSite"}]</script>',
+      ),
+      page,
+    );
+    expect(facts.jsonLd).toEqual([{ '@type': 'Person', name: 'A' }, [{ '@type': 'WebSite' }]]);
+  });
+
+  it('un bloque roto se ignora: no tumba la lectura del resto', () => {
+    const facts = readHead(
+      html(
+        '<script type="application/ld+json">{roto</script>' +
+          '<script type="application/ld+json">{"@type":"Person"}</script>',
+      ),
+      page,
+    );
+    expect(facts.jsonLd).toEqual([{ '@type': 'Person' }]);
   });
 });
