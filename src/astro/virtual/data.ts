@@ -9,7 +9,7 @@ export interface AstroSiteConfig {
   trailingSlash: 'always' | 'never' | 'ignore';
   buildFormat: 'directory' | 'file' | 'preserve';
   /** `public/` del consumidor como URL `file://` con barra final (para leer imágenes SEO). */
-  publicDir?: string;
+  publicDir: string;
 }
 
 /** Contenido del módulo virtual (sus tipos para el consumidor están en `virtual.d.ts`). */

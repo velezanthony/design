@@ -13,6 +13,7 @@ const site = (user: Partial<DocsUserConfig> = {}) =>
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
+    publicDir: 'file:///site/public/',
   });
 
 const doc = (slug: string, locale: string, extra: Partial<DocData> = {}): DocData => ({
@@ -280,7 +281,13 @@ describe('docView: analítica y privacidad', () => {
   const withEnv = (envValue: string | undefined, user: Partial<DocsUserConfig> = {}) =>
     createVirtualData(
       applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), envValue),
-      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+      {
+        base: '/repo',
+        site: 'https://x.dev',
+        trailingSlash: 'always',
+        buildFormat: 'directory',
+        publicDir: 'file:///site/public/',
+      },
     );
 
   it('sin analítica no hay gtmId ni enlace de privacidad', () => {

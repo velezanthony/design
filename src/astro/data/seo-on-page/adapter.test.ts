@@ -60,6 +60,7 @@ const config = {
   site: 'https://x.dev',
   trailingSlash: 'always' as const,
   buildFormat: 'directory' as const,
+  publicDir: 'file:///site/public/',
 };
 
 describe('seoInputOf', () => {
@@ -254,11 +255,5 @@ describe('loadSiteFiles', () => {
       const files = await loadSiteFiles({ ...config, publicDir } as never);
       expect(byId(files, 'sitemap')).toMatchObject({ urls: 2 });
     });
-  });
-
-  it('sin publicDir en la config todo lo de public/ cuenta como ausente', async () => {
-    const files = await loadSiteFiles(config as never);
-    expect(byId(files, 'robots')?.state).toBe('absent');
-    expect(byId(files, 'llms')?.state).toBe('absent');
   });
 });

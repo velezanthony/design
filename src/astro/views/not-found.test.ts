@@ -11,6 +11,7 @@ const site = (locales: string[], ui = {}) =>
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
+    publicDir: 'file:///site/public/',
   });
 
 describe('notFoundRoutes', () => {
@@ -34,7 +35,13 @@ describe('notFoundView', () => {
         locales: ['en'],
         seo: { schema: [{ '@type': 'SoftwareSourceCode', name: 'Docs' }] },
       }),
-      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+      {
+        base: '/repo',
+        site: 'https://x.dev',
+        trailingSlash: 'always',
+        buildFormat: 'directory',
+        publicDir: 'file:///site/public/',
+      },
     );
     const view = notFoundView(undefined, withSchema);
     expect(view.head.some((tag) => tag.attrs['type'] === 'application/ld+json')).toBe(false);
@@ -97,7 +104,13 @@ describe('notFoundView: footer', () => {
       social: { github: 'https://github.com/x/y' },
       footer: { links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }] },
     }),
-    { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+    {
+      base: '/repo',
+      site: 'https://x.dev',
+      trailingSlash: 'always',
+      buildFormat: 'directory',
+      publicDir: 'file:///site/public/',
+    },
   );
 
   it('la 404 lleva el mismo footer, y cada plantilla el de su idioma', () => {
@@ -128,6 +141,7 @@ describe('notFoundView: analítica y privacidad', () => {
         site: 'https://x.dev',
         trailingSlash: 'always',
         buildFormat: 'directory',
+        publicDir: 'file:///site/public/',
       },
     );
 

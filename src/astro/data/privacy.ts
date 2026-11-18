@@ -10,7 +10,7 @@ import { siteConfig } from './site-config';
 export async function loadPrivacyView(locale?: string) {
   const sizes = await readImageSizes(
     [siteConfig.seo.image?.src].filter((src) => src !== undefined),
-    new URL(siteConfig.publicDir ?? 'file:///'),
+    new URL(siteConfig.publicDir),
   );
   const data = (await getDocs()).map((entry) => entry.data);
   return privacyView(locale, siteConfig, sizes, data);

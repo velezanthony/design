@@ -30,7 +30,7 @@ const sizes = await readImageSizes(
   [siteConfig.seo.image?.src, ...data.map((item) => item.seo?.image?.src)].filter(
     (src) => src !== undefined,
   ),
-  new URL(siteConfig.publicDir ?? 'file:///'),
+  new URL(siteConfig.publicDir),
 );
 const view = docView(route, data, siteConfig, sizes);
 ---

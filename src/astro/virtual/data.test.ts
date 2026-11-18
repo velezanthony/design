@@ -39,6 +39,7 @@ describe('createVirtualData', () => {
       site: 'https://o.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
+      publicDir: 'file:///site/public/',
     });
     /* Todo lo que recibe el loader: la config resuelta sin `ui`, que no viaja. */
     const loaderConfig = Object.fromEntries(

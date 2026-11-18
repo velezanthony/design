@@ -91,7 +91,7 @@ export async function loadSeoTree(
     [config.seo.image?.src, ...docs.map((entry) => entry.data.seo?.image?.src)].filter(
       (src) => src !== undefined,
     ),
-    new URL(config.publicDir ?? 'file:///'),
+    new URL(config.publicDir),
   );
   return buildSeoTree({ ...seoInputOf(entries, config, sizes), client });
 }
@@ -132,10 +132,8 @@ export async function loadDocData(): Promise<DocData[]> {
  * consumidor: la librería no los genera, así que su ausencia es un estado y no un problema.
  */
 export async function loadSiteFiles(config: VirtualConfig): Promise<SiteFile[]> {
-  // Sin `publicDir` no hay dónde buscar: ausente, nunca la raíz del disco.
-  const publicDir = config.publicDir === undefined ? undefined : new URL(config.publicDir);
-  const exists = async (file: string) =>
-    publicDir !== undefined && (await readPublic(publicDir, file)) !== undefined;
+  const publicDir = new URL(config.publicDir);
+  const exists = async (file: string) => (await readPublic(publicDir, file)) !== undefined;
   const sitemap = sitemapXml(await loadDocData(), config);
   return siteFiles({
     url: urlPolicyOf(config),

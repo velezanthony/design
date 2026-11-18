@@ -16,6 +16,7 @@ const site = (user: Partial<DocsUserConfig> = {}) =>
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
+    publicDir: 'file:///site/public/',
   });
 
 const doc = (slug: string, locale: string): DocData => ({
@@ -75,7 +76,13 @@ describe('panelView', () => {
   it('sin español en el sitio, la interfaz sigue en español y los enlaces van a su idioma', () => {
     const cfg = createVirtualData(
       resolveConfig({ name: 'Docs', locales: ['en'], nav: [{ label: 'Guide', slug: 'guide' }] }),
-      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+      {
+        base: '/repo',
+        site: 'https://x.dev',
+        trailingSlash: 'always',
+        buildFormat: 'directory',
+        publicDir: 'file:///site/public/',
+      },
     );
     const built = view({ cfg });
     expect(built.lang).toBe('es');

@@ -22,6 +22,7 @@ const site = (privacy: object = { page: true }, extra: object = {}) => {
       site: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
+      publicDir: 'file:///site/public/',
     },
   );
 };
