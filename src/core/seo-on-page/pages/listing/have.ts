@@ -3,6 +3,7 @@ import { HaveColumn } from '../../queries/url-filters';
 import { IssueKind, type SeoPage } from '../../tree/types';
 import { localeCells } from './matrix';
 import { tagsOf, type PageTag } from './rows';
+import { groupBySlug, mainEntry } from './group';
 
 /**
  * Qué tiene una página en una columna: `own` lo dice ella, `site` lo hereda del sitio (no es un
@@ -104,8 +105,7 @@ const worstCell = (cells: HaveCell[]): HaveCell =>
 
 function rowOf(slug: string, entries: SeoPage[], input: HaveInput): HaveRow {
   const { locales, defaultLocale, inspector } = input;
-  const byLocale = new Map(entries.map((entry) => [entry.locale, entry]));
-  const main = byLocale.get(defaultLocale) ?? locales.map((l) => byLocale.get(l)).find(Boolean);
+  const main = mainEntry(entries, locales, defaultLocale);
   const cells = Object.fromEntries(
     HAVE_COLUMNS.map((column) => [
       column,
@@ -127,8 +127,7 @@ function rowOf(slug: string, entries: SeoPage[], input: HaveInput): HaveRow {
  * la página no lo tenga). Se conserva el orden de entrada.
  */
 export function haveRows(entries: readonly SeoPage[], input: HaveInput): HaveRow[] {
-  const bySlug = new Map<string, SeoPage[]>();
-  for (const entry of entries) bySlug.set(entry.slug, [...(bySlug.get(entry.slug) ?? []), entry]);
+  const bySlug = groupBySlug(entries);
   return [...bySlug].map(([slug, group]) => rowOf(slug, group, input));
 }
 

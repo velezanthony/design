@@ -2,6 +2,7 @@ import type { Locale } from '../../../i18n/locale';
 import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
 import type { LocaleTone } from './rows';
 import { SEVERITY_RANK, worst } from '../../severity';
+import { ownIssues } from './group';
 
 /** Una fila de la vista «Por idioma»: una entrada (página + idioma), con lo que se publica de ella. */
 export interface EntryRow {
@@ -43,10 +44,7 @@ export function entryRows(entries: readonly SeoPage[], input: EntriesInput): Ent
       titleLength: entry.meta.titleLength,
       descriptionSource: entry.meta.descriptionSource,
       descriptionLength: entry.meta.descriptionLength,
-      issues: entry.issues.filter(
-        (issue) =>
-          !common.includes(issue.kind) && (!severities || severities.includes(issue.severity)),
-      ),
+      issues: ownIssues(entry, common, severities),
       tone: worst(entry.issues.map((issue) => issue.severity)) ?? 'ok',
     }))
     .sort((a, b) => rank(a) - rank(b));

@@ -54,10 +54,15 @@ export interface ListingSelection {
  * aviso» por defecto, una página limpia sin schema propio desaparecería justo de la vista que sirve
  * para encontrarla.
  */
+/** Las vistas de inventario (matriz, «Qué tiene») listan todas las páginas, no solo las con problemas. */
+export function isInventoryView(view: SeoView): boolean {
+  return view === SeoView.MATRIX || view === SeoView.HAVE;
+}
+
 export function selectListing(tree: SeoTree, params: URLSearchParams): ListingSelection {
   const view = parseView(params);
   const parsed = filtersFromUrl(withoutAllKinds(params, tree));
-  const inventory = view.view === SeoView.MATRIX || view.view === SeoView.HAVE;
+  const inventory = isInventoryView(view.view);
   const { filters, defaulted } =
     inventory && parsed.defaulted
       ? { filters: { ...parsed.filters, severities: [...ALL_SEVERITIES] }, defaulted: false }

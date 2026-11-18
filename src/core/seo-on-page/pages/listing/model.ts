@@ -17,7 +17,7 @@ import { HAVE_COLUMNS, haveCounts, haveRows, lacking, type HaveRow } from './hav
 import { kindOptions, type KindOptions } from './kinds';
 import { matrixRows, type MatrixRow } from './matrix';
 import { pageRows, type PageRow } from './rows';
-import { selectListing } from './selection';
+import { isInventoryView, selectListing } from './selection';
 import { severityCounts, type SeverityCounts } from './severities';
 import { ALL_SEVERITIES } from '../../severity';
 
@@ -126,7 +126,7 @@ export function listingModel({
   const { view, filters, defaulted, written, matching, selected, byEntry, severities } =
     selectListing(tree, params);
   const perPage = parsePerPage(params);
-  const inventory = view.view === SeoView.MATRIX || view.view === SeoView.HAVE;
+  const inventory = isInventoryView(view.view);
   const common = inventory
     ? []
     : commonIssues(byEntry ? matching : selected, {

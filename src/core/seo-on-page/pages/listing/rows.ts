@@ -1,6 +1,7 @@
 import type { Locale } from '../../../i18n/locale';
 import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
 import { SEVERITY_RANK, worst } from '../../severity';
+import { groupBySlug, mainEntry, ownIssues } from './group';
 
 /** Una etiqueta de la página. Los textos los pone la UI. */
 export type PageTag =
@@ -101,12 +102,8 @@ export function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]):
 function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
   const { locales, defaultLocale, common, severities, inspector } = input;
   const byLocale = new Map(entries.map((entry) => [entry.locale, entry]));
-  const main = byLocale.get(defaultLocale) ?? locales.map((l) => byLocale.get(l)).find(Boolean);
-  const own = (entry: SeoPage) =>
-    entry.issues.filter(
-      (issue) =>
-        !common.includes(issue.kind) && (!severities || severities.includes(issue.severity)),
-    );
+  const main = mainEntry(entries, locales, defaultLocale);
+  const own = (entry: SeoPage) => ownIssues(entry, common, severities);
 
   const details = locales.map((locale): LocaleDetail => {
     const entry = byLocale.get(locale);
@@ -161,8 +158,7 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
  * a la mejor; en los empates se conserva el orden de entrada. Un `Array.sort` es estable.
  */
 export function pageRows(entries: readonly SeoPage[], input: RowsInput): PageRow[] {
-  const bySlug = new Map<string, SeoPage[]>();
-  for (const entry of entries) bySlug.set(entry.slug, [...(bySlug.get(entry.slug) ?? []), entry]);
+  const bySlug = groupBySlug(entries);
   const rank = (row: PageRow) => (row.severity === undefined ? 3 : SEVERITY_RANK[row.severity]);
   return [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))

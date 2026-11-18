@@ -1,6 +1,7 @@
 import type { Locale } from '../../../i18n/locale';
 import type { SeoLocaleEntry, SeoPage } from '../../tree/types';
 import { tagsOf, type PageTag } from './rows';
+import { groupBySlug, mainEntry } from './group';
 
 /**
  * Cómo está la página en un idioma: existe, falta (no hay fichero y la política enlaza al original),
@@ -55,8 +56,7 @@ export function localeCells(
 
 function rowOf(slug: string, entries: SeoPage[], input: MatrixInput): MatrixRow {
   const { locales, defaultLocale, inspector } = input;
-  const byLocale = new Map(entries.map((entry) => [entry.locale, entry]));
-  const main = byLocale.get(defaultLocale) ?? locales.map((l) => byLocale.get(l)).find(Boolean);
+  const main = mainEntry(entries, locales, defaultLocale);
   // El estado de cada idioma es del grupo, no de una entrada: cualquiera de ellas lo sabe.
   const cells = localeCells(main?.locales ?? [], locales);
   const existing = cells.filter(({ state }) => state === 'exists');
@@ -82,8 +82,7 @@ function rowOf(slug: string, entries: SeoPage[], input: MatrixInput): MatrixRow 
  * se viene a buscar; el resto conserva su orden.
  */
 export function matrixRows(entries: readonly SeoPage[], input: MatrixInput): Matrix {
-  const bySlug = new Map<string, SeoPage[]>();
-  for (const entry of entries) bySlug.set(entry.slug, [...(bySlug.get(entry.slug) ?? []), entry]);
+  const bySlug = groupBySlug(entries);
   const rows = [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))
     .sort((a, b) => Number(a.complete) - Number(b.complete));
