@@ -1,6 +1,5 @@
 ---
 import type { PrivacySection } from '../../core/privacy/copy';
-import type { UiStrings } from '../../core/i18n/ui-strings';
 import Heading from '../atoms/Heading.astro';
 import Link from '../atoms/Link.astro';
 
@@ -15,8 +14,6 @@ interface Props {
   updated: { iso: string; text: string };
   /** La política ya en un idioma y con el responsable puesto (`privacyCopy`). */
   sections: PrivacySection[];
-  strings?: UiStrings;
-  lang?: string;
 }
 
 const { title, eyebrow, updatedLabel, updated, sections } = Astro.props;

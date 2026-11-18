@@ -15,7 +15,7 @@ const { strings, homeHref, baseUrl } = Astro.props;
 ---
 
 {/* Los textos `notFound.*` vienen del catálogo (con los overrides del consumidor ya fusionados). */}
-<section class="mx-auto max-w-(--container-measure) py-16">
+<section class="mx-auto max-w-measure py-16">
   <h1 class="text-3xl font-semibold text-ink">{t(strings, 'notFound.title')}</h1>
   <p class="mt-4 text-muted">{t(strings, 'notFound.body')}</p>
   <SearchBox strings={strings} baseUrl={baseUrl} class="mt-8" />

@@ -22,7 +22,7 @@ const hasLinks = links.length > 0;
 /* La config da solo el nombre ('MIT', 'Apache-2.0'); la frase («MIT License», «Licencia MIT»)
    depende del idioma. */
 const hasLegal = Boolean(license) || Boolean(privacyUrl) || cookieControl;
-const licenseText = license && t(strings, 'footer.license').replace('{name}', () => license.label);
+const licenseText = license && t(strings, 'footer.license', { name: license.label });
 
 /* Una sola cadena para todo lo que se pinta como enlace del pie. */
 const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
