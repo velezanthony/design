@@ -195,7 +195,8 @@ export const COMPARE_LABELS = {
   noIssues: 'Sin problemas',
   /** Lo que dice la celda de longitud cuando difiere. */
   lengthNotes: {
-    low: '(en el mínimo o por debajo)',
+    low: '(corto)',
+    edge: '(al límite)',
     long: '(largo)',
     none: '(sin texto)',
     ok: '',

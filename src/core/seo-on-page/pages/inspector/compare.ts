@@ -1,14 +1,10 @@
-/**
- * Cómo está una longitud frente a su recomendación, para COMPARAR idiomas: en el mínimo o por
- * debajo es `low` (a diferencia del medidor, que da por buena la que llega justo al mínimo: aquí
- * importa que un idioma quede al borde mientras otro va sobrado), por encima del máximo `long`, y
- * sin texto `none`.
- */
-export type LengthClass = 'low' | 'ok' | 'long' | 'none';
+/** Una longitud frente a su recomendación al comparar idiomas; `edge` cumple pero va justa en el mínimo. */
+export type LengthClass = 'low' | 'edge' | 'ok' | 'long' | 'none';
 
 export function lengthClass(length: number | undefined, min: number, max: number): LengthClass {
   if (length === undefined) return 'none';
-  if (length <= min) return 'low';
+  if (length < min) return 'low';
+  if (length === min) return 'edge';
   return length > max ? 'long' : 'ok';
 }
 

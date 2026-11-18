@@ -357,7 +357,7 @@ describe('inspectorModel', () => {
         differs: { descriptionLength: false, descriptionSource: false },
       });
       expect(second).toMatchObject({
-        descriptionClass: 'low',
+        descriptionClass: 'edge',
         differs: { descriptionLength: true, descriptionSource: true },
       });
     });

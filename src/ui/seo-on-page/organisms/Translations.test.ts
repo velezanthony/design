@@ -45,7 +45,7 @@ describe('Translations', () => {
           present('en'),
           present('es', {
             descriptionLength: 70,
-            descriptionClass: 'low',
+            descriptionClass: 'edge',
             differs: { ...none, descriptionLength: true },
           }),
         ],
@@ -53,7 +53,7 @@ describe('Translations', () => {
     });
     const marked = doc.querySelectorAll('[data-differs]');
     expect(marked).toHaveLength(1);
-    expect(text(marked[0]!)).toBe('70 difiere (en el mínimo o por debajo)');
+    expect(text(marked[0]!)).toBe('70 difiere (al límite)');
   });
 
   it('el idioma ausente dice su política en lugar de datos', async () => {
