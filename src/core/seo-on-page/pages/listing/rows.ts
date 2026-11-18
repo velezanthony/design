@@ -58,9 +58,9 @@ interface RowsInput {
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
 
-const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
+export const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
 
-const worst = (severities: readonly IssueSeverity[]): IssueSeverity | undefined =>
+export const worst = (severities: readonly IssueSeverity[]): IssueSeverity | undefined =>
   severities.reduce<IssueSeverity | undefined>(
     (acc, severity) => (acc === undefined || RANK[severity] < RANK[acc] ? severity : acc),
     undefined,
@@ -74,7 +74,7 @@ function withoutMeasure(issue: Issue): Issue {
   return rest;
 }
 
-function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]): PageTag[] {
+export function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]): PageTag[] {
   const tags: PageTag[] = [];
   if (entries[0]?.slug === '') tags.push({ kind: 'home' });
   if (entries.length === 1 && locales.length > 1 && entries[0]) {

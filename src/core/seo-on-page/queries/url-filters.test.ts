@@ -9,6 +9,7 @@ import {
   parseFilters,
   parsePage,
   parsePerPage,
+  parseView,
   serializeFilters,
 } from './url-filters';
 
@@ -190,5 +191,72 @@ describe('filterFields', () => {
     const names = filterFields({ ...EMPTY_FILTERS, text: 'x' }).map((field) => field.name);
     expect(names).not.toContain('page');
     expect(names).not.toContain('per');
+  });
+});
+
+describe('parseView', () => {
+  const view = (query: string) => parseView(new URLSearchParams(query));
+
+  it('sin `view` es la vista por página', () => {
+    expect(view('')).toEqual({ view: 'page' });
+  });
+
+  it('reconoce las cuatro vistas', () => {
+    expect(view('view=locale')).toEqual({ view: 'locale' });
+    expect(view('view=matrix')).toEqual({ view: 'matrix' });
+    expect(view('view=have')).toEqual({ view: 'have' });
+    expect(view('view=page')).toEqual({ view: 'page' });
+  });
+
+  it('un valor desconocido cae a la vista por página', () => {
+    expect(view('view=grid')).toEqual({ view: 'page' });
+    expect(view('view=')).toEqual({ view: 'page' });
+    expect(view('view=HAVE')).toEqual({ view: 'page' });
+  });
+
+  it('`lacks` solo vale en «Qué tiene» y con una columna conocida', () => {
+    expect(view('view=have&lacks=og')).toEqual({ view: 'have', lacks: 'og' });
+    expect(view('view=have&lacks=nope')).toEqual({ view: 'have' });
+    expect(view('view=matrix&lacks=og')).toEqual({ view: 'matrix' });
+    expect(view('lacks=og')).toEqual({ view: 'page' });
+  });
+});
+
+describe('serializeFilters: vista', () => {
+  it('la vista por página no se escribe: la URL canónica no cambia', () => {
+    expect(serializeFilters(EMPTY_FILTERS, 1, PAGE_SIZE, { view: 'page' }).toString()).toBe('');
+  });
+
+  it('escribe la vista y, en «Qué tiene», la columna que falta', () => {
+    expect(serializeFilters(EMPTY_FILTERS, 1, PAGE_SIZE, { view: 'locale' }).toString()).toBe(
+      'view=locale',
+    );
+    expect(
+      serializeFilters(EMPTY_FILTERS, 1, PAGE_SIZE, { view: 'have', lacks: 'i18n' }).toString(),
+    ).toBe('view=have&lacks=i18n');
+  });
+
+  it('no escribe `lacks` fuera de «Qué tiene»', () => {
+    expect(
+      serializeFilters(EMPTY_FILTERS, 1, PAGE_SIZE, { view: 'matrix', lacks: 'og' }).toString(),
+    ).toBe('view=matrix');
+  });
+
+  it('va junto a los filtros y la página, y ida y vuelta conserva la vista', () => {
+    const query = serializeFilters({ ...EMPTY_FILTERS, text: 'orm' }, 2, 50, {
+      view: 'have',
+      lacks: 'desc',
+    });
+    expect(query.toString()).toBe('q=orm&view=have&lacks=desc&page=2&per=50');
+    expect(parseView(query)).toEqual({ view: 'have', lacks: 'desc' });
+  });
+});
+
+describe('filterFields: vista', () => {
+  it('lleva la vista como un campo más, para que cambiar el tamaño no la deshaga', () => {
+    expect(filterFields(EMPTY_FILTERS, { view: 'have', lacks: 'og' })).toEqual([
+      { name: 'view', value: 'have' },
+      { name: 'lacks', value: 'og' },
+    ]);
   });
 });

@@ -3,11 +3,11 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoTree } from '../../tree/types';
 import { EMPTY_FILTERS, serializeFilters } from '../../queries/url-filters';
 import type { PanelLinks } from '../links';
-import { listingModel } from './model';
+import { listingModel, type ListingModel } from './model';
 
 const links: PanelLinks = {
-  pages: (filters = EMPTY_FILTERS, page, perPage) => {
-    const query = serializeFilters(filters, page, perPage).toString();
+  pages: (filters = EMPTY_FILTERS, page, perPage, view) => {
+    const query = serializeFilters(filters, page, perPage, view).toString();
     return query === '' ? '/t/' : `/t/?${query}`;
   },
   inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
@@ -32,6 +32,13 @@ const tree = (): SeoTree => ({
   ],
 });
 
+/** Las filas de la vista por página, que es la de por defecto y la que casi todo mira. */
+const rowsOf = (model: ListingModel) => {
+  if (model.table.view !== 'page')
+    throw new Error(`se esperaba la vista por página, no ${model.table.view}`);
+  return model.table.rows;
+};
+
 const run = (query = '', locales = ['en', 'es']) =>
   listingModel({
     tree: tree(),
@@ -55,29 +62,29 @@ describe('listingModel', () => {
     const model = run('severity=info');
     expect(model.defaulted).toBe(false);
     expect(model.showAllHref).toBeUndefined();
-    expect(model.rows.map(({ slug }) => slug)).toEqual(['info']);
+    expect(rowsOf(model).map(({ slug }) => slug)).toEqual(['info']);
   });
 
   it('pagina: 25 por defecto, la segunda página trae el resto', () => {
     const first = run();
-    expect(first.rows).toHaveLength(25);
+    expect(rowsOf(first)).toHaveLength(25);
     expect(first.perPage).toBe(25);
     expect(first.footer.pagination).toMatchObject({ page: 1, pages: 2 });
     expect(first.footer.count).toMatchObject({ from: 1, to: 25 });
     const second = run('page=2');
-    expect(second.rows).toHaveLength(5);
+    expect(rowsOf(second)).toHaveLength(5);
     expect(second.footer.count).toMatchObject({ from: 26, to: 30 });
   });
 
   it('respeta el tamaño de página pedido y lo conserva en los enlaces', () => {
     const model = run('per=10');
-    expect(model.rows).toHaveLength(10);
+    expect(rowsOf(model)).toHaveLength(10);
     expect(model.footer.pagination.pages).toBe(3);
     expect(model.footer.pagination.href(2)).toBe('/t/?page=2&per=10');
   });
 
   it('cada fila enlaza a su inspector', () => {
-    expect(run().rows[0]).toMatchObject({ slug: 'p00', href: '/i/?slug=p00&locale=en' });
+    expect(rowsOf(run())[0]).toMatchObject({ slug: 'p00', href: '/i/?slug=p00&locale=en' });
   });
 
   it('los enlaces de página llevan los filtros ESCRITOS: en la vista por defecto no añaden severity', () => {
@@ -94,12 +101,25 @@ describe('listingModel', () => {
       locales: ['en', 'fr'],
       action: '/t/',
       kinds: expect.objectContaining({ summary: 'todos' }),
+      view: { view: 'page' },
+      clear: '/t/',
+      severityCounts: { error: 30, warning: 0, info: 1 },
     });
   });
 
   it('acota una página pasada del final a la última', () => {
     expect(run('page=99').footer.pagination.page).toBe(2);
   });
+
+  it.each(['matrix', 'have'])(
+    'la vista %s es un inventario: sin filtros en la URL lista todas las páginas, también las limpias',
+    (view) => {
+      const model = run(`view=${view}`);
+      expect(model.footer.count.total).toBe(31);
+      expect(model.defaulted).toBe(false);
+      expect(model.showAllHref).toBeUndefined();
+    },
+  );
 
   describe('una fila por página', () => {
     const entries = [
@@ -131,11 +151,11 @@ describe('listingModel', () => {
     });
 
     it('ordena las filas de la peor gravedad a la mejor', () => {
-      expect(group().rows.map(({ slug }) => slug)).toEqual(['b', 'a']);
+      expect(rowsOf(group()).map(({ slug }) => slug)).toEqual(['b', 'a']);
     });
 
     it('un filtro de idioma elige páginas, pero la fila enseña todos sus idiomas', () => {
-      const [row] = group('locale=es&severity=warning').rows;
+      const [row] = rowsOf(group('locale=es&severity=warning'));
       expect(row?.slug).toBe('a');
       expect(row?.locales.map(({ locale, present }) => [locale, present])).toEqual([
         ['en', true],
@@ -153,16 +173,16 @@ describe('listingModel', () => {
           }),
         ),
       ).flat();
-      const { footer, rows } = listingModel({
+      const model = listingModel({
         tree: { pages: many },
         params: new URLSearchParams('per=10'),
         locales: ['en', 'es'],
         defaultLocale: 'en',
         links,
       });
-      expect(rows).toHaveLength(10);
-      expect(footer.pagination.pages).toBe(2);
-      expect(footer.count).toMatchObject({ total: 12, overall: 12 });
+      expect(rowsOf(model)).toHaveLength(10);
+      expect(model.footer.pagination.pages).toBe(2);
+      expect(model.footer.count).toMatchObject({ total: 12, overall: 12 });
     });
   });
 
@@ -186,7 +206,7 @@ describe('listingModel', () => {
       expect(model.common.issues).toEqual([
         expect.objectContaining({ kind: IssueKind.NO_H1, pages: 3, entries: 3 }),
       ]);
-      expect(model.rows.every((row) => row.issues.length === 0)).toBe(true);
+      expect(rowsOf(model).every((row) => row.issues.length === 0)).toBe(true);
     });
 
     it('lleva el enlace a la vista general, donde se explica cómo arreglarlo', () => {
@@ -207,7 +227,7 @@ describe('listingModel', () => {
       };
       const model = common(tree);
       expect(model.common.issues.map((c) => c.kind)).toEqual([IssueKind.DUPLICATE_TITLE]);
-      expect(model.rows.flatMap((row) => row.issues)).toEqual([]);
+      expect(rowsOf(model).flatMap((row) => row.issues)).toEqual([]);
     });
 
     it('sin páginas no hay aviso', () => {
@@ -235,7 +255,7 @@ describe('listingModel', () => {
       );
       const model = common(tree);
       expect(model.common.issues).toEqual([]);
-      expect(model.rows.every((row) => row.issues.length > 0)).toBe(true);
+      expect(rowsOf(model).every((row) => row.issues.length > 0)).toBe(true);
     });
 
     it('el tipo que el usuario filtró no se aparta: es justo lo que quiere ver', () => {
@@ -245,7 +265,7 @@ describe('listingModel', () => {
       const model = common(tree, 'kind=no-h1');
       expect(model.common.issues).toEqual([]);
       expect(
-        model.rows.every((row) => row.issues.some(({ kind }) => kind === IssueKind.NO_H1)),
+        rowsOf(model).every((row) => row.issues.some(({ kind }) => kind === IssueKind.NO_H1)),
       ).toBe(true);
     });
   });
@@ -282,7 +302,7 @@ describe('listingModel', () => {
       const model = kinds('kind=no-h1');
       expect(model.form.kinds.all.checked).toBe(false);
       expect(model.form.kinds.summary).toBe('1 de 2');
-      expect(model.rows.map(({ slug }) => slug)).toEqual(['a']);
+      expect(rowsOf(model).map(({ slug }) => slug)).toEqual(['a']);
     });
 
     it('si el árbol no tiene incidencias, un tipo escrito a mano no se descarta', () => {
@@ -294,6 +314,211 @@ describe('listingModel', () => {
         links,
       });
       expect(clean.filters.kinds).toEqual(['no-h1']);
+    });
+  });
+});
+
+describe('listingModel: vistas', () => {
+  const entries = [
+    seoPage({
+      slug: 'a',
+      locale: 'en',
+      locales: [
+        { locale: 'en', status: 'present', url: '/a/' },
+        { locale: 'es', status: 'present', url: '/es/a/' },
+      ],
+      issues: [issue(IssueSeverity.WARNING, IssueKind.DUPLICATE_TITLE)],
+    }),
+    seoPage({
+      slug: 'a',
+      locale: 'es',
+      locales: [
+        { locale: 'en', status: 'present', url: '/a/' },
+        { locale: 'es', status: 'present', url: '/es/a/' },
+      ],
+      issues: [issue(IssueSeverity.WARNING, IssueKind.DUPLICATE_TITLE)],
+    }),
+    seoPage({
+      slug: 'b',
+      locale: 'en',
+      locales: [
+        { locale: 'en', status: 'present', url: '/b/' },
+        { locale: 'es', status: 'missing', policy: 'link', declared: false },
+      ],
+      meta: { ...seoPage().meta, ogImageSource: 'page' },
+      issues: [issue(IssueSeverity.WARNING, IssueKind.TRANSLATION_MISSING)],
+    }),
+  ];
+  const at = (query: string) =>
+    listingModel({
+      tree: { pages: entries },
+      params: new URLSearchParams(query),
+      locales: ['en', 'es'],
+      defaultLocale: 'en',
+      links,
+    });
+
+  it('sin `view` es la vista por página y un valor desconocido también', () => {
+    expect(at('').table.view).toBe('page');
+    expect(at('view=grid').table.view).toBe('page');
+    expect(at('').view).toEqual({ view: 'page' });
+  });
+
+  it('el selector enlaza a cada vista conservando los filtros y volviendo a la página 1', () => {
+    const { views } = at('q=a&page=2&per=10');
+    expect(views.map(({ view, href }) => [view, href])).toEqual([
+      ['page', '/t/?q=a&per=10'],
+      ['locale', '/t/?q=a&view=locale&per=10'],
+      ['matrix', '/t/?q=a&view=matrix&per=10'],
+      ['have', '/t/?q=a&view=have&per=10'],
+    ]);
+    expect(views.filter(({ current }) => current).map(({ view }) => view)).toEqual(['page']);
+  });
+
+  it('«Limpiar» vuelve a la tabla sin filtros pero en la misma vista y con el mismo tamaño', () => {
+    expect(at('q=a&severity=info&page=2&per=10&view=locale').form.clear).toBe(
+      '/t/?view=locale&per=10',
+    );
+    expect(at('q=a&view=have&lacks=og').form.clear).toBe('/t/?view=have&lacks=og');
+  });
+
+  it('marca como actual la vista pedida', () => {
+    expect(
+      at('view=matrix')
+        .views.filter(({ current }) => current)
+        .map(({ view }) => view),
+    ).toEqual(['matrix']);
+  });
+
+  it('la paginación y «mostrar lo informativo» conservan la vista', () => {
+    const model = at('view=locale&per=10');
+    expect(model.footer.pagination.href(2)).toBe('/t/?view=locale&page=2&per=10');
+    expect(model.showAllHref).toBe(
+      '/t/?severity=error&severity=warning&severity=info&view=locale&per=10',
+    );
+    expect(model.footer.view).toEqual({ view: 'locale' });
+    expect(model.form.view).toEqual({ view: 'locale' });
+  });
+
+  describe('Por idioma', () => {
+    it('una fila por entrada y el recuento cuenta entradas', () => {
+      const model = at('view=locale');
+      if (model.table.view !== 'locale') throw new Error('vista');
+      expect(model.table.rows.map(({ slug, locale }) => `${slug}/${locale}`)).toEqual([
+        'a/en',
+        'a/es',
+        'b/en',
+      ]);
+      expect(model.footer.count).toMatchObject({ total: 3, overall: 3 });
+    });
+
+    it('un filtro de idioma deja solo las entradas de ese idioma', () => {
+      const model = at('view=locale&locale=es');
+      if (model.table.view !== 'locale') throw new Error('vista');
+      expect(model.table.rows.map(({ locale }) => locale)).toEqual(['es']);
+    });
+
+    it('las fichas de gravedad cuentan entradas', () => {
+      expect(at('view=locale').form.severityCounts.warning).toBe(3);
+      expect(at('view=page').form.severityCounts.warning).toBe(2);
+    });
+  });
+
+  describe('Matriz de idiomas', () => {
+    it('una fila por página y cuántas están completas', () => {
+      const model = at('view=matrix');
+      if (model.table.view !== 'matrix') throw new Error('vista');
+      expect(model.table.rows.map(({ slug }) => slug)).toEqual(['b', 'a']);
+      expect(model.table.complete).toBe(1);
+      expect(model.table.locales).toEqual(['en', 'es']);
+      expect(model.footer.count).toMatchObject({ total: 2, overall: 2 });
+    });
+
+    it('pagina páginas', () => {
+      const model = at('view=matrix&per=10');
+      expect(model.footer.pagination.pages).toBe(1);
+    });
+  });
+
+  describe('Qué tiene', () => {
+    const have = (query: string) => {
+      const model = at(`view=have&${query}`);
+      if (model.table.view !== 'have') throw new Error('vista');
+      return { model, table: model.table };
+    };
+
+    it('una fila por página, con las columnas y sus recuentos', () => {
+      const { table } = have('');
+      expect(table.rows.map(({ slug }) => slug)).toEqual(['a', 'b']);
+      expect(table.columns.map(({ column }) => column)).toEqual([
+        'desc',
+        'schema',
+        'og',
+        'h1',
+        'i18n',
+        'index',
+      ]);
+      expect(table.columns.find(({ column }) => column === 'og')).toMatchObject({
+        good: 1,
+        total: 2,
+      });
+    });
+
+    it('cada cabecera enlaza a quedarse con las páginas que no lo tienen, y otra vez a quitarlo', () => {
+      const off = have('').table.columns.find(({ column }) => column === 'i18n');
+      expect(off).toMatchObject({ pressed: false, href: '/t/?view=have&lacks=i18n' });
+      const on = have('lacks=i18n').table.columns.find(({ column }) => column === 'i18n');
+      expect(on).toMatchObject({ pressed: true, href: '/t/?view=have' });
+    });
+
+    it('cambiar de columna sustituye la anterior y vuelve a la página 1', () => {
+      const other = have('lacks=i18n&page=2').table.columns.find(({ column }) => column === 'og');
+      expect(other?.href).toBe('/t/?view=have&lacks=og');
+    });
+
+    it('con `lacks` solo quedan las páginas que no lo tienen propio, y el recuento es de ellas', () => {
+      const { table, model } = have('lacks=i18n');
+      expect(table.rows.map(({ slug }) => slug)).toEqual(['b']);
+      expect(table.lacks).toBe('i18n');
+      expect(model.footer.count).toMatchObject({ total: 1, overall: 2 });
+    });
+
+    it('los recuentos de las columnas son de las páginas filtradas, no de las que quedan con `lacks`', () => {
+      const { table } = have('lacks=i18n');
+      expect(table.columns.find(({ column }) => column === 'i18n')).toMatchObject({
+        good: 1,
+        total: 2,
+      });
+    });
+
+    it('un filtro del formulario reduce los recuentos', () => {
+      const { table } = have('q=b');
+      expect(table.columns[0]).toMatchObject({ total: 1 });
+    });
+
+    it('la paginación conserva `lacks`', () => {
+      expect(have('lacks=i18n').model.footer.pagination.href(2)).toBe(
+        '/t/?view=have&lacks=i18n&page=2',
+      );
+    });
+
+    it('no enseña el aviso de lo común: la columna de descripción ya lo dice', () => {
+      const same: SeoTree = {
+        pages: ['x', 'y'].map((slug) =>
+          seoPage({ slug, issues: [issue(IssueSeverity.WARNING, IssueKind.NO_H1)] }),
+        ),
+      };
+      const model = (view: string) =>
+        listingModel({
+          tree: same,
+          params: new URLSearchParams(view),
+          locales: ['en'],
+          defaultLocale: 'en',
+          links,
+        });
+      expect(model('view=page').common.issues).toHaveLength(1);
+      expect(model('view=have').common.issues).toEqual([]);
+      expect(model('view=matrix').common.issues).toEqual([]);
     });
   });
 });

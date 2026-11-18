@@ -1,5 +1,5 @@
 import type { Locale } from '../../i18n/locale';
-import type { SeoFilters } from '../queries/url-filters';
+import type { SeoFilters, ViewState } from '../queries/url-filters';
 
 /**
  * Cómo se forma el enlace a cada pantalla del panel. Es un PUERTO: el núcleo no sabe de `base`, de
@@ -8,8 +8,8 @@ import type { SeoFilters } from '../queries/url-filters';
  * `astro/` (`devHrefs`), que sí conoce la política de URLs del sitio.
  */
 export interface PanelLinks {
-  /** La tabla de páginas, con los filtros, la página y el tamaño que se pidan. */
-  pages(filters?: SeoFilters, page?: number, perPage?: number): string;
+  /** La tabla de páginas, con los filtros, la página, el tamaño y la vista que se pidan. */
+  pages(filters?: SeoFilters, page?: number, perPage?: number, view?: ViewState): string;
   /** El inspector de una página e idioma (slug vacío = portada). */
   inspector(target: { slug: string; locale: Locale }): string;
   /** La vista general del panel. */

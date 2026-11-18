@@ -1,4 +1,8 @@
+import type { HaveCell, HaveState } from '../../core/seo-on-page/pages/listing/have';
+import type { HreflangState, MatrixState } from '../../core/seo-on-page/pages/listing/matrix';
+import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
 import type { LocaleTone, PageTag } from '../../core/seo-on-page/pages/listing/rows';
+import type { HaveColumn, SeoView } from '../../core/seo-on-page/queries/url-filters';
 import type {
   DescriptionSource,
   IssueKind,
@@ -132,7 +136,6 @@ export const KINDS_LABELS = {
 
 /** Textos de la tabla de páginas agrupada. */
 export const PAGES_TABLE_LABELS = {
-  lede: 'Ordenadas por gravedad. Despliega una fila para ver cada idioma.',
   empty: 'Ninguna página cumple los filtros.',
   caption: 'Páginas, una fila por página, ordenadas por gravedad',
   detail: 'Detalle por idioma',
@@ -153,3 +156,166 @@ export const COMMON_ISSUE_LABELS = {
   fix: 'Cómo arreglarlo',
   overview: 'Ver en la vista general',
 };
+
+/** Una marca de celda (matriz, «Qué tiene»): glifo + palabra, que el color solo no basta. `tone` es el de `Tag`. */
+interface MarkLabel {
+  glyph: string;
+  text: string;
+  tone: 'neutral' | 'accent' | 'faint' | 'live' | 'wip' | 'danger';
+}
+
+/** Las vistas de la tabla: el nombre de cada una en el selector y la frase que abre la pantalla. */
+export const VIEW_LABELS: Record<SeoView, { name: string; lede: string }> = {
+  page: {
+    name: 'Por página',
+    lede: 'Ordenadas por gravedad. Despliega una fila para ver cada idioma.',
+  },
+  locale: {
+    name: 'Por idioma',
+    lede: 'Una fila por página y idioma, ordenadas por gravedad.',
+  },
+  matrix: {
+    name: 'Matriz de idiomas',
+    lede: 'En qué idiomas existe cada página y cómo se anuncian a los buscadores.',
+  },
+  have: {
+    name: 'Qué tiene',
+    lede: 'Qué tiene cada página de lo suyo y qué hereda del sitio.',
+  },
+};
+
+/** El selector de vista. */
+export const VIEW_SWITCH_LABELS = { group: 'Vista' };
+
+/** La barra de filtros. */
+export const FILTER_LABELS = {
+  form: 'Filtrar páginas',
+  search: 'Buscar por slug o título',
+  placeholder: 'slug o título',
+  severity: 'Gravedad',
+  locale: 'Idioma',
+  apply: 'Filtrar',
+  clear: 'Limpiar',
+};
+
+const pagesOf = (count: number) => `${count} ${count === 1 ? 'página' : 'páginas'}`;
+
+/** Lo que falta, dicho tras «sin»: la frase de cada columna de «Qué tiene». */
+const LACKS_PHRASES: Record<HaveColumn, string> = {
+  desc: 'descripción propia',
+  schema: 'schema propio',
+  og: 'imagen OG propia',
+  h1: 'un H1 único',
+  i18n: 'todas las traducciones',
+  index: 'indexación',
+};
+
+/** El recuento sobre la tabla: cuenta filas de la vista y dice qué son (páginas o entradas). */
+export function headCount(table: ListingTable, total: number): string {
+  switch (table.view) {
+    case 'locale':
+      return `${total} ${total === 1 ? 'entrada' : 'entradas'} página + idioma`;
+    case 'matrix':
+      return `${pagesOf(total)} × ${table.locales.length} idiomas · ${table.complete} ${table.complete === 1 ? 'completa' : 'completas'}`;
+    case 'have':
+      return table.lacks ? `${pagesOf(total)} sin ${LACKS_PHRASES[table.lacks]}` : pagesOf(total);
+    case 'page':
+      return pagesOf(total);
+  }
+}
+
+/** Lo que cuentan las filas del pie: entradas en «Por idioma», páginas en el resto. */
+export const rowsUnit = (view: SeoView) => (view === 'locale' ? 'entradas' : 'páginas');
+
+/** La tabla «Por idioma». */
+export const ENTRIES_TABLE_LABELS = {
+  caption: 'Páginas, una fila por idioma, ordenadas por gravedad',
+  page: 'Página',
+  locale: 'Idioma',
+  title: 'Título',
+  description: 'Descripción',
+  issues: 'Problemas',
+  noOwnIssues: 'Nada propio',
+  recommendation:
+    'Barras de longitud: recomendación (heurística), no regla de Google · la marca es el mínimo',
+};
+
+/** La matriz de idiomas. */
+export const MATRIX_LABELS = {
+  caption: 'Matriz de traducciones: una fila por página, una columna por idioma',
+  page: 'Página',
+  hreflang: 'hreflang',
+  xDefault: 'x-default',
+  states: {
+    exists: { glyph: '✓', text: 'sí', tone: 'live' },
+    missing: { glyph: '✕', text: 'falta', tone: 'wip' },
+    fallback: { glyph: '↺', text: 'respaldo', tone: 'neutral' },
+    omitted: { glyph: '–', text: 'omitida por política', tone: 'faint' },
+  } satisfies Record<MatrixState, MarkLabel>,
+  hreflangStates: {
+    reciprocal: { glyph: '✓', text: 'recíproco', tone: 'live' },
+    unpaired: { glyph: '–', text: 'sin par', tone: 'faint' },
+    omitted: { glyph: '–', text: 'omitido (noindex)', tone: 'faint' },
+  } satisfies Record<HreflangState, MarkLabel>,
+  none: '–',
+  legendLabel: 'Leyenda',
+  legend: [
+    { state: 'exists', text: 'existe' },
+    { state: 'missing', text: 'falta (no hay fichero)' },
+    { state: 'fallback', text: 'respaldo (se sirve otro idioma)' },
+    { state: 'omitted', text: 'omitida por política (intencionado)' },
+  ] satisfies { state: MatrixState; text: string }[],
+  note: 'hreflang solo cuenta si es recíproco: cada versión enlaza a sí misma y a las demás. «Sin par» no es un fallo cuando la falta es intencionada.',
+};
+
+/** «Qué tiene». */
+export const HAVE_LABELS = {
+  caption: 'Qué tiene cada página: descripción, schema, imagen OG, H1, traducción e indexación',
+  page: 'Página',
+  why: 'Pulsa una columna para quedarte solo con las páginas que no lo tienen propio.',
+  pressed: 'solo sin ello ✕',
+  /** `own` es «propio» con el género de la columna; sin él, la columna es un sí o no. */
+  columns: {
+    desc: { name: 'Descripción', own: 'propia' },
+    schema: { name: 'Schema', own: 'propio' },
+    og: { name: 'Imagen OG', own: 'propia' },
+    h1: { name: 'H1 único' },
+    i18n: { name: 'Traducida' },
+    index: { name: 'Indexable' },
+  } as Record<HaveColumn, { name: string; own?: string }>,
+  /** «3/38 propia»; las columnas de sí o no, solo «37/38». */
+  count: (column: HaveColumn, good: number, total: number) => {
+    const { own } = HAVE_LABELS.columns[column];
+    return `${good}/${total}${own ? ` ${own}` : ''}`;
+  },
+  states: {
+    own: { glyph: '●', text: 'propio', tone: 'accent' },
+    site: { glyph: '○', text: 'del sitio', tone: 'neutral' },
+    missing: { glyph: '✕', text: 'falta', tone: 'wip' },
+    partial: { glyph: '↺', text: 'respaldo', tone: 'neutral' },
+    ok: { glyph: '✓', text: 'sí', tone: 'live' },
+    no: { glyph: '⊘', text: 'noindex', tone: 'wip' },
+  } satisfies Record<HaveState, MarkLabel>,
+  legendLabel: 'Leyenda',
+  legend: [
+    { state: 'own', text: 'propio de la página' },
+    { state: 'site', text: 'heredado del sitio' },
+    { state: 'missing', text: 'falta' },
+    { state: 'partial', text: 'respaldo' },
+    { state: 'ok', text: 'cumple' },
+  ] satisfies { state: HaveState; text: string }[],
+  note: '«Del sitio» no es un fallo: es lo que se publica si la página no dice nada. Esta vista sirve para decidir a cuáles merece la pena darles lo suyo, empezando por las de entrada (portada, guías).',
+};
+
+/**
+ * Lo que dice una celda de «Qué tiene»: la palabra del estado, con su detalle si lo hay («falta es»,
+ * «respaldo es», el tipo del schema propio) y, si el estado es «propio» y no hay detalle, con el
+ * género de la columna («propia», «propio»).
+ */
+export function haveCellText(column: HaveColumn, cell: HaveCell): string {
+  const { state, detail } = cell;
+  if (state === 'own')
+    return detail ?? HAVE_LABELS.columns[column].own ?? HAVE_LABELS.states.ok.text;
+  const word = HAVE_LABELS.states[state].text;
+  return detail ? `${word} ${detail}` : word;
+}

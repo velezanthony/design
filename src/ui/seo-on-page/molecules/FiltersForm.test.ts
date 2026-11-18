@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { SeoFilters } from '../../../core/seo-on-page/queries/url-filters';
+import type { SeoFilters, ViewState } from '../../../core/seo-on-page/queries/url-filters';
 import type { KindOptions } from '../../../core/seo-on-page/pages/listing/kinds';
 import { IssueKind } from '../../../core/seo-on-page/tree/types';
 import { render, text } from '../../../testing/render';
@@ -21,10 +21,13 @@ const kindOptions = (selected: IssueKind[] = []): KindOptions => {
     summary: all ? 'todos' : `${selected.length} de ${WITH.length}`,
   };
 };
-const form = (filters: SeoFilters = none, perPage = 25) =>
+const form = (filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) =>
   render(FiltersForm, {
     filters,
     perPage,
+    view,
+    severityCounts: { error: 0, warning: 3, info: 38 },
+    clear: '/repo/seo-on-page/pages/',
     kinds: kindOptions(filters.kinds),
     locales: ['en', 'es'],
     action: '/repo/seo-on-page/pages/',
@@ -126,17 +129,51 @@ describe('FiltersForm', () => {
     });
   });
 
-  it('un filtro de tipo activo deja abierto el desplegable de tipos', async () => {
+  it('el desplegable de tipos parte cerrado: es un popover, no una sección que empuja la tabla', async () => {
     expect((await form()).querySelector('details')!.hasAttribute('open')).toBe(false);
-    const open = await form({ ...none, kinds: ['no-h1'] });
-    expect(open.querySelector('details')!.hasAttribute('open')).toBe(true);
+    const filtered = await form({ ...none, kinds: ['no-h1'] });
+    expect(filtered.querySelector('details')!.hasAttribute('open')).toBe(false);
   });
 
-  it('el botón de limpiar enlaza a la tabla sin query', async () => {
-    const doc = await form({ ...none, text: 'x' });
+  it('el botón de limpiar enlaza a donde dice el modelo (la vista se conserva)', async () => {
+    const doc = await form({ ...none, text: 'x' }, 25, { view: 'locale' });
     expect(doc.querySelector('a[data-clear]')!.getAttribute('href')).toBe(
       '/repo/seo-on-page/pages/',
     );
+  });
+
+  it('las gravedades y los idiomas son fichas: la casilla se esconde y la ficha dice el recuento', async () => {
+    const doc = await form();
+    const warning = doc.querySelector('input[name="severity"][value="warning"]')!;
+    expect(warning.classList.contains('sr-only')).toBe(true);
+    expect(text(warning.closest('label'))).toContain('Avisos');
+    expect(text(warning.closest('label'))).toContain('3');
+    expect(text(doc.querySelector('input[name="locale"][value="es"]')!.closest('label'))).toContain(
+      'ES',
+    );
+  });
+
+  it('las fichas y la búsqueda envían solas; el desplegable de tipos, con su botón', async () => {
+    const doc = await form();
+    expect(doc.querySelector('input[name="q"]')!.hasAttribute('data-auto-submit')).toBe(true);
+    expect(
+      doc.querySelector('input[name="severity"]')!.closest('[data-auto-submit]'),
+    ).not.toBeNull();
+    expect(doc.querySelector('input[name="locale"]')!.closest('[data-auto-submit]')).not.toBeNull();
+    const kinds = doc.querySelector('[data-kinds]')!;
+    expect(kinds.closest('[data-auto-submit]')).toBeNull();
+    expect(kinds.querySelector('button[type="submit"]')).not.toBeNull();
+  });
+
+  it('la vista viaja oculta para que filtrar no la deshaga', async () => {
+    const hidden = (await form(none, 25, { view: 'have', lacks: 'og' })).querySelectorAll(
+      'input[type="hidden"]',
+    );
+    expect([...hidden].map((i) => [i.getAttribute('name'), i.getAttribute('value')])).toEqual([
+      ['view', 'have'],
+      ['lacks', 'og'],
+    ]);
+    expect((await form()).querySelector('input[name="view"]')).toBeNull();
   });
 
   it('el desplegable de tipos y el botón de filtrar son clicables y lo parecen', async () => {

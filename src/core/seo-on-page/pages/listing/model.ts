@@ -1,20 +1,61 @@
 import type { Locale } from '../../../i18n/locale';
 import { filterPages } from '../../queries/filter';
-import { paginate } from '../../queries/paginate';
+import { paginate, type Paginated } from '../../queries/paginate';
 import {
   ALL_SEVERITIES,
+  EMPTY_FILTERS,
   filtersFromUrl,
   parsePage,
   parsePerPage,
+  parseView,
+  SeoView,
+  type HaveColumn,
   type SeoFilters,
+  type ViewState,
 } from '../../queries/url-filters';
 import type { SeoTree } from '../../tree/types';
 import type { PanelLinks } from '../links';
 import { commonIssues, type CommonIssue } from './common';
+import { entryRows, type EntryRow } from './entries';
+import { HAVE_COLUMNS, haveCounts, haveRows, lacking, type HaveRow } from './have';
 import { kindOptions, kindsWithIssues, type KindOptions } from './kinds';
+import { matrixRows, type MatrixRow } from './matrix';
 import { pageRows, type PageRow } from './rows';
+import { severityCounts, type SeverityCounts } from './severities';
+
+/** Lo que pinta la tabla según la vista; cada una trae sus filas, ya paginadas. */
+export type ListingTable =
+  | { view: 'page'; rows: PageRow[] }
+  | { view: 'locale'; rows: EntryRow[] }
+  | {
+      view: 'matrix';
+      rows: MatrixRow[];
+      /** Los idiomas de la config, una columna cada uno. */
+      locales: Locale[];
+      /** Si el sitio tiene varios idiomas: con uno no hay hreflang que enseñar. */
+      hreflang: boolean;
+      /** Páginas (de todas las filtradas, no solo de esta página de la tabla) con todos sus idiomas. */
+      complete: number;
+    }
+  | {
+      view: 'have';
+      rows: HaveRow[];
+      /** Una por columna: su enlace alterna `lacks`, y `good / total` cuenta las páginas filtradas. */
+      columns: {
+        column: HaveColumn;
+        href: string;
+        pressed: boolean;
+        good: number;
+        total: number;
+      }[];
+      lacks: HaveColumn | undefined;
+    };
 
 export interface ListingModel {
+  /** La vista pedida (y, en «Qué tiene», la columna por la que se filtra). */
+  view: ViewState;
+  /** Un enlace por vista, para el selector: conserva los filtros y vuelve a la página 1. */
+  views: { view: SeoView; href: string; current: boolean }[];
   /** Los filtros EFECTIVOS (con el valor por defecto aplicado), los que ve el formulario. */
   filters: SeoFilters;
   /** La URL no nombra gravedad ni tipo: la vista por defecto oculta lo informativo. */
@@ -29,11 +70,20 @@ export interface ListingModel {
     action: string;
     /** Las casillas del desplegable «Tipo de problema», con «Todos». */
     kinds: KindOptions;
+    /** La vista en vigor: viaja oculta para que filtrar no la deshaga. */
+    view: ViewState;
+    /** La tabla sin filtros, en la misma vista y con el mismo tamaño: lo que hace «Limpiar». */
+    clear: string;
+    /** Lo que cuenta cada ficha de gravedad: entradas en «Por idioma», páginas en las demás. */
+    severityCounts: Record<keyof SeverityCounts, number>;
   };
-  /** Los tipos de problema que comparten todas las páginas filtradas: se enseñan una vez, no por fila. */
+  /**
+   * Los tipos de problema que comparten todas las páginas filtradas: se enseñan una vez, no por
+   * fila. En las vistas de inventario (matriz y «Qué tiene») no hay: no son listas de problemas.
+   */
   common: { issues: CommonIssue[]; overviewHref: string };
-  /** Las filas de la página actual: una por página (slug), con el enlace a su inspector. */
-  rows: PageRow[];
+  /** La tabla de la vista pedida, con las filas de la página actual. */
+  table: ListingTable;
   footer: {
     /**
      * Los filtros ESCRITOS en la URL: en la vista por defecto no llevan `severity`, así pasar de
@@ -42,7 +92,8 @@ export interface ListingModel {
     filters: SeoFilters;
     perPage: number;
     action: string;
-    /** Todo cuenta PÁGINAS (slugs): una página en dos idiomas es una. */
+    view: ViewState;
+    /** Cuenta las filas de la vista: páginas (un slug en dos idiomas es una) o, en «Por idioma», entradas. */
     count: { from: number; to: number; total: number; overall: number };
     pagination: { page: number; pages: number; href: (page: number) => string };
   };
@@ -74,11 +125,12 @@ function withoutAllKinds(params: URLSearchParams, tree: SeoTree): URLSearchParam
 }
 
 /**
- * Todo lo que enseña la tabla de páginas: qué filtros rigen, las filas de la página pedida y los
- * números de la paginación. La pantalla solo lee la URL, llama a esto y pinta.
+ * Todo lo que enseña la tabla de páginas: qué filtros y vista rigen, las filas de la página pedida
+ * y los números de la paginación. La pantalla solo lee la URL, llama a esto y pinta.
  *
- * Los filtros eligen PÁGINAS (una entrada que los cumple basta), pero la fila enseña la página
- * entera: todos sus idiomas y problemas. Las filas salen por gravedad y se paginan ya agrupadas.
+ * Los filtros eligen PÁGINAS (una entrada que los cumple basta). Las vistas por página, matriz y
+ * «Qué tiene» enseñan la página entera, con todos sus idiomas; «Por idioma» enseña solo las
+ * entradas que cumplen. Las filas salen ya agrupadas y se paginan contando filas de esa vista.
  */
 export function listingModel({
   tree,
@@ -87,53 +139,146 @@ export function listingModel({
   defaultLocale,
   links,
 }: ListingInput): ListingModel {
-  const { filters, defaulted } = filtersFromUrl(withoutAllKinds(params, tree));
+  const view = parseView(params);
+  const parsed = filtersFromUrl(withoutAllKinds(params, tree));
+  // La matriz y «Qué tiene» son inventario, no lista de problemas: sin filtros en la URL enseñan
+  // todas las páginas. Con el «error + aviso» por defecto, una página limpia sin schema propio
+  // desaparecería justo de la vista que sirve para encontrarla.
+  const inventory = view.view === SeoView.MATRIX || view.view === SeoView.HAVE;
+  const { filters, defaulted } =
+    inventory && parsed.defaulted
+      ? { filters: { ...parsed.filters, severities: [...ALL_SEVERITIES] }, defaulted: false }
+      : parsed;
   const perPage = parsePerPage(params);
-  const slugs = new Set(filterPages(tree, filters).map((entry) => entry.slug));
+  const matching = filterPages(tree, filters);
+  const slugs = new Set(matching.map((entry) => entry.slug));
   const selected = tree.pages.filter((entry) => slugs.has(entry.slug));
+  const byEntry = view.view === SeoView.LOCALE;
   // Sin gravedad en la URL (solo tipos) se ven todas: no se filtra por gravedad.
   const severities = filters.severities.length > 0 ? filters.severities : undefined;
-  const common = commonIssues(selected, {
-    ignore: filters.kinds,
-    ...(severities && { severities }),
-  });
-  const result = paginate(
-    pageRows(selected, {
-      locales,
-      defaultLocale,
-      common: common.map(({ kind }) => kind),
-      ...(severities && { severities }),
-      inspector: links.inspector,
-    }),
-    parsePage(params),
-    perPage,
-  );
-  const written = defaulted ? { ...filters, severities: [] } : filters;
+  const common = inventory
+    ? []
+    : commonIssues(byEntry ? matching : selected, {
+        ignore: filters.kinds,
+        ...(severities && { severities }),
+      });
+  const commonKinds = common.map(({ kind }) => kind);
+  const written = parsed.defaulted ? { ...filters, severities: [] } : filters;
+  const href = (to: ViewState, page = 1) => links.pages(written, page, perPage, to);
+
+  const tableOf = (): { table: ListingTable; paging: Omit<Paginated<unknown>, 'rows'> } => {
+    const at = parsePage(params);
+    switch (view.view) {
+      case SeoView.LOCALE: {
+        const all = entryRows(matching, {
+          common: commonKinds,
+          ...(severities && { severities }),
+          inspector: links.inspector,
+        });
+        const { rows, ...paging } = paginate(all, at, perPage);
+        return { table: { view: 'locale', rows }, paging };
+      }
+      case SeoView.MATRIX: {
+        const matrix = matrixRows(selected, { locales, defaultLocale, inspector: links.inspector });
+        const { rows, ...paging } = paginate(matrix.rows, at, perPage);
+        return {
+          table: {
+            view: 'matrix',
+            rows,
+            locales,
+            hreflang: matrix.hreflang,
+            complete: matrix.complete,
+          },
+          paging,
+        };
+      }
+      case SeoView.HAVE: {
+        const all = haveRows(selected, { locales, defaultLocale, inspector: links.inspector });
+        const counts = haveCounts(all);
+        const { rows, ...paging } = paginate(lacking(all, view.lacks), at, perPage);
+        return {
+          table: {
+            view: 'have',
+            rows,
+            lacks: view.lacks,
+            columns: HAVE_COLUMNS.map((column) => {
+              const pressed = view.lacks === column;
+              return {
+                column,
+                pressed,
+                href: href({ view: SeoView.HAVE, ...(!pressed && { lacks: column }) }),
+                ...counts[column],
+              };
+            }),
+          },
+          paging,
+        };
+      }
+      default: {
+        const { rows, ...paging } = paginate(
+          pageRows(selected, {
+            locales,
+            defaultLocale,
+            common: commonKinds,
+            ...(severities && { severities }),
+            inspector: links.inspector,
+          }),
+          at,
+          perPage,
+        );
+        return { table: { view: 'page', rows }, paging };
+      }
+    }
+  };
+  const { table, paging } = tableOf();
+
+  const counts = severityCounts(tree.pages);
+  const unit = byEntry ? 'entries' : 'pages';
   const action = links.pages();
   return {
+    view,
+    views: Object.values(SeoView).map((candidate) => ({
+      view: candidate,
+      href: href({ view: candidate }),
+      current: candidate === view.view,
+    })),
     filters,
     defaulted,
     perPage,
     showAllHref: defaulted
-      ? links.pages({ ...filters, severities: ALL_SEVERITIES }, 1, perPage)
+      ? links.pages({ ...filters, severities: ALL_SEVERITIES }, 1, perPage, view)
       : undefined,
-    form: { filters, perPage, locales, action, kinds: kindOptions(tree, filters.kinds) },
+    form: {
+      filters,
+      perPage,
+      locales,
+      action,
+      kinds: kindOptions(tree, filters.kinds),
+      view,
+      clear: links.pages(EMPTY_FILTERS, 1, perPage, view),
+      severityCounts: {
+        error: counts.error[unit],
+        warning: counts.warning[unit],
+        info: counts.info[unit],
+      },
+    },
     common: { issues: common, overviewHref: links.overview() },
-    rows: result.rows,
+    table,
     footer: {
       filters: written,
       perPage,
       action,
+      view,
       count: {
-        from: result.from,
-        to: result.to,
-        total: result.total,
-        overall: new Set(tree.pages.map((entry) => entry.slug)).size,
+        from: paging.from,
+        to: paging.to,
+        total: paging.total,
+        overall: byEntry ? tree.pages.length : new Set(tree.pages.map((entry) => entry.slug)).size,
       },
       pagination: {
-        page: result.page,
-        pages: result.pages,
-        href: (number) => links.pages(written, number, perPage),
+        page: paging.page,
+        pages: paging.pages,
+        href: (number) => href(view, number),
       },
     },
   };

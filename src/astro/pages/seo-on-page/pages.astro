@@ -7,11 +7,12 @@ import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import FiltersForm from '../../../ui/seo-on-page/molecules/FiltersForm.astro';
 import InfoHiddenNote from '../../../ui/seo-on-page/molecules/InfoHiddenNote.astro';
 import CommonIssueNotice from '../../../ui/seo-on-page/organisms/CommonIssueNotice.astro';
-import PagesTable from '../../../ui/seo-on-page/organisms/PagesTable.astro';
+import PagesListing from '../../../ui/seo-on-page/organisms/PagesListing.astro';
 import TableFooter from '../../../ui/seo-on-page/molecules/TableFooter.astro';
+import TableHead from '../../../ui/seo-on-page/molecules/TableHead.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import { urlPolicyOf } from '../../views/pages';
-import { PAGES_TABLE_LABELS } from '../../../ui/seo-on-page/labels';
+import { headCount, VIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
 import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
@@ -40,17 +41,19 @@ const { footer } = model;
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
-  <PanelIntro title="Páginas" lede={PAGES_TABLE_LABELS.lede} strings={view.strings} />
+  <PanelIntro title="Páginas" lede={VIEW_LABELS[model.view.view].lede} strings={view.strings} />
   <div class="flex flex-col gap-6">
     <FiltersForm {...model.form} />
     {model.showAllHref && <InfoHiddenNote showAllHref={model.showAllHref} />}
+    <TableHead count={headCount(model.table, footer.count.total)} views={model.views} />
     {model.common.issues.map((issue) => (
       <CommonIssueNotice issue={issue} overviewHref={model.common.overviewHref} />
     ))}
-    <PagesTable rows={model.rows} />
+    <PagesListing table={model.table} />
     <TableFooter
       filters={footer.filters}
       perPage={footer.perPage}
+      view={footer.view}
       action={footer.action}
       {...footer.count}
       page={footer.pagination.page}

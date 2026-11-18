@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { SeoFilters } from '../../../core/seo-on-page/queries/url-filters';
+import type { SeoFilters, ViewState } from '../../../core/seo-on-page/queries/url-filters';
 import { render, text } from '../../../testing/render';
 import TableFooter from './TableFooter.astro';
 
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
-const footer = (filters: SeoFilters = none, perPage = 25) =>
+const footer = (filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) =>
   render(TableFooter, {
     filters,
     perPage,
+    view,
     action: '/repo/seo-on-page/pages/',
     from: 1,
     to: 10,
@@ -69,5 +70,24 @@ describe('TableFooter', () => {
     const doc = await footer();
     expect(text(doc)).toContain('1–10 de 75 páginas');
     expect(doc.querySelector('nav[aria-label]')).not.toBeNull();
+  });
+
+  it('conserva la vista (y la columna de «Qué tiene») como campos ocultos', async () => {
+    const doc = await footer(none, 25, { view: 'have', lacks: 'og' });
+    const hidden = [...doc.querySelectorAll('form input[type="hidden"]')].map((input) => [
+      input.getAttribute('name'),
+      input.getAttribute('value'),
+    ]);
+    expect(hidden).toEqual([
+      ['view', 'have'],
+      ['lacks', 'og'],
+    ]);
+  });
+
+  it('el recuento habla de entradas en «Por idioma» y de páginas en el resto', async () => {
+    expect(
+      text((await footer(none, 25, { view: 'locale' })).querySelector('[role="status"]')),
+    ).toContain('entradas');
+    expect(text((await footer()).querySelector('[role="status"]'))).toContain('páginas');
   });
 });

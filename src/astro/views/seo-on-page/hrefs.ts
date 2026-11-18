@@ -4,6 +4,7 @@ import {
   EMPTY_FILTERS,
   serializeFilters,
   type SeoFilters,
+  type ViewState,
 } from '../../../core/seo-on-page/queries/url-filters';
 
 /** Carpeta común de las rutas del panel: lo que un consumidor no debería usar para sus páginas. */
@@ -31,8 +32,8 @@ export function devHrefs(url: UrlPolicy) {
   return {
     siteHome: () => pageUrl('', url.defaultLocale, url),
     overview: () => pageUrl(SEO_ON_PAGE_DIR, url.defaultLocale, url),
-    pages: (filters?: SeoFilters, page = 1, perPage?: number) =>
-      withQuery(at('pages'), serializeFilters(filters ?? EMPTY_FILTERS, page, perPage)),
+    pages: (filters?: SeoFilters, page = 1, perPage?: number, view?: ViewState) =>
+      withQuery(at('pages'), serializeFilters(filters ?? EMPTY_FILTERS, page, perPage, view)),
     /** El inspector identifica la página por slug (vacío = portada) e idioma. */
     inspector: (page: { slug: string; locale: Locale }) =>
       withQuery(at('page'), new URLSearchParams({ slug: page.slug, locale: page.locale })),

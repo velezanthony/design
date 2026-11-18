@@ -58,6 +58,18 @@ describe('devHrefs', () => {
     expect(devHrefs(policy).pages(filters, 1, 25)).toBe('/repo/seo-on-page/pages/?severity=info');
   });
 
+  it('la vista va en la query y la de por página no se escribe', () => {
+    expect(devHrefs(policy).pages(undefined, 1, undefined, { view: 'matrix' })).toBe(
+      '/repo/seo-on-page/pages/?view=matrix',
+    );
+    expect(devHrefs(policy).pages(undefined, 2, undefined, { view: 'have', lacks: 'og' })).toBe(
+      '/repo/seo-on-page/pages/?view=have&lacks=og&page=2',
+    );
+    expect(devHrefs(policy).pages(undefined, 1, undefined, { view: 'page' })).toBe(
+      '/repo/seo-on-page/pages/',
+    );
+  });
+
   it('sin filtros no deja un `?` colgando', () => {
     const empty = { kinds: [], severities: [], locales: [], text: '' };
     expect(devHrefs(policy).pages(empty)).toBe('/repo/seo-on-page/pages/');
