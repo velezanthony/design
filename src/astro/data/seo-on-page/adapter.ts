@@ -1,11 +1,10 @@
 import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/input';
 import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
-import type { ClientPage } from '../../../core/seo/client-pages';
+import { routePath, type ClientPage } from '../../../core/seo/client-pages';
 import { clientSitemapEntries } from '../../../core/seo/sitemap';
 import { loadClientPages, type ClientPages } from '../client-pages';
 import { clientRegistry } from '../client-registry';
-import { routePath } from '../../integration/route-overrides';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type {
   HeadingNode,

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { builtClientPages, clientPagePaths, clientRoutes, type SiteRoute } from './client-pages';
+import {
+  builtClientPages,
+  clientPagePaths,
+  clientRoutes,
+  routePath,
+  type SiteRoute,
+} from './client-pages';
 
 /** Una ruta como la da Astro: `generate` interpola los params en el patrón y pone la barra final. */
 const route = (pattern: string, params: string[] = []): SiteRoute => ({
@@ -123,5 +129,14 @@ describe('builtClientPages', () => {
 
   it('una ruta sin forma de reconocerse no se adivina', () => {
     expect(builtClientPages(['cv/'], [route('/cv')], '/')).toEqual([]);
+  });
+});
+
+describe('routePath', () => {
+  it('es la ruta tal como se visita: `index` es `/`, `es/index` es `/es/`', () => {
+    expect(routePath('index')).toBe('/');
+    expect(routePath('es/index')).toBe('/es/');
+    expect(routePath('es/404')).toBe('/es/404');
+    expect(routePath('sitemap.xml')).toBe('/sitemap.xml');
   });
 });

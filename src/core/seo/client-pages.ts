@@ -94,3 +94,8 @@ export function builtClientPages(
       : [];
   });
 }
+
+/** La ruta tal como se visita: `index` es `/`, `es/index` es `/es/`. */
+export function routePath(route: string): string {
+  return `/${route.replace(/(^|\/)index$/, '$1')}`;
+}

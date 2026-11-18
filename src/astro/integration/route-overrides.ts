@@ -27,11 +27,6 @@ export interface RouteOverride {
   route: string;
 }
 
-/** La ruta tal como se visita: `index` es `/`, `es/index` es `/es/`. */
-export function routePath(route: string): string {
-  return `/${route.replace(/(^|\/)index$/, '$1')}`;
-}
-
 /** Rutas que la integración inyecta, como ruta de fichero sin extensión (`es/404`). */
 function injectedRoutes(options: RouteOptions): string[] {
   const routes = [

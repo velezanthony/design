@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { overrideWarning, routeOverrides, routePath, type RouteOptions } from './route-overrides';
+import { overrideWarning, routeOverrides, type RouteOptions } from './route-overrides';
 
 const dirs: string[] = [];
 
@@ -120,14 +120,5 @@ describe('overrideWarning', () => {
     expect(overrideWarning([{ file: 'src/pages/index.astro', route: 'index' }])).toMatch(
       /^Tu sitio sustituye 1 ruta de/,
     );
-  });
-});
-
-describe('routePath', () => {
-  it('es la ruta tal como se visita: `index` es `/`, `es/index` es `/es/`', () => {
-    expect(routePath('index')).toBe('/');
-    expect(routePath('es/index')).toBe('/es/');
-    expect(routePath('es/404')).toBe('/es/404');
-    expect(routePath('sitemap.xml')).toBe('/sitemap.xml');
   });
 });
