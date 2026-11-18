@@ -1,7 +1,7 @@
 import type { ResolvedConfig } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
-import { buildAvailability, type UrlPolicy } from '../../i18n/availability';
-import { resolvePolicies } from '../../i18n/translation-policy';
+import type { Availability, UrlPolicy } from '../../i18n/availability';
+import type { TranslationPolicies } from '../../i18n/translation-policy';
 import { footerPageHrefs } from '../../navigation/footer';
 import { buildNav } from '../../navigation/nav-entries';
 import { buildSectionSidebar, type NavContext } from '../../navigation/nav-sidebar';
@@ -26,10 +26,13 @@ type NavigationConfig = Pick<
 export function navigationLinks(
   pages: Page[],
   config: NavigationConfig,
-  url: UrlPolicy,
+  // Lo que `buildSeoTree` ya calculó: aquí no se repite.
+  {
+    url,
+    availability: av,
+    policies,
+  }: { url: UrlPolicy; availability: Availability; policies: TranslationPolicies },
 ): Map<string, PageLink[]> {
-  const av = buildAvailability(pages, url);
-  const { policies } = resolvePolicies(pages, config.translations.missing);
   const byHref = new Map<string, PageLink>();
   for (const page of pages) {
     byHref.set((av.get(page.slug) ?? {})[page.locale] ?? '', {

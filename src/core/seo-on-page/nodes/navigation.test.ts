@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
+import { buildAvailability } from '../../i18n/availability';
+import { resolvePolicies } from '../../i18n/translation-policy';
 import { navigationLinks } from './navigation';
 
 const url = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' } as const;
@@ -14,7 +16,9 @@ const page = (slug: string, locale = 'en'): Page => ({
 });
 const links = (pages: Page[], user: Partial<Parameters<typeof resolveConfig>[0]> = {}) => {
   const config = resolveConfig({ ...user, name: 'X', locales: ['en', 'es'] });
-  return navigationLinks(pages, config, url);
+  const availability = buildAvailability(pages, url);
+  const { policies } = resolvePolicies(pages, config.translations.missing);
+  return navigationLinks(pages, config, { url, availability, policies });
 };
 const targets = (map: ReturnType<typeof links>, slug: string, locale = 'en') =>
   (map.get(`${slug}\u0000${locale}`) ?? []).map((link) => `${link.slug}:${link.locale}`).sort();

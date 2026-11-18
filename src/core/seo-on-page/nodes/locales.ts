@@ -11,12 +11,12 @@ export function buildLocaleEntries(
   available: Partial<Record<Locale, string>>,
   locales: Locale[],
   policy: MissingTranslation,
-  declared: boolean,
+  isDeclared: (locale: Locale) => boolean,
 ): SeoLocaleEntry[] {
   return locales.map((locale) => {
     const url = available[locale];
     return url === undefined
-      ? { locale, status: 'missing', policy, declared }
+      ? { locale, status: 'missing', policy, declared: isDeclared(locale) }
       : { locale, status: 'present', url };
   });
 }

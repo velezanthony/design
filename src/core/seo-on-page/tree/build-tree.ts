@@ -56,11 +56,7 @@ export function buildSeoTree(input: SeoInput): SeoTree {
       availability.get(page.slug) ?? {},
       config.locales,
       policy ?? config.translations.missing,
-      false,
-    ).map((entry) =>
-      entry.status === 'missing'
-        ? { ...entry, declared: !undeclared.get(page.slug)?.has(entry.locale) }
-        : entry,
+      (locale) => !undeclared.get(page.slug)?.has(locale),
     );
     return {
       slug: page.slug,
@@ -106,7 +102,10 @@ export function buildSeoTree(input: SeoInput): SeoTree {
   // El grafo de enlaces es solo de la documentación: de las páginas del cliente no se recogen sus
   // enlaces, y meterlas saldría en falsos «huérfana» (o impediría juzgar a las demás).
   const crossPage = new Map<string, Issue[]>();
-  for (const issue of analyzeLinks(library, navigationLinks(pages, config, url))) {
+  for (const issue of analyzeLinks(
+    library,
+    navigationLinks(pages, config, { url, availability, policies }),
+  )) {
     crossPage.set(pageKey(issue), [...(crossPage.get(pageKey(issue)) ?? []), issue]);
   }
 
