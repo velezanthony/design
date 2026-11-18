@@ -9,6 +9,7 @@ import { initSidebarScroll } from '../../client/layout/sidebar-scroll';
 import { storageOf } from '../../client/preferences/storage';
 import { initTabs } from '../../client/content/tabs';
 import { initAutoSubmit } from '../../client/forms/auto-submit';
+import { initKindsAll } from '../../client/forms/kinds-all';
 import { initTheme } from '../../client/preferences/theme';
 import type { MotionPreference } from '../../client/transition';
 import { initCurrentYear } from '../../client/content/year';
@@ -81,6 +82,7 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
   initSearchShortcut(doc);
   initCurrentYear(doc);
   initAutoSubmit(doc);
+  initKindsAll(doc);
   initTabs(doc, env.motion);
 
   const main = doc.querySelector<HTMLElement>('main');

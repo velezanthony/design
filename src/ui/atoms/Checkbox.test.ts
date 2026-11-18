@@ -21,6 +21,12 @@ describe('Checkbox', () => {
     expect(input.getAttribute('value')).toBe('error');
   });
 
+  it('sin name ni value no envía nada con el formulario', async () => {
+    const input = (await render(Checkbox, {}, { default: 'Todos' })).querySelector('input')!;
+    expect(input.hasAttribute('name')).toBe(false);
+    expect(input.hasAttribute('value')).toBe(false);
+  });
+
   it('refleja el estado checked, y sin él va desmarcado', async () => {
     expect(
       (await checkbox({ checked: true })).querySelector('input')!.hasAttribute('checked'),

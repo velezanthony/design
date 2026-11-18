@@ -2,8 +2,9 @@
 import type { HTMLAttributes } from 'astro/types';
 
 interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'class'> {
-  name: string;
-  value: string;
+  /** Sin `name` el campo no viaja en el formulario: es un mando de la interfaz (como «Todos»). */
+  name?: string;
+  value?: string;
   checked?: boolean;
   disabled?: boolean;
   /** Va a la etiqueta, que es lo que se coloca; el campo va dentro. */
