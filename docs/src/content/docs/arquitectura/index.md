@@ -2,7 +2,7 @@
 order: 1
 seo:
   title: "Arquitectura por capas de la librería"
-  description: "Las capas core, client, ui, astro y testing, qué puede importar cada una y cómo lo hace cumplir ESLint: la lógica que decide no sabe nada de Astro."
+  description: "Las capas core, client, components, astro y testing, qué puede importar cada una y cómo lo hace cumplir ESLint: la lógica que decide no sabe nada de Astro."
 ---
 
 # Capas
@@ -16,25 +16,25 @@ navegador, y por eso se puede probar con tests unitarios rápidos y sin montar n
 | --- | --- | --- |
 | `core/` | Lógica pura: config, contenido, enlaces, navegación, i18n, SEO, analítica, privacidad. | Solo `core/` y `astro/zod`. |
 | `client/` | JavaScript del navegador: tema, búsqueda, consentimiento, pestañas, zoom… | Solo **tipos** de `core/` (`import type`). |
-| `ui/` | Componentes `.astro` presentacionales y estilos. Reciben props, no buscan datos. | `core/` y `client/`. Nada de `astro`, `astro:*`, `virtual:*` ni la carpeta `astro/`. |
-| `astro/` | El adaptador: integración, loader, plugins de Markdown, rutas, módulo virtual. | Todo. Es la única capa que conoce Astro. |
+| `components/` | Componentes `.astro` presentacionales y estilos. Reciben props, no buscan datos. | `core/` y `client/`. Nada de `astro`, `astro:*`, `virtual:*` ni la carpeta `astro/`. |
+| `astro/` | El adaptador: integración, loader, plugins de Markdown, rutas, módulo virtual. | Todo, con las reglas de subcapa de más abajo. Es la única capa que conoce Astro. |
 | `testing/` | Utilidades de test (no se distribuye). | Todo. |
 
 ```mermaid
 flowchart TD
   astro["astro/<br/>integración · loader · markdown · rutas · virtual"]
-  ui["ui/<br/>átomos · moléculas · organismos · layouts · estilos"]
+  components["components/<br/>átomos · moléculas · organismos · layouts · estilos"]
   client["client/<br/>scripts de navegador"]
   core["core/<br/>lógica pura"]
   ext["astro, astro:*, virtual:*, node:*"]
   zod["astro/zod"]
 
-  astro --> ui
+  astro --> components
   astro --> client
   astro --> core
   astro --> ext
-  ui --> client
-  ui --> core
+  components --> client
+  components --> core
   client -. "solo import type" .-> core
   core --> zod
 ```
@@ -45,8 +45,24 @@ Las flechas son las únicas direcciones permitidas. Fíjate en lo que **no** hay
 - `client/` no importa valores del núcleo. El código de navegador se empaqueta para el cliente, y
   arrastrar valores de `core/` metería en el bundle código que no pinta nada en el navegador. Los
   datos que necesita le llegan por atributos `data-*` del HTML.
-- `ui/` no ve `astro/`: un componente no lee la colección ni el módulo virtual. Eso lo hacen los
-  **páginas** de `astro/pages/` (patrón contenedor/presentacional).
+- `components/` no ve `astro/`: un componente no lee la colección ni el módulo virtual. Eso lo hacen las
+  **rutas** de `astro/routes/` (contenedores), que le pasan el modelo a las páginas de
+  `components/pages/` (presentacionales: solo pintan).
+
+### Subcapas de `astro/`
+
+Dentro de `astro/` los datos y la presentación tampoco se importan entre sí: solo `routes/` conoce a los dos.
+
+- `views/` (modelos de vista) no importa `astro:*`, el paquete `astro` ni `data/`, y tampoco `components/`.
+- `loader/` no importa `integration/`.
+- `data/` no importa `routes/` ni `components/`.
+
+### Valla del panel de desarrollo
+
+El panel `seo-on-page` solo existe en desarrollo, así que nada de lo publicado puede importarlo: ni
+`components/` (fuera de `components/seo-on-page/`), ni `client/` (fuera de `client/seo-on-page/`), ni
+`astro/routes/` (fuera de `routes/seo-on-page/`). Los textos del panel viven en
+`core/seo-on-page/labels.ts` para que tanto sus vistas como sus componentes los lean sin cruzarse.
 
 ## Cómo lo hace cumplir ESLint
 
@@ -54,10 +70,12 @@ La regla vive en `eslint.config.mjs`, con `@typescript-eslint/no-restricted-impo
 carpeta mediante una función `layer(folder, paths, patterns)`:
 
 - Los imports **relativos** se detectan con una expresión regular sobre el nombre de la carpeta
-  (`relativeTo(['client', 'ui', 'astro'])` atrapa `../../ui/atoms/Link`).
+  (`relativeTo(['client', 'components', 'astro'])` atrapa `../../components/atoms/Link`).
 - Los **esquemas** (`astro:*`, `virtual:*`, `node:*`) se bloquean por patrón.
 - El paquete `astro` va por `paths` (coincidencia exacta). Como patrón, `astro` también atraparía
   `astro/zod`, y un patrón no puede volver a permitir algo que cuelga de una carpeta ya excluida.
+- Las subcapas de `astro/` usan `siblingOf([...])`, que solo atrapa la carpeta hermana (`../data`) y no
+  `../virtual/data`; la valla del panel usa `relativeTo(['seo-on-page'])` con `ignores` para el propio panel.
 - En `client/`, la regla de `core/` lleva `allowTypeImports: true`: los `import type` pasan, los
   valores no.
 
@@ -90,7 +108,7 @@ test correspondiente falla.
   fixtures.
 - **Un solo sitio que cambia con Astro.** Cuando Astro cambia una API, el impacto queda en
   `astro/`. El resto no lo nota.
-- **Componentes reutilizables.** Como `ui/` solo recibe props, un componente se puede renderizar en
+- **Componentes reutilizables.** Como `components/` solo recibe props, un componente se puede renderizar en
   un test o en otra página sin montar la colección ni el módulo virtual.
 
 Sigue con el [mapa de `src/`](./mapa-de-src.md).

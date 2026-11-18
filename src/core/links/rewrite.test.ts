@@ -5,12 +5,14 @@ import { rewriteLinks, type PageIndex } from './rewrite';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 
-const page = (
+function page(
   slug: string,
   locale: string,
   sourcePath: string,
   kind: Page['kind'] = 'native',
-): Page => ({ slug, locale, title: slug, kind, sourcePath, body: '' });
+): Page {
+  return { slug, locale, title: slug, kind, sourcePath, body: '' };
+}
 
 const pages = [
   page('install', 'en', 'install.md'),
@@ -23,7 +25,9 @@ const pages = [
   page('readme', 'en', '../README.md', 'external'),
 ];
 const index: PageIndex = { pages, url };
-const from = (sourcePath: string) => pages.find((p) => p.sourcePath === sourcePath)!;
+function from(sourcePath: string) {
+  return pages.find((candidate) => candidate.sourcePath === sourcePath)!;
+}
 
 describe('rewriteLinks', () => {
   it('reescribe un enlace a un hermano publicado por la URL de su página', () => {
@@ -55,14 +59,14 @@ describe('rewriteLinks', () => {
     const result = rewriteLinks(body, from('guide.md'), index);
     expect(result.body).toBe(body);
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].file).toBe('guide.md');
-    expect(result.errors[0].line).toBe(3);
-    expect(result.errors[0].message).toContain('./missing.md');
+    expect(result.errors[0]?.file).toBe('guide.md');
+    expect(result.errors[0]?.line).toBe(3);
+    expect(result.errors[0]?.message).toContain('./missing.md');
   });
 
   it('agrega todos los enlaces rotos, no solo el primero', () => {
     const result = rewriteLinks('[a](./a.md)\n[b](./b.md)', from('guide.md'), index);
-    expect(result.errors.map((e) => e.line)).toEqual([1, 2]);
+    expect(result.errors.map((problem) => problem.line)).toEqual([1, 2]);
   });
 
   it('ignora un enlace roto dentro de un bloque de código', () => {
@@ -164,7 +168,7 @@ describe('rewriteLinks', () => {
     it('un archivo que no es página ni recurso sigue siendo un error', () => {
       const result = rewriteLinks('[x](../../../../NOPE.md)', from('install.es.md'), index);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('../../../../NOPE.md');
+      expect(result.errors[0]?.message).toContain('../../../../NOPE.md');
     });
 
     it('un enlace https, incluso al propio sitio, ni se reescribe ni se valida', () => {
@@ -190,7 +194,9 @@ describe('rewriteLinks con `contentDir` fuera del proyecto', () => {
     page('changelog', 'es', '../CHANGELOG.es.md', 'external'),
   ];
   const outsideIndex: PageIndex = { pages: outside, url, contentDir };
-  const at = (sourcePath: string) => outside.find((p) => p.sourcePath === sourcePath)!;
+  function at(sourcePath: string) {
+    return outside.find((candidate) => candidate.sourcePath === sourcePath)!;
+  }
 
   it('un enlace relativo entre nativas sigue resolviendo contra la carpeta de contenido', () => {
     const result = rewriteLinks(
@@ -255,7 +261,9 @@ describe('rewriteLinks con `contentDir` fuera del proyecto', () => {
 /* Astro resuelve las imágenes de una página como importaciones: `img/x.png` sin `./` sería un
    módulo «bare» (falla con ImageNotFound), aunque en Markdown sea una ruta relativa válida. */
 describe('rewriteLinks: imágenes relativas sin `./`', () => {
-  const rewrite = (body: string) => rewriteLinks(body, from('guide.md'), index).body;
+  function rewrite(body: string) {
+    return rewriteLinks(body, from('guide.md'), index).body;
+  }
 
   it('añade `./` a una ruta relativa que no lo lleva', () => {
     expect(rewrite('![captura](img/captura.png)')).toBe('![captura](./img/captura.png)');
@@ -289,7 +297,9 @@ describe('rewriteLinks: imágenes relativas sin `./`', () => {
 /* Las imágenes se detectan aquí, en la misma pasada que los enlaces: una sola regla para «qué es
    una imagen del cuerpo» (la usa el panel SEO para el texto alternativo). */
 describe('rewriteLinks: imágenes del cuerpo', () => {
-  const images = (body: string) => rewriteLinks(body, from('guide.md'), index).images;
+  function images(body: string) {
+    return rewriteLinks(body, from('guide.md'), index).images;
+  }
 
   it('devuelve cada imagen con su ruta original, su alt y su línea', () => {
     expect(images('uno\n\n![captura](img/a.png)\n![](https://x.dev/b.png "T")')).toEqual([

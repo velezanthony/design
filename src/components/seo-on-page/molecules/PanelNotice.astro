@@ -1,0 +1,30 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'aside'>, 'class' | 'title'> {
+  /** `danger` es un fallo (borde y título en rojo); `neutral`, un aviso que no lo es. */
+  tone?: 'danger' | 'neutral';
+  /** El nombre de la región para lectores de pantalla. */
+  label: string;
+  title: string;
+  why: string;
+}
+
+const { tone = 'neutral', label, title, why, ...rest } = Astro.props;
+---
+
+<aside
+  class:list={['mb-6 notice-frame', tone === 'danger' ? 'border-danger' : 'border-rule']}
+  aria-label={label}
+  {...rest}
+>
+  <p>
+    <strong class:list={['font-semibold', tone === 'danger' ? 'text-danger' : 'text-ink']}>
+      {title}
+    </strong>
+    . {why}
+  </p>
+  <ul class="mt-2 list-disc pl-5">
+    <slot />
+  </ul>
+</aside>

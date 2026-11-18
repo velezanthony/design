@@ -1,3 +1,5 @@
+import { fill } from './text';
+
 /** La parte de la API de Pagefind que usamos (el módulo `pagefind.js` generado en el build). */
 export interface PagefindApi {
   options(options: { baseUrl: string; bundlePath: string }): Promise<void>;
@@ -27,12 +29,11 @@ export function pagefindUrl(base: string): { module: string; bundlePath: string 
 }
 
 /** Importa un módulo por URL; el `@vite-ignore` evita que Vite intente resolverlo en el build. */
-const defaultImporter = (url: string): Promise<unknown> => import(/* @vite-ignore */ url);
+function defaultImporter(url: string): Promise<unknown> {
+  return import(/* @vite-ignore */ url);
+}
 
-/**
- * Carga y configura Pagefind. `undefined` si no se puede: sin índice (servidor de desarrollo,
- * donde aún no hay build) la importación falla, y eso es un estado normal, no un error.
- */
+/** Carga y configura Pagefind; `undefined` si no hay índice (en desarrollo aún no hay build), que es un estado normal. */
 export async function loadPagefind(
   base: string,
   importer: (url: string) => Promise<unknown> = defaultImporter,
@@ -64,21 +65,18 @@ export async function runSearch(
   );
 }
 
-/**
- * Trocea un extracto de Pagefind en texto y coincidencias. Solo reconoce `<mark>`: cualquier otra
- * etiqueta queda como texto, así que lo que se pinte con esto nunca ejecuta HTML. Descodifica
- * las entidades que Pagefind escapa.
- */
+/** Trocea un extracto de Pagefind en texto y coincidencias; solo reconoce `<mark>`, lo demás es texto, así que nunca se ejecuta HTML. */
 export function excerptParts(excerpt: string): { text: string; mark: boolean }[] {
-  const decode = (text: string) =>
-    text
+  function decode(text: string) {
+    return text
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .replace(/&amp;/g, '&');
+  }
   const parts: { text: string; mark: boolean }[] = [];
-  for (const [i, chunk] of excerpt.split(/<\/?mark>/).entries()) {
-    if (chunk) parts.push({ text: decode(chunk), mark: i % 2 === 1 });
+  for (const [index, chunk] of excerpt.split(/<\/?mark>/).entries()) {
+    if (chunk) parts.push({ text: decode(chunk), mark: index % 2 === 1 });
   }
   return parts;
 }
@@ -92,55 +90,52 @@ export interface SearchOptions {
   limit?: number;
 }
 
-/**
- * Cablea el control `[data-search]`: `[data-search-input]`, `[data-search-status]` (con
- * `role="status"`) y `[data-search-results]`. Lee del propio elemento `data-base-url`, y los
- * textos `data-requires-build` y `data-no-results` (el catálogo de UI ya fusionado). Carga
- * Pagefind al primer uso; si no hay índice explica que existe tras el build, sin errores en
- * consola. Teclado: Flecha abajo salta del campo a los resultados y entre ellos, Flecha arriba
- * vuelve, Escape vacía.
- */
+/** Cablea `[data-search]` (los textos vienen de `data-*`); Pagefind se carga al primer uso y sin índice se explica sin errores en consola. */
 export function initSearch(
   root: HTMLElement,
   {
     importer,
     debounceMs = 150,
-    schedule = (cb, ms) => void setTimeout(cb, ms),
+    schedule = (callback, ms) => void setTimeout(callback, ms),
     limit = 8,
   }: SearchOptions = {},
 ): void {
-  const input = root.querySelector<HTMLInputElement>('[data-search-input]');
-  const status = root.querySelector<HTMLElement>('[data-search-status]');
-  const list = root.querySelector<HTMLElement>('[data-search-results]');
-  if (!input || !status || !list) return;
+  const foundInput = root.querySelector<HTMLInputElement>('[data-search-input]');
+  const foundStatus = root.querySelector<HTMLElement>('[data-search-status]');
+  const foundList = root.querySelector<HTMLElement>('[data-search-results]');
+  if (!foundInput || !foundStatus || !foundList) return;
+  /* Las declaraciones de abajo no heredan el descarte de `null`: se fija en constantes. */
+  const input = foundInput;
+  const status = foundStatus;
+  const list = foundList;
 
-  const doc = root.ownerDocument;
+  const htmlDocument = root.ownerDocument;
   const base = root.dataset.baseUrl ?? '/';
   let api: Promise<PagefindApi | undefined> | undefined;
   let latest = 0;
 
-  const setState = (state: string | undefined, message = '') => {
+  function setState(state: string | undefined, message = '') {
     if (state) root.setAttribute('data-state', state);
     else root.removeAttribute('data-state');
     status.textContent = message;
-  };
+  }
 
-  const render = (hits: SearchHit[]) => {
+  function render(hits: SearchHit[]) {
     list.replaceChildren(
       ...hits.map((hit) => {
-        const item = doc.createElement('li');
-        const link = doc.createElement('a');
+        const item = htmlDocument.createElement('li');
+        const link = htmlDocument.createElement('a');
         link.setAttribute('href', hit.url);
-        const title = doc.createElement('span');
+        const title = htmlDocument.createElement('span');
         title.textContent = hit.title;
-        const excerpt = doc.createElement('span');
+        const excerpt = htmlDocument.createElement('span');
         for (const part of excerptParts(hit.excerpt)) {
           if (part.mark) {
-            const mark = doc.createElement('mark');
+            const mark = htmlDocument.createElement('mark');
             mark.textContent = part.text;
             excerpt.append(mark);
           } else {
-            excerpt.append(doc.createTextNode(part.text));
+            excerpt.append(htmlDocument.createTextNode(part.text));
           }
         }
         link.append(title, excerpt);
@@ -148,9 +143,9 @@ export function initSearch(
         return item;
       }),
     );
-  };
+  }
 
-  const search = async () => {
+  async function search() {
     const query = input.value;
     const ticket = ++latest;
     if (!query.trim()) {
@@ -170,16 +165,14 @@ export function initSearch(
     if (ticket !== latest) return;
     render(hits);
     if (hits.length) setState('results');
-    else
-      setState(
-        'empty',
-        (root.dataset.noResults ?? '').replace('{query}', () => query),
-      );
-  };
+    else setState('empty', fill(root.dataset.noResults ?? '', { query }));
+  }
 
   input.addEventListener('input', () => schedule(() => void search(), debounceMs));
 
-  const links = () => [...list.querySelectorAll<HTMLElement>('a')];
+  function links() {
+    return [...list.querySelectorAll<HTMLElement>('a')];
+  }
   root.addEventListener('keydown', (event) => {
     const { key } = event as KeyboardEvent;
     const target = event.target as Element;
@@ -209,20 +202,16 @@ function isTyping(target: EventTarget | null): boolean {
   );
 }
 
-/**
- * Atajo de teclado: «/» lleva el foco al buscador (el primero de la página). Se ignora mientras se
- * escribe en un campo, con Ctrl, Meta o Alt (Mayús no cuenta: en muchos teclados la barra es
- * Mayús+7) y si otro manejador ya atendió la tecla. Sin buscador no hace nada y la tecla sigue su
- * curso.
- */
-export function initSearchShortcut(doc: Document): void {
+/** Atajo «/» al buscador; se ignora al escribir en un campo, con Ctrl/Meta/Alt (no Mayús: la barra es Mayús+7 en muchos teclados) o si otro manejador ya lo atendió. */
+export function initSearchShortcut(htmlDocument: Document): void {
   /* La pista «/» del campo solo se enseña con esta marca: sin JS el atajo no existe y no se anuncia. */
-  for (const root of doc.querySelectorAll('[data-search]')) root.setAttribute('data-shortcut', '');
-  doc.addEventListener('keydown', (event) => {
+  for (const root of htmlDocument.querySelectorAll('[data-search]'))
+    root.setAttribute('data-shortcut', '');
+  htmlDocument.addEventListener('keydown', (event) => {
     const { key, ctrlKey, metaKey, altKey, defaultPrevented } = event as KeyboardEvent;
     if (key !== '/' || ctrlKey || metaKey || altKey || defaultPrevented) return;
     if (isTyping(event.target)) return;
-    const input = doc.querySelector<HTMLInputElement>('[data-search-input]');
+    const input = htmlDocument.querySelector<HTMLInputElement>('[data-search-input]');
     if (!input) return;
     event.preventDefault();
     input.focus();

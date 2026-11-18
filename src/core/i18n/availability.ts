@@ -11,10 +11,7 @@ export interface UrlPolicy {
 /** Por slug, el idioma → URL de cada página REAL (nunca de rutas de reserva). */
 export type Availability = Map<string, Partial<Record<Locale, string>>>;
 
-/**
- * URL de una página: `<base>/[<locale>/]<slug>/`. El idioma por defecto va sin prefijo; `ignore`
- * se trata como `always`; con `never` desaparece la barra final salvo en la raíz del sitio.
- */
+/** URL de una página `<base>/[<locale>/]<slug>/`; el idioma por defecto va sin prefijo y `never` quita la barra final. */
 export function pageUrl(slug: string, locale: Locale, url: UrlPolicy): string {
   const segments = [
     ...url.base.split('/'),

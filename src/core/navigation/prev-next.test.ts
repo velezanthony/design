@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { prevNext } from './prev-next';
 import type { SidebarLeaf } from './sidebar';
 
-const leaf = (slug: string, badge?: string): SidebarLeaf => ({
-  label: slug,
-  slug,
-  href: `/${slug}/`,
-  ...(badge ? { badge } : {}),
-});
+function leaf(slug: string, badge?: string): SidebarLeaf {
+  return {
+    label: slug,
+    slug,
+    href: `/${slug}/`,
+    ...(badge ? { badge } : {}),
+  };
+}
 const order = [leaf('a'), leaf('b'), leaf('c')];
 
 describe('prevNext', () => {

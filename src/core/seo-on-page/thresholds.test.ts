@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { THRESHOLDS } from './thresholds';
 
-/* Los límites son una decisión, no un detalle: los analizadores se prueban contra `THRESHOLDS`, así
-   que si alguien cambia un número sus tests siguen en verde. Este test fija los valores literales
-   para que cambiarlos sea un acto deliberado (y se revise el porqué que documenta cada uno). */
+/* Fija los valores literales: los analizadores se prueban contra `THRESHOLDS`, así que cambiarlos debe ser deliberado. */
 describe('THRESHOLDS', () => {
   it('fija los límites acordados', () => {
     expect(THRESHOLDS).toEqual({
@@ -16,7 +14,7 @@ describe('THRESHOLDS', () => {
       maxH1: 1,
       ogWidth: 1200,
       ogHeight: 630,
-      ogRatioTolerance: 0.05,
+      ogRatioTolerance: 0.02,
     });
   });
 });

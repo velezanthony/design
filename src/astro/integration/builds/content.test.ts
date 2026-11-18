@@ -4,9 +4,7 @@ import { buildFailingCase } from '../../../testing/case';
 
 const contentEntry = resolve('src/astro/content/index.ts');
 
-/* `@velezanthony/design/content` toma la config del módulo virtual de la integración. El caso feliz
-   lo cubre `short-form.test.ts` (su fixture usa la forma corta) y la forma explícita sigue en
-   `basic.test.ts` (fixture `basic`): aquí, el único fallo propio de la forma corta. */
+/* `design/content` toma la config del módulo virtual; aquí solo el fallo propio de la forma corta (el resto, en `short-form` y `basic`). */
 
 describe('@velezanthony/design/content sin la integración', { timeout: 120_000 }, () => {
   it('falla diciendo que falta docs(config) en astro.config.mjs', async () => {

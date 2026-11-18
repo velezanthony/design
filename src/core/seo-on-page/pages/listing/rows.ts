@@ -1,5 +1,7 @@
 import type { Locale } from '../../../i18n/locale';
 import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
+import { SEVERITY_RANK, worst } from '../../severity';
+import { groupBySlug, mainEntry, ownIssues } from './group';
 
 /** Una etiqueta de la página. Los textos los pone la UI. */
 export type PageTag =
@@ -13,6 +15,14 @@ export type PageTag =
 
 /** El color de la insignia de un idioma: su peor gravedad, «ok» sin incidencias, «missing» si no existe. */
 export type LocaleTone = IssueSeverity | 'ok' | 'missing';
+
+/** El color de la insignia de una entrada: su peor gravedad, o «missing» si la página no existe en ese idioma. */
+export function localeTone(entry: SeoPage): Exclude<LocaleTone, 'missing'>;
+export function localeTone(entry: SeoPage | undefined): LocaleTone;
+export function localeTone(entry: SeoPage | undefined): LocaleTone {
+  if (!entry) return 'missing';
+  return worst(entry.issues.map((issue) => issue.severity)) ?? 'ok';
+}
 
 /** Un idioma de la página: el que existe lleva lo necesario para el detalle desplegable. */
 export type LocaleDetail =
@@ -40,11 +50,7 @@ export interface PageRow {
   tags: PageTag[];
   /** Uno por idioma configurado, en el orden de la config. */
   locales: LocaleDetail[];
-  /**
-   * Cada problema propio una vez, con los idiomas donde ocurre; el más grave primero. `issue` es el
-   * representante (el más grave) para pintar la insignia; sin `value` ni `limit` si cambian de un
-   * idioma a otro, para no enseñar una medida que solo es cierta en uno.
-   */
+  /** El representante (el más grave) pinta la insignia; sin `value` ni `limit` si cambian entre idiomas. */
   issues: { kind: IssueKind; severity: IssueSeverity; locales: Locale[]; issue: Issue }[];
   /** La peor gravedad de la página, contando también los problemas comunes; `undefined` si no tiene. */
   severity: IssueSeverity | undefined;
@@ -56,21 +62,10 @@ interface RowsInput {
   defaultLocale: Locale;
   /** Tipos comunes a todas las páginas: se quitan de las filas (ver `commonIssues`). */
   common: readonly IssueKind[];
-  /**
-   * Gravedades que se están viendo: los problemas de las filas las respetan (sin ellas, todas). Las
-   * insignias de idioma no: dicen cómo está el idioma de verdad, se vea o no el problema.
-   */
+  /** Las insignias de idioma ignoran las gravedades vistas: dicen el estado real del idioma. */
   severities?: readonly IssueSeverity[];
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
-
-export const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
-
-export const worst = (severities: readonly IssueSeverity[]): IssueSeverity | undefined =>
-  severities.reduce<IssueSeverity | undefined>(
-    (acc, severity) => (acc === undefined || RANK[severity] < RANK[acc] ? severity : acc),
-    undefined,
-  );
 
 /** El problema sin su medida (`value` y `limit`). */
 function withoutMeasure(issue: Issue): Issue {
@@ -108,19 +103,17 @@ export function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]):
 function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
   const { locales, defaultLocale, common, severities, inspector } = input;
   const byLocale = new Map(entries.map((entry) => [entry.locale, entry]));
-  const main = byLocale.get(defaultLocale) ?? locales.map((l) => byLocale.get(l)).find(Boolean);
-  const own = (entry: SeoPage) =>
-    entry.issues.filter(
-      (issue) =>
-        !common.includes(issue.kind) && (!severities || severities.includes(issue.severity)),
-    );
+  const main = mainEntry(entries, locales, defaultLocale);
+  function own(entry: SeoPage) {
+    return ownIssues(entry, common, severities);
+  }
 
   const details = locales.map((locale): LocaleDetail => {
     const entry = byLocale.get(locale);
     if (!entry) return { locale, tone: 'missing', present: false };
     return {
       locale,
-      tone: worst(entry.issues.map((issue) => issue.severity)) ?? 'ok',
+      tone: localeTone(entry),
       present: true,
       href: inspector({ slug, locale }),
       title: entry.meta.title,
@@ -141,7 +134,8 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
         continue;
       }
       seen.locales.push(locale);
-      const worstIssue = RANK[issue.severity] < RANK[seen.issue.severity] ? issue : seen.issue;
+      const worstIssue =
+        SEVERITY_RANK[issue.severity] < SEVERITY_RANK[seen.issue.severity] ? issue : seen.issue;
       const sameMeasure = issue.value === seen.issue.value && issue.limit === seen.issue.limit;
       seen.issue = sameMeasure ? worstIssue : withoutMeasure(worstIssue);
     }
@@ -156,21 +150,18 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
     locales: details,
     issues: [...grouped]
       .map(([kind, seen]) => ({ kind, severity: seen.issue.severity, ...seen }))
-      .sort((a, b) => RANK[a.severity] - RANK[b.severity]),
+      .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity]),
     severity: worst(entries.flatMap((entry) => entry.issues.map((issue) => issue.severity))),
   };
 }
 
-/**
- * Las filas de la tabla: una por página (slug), no por idioma. Cada fila resume sus idiomas, junta
- * los problemas iguales (cada uno una vez, con dónde ocurre) y las filas salen de la peor gravedad
- * a la mejor; en los empates se conserva el orden de entrada. Un `Array.sort` es estable.
- */
+/** Una fila por página (slug), no por idioma; peor gravedad primero y empates en orden de entrada. */
 export function pageRows(entries: readonly SeoPage[], input: RowsInput): PageRow[] {
-  const bySlug = new Map<string, SeoPage[]>();
-  for (const entry of entries) bySlug.set(entry.slug, [...(bySlug.get(entry.slug) ?? []), entry]);
-  const rank = (row: PageRow) => (row.severity === undefined ? 3 : RANK[row.severity]);
+  const bySlug = groupBySlug(entries);
+  function rank(row: PageRow) {
+    return row.severity === undefined ? 3 : SEVERITY_RANK[row.severity];
+  }
   return [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))
-    .sort((a, b) => rank(a) - rank(b));
+    .sort((left, right) => rank(left) - rank(right));
 }

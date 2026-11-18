@@ -1,28 +1,36 @@
 import { describe, expect, it } from 'vitest';
 import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
-import { pageRows } from './rows';
+import { localeTone, pageRows } from './rows';
 
-const issue = (kind: IssueKind, severity: IssueSeverity): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
-const warn = (kind: IssueKind = IssueKind.DUPLICATE_TITLE) => issue(kind, IssueSeverity.WARNING);
-const info = (kind: IssueKind = IssueKind.DESCRIPTION_INHERITED) => issue(kind, IssueSeverity.INFO);
+function issue(kind: IssueKind, severity: IssueSeverity): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
+function warn(kind: IssueKind = IssueKind.DUPLICATE_TITLE) {
+  return issue(kind, IssueSeverity.WARNING);
+}
+function info(kind: IssueKind = IssueKind.DESCRIPTION_INHERITED) {
+  return issue(kind, IssueSeverity.INFO);
+}
 
-const entry = (slug: string, locale: string, extra: Partial<SeoPage> = {}) =>
-  seoPage({ slug, locale, ...extra });
+function entry(slug: string, locale: string, extra: Partial<SeoPage> = {}) {
+  return seoPage({ slug, locale, ...extra });
+}
 
-const rows = (entries: SeoPage[], common: IssueKind[] = []) =>
-  pageRows(entries, {
+function rows(entries: SeoPage[], common: IssueKind[] = []) {
+  return pageRows(entries, {
     locales: ['en', 'es'],
     defaultLocale: 'en',
     common,
     inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
   });
+}
 
 describe('pageRows', () => {
   it('los problemas de la fila respetan las gravedades que se están viendo', () => {
@@ -114,7 +122,9 @@ describe('pageRows', () => {
   });
 
   it('la medida del problema solo se enseña si es la misma en todos los idiomas', () => {
-    const measured = (value: number) => ({ ...warn(IssueKind.TITLE_TOO_SHORT), value, limit: 15 });
+    function measured(value: number) {
+      return { ...warn(IssueKind.TITLE_TOO_SHORT), value, limit: 15 };
+    }
     const same = rows([
       entry('a', 'en', { issues: [measured(8)] }),
       entry('a', 'es', { issues: [measured(8)] }),
@@ -237,5 +247,19 @@ describe('pageRows', () => {
     it('una página completa y corriente no lleva etiquetas', () => {
       expect(rows([entry('a', 'en'), entry('a', 'es')])[0]?.tags).toEqual([]);
     });
+  });
+});
+
+describe('localeTone', () => {
+  it('sin página es «missing»', () => {
+    expect(localeTone(undefined)).toBe('missing');
+  });
+
+  it('sin incidencias es «ok»', () => {
+    expect(localeTone(entry('a', 'en'))).toBe('ok');
+  });
+
+  it('con incidencias es la peor gravedad', () => {
+    expect(localeTone(entry('a', 'en', { issues: [info(), warn()] }))).toBe('warning');
   });
 });

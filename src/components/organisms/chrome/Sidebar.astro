@@ -1,0 +1,22 @@
+---
+import type { SidebarNode } from '../../../core/navigation/sidebar';
+import type { UiStrings } from '../../../core/i18n/ui-strings';
+import { translate } from '../../../core/i18n/ui-strings';
+import SidebarList from './SidebarList.astro';
+
+interface Props {
+  /** Árbol ya construido por `core/navigation` en el idioma de la página. */
+  nodes: SidebarNode[];
+  /** URL de la página que se lee: la entrada que coincide lleva `aria-current="page"`. */
+  current: string;
+  strings: UiStrings;
+}
+
+const { nodes, current, strings } = Astro.props;
+---
+
+{nodes.length > 0 && (
+  <nav aria-label={translate(strings, 'sidebar.label')} class="text-sm">
+    <SidebarList nodes={nodes} current={current} strings={strings} root />
+  </nav>
+)}

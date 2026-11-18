@@ -24,11 +24,7 @@ function labelFor(label: Label | undefined, locale: Locale): string | undefined 
   return typeof label === 'string' || label === undefined ? label : label[locale];
 }
 
-/**
- * Cascada SEO campo a campo: override de la página > base > derivado (el H1 para el título; nada
- * para la descripción; el sufijo del título cierra con el de la librería). La imagen es una unidad: si la página trae `src` sin `alt`, el `alt` es el
- * título de la PÁGINA, nunca el de la imagen base. `seo.title` solo afecta al head.
- */
+/** Cascada SEO por campo: página > base > derivado; la imagen es una unidad (sin `alt` usa el título de la PÁGINA) y `seo.title` solo afecta al head. */
 export function resolveMeta(
   base: SeoBase,
   override: PageSeoOverride | undefined,

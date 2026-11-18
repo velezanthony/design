@@ -2,33 +2,40 @@ import { describe, expect, it } from 'vitest';
 import type { PageLink, SeoPageFacts } from '../tree/types';
 import { analyzeLinks } from './links';
 
-const facts = (
+function facts(
   slug: string,
   options: { links?: PageLink[]; noindex?: boolean; locale?: string } = {},
-): SeoPageFacts => ({
-  slug,
-  locale: options.locale ?? 'en',
-  title: slug,
-  kind: 'native',
-  sourcePath: `${slug || 'index'}.md`,
-  meta: {
+): SeoPageFacts {
+  return {
+    slug,
+    locale: options.locale ?? 'en',
     title: slug,
-    titleLength: 30,
-    descriptionSource: 'page',
-    ogTitle: slug,
-    ogImageSource: 'none',
-    canonical: `/${slug}/`,
-    noindex: options.noindex ?? false,
-  },
-  headings: [],
-  schemas: [],
-  locales: [],
-  ...('links' in options ? { links: options.links } : { links: [] }),
-});
-const to = (slug: string, locale = 'en'): PageLink => ({ slug, locale });
-const kinds = (issues: { kind: string }[]) => issues.map((issue) => issue.kind);
-const forPage = (issues: ReturnType<typeof analyzeLinks>, slug: string) =>
-  issues.filter((issue) => issue.slug === slug);
+    kind: 'native',
+    sourcePath: `${slug || 'index'}.md`,
+    meta: {
+      title: slug,
+      titleLength: 30,
+      descriptionSource: 'page',
+      ogTitle: slug,
+      ogImageSource: 'none',
+      canonical: `/${slug}/`,
+      noindex: options.noindex ?? false,
+    },
+    headings: [],
+    schemas: [],
+    locales: [],
+    ...('links' in options ? { links: options.links } : { links: [] }),
+  };
+}
+function to(slug: string, locale = 'en'): PageLink {
+  return { slug, locale };
+}
+function kinds(issues: { kind: string }[]) {
+  return issues.map((issue) => issue.kind);
+}
+function forPage(issues: ReturnType<typeof analyzeLinks>, slug: string) {
+  return issues.filter((issue) => issue.slug === slug);
+}
 
 describe('analyzeLinks: enlaces a páginas noindex', () => {
   it('una página indexable que enlaza a una noindex: aviso con la noindex como relacionada', () => {
@@ -36,7 +43,9 @@ describe('analyzeLinks: enlaces a páginas noindex', () => {
       [facts('a', { links: [to('secret')] }), facts('secret', { noindex: true })],
       new Map(),
     );
-    const [issue] = forPage(issues, 'a').filter((i) => i.kind === 'link-to-noindex');
+    const [issue] = forPage(issues, 'a').filter(
+      (candidate) => candidate.kind === 'link-to-noindex',
+    );
     expect(issue).toMatchObject({
       severity: 'info',
       value: 1,
@@ -54,7 +63,9 @@ describe('analyzeLinks: enlaces a páginas noindex', () => {
       ],
       new Map(),
     );
-    const [issue] = forPage(issues, 'a').filter((i) => i.kind === 'link-to-noindex');
+    const [issue] = forPage(issues, 'a').filter(
+      (candidate) => candidate.kind === 'link-to-noindex',
+    );
     expect(issue).toMatchObject({ value: 2 });
     expect(issue!.message).toBe('El cuerpo enlaza a 2 páginas noindex.');
   });
@@ -108,7 +119,9 @@ describe('analyzeLinks: páginas huérfanas', () => {
       [facts('home'), facts('a', { links: [to('b')] }), facts('b'), facts('lonely')],
       new Map(),
     );
-    const orphans = issues.filter((issue) => issue.kind === 'orphan-page').map((i) => i.slug);
+    const orphans = issues
+      .filter((issue) => issue.kind === 'orphan-page')
+      .map((issue) => issue.slug);
     expect(orphans.sort()).toEqual(['a', 'home', 'lonely']);
     expect(forPage(issues, 'lonely')[0]).toMatchObject({ severity: 'info' });
   });
@@ -120,7 +133,7 @@ describe('analyzeLinks: páginas huérfanas', () => {
 
   it('enlazarse a sí misma no la saca de huérfana', () => {
     const issues = analyzeLinks([facts('a', { links: [to('a')] }), facts('b')], new Map());
-    expect(forPage(issues, 'a').map((i) => i.kind)).toEqual(['orphan-page']);
+    expect(forPage(issues, 'a').map((issue) => issue.kind)).toEqual(['orphan-page']);
   });
 
   it('un enlace de la navegación cuenta como entrante', () => {
@@ -144,8 +157,8 @@ describe('analyzeLinks: páginas huérfanas', () => {
     );
     expect(
       forPage(issues, 'b')
-        .filter((i) => i.locale === 'es')
-        .map((i) => i.kind),
+        .filter((issue) => issue.locale === 'es')
+        .map((issue) => issue.kind),
     ).toEqual(['orphan-page']);
   });
 

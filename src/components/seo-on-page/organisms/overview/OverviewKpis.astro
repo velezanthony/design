@@ -1,0 +1,49 @@
+---
+/* La fila de indicadores del Resumen: salud, páginas, idiomas y lo que hay que mirar. */
+import type { OverviewModel } from '../../../../core/seo-on-page/pages/overview/model';
+import { OVERVIEW_LABELS, percentText } from '../../../../core/seo-on-page/labels';
+import Kpi from '../../molecules/Kpi.astro';
+
+interface Props {
+  kpis: OverviewModel['kpis'];
+}
+
+const { kpis } = Astro.props;
+const labels = OVERVIEW_LABELS.kpis;
+const totalPages = kpis.pages.pages;
+---
+
+<ul aria-label={labels.region} class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+  <Kpi id="health" label={labels.health.label} value={percentText(kpis.health.percent)}>
+    <p class="font-mono text-sm text-ink">
+      {labels.health.formula(kpis.health.healthy, kpis.health.total)}
+    </p>
+    <p class="text-sm text-muted">{labels.health.note}</p>
+  </Kpi>
+  <Kpi id="pages" label={labels.pages.label} value={totalPages}>
+    <p class="text-sm text-muted">{labels.pages.sub(kpis.pages.entries)}</p>
+  </Kpi>
+  <Kpi id="locales" label={labels.locales.label} value={kpis.locales.length}>
+    <p class="text-sm text-muted">
+      {kpis.locales.map(({ locale, entries }, index) => (
+        <>
+          {index > 0 && ' · '}
+          <span class="font-mono text-ink">{locale}</span> ({entries})
+        </>
+      ))}
+    </p>
+  </Kpi>
+  <Kpi
+    id="problems"
+    label={labels.problems.label}
+    value={kpis.problems.pages}
+    href={kpis.problems.href}
+  >
+    <p class="text-sm text-muted">
+      {labels.problems.sub(kpis.problems.errors, kpis.problems.warnings, kpis.problems.entries)}
+    </p>
+  </Kpi>
+  <Kpi id="info" label={labels.info.label} value={kpis.info.pages} href={kpis.info.href}>
+    <p class="text-sm text-muted">{labels.info.sub(kpis.info, totalPages)}</p>
+  </Kpi>
+</ul>

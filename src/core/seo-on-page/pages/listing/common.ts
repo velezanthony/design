@@ -1,4 +1,6 @@
 import type { IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
+import { SEVERITY_RANK } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /** Un tipo de problema que comparten TODAS las páginas que se están viendo. */
 export interface CommonIssue {
@@ -13,8 +15,6 @@ export interface CommonIssue {
   fix?: string;
 }
 
-const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
-
 interface Seen {
   slugs: Set<string>;
   entries: Set<SeoPage>;
@@ -22,13 +22,7 @@ interface Seen {
   fixes: Set<string | undefined>;
 }
 
-/**
- * Los tipos de problema que afectan al 100 % de las páginas dadas (las ya filtradas): repetirlos en
- * cada fila solo tapa las diferencias entre páginas, así que la pantalla los enseña una vez aparte.
- * Con menos de dos páginas no hay nada «común» (sería quitar todo de la única fila), y los tipos
- * en `ignore` (los que el usuario filtró a propósito) se quedan siempre en las filas. Solo cuentan las
- * gravedades de `severities` (las que se están viendo): un aviso común de algo oculto no se explica.
- */
+/** Tipos presentes en todas las páginas dadas (con 2 o más); los de `ignore` y las gravedades no vistas se quedan en las filas. */
 export function commonIssues(
   entries: readonly SeoPage[],
   {
@@ -36,7 +30,7 @@ export function commonIssues(
     severities,
   }: { ignore?: readonly IssueKind[]; severities?: readonly IssueSeverity[] } = {},
 ): CommonIssue[] {
-  const slugs = new Set(entries.map((entry) => entry.slug));
+  const slugs = slugsOf(entries);
   if (slugs.size < 2) return [];
   const byKind = new Map<IssueKind, Seen>();
   for (const entry of entries) {
@@ -51,7 +45,8 @@ export function commonIssues(
       };
       seen.slugs.add(entry.slug);
       seen.entries.add(entry);
-      if (RANK[issue.severity] < RANK[seen.severity]) seen.severity = issue.severity;
+      if (SEVERITY_RANK[issue.severity] < SEVERITY_RANK[seen.severity])
+        seen.severity = issue.severity;
       seen.fixes.add(issue.fix);
       byKind.set(issue.kind, seen);
     }
@@ -68,5 +63,5 @@ export function commonIssues(
         ...(fix !== undefined && others.length === 0 && { fix }),
       };
     })
-    .sort((a, b) => RANK[a.severity] - RANK[b.severity]);
+    .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity]);
 }

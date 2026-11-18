@@ -1,0 +1,22 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import Tag from '../../atoms/display/Tag.astro';
+import type { TagTone } from '../../../core/shared/tones';
+
+interface Props extends Omit<HTMLAttributes<'span'>, 'class'> {
+  /** El glifo y la palabra: el color solo no dice nada a quien no lo distingue. */
+  glyph: string;
+  text: string;
+  /** El tono de `Tag`. */
+  tone: TagTone;
+}
+
+const { glyph, text, tone, ...rest } = Astro.props;
+---
+
+<Tag tone={tone} plain {...rest}>
+  <span aria-hidden="true">{glyph}</span>
+  <span>
+    <slot>{text}</slot>
+  </span>
+</Tag>

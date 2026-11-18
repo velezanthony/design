@@ -19,19 +19,16 @@ export interface NavEntry {
   icon?: NavIcon;
 }
 
-/**
- * Items de la cabecera para una página. Un item sin destino en este idioma (su página no existe y
- * la política es `omit`) se quita en vez de dejar un enlace roto. Sin `nav` no hay entradas.
- */
-export function buildNav(nav: readonly NavItem[] | undefined, ctx: NavContext): NavEntry[] {
+/** Items de la cabecera de una página; quita los sin destino en este idioma (`omit`) y sin `nav` no hay entradas. */
+export function buildNav(nav: readonly NavItem[] | undefined, context: NavContext): NavEntry[] {
   if (!nav) return [];
-  const { locale, cfg } = ctx;
-  const here = pageUrl(ctx.slug, locale, ctx.url);
-  const currentSection = sectionIndexOf(nav, ctx.slug);
+  const { locale, config } = context;
+  const here = pageUrl(context.slug, locale, context.url);
+  const currentSection = sectionIndexOf(nav, context.slug);
   const entries: NavEntry[] = [];
 
   nav.forEach((item, index) => {
-    const label = resolveLabel(item.label, locale, cfg.defaultLocale);
+    const label = resolveLabel(item.label, locale, config.defaultLocale);
     if (isNavLink(item)) {
       entries.push({
         label,
@@ -44,18 +41,18 @@ export function buildNav(nav: readonly NavItem[] | undefined, ctx: NavContext): 
     }
     if (isNavPage(item)) {
       const slug = toSidebarSlug(item.slug);
-      const leaf = flatten(buildSidebarFor(ctx, (candidate) => candidate === slug))[0];
+      const leaf = flatten(buildSidebarFor(context, (candidate) => candidate === slug))[0];
       if (!leaf) return;
       entries.push({
         label,
         href: leaf.href,
         kind: 'page',
-        ...(ctx.slug === slug && { current: 'page' as const }),
+        ...(context.slug === slug && { current: 'page' as const }),
       });
       return;
     }
     if (!isNavSection(item)) return;
-    const leaves = flatten(buildSectionSidebar(ctx, index));
+    const leaves = flatten(buildSectionSidebar(context, index));
     // Destino: la página índice del dir si existe; si no, la primera hoja que no sea un enlace a otro idioma.
     const landing =
       leaves.find((leaf) => leaf.slug === item.dir && !leaf.badge) ??

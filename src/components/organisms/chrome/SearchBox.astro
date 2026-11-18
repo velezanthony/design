@@ -1,0 +1,150 @@
+---
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+
+interface Props {
+  strings: UiStrings;
+  /** Base del sitio (`import.meta.env.BASE_URL`): de ahí carga el cliente el índice de Pagefind. */
+  baseUrl: string;
+  /** Distingue los ids si hay más de un buscador en la página. */
+  id?: string;
+  class?: string;
+}
+
+const { strings, baseUrl, id = 'docs-search', class: className } = Astro.props;
+const inputId = `${id}-input`;
+---
+
+{/* Marcado que cablea `initSearch`; los textos de estado viajan como `data-*` y el cliente interpola `{query}`. */}
+<div
+  data-search
+  data-base-url={baseUrl}
+  data-requires-build={translate(strings, 'search.requiresBuild')}
+  data-no-results={strings['search.noResults']}
+  class:list={['docs-search relative', className]}
+>
+  {/* La etiqueta solo la leen los lectores de pantalla: el placeholder y el atajo bastan a la vista. */}
+  <label for={inputId} class="sr-only">
+    {translate(strings, 'search.label')}
+  </label>
+  <div class="relative">
+    <input
+      id={inputId}
+      type="search"
+      data-search-input
+      autocomplete="off"
+      aria-keyshortcuts="/"
+      placeholder={translate(strings, 'search.placeholder')}
+      class="docs-search-input min-h-10 w-full rounded-md border border-rule bg-canvas px-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
+    />
+    {/* Pista del atajo: cuándo se ve (y el hueco que reserva) lo decide el CSS de abajo. */}
+    <kbd
+      aria-hidden="true"
+      class="docs-search-kbd pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded-[3px] border border-rule px-1.5 font-mono text-[0.6875rem] leading-4 text-faint"
+    >
+      /
+    </kbd>
+  </div>
+  {/* Estado y resultados flotan bajo el campo: si ocuparan sitio, cada búsqueda empujaría la
+      cabecera entera. El panel solo se pinta cuando alguno de los dos tiene contenido. */}
+  <div class="docs-search-panel absolute top-full right-0 z-30 mt-1 w-full min-w-72">
+    <p data-search-status role="status" class="text-sm text-muted"></p>
+    <ul data-search-results class="docs-search-results space-y-1 text-sm"></ul>
+  </div>
+</div>
+
+<style is:global>
+  /* La pista «/» solo se ve si el atajo funciona, con el campo vacío y sin foco, y nunca en táctil; con texto, la «x» nativa vuelve a su sitio. */
+  .docs-search-kbd {
+    display: none;
+  }
+
+  [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) {
+    padding-right: 2.25rem;
+  }
+
+  [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) + .docs-search-kbd {
+    display: inline-block;
+  }
+
+  @media (pointer: coarse) {
+    [data-search][data-shortcut] .docs-search-input:placeholder-shown:not(:focus) {
+      padding-right: 0.75rem;
+    }
+
+    [data-search][data-shortcut]
+      .docs-search-input:placeholder-shown:not(:focus)
+      + .docs-search-kbd {
+      display: none;
+    }
+  }
+
+  .docs-search-panel {
+    display: none;
+    max-height: min(70vh, 32rem);
+    overflow-y: auto;
+    padding: 0.5rem;
+    border: 1px solid var(--color-rule);
+    background-color: var(--color-canvas);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  }
+
+  .docs-search-panel:has(> :not(:empty)) {
+    display: block;
+  }
+
+  .docs-search-panel > :empty {
+    display: none;
+  }
+
+  .docs-search-panel > p + ul {
+    margin-top: 0.5rem;
+  }
+
+  .docs-search-results a {
+    display: block;
+    min-height: 1.5rem;
+    padding: 0.5rem 0.625rem;
+    color: var(--color-ink);
+    border-left: 2px solid transparent;
+    border-radius: 0 4px 4px 0;
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+
+  .docs-search-results a > span:first-child {
+    font-weight: 500;
+  }
+
+  .docs-search-results a > span:last-child {
+    display: block;
+    color: var(--color-muted);
+  }
+
+  /* El resultado activo se lee como un bloque (fondo tintado, barra, título en acento 5.62:1); el extracto sube a tinta para que las coincidencias destaquen. */
+  .docs-search-results a:hover,
+  .docs-search-results a:focus-visible {
+    background-color: var(--color-accent-soft);
+    border-left-color: var(--color-accent-line);
+  }
+
+  .docs-search-results a:focus-visible {
+    outline: none;
+  }
+
+  .docs-search-results a:is(:hover, :focus-visible) > span:first-child {
+    color: var(--color-accent);
+  }
+
+  .docs-search-results a:is(:hover, :focus-visible) > span:last-child {
+    color: var(--color-ink);
+  }
+
+  .docs-search-results mark {
+    background: transparent;
+    color: var(--color-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent-line);
+  }
+</style>

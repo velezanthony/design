@@ -143,7 +143,9 @@ describe('domainsOf', () => {
 describe('analyticsCookiesToDelete', () => {
   it('encuentra _ga y _ga_<contenedor>, y nada más', () => {
     const jar = 'theme=dark; _ga=GA1.1.1; _ga_ABC123=GS2.1; _gat=1; other_ga=2; _gid=3';
-    const names = analyticsCookiesToDelete(jar, 'example.com').map((c) => c.split('=')[0]);
+    const names = analyticsCookiesToDelete(jar, 'example.com').map(
+      (cookie) => cookie.split('=')[0],
+    );
     expect([...new Set(names)]).toEqual(['_ga', '_ga_ABC123']);
   });
 
@@ -154,8 +156,8 @@ describe('analyticsCookiesToDelete', () => {
       expect(cookie).toContain('expires=Thu, 01 Jan 1970 00:00:00 GMT');
       expect(cookie).toContain('path=/');
     }
-    expect(cookies.some((c) => !c.includes('domain='))).toBe(true);
-    expect(cookies.some((c) => c.includes('domain=.example.com'))).toBe(true);
+    expect(cookies.some((cookie) => !cookie.includes('domain='))).toBe(true);
+    expect(cookies.some((cookie) => cookie.includes('domain=.example.com'))).toBe(true);
   });
 
   it('es vacío si el tarro no tiene ninguna', () => {
@@ -165,12 +167,14 @@ describe('analyticsCookiesToDelete', () => {
 });
 
 describe('initConsent', () => {
-  const markup = (gtm: string) => `
+  function markup(gtm: string) {
+    return `
     <section data-consent-banner ${gtm} hidden>
       <button data-consent-accept>Accept</button>
       <button data-consent-reject>Reject</button>
     </section>
     <button data-consent-open>Preferences</button>`;
+  }
 
   function setup(storage: Storage | undefined, cookie = '', gtm = 'data-gtm-id="GTM-TEST"') {
     const { document } = parseHTML(
@@ -186,11 +190,16 @@ describe('initConsent', () => {
       },
     });
     const reload = vi.fn();
-    initConsent({ doc: document, storage, hostname: 'example.com', reload });
+    initConsent({ htmlDocument: document, storage, hostname: 'example.com', reload });
     const banner = document.querySelector('[data-consent-banner]')!;
-    const click = (selector: string) =>
-      document.querySelector(selector)!.dispatchEvent(new document.defaultView!.Event('click'));
-    const gtmScripts = () => document.querySelectorAll('script[src*="googletagmanager.com"]');
+    function click(selector: string) {
+      return document
+        .querySelector(selector)!
+        .dispatchEvent(new document.defaultView!.Event('click'));
+    }
+    function gtmScripts() {
+      return document.querySelectorAll('script[src*="googletagmanager.com"]');
+    }
     return { document, banner, click, gtmScripts, reload, written };
   }
 
@@ -266,7 +275,7 @@ describe('initConsent', () => {
     click('[data-consent-reject]');
     expect(readConsent(storage)).toBe('denied');
     expect(written.length).toBeGreaterThan(0);
-    expect(written.every((c) => c.includes('1970'))).toBe(true);
+    expect(written.every((cookie) => cookie.includes('1970'))).toBe(true);
     expect(reload).toHaveBeenCalledOnce();
   });
 
@@ -300,7 +309,12 @@ describe('initConsent', () => {
   it('no hace nada en una página sin banner', () => {
     const { document } = parseHTML('<!doctype html><html><body></body></html>');
     expect(() =>
-      initConsent({ doc: document, storage: memory(), hostname: 'x.com', reload: vi.fn() }),
+      initConsent({
+        htmlDocument: document,
+        storage: memory(),
+        hostname: 'x.com',
+        reload: vi.fn(),
+      }),
     ).not.toThrow();
   });
 });

@@ -5,8 +5,9 @@ import { createMarkdownEnv } from './env';
 import { scrollableTables } from './tables';
 
 const env = createMarkdownEnv(resolveConfig({ name: 'x' }), project);
-const render = (source: string, fileURL = docFileURL('a.md')) =>
-  renderMarkdown(source, { fileURL, plugins: [scrollableTables(env)] });
+function render(source: string, fileURL = docFileURL('a.md')) {
+  return renderMarkdown(source, { fileURL, plugins: [scrollableTables(env)] });
+}
 const table = '| a | b |\n|---|---|\n| 1 | 2 |';
 
 describe('scrollableTables', () => {

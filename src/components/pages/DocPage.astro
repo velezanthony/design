@@ -1,0 +1,12 @@
+---
+import type { ComponentProps } from 'astro/types';
+import DocsLayout from '../layouts/DocsLayout.astro';
+
+/* Solo pinta: la ruta lee los datos, arma el modelo y renderiza el Markdown (su `Content` llega como slot). */
+type Props = ComponentProps<typeof DocsLayout>;
+---
+
+<DocsLayout {...Astro.props}>
+  <slot name="head" slot="head" />
+  <slot />
+</DocsLayout>

@@ -5,7 +5,7 @@ import type { ResolvedConfig } from '../../core/config/resolve';
 import { externalCandidates } from '../../core/content/discovery';
 import type { Locale } from '../../core/i18n/locale';
 import { splitLocale } from '../../core/i18n/locale';
-import { defaultStrings, mergeUiStrings, type UiStrings } from '../../core/i18n/ui-strings';
+import { siteStrings, type UiStrings } from '../../core/i18n/ui-strings';
 import { createScope, shouldTransform, type Scope } from './path-filter';
 
 /** Lo que los plugins necesitan saber del sitio, calculado una vez al configurar la integración. */
@@ -32,15 +32,12 @@ export function createMarkdownEnv(
     scope: createScope(root, externalCandidates(config), config.content),
     locales: config.locales,
     defaultLocale: config.defaultLocale,
-    strings: mergeUiStrings(defaultStrings, config.ui),
+    strings: siteStrings(config.ui, config.locales),
     warn,
   };
 }
 
-/**
- * Idioma de un archivo: el sufijo de su nombre (`guide.es.md`, `CHANGELOG.es.md`); sin sufijo, o con
- * uno que no es de un idioma declarado, el idioma por defecto. Vale igual para nativos y `external`.
- */
+/** Idioma de un archivo por el sufijo de su nombre (`guide.es.md`); sin sufijo o no declarado, el idioma por defecto. */
 export function localeOf(env: MarkdownEnv, fileURL: URL | undefined): Locale {
   const name = fileURL ? decodeURIComponent(fileURL.pathname.split('/').pop() ?? '') : '';
   try {
@@ -55,10 +52,7 @@ export function stringsOf(env: MarkdownEnv, fileURL: URL | undefined): UiStrings
   return env.strings[localeOf(env, fileURL)] ?? env.strings[env.defaultLocale]!;
 }
 
-/**
- * Ruta del archivo respecto a la raíz del proyecto, para los mensajes de error. Los archivos de
- * fuera (`../docs/guia.md`, `../CHANGELOG.md`) salen con sus `..`, no con una ruta absoluta.
- */
+/** Ruta respecto a la raíz del proyecto para los errores; los archivos de fuera salen con sus `..`. */
 export function fileLabel(env: MarkdownEnv, fileURL: URL | undefined): string {
   if (!fileURL) return '(archivo desconocido)';
   if (fileURL.protocol !== 'file:' || env.root.protocol !== 'file:') {
@@ -75,14 +69,11 @@ export interface DocContext {
   env: MarkdownEnv;
 }
 
-/**
- * Factoría de plugin que solo participa en la documentación (nativa y `external`): para cualquier
- * otro Markdown devuelve `null` y Sätteri deja el plugin fuera de ese documento.
- */
+/** Plugin que solo participa en la documentación; para otro Markdown devuelve `null` y Sätteri lo deja fuera. */
 export function docsPlugin(
   env: MarkdownEnv,
   build: (doc: DocContext) => MdastPluginDefinition,
-): (ctx: PluginFactoryContext) => MdastPluginDefinition | null {
+): (context: PluginFactoryContext) => MdastPluginDefinition | null {
   return ({ fileURL }) => {
     if (!fileURL || !shouldTransform(fileURL, env.scope)) return null;
     return build({ fileURL, file: fileLabel(env, fileURL), strings: stringsOf(env, fileURL), env });

@@ -1,12 +1,7 @@
 import { z } from 'astro/zod';
 import { MissingTranslationSchema, PageSeoOverrideSchema } from '../../core/config/schema';
 
-/**
- * Esquema de la colección `docs`. Los metadatos que necesita el núcleo: slug (vacío para la
- * portada), idioma, título y ruta del archivo fuente (relativa a la raíz del proyecto), más lo
- * que cada página puede declarar: `order`, `seo` y `translations` (frontmatter o `external[]`).
- * `editPath` es la ruta relativa al repositorio para el enlace «Editar» (solo con `editUrl`).
- */
+/** Esquema de la colección `docs`: lo que necesita el núcleo más `order`, `seo`, `translations` y `editPath` (solo con `editUrl`). */
 export function docsSchema() {
   return z.object({
     slug: z.string(),
@@ -21,3 +16,9 @@ export function docsSchema() {
     editPath: z.string().optional(),
   });
 }
+
+/** Los datos de una página como los reciben las vistas: `kind` es opcional por su `default`. */
+export type DocData = z.input<ReturnType<typeof docsSchema>>;
+
+/** Los datos de una página como los guarda la colección, con los valores por defecto. */
+export type DocEntryData = z.output<ReturnType<typeof docsSchema>>;

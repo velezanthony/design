@@ -7,12 +7,13 @@ import { createMarkdownEnv } from './env';
 import { tabs } from './tabs';
 
 const env = createMarkdownEnv(resolveConfig({ name: 'x', locales: ['en', 'es'] }), project);
-const render = (source: string, fileURL = docFileURL('a.md')) =>
-  renderMarkdown(source, {
+function render(source: string, fileURL = docFileURL('a.md')) {
+  return renderMarkdown(source, {
     fileURL,
     features: { directive: true },
     plugins: [admonitions(env), tabs(env)],
   });
+}
 
 describe('tabs', () => {
   const two = '::::tabs\n:::tab[npm]\nnpm i\n:::\n:::tab[pnpm]\npnpm add\n:::\n::::';
@@ -49,19 +50,23 @@ describe('tabs', () => {
   });
 
   it('una pestaña sin etiqueta falla con el archivo', async () => {
-    const error = await render('::::tabs\n:::tab\nx\n:::\n::::').catch((e: unknown) => e as Error);
+    const error = await render('::::tabs\n:::tab\nx\n:::\n::::').catch(
+      (caught: unknown) => caught as Error,
+    );
     expect(error).toBeInstanceOf(AstroError);
     expect((error as Error).message).toContain('src/content/docs/a.md');
   });
 
   it('`tab` fuera de `tabs` falla', async () => {
-    const error = await render(':::tab[A]\nx\n:::').catch((e: unknown) => e as Error);
+    const error = await render(':::tab[A]\nx\n:::').catch((caught: unknown) => caught as Error);
     expect(error).toBeInstanceOf(AstroError);
     expect((error as Error).message).toContain('tab');
   });
 
   it('`tabs` solo admite `tab` dentro', async () => {
-    const error = await render('::::tabs\n:::note\nx\n:::\n::::').catch((e: unknown) => e as Error);
+    const error = await render('::::tabs\n:::note\nx\n:::\n::::').catch(
+      (caught: unknown) => caught as Error,
+    );
     expect(error).toBeInstanceOf(AstroError);
   });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DocsError } from '../errors';
-import { localeFromPath, splitLocale } from './locale';
+import { localeFromPath, localizedPath, splitLocale, stripLocale } from './locale';
 
 const locales = ['en', 'es'];
 
@@ -42,8 +42,9 @@ describe('splitLocale', () => {
 });
 
 describe('localeFromPath', () => {
-  const detect = (pathname: string, base = '/repo') =>
-    localeFromPath(pathname, base, locales, 'en');
+  function detect(pathname: string, base = '/repo') {
+    return localeFromPath(pathname, base, locales, 'en');
+  }
 
   it('detecta el idioma por el primer segmento tras la base', () => {
     expect(detect('/repo/es/x')).toBe('es');
@@ -76,5 +77,36 @@ describe('localeFromPath', () => {
   it('con otro idioma por defecto, el prefijo explícito del defecto sigue siendo ese idioma', () => {
     expect(localeFromPath('/repo/x', '/repo', locales, 'es')).toBe('es');
     expect(localeFromPath('/repo/en/x', '/repo', locales, 'es')).toBe('en');
+  });
+});
+
+describe('localizedPath', () => {
+  it('el idioma por defecto es el archivo tal cual', () => {
+    expect(localizedPath('guide/install.md', 'en', 'en')).toBe('guide/install.md');
+  });
+
+  it('los demás llevan el sufijo antes de .md', () => {
+    expect(localizedPath('guide/install.md', 'es', 'en')).toBe('guide/install.es.md');
+    expect(localizedPath('guide/install.md', 'pt-BR', 'en')).toBe('guide/install.pt-BR.md');
+  });
+});
+
+describe('stripLocale', () => {
+  it('quita el sufijo del idioma del archivo', () => {
+    expect(stripLocale('guide/install.es.md', 'es', 'en')).toBe('guide/install.md');
+  });
+
+  it('el idioma por defecto no tiene sufijo que quitar', () => {
+    expect(stripLocale('guide/install.md', 'en', 'en')).toBe('guide/install.md');
+  });
+
+  it('el código se toma literal, no como expresión regular', () => {
+    expect(stripLocale('guide/install.pt-BR.md', 'pt-BR', 'en')).toBe('guide/install.md');
+    expect(stripLocale('guide/installXesXmd', 'es', 'en')).toBe('guide/installXesXmd');
+  });
+
+  it('ida y vuelta con localizedPath', () => {
+    const file = localizedPath('a/b.md', 'es', 'en');
+    expect(stripLocale(file, 'es', 'en')).toBe('a/b.md');
   });
 });

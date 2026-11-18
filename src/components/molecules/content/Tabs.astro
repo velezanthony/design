@@ -1,0 +1,20 @@
+---
+interface Props {
+  /** Un panel por pestaña; `html` es el contenido ya renderizado (bloques anidados incluidos). */
+  panels: { label: string; html: string }[];
+}
+
+const { panels } = Astro.props;
+---
+
+{/* Sin JS los paneles se apilan con su etiqueta; `initTabs` añade la `tablist` y los roles. */}
+{panels.length > 0 && (
+  <div class="docs-tabs">
+    {panels.map((panel) => (
+      <div class="docs-tab-panel">
+        <div class="docs-tab-label">{panel.label}</div>
+        <Fragment set:html={panel.html} />
+      </div>
+    ))}
+  </div>
+)}

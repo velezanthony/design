@@ -1,5 +1,5 @@
 import type { Page } from '../content/discovery';
-import { DEFAULT_CONTENT_DIR, normalizeContentDir } from '../content/content-dir';
+import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
 import { DocsError } from '../errors';
 import { pageUrl, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
@@ -11,10 +11,7 @@ export interface PageIndex {
   url: UrlPolicy;
   /** Rutas (como las de `sourcePath`, ya normalizadas) de recursos publicados que no son páginas. */
   assets?: ReadonlySet<string>;
-  /**
-   * Carpeta de las páginas nativas relativa a la raíz del proyecto (normalizada); sus `sourcePath`
-   * cuelgan de ella. Puede estar fuera del proyecto (`../docs`). Por defecto, `src/content/docs`.
-   */
+  /** Carpeta de las páginas nativas relativa a la raíz del proyecto; puede estar fuera de él (`../docs`). */
   contentDir?: string;
 }
 
@@ -40,26 +37,16 @@ const DEFINITION = /^( {0,3}\[[^\]]+\]:\s*)(<[^>]*>|\S+)/;
 const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/)/i;
 
 /** `./x.md` y `x.md` son la misma ruta. */
-const stripDot = (path: string) => path.replace(/^(\.\/)+/, '');
+function stripDot(path: string) {
+  return path.replace(/^(\.\/)+/, '');
+}
 
 /** Resuelve `target` contra el directorio de `fromPath`: `../README.md` + `./A.md` → `../A.md`. */
 function resolvePath(fromPath: string, target: string): string {
-  const stack: string[] = [];
-  for (const segment of [...fromPath.split('/').slice(0, -1), ...target.split('/')]) {
-    if (segment === '' || segment === '.') continue;
-    if (segment === '..' && stack.length > 0 && stack[stack.length - 1] !== '..') stack.pop();
-    else stack.push(segment);
-  }
-  return stack.join('/');
+  return normalizePath([...fromPath.split('/').slice(0, -1), target].join('/'));
 }
 
-/**
- * Página a la que apunta `resolved`. Los `sourcePath` nativos cuelgan de la carpeta de contenido y
- * los external de la raíz del proyecto, así que entre tipos distintos se cambia de referencia:
- * un nativo que enlaza a un external lo hace con su ruta real (se vuelve a resolver desde la raíz)
- * y un external que enlaza a un nativo apunta dentro de la carpeta de contenido (se le quita ese
- * prefijo). La búsqueda es siempre por la ruta real del archivo, esté donde esté la carpeta.
- */
+/** Página a la que apunta `resolved`; los `sourcePath` nativos cuelgan del contenido y los externos de la raíz, así que se busca por ruta real. */
 function findTarget(
   resolved: string,
   decoded: string,
@@ -67,7 +54,7 @@ function findTarget(
   index: PageIndex,
 ): Page | undefined {
   const { pages } = index;
-  const contentDir = normalizeContentDir(index.contentDir ?? DEFAULT_CONTENT_DIR);
+  const contentDir = normalizePath(index.contentDir ?? DEFAULT_CONTENT_DIR);
   const sameKind = pages.find(
     (page) => page.kind === from.kind && stripDot(page.sourcePath) === resolved,
   );
@@ -86,17 +73,23 @@ function findTarget(
 function codeSpans(line: string): [number, number][] {
   const spans: [number, number][] = [];
   const runs = [...line.matchAll(/`+/g)];
-  for (let i = 0; i < runs.length; i++) {
-    const close = runs.findIndex((run, j) => j > i && run[0].length === runs[i][0].length);
-    if (close === -1) continue;
-    spans.push([runs[i].index, runs[close].index + runs[close][0].length]);
-    i = close;
+  for (let index = 0; index < runs.length; index++) {
+    const run = runs[index];
+    if (!run) continue;
+    const close = runs.findIndex(
+      (candidate, position) => position > index && candidate[0].length === run[0].length,
+    );
+    const closing = runs[close];
+    if (!closing) continue;
+    spans.push([run.index, closing.index + closing[0].length]);
+    index = close;
   }
   return spans;
 }
 
-const inside = (spans: [number, number][], index: number) =>
-  spans.some(([start, end]) => index >= start && index < end);
+function inside(spans: [number, number][], index: number) {
+  return spans.some(([start, end]) => index >= start && index < end);
+}
 
 interface Context {
   from: Page;
@@ -106,11 +99,7 @@ interface Context {
   errors: DocsError[];
 }
 
-/**
- * Imagen relativa sin `./` (`img/a.png`) con el `./` puesto. Astro importa las imágenes de una
- * página como módulos y una ruta sin `./` ni `../` sería un módulo «bare»: no la encontraría aunque
- * en Markdown sea una ruta relativa al archivo. Lo demás (URLs, rutas del sitio, `./`, `../`) no se toca.
- */
+/** Pone `./` a las imágenes sin él: Astro las importa como módulos y una ruta «bare» no se encontraría. */
 function dotImageTarget(rawTarget: string): string {
   const angled = rawTarget.startsWith('<');
   const target = angled ? rawTarget.slice(1, -1) : rawTarget;
@@ -134,7 +123,7 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     return undefined;
   }
 
-  const path = rawPath.split('?')[0];
+  const [path = rawPath] = rawPath.split('?');
   let decoded = path;
   try {
     decoded = decodeURI(path);
@@ -175,12 +164,7 @@ function brokenLink(target: string, from: Page, line: number, reason: string): D
   });
 }
 
-/**
- * Reescribe los enlaces relativos del cuerpo hacia la URL de la página publicada de destino y
- * devuelve los enlaces internos (para validar sus anclas), las imágenes y los enlaces rotos
- * (archivo, línea y destino).
- * Ignora bloques de código, código en línea, URLs externas, rutas absolutas del sitio e imágenes.
- */
+/** Reescribe los enlaces relativos hacia la URL destino y devuelve enlaces, imágenes y rotos; ignora código, externos y rutas absolutas. */
 export function rewriteLinks(
   body: string,
   from: Page,
@@ -188,12 +172,12 @@ export function rewriteLinks(
 ): { body: string; refs: LinkRef[]; images: BodyImage[]; errors: DocsError[] } {
   const context: Context = { from, index, refs: [], images: [], errors: [] };
   const mask = fenceMask(body);
-  const lines = body.split('\n').map((text, i) => {
-    if (mask[i]) return text;
+  const lines = body.split('\n').map((text, lineIndex) => {
+    if (mask[lineIndex]) return text;
     const spans = codeSpans(text);
     const definition = DEFINITION.exec(text);
-    if (definition) {
-      const replaced = rewriteTarget(definition[2], i + 1, context);
+    if (definition?.[2] !== undefined) {
+      const replaced = rewriteTarget(definition[2], lineIndex + 1, context);
       return replaced === undefined
         ? text
         : definition[1] + replaced + text.slice(definition[0].length);
@@ -212,14 +196,14 @@ export function rewriteLinks(
         if (bang) {
           context.images.push({
             file: from.sourcePath,
-            line: i + 1,
+            line: lineIndex + 1,
             src: target.startsWith('<') ? target.slice(1, -1) : target,
             alt: label,
           });
           const dotted = dotImageTarget(target);
           return dotted === target ? match : `![${label}](${dotted}${title})`;
         }
-        const replaced = rewriteTarget(target, i + 1, context);
+        const replaced = rewriteTarget(target, lineIndex + 1, context);
         return replaced === undefined ? match : `[${label}](${replaced}${title})`;
       },
     );

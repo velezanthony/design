@@ -72,13 +72,13 @@ describe('targetScroll', () => {
 });
 
 const LG = '(min-width: 64rem)';
-const memory = (initial: Record<string, string> = {}): Storage => {
+function memory(initial: Record<string, string> = {}): Storage {
   const items = new Map(Object.entries(initial));
   return {
     getItem: (key: string) => items.get(key) ?? null,
     setItem: (key: string, value: string) => void items.set(key, value),
   } as Storage;
-};
+}
 const blocked = {
   getItem: () => {
     throw new DOMException('denied', 'SecurityError');
@@ -89,17 +89,17 @@ const blocked = {
 } as unknown as Storage;
 
 /** linkedom no calcula geometría: cada elemento la declara. */
-const geometry = (el: Element, rect: { top: number; height: number }) => {
-  Object.defineProperty(el, 'getBoundingClientRect', {
+function geometry(element: Element, rect: { top: number; height: number }) {
+  Object.defineProperty(element, 'getBoundingClientRect', {
     value: () => ({ top: rect.top, height: rect.height, bottom: rect.top + rect.height }),
   });
-};
+}
 
-const page = ({
+function page({
   left = 'open',
   scrollTop = 0,
   current = true,
-}: { left?: string; scrollTop?: number; current?: boolean } = {}) => {
+}: { left?: string; scrollTop?: number; current?: boolean } = {}) {
   const { document } = parseHTML(
     `<!doctype html><html data-left="${left}"><body>
       <aside data-docs-sidebar-scroll>
@@ -115,19 +115,20 @@ const page = ({
   geometry(box, { top: 32, height: 400 });
   geometry(document.getElementById('cur')!, { top: 32 + 1000 - scrollTop, height: 40 });
   return { document, box };
-};
+}
 
 describe('sidebarScrollScript', () => {
-  const run = (
-    doc: Document,
+  function run(
+    htmlDocument: Document,
     session: Storage | 'throws',
     { wide = true }: { wide?: boolean } = {},
-  ) =>
-    new Function('document', 'sessionStorage', 'matchMedia', sidebarScrollScript())(
-      doc,
+  ) {
+    return new Function('document', 'sessionStorage', 'matchMedia', sidebarScrollScript())(
+      htmlDocument,
       session === 'throws' ? blocked : session,
       (query: string) => ({ matches: query === LG && wide }),
     );
+  }
 
   it('restaura la posición guardada si el enlace actual sigue a la vista', () => {
     const { document, box } = page({ scrollTop: 0 });
@@ -206,20 +207,27 @@ describe('sidebarScrollScript', () => {
 });
 
 describe('initSidebarScroll', () => {
-  const setup = ({
+  function setup({
     storage = memory(),
     wide = true,
     left = 'open',
     scrollTop = 640,
-  }: { storage?: Storage; wide?: boolean; left?: string; scrollTop?: number } = {}) => {
+  }: { storage?: Storage; wide?: boolean; left?: string; scrollTop?: number } = {}) {
     const { document, box } = page({ left, scrollTop });
     const listeners = new Map<string, () => void>();
-    const win = {
-      addEventListener: vi.fn((type: string, cb: () => void) => void listeners.set(type, cb)),
+    const browserWindow = {
+      addEventListener: vi.fn(
+        (type: string, callback: () => void) => void listeners.set(type, callback),
+      ),
     };
-    initSidebarScroll({ doc: document, storage, win, rail: { matches: wide } });
+    initSidebarScroll({
+      htmlDocument: document,
+      storage,
+      browserWindow,
+      rail: { matches: wide },
+    });
     return { document, box, storage, listeners };
-  };
+  }
 
   it('guarda la posición al salir de la página (pagehide)', () => {
     const { storage, listeners } = setup();
@@ -256,8 +264,13 @@ describe('initSidebarScroll', () => {
 
   it('sin barra lateral en la página no hace nada', () => {
     const { document } = parseHTML('<!doctype html><html><body></body></html>');
-    const win = { addEventListener: vi.fn() };
-    initSidebarScroll({ doc: document, storage: memory(), win, rail: { matches: true } });
-    expect(win.addEventListener).not.toHaveBeenCalled();
+    const browserWindow = { addEventListener: vi.fn() };
+    initSidebarScroll({
+      htmlDocument: document,
+      storage: memory(),
+      browserWindow,
+      rail: { matches: true },
+    });
+    expect(browserWindow.addEventListener).not.toHaveBeenCalled();
   });
 });

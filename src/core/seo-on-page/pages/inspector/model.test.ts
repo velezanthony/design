@@ -14,7 +14,7 @@ const links: PanelLinks = {
   overview: () => '/o/',
 };
 
-const run = (pages: SeoPage[], slug = 'guide', locale = 'en') => {
+function run(pages: SeoPage[], slug = 'guide', locale = 'en') {
   const tree: SeoTree = { pages };
   return inspectorModel({
     tree,
@@ -24,7 +24,7 @@ const run = (pages: SeoPage[], slug = 'guide', locale = 'en') => {
     site: 'https://x.dev',
     asset: (src) => `/repo${src}`,
   });
-};
+}
 
 describe('inspectorModel', () => {
   it('sin página con ese slug e idioma no hay modelo', () => {
@@ -41,8 +41,8 @@ describe('inspectorModel', () => {
   });
 
   describe('enlace para editar el archivo', () => {
-    const withEdit = (edit?: { url: string; path: string }) =>
-      inspectorModel({
+    function withEdit(edit?: { url: string; path: string }) {
+      return inspectorModel({
         tree: { pages: [seoPage()] },
         slug: 'guide',
         locale: 'en',
@@ -51,6 +51,7 @@ describe('inspectorModel', () => {
         asset: (src) => src,
         edit,
       })!.links.edit;
+    }
 
     it('es la base de edición más la ruta del archivo, sin barras de sobra', () => {
       expect(withEdit({ url: 'https://gh/edit/main/', path: '/docs/guide.md' })).toBe(
@@ -117,8 +118,16 @@ describe('inspectorModel', () => {
   });
 
   describe('qué arreglar', () => {
-    const issue = (kind: string, severity: string, extra = {}) =>
-      ({ kind, severity, slug: 'guide', locale: 'en', message: `m-${kind}`, ...extra }) as never;
+    function issue(kind: string, severity: string, extra = {}) {
+      return {
+        kind,
+        severity,
+        slug: 'guide',
+        locale: 'en',
+        message: `m-${kind}`,
+        ...extra,
+      } as never;
+    }
 
     it('lo más grave primero, y a igual gravedad en el orden en que llegan', () => {
       const page = seoPage({
@@ -205,7 +214,7 @@ describe('inspectorModel', () => {
 
     it('cada schema con sus @type (una lista o uno), su origen y el JSON formateado', () => {
       const { schemas } = run([seoPage({ schemas: [org, person] })])!;
-      expect(schemas.map((s) => [s.types, s.source])).toEqual([
+      expect(schemas.map((schema) => [schema.types, schema.source])).toEqual([
         [['Organization'], 'site'],
         [['Person', 'Thing'], 'page'],
       ]);
@@ -301,14 +310,16 @@ describe('inspectorModel', () => {
 
   describe('traducciones', () => {
     const base = seoPage();
-    const entries = (locale: string) => ({
-      locales: [
-        { locale: 'en', status: 'present', url: '/repo/guide/' },
-        { locale: 'es', status: 'present', url: '/repo/es/guide/' },
-        { locale: 'fr', status: 'missing', policy: 'link', declared: true },
-      ],
-      locale,
-    });
+    function entries(locale: string) {
+      return {
+        locales: [
+          { locale: 'en', status: 'present', url: '/repo/guide/' },
+          { locale: 'es', status: 'present', url: '/repo/es/guide/' },
+          { locale: 'fr', status: 'missing', policy: 'link', declared: true },
+        ],
+        locale,
+      };
+    }
     const en = seoPage({
       ...entries('en'),
       meta: { ...base.meta, descriptionLength: 93 },
@@ -328,7 +339,7 @@ describe('inspectorModel', () => {
 
     it('una columna por idioma configurado, marcando la actual', () => {
       const columns = run([en, es])!.translations!.columns;
-      expect(columns.map((c) => [c.locale, c.current])).toEqual([
+      expect(columns.map((column) => [column.locale, column.current])).toEqual([
         ['en', true],
         ['es', false],
         ['fr', false],
@@ -344,6 +355,7 @@ describe('inspectorModel', () => {
         descriptionSource: 'site',
         issues: [{ kind: 'no-h1', severity: 'error' }],
         href: '/i/?slug=guide&locale=es',
+        tone: 'error',
       });
     });
 
@@ -357,7 +369,7 @@ describe('inspectorModel', () => {
         differs: { descriptionLength: false, descriptionSource: false },
       });
       expect(second).toMatchObject({
-        descriptionClass: 'low',
+        descriptionClass: 'edge',
         differs: { descriptionLength: true, descriptionSource: true },
       });
     });
@@ -369,12 +381,18 @@ describe('inspectorModel', () => {
         current: false,
         policy: 'link',
         declared: true,
+        tone: 'missing',
       });
     });
 
     it('una presente sin página en el árbol queda como ausente de datos: solo la URL', () => {
       const column = run([en])!.translations!.columns[1]!;
-      expect(column).toMatchObject({ state: 'unknown', locale: 'es', url: '/repo/es/guide/' });
+      expect(column).toMatchObject({
+        state: 'unknown',
+        locale: 'es',
+        url: '/repo/es/guide/',
+        tone: 'ok',
+      });
     });
 
     it('con un solo idioma configurado no hay comparación', () => {

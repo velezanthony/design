@@ -1,9 +1,4 @@
-/**
- * Filas por página por defecto. 25 son unas dos pantallas con las insignias de problemas: se
- * escanea de una vez y la página sigue siendo ligera (cada fila pinta varias insignias), sin
- * obligar a pasar de página para ver un grupo corto. Quien quiera otro tamaño lo elige entre
- * `PAGE_SIZES`; este es el que rige si la URL no dice nada.
- */
+/** 25 son unas dos pantallas con insignias; rige si la URL no dice nada (el resto, en `PAGE_SIZES`). */
 export const PAGE_SIZE = 25;
 
 /** Tamaños elegibles. Cerrados a propósito: una URL con un número cualquiera no pide una página gigante. */
@@ -20,11 +15,7 @@ export interface Paginated<T> {
   to: number;
 }
 
-/**
- * Un trozo de `items`. La página pedida viene de una URL que puede haber escrito cualquiera, así
- * que lo que no vale (0, negativa, decimal, NaN, pasada del final) se lleva a la página válida más
- * cercana en vez de fallar o enseñar una tabla vacía. Sin filas hay una sola página.
- */
+/** La página viene de una URL editable: lo inválido se acota a la válida más cercana; sin filas hay una página. */
 export function paginate<T>(items: readonly T[], page: number, size: number): Paginated<T> {
   const perPage = Number.isFinite(size) && size >= 1 ? Math.floor(size) : 1;
   const total = items.length;

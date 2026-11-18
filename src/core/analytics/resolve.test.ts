@@ -8,16 +8,16 @@ import {
   resolvePrivacyUrls,
 } from './resolve';
 
-const fails = (run: () => unknown): string[] => {
+function fails(run: () => unknown): string[] {
   try {
     run();
   } catch (error) {
-    if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+    if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
     if (error instanceof DocsError) return [error.describe()];
     throw error;
   }
   return [];
-};
+}
 
 describe('resolveAnalytics', () => {
   it.each([undefined, '', '   ', '\n'])('sin valor (%j) no hay analítica', (value) => {
@@ -100,72 +100,73 @@ describe('resolvePrivacyUrls', () => {
 
 describe('applyAnalytics', () => {
   it('sin ID en entorno ni config: nada de analítica y sin enlace de privacidad', () => {
-    const cfg = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), undefined);
-    expect(cfg.gtmId).toBeUndefined();
-    expect(cfg.privacyUrl).toBeUndefined();
+    const config = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), undefined);
+    expect(config.gtmId).toBeUndefined();
+    expect(config.privacyUrl).toBeUndefined();
   });
 
   it('con ID en el entorno: gtmId y privacidad por defecto del portfolio', () => {
-    const cfg = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), 'GTM-ENV1');
-    expect(cfg.gtmId).toBe('GTM-ENV1');
-    expect(cfg.privacyUrl).toEqual({
+    const config = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), 'GTM-ENV1');
+    expect(config.gtmId).toBe('GTM-ENV1');
+    expect(config.privacyUrl).toEqual({
       en: 'https://velezanthony.github.io/en/privacy/',
       es: 'https://velezanthony.github.io/privacidad/',
     });
   });
 
   it('privacyUrl explícita sin analítica se mantiene (enlace de footer)', () => {
-    const cfg = applyAnalytics(resolveConfig({ name: 'X', privacyUrl: '/privacy/' }), undefined);
-    expect(cfg.gtmId).toBeUndefined();
-    expect(cfg.privacyUrl).toEqual({ en: '/privacy/' });
+    const config = applyAnalytics(resolveConfig({ name: 'X', privacyUrl: '/privacy/' }), undefined);
+    expect(config.gtmId).toBeUndefined();
+    expect(config.privacyUrl).toEqual({ en: '/privacy/' });
   });
 
   it('gtmId de la config gana al entorno', () => {
-    const cfg = applyAnalytics(resolveConfig({ name: 'X', gtmId: 'GTM-CONF1' }), 'GTM-ENV1');
-    expect(cfg.gtmId).toBe('GTM-CONF1');
+    const config = applyAnalytics(resolveConfig({ name: 'X', gtmId: 'GTM-CONF1' }), 'GTM-ENV1');
+    expect(config.gtmId).toBe('GTM-CONF1');
   });
 });
 
 describe('applyAnalytics: página de privacidad propia', () => {
   const url = { base: '/repo', trailingSlash: 'always' as const, defaultLocale: 'es' };
-  const page = (extra = {}) =>
-    resolveConfig({
+  function page(extra = {}) {
+    return resolveConfig({
       name: 'X',
       locales: ['es', 'en'],
       privacy: { page: true },
       ...extra,
     });
+  }
 
   it('con `page: true` el enlace apunta a la página local, también sin analítica', () => {
-    const cfg = applyAnalytics(page(), undefined, url);
-    expect(cfg.gtmId).toBeUndefined();
-    expect(cfg.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
+    const config = applyAnalytics(page(), undefined, url);
+    expect(config.gtmId).toBeUndefined();
+    expect(config.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
   });
 
   it('con `page: true` y analítica gana la local al portfolio', () => {
-    const cfg = applyAnalytics(page(), 'GTM-ENV1', url);
-    expect(cfg.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
+    const config = applyAnalytics(page(), 'GTM-ENV1', url);
+    expect(config.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
   });
 
   it('una `privacyUrl` explícita gana a la página local', () => {
-    const cfg = applyAnalytics(page({ privacyUrl: 'https://x.dev/p/' }), 'GTM-ENV1', url);
-    expect(cfg.privacyUrl).toEqual({ es: 'https://x.dev/p/', en: 'https://x.dev/p/' });
+    const config = applyAnalytics(page({ privacyUrl: 'https://x.dev/p/' }), 'GTM-ENV1', url);
+    expect(config.privacyUrl).toEqual({ es: 'https://x.dev/p/', en: 'https://x.dev/p/' });
   });
 
   it('con `page: false` sigue enlazando al portfolio (comportamiento actual)', () => {
-    const cfg = applyAnalytics(
+    const config = applyAnalytics(
       resolveConfig({ name: 'X', locales: ['es', 'en'], privacy: { page: false } }),
       'GTM-ENV1',
       url,
     );
-    expect(cfg.privacyUrl).toEqual({
+    expect(config.privacyUrl).toEqual({
       es: 'https://velezanthony.github.io/privacidad/',
       en: 'https://velezanthony.github.io/en/privacy/',
     });
   });
 
   it('sin política de URLs usa base `/` y barra final', () => {
-    const cfg = applyAnalytics(page(), undefined);
-    expect(cfg.privacyUrl).toEqual({ es: '/privacidad/', en: '/en/privacy/' });
+    const config = applyAnalytics(page(), undefined);
+    expect(config.privacyUrl).toEqual({ es: '/privacidad/', en: '/en/privacy/' });
   });
 });

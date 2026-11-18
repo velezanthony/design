@@ -1,29 +1,39 @@
 import { describe, expect, it } from 'vitest';
-import { builtClientPages, clientPagePaths, clientRoutes, type SiteRoute } from './client-pages';
+import {
+  builtClientPages,
+  clientPagePaths,
+  clientRoutes,
+  routePath,
+  type SiteRoute,
+} from './client-pages';
 
 /** Una ruta como la da Astro: `generate` interpola los params en el patrón y pone la barra final. */
-const route = (pattern: string, params: string[] = []): SiteRoute => ({
-  pattern,
-  entrypoint: `src/pages${pattern}.astro`,
-  params,
-  generate: (data: Record<string, string | undefined> = {}) =>
-    `${pattern
-      .split('/')
-      .map((segment) =>
-        segment.replace(/^\[(?:\.\.\.)?(\w+)\]$/, (_, name: string) => data[name] ?? ''),
-      )
-      .filter(Boolean)
-      .map((segment) => `/${segment}`)
-      .join('')}/`,
-});
+function route(pattern: string, params: string[] = []): SiteRoute {
+  return {
+    pattern,
+    entrypoint: `src/pages${pattern}.astro`,
+    params,
+    generate: (data: Record<string, string | undefined> = {}) =>
+      `${pattern
+        .split('/')
+        .map((segment) =>
+          segment.replace(/^\[(?:\.\.\.)?(\w+)\]$/, (_match, name: string) => data[name] ?? ''),
+        )
+        .filter(Boolean)
+        .map((segment) => `/${segment}`)
+        .join('')}/`,
+  };
+}
 
 describe('clientRoutes', () => {
-  const resolved = (pattern: string, extra: { origin?: string; type?: string } = {}) => ({
-    pattern,
-    origin: 'project',
-    type: 'page',
-    ...extra,
-  });
+  function resolved(pattern: string, extra: { origin?: string; type?: string } = {}) {
+    return {
+      pattern,
+      origin: 'project',
+      type: 'page',
+      ...extra,
+    };
+  }
 
   it('se queda con las páginas del proyecto', () => {
     const routes = [
@@ -42,7 +52,9 @@ describe('clientRoutes', () => {
 });
 
 describe('clientPagePaths', () => {
-  const none = async () => [];
+  async function none() {
+    return [];
+  }
 
   it('una ruta fija da su URL, con la base delante', async () => {
     const { pages } = await clientPagePaths([route('/cv')], none, '/repo');
@@ -58,10 +70,12 @@ describe('clientPagePaths', () => {
 
   it('una ruta dinámica da una URL por cada entrada de su getStaticPaths', async () => {
     const projects = route('/[...lang]/[slug]', ['lang', 'slug']);
-    const staticPaths = async () => [
-      { lang: undefined, slug: 'uno' },
-      { lang: 'en', slug: 'uno' },
-    ];
+    async function staticPaths() {
+      return [
+        { lang: undefined, slug: 'uno' },
+        { lang: 'en', slug: 'uno' },
+      ];
+    }
     const { pages } = await clientPagePaths([projects], staticPaths, '/');
     expect(pages.map(({ path }) => path)).toEqual(['/uno/', '/en/uno/']);
   });
@@ -70,8 +84,8 @@ describe('clientPagePaths', () => {
     const asked: string[] = [];
     await clientPagePaths(
       [route('/cv')],
-      async (r) => {
-        asked.push(r.pattern);
+      async (requested) => {
+        asked.push(requested.pattern);
         return [];
       },
       '/',
@@ -93,17 +107,23 @@ describe('clientPagePaths', () => {
   });
 
   it('una URL repetida (dos entradas con los mismos params) sale una vez', async () => {
-    const dup = route('/[slug]', ['slug']);
-    const { pages } = await clientPagePaths([dup], async () => [{ slug: 'a' }, { slug: 'a' }], '/');
+    const duplicateIssue = route('/[slug]', ['slug']);
+    const { pages } = await clientPagePaths(
+      [duplicateIssue],
+      async () => [{ slug: 'a' }, { slug: 'a' }],
+      '/',
+    );
     expect(pages).toHaveLength(1);
   });
 });
 
 describe('builtClientPages', () => {
-  const matching = (pattern: string, regex: RegExp): SiteRoute => ({
-    ...route(pattern),
-    match: (path) => regex.test(path),
-  });
+  function matching(pattern: string, regex: RegExp): SiteRoute {
+    return {
+      ...route(pattern),
+      match: (path) => regex.test(path),
+    };
+  }
 
   it('de las páginas generadas, se queda con las que salen de una ruta del cliente', () => {
     const cv = matching('/cv', /^\/cv\/$/);
@@ -123,5 +143,14 @@ describe('builtClientPages', () => {
 
   it('una ruta sin forma de reconocerse no se adivina', () => {
     expect(builtClientPages(['cv/'], [route('/cv')], '/')).toEqual([]);
+  });
+});
+
+describe('routePath', () => {
+  it('es la ruta tal como se visita: `index` es `/`, `es/index` es `/es/`', () => {
+    expect(routePath('index')).toBe('/');
+    expect(routePath('es/index')).toBe('/es/');
+    expect(routePath('es/404')).toBe('/es/404');
+    expect(routePath('sitemap.xml')).toBe('/sitemap.xml');
   });
 });

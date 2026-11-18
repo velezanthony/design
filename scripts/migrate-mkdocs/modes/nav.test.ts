@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { navToSidebar, type NavEntry } from './nav';
+import { navToSidebar, type NavEntry } from './nav.ts';
 
 describe('navToSidebar', () => {
   const translations = { Guide: 'Guía' };

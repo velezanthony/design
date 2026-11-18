@@ -3,12 +3,13 @@ import { defineMdastPlugin, type MdastPluginList } from 'satteri';
 import { docFileURL, renderMarkdown } from '../../testing/markdown';
 import { restoreDirectives } from './restore-directives';
 
-const render = (source: string, plugins: MdastPluginList = [restoreDirectives]) =>
-  renderMarkdown(source, {
+function render(source: string, plugins: MdastPluginList = [restoreDirectives]) {
+  return renderMarkdown(source, {
     fileURL: docFileURL('a.md'),
     features: { directive: true },
     plugins,
   });
+}
 
 describe('restoreDirectives', () => {
   it.each([
@@ -31,9 +32,9 @@ describe('restoreDirectives', () => {
   it('no toca una directiva que otro plugin ya reclamó', async () => {
     const claim = defineMdastPlugin({
       name: 'reclama',
-      textDirective(node, ctx) {
+      textDirective(node, context) {
         if (node.name === 'badge') {
-          ctx.replaceNode(node, { type: 'html', value: '<b>reclamada</b>' });
+          context.replaceNode(node, { type: 'html', value: '<b>reclamada</b>' });
         }
       },
     });

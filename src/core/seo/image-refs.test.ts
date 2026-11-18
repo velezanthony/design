@@ -2,15 +2,17 @@ import { describe, expect, it } from 'vitest';
 import type { Page } from '../content/discovery';
 import { collectImageRefs, imageErrors, isRemoteImage, publicImagePath } from './image-refs';
 
-const page = (sourcePath: string, seo?: Page['seo']): Page => ({
-  slug: 'x',
-  locale: 'en',
-  title: 'X',
-  kind: 'native',
-  sourcePath,
-  body: '',
-  ...(seo && { seo }),
-});
+function page(sourcePath: string, seo?: Page['seo']): Page {
+  return {
+    slug: 'x',
+    locale: 'en',
+    title: 'X',
+    kind: 'native',
+    sourcePath,
+    body: '',
+    ...(seo && { seo }),
+  };
+}
 
 describe('collectImageRefs', () => {
   it('reúne la imagen de la base y las de cada página con su procedencia', () => {
@@ -50,15 +52,16 @@ describe('imageErrors', () => {
     const errors = imageErrors(refs, new Set(['/base.png']));
     expect(errors).toHaveLength(2);
     expect(errors.map((error) => error.file)).toEqual(['a.md', 'b.md']);
-    expect(errors[0].message).toContain('seo.image.src');
-    expect(errors[0].message).toContain('/a.png');
-    expect(errors[0].hint).toContain('public/');
+    expect(errors[0]?.message).toContain('seo.image.src');
+    expect(errors[0]?.message).toContain('/a.png');
+    expect(errors[0]?.hint).toContain('public/');
   });
 
   it('la imagen de la base sin archivo se nombra con su campo de config', () => {
-    const [error] = imageErrors([refs[0]], new Set());
-    expect(error.file).toBeUndefined();
-    expect(error.message).toContain('seo.image.src');
+    const [error] = imageErrors(refs.slice(0, 1), new Set());
+    expect(error).toBeDefined();
+    expect(error?.file).toBeUndefined();
+    expect(error?.message).toContain('seo.image.src');
   });
 
   it('las remotas no se comprueban', () => {

@@ -25,4 +25,17 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run check
-      - run: npm test
+      - run: npm run test:coverage
+
+      # Solo informa: sin umbrales, el porcentaje no decide si el CI pasa.
+      - name: Resumen de cobertura
+        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+        run: |
+          node -e '
+            const { total } = JSON.parse(require("node:fs").readFileSync("coverage/coverage-summary.json", "utf8"));
+            const names = { statements: "sentencias", branches: "ramas", functions: "funciones", lines: "líneas" };
+            const rows = Object.entries(names).map(
+              ([metric, name]) => `| ${name} | ${total[metric].pct} % | ${total[metric].covered}/${total[metric].total} |`,
+            );
+            console.log(["## Cobertura", "", "| | % | cubiertas |", "|---|---|---|", ...rows].join("\n"));
+          ' >> "$GITHUB_STEP_SUMMARY"

@@ -13,21 +13,22 @@ import {
 
 const colors = { light: '#fcfefe', dark: '#0e1111' };
 
-const memory = (initial: Record<string, string> = {}): Storage => {
+function memory(initial: Record<string, string> = {}): Storage {
   const items = new Map(Object.entries(initial));
   return {
     getItem: (key: string) => items.get(key) ?? null,
     setItem: (key: string, value: string) => void items.set(key, value),
   } as Storage;
-};
+}
 
-const page = () =>
-  parseHTML(
+function page() {
+  return parseHTML(
     '<!doctype html><html><head>' +
       '<meta name="theme-color" content="#fcfefe" media="(prefers-color-scheme: light)">' +
       '<meta name="theme-color" content="#0e1111" media="(prefers-color-scheme: dark)">' +
       '</head><body><button data-theme-toggle></button><button data-theme-toggle></button></body></html>',
   ).document;
+}
 
 describe('parseTheme', () => {
   it.each(['dark', 'light'])('acepta %s', (value) => {
@@ -61,12 +62,14 @@ describe('nextTheme', () => {
 
 /* El botón enciende y apaga el modo oscuro: `aria-pressed` es si está encendido. */
 describe('syncToggle', () => {
-  const button = () => parseHTML('<button></button>').document.querySelector('button')!;
+  function button() {
+    return parseHTML('<button></button>').document.querySelector('button')!;
+  }
 
   it.each([true, false])('con modo oscuro %s', (dark) => {
-    const b = button();
-    syncToggle(b, dark);
-    expect(b.getAttribute('aria-pressed')).toBe(String(dark));
+    const toggle = button();
+    syncToggle(toggle, dark);
+    expect(toggle.getAttribute('aria-pressed')).toBe(String(dark));
   });
 });
 
@@ -86,7 +89,7 @@ describe('syncThemeColor', () => {
 /* Se ejecuta en línea antes del pintado: sin él la página se pinta con el tema del sistema y
    luego salta. No puede importar nada, por eso es una cadena y se prueba ejecutándola. */
 describe('themeBootstrapScript', () => {
-  const run = (storage: Storage | 'throws') => {
+  function run(storage: Storage | 'throws') {
     const document = page();
     const localStorage =
       storage === 'throws'
@@ -98,13 +101,13 @@ describe('themeBootstrapScript', () => {
         : storage;
     new Function('document', 'localStorage', themeBootstrapScript(colors))(document, localStorage);
     return document;
-  };
+  }
 
   it('aplica el tema guardado y el color de la barra', () => {
     const document = run(memory({ theme: 'dark' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
-    const contents = [...document.querySelectorAll('meta[name="theme-color"]')].map((m) =>
-      m.getAttribute('content'),
+    const contents = [...document.querySelectorAll('meta[name="theme-color"]')].map((meta) =>
+      meta.getAttribute('content'),
     );
     expect(contents).toEqual(['#0e1111', '#0e1111']);
   });
@@ -131,18 +134,18 @@ describe('themeBootstrapScript', () => {
 });
 
 describe('initTheme', () => {
-  const setup = (
-    opts: {
+  function setup(
+    options: {
       storage?: Storage;
       systemDark?: boolean;
       theme?: string;
       api?: boolean;
       reduced?: boolean;
     } = {},
-  ) => {
+  ) {
     const document = page();
     const seen: { kind?: string; x: string; y: string; r: string }[] = [];
-    if (opts.api) {
+    if (options.api) {
       const start = vi.fn((update: () => void) => {
         const root = document.documentElement;
         seen.push({
@@ -156,22 +159,30 @@ describe('initTheme', () => {
       });
       Object.assign(document, { startViewTransition: start });
     }
-    if (opts.theme) document.documentElement.dataset.theme = opts.theme;
+    if (options.theme) document.documentElement.dataset.theme = options.theme;
     const listeners: (() => void)[] = [];
     const system = {
-      matches: opts.systemDark ?? false,
-      addEventListener: (_: string, cb: () => void) => void listeners.push(cb),
+      matches: options.systemDark ?? false,
+      addEventListener: (_type: string, callback: () => void) => void listeners.push(callback),
     };
-    const storage = opts.storage ?? memory();
-    initTheme({ doc: document, storage, system, colors, motion: { matches: !!opts.reduced } });
+    const storage = options.storage ?? memory();
+    initTheme({
+      htmlDocument: document,
+      storage,
+      system,
+      colors,
+      motion: { matches: !!options.reduced },
+    });
     const buttons = [...document.querySelectorAll('[data-theme-toggle]')];
-    const click = (i = 0) => buttons[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+    function click(index = 0) {
+      return buttons[index]!.dispatchEvent(new document.defaultView!.Event('click'));
+    }
     return { document, storage, buttons, click, system, listeners, seen };
-  };
+  }
 
   it('refleja el tema del sistema en aria-pressed al arrancar', () => {
     const { buttons } = setup({ systemDark: true });
-    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
+    expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
   });
 
   it('al pulsar cambia el tema, la barra, lo guarda y sincroniza todos los botones', () => {
@@ -182,7 +193,7 @@ describe('initTheme', () => {
     expect(document.querySelector('meta[name="theme-color"]')!.getAttribute('content')).toBe(
       colors.dark,
     );
-    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
+    expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
     click(1);
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(storage.getItem('theme')).toBe('light');
@@ -205,7 +216,7 @@ describe('initTheme', () => {
   it('sin elección, un cambio del sistema actualiza el botón', () => {
     const { buttons, system, listeners } = setup({ systemDark: false });
     system.matches = true;
-    for (const cb of listeners) cb();
+    for (const callback of listeners) callback();
     expect(buttons[0]!.getAttribute('aria-pressed')).toBe('true');
   });
 
@@ -249,7 +260,7 @@ describe('initTheme', () => {
     const spy = vi.fn();
     expect(() =>
       initTheme({
-        doc: document,
+        htmlDocument: document,
         storage: memory(),
         system: { matches: false, addEventListener: spy },
         colors,

@@ -1,4 +1,5 @@
 import type { SeoPage, SeoTree } from '../../tree/types';
+import { slugsOf } from '../../tree/keys';
 
 export interface Indexing {
   /** Páginas (slugs). */
@@ -31,20 +32,18 @@ interface Input {
 }
 
 /** El canonical propio es el de la propia URL, no el de otra página ni el de otro idioma. */
-const hasOwnCanonical = (page: SeoPage) =>
-  page.locales.some(
+function hasOwnCanonical(page: SeoPage) {
+  return page.locales.some(
     (entry) =>
       entry.locale === page.locale &&
       entry.status === 'present' &&
       entry.url === page.meta.canonical,
   );
+}
 
-/**
- * Qué se indexa y qué no, y por qué. «Fuera del sitemap» es una resta (indexables menos URLs del
- * sitemap, sin bajar de cero): el panel solo conoce cuántas URLs tiene, no cuáles.
- */
+/** «Fuera del sitemap» es una resta: el panel solo conoce cuántas URLs hay, no cuáles. */
 export function indexing(tree: SeoTree, { sitemapUrls, fallbacks }: Input): Indexing {
-  const slugs = new Set(tree.pages.map((page) => page.slug));
+  const slugs = slugsOf(tree.pages);
   const noindexSlugs = new Set(
     tree.pages.filter((page) => page.meta.noindex).map((page) => page.slug),
   );

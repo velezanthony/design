@@ -47,7 +47,7 @@ secreto del repo. Un build local o el de un fork sale sin rastreo, sin necesitar
 ## El consentimiento en el navegador
 
 `initConsent` (`src/client/preferences/consent.ts`) lo gestiona todo a partir del banner
-(`src/ui/organisms/ConsentBanner.astro`), que solo se pinta con analítica activa:
+(`src/components/organisms/privacy/ConsentBanner.astro`), que solo se pinta con analítica activa:
 
 ```mermaid
 stateDiagram-v2

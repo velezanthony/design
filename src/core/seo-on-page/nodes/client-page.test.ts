@@ -3,27 +3,36 @@ import type { ClientPage } from '../../seo/client-pages';
 import type { HeadFacts } from '../../seo/html-head';
 import { clientFacts } from './client-page';
 
-const ctx = { locales: ['es', 'en'], defaultLocale: 'es', missing: 'link' as const, base: '/repo' };
+const context = {
+  locales: ['es', 'en'],
+  defaultLocale: 'es',
+  missing: 'link' as const,
+  base: '/repo',
+};
 
-const head = (extra: Partial<HeadFacts> = {}): HeadFacts => ({
-  noindex: false,
-  alternates: [],
-  headings: [],
-  og: {},
-  jsonLd: [],
-  ...extra,
-});
+function head(extra: Partial<HeadFacts> = {}): HeadFacts {
+  return {
+    noindex: false,
+    alternates: [],
+    headings: [],
+    og: {},
+    jsonLd: [],
+    ...extra,
+  };
+}
 
-const client = (path: string, extra: Partial<HeadFacts> = {}): ClientPage => ({
-  path,
-  pattern: '/cv',
-  entrypoint: 'src/pages/cv.astro',
-  head: head(extra),
-});
+function client(path: string, extra: Partial<HeadFacts> = {}): ClientPage {
+  return {
+    path,
+    pattern: '/cv',
+    entrypoint: 'src/pages/cv.astro',
+    head: head(extra),
+  };
+}
 
 describe('clientFacts: identidad', () => {
   it('su slug es la ruta sin la base, su fichero el .astro y su tipo «client»', () => {
-    const [facts] = clientFacts([client('/repo/cv/', { lang: 'es' })], ctx);
+    const [facts] = clientFacts([client('/repo/cv/', { lang: 'es' })], context);
     expect(facts).toMatchObject({
       slug: 'cv',
       locale: 'es',
@@ -39,7 +48,7 @@ describe('clientFacts: identidad', () => {
         client('/repo/b/', { lang: 'fr' }),
         client('/repo/c/'),
       ],
-      ctx,
+      context,
     );
     expect([us!.locale, unknown!.locale, none!.locale]).toEqual(['en', 'es', 'es']);
   });
@@ -54,13 +63,13 @@ describe('clientFacts: identidad', () => {
         client('/repo/cv/', { lang: 'es', alternates }),
         client('/repo/en/resume/', { lang: 'en', alternates }),
       ],
-      ctx,
+      context,
     );
     expect(pages.map(({ slug, locale }) => `${slug}:${locale}`)).toEqual(['cv:es', 'cv:en']);
   });
 
   it('la portada es el slug vacío, como en la documentación', () => {
-    expect(clientFacts([client('/repo/', { lang: 'es' })], ctx)[0]!.slug).toBe('');
+    expect(clientFacts([client('/repo/', { lang: 'es' })], context)[0]!.slug).toBe('');
   });
 
   it('el título de la página es su primer H1; sin H1, el <title>', () => {
@@ -69,7 +78,7 @@ describe('clientFacts: identidad', () => {
         client('/repo/a/', { title: 'A | Sitio', headings: [{ depth: 1, slug: 'a', text: 'A' }] }),
         client('/repo/b/', { title: 'B | Sitio' }),
       ],
-      ctx,
+      context,
     );
     expect([withH1!.title, withoutH1!.title]).toEqual(['A', 'B | Sitio']);
   });
@@ -90,7 +99,7 @@ describe('clientFacts: lo que publica', () => {
           },
         }),
       ],
-      ctx,
+      context,
     );
     expect(facts!.meta).toEqual({
       title: 'CV | Anthony',
@@ -108,7 +117,7 @@ describe('clientFacts: lo que publica', () => {
   });
 
   it('sin descripción, imagen ni canonical: lo dice, y el canonical es su propia ruta', () => {
-    const [facts] = clientFacts([client('/repo/cv/', { title: 'CV' })], ctx);
+    const [facts] = clientFacts([client('/repo/cv/', { title: 'CV' })], context);
     expect(facts!.meta).toMatchObject({
       descriptionSource: 'none',
       ogTitle: 'CV',
@@ -126,7 +135,7 @@ describe('clientFacts: lo que publica', () => {
           jsonLd: [{ '@type': 'Person' }, [{ '@type': 'WebSite' }, 'no es un objeto']],
         }),
       ],
-      ctx,
+      context,
     );
     expect(facts!.headings).toEqual([{ depth: 1, slug: 'cv', text: 'CV' }]);
     expect(facts!.schemas).toEqual([
@@ -136,7 +145,7 @@ describe('clientFacts: lo que publica', () => {
   });
 
   it('enlaces e imágenes no se recogen: el análisis que los necesita no la juzga', () => {
-    const [facts] = clientFacts([client('/repo/cv/')], ctx);
+    const [facts] = clientFacts([client('/repo/cv/')], context);
     expect(facts!.links).toBeUndefined();
     expect(facts!.images).toBeUndefined();
   });
@@ -151,7 +160,7 @@ describe('clientFacts: idiomas', () => {
           alternates: [{ hreflang: 'x-default', href: 'https://x.dev/repo/cv/' }],
         }),
       ],
-      ctx,
+      context,
     );
     expect(facts!.locales).toEqual([
       { locale: 'es', status: 'present', url: '/repo/cv/' },
@@ -168,7 +177,7 @@ describe('clientFacts: idiomas', () => {
           alternates: [{ hreflang: 'en', href: 'https://x.dev/repo/en/resume/' }],
         }),
       ],
-      ctx,
+      context,
     );
     expect(facts!.locales[1]).toEqual({ locale: 'en', status: 'present', url: '/repo/en/resume/' });
   });

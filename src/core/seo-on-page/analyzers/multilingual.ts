@@ -4,12 +4,7 @@ import { IssueKind, IssueSeverity, type Issue, type SeoLocaleEntry } from '../tr
 import { fixFor, type FixPage } from './fixes';
 import { makeIssue } from './issue';
 
-/**
- * Traducciones que faltan, respetando la política: `omit` es una decisión explícita aunque venga de
- * la config, y una política declarada en algún archivo del grupo también. Solo la ausencia sin
- * declarar nada (lo que `undeclaredMissing` ya define como olvido) es un warning. `policy` sin
- * definir es el conflicto que `resolvePolicies` reporta: archivos del grupo que se contradicen.
- */
+/** `omit` y una política declarada en el grupo son decisiones explícitas; solo la ausencia sin declarar es warning. */
 export function analyzeMultilingual(
   page: FixPage,
   locales: SeoLocaleEntry[],

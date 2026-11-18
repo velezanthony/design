@@ -1,3 +1,4 @@
+import { DIAGRAM_SELECTOR } from './selector';
 import {
   createDiagramViewer,
   ICONS,
@@ -21,30 +22,23 @@ export interface MermaidOptions {
   readToken: (name: string) => string;
   /** La preferencia del sistema, para el tema cuando nadie ha elegido uno. */
   system: Pick<MediaQueryList, 'matches'> & {
-    addEventListener(type: 'change', cb: () => void): void;
+    addEventListener(type: 'change', callback: () => void): void;
   };
   /** Nombre accesible de un diagrama que no declara `accTitle`; ya localizado. */
   label?: string;
-  /**
-   * Textos del botón «pantalla completa» y del visor, ya localizados. Sin ellos los diagramas se
-   * dibujan igual pero no se pueden ampliar: un botón sin nombre accesible no tiene sentido.
-   */
+  /** Textos del botón «pantalla completa» y del visor; sin ellos los diagramas no se pueden ampliar. */
   viewerLabels?: DiagramViewerLabels & { expand: string };
   warn?: (message: string, error?: unknown) => void;
 }
 
-/**
- * Las variables del tema `base` de Mermaid, leídas de los tokens de la paleta para que los
- * diagramas la sigan (también en oscuro: los tokens ya cambian con `data-theme`). Las aristas van
- * en `ink` y no en `rule`, que con 1.42:1 no se distinguiría como línea; `rule` queda para los
- * bordes de agrupaciones y notas. Mermaid deriva el resto de colores con khroma, que solo entiende
- * hex/rgb/hsl: los tokens del tema deben declararse así.
- */
+/** Variables del tema `base` de Mermaid leídas de la paleta; las aristas van en `ink` (`rule` da 1.42:1) y los tokens deben ser hex/rgb/hsl, que es lo que entiende khroma. */
 export function mermaidThemeVariables(
   readToken: (name: string) => string,
   dark: boolean,
 ): Record<string, string | boolean> {
-  const token = (name: string) => readToken(name).trim();
+  function token(name: string) {
+    return readToken(name).trim();
+  }
   const ink = token('--color-ink');
   const canvas = token('--color-canvas');
   const raised = token('--color-raised');
@@ -75,11 +69,7 @@ export function mermaidThemeVariables(
 /** Cuánto puede encogerse un diagrama para caber en la columna: al 75 % el texto de 16px queda en 12px. */
 const LEGIBLE_SCALE = 0.75;
 
-/**
- * Ancho mínimo (px) de un diagrama a partir de su `viewBox`. Mermaid lo dibuja a escala de la
- * columna, y uno de 2000px quedaría al 40 %, con letra de 6px: con este mínimo deja de encogerse y
- * se desplaza dentro de su recuadro. `undefined` si el `viewBox` no da un ancho válido.
- */
+/** Ancho mínimo (px) de un diagrama a partir de su `viewBox`, para que uno ancho se desplace en vez de encogerse; `undefined` si no es válido. */
 export function legibleMinWidth(viewBox: string | null): number | undefined {
   const width = Number(viewBox?.trim().split(/[\s,]+/)[2]);
   if (!Number.isFinite(width) || width <= 0) return undefined;
@@ -101,16 +91,12 @@ export function mermaidConfig(
   };
 }
 
-/**
- * El marco `.docs-code` del bloque, el mismo que `copy-code.ts` pone a un bloque de código: el
- * botón de copiar, el de ampliar y el SVG viven en él. Si el de copiar no lo creó (sin API de
- * portapapeles), se crea aquí.
- */
-function codeFrame(doc: Document, block: HTMLElement): HTMLElement {
+/** El marco `.docs-code` del bloque, el mismo de `copy-code.ts`; se crea aquí si el botón de copiar no lo hizo. */
+function codeFrame(htmlDocument: Document, block: HTMLElement): HTMLElement {
   const pre = block.querySelector('pre')!;
   const parent = pre.parentElement!;
   if (parent.classList.contains('docs-code')) return parent;
-  const frame = doc.createElement('div');
+  const frame = htmlDocument.createElement('div');
   frame.className = 'docs-code';
   pre.replaceWith(frame);
   frame.append(pre);
@@ -119,13 +105,13 @@ function codeFrame(doc: Document, block: HTMLElement): HTMLElement {
 
 /** El botón de «pantalla completa» del marco; abre una copia del SVG que la figura tenga EN ESE MOMENTO. */
 function addExpandButton(
-  doc: Document,
+  htmlDocument: Document,
   frame: HTMLElement,
   figure: HTMLElement,
   viewer: DiagramViewer,
   label: string,
 ): void {
-  const button = doc.createElement('button');
+  const button = htmlDocument.createElement('button');
   button.type = 'button';
   button.className = 'docs-expand';
   button.setAttribute('aria-label', label);
@@ -142,21 +128,12 @@ export function accessibleTitle(source: string): string | undefined {
   return /^\s*accTitle\s*:\s*(.+?)\s*$/m.exec(source)?.[1];
 }
 
-/**
- * Dibuja los `.docs-mermaid[data-mermaid]` de la página como SVG. Mermaid pesa cientos de KB: solo
- * se importa si la página tiene algún diagrama. El código fuente se queda en el `pre` (que con
- * `data-state="rendered"` solo enseña su etiqueta de lenguaje, el mismo cromo que un bloque de
- * código) y de ahí se lee para volver a dibujar cuando cambia el tema, por `data-theme` o por el
- * sistema, y lo copia el botón de `copy-code.ts`. Cada diagrama dibujado gana un botón para verlo a
- * pantalla completa (`diagram-viewer.ts`). Si un diagrama falla queda `data-state="error"`, con su
- * código visible y un aviso en consola; nunca se rompe la página. Devuelve cuando termina el
- * primer dibujado (las tareas siguientes, las del cambio de tema, se encadenan por detrás).
- */
+/** Dibuja los `.docs-mermaid[data-mermaid]` como SVG (Mermaid solo se importa si hay alguno); un fallo deja `data-state="error"` con el código visible. */
 export async function initMermaid(
-  doc: Document,
+  htmlDocument: Document,
   { importer, readToken, system, label, viewerLabels, warn = console.warn }: MermaidOptions,
 ): Promise<void> {
-  const blocks = [...doc.querySelectorAll<HTMLElement>('.docs-mermaid[data-mermaid]')];
+  const blocks = [...htmlDocument.querySelectorAll<HTMLElement>(DIAGRAM_SELECTOR)];
   if (!blocks.length) return;
 
   let mermaid: MermaidApi;
@@ -167,13 +144,13 @@ export async function initMermaid(
     return;
   }
 
-  const root = doc.documentElement;
+  const root = htmlDocument.documentElement;
   let counter = 0;
   const viewer: DiagramViewer | undefined = viewerLabels
-    ? createDiagramViewer(doc, viewerLabels)
+    ? createDiagramViewer(htmlDocument, viewerLabels)
     : undefined;
 
-  const renderAll = async () => {
+  async function renderAll() {
     const dark = isDark(parseTheme(root.dataset.theme), system.matches);
     mermaid.initialize(mermaidConfig(readToken, dark));
     for (const block of blocks) {
@@ -182,13 +159,13 @@ export async function initMermaid(
         const { svg } = await mermaid.render(`docs-mermaid-${counter++}`, source);
         let figure = block.querySelector<HTMLElement>('.docs-mermaid-figure');
         if (!figure) {
-          const frame = codeFrame(doc, block);
-          figure = doc.createElement('div');
+          const frame = codeFrame(htmlDocument, block);
+          figure = htmlDocument.createElement('div');
           figure.className = 'docs-mermaid-figure';
           figure.setAttribute('role', 'img');
           frame.querySelector('pre')!.after(figure);
           if (viewer && viewerLabels)
-            addExpandButton(doc, frame, figure, viewer, viewerLabels.expand);
+            addExpandButton(htmlDocument, frame, figure, viewer, viewerLabels.expand);
         }
         const name = accessibleTitle(source) ?? label;
         if (name) figure.setAttribute('aria-label', name);
@@ -203,15 +180,15 @@ export async function initMermaid(
         warn('No se pudo dibujar un diagrama de Mermaid; se deja su código.', error);
       }
     }
-  };
+  }
 
   let chain = renderAll();
-  const redraw = () => {
+  function redraw() {
     /* El visor trabaja con un clon del dibujo viejo: con otro tema tendría los colores equivocados. */
     viewer?.close();
     chain = chain.then(renderAll);
-  };
-  const Observer = doc.defaultView?.MutationObserver;
+  }
+  const Observer = htmlDocument.defaultView?.MutationObserver;
   if (Observer) {
     new Observer(redraw).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   }

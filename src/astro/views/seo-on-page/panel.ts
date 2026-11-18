@@ -1,7 +1,6 @@
 import { LayoutWidth, type ResolvedLayout } from '../../../core/config/layout';
-import { buildAvailability, pageUrl } from '../../../core/i18n/availability';
+import { pageUrl } from '../../../core/i18n/availability';
 import type { Locale } from '../../../core/i18n/locale';
-import { resolvePolicies } from '../../../core/i18n/translation-policy';
 import { defaultStrings, type UiStrings } from '../../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../../core/navigation/footer';
 import { buildNav, type NavEntry } from '../../../core/navigation/nav-entries';
@@ -13,10 +12,13 @@ import {
   SCREEN_LABELS,
   inspectorTocText,
   type InspectorSection,
-} from '../../../ui/seo-on-page/labels';
-import { pagesOf, urlPolicyOf, type DocData } from '../pages';
+} from '../../../core/seo-on-page/labels';
+import type { DocData } from '../../loader/schema';
+import { navContextOf, siteContext } from '../chrome';
 import type { VirtualConfig } from '../../virtual/data';
-import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
+import { SEO_ON_PAGE_DIR } from '../../routes/routes';
+import type { DevHrefs } from './hrefs';
+import { baseUrl } from '../../../core/shared/urls';
 
 type Screen = keyof typeof SCREEN_LABELS;
 
@@ -47,7 +49,7 @@ export interface PanelView {
 }
 
 interface PanelViewInput {
-  cfg: VirtualConfig;
+  config: VirtualConfig;
   /** La colección, para que cabecera y pie se resuelvan como en el resto del sitio. */
   data: DocData[];
   hrefs: DevHrefs;
@@ -57,10 +59,7 @@ interface PanelViewInput {
   headings?: PanelHeading[];
 }
 
-/**
- * Los encabezados de las secciones del inspector, para «En esta página»: «Qué arreglar» dice cuántos
- * problemas hay (si hay) y «Traducciones» solo está si el sitio tiene más de un idioma.
- */
+/** Encabezados del inspector para «En esta página»: «Qué arreglar» solo si hay problemas, «Traducciones» solo con varios idiomas. */
 export function inspectorHeadings(page: { fixes: number; translations: boolean }): PanelHeading[] {
   const sections = (Object.keys(INSPECTOR_SECTIONS) as InspectorSection[]).filter(
     (section) => section !== 'translations' || page.translations,
@@ -72,43 +71,26 @@ export function inspectorHeadings(page: { fixes: number; translations: boolean }
   }));
 }
 
-/**
- * Todo lo que `DocsLayout` necesita para una pantalla del panel, con el mismo molde que `docView`:
- * el idioma por defecto, la cabecera y el pie del sitio y su tema. La barra lateral es la navegación
- * del panel, y la página NUNCA se indexa y no lleva analítica ni aviso de consentimiento (ni
- * `gtmId` ni `privacyUrl`) ni enlace de edición: es una herramienta de desarrollo.
- */
 /** El idioma del panel: es una herramienta de desarrollo y solo existe en español. */
 const PANEL_LOCALE = 'es';
 
+/** Lo que `DocsLayout` necesita para una pantalla del panel: noindex, sin analítica ni edición. */
 export function panelView({
-  cfg,
+  config,
   data,
   hrefs,
   screen,
   title,
   headings = [],
 }: PanelViewInput): PanelView {
-  const url = urlPolicyOf(cfg);
-  const pages = pagesOf(data);
-  const { policies } = resolvePolicies(pages, cfg.translations.missing);
-  /* El panel solo existe en español, así que su interfaz va en español SIEMPRE, sin depender del
-     idioma por defecto del sitio: con el catálogo del sitio si tiene español (respeta sus
-     sobrescrituras de `ui`) y, si no, con el de la librería. Los enlaces de la cabecera y el pie
-     son contenido del sitio: van a su versión española si existe y, si no, a la de su idioma. */
-  const siteLang = cfg.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : cfg.defaultLocale;
-  const strings = (cfg.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
+  const site = siteContext(config, data);
+  const { url } = site;
+  /* El panel va SIEMPRE en español: catálogo del sitio si lo tiene (respeta `ui`) o el de la librería; los enlaces de cabecera y pie van a su versión española si existe. */
+  const siteLang = config.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : config.defaultLocale;
+  const strings = (config.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna
      sección de `nav`, así que la cabecera no marca nada como actual. */
-  const context = {
-    pages,
-    av: buildAvailability(pages, url),
-    locale: siteLang,
-    cfg,
-    policies,
-    url,
-    slug: SEO_ON_PAGE_DIR,
-  };
+  const context = navContextOf(site, siteLang, SEO_ON_PAGE_DIR);
   const screens = {
     overview: { slug: SEO_ON_PAGE_DIR, href: hrefs.overview() },
     pages: { slug: `${SEO_ON_PAGE_DIR}/pages`, href: hrefs.pages() },
@@ -120,7 +102,7 @@ export function panelView({
       { tag: 'title', attrs: {}, content: `${title} · ${PANEL_NAME}` },
       { tag: 'meta', attrs: { name: 'robots', content: 'noindex' } },
     ],
-    siteName: cfg.name,
+    siteName: config.name,
     homeHref: pageUrl('', siteLang, url),
     hrefs: {},
     strings,
@@ -133,15 +115,15 @@ export function panelView({
         })),
       },
     ],
-    nav: buildNav(cfg.nav, context),
-    footer: buildFooter(cfg, context, strings),
+    nav: buildNav(config.nav, context),
+    footer: buildFooter(config, context, strings),
     current: screens[screen].href,
     headings,
     indexable: false,
-    baseUrl: `${cfg.base.replace(/\/+$/, '')}/`,
+    baseUrl: baseUrl(config.base),
     /* A ancho completo: la tabla y las vistas previas no caben en la columna de lectura. El resto
        de la disposición es la del sitio, y el conmutador sigue permitiendo cambiarla. */
-    layout: { ...cfg.layout, width: LayoutWidth.FULL },
+    layout: { ...config.layout, width: LayoutWidth.FULL },
     prose: false,
   };
 }

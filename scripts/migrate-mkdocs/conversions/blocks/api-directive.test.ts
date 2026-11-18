@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertApiDirective } from './api-directive';
+import { convertApiDirective } from './api-directive.ts';
 
 describe('convertApiDirective', () => {
   it('no actúa sobre otras líneas', () => {
@@ -22,6 +22,6 @@ describe('convertApiDirective', () => {
   });
 
   it('sin resolvedor tampoco falla', () => {
-    expect(convertApiDirective(['::: a.b'], 0, 0, undefined)?.log[0].kind).toBe('api-unresolved');
+    expect(convertApiDirective(['::: a.b'], 0, 0, undefined)?.log[0]?.kind).toBe('api-unresolved');
   });
 });

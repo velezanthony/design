@@ -1,0 +1,42 @@
+---
+/* Contenedor de la vista general del panel SEO; solo existe con `astro dev`. */
+import Fonts from '../Fonts.astro';
+import { overviewModel } from '../../../core/seo-on-page/pages/overview/model';
+import OverviewPage from '../../../components/seo-on-page/pages/OverviewPage.astro';
+import { SCREEN_LABELS } from '../../../core/seo-on-page/labels';
+import { siteConfig } from '../../data/site-config';
+import { loadPanel, loadSiteFiles } from '../../data/seo-on-page/adapter';
+import { overviewReport } from '../../views/seo-on-page/report';
+import { panelView } from '../../views/seo-on-page/panel';
+
+const { docs, tree, client, failures, overrides, hrefs } = await loadPanel(
+  siteConfig,
+  Astro.url.origin,
+);
+const model = overviewModel(tree, {
+  locales: siteConfig.locales,
+  defaultLocale: siteConfig.defaultLocale,
+  links: hrefs,
+  siteFiles: await loadSiteFiles(siteConfig, docs, client),
+});
+const view = panelView({
+  config: siteConfig,
+  data: docs,
+  hrefs,
+  screen: 'overview',
+  title: SCREEN_LABELS.overview,
+});
+const report = overviewReport(tree, siteConfig);
+---
+
+<OverviewPage
+  view={view}
+  year={new Date().getFullYear()}
+  model={model}
+  locales={siteConfig.locales}
+  failures={failures}
+  overrides={overrides}
+  report={report}
+>
+  <Fonts slot="head" />
+</OverviewPage>

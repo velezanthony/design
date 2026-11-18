@@ -1,11 +1,10 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
 import type { Page } from '../content/discovery';
-import type { Availability, UrlPolicy } from '../i18n/availability';
+import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import {
   MissingTranslation,
-  missingEntry,
   sourceLocale,
   type TranslationPolicies,
 } from '../i18n/translation-policy';
@@ -31,7 +30,9 @@ export interface SidebarGroup {
 
 export type SidebarNode = SidebarLeaf | SidebarGroup;
 
-export const isSidebarGroup = (node: SidebarNode): node is SidebarGroup => 'items' in node;
+export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
+  return 'items' in node;
+}
 
 /** Lo que el árbol necesita de la config: idiomas y el orden declarado. */
 type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'>;
@@ -54,14 +55,14 @@ function humanize(segment: string): string {
 
 function toEntries(
   pages: Page[],
-  av: Availability,
+  availability: Availability,
   locale: Locale,
-  cfg: SidebarConfig,
+  config: SidebarConfig,
   policies: TranslationPolicies,
   url: UrlPolicy,
 ): Entry[] {
   const entries: Entry[] = [];
-  for (const [slug, available] of av) {
+  for (const [slug, available] of availability) {
     const own = pages.find((page) => page.slug === slug && page.locale === locale);
     if (own) {
       const href = available[locale] ?? '';
@@ -72,16 +73,43 @@ function toEntries(
       });
       continue;
     }
-    const source = sourceLocale(available, cfg.locales, cfg.defaultLocale);
+    const source = sourceLocale(available, config.locales, config.defaultLocale);
     const original = pages.find((page) => page.slug === slug && page.locale === source);
     if (!original) continue;
     const policy = policies.get(slug) ?? MissingTranslation.LINK;
-    const leaf = missingEntry(slug, original.title, available, locale, policy, cfg, url);
+    const leaf = missingEntry(slug, original.title, available, locale, policy, config, url);
     if (leaf) {
       entries.push({ slug, leaf, ...(original.order !== undefined && { order: original.order }) });
     }
   }
   return entries;
+}
+
+/** Hoja de un idioma sin traducción: `link` al original con insignia, `fallback` a la reserva, `omit` nada. */
+export function missingEntry(
+  slug: string,
+  title: string,
+  available: Partial<Record<Locale, string>>,
+  locale: Locale,
+  policy: MissingTranslation,
+  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
+  url: UrlPolicy,
+): SidebarLeaf | null {
+  switch (policy) {
+    case MissingTranslation.LINK: {
+      const source = sourceLocale(available, config.locales, config.defaultLocale);
+      return {
+        label: title,
+        slug,
+        href: available[source] ?? pageUrl(slug, source, url),
+        badge: source,
+      };
+    }
+    case MissingTranslation.FALLBACK:
+      return { label: title, slug, href: pageUrl(slug, locale, url) };
+    case MissingTranslation.OMIT:
+      return null;
+  }
 }
 
 /** Nodo con la clave de orden de sus hermanos. */
@@ -99,21 +127,18 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
   return { label, slug, href, ...(badge && { badge }) };
 }
 
-/**
- * `base` es la carpeta que hace de raíz (la de una sección de la cabecera): no cuenta como nivel
- * y sus páginas cuelgan directamente de la raíz del árbol.
- */
+/** `base` es la carpeta raíz de una sección: no cuenta como nivel y sus páginas cuelgan de la raíz del árbol. */
 function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
-  const sectionPath = (slug: string) => {
+  function sectionPath(slug: string) {
     const segments = slug.split('/');
     const path = segments.slice(0, Math.min(segments.length - 1, rootDepth + MAX_SECTION_DEPTH));
     return path.length > rootDepth ? path : [];
-  };
-  const parentOf = (path: string) => {
+  }
+  function parentOf(path: string) {
     const parent = path.split('/').slice(0, -1);
     return parent.length > rootDepth ? parent.join('/') : '';
-  };
+  }
   // Un slug es una sección si algún otro cuelga de él como carpeta.
   const sections = new Set<string>();
   for (const { slug } of entries) {
@@ -124,7 +149,7 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
   }
 
   const groups = new Map<string, { group: SidebarGroup; sort: Sortable[]; order?: number }>();
-  const groupFor = (path: string) => {
+  function groupFor(path: string) {
     let found = groups.get(path);
     if (!found) {
       const label = humanize(path.split('/').pop() ?? path);
@@ -132,7 +157,7 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
       groups.set(path, found);
     }
     return found;
-  };
+  }
   const root: Sortable[] = [];
 
   for (const entry of entries) {
@@ -154,15 +179,18 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
     });
   }
 
-  const compare = (a: Sortable, b: Sortable) => {
-    if (a.order !== undefined && b.order !== undefined && a.order !== b.order)
-      return a.order - b.order;
-    if ((a.order === undefined) !== (b.order === undefined)) return a.order === undefined ? 1 : -1;
-    return collator.compare(a.key, b.key);
-  };
+  function compare(left: Sortable, right: Sortable) {
+    if (left.order !== undefined && right.order !== undefined && left.order !== right.order)
+      return left.order - right.order;
+    if ((left.order === undefined) !== (right.order === undefined))
+      return left.order === undefined ? 1 : -1;
+    return collator.compare(left.key, right.key);
+  }
 
   // Las secciones más profundas primero para colgarlas de su padre ya completo.
-  const paths = [...sections].sort((a, b) => b.split('/').length - a.split('/').length);
+  const paths = [...sections].sort(
+    (left, right) => right.split('/').length - left.split('/').length,
+  );
   for (const path of paths) {
     const found = groupFor(path);
     found.group.items = found.sort.sort(compare).map(({ node }) => node);
@@ -210,26 +238,21 @@ function declaredTree(
   return nodes;
 }
 
-/**
- * Árbol de la barra lateral de un idioma, de hasta tres niveles. Sigue el orden declarado en la
- * config; lo no listado va detrás, por `order` del frontmatter y luego por `Intl.Collator` del
- * slug. Los slugs sin traducción en el idioma aplican su política (`link`, `fallback` u `omit`).
- * `base` es la carpeta raíz de una sección de la cabecera: lo no declarado se agrupa por debajo.
- */
+/** Árbol del sidebar de un idioma (hasta tres niveles): orden declarado, luego `order` y `Intl.Collator`; sin traducción aplica su política. */
 export function buildSidebar(
   pages: Page[],
-  av: Availability,
+  availability: Availability,
   locale: Locale,
-  cfg: SidebarConfig,
+  config: SidebarConfig,
   policies: TranslationPolicies,
   url: UrlPolicy,
   base = '',
 ): SidebarNode[] {
   const collator = new Intl.Collator(locale, { numeric: true });
-  const entries = toEntries(pages, av, locale, cfg, policies, url);
+  const entries = toEntries(pages, availability, locale, config, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
   const used = new Set<string>();
-  const declared = declaredTree(cfg.sidebar ?? [], bySlug, used, locale, cfg.defaultLocale);
+  const declared = declaredTree(config.sidebar ?? [], bySlug, used, locale, config.defaultLocale);
   const rest = autoTree(
     entries.filter((entry) => !used.has(entry.slug)),
     collator,

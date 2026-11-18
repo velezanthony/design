@@ -4,15 +4,19 @@ import { markdownToHtml, type Features, type MdastPluginList } from 'satteri';
 export const project = new URL('file:///site/');
 
 /** URL de un archivo dentro de `src/content/docs/`, como los que ve el loader. */
-export const docFileURL = (relativePath: string): URL =>
-  new URL(`src/content/docs/${relativePath}`, project);
+export function docFileURL(relativePath: string): URL {
+  return new URL(`src/content/docs/${relativePath}`, project);
+}
 
 /** URL de un archivo `external` (fuera de `src/content/docs/`, p. ej. el CHANGELOG del repo). */
-export const externalFileURL = (relativePath: string): URL => new URL(relativePath, project);
+export function externalFileURL(relativePath: string): URL {
+  return new URL(relativePath, project);
+}
 
 /** URL de un archivo dentro del proyecto que no es documentación ni `external`. */
-export const nonDocFileURL = (relativePath: string): URL =>
-  new URL(`src/pages/${relativePath}`, project);
+export function nonDocFileURL(relativePath: string): URL {
+  return new URL(`src/pages/${relativePath}`, project);
+}
 
 interface RenderOptions {
   fileURL: URL;
@@ -20,10 +24,7 @@ interface RenderOptions {
   features?: Features;
 }
 
-/**
- * Ejecuta Sätteri directamente sobre una cadena, sin Astro ni Vite. Es el modelo de
- * `createPluginTestOptions` de Starlight: los plugins reciben `fileURL` igual que dentro del loader.
- */
+/** Ejecuta Sätteri sobre una cadena, sin Astro ni Vite (modelo de `createPluginTestOptions` de Starlight). */
 export async function renderMarkdown(
   source: string,
   { fileURL, plugins = [], features }: RenderOptions,

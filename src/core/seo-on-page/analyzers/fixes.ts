@@ -1,4 +1,6 @@
-import { clientTag } from '../client-tags';
+import { localizedPath, stripLocale } from '../../i18n/locale';
+import { slugLabel } from '../tree/keys';
+import { scopedKey } from '../key-place';
 import { THRESHOLDS } from '../thresholds';
 import { IssueKind, type Issue, type OgImageSource, type SeoPageKind } from '../tree/types';
 
@@ -26,38 +28,24 @@ export interface FixDetail {
   og?: { source: OgImageSource; width: number; height: number };
 }
 
-/**
- * Archivo de la misma página en otro idioma. La convención es la del descubrimiento (y de
- * `externalPath`): el idioma por defecto es el archivo tal cual y los demás llevan `.<idioma>.md`.
- */
+/** Archivo de la misma página en otro idioma (misma convención que el descubrimiento). */
 export function siblingPath(
   sourcePath: string,
   ownLocale: string,
   locale: string,
   defaultLocale: string,
 ): string {
-  const base =
-    ownLocale === defaultLocale
-      ? sourcePath
-      : sourcePath.replace(
-          new RegExp(`\\.${ownLocale.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.md$`),
-          '.md',
-        );
-  return locale === defaultLocale ? base : base.replace(/\.md$/, `.${locale}.md`);
+  return localizedPath(stripLocale(sourcePath, ownLocale, defaultLocale), locale, defaultLocale);
 }
 
-/**
- * DÓNDE se declara una clave de la página: en una nativa, el frontmatter de su archivo; en una
- * externa (`external[]`, p. ej. el CHANGELOG) no hay frontmatter que valga, vive en la entrada de
- * `docs.config.mjs`. Decirlo mal mandaría a editar un archivo cuyo cambio no tendría efecto.
- */
+/** Una página externa no tiene frontmatter: su clave vive en la entrada de `docs.config.mjs`, no en un archivo. */
 function where(page: FixPage, key: string): string {
-  if (page.kind === 'client') {
-    return `\`${clientTag(key)}\` de \`${page.sourcePath}\` (o lo que le pase a su layout)`;
-  }
+  const scoped = `\`${scopedKey(key, page.kind)}\``;
+  if (page.kind === 'client')
+    return `${scoped} de \`${page.sourcePath}\` (o lo que le pase a su layout)`;
   return page.kind === 'external'
-    ? `\`external[].${key}\` de la entrada «${page.slug}» en docs.config.mjs`
-    : `\`${key}\` en el frontmatter de \`${page.sourcePath}\``;
+    ? `${scoped} de la entrada «${page.slug}» en docs.config.mjs`
+    : `${scoped} en el frontmatter de \`${page.sourcePath}\``;
 }
 
 /** Los arreglos que en un `.astro` se dicen en HTML (encabezados, idiomas, canonical). */
@@ -83,15 +71,14 @@ function clientFix(kind: IssueKind, file: string, detail: FixDetail): string | u
   }
 }
 
-const basename = (path: string) => path.split('/').pop() ?? path;
+function basename(path: string) {
+  return path.split('/').pop() ?? path;
+}
 
-const slugs = (related: Issue['related']) =>
-  (related ?? []).map((other) => `«${other.slug || '/'}»`).join(', ');
+function slugs(related: Issue['related']) {
+  return (related ?? []).map((other) => `«${slugLabel(other.slug)}»`).join(', ');
+}
 
-/**
- * Qué cambiar y dónde para arreglar un problema, en una frase de acción. Pura: sale del tipo, de la
- * página y del detalle, sin leer nada más.
- */
 export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): string {
   const file = `\`${page.sourcePath}\``;
   const defaultLocale = detail.defaultLocale ?? page.locale;

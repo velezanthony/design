@@ -19,7 +19,9 @@ const TOKENS: Record<string, string> = {
   '--color-rule': '#d9d3c7',
   '--font-sans': 'IBM Plex Sans, sans-serif',
 };
-const readToken = (name: string) => TOKENS[name] ?? '';
+function readToken(name: string) {
+  return TOKENS[name] ?? '';
+}
 
 describe('mermaidThemeVariables', () => {
   it('toma los colores y la fuente de los tokens del tema', () => {
@@ -91,8 +93,9 @@ const viewerLabels = {
 };
 
 describe('initMermaid', () => {
-  const block = (source: string) =>
-    `<div class="docs-mermaid" data-mermaid><pre><code>${source}</code></pre></div>`;
+  function block(source: string) {
+    return `<div class="docs-mermaid" data-mermaid><pre><code>${source}</code></pre></div>`;
+  }
 
   function setup(
     body: string,
@@ -105,7 +108,7 @@ describe('initMermaid', () => {
     const listeners: (() => void)[] = [];
     const system = {
       matches: false,
-      addEventListener: (_: 'change', cb: () => void) => listeners.push(cb),
+      addEventListener: (_type: 'change', callback: () => void) => listeners.push(callback),
     };
     const warn = vi.fn();
     const ready = initMermaid(document, {
@@ -116,7 +119,9 @@ describe('initMermaid', () => {
       viewerLabels: withViewer ? viewerLabels : undefined,
       warn,
     });
-    const box = () => document.querySelector<HTMLElement>('.docs-mermaid')!;
+    function box() {
+      return document.querySelector<HTMLElement>('.docs-mermaid')!;
+    }
     return { document, api, importer, system, listeners, warn, ready, box };
   }
 
@@ -217,7 +222,7 @@ describe('initMermaid', () => {
     const { api, system, listeners, ready } = setup(block('A--&gt;B'));
     await ready;
     system.matches = true;
-    for (const cb of listeners) cb();
+    for (const callback of listeners) callback();
     await vi.waitFor(() => expect(api.render).toHaveBeenCalledTimes(2));
     expect(vi.mocked(api.initialize).mock.calls[1]![0]).toMatchObject({
       themeVariables: { darkMode: true },
@@ -239,21 +244,21 @@ describe('initMermaid', () => {
 
     /** Espera al dibujado y sustituye lo que linkedom no implementa de `<dialog>`. */
     async function drawn(body = block('A--&gt;B'), withViewer = true) {
-      const ctx = setup(body, async () => ({ svg }), withViewer);
-      await ctx.ready;
-      const dialog = ctx.document.querySelector<HTMLDialogElement>('dialog');
+      const context = setup(body, async () => ({ svg }), withViewer);
+      await context.ready;
+      const dialog = context.document.querySelector<HTMLDialogElement>('dialog');
       if (dialog) {
         Object.assign(dialog, {
           showModal: vi.fn(() => dialog.setAttribute('open', '')),
           close: vi.fn(() => {
             dialog.removeAttribute('open');
-            dialog.dispatchEvent(new ctx.document.defaultView!.Event('close'));
+            dialog.dispatchEvent(new context.document.defaultView!.Event('close'));
           }),
         });
       }
-      const expand = ctx.document.querySelector<HTMLButtonElement>('.docs-expand');
+      const expand = context.document.querySelector<HTMLButtonElement>('.docs-expand');
       if (expand) expand.focus = vi.fn();
-      return { ...ctx, dialog: dialog!, expand: expand! };
+      return { ...context, dialog: dialog!, expand: expand! };
     }
 
     it('el SVG queda dentro del marco de código, tras el pre y con su botón de ampliar', async () => {

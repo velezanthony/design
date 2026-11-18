@@ -11,7 +11,7 @@ import {
 } from '../../../core/seo-on-page/report/scope';
 import { reportTexts, type ReportText } from '../../../core/seo-on-page/report/texts';
 import type { Issue, SeoPage, SeoTree } from '../../../core/seo-on-page/tree/types';
-import { KIND_LABELS, REPORT_LABELS, reportFilterText } from '../../../ui/seo-on-page/labels';
+import { KIND_LABELS, REPORT_LABELS, reportFilterText } from '../../../core/seo-on-page/labels';
 
 /** El sitio, tal como lo conoce la config: nombre e idiomas. */
 export interface ReportSite {
@@ -27,17 +27,16 @@ export interface ReportDialogModel {
   texts: Record<string, ReportText>;
 }
 
-const contextOf = (tree: SeoTree, site: ReportSite): ReportContext => ({
-  site: site.name,
-  locales: site.locales,
-  tree,
-  kindLabels: KIND_LABELS,
-});
+function contextOf(tree: SeoTree, site: ReportSite): ReportContext {
+  return {
+    site: site.name,
+    locales: site.locales,
+    tree,
+    kindLabels: KIND_LABELS,
+  };
+}
 
-/**
- * Junta el alcance principal de la pantalla con «Un idioma» (si el sitio tiene varios) y genera el
- * informe de cada uno: cada pantalla manda al navegador solo los alcances que ofrece, no todos.
- */
+/** Une el alcance principal con «Un idioma» (si hay varios): cada pantalla manda al navegador solo los alcances que ofrece. */
 function dialogOf(
   tree: SeoTree,
   site: ReportSite,

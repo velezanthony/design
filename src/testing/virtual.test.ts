@@ -20,9 +20,7 @@ async function loadVirtual(data: unknown): Promise<unknown> {
   }
 }
 
-/* Cada test arranca un servidor de Vite real (y el último importa `astro/config`): en frío son
-   ~1,3 s y bajo carga (suite completa en paralelo) superaban los 5 s por defecto de Vitest. Es
-   coste inherente al arranque, no una espera sobrante: se le da margen explícito. */
+/* Cada test arranca un servidor de Vite real: en frío ~1,3 s y bajo carga superaba los 5 s por defecto de Vitest. */
 const VITE_STARTUP_TIMEOUT = 30_000;
 
 describe('módulo virtual de la config', { timeout: VITE_STARTUP_TIMEOUT }, () => {
@@ -42,7 +40,9 @@ describe('módulo virtual de la config', { timeout: VITE_STARTUP_TIMEOUT }, () =
       command: 'serve',
       mode: 'test',
     });
-    const names = (config.plugins ?? []).flat().map((p) => (p as { name?: string } | null)?.name);
+    const names = (config.plugins ?? [])
+      .flat()
+      .map((plugin) => (plugin as { name?: string } | null)?.name);
     expect(names).toContain('velezanthony-design-virtual-config');
   });
 });

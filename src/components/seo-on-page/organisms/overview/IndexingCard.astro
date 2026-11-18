@@ -1,0 +1,61 @@
+---
+/* «Indexación»: qué se indexa, qué dice el sitemap y por qué una URL se queda fuera. */
+import Note from '../../atoms/Note.astro';
+import type { OverviewModel } from '../../../../core/seo-on-page/pages/overview/model';
+import CodeSpans from '../../molecules/CodeSpans.astro';
+import OverviewCard from '../../molecules/OverviewCard.astro';
+import StatRow from '../../molecules/StatRow.astro';
+import { CARD_LABELS } from '../../../../core/seo-on-page/labels';
+
+interface Props {
+  indexing: OverviewModel['indexing'];
+}
+
+const { indexing } = Astro.props;
+const labels = CARD_LABELS.indexing;
+const reasons = (['noindex', 'fallback', 'outOfSitemap'] as const).map((key) => ({
+  key,
+  label: labels.reasonLabels[key],
+  count: indexing.reasons[key],
+}));
+---
+
+<OverviewCard id="c-idx" title={labels.title} why={labels.why}>
+  <div class="grid grid-cols-2 gap-4">
+    <p class="flex flex-col" data-count="indexable">
+      <b class="text-display font-semibold text-ink">{indexing.indexable}</b>
+      <span class="text-sm text-muted">{labels.indexable}</span>
+    </p>
+    <p class="flex flex-col" data-count="noindex">
+      <b class="text-display font-semibold text-ink">{indexing.noindex}</b>
+      <span class="text-sm text-muted">{labels.noindex}</span>
+    </p>
+  </div>
+  <ul>
+    <StatRow>
+      <Fragment slot="label">{labels.sitemap}</Fragment>
+      <span data-stat="sitemap">{indexing.sitemapUrls}</span>
+      <small class="text-muted"> {labels.ofEntries(indexing.entries)}</small>
+    </StatRow>
+    <StatRow>
+      <Fragment slot="label">{labels.canonical}</Fragment>
+      <span data-stat="canonical">{indexing.ownCanonical}</span>
+      <small class="text-muted"> / {indexing.entries}</small>
+    </StatRow>
+  </ul>
+  <div>
+    <p class="label text-muted">{labels.reasons}</p>
+    <p class="text-sm text-muted">{labels.reasonsUnit}</p>
+  </div>
+  <ul>
+    {reasons.map(({ key, label, count }) => (
+      <StatRow muted={count === 0}>
+        <Fragment slot="label">
+          <CodeSpans text={label} />
+        </Fragment>
+        <span data-reason={key}>{count}</span>
+      </StatRow>
+    ))}
+  </ul>
+  <Note>{labels.note}</Note>
+</OverviewCard>

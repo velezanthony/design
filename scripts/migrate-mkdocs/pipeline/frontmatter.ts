@@ -14,7 +14,7 @@ export function cleanFrontmatter(lines: string[]): LinesResult {
   for (const [index, line] of lines.slice(1, close).entries()) {
     const key = /^([\w-]+):/.exec(line);
     if (key) {
-      dropping = MKDOCS_ONLY_KEYS.includes(key[1]);
+      dropping = MKDOCS_ONLY_KEYS.includes(key[1] ?? '');
       if (dropping)
         log.push({ kind: 'frontmatter', line: index + 2, detail: `removed key ${key[1]}` });
     } else if (dropping && !/^\s/.test(line) && !line.startsWith('- ')) {

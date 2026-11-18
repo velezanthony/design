@@ -8,12 +8,14 @@ import {
   privacySlug,
 } from './pages';
 
-const url = (defaultLocale: string, extra = {}) => ({
-  base: '/repo',
-  trailingSlash: 'always' as const,
-  defaultLocale,
-  ...extra,
-});
+function url(defaultLocale: string, extra = {}) {
+  return {
+    base: '/repo',
+    trailingSlash: 'always' as const,
+    defaultLocale,
+    ...extra,
+  };
+}
 
 describe('privacySlug', () => {
   it('es → privacidad, en → privacy', () => {
@@ -57,8 +59,10 @@ describe('privacyPageUrls', () => {
 
 describe('privacyAvailability', () => {
   it('es una sola entrada con una URL por idioma (hreflang entre ellas)', () => {
-    const av = privacyAvailability(['es', 'en'], url('es'));
-    expect([...av.values()]).toEqual([{ es: '/repo/privacidad/', en: '/repo/en/privacy/' }]);
+    const availability = privacyAvailability(['es', 'en'], url('es'));
+    expect([...availability.values()]).toEqual([
+      { es: '/repo/privacidad/', en: '/repo/en/privacy/' },
+    ]);
   });
 });
 

@@ -15,36 +15,42 @@ const links: PanelLinks = {
   overview: () => '/o/',
 };
 
-const issue = (kind: IssueKind, severity: IssueSeverity): Issue => ({
-  kind,
-  severity,
-  slug: 'guide',
-  locale: 'en',
-  message: kind,
-});
+function issue(kind: IssueKind, severity: IssueSeverity): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'guide',
+    locale: 'en',
+    message: kind,
+  };
+}
 
-const tree = (): SeoTree => ({
-  pages: [
-    seoPage({ slug: 'a', issues: [issue(IssueKind.NO_H1, IssueSeverity.ERROR)] }),
-    seoPage({
-      slug: 'b',
-      issues: [
-        issue(IssueKind.NO_H1, IssueSeverity.ERROR),
-        issue(IssueKind.TITLE_TOO_LONG, IssueSeverity.WARNING),
-      ],
-    }),
-    seoPage({ slug: 'c', issues: [issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)] }),
-    seoPage({ slug: 'd' }),
-  ],
-});
+function tree(): SeoTree {
+  return {
+    pages: [
+      seoPage({ slug: 'a', issues: [issue(IssueKind.NO_H1, IssueSeverity.ERROR)] }),
+      seoPage({
+        slug: 'b',
+        issues: [
+          issue(IssueKind.NO_H1, IssueSeverity.ERROR),
+          issue(IssueKind.TITLE_TOO_LONG, IssueSeverity.WARNING),
+        ],
+      }),
+      seoPage({ slug: 'c', issues: [issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)] }),
+      seoPage({ slug: 'd' }),
+    ],
+  };
+}
 
-const sitemap = (urls: number): SiteFile => ({
-  id: 'sitemap',
-  path: '/sitemap.xml',
-  state: 'generated',
-  href: '/sitemap.xml',
-  urls,
-});
+function sitemap(urls: number): SiteFile {
+  return {
+    id: 'sitemap',
+    path: '/sitemap.xml',
+    state: 'generated',
+    href: '/sitemap.xml',
+    urls,
+  };
+}
 const privacy: SiteFile = {
   id: 'privacy',
   path: '/privacy',
@@ -55,8 +61,12 @@ const privacy: SiteFile = {
   ],
 };
 
-const build = (pages = tree().pages, files: SiteFile[] = [sitemap(pages.length)]) =>
-  overviewModel({ pages }, { locales: ['en', 'es'], defaultLocale: 'en', links, siteFiles: files });
+function build(pages = tree().pages, files: SiteFile[] = [sitemap(pages.length)]) {
+  return overviewModel(
+    { pages },
+    { locales: ['en', 'es'], defaultLocale: 'en', links, siteFiles: files },
+  );
+}
 
 describe('overviewModel', () => {
   it('la salud cuenta las páginas sin errores ni avisos (la informativa cuenta como sana)', () => {

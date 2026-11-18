@@ -1,9 +1,6 @@
 import type { SidebarLeaf } from './sidebar';
 
-/**
- * Hojas vecinas de `slug` en el orden aplanado de la barra lateral. Salta las hojas `link` (llevan
- * a otro idioma); las de `fallback` sí cuentan. Una página fuera del orden no tiene vecinas.
- */
+/** Hojas vecinas de `slug` en el orden aplanado del sidebar; salta las `link` y cuenta las `fallback`. */
 export function prevNext(
   order: SidebarLeaf[],
   slug: string,

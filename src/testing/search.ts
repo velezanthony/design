@@ -2,11 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-/**
- * Busca en el índice de Pagefind de un `dist/` como lo haría el navegador: `fetch` de
- * `http://x/<base>/**` se lee de disco y `<html lang>` fija el idioma del índice. Devuelve las URLs
- * de los resultados. Sustituye `globalThis.fetch`: el llamador lo restaura (`restoreFetch`).
- */
+/** Busca en el índice de Pagefind de un `dist/` leyendo de disco; sustituye `globalThis.fetch` y el llamador lo restaura (`restoreFetch`). */
 export async function searchBuilt(
   dist: string,
   lang: string,
@@ -34,6 +30,6 @@ export async function searchBuilt(
   await pagefind.init();
   const { results } = await pagefind.search(term);
   return (
-    await Promise.all(results.map((r: { data(): Promise<{ url: string }> }) => r.data()))
-  ).map((d) => d.url);
+    await Promise.all(results.map((result: { data(): Promise<{ url: string }> }) => result.data()))
+  ).map((detail) => detail.url);
 }

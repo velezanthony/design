@@ -4,32 +4,39 @@ import type { MissingTranslation } from '../../../i18n/translation-policy';
 import type { SeoLocaleEntry, SeoPage } from '../../tree/types';
 import { matrixRows } from './matrix';
 
-const present = (locale: string): SeoLocaleEntry => ({
-  locale,
-  status: 'present',
-  url: `/${locale}/`,
-});
-const missing = (locale: string, policy: MissingTranslation): SeoLocaleEntry => ({
-  locale,
-  status: 'missing',
-  policy,
-  declared: true,
-});
+function present(locale: string): SeoLocaleEntry {
+  return {
+    locale,
+    status: 'present',
+    url: `/${locale}/`,
+  };
+}
+function missing(locale: string, policy: MissingTranslation): SeoLocaleEntry {
+  return {
+    locale,
+    status: 'missing',
+    policy,
+    declared: true,
+  };
+}
 
 /** Una entrada cuyo grupo tiene estos idiomas, en el orden de la config. */
-const entry = (
+function entry(
   slug: string,
   locale: string,
   locales: SeoLocaleEntry[],
   extra: Partial<SeoPage> = {},
-) => seoPage({ slug, locale, locales, ...extra });
+) {
+  return seoPage({ slug, locale, locales, ...extra });
+}
 
-const matrix = (entries: SeoPage[], locales = ['en', 'es']) =>
-  matrixRows(entries, {
+function matrix(entries: SeoPage[], locales = ['en', 'es']) {
+  return matrixRows(entries, {
     locales,
     defaultLocale: 'en',
     inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
   });
+}
 
 const full = [present('en'), present('es')];
 
@@ -44,8 +51,10 @@ describe('matrixRows', () => {
   });
 
   it('el idioma ausente depende de su política: enlace = falta, respaldo = respaldo, omitir = omitida', () => {
-    const states = (policy: MissingTranslation) =>
-      matrix([entry('a', 'en', [present('en'), missing('es', policy)])]).rows[0]?.cells[1]?.state;
+    function states(policy: MissingTranslation) {
+      return matrix([entry('a', 'en', [present('en'), missing('es', policy)])]).rows[0]?.cells[1]
+        ?.state;
+    }
     expect(states('link')).toBe('missing');
     expect(states('fallback')).toBe('fallback');
     expect(states('omit')).toBe('omitted');

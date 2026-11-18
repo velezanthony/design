@@ -1,0 +1,38 @@
+---
+/* La cabecera de fila de las tablas del listado: el enlace al slug y, si los hay, sus etiquetas. */
+import type { PageTag } from '../../../core/seo-on-page/pages/listing/rows';
+import Link from '../../atoms/actions/Link.astro';
+import Tag from '../../atoms/display/Tag.astro';
+import { slugLabel, TAG_HINTS, tagLabel } from '../../../core/seo-on-page/labels';
+import { CELL } from '../tables';
+
+interface Props {
+  slug: string;
+  href: string;
+  tags?: PageTag[];
+  /** `inline` pone las etiquetas junto al slug; `block`, debajo de lo que haya en el slot. */
+  tagsLayout?: 'inline' | 'block';
+}
+
+const { slug, href, tags = [], tagsLayout = 'inline' } = Astro.props;
+/* Las etiquetas van tras lo del slot: en `inline` no hay slot, así que quedan junto al slug. */
+const Wrapper = tagsLayout === 'inline' ? 'span' : 'p';
+const wrapperClass =
+  tagsLayout === 'inline' ? 'ml-1.5 inline-flex flex-wrap gap-1.5' : 'mt-1 flex flex-wrap gap-1.5';
+---
+
+<th scope="row" class:list={[CELL, 'font-normal']}>
+  <Link href={href} class="font-mono">
+    {slugLabel(slug)}
+  </Link>
+  <slot />
+  {tags.length > 0 && (
+    <Wrapper class={wrapperClass}>
+      {tags.map((tag) => (
+        <Tag bordered plain title={TAG_HINTS[tag.kind]} data-tag={tag.kind}>
+          {tagLabel(tag)}
+        </Tag>
+      ))}
+    </Wrapper>
+  )}
+</th>

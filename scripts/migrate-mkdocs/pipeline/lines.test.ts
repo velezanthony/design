@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { colonsFor, directive, indentOf, replaceOutsideCode, takeBody } from './lines';
+import { colonsFor, directive, indentOf, replaceOutsideCode, takeBody } from './lines.ts';
 
 describe('indentOf', () => {
   it('cuenta los espacios iniciales', () => {
@@ -50,7 +50,9 @@ describe('directive', () => {
 });
 
 describe('replaceOutsideCode', () => {
-  const upper = (match: RegExpMatchArray) => match[0].toUpperCase();
+  function upper(match: RegExpMatchArray) {
+    return match[0].toUpperCase();
+  }
 
   it('sustituye fuera del código en línea y respeta el de dentro', () => {
     expect(replaceOutsideCode('a `a` a', /a/g, upper)).toBe('A `a` A');

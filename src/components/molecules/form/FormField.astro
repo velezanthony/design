@@ -1,0 +1,70 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import FieldError from '../../atoms/form/FieldError.astro';
+import HelpText from '../../atoms/form/HelpText.astro';
+import Input from '../../atoms/form/Input.astro';
+import Label from '../../atoms/form/Label.astro';
+import Select from '../../atoms/form/Select.astro';
+import Textarea from '../../atoms/form/Textarea.astro';
+import { describedBy } from './describedby';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'class' | 'id' | 'value' | 'type'> {
+  type?: 'text' | 'search' | 'email' | 'password' | 'url' | 'tel' | 'number';
+  /** Qué campo pinta; los ids y los `aria-*` son los mismos para todos. */
+  control?: 'input' | 'textarea' | 'select';
+  name: string;
+  /** Texto de la etiqueta. */
+  label: string;
+  /** Sin él, `field-<name>`: estable entre servidor y navegador, sin contadores. */
+  id?: string;
+  help?: string;
+  /** Con error el campo se marca `aria-invalid` y el mensaje se enlaza con `aria-describedby`. */
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  value?: string;
+  /** Solo con `control="select"`. */
+  options?: { value: string; label: string }[];
+  /** Va al contenedor. */
+  class?: string;
+}
+
+const {
+  control = 'input',
+  name,
+  label,
+  id: givenId,
+  help,
+  error,
+  required = false,
+  disabled = false,
+  options = [],
+  class: className,
+  'aria-describedby': ownDescription,
+  ...rest
+} = Astro.props;
+
+const id = givenId ?? `field-${name}`;
+const helpId = `${id}-help`;
+const errorId = `${id}-error`;
+const field = {
+  id,
+  name,
+  required,
+  disabled,
+  invalid: Boolean(error),
+  'aria-describedby': describedBy(ownDescription, help && helpId, error && errorId),
+  ...rest,
+};
+---
+
+<div class:list={['flex flex-col gap-1', className]}>
+  <Label for={id} required={required}>
+    {label}
+  </Label>
+  {control === 'textarea' && <Textarea {...field} />}
+  {control === 'select' && <Select {...field} options={options} />}
+  {control === 'input' && <Input {...field} />}
+  {help && <HelpText id={helpId}>{help}</HelpText>}
+  {error && <FieldError id={errorId}>{error}</FieldError>}
+</div>

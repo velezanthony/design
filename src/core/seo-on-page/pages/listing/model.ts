@@ -1,7 +1,6 @@
 import type { Locale } from '../../../i18n/locale';
 import { paginate, type Paginated } from '../../queries/paginate';
 import {
-  ALL_SEVERITIES,
   EMPTY_FILTERS,
   parsePage,
   parsePerPage,
@@ -18,8 +17,10 @@ import { HAVE_COLUMNS, haveCounts, haveRows, lacking, type HaveRow } from './hav
 import { kindOptions, type KindOptions } from './kinds';
 import { matrixRows, type MatrixRow } from './matrix';
 import { pageRows, type PageRow } from './rows';
-import { selectListing } from './selection';
+import { isInventoryView, selectListing } from './selection';
 import { severityCounts, type SeverityCounts } from './severities';
+import { ALL_SEVERITIES } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /** Lo que pinta la tabla según la vista; cada una trae sus filas, ya paginadas. */
 export type ListingTable =
@@ -75,18 +76,12 @@ export interface ListingModel {
     /** Lo que cuenta cada ficha de gravedad: entradas en «Por idioma», páginas en las demás. */
     severityCounts: Record<keyof SeverityCounts, number>;
   };
-  /**
-   * Los tipos de problema que comparten todas las páginas filtradas: se enseñan una vez, no por
-   * fila. En las vistas de inventario (matriz y «Qué tiene») no hay: no son listas de problemas.
-   */
+  /** Se enseñan una vez, no por fila; las vistas de inventario no los tienen. */
   common: { issues: CommonIssue[]; overviewHref: string };
   /** La tabla de la vista pedida, con las filas de la página actual. */
   table: ListingTable;
   footer: {
-    /**
-     * Los filtros ESCRITOS en la URL: en la vista por defecto no llevan `severity`, así pasar de
-     * página o cambiar el tamaño no la convierte en una vista con filtros explícitos.
-     */
+    /** Filtros escritos en la URL: en la vista por defecto sin `severity`, para que paginar no la haga explícita. */
     filters: SeoFilters;
     perPage: number;
     action: string;
@@ -108,14 +103,7 @@ interface ListingInput {
   links: Pick<PanelLinks, 'pages' | 'inspector' | 'overview'>;
 }
 
-/**
- * Todo lo que enseña la tabla de páginas: qué filtros y vista rigen, las filas de la página pedida
- * y los números de la paginación. La pantalla solo lee la URL, llama a esto y pinta.
- *
- * Los filtros eligen PÁGINAS (una entrada que los cumple basta). Las vistas por página, matriz y
- * «Qué tiene» enseñan la página entera, con todos sus idiomas; «Por idioma» enseña solo las
- * entradas que cumplen. Las filas salen ya agrupadas y se paginan contando filas de esa vista.
- */
+/** Los filtros eligen PÁGINAS (basta una entrada que cumpla); las vistas por página, matriz y «Qué tiene» enseñan todos sus idiomas. */
 export function listingModel({
   tree,
   params,
@@ -126,7 +114,7 @@ export function listingModel({
   const { view, filters, defaulted, written, matching, selected, byEntry, severities } =
     selectListing(tree, params);
   const perPage = parsePerPage(params);
-  const inventory = view.view === SeoView.MATRIX || view.view === SeoView.HAVE;
+  const inventory = isInventoryView(view.view);
   const common = inventory
     ? []
     : commonIssues(byEntry ? matching : selected, {
@@ -134,9 +122,11 @@ export function listingModel({
         ...(severities && { severities }),
       });
   const commonKinds = common.map(({ kind }) => kind);
-  const href = (to: ViewState, page = 1) => links.pages(written, page, perPage, to);
+  function href(to: ViewState, page = 1) {
+    return links.pages(written, page, perPage, to);
+  }
 
-  const tableOf = (): { table: ListingTable; paging: Omit<Paginated<unknown>, 'rows'> } => {
+  function tableOf(): { table: ListingTable; paging: Omit<Paginated<unknown>, 'rows'> } {
     const at = parsePage(params);
     switch (view.view) {
       case SeoView.LOCALE: {
@@ -199,7 +189,7 @@ export function listingModel({
         return { table: { view: 'page', rows }, paging };
       }
     }
-  };
+  }
   const { table, paging } = tableOf();
 
   const counts = severityCounts(tree.pages);
@@ -243,7 +233,7 @@ export function listingModel({
         from: paging.from,
         to: paging.to,
         total: paging.total,
-        overall: byEntry ? tree.pages.length : new Set(tree.pages.map((entry) => entry.slug)).size,
+        overall: byEntry ? tree.pages.length : slugsOf(tree.pages).size,
       },
       pagination: {
         page: paging.page,

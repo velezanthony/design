@@ -18,8 +18,10 @@ import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
 import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
 import { CONTENT_METADATA_KEY, contentFacts } from '../../core/seo-on-page/nodes/content';
-import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
-import { toAstroError } from '../integration/errors';
+import type { DocsUserConfig } from '../../core/config/schema';
+import { resolveConfigOrThrow } from '../config';
+import { urlPolicyOf } from '../config';
+import { toAstroError } from '../errors';
 import { readFrontmatter } from './frontmatter';
 import { checkFavicon } from './favicon';
 import { checkSeoImages } from './images';
@@ -30,33 +32,30 @@ import { createReloader, watchSources } from './watch';
 const LOAD_ERROR = 'No se puede cargar el contenido de docs.';
 
 /** Carpeta de las páginas nativas, absoluta: `content` está resuelta contra la raíz del proyecto. */
-const contentDir = (root: string, config: Pick<LoaderConfig, 'content'>) =>
-  path.resolve(root, config.content);
+function contentDir(root: string, config: Pick<LoaderConfig, 'content'>) {
+  return path.resolve(root, config.content);
+}
 
 /** Falla con la ruta ya resuelta si la carpeta de contenido no existe o no es una carpeta. */
-async function assertContentDir(dir: string, config: Pick<LoaderConfig, 'content'>) {
-  const info = await stat(dir).catch(() => undefined);
+async function assertContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
+  const info = await stat(directory).catch(() => undefined);
   if (info?.isDirectory()) return;
-  throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${dir}.`, {
+  throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${directory}.`, {
     hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
   });
 }
 
 /** Rutas de los `.md` bajo `dir`, relativas a él y con `/` aunque el sistema use otro separador. */
-async function walk(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { recursive: true, withFileTypes: true });
+async function walk(directory: string): Promise<string[]> {
+  const entries = await readdir(directory, { recursive: true, withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
     .map((entry) =>
-      path.relative(dir, path.join(entry.parentPath, entry.name)).split(path.sep).join('/'),
+      path.relative(directory, path.join(entry.parentPath, entry.name)).split(path.sep).join('/'),
     );
 }
 
-/**
- * Lee del disco los archivos que el núcleo necesita: los nativos (con su frontmatter ya separado
- * y validado) y los externos que existan. Los fallos de frontmatter se devuelven aparte para
- * sumarlos al resto de errores de carga.
- */
+/** Lee del disco los archivos nativos (con frontmatter validado) y los externos; los fallos de frontmatter vuelven aparte. */
 async function readSources(
   root: string,
   config: LoaderConfig,
@@ -82,10 +81,11 @@ async function readSources(
 }
 
 /** Archivo absoluto de una página: las nativas cuelgan del directorio de contenido. */
-const absolutePath = (root: string, config: LoaderConfig, page: Page) =>
-  page.kind === 'native'
+function absolutePath(root: string, config: LoaderConfig, page: Page) {
+  return page.kind === 'native'
     ? path.join(contentDir(root, config), page.sourcePath)
     : path.resolve(root, page.sourcePath);
+}
 
 /** Errores de `discoverPages` como lista, para sumarlos a los demás en vez de cortar la carga. */
 function discoverOrErrors(
@@ -100,13 +100,9 @@ function discoverOrErrors(
   }
 }
 
-/**
- * Una carga completa en tres pasadas: descubrir (nativos + externos, políticas), reescribir
- * enlaces y renderizar cada página, y validar anclas e imágenes con los encabezados de TODAS.
- * Los fallos se acumulan y salen en un único error con archivo y línea.
- */
-async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
-  const root = fileURLToPath(ctx.config.root);
+/** Carga en tres pasadas (descubrir, reescribir y renderizar, validar anclas e imágenes); los fallos se acumulan en un solo error. */
+async function sync(context: LoaderContext, config: LoaderConfig): Promise<void> {
+  const root = fileURLToPath(context.config.root);
   const read = await readSources(root, config);
   const errors: DocsError[] = [...read.errors];
   const discovered = discoverOrErrors(read.files, config);
@@ -125,7 +121,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
     );
   }
   for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {
-    ctx.logger.warn(
+    context.logger.warn(
       `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`translations\` para elegir qué ve quien no tiene traducción.`,
     );
   }
@@ -136,14 +132,10 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
   // Sin páginas no hay nada más que validar: se cuentan los fallos y se corta.
   if (pages.length === 0) collectErrors(errors);
 
-  ctx.store.clear();
+  context.store.clear();
   const index = {
     pages,
-    url: {
-      base: ctx.config.base,
-      trailingSlash: ctx.config.trailingSlash,
-      defaultLocale: config.defaultLocale,
-    },
+    url: urlPolicyOf(context.config, config.defaultLocale),
     contentDir: config.content,
   };
   const refs: LinkRef[] = [];
@@ -155,7 +147,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
     errors.push(...rewritten.errors);
     refs.push(...rewritten.refs);
 
-    const data = await ctx.parseData({
+    const data = await context.parseData({
       id,
       data: {
         slug: page.slug,
@@ -169,7 +161,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
         ...(repoRoot !== undefined && { editPath: path.relative(repoRoot, file) }),
       },
     });
-    const markdown = await ctx.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
+    const markdown = await context.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
     // Los enlaces y las imágenes ya los detectó `rewriteLinks`: se guardan junto a los encabezados
     // para el panel SEO (huérfanas, enlaces a noindex, texto alternativo) sin releer el Markdown.
     const rendered = {
@@ -184,7 +176,7 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
       locale: page.locale,
       headings: rendered.metadata?.headings ?? [],
     });
-    ctx.store.set({
+    context.store.set({
       id,
       data,
       body: rewritten.body,
@@ -197,25 +189,19 @@ async function sync(ctx: LoaderContext, config: LoaderConfig): Promise<void> {
   errors.push(...validateAnchors(refs, buildHeadingIndex(headings)));
   const images = await checkSeoImages(
     collectImageRefs(config.seo.image, pages),
-    ctx.config.publicDir,
+    context.config.publicDir,
   );
-  errors.push(...images.errors, ...(await checkFavicon(config.favicon, ctx.config.publicDir)));
-  for (const warning of images.warnings) ctx.logger.warn(warning);
+  errors.push(...images.errors, ...(await checkFavicon(config.favicon, context.config.publicDir)));
+  for (const warning of images.warnings) context.logger.warn(warning);
   collectErrors(errors);
 }
 
 export { docsSchema } from './schema';
 
-/**
- * Lo que el loader necesita de la config: la resuelta, sin los overrides de `ui` (solo los usa la
- * interfaz y en el módulo virtual ya viajan fusionados en `strings`).
- */
+/** Lo que el loader necesita de la config resuelta, sin los overrides de `ui` (ya viajan fusionados en `strings`). */
 export type LoaderConfig = Omit<ResolvedConfig, 'ui'>;
 
-/**
- * Loader a partir de una config YA resuelta. Es lo que usa `@velezanthony/design/content` con la
- * que la integración sirve en el módulo virtual: una sola carga de la config, sin segunda lectura.
- */
+/** Loader a partir de una config YA resuelta (la del módulo virtual): una sola carga, sin segunda lectura. */
 export function docsLoaderFromResolved(docsConfig: LoaderConfig): Loader {
   return createLoader(() => docsConfig);
 }
@@ -229,23 +215,24 @@ function createLoader(getConfig: () => LoaderConfig): Loader {
   return {
     name: '@velezanthony/design/loader',
     schema: docsSchema(),
-    async load(ctx) {
+    async load(context) {
       const docsConfig = getConfig();
-      const run = () =>
-        sync(ctx, docsConfig).catch((error: unknown) => {
+      async function run() {
+        return sync(context, docsConfig).catch((error: unknown) => {
           throw toAstroError(error, LOAD_ERROR);
         });
+      }
       await run();
 
-      if (ctx.watcher) {
-        const root = fileURLToPath(ctx.config.root);
-        watchSources(ctx.watcher, {
+      if (context.watcher) {
+        const root = fileURLToPath(context.config.root);
+        watchSources(context.watcher, {
           nativeDir: contentDir(root, docsConfig),
           files: externalCandidates(docsConfig).map((file) => path.resolve(root, file)),
           reload: createReloader(run, (error) => {
             const text = error instanceof Error ? error.message : String(error);
             const hint = (error as { hint?: string }).hint;
-            ctx.logger.error(hint ? `${text}\n${hint}` : text);
+            context.logger.error(hint ? `${text}\n${hint}` : text);
           }),
         });
       }

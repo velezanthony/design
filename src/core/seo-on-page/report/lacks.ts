@@ -1,9 +1,6 @@
 import type { HaveColumn } from '../queries/url-filters';
 
-/**
- * Lo que el informe dice de cada columna de «Qué tiene» cuando se filtra por lo que falta: la clave
- * que se añade, por qué importa y cómo se arregla. El recuento «sin …» sale de `LACKS_PHRASES`.
- */
+/** El recuento «sin …» sale de `LACKS_PHRASES`. */
 export const LACKS: Record<HaveColumn, { key?: string; why: string; fix: string }> = {
   desc: {
     key: 'seo.description',

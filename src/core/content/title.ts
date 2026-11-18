@@ -1,6 +1,6 @@
 import { DocsError } from '../errors';
+import { fenceMask } from '../links/fences';
 
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 const H1 = /^#[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/;
 
 /** Quita el marcado inline que no forma parte del texto visible del título. */
@@ -15,26 +15,17 @@ function stripInline(text: string): string {
 
 /** Texto del primer H1 fuera de bloques de código, sin marcado inline; `undefined` si no hay. */
 function firstHeading(body: string): string | undefined {
-  let fence: string | undefined;
-  for (const line of body.split('\n')) {
-    const opening = FENCE.exec(line);
-    if (opening) {
-      const marker = opening[1];
-      if (fence === undefined) fence = marker[0];
-      else if (marker[0] === fence) fence = undefined;
-      continue;
-    }
-    if (fence !== undefined) continue;
-    const heading = H1.exec(line);
-    if (heading) return stripInline(heading[1]);
+  const inCode = fenceMask(body);
+  const lines = body.split('\n');
+  for (const [index, line] of lines.entries()) {
+    if (inCode[index]) continue;
+    const text = H1.exec(line)?.[1];
+    if (text) return stripInline(text);
   }
   return undefined;
 }
 
-/**
- * Título de la página: el `title` del frontmatter si existe y, si no, el primer H1. Una página sin
- * ninguno de los dos es un error (el título alimenta la barra lateral, el `<title>` y el SEO).
- */
+/** Título: el del frontmatter o el primer H1; sin ninguno es un error. */
 export function resolveTitle(body: string, frontmatterTitle?: string, file?: string): string {
   const declared = frontmatterTitle?.trim();
   if (declared) return declared;

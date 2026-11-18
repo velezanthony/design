@@ -23,7 +23,7 @@ flowchart TD
   ft --> foot["DocsFooter"]
 ```
 
-Todo el cálculo es puro y vive en `src/core/navigation/`; los componentes de `src/ui/` solo pintan
+Todo el cálculo es puro y vive en `src/core/navigation/`; los componentes de `src/components/` solo pintan
 lo que reciben.
 
 ### Cabecera (`nav`)
@@ -72,7 +72,7 @@ real, así que siguen funcionando en GitHub. El enlace «Editar esta página» a
 Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al repositorio y a
 «Informar de un error» (a partir de `social.github`); debajo, licencia, privacidad y «Preferencias de
 cookies» (solo con analítica). Este sitio no declara licencia todavía. El año sale del reloj del
-visitante (`client/content/year.ts`); el del build queda como respaldo sin JavaScript.
+visitante (`client/layout/year.ts`); el del build queda como respaldo sin JavaScript.
 
 ## Búsqueda
 
@@ -81,7 +81,7 @@ La búsqueda es **Pagefind**: un índice estático generado al final del build, 
 ```mermaid
 sequenceDiagram
   participant B as astro build
-  participant I as integration/pagefind.ts
+  participant I as integration/build/pagefind.ts
   participant D as dist/
   participant N as Navegador
   participant S as client/search.ts

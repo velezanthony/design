@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { docsProblem } from './git-guard';
+import { docsProblem } from './git-guard.ts';
 
-const fakeGit =
-  (answers: Record<string, string | Error>) =>
-  (args: string[]): string => {
-    const answer = answers[args.join(' ')];
-    if (answer === undefined) throw new Error(`git inesperado: ${args.join(' ')}`);
+function fakeGit(answers: Record<string, string | Error>) {
+  return (gitArguments: string[]): string => {
+    const answer = answers[gitArguments.join(' ')];
+    if (answer === undefined) throw new Error(`git inesperado: ${gitArguments.join(' ')}`);
     if (answer instanceof Error) throw answer;
     return answer;
   };
+}
 
 const inRepo = 'rev-parse --is-inside-work-tree';
 const status = 'status --porcelain -- docs';

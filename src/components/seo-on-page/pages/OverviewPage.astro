@@ -1,0 +1,59 @@
+---
+import type { ComponentProps } from 'astro/types';
+import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { OVERVIEW_LABELS, SCREEN_LABELS } from '../../../core/seo-on-page/labels';
+import PanelIntro from '../organisms/PanelIntro.astro';
+import ReportButton from '../molecules/ReportButton.astro';
+import CoverageCard from '../organisms/overview/CoverageCard.astro';
+import FixFirstCard from '../organisms/overview/FixFirstCard.astro';
+import IndexingCard from '../organisms/overview/IndexingCard.astro';
+import KindsCard from '../organisms/overview/KindsCard.astro';
+import OverviewKpis from '../organisms/overview/OverviewKpis.astro';
+import RouteOverridesNotice from '../organisms/overview/RouteOverridesNotice.astro';
+import SchemasCard from '../organisms/overview/SchemasCard.astro';
+import SiteFilesCard from '../organisms/overview/SiteFilesCard.astro';
+import ClientPageFailures from '../organisms/shared/ClientPageFailures.astro';
+import ReportDialog from '../organisms/shared/ReportDialog.astro';
+
+/* Solo pinta: la ruta pide los datos y arma el modelo y el informe. */
+interface Props {
+  view: Omit<ComponentProps<typeof DocsLayout>, 'year'>;
+  year: number;
+  model: OverviewModel;
+  locales: string[];
+  failures: ComponentProps<typeof ClientPageFailures>['failures'];
+  overrides: ComponentProps<typeof RouteOverridesNotice>['overrides'];
+  report: ComponentProps<typeof ReportDialog>;
+}
+
+const { view, year, model, locales, failures, overrides, report } = Astro.props;
+const lede = OVERVIEW_LABELS.lede(view.siteName, model.kpis.pages.pages, locales);
+---
+
+<DocsLayout {...view} year={year}>
+  <slot name="head" slot="head" />
+  <PanelIntro title={SCREEN_LABELS.overview} lede={lede} strings={view.strings}>
+    <ReportButton slot="actions" scope="site" />
+  </PanelIntro>
+  <ClientPageFailures failures={failures} />
+  <RouteOverridesNotice overrides={overrides} />
+  <div class="flex flex-col gap-4">
+    <OverviewKpis kpis={model.kpis} />
+    <div class="grid gap-4 lg:grid-cols-2">
+      <FixFirstCard priorities={model.priorities} footer={model.footer} />
+      {model.coverage && <CoverageCard coverage={model.coverage} />}
+      <IndexingCard indexing={model.indexing} />
+      <SchemasCard schemas={model.schemas} />
+      <KindsCard kinds={model.kinds} />
+      <SiteFilesCard files={model.files} locales={locales} />
+    </div>
+  </div>
+  <ReportDialog {...report} />
+</DocsLayout>
+
+<script>
+  import { bootPanel } from '../../../client/seo-on-page/boot';
+
+  bootPanel();
+</script>

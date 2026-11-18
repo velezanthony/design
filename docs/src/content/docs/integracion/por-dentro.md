@@ -9,14 +9,14 @@ seo:
 
 La integración tiene dos puertas de entrada, una por cada archivo que toca el consumidor:
 
-- `docs(config)` en `astro.config.mjs` → `src/astro/integration/index.ts`.
+- `docs(config)` en `astro.config.mjs` → `src/astro/integration/docs.ts` (`index.ts` solo reexporta la API pública).
 - La colección de `content.config.ts` (`@velezanthony/design/content`) →
   `src/astro/content/index.ts` y `src/astro/loader/index.ts`.
 
 La config se carga UNA vez: `astro.config.mjs` importa `docs.config.mjs` y se lo pasa a `docs()`, que
 lo pasa por `resolveConfig` (`src/core/config/resolve.ts`: valida con el esquema zod y rellena los
 valores por defecto). Un error ahí sale como `AstroError` con la ruta de la clave (`toAstroError`, en
-`src/astro/integration/errors.ts`).
+`src/astro/errors.ts`).
 
 El loader se evalúa fuera de la integración y Astro descarta las propiedades que esta le adjunte a
 su objeto, así que no puede leerla de ahí. Tampoco hace falta que importe `docs.config.mjs` por su
@@ -33,11 +33,11 @@ variante `.js`/`.ts`) con `addWatchFile` si existe en la raíz: solo lo vigila, 
 sequenceDiagram
   autonumber
   participant CLI as astro build
-  participant Int as docs() · integration/index.ts
+  participant Int as docs() · integration/docs.ts
   participant Vite as Vite + módulo virtual
   participant Ldr as collections · content/index.ts + loader/index.ts
   participant MD as Sätteri + plugins mdast
-  participant Rt as Rutas inyectadas · astro/pages/
+  participant Rt as Rutas inyectadas · astro/routes/
   participant PF as Pagefind
 
   CLI->>Int: docs(docsConfig) → resolveConfig (zod)
@@ -81,19 +81,16 @@ Es donde ocurre casi todo. En orden:
    no es un error, se avisa al arrancar y las rutas exactas que ya son suyas no se inyectan.
    `assertNoFontConflict` falla si el consumidor declara una fuente con `--font-plex-sans` o
    `--font-plex-mono`.
-4. **Compañeras.** `addCompanions` inserta integraciones auxiliares tras la nuestra. Hoy la lista
-   (`COMPANIONS`) está vacía: sitemap, búsqueda y 404 son propios. El mecanismo queda listo para
-   cuando haga falta.
-5. **Markdown.** `extendMarkdownProcessor` modifica **en sitio** el procesador Sätteri de la config de
+4. **Markdown.** `extendMarkdownProcessor` modifica **en sitio** el procesador Sätteri de la config de
    Astro: activa las directivas y añade nuestros plugins. Si el procesador no es Sätteri, falla (ver
    [Markdown](./markdown.md)).
-6. **`updateConfig`.** Fusiona en la config de Astro:
+5. **`updateConfig`.** Fusiona en la config de Astro:
    - `markdown.shikiConfig.langAlias`: nuestros alias más los del consumidor (mandan los suyos).
-   - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/ui/styles/code-themes.ts`),
+   - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/components/styles/code-themes.ts`),
      **solo si el consumidor no eligió temas**.
    - `fonts`: IBM Plex Sans y Mono vía la API de fuentes de Astro (`src/astro/integration/fonts.ts`).
    - `vite.plugins`: el plugin del módulo virtual.
-7. **`injectRoute`.** Todas las rutas del sitio, con `prerender: true`:
+6. **`injectRoute`.** Todas las rutas salen de una tabla, `src/astro/routes/routes.ts` (patrón, contenedor y cuándo: `site`, `dev` o una opción); las del sitio llevan `prerender: true` y las de dev, no:
 
 | Patrón | Contenedor | Cuándo |
 | --- | --- | --- |
@@ -114,12 +111,12 @@ en `config:setup`.
 
 ### `astro:build:done`
 
-`buildPagefindIndex` (`src/astro/integration/pagefind.ts`) indexa `dist/` con la API de Node de
+`buildPagefindIndex` (`src/astro/integration/build/pagefind.ts`, que llama `build/build-done.ts`) indexa `dist/` con la API de Node de
 Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-y-busqueda.md).
 
 ## El módulo virtual
 
-Las páginas de `src/astro/pages/` necesitan la config resuelta, pero se ejecutan dentro de
+Las páginas de `src/astro/routes/` necesitan la config resuelta, pero se ejecutan dentro de
 Vite, lejos del hook que la conoce. El puente es un **módulo virtual** (el mismo patrón que usa
 Starlight):
 
@@ -155,7 +152,7 @@ está mal de una vez, con archivo y línea:
    cada uno. Después resuelve las políticas de traducción y valida `sidebar`, `nav` y `footer.links`
    contra los slugs reales.
 2. **Reescribir y renderizar.** Para cada página: `rewriteLinks` convierte los enlaces `.md`
-   relativos en URLs del sitio (y recoge referencias para validar), `ctx.renderMarkdown` produce el
+   relativos en URLs del sitio (y recoge referencias para validar), `context.renderMarkdown` produce el
    HTML con el pipeline de Markdown, y se guarda en el _store_ con sus datos (`docsSchema`):
    `slug`, `locale`, `title`, `sourcePath`, `order`, `seo`, `translations` y `editPath`.
 3. **Validar.** Con los encabezados de TODAS las páginas ya conocidos, `validateAnchors` comprueba

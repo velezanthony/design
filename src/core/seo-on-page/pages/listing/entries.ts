@@ -1,6 +1,8 @@
 import type { Locale } from '../../../i18n/locale';
 import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
-import { RANK, worst, type LocaleTone } from './rows';
+import { localeTone, type LocaleTone } from './rows';
+import { SEVERITY_RANK } from '../../severity';
+import { ownIssues } from './group';
 
 /** Una fila de la vista «Por idioma»: una entrada (página + idioma), con lo que se publica de ella. */
 export interface EntryRow {
@@ -25,12 +27,11 @@ interface EntriesInput {
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
 
-const rank = (row: EntryRow) => (row.tone === 'ok' ? 3 : RANK[row.tone]);
+function rank(row: EntryRow) {
+  return row.tone === 'ok' ? 3 : SEVERITY_RANK[row.tone];
+}
 
-/**
- * Las filas de la vista «Por idioma»: una por entrada, tal como se publica cada idioma. Salen de la
- * peor gravedad a la mejor; en los empates se conserva el orden de entrada (`sort` es estable).
- */
+/** Peor gravedad primero; los empates conservan el orden de entrada (`sort` es estable). */
 export function entryRows(entries: readonly SeoPage[], input: EntriesInput): EntryRow[] {
   const { common, severities, inspector } = input;
   return entries
@@ -42,11 +43,8 @@ export function entryRows(entries: readonly SeoPage[], input: EntriesInput): Ent
       titleLength: entry.meta.titleLength,
       descriptionSource: entry.meta.descriptionSource,
       descriptionLength: entry.meta.descriptionLength,
-      issues: entry.issues.filter(
-        (issue) =>
-          !common.includes(issue.kind) && (!severities || severities.includes(issue.severity)),
-      ),
-      tone: worst(entry.issues.map((issue) => issue.severity)) ?? 'ok',
+      issues: ownIssues(entry, common, severities),
+      tone: localeTone(entry),
     }))
-    .sort((a, b) => rank(a) - rank(b));
+    .sort((left, right) => rank(left) - rank(right));
 }

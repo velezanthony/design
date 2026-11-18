@@ -1,0 +1,119 @@
+---
+import Link from '../../atoms/actions/Link.astro';
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import type { FooterView } from '../../../core/navigation/footer';
+
+interface Props {
+  siteName: string;
+  /** Año del copyright. Va por props para que el pie salga igual cuando se renderice. */
+  year: number;
+  strings: UiStrings;
+  /** Página de privacidad; sin ella no se pinta el enlace. */
+  privacyUrl?: string;
+  /** Si el sitio pide consentimiento, hay una elección que reabrir. */
+  cookieControl?: boolean;
+  /** Licencia, autor y enlaces propios o derivados de la config; ya resueltos al idioma. */
+  footer?: FooterView;
+}
+
+const { siteName, year, strings, privacyUrl, cookieControl = false, footer } = Astro.props;
+const { license, author, links = [] } = footer ?? {};
+const hasLinks = links.length > 0;
+/* La config da solo el nombre ('MIT', 'Apache-2.0'); la frase («MIT License», «Licencia MIT»)
+   depende del idioma. */
+const hasLegal = Boolean(license) || Boolean(privacyUrl) || cookieControl;
+const licenseText = license && translate(strings, 'footer.license', { name: license.label });
+
+/* Una sola cadena para todo lo que se pinta como enlace del pie. */
+const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
+---
+
+<footer class="docs-footer mt-auto">
+  {/* `pe-16`: deja libre el sitio del botón «volver arriba», fijo abajo a la derecha, para que no tape el último enlace. */}
+  <div class="mx-auto flex max-w-(--container-page) flex-col gap-y-3 ps-6 pe-16 py-8 font-mono text-xs text-muted lg:ps-10 lg:pe-16">
+    {/* Fila 1: quién (izquierda) y lo que se puede hacer con el proyecto (derecha). */}
+    <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
+      {/* Una sola frase: «© 2026 SnakeORM por Anthony Velez», con el autor enlazado. El año del build es lo que
+          se ve sin JS: `data-current-year` lo sustituye el cliente por el del visitante. */}
+      <p data-footer-meta class="inline-flex flex-wrap items-baseline gap-x-1">
+        <span>
+          © <span data-current-year>{year}</span> {siteName}
+        </span>
+        {author && (
+          <>
+            {' '}
+            {translate(strings, 'footer.by')}{' '}
+            <Link href={author.href} variant="quiet">
+              {author.name}
+            </Link>
+          </>
+        )}
+      </p>
+
+      {hasLinks && (
+        <nav aria-label={translate(strings, 'footer.label')}>
+          <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+            {links.map((link) => (
+              <li>
+                <Link href={link.href} variant="quiet" external={link.external}>
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+    </div>
+
+    {/* Fila 2: lo legal, más pequeña y más tenue. Una lista y no un `<nav>`: la licencia suele ser
+        texto y el footer ya tiene su navegación. Los puntos son adorno y no se leen; en móvil sobran porque cada dato va en su línea. */}
+    {hasLegal && (
+      <ul
+        data-footer-legal
+        class="flex flex-col gap-y-1 text-[0.6875rem] sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2"
+      >
+        {license && (
+          <li>
+            {license.href ? (
+              <Link href={license.href} variant="quiet">
+                {licenseText}
+              </Link>
+            ) : (
+              <span>{licenseText}</span>
+            )}
+          </li>
+        )}
+        {privacyUrl && (
+          <li class="flex items-baseline gap-x-2">
+            {license && (
+              <span aria-hidden="true" class="max-sm:hidden">
+                ·
+              </span>
+            )}
+            <Link href={privacyUrl} variant="quiet">
+              {translate(strings, 'consent.privacy')}
+            </Link>
+          </li>
+        )}
+        {cookieControl && (
+          <li class="flex items-baseline gap-x-2">
+            {(license || privacyUrl) && (
+              <span aria-hidden="true" class="max-sm:hidden">
+                ·
+              </span>
+            )}
+            {/* Un botón, no un enlace: actúa sobre la página, no lleva a ningún sitio. El
+                preflight de Tailwind pone `cursor: default` a los botones. */}
+            <button
+              type="button"
+              data-consent-open
+              class:list={['inline-flex cursor-pointer items-center', quiet]}
+            >
+              {translate(strings, 'consent.preferences')}
+            </button>
+          </li>
+        )}
+      </ul>
+    )}
+  </div>
+</footer>

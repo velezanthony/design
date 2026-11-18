@@ -3,19 +3,16 @@ import { isNavPage, isNavSection, type NavItem, type NavSection } from '../confi
 import { HOME_SIDEBAR_SLUG, sidebarSlugRefs, toSidebarSlug } from './sidebar-slugs';
 
 /** ¿Pertenece `slug` a la carpeta `dir`? Es la propia carpeta o cuelga de ella: `users-extra` no. */
-export const slugInDir = (dir: string, slug: string): boolean =>
-  slug === dir || slug.startsWith(`${dir}/`);
+export function slugInDir(directory: string, slug: string): boolean {
+  return slug === directory || slug.startsWith(`${directory}/`);
+}
 
 /** Posición en `nav` de la sección a la que pertenece `slug`, o `-1` si no pertenece a ninguna. */
 export function sectionIndexOf(nav: readonly NavItem[] | undefined, slug: string): number {
   return (nav ?? []).findIndex((item) => isNavSection(item) && slugInDir(item.dir, slug));
 }
 
-/**
- * Un error por cada incoherencia de `nav` con las páginas reales, con su ruta en la config
- * (`nav[1].dir`). Lo que se puede juzgar sin páginas (solape de dirs, https) lo valida el esquema.
- * Devuelve la lista para sumarla a los demás fallos de la carga en vez de cortar en el primero.
- */
+/** Un error por incoherencia de `nav` con las páginas reales; devuelve la lista para sumarla a los demás fallos de la carga. */
 export function validateNav(nav: readonly NavItem[], pageSlugs: ReadonlySet<string>): DocsError[] {
   const errors: DocsError[] = [];
   const sections = nav.filter(isNavSection);
@@ -52,8 +49,8 @@ function validateSection(
   index: number,
   pageSlugs: ReadonlySet<string>,
 ): DocsError[] {
-  const inDir = [...pageSlugs].filter((slug) => slugInDir(section.dir, slug));
-  if (inDir.length === 0) {
+  const inDirectory = [...pageSlugs].filter((slug) => slugInDir(section.dir, slug));
+  if (inDirectory.length === 0) {
     return [
       new DocsError(
         `${formatPath(['nav', index, 'dir'])}: no hay ninguna página en «${section.dir}».`,
@@ -61,7 +58,7 @@ function validateSection(
       ),
     ];
   }
-  const inside = new Set(inDir);
+  const inside = new Set(inDirectory);
   return sidebarSlugRefs(section.sidebar ?? [], ['nav', index, 'sidebar']).flatMap(
     ({ slug, path }): DocsError[] => {
       const at = formatPath(path);

@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { readHead } from './html-head';
 
 const page = new URL('https://x.dev/repo/cv/');
-const html = (head: string, body = '') =>
-  `<!doctype html><html lang="es"><head>${head}</head><body>${body}</body></html>`;
+function html(head: string, body = '') {
+  return `<!doctype html><html lang="es"><head>${head}</head><body>${body}</body></html>`;
+}
 
 describe('readHead: lo que dice la página de sí misma', () => {
   it('título, descripción e idioma, sin los espacios del marcado', () => {

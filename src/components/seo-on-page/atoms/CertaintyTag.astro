@@ -1,0 +1,17 @@
+---
+import type { Certainty } from '../../../core/seo-on-page/catalog';
+import Tag from '../../atoms/display/Tag.astro';
+import { CERTAINTY_LABELS } from '../../../core/seo-on-page/labels';
+
+interface Props {
+  certainty: Certainty;
+}
+
+const { certainty } = Astro.props;
+const { text, hint } = CERTAINTY_LABELS[certainty];
+---
+
+{/* «Regla» es un hecho; «heurística», una recomendación: la segunda se tiñe para que no pase por regla. */}
+<Tag tone={certainty === 'rule' ? 'faint' : 'wip'} plain title={hint} data-certainty={certainty}>
+  {text}
+</Tag>

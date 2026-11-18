@@ -14,39 +14,50 @@ const links: PanelLinks = {
   overview: () => '/o/',
 };
 
-const issue = (severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
+function issue(severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
 
 /** 30 páginas con un aviso y una informativa y limpia: la vista por defecto oculta la limpia. */
-const tree = (): SeoTree => ({
-  pages: [
-    ...Array.from({ length: 30 }, (_, index) =>
-      seoPage({ slug: `p${String(index).padStart(2, '0')}`, issues: [issue(IssueSeverity.ERROR)] }),
-    ),
-    seoPage({ slug: 'info', issues: [issue(IssueSeverity.INFO, IssueKind.DESCRIPTION_INHERITED)] }),
-  ],
-});
+function tree(): SeoTree {
+  return {
+    pages: [
+      ...Array.from({ length: 30 }, (_item, index) =>
+        seoPage({
+          slug: `p${String(index).padStart(2, '0')}`,
+          issues: [issue(IssueSeverity.ERROR)],
+        }),
+      ),
+      seoPage({
+        slug: 'info',
+        issues: [issue(IssueSeverity.INFO, IssueKind.DESCRIPTION_INHERITED)],
+      }),
+    ],
+  };
+}
 
 /** Las filas de la vista por página, que es la de por defecto y la que casi todo mira. */
-const rowsOf = (model: ListingModel) => {
+function rowsOf(model: ListingModel) {
   if (model.table.view !== 'page')
     throw new Error(`se esperaba la vista por página, no ${model.table.view}`);
   return model.table.rows;
-};
+}
 
-const run = (query = '', locales = ['en', 'es']) =>
-  listingModel({
+function run(query = '', locales = ['en', 'es']) {
+  return listingModel({
     tree: tree(),
     params: new URLSearchParams(query),
     locales,
     defaultLocale: 'en',
     links,
   });
+}
 
 describe('listingModel', () => {
   it('sin filtros en la URL parte de error + aviso y avisa de que oculta lo informativo', () => {
@@ -100,7 +111,7 @@ describe('listingModel', () => {
       perPage: 25,
       locales: ['en', 'fr'],
       action: '/t/',
-      kinds: expect.objectContaining({ summary: 'todos' }),
+      kinds: expect.objectContaining({ all: expect.objectContaining({ checked: true }) }),
       view: { view: 'page' },
       clear: '/t/',
       severityCounts: { error: 30, warning: 0, info: 1 },
@@ -136,14 +147,15 @@ describe('listingModel', () => {
       seoPage({ slug: 'b', locale: 'en', issues: [issue(IssueSeverity.ERROR)] }),
       seoPage({ slug: 'c', locale: 'en' }),
     ];
-    const group = (query = '') =>
-      listingModel({
+    function group(query = '') {
+      return listingModel({
         tree: { pages: entries },
         params: new URLSearchParams(query),
         locales: ['en', 'es'],
         defaultLocale: 'en',
         links,
       });
+    }
 
     it('cuenta páginas (slugs), no entradas, en el recuento y en el total', () => {
       const { footer } = group();
@@ -164,7 +176,7 @@ describe('listingModel', () => {
     });
 
     it('pagina páginas, no entradas: 12 páginas en 2 idiomas con 10 por fila son 2 páginas', () => {
-      const many = Array.from({ length: 12 }, (_, index) =>
+      const many = Array.from({ length: 12 }, (_item, index) =>
         ['en', 'es'].map((locale) =>
           seoPage({
             slug: `p${index}`,
@@ -187,19 +199,22 @@ describe('listingModel', () => {
   });
 
   describe('aviso común', () => {
-    const everywhere = (kind: IssueKind, count: number): SeoTree => ({
-      pages: Array.from({ length: count }, (_, index) =>
-        seoPage({ slug: `p${index}`, issues: [issue(IssueSeverity.WARNING, kind)] }),
-      ),
-    });
-    const common = (tree: SeoTree, query = '') =>
-      listingModel({
+    function everywhere(kind: IssueKind, count: number): SeoTree {
+      return {
+        pages: Array.from({ length: count }, (_item, index) =>
+          seoPage({ slug: `p${index}`, issues: [issue(IssueSeverity.WARNING, kind)] }),
+        ),
+      };
+    }
+    function common(tree: SeoTree, query = '') {
+      return listingModel({
         tree,
         params: new URLSearchParams(query),
         locales: ['en'],
         defaultLocale: 'en',
         links,
       });
+    }
 
     it('un tipo en todas las páginas filtradas sale una vez, no en las filas', () => {
       const model = common(everywhere(IssueKind.NO_H1, 3));
@@ -226,7 +241,9 @@ describe('listingModel', () => {
         ),
       };
       const model = common(tree);
-      expect(model.common.issues.map((c) => c.kind)).toEqual([IssueKind.DUPLICATE_TITLE]);
+      expect(model.common.issues.map((commonIssue) => commonIssue.kind)).toEqual([
+        IssueKind.DUPLICATE_TITLE,
+      ]);
       expect(rowsOf(model).flatMap((row) => row.issues)).toEqual([]);
     });
 
@@ -277,14 +294,15 @@ describe('listingModel', () => {
         seoPage({ slug: 'b', issues: [issue(IssueSeverity.WARNING, IssueKind.HEADING_SKIP)] }),
       ],
     };
-    const kinds = (query: string) =>
-      listingModel({
+    function kinds(query: string) {
+      return listingModel({
         tree,
         params: new URLSearchParams(query),
         locales: ['en'],
         defaultLocale: 'en',
         links,
       });
+    }
 
     it('sin filtro de tipo está marcado «Todos»', () => {
       expect(kinds('').form.kinds.all.checked).toBe(true);
@@ -301,7 +319,6 @@ describe('listingModel', () => {
     it('con un subconjunto sigue filtrando', () => {
       const model = kinds('kind=no-h1');
       expect(model.form.kinds.all.checked).toBe(false);
-      expect(model.form.kinds.summary).toBe('1 de 2');
       expect(rowsOf(model).map(({ slug }) => slug)).toEqual(['a']);
     });
 
@@ -349,14 +366,15 @@ describe('listingModel: vistas', () => {
       issues: [issue(IssueSeverity.WARNING, IssueKind.TRANSLATION_MISSING)],
     }),
   ];
-  const at = (query: string) =>
-    listingModel({
+  function at(query: string) {
+    return listingModel({
       tree: { pages: entries },
       params: new URLSearchParams(query),
       locales: ['en', 'es'],
       defaultLocale: 'en',
       links,
     });
+  }
 
   it('sin `view` es la vista por página y un valor desconocido también', () => {
     expect(at('').table.view).toBe('page');
@@ -441,11 +459,11 @@ describe('listingModel: vistas', () => {
   });
 
   describe('Qué tiene', () => {
-    const have = (query: string) => {
+    function have(query: string) {
       const model = at(`view=have&${query}`);
       if (model.table.view !== 'have') throw new Error('vista');
       return { model, table: model.table };
-    };
+    }
 
     it('una fila por página, con las columnas y sus recuentos', () => {
       const { table } = have('');
@@ -508,14 +526,15 @@ describe('listingModel: vistas', () => {
           seoPage({ slug, issues: [issue(IssueSeverity.WARNING, IssueKind.NO_H1)] }),
         ),
       };
-      const model = (view: string) =>
-        listingModel({
+      function model(view: string) {
+        return listingModel({
           tree: same,
           params: new URLSearchParams(view),
           locales: ['en'],
           defaultLocale: 'en',
           links,
         });
+      }
       expect(model('view=page').common.issues).toHaveLength(1);
       expect(model('view=have').common.issues).toEqual([]);
       expect(model('view=matrix').common.issues).toEqual([]);

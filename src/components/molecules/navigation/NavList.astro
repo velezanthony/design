@@ -1,0 +1,51 @@
+---
+import type { NavEntry } from '../../../core/navigation/nav-entries';
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import Icon from '../../atoms/display/Icon.astro';
+
+/* Items de la cabecera. Los pinta en fila (`bar`, en la cabecera) o apilados (`menu`, dentro del
+   «Menú» móvil). El estado activo y los destinos ya vienen calculados por `core/navigation`. */
+interface Props {
+  entries: NavEntry[];
+  strings: UiStrings;
+  variant: 'bar' | 'menu';
+  /** Clases del `<nav>`: quien lo coloca decide cuándo se ve. */
+  class?: string;
+}
+
+const { entries, strings, variant, class: className } = Astro.props;
+const bar = variant === 'bar';
+
+const linkClass = bar
+  ? 'inline-flex min-h-6 items-center gap-1.5 py-1 font-mono text-sm text-ink transition-shadow hover:shadow-[inset_0_-1px_0_var(--color-ink)] aria-[current]:shadow-[inset_0_-2px_0_var(--color-accent-line)]'
+  : 'flex min-h-11 items-center gap-2 border-l-2 border-transparent py-2 pl-3 font-mono text-sm text-muted transition-colors hover:text-ink aria-[current]:border-accent aria-[current]:text-ink';
+---
+
+{entries.length > 0 && (
+  <nav aria-label={translate(strings, 'nav.label')} class={className}>
+    <ul class:list={['flex', bar ? 'items-center gap-x-5' : 'flex-col']}>
+      {entries.map((entry) => {
+        const iconOnly = bar && entry.icon !== undefined;
+        return (
+          <li class="flex">
+            <a
+              href={entry.href}
+              aria-current={entry.current}
+              rel={entry.external ? 'noopener' : undefined}
+              class={linkClass}
+            >
+              {entry.icon && <Icon name={entry.icon} size={bar ? 18 : 16} />}
+              <span class:list={[iconOnly && 'sr-only']}>{entry.label}</span>
+              {entry.external && (
+                <span data-external-marker class="inline-flex">
+                  {!entry.icon && <Icon name="external" size={12} class="opacity-60" />}
+                  <span class="sr-only">{translate(strings, 'nav.external')}</span>
+                </span>
+              )}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
+)}

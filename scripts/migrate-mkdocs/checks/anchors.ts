@@ -1,10 +1,4 @@
-/**
- * MkDocs genera ids de encabezado SIN acentos (`el-catalogo`) y la librería los conserva, como
- * GitHub (`el-catálogo`). Un enlace `#el-catalogo` válido en MkDocs rompe aquí.
- *
- * Esta pasada trabaja sobre el conjunto de ficheros ya convertidos: calcula los ids de cada uno y,
- * si un ancla no existe pero coincide con un id al quitarle los acentos, la sustituye por él.
- */
+/** MkDocs genera ids sin acentos (`el-catalogo`) y la librería los conserva (`el-catálogo`): se corrige el ancla si coincide al quitarle los acentos. */
 import path from 'node:path/posix';
 
 export interface AnchorLog {
@@ -16,7 +10,9 @@ export interface AnchorLog {
 /** Sufijo de idioma de una página (`guia.es.md` -> `es`). */
 const LOCALE_SUFFIX = /\.([a-z]{2}(?:-[A-Za-z]{2,})?)\.md$/;
 
-const strip = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '');
+function strip(text: string) {
+  return text.normalize('NFD').replace(/\p{M}/gu, '');
+}
 
 /** Aproximación de github-slugger: minúsculas, sin puntuación, espacios a guiones, `-n` si repite. */
 function headingIds(markdown: string): Set<string> {
@@ -28,10 +24,10 @@ function headingIds(markdown: string): Set<string> {
     if (fenced) continue;
     const heading = /^#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
     if (!heading) continue;
-    const text = heading[1]
+    const text = heading[1]!
       .replace(/`/g, '')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/[*_]{1,3}(?=\S)/g, (m) => (m.startsWith('_') ? m : ''));
+      .replace(/[*_]{1,3}(?=\S)/g, (match) => (match.startsWith('_') ? match : ''));
     const base = text
       .toLowerCase()
       .replace(/[^\p{L}\p{N}\p{M} _-]/gu, '')

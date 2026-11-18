@@ -1,23 +1,26 @@
 import { AstroError } from 'astro/errors';
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
-import { t, type UiKey } from '../../core/i18n/ui-strings';
+import { translate, type UiKey } from '../../core/i18n/ui-strings';
 import { docsPlugin, type MarkdownEnv } from './env';
 
 /** Tipos de directiva `:::tipo` (design-tokens da un color de estado a cada uno). */
-export const ADMONITION_KINDS = ['note', 'info', 'tip', 'warning', 'danger', 'question'] as const;
+const ADMONITION_KINDS = ['note', 'info', 'tip', 'warning', 'danger', 'question'] as const;
 export type AdmonitionKind = (typeof ADMONITION_KINDS)[number];
 
-const isKind = (name: string): name is AdmonitionKind =>
-  (ADMONITION_KINDS as readonly string[]).includes(name);
+function isKind(name: string): name is AdmonitionKind {
+  return (ADMONITION_KINDS as readonly string[]).includes(name);
+}
 
 /** Contenedores que pertenecen a `tabs.ts`: esta capa no los rechaza. */
 const FOREIGN = new Set(['tabs', 'tab']);
 
-const element = (
+function element(
   hName: string,
   properties: Record<string, unknown>,
   children: (MdastNode | Custom)[],
-): Custom => ({ type: 'docsElement', data: { hName, hProperties: properties }, children });
+): Custom {
+  return { type: 'docsElement', data: { hName, hProperties: properties }, children };
+}
 
 interface AdmonitionOptions {
   kind: AdmonitionKind;
@@ -26,10 +29,7 @@ interface AdmonitionOptions {
   children: (MdastNode | Custom)[];
 }
 
-/**
- * Nodo de una admonición. Es el MISMO marcado que `ui/molecules/Admonition.astro`; lo usan las
- * directivas y las alertas de GitHub, así las dos sintaxis dan una salida idéntica.
- */
+/** Nodo de admonición, el MISMO marcado que `Admonition.astro`, para que directivas y alertas den salida idéntica. */
 export function admonitionNode({
   kind,
   title,
@@ -51,19 +51,17 @@ export function admonitionNode({
 }
 
 /** Título por defecto de un tipo en el idioma de la página. */
-export const kindTitle = (strings: Parameters<typeof t>[0], key: `admonition.${string}`) =>
-  t(strings, key as UiKey);
+export function kindTitle(strings: Parameters<typeof translate>[0], key: `admonition.${string}`) {
+  return translate(strings, key as UiKey);
+}
 
-/**
- * Directivas contenedor `:::tipo[Título]{collapsed}`. Un tipo o un atributo desconocidos fallan
- * con archivo y nombre: una admonición mal escrita es contenido perdido, no algo que ignorar.
- */
-export const admonitions = (env: MarkdownEnv) =>
-  docsPlugin(env, ({ file, strings }) =>
+/** Directivas `:::tipo[Título]{collapsed}`: un tipo o atributo desconocido falla con archivo y nombre, porque sería contenido perdido. */
+export function admonitions(env: MarkdownEnv) {
+  return docsPlugin(env, ({ file, strings }) =>
     defineMdastPlugin({
       name: 'admonitions',
       options: { position: true },
-      containerDirective(node, ctx) {
+      containerDirective(node, context) {
         if (FOREIGN.has(node.name)) return;
         const where = `${file}${node.position ? `:${node.position.start.line}` : ''}`;
         if (!isKind(node.name)) {
@@ -83,8 +81,8 @@ export const admonitions = (env: MarkdownEnv) =>
         }
         const [first, ...rest] = node.children;
         const hasLabel = first?.type === 'paragraph' && first.data?.directiveLabel === true;
-        const label = hasLabel ? ctx.textContent(first).trim() : '';
-        ctx.replaceNode(
+        const label = hasLabel ? context.textContent(first).trim() : '';
+        context.replaceNode(
           node,
           admonitionNode({
             kind: node.name,
@@ -96,3 +94,4 @@ export const admonitions = (env: MarkdownEnv) =>
       },
     }),
   );
+}

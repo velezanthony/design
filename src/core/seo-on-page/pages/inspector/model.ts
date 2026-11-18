@@ -1,5 +1,5 @@
 import type { Locale } from '../../../i18n/locale';
-import { certaintyOf, type Certainty } from '../../certainty';
+import { CATALOG, type Certainty, type Limit } from '../../catalog';
 import { estimateWidth } from '../../pixels';
 import { headingCounts, type HeadingCounts } from '../../queries/heading-counts';
 import { outline, type OutlineItem } from '../../queries/outline';
@@ -14,9 +14,11 @@ import type {
   SeoTree,
 } from '../../tree/types';
 import type { PanelLinks } from '../links';
-import { RANK, worst, type LocaleTone } from '../listing/rows';
+import { localeTone, type LocaleTone } from '../listing/rows';
+import { editHref } from '../../../navigation/edit-href';
+import { ALL_SEVERITIES, SEVERITY_RANK } from '../../severity';
 import { differing, lengthClass, type LengthClass } from './compare';
-import { limitOf, verifyFor, type Limit } from './fix-details';
+import { findEntry, schemaTypes } from '../../tree/keys';
 
 /** Una de las páginas con las que choca un problema (un título duplicado, por ejemplo). */
 export interface RelatedPage {
@@ -48,12 +50,21 @@ export interface LocaleSwitchItem {
 
 /** Cómo está un idioma de la página en la comparación de traducciones. */
 export type ComparisonColumn =
-  | { state: 'missing'; locale: Locale; current: false; policy: string; declared: boolean }
+  | {
+      state: 'missing';
+      locale: Locale;
+      current: false;
+      policy: string;
+      declared: boolean;
+      tone: 'missing';
+    }
   /** Existe pero no está en el árbol: solo se sabe su URL. */
-  | { state: 'unknown'; locale: Locale; current: false; url: string }
+  | { state: 'unknown'; locale: Locale; current: false; url: string; tone: 'ok' }
   | {
       state: 'present';
       locale: Locale;
+      /** Su peor gravedad: el color de su insignia. */
+      tone: Exclude<LocaleTone, 'missing'>;
       current: boolean;
       href: string | undefined;
       title: string;
@@ -180,15 +191,24 @@ function columnOf(
       current: false,
       policy: entry.policy,
       declared: entry.declared,
+      tone: 'missing',
     };
   }
   const sibling = group.find((item) => item.locale === entry.locale);
-  if (!sibling) return { state: 'unknown', locale: entry.locale, current: false, url: entry.url };
+  if (!sibling)
+    return {
+      state: 'unknown',
+      locale: entry.locale,
+      current: false,
+      url: entry.url,
+      tone: 'ok',
+    };
   const current = entry.locale === page.locale;
   const { meta } = sibling;
   return {
     state: 'present',
     locale: entry.locale,
+    tone: localeTone(sibling),
     current,
     href: current ? undefined : links.inspector({ slug: page.slug, locale: entry.locale }),
     title: meta.title,
@@ -236,11 +256,7 @@ function markDifferences(columns: ComparisonColumn[]): ComparisonColumn[] {
   });
 }
 
-/**
- * Lo que enseña el inspector de una página, una sección por clave. `undefined` si no existe esa
- * página en ese idioma: es la pantalla quien decide qué decir (un 404). Los textos y las etiquetas
- * son de la UI; aquí solo hay datos y enlaces ya formados.
- */
+/** `undefined` si no existe la página en ese idioma: la pantalla decide (404); aquí solo datos y enlaces ya formados. */
 export function inspectorModel({
   tree,
   slug,
@@ -250,13 +266,14 @@ export function inspectorModel({
   asset,
   edit,
 }: InspectorInput): InspectorModel | undefined {
-  const page = tree.pages.find((item) => item.slug === slug && item.locale === locale);
+  const page = findEntry(tree.pages, slug, locale);
   if (!page) return undefined;
   const group = tree.pages.filter((item) => item.slug === slug);
   const { meta } = page;
   const displayUrl = new URL(meta.canonical, site).href;
-  const titleOf = (target: string) =>
-    tree.pages.find((item) => item.slug === target && item.locale === locale)?.meta.title;
+  function titleOf(target: string) {
+    return findEntry(tree.pages, target, locale)?.meta.title;
+  }
   return {
     slug,
     locale,
@@ -270,19 +287,15 @@ export function inspectorModel({
             : undefined;
         return {
           locale: entry.locale,
-          tone: sibling
-            ? (worst(sibling.issues.map((issue) => issue.severity)) ?? 'ok')
-            : 'missing',
+          tone: localeTone(sibling),
           current,
           href: sibling && !current ? links.inspector({ slug, locale: entry.locale }) : undefined,
         };
       }),
-      counts: (['error', 'warning', 'info'] as const)
-        .map((severity) => ({
-          severity,
-          count: page.issues.filter((issue) => issue.severity === severity).length,
-        }))
-        .filter(({ count }) => count > 0),
+      counts: ALL_SEVERITIES.map((severity) => ({
+        severity,
+        count: page.issues.filter((issue) => issue.severity === severity).length,
+      })).filter(({ count }) => count > 0),
       noindex: meta.noindex,
       presentIn: page.locales
         .filter((entry) => entry.status === 'present')
@@ -292,24 +305,18 @@ export function inspectorModel({
     links: {
       pages: links.pages(),
       live: meta.canonical,
-      edit:
-        edit?.url && edit.path
-          ? `${edit.url.replace(/\/+$/, '')}/${edit.path.replace(/^\/+/, '')}`
-          : undefined,
+      edit: edit?.url && edit.path ? editHref(edit.url, edit.path) : undefined,
     },
-    fixes: page.issues
-      .map((issue, index) => ({ issue, index }))
-      .sort((a, b) => RANK[a.issue.severity] - RANK[b.issue.severity] || a.index - b.index)
-      .map(({ issue }): FixBlock => {
+    // `sort` es estable: a igual gravedad, se conserva el orden del análisis.
+    fixes: [...page.issues]
+      .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity])
+      .map((issue): FixBlock => {
         const related = issue.related ?? [];
         return {
           issue,
-          certainty: certaintyOf(issue.kind),
-          limit: limitOf(issue.kind),
-          verify: verifyFor(
-            issue.kind,
-            related.map((other) => other.slug),
-          ),
+          certainty: CATALOG[issue.kind].certainty,
+          limit: CATALOG[issue.kind].limit,
+          verify: CATALOG[issue.kind].verify(related.map((other) => other.slug)),
           related: related.map((other) => ({
             slug: other.slug,
             href: links.inspector(other),
@@ -354,7 +361,7 @@ export function inspectorModel({
     schemas: page.schemas.map(({ schema, source }) => {
       const json = JSON.stringify(schema, null, 2);
       return {
-        types: [schema['@type']].flat(),
+        types: schemaTypes([{ schema, source }]),
         source,
         json,
         pages: source === 'site' ? pagesWith(tree, json) : undefined,

@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { checkOutput, findLeftovers, findSnippetStub } from './leftovers';
+import { checkOutput, findLeftovers, findSnippetStub } from './leftovers.ts';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
-const find = (source: string) => findLeftovers('a.md', source);
+function reportMarkdown(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
+function find(source: string) {
+  return findLeftovers('a.md', source);
+}
 
 describe('findLeftovers', () => {
   it('un texto ya convertido no deja nada', () => {
-    expect(find(md('# T', '', ':::warning[Ojo]', 'x', ':::', '', '> [!NOTE]', '> y'))).toEqual([]);
+    expect(
+      find(reportMarkdown('# T', '', ':::warning[Ojo]', 'x', ':::', '', '> [!NOTE]', '> y')),
+    ).toEqual([]);
   });
 
   it.each([
@@ -22,14 +28,14 @@ describe('findLeftovers', () => {
     ['--8<-- "CHANGELOG.md"', 'snippet'],
     ['Antes ;--8<-- "x.md"', 'snippet'],
   ])('detecta %s como %s', (line, kind) => {
-    expect(find(md('# T', '', line))).toEqual([
+    expect(find(reportMarkdown('# T', '', line))).toEqual([
       { file: 'a.md', line: 3, kind, preview: line.trim() },
     ]);
   });
 
   it('detecta bloques anidados o con sangría', () => {
     const found = find(
-      md('1. Paso', '', '    !!! note "Dentro"', '        === "Tab"', '            x'),
+      reportMarkdown('1. Paso', '', '    !!! note "Dentro"', '        === "Tab"', '            x'),
     );
     expect(found.map((item) => [item.line, item.kind])).toEqual([
       [3, 'admonition'],
@@ -38,7 +44,7 @@ describe('findLeftovers', () => {
   });
 
   it('ignora lo que hay dentro de bloques de código', () => {
-    const source = md(
+    const source = reportMarkdown(
       '```md',
       '!!! note "T"',
       '=== "A"',
@@ -54,51 +60,64 @@ describe('findLeftovers', () => {
   });
 
   it('un fence de cuatro comillas no se cierra con uno de tres', () => {
-    const source = md('````md', '```', '!!! note "T"', '```', '````', '!!! tip "Fuera"');
+    const source = reportMarkdown(
+      '````md',
+      '```',
+      '!!! note "T"',
+      '```',
+      '````',
+      '!!! tip "Fuera"',
+    );
     expect(find(source).map((item) => item.line)).toEqual([6]);
   });
 
   it('retoma la detección tras cerrar el fence', () => {
-    expect(find(md('```', 'x', '```', '!!! note')).map((item) => item.line)).toEqual([4]);
+    expect(find(reportMarkdown('```', 'x', '```', '!!! note')).map((item) => item.line)).toEqual([
+      4,
+    ]);
   });
 
   it('ignora el código en línea', () => {
-    expect(find(md('Escribe `!!! note` y `:material-x:` o ``--8<-- "a"``.'))).toEqual([]);
-    expect(find(md('`=== "A"`'))).toEqual([]);
+    expect(find(reportMarkdown('Escribe `!!! note` y `:material-x:` o ``--8<-- "a"``.'))).toEqual(
+      [],
+    );
+    expect(find(reportMarkdown('`=== "A"`'))).toEqual([]);
   });
 
   it('un icono fuera del código se detecta aunque haya código en la línea', () => {
-    expect(find(md('`x` y :material-check: fin')).map((item) => item.kind)).toEqual(['icon']);
+    expect(find(reportMarkdown('`x` y :material-check: fin')).map((item) => item.kind)).toEqual([
+      'icon',
+    ]);
   });
 
   it('una línea con varios tipos da una entrada por tipo', () => {
-    expect(find(md(':material-a: --8<-- "x"')).map((item) => item.kind)).toEqual([
+    expect(find(reportMarkdown(':material-a: --8<-- "x"')).map((item) => item.kind)).toEqual([
       'icon',
       'snippet',
     ]);
   });
 
   it('recorta la vista previa de las líneas largas', () => {
-    const [item] = find(md(`!!! note "${'x'.repeat(200)}"`));
-    expect(item.preview.length).toBeLessThanOrEqual(80);
-    expect(item.preview.endsWith('…')).toBe(true);
+    const [item] = find(reportMarkdown(`!!! note "${'x'.repeat(200)}"`));
+    expect(item?.preview.length).toBeLessThanOrEqual(80);
+    expect(item?.preview.endsWith('…')).toBe(true);
   });
 
   it('no toma por admonición texto que solo se parece', () => {
-    expect(find(md('¡Hola!!! Qué tal', 'a !!! b', '== "x"'))).toEqual([]);
+    expect(find(reportMarkdown('¡Hola!!! Qué tal', 'a !!! b', '== "x"'))).toEqual([]);
   });
 });
 
 describe('findSnippetStub', () => {
   it('reconoce una página cuyo cuerpo es solo un include', () => {
-    expect(findSnippetStub('changelog.md', md('--8<-- "CHANGELOG.md"'))).toEqual({
+    expect(findSnippetStub('changelog.md', reportMarkdown('--8<-- "CHANGELOG.md"'))).toEqual({
       file: 'changelog.md',
       include: 'CHANGELOG.md',
     });
   });
 
   it('admite frontmatter, un título y comillas simples', () => {
-    const source = md(
+    const source = reportMarkdown(
       '---',
       'title: Cambios',
       '---',
@@ -112,7 +131,7 @@ describe('findSnippetStub', () => {
   });
 
   it('admite comentarios HTML, también de varias líneas', () => {
-    const source = md(
+    const source = reportMarkdown(
       '<!-- Sin contenido propio:',
       '     edítalo en la raíz. -->',
       '',
@@ -122,15 +141,17 @@ describe('findSnippetStub', () => {
   });
 
   it('no es un stub si hay más contenido', () => {
-    expect(findSnippetStub('a.md', md('# A', '', 'Texto.', '', '--8<-- "x.md"'))).toBeUndefined();
+    expect(
+      findSnippetStub('a.md', reportMarkdown('# A', '', 'Texto.', '', '--8<-- "x.md"')),
+    ).toBeUndefined();
   });
 
   it('un include dentro de un fence no cuenta como stub', () => {
-    expect(findSnippetStub('a.md', md('```', '--8<-- "x.md"', '```'))).toBeUndefined();
+    expect(findSnippetStub('a.md', reportMarkdown('```', '--8<-- "x.md"', '```'))).toBeUndefined();
   });
 
   it('una página sin includes no es un stub', () => {
-    expect(findSnippetStub('a.md', md('# A'))).toBeUndefined();
+    expect(findSnippetStub('a.md', reportMarkdown('# A'))).toBeUndefined();
   });
 });
 
@@ -138,9 +159,9 @@ describe('checkOutput', () => {
   it('separa los stubs de los restos y no cuenta el include del stub como resto', () => {
     const out = checkOutput(
       new Map([
-        ['changelog.md', md('--8<-- "CHANGELOG.md"')],
-        ['b.md', md('# B', '', '!!! note')],
-        ['c.md', md('# C')],
+        ['changelog.md', reportMarkdown('--8<-- "CHANGELOG.md"')],
+        ['b.md', reportMarkdown('# B', '', '!!! note')],
+        ['c.md', reportMarkdown('# C')],
       ]),
     );
     expect(out.stubs).toEqual([{ file: 'changelog.md', include: 'CHANGELOG.md' }]);
@@ -152,8 +173,8 @@ describe('checkOutput', () => {
   it('ordena los restos por fichero y línea', () => {
     const out = checkOutput(
       new Map([
-        ['z.md', md('!!! a')],
-        ['a.md', md('# A', '!!! b')],
+        ['z.md', reportMarkdown('!!! a')],
+        ['a.md', reportMarkdown('# A', '!!! b')],
       ]),
     );
     expect(out.leftovers.map((item) => `${item.file}:${item.line}`)).toEqual(['a.md:2', 'z.md:1']);

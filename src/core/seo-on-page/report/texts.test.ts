@@ -22,18 +22,18 @@ const tree: SeoTree = {
     }),
   ],
 };
-const ctx = {
+const context = {
   site: 'S',
   locales: ['en'],
   tree,
-  kindLabels: Object.fromEntries(Object.values(IssueKind).map((k) => [k, k])) as Record<
+  kindLabels: Object.fromEntries(Object.values(IssueKind).map((kind) => [kind, kind])) as Record<
     IssueKind,
     string
   >,
 };
 
 describe('reportTexts', () => {
-  const texts = reportTexts({ page: pageScope(tree, 'a'), site: siteScope(tree) }, ctx);
+  const texts = reportTexts({ page: pageScope(tree, 'a'), site: siteScope(tree) }, context);
 
   it('trae un texto por alcance, con el nombre que se le dio', () => {
     expect(Object.keys(texts)).toEqual(['page', 'site']);

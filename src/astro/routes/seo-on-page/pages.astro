@@ -1,0 +1,39 @@
+---
+/* Contenedor de la tabla de páginas. Los filtros viven en la query de la URL (`parseFilters`),
+   así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
+import Fonts from '../Fonts.astro';
+import { listingModel } from '../../../core/seo-on-page/pages/listing/model';
+import PagesPage from '../../../components/seo-on-page/pages/PagesPage.astro';
+import { SCREEN_LABELS } from '../../../core/seo-on-page/labels';
+import { siteConfig } from '../../data/site-config';
+import { loadPanel } from '../../data/seo-on-page/adapter';
+import { listingReport } from '../../views/seo-on-page/report';
+import { panelView } from '../../views/seo-on-page/panel';
+
+const { docs, tree, failures, hrefs } = await loadPanel(siteConfig, Astro.url.origin);
+const view = panelView({
+  config: siteConfig,
+  data: docs,
+  hrefs,
+  screen: 'pages',
+  title: SCREEN_LABELS.pages,
+});
+const model = listingModel({
+  tree,
+  params: Astro.url.searchParams,
+  locales: siteConfig.locales,
+  defaultLocale: siteConfig.defaultLocale,
+  links: hrefs,
+});
+const report = listingReport(tree, Astro.url.searchParams, siteConfig);
+---
+
+<PagesPage
+  view={view}
+  year={new Date().getFullYear()}
+  model={model}
+  failures={failures}
+  report={report}
+>
+  <Fonts slot="head" />
+</PagesPage>

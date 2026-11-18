@@ -1,0 +1,13 @@
+---
+interface Props {
+  /** Lo enlaza el campo con `aria-describedby`. */
+  id: string;
+  class?: string;
+}
+
+const { id, class: className } = Astro.props;
+---
+
+<p id={id} class:list={['text-sm font-medium text-danger', className]}>
+  <slot />
+</p>

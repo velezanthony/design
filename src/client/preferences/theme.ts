@@ -26,23 +26,14 @@ export function syncToggle(button: Element, dark: boolean): void {
   button.setAttribute('aria-pressed', String(dark));
 }
 
-/**
- * `<meta name="theme-color">` viene en dos, una por preferencia del sistema, así que una elección
- * contraria al sistema dejaría la barra del navegador en el otro tema. Una elección da a ambas
- * su color.
- */
-export function syncThemeColor(doc: Document, color: string): void {
-  for (const meta of doc.querySelectorAll('meta[name="theme-color"]')) {
+/** Hay dos `<meta name="theme-color">` (una por preferencia del sistema): una elección explícita da a ambas su color. */
+export function syncThemeColor(htmlDocument: Document, color: string): void {
+  for (const meta of htmlDocument.querySelectorAll('meta[name="theme-color"]')) {
     meta.setAttribute('content', color);
   }
 }
 
-/**
- * Código del script en línea que se ejecuta antes del primer pintado: sin él la página se pinta
- * con el tema del sistema y luego salta, que es el parpadeo que todo conmutador debe evitar. Va
- * en línea y no puede importar, por eso es una cadena (`<script is:inline set:html={...}>`) con
- * la clave y los colores ya incrustados. Usa `document` y `localStorage` globales.
- */
+/** Script en línea (no puede importar, por eso es cadena) que fija el tema antes del primer pintado para evitar el parpadeo. */
 export function themeBootstrapScript(colors: ThemeColors): string {
   return `try {
   var saved = localStorage.getItem(${JSON.stringify(THEME_KEY)});
@@ -58,45 +49,54 @@ export function themeBootstrapScript(colors: ThemeColors): string {
 }
 
 export interface ThemeEnv {
-  doc: Document;
+  htmlDocument: Document;
   storage: Storage | undefined;
   /** La preferencia del sistema (`matchMedia('(prefers-color-scheme: dark)')`). */
   system: Pick<MediaQueryList, 'matches'> & {
-    addEventListener(type: 'change', cb: () => void): void;
+    addEventListener(type: 'change', callback: () => void): void;
   };
   colors: ThemeColors;
   /** Si quien visita pidió reducir el movimiento, el cambio es instantáneo. Sin él, se anima. */
   motion?: MotionPreference;
 }
 
-/**
- * Las variables del efecto «revelado»: el centro del botón y el radio que alcanza la esquina más
- * lejana de la ventana, para que el círculo cubra toda la página justo al terminar.
- */
-export function revealVars(button: Element, win: Pick<Window, 'innerWidth' | 'innerHeight'>) {
+/** Variables del efecto «revelado»: centro del botón y radio hasta la esquina más lejana. */
+export function revealVars(
+  button: Element,
+  browserWindow: Pick<Window, 'innerWidth' | 'innerHeight'>,
+) {
   const rect = button.getBoundingClientRect();
-  const x = rect.left + rect.width / 2;
-  const y = rect.top + rect.height / 2;
-  const radius = Math.hypot(Math.max(x, win.innerWidth - x), Math.max(y, win.innerHeight - y));
-  return { '--reveal-x': `${x}px`, '--reveal-y': `${y}px`, '--reveal-r': `${radius}px` };
+  const centreX = rect.left + rect.width / 2;
+  const centreY = rect.top + rect.height / 2;
+  const radius = Math.hypot(
+    Math.max(centreX, browserWindow.innerWidth - centreX),
+    Math.max(centreY, browserWindow.innerHeight - centreY),
+  );
+  return {
+    '--reveal-x': `${centreX}px`,
+    '--reveal-y': `${centreY}px`,
+    '--reveal-r': `${radius}px`,
+  };
 }
 
 /** Cablea los botones `[data-theme-toggle]`: cambian el tema, la barra y lo recuerdan. */
 export function initTheme({
-  doc,
+  htmlDocument,
   storage,
   system,
   colors,
   motion = { matches: false },
 }: ThemeEnv): void {
-  const root = doc.documentElement;
-  const buttons = doc.querySelectorAll('[data-theme-toggle]');
+  const root = htmlDocument.documentElement;
+  const buttons = htmlDocument.querySelectorAll('[data-theme-toggle]');
   if (!buttons.length) return;
 
-  const chosen = () => parseTheme(root.dataset.theme);
-  const sync = () => {
+  function chosen() {
+    return parseTheme(root.dataset.theme);
+  }
+  function sync() {
     for (const button of buttons) syncToggle(button, isDark(chosen(), system.matches));
-  };
+  }
 
   for (const button of buttons) {
     button.addEventListener('click', () => {
@@ -106,15 +106,15 @@ export function initTheme({
       void withTransition(
         () => {
           root.dataset.theme = next;
-          syncThemeColor(doc, colors[next]);
+          syncThemeColor(htmlDocument, colors[next]);
           safeSet(storage, THEME_KEY, next);
           sync();
         },
         {
-          doc,
+          htmlDocument,
           motion,
           kind: 'theme',
-          vars: revealVars(button, doc.defaultView ?? { innerWidth: 0, innerHeight: 0 }),
+          vars: revealVars(button, htmlDocument.defaultView ?? { innerWidth: 0, innerHeight: 0 }),
         },
       );
     });

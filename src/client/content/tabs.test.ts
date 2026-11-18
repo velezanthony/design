@@ -25,27 +25,33 @@ describe('nextTabIndex', () => {
 });
 
 describe('initTabs', () => {
-  const group = (labels: string[]) =>
-    `<div class="docs-tabs">${labels
+  function group(labels: string[]) {
+    return `<div class="docs-tabs">${labels
       .map(
         (label) =>
           `<div class="docs-tab-panel"><div class="docs-tab-label">${label}</div><p>Contenido ${label}</p></div>`,
       )
       .join('')}</div>`;
+  }
 
   function setup(body = group(['npm', 'pnpm', 'yarn'])) {
     const { document } = parseHTML(`<!doctype html><html><body>${body}</body></html>`);
     initTabs(document);
     const root = document.querySelector('.docs-tabs')!;
-    const tabs = () => [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
-    const panels = () => [...document.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    const event = (type: string, props: object = {}) =>
-      Object.assign(new document.defaultView!.Event(type, { cancelable: true }), props);
-    const press = (index: number, key: string) => {
-      const e = event('keydown', { key });
-      tabs()[index]!.dispatchEvent(e);
-      return e;
-    };
+    function tabs() {
+      return [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    }
+    function panels() {
+      return [...document.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    }
+    function event(type: string, props: object = {}) {
+      return Object.assign(new document.defaultView!.Event(type, { cancelable: true }), props);
+    }
+    function press(index: number, key: string) {
+      const keydown = event('keydown', { key });
+      tabs()[index]!.dispatchEvent(keydown);
+      return keydown;
+    }
     return { document, root, tabs, panels, event, press };
   }
 
@@ -54,46 +60,54 @@ describe('initTabs', () => {
     const list = root.querySelector('[role="tablist"]')!;
     expect(list.classList.contains('docs-tablist')).toBe(true);
     expect(root.firstElementChild).toBe(list);
-    expect(tabs().map((t) => t.textContent)).toEqual(['npm', 'pnpm', 'yarn']);
+    expect(tabs().map((tab) => tab.textContent)).toEqual(['npm', 'pnpm', 'yarn']);
     expect(panels()).toHaveLength(3);
-    tabs().forEach((tab, i) => {
+    tabs().forEach((tab, index) => {
       expect(tab.classList.contains('docs-tab')).toBe(true);
       expect(tab.getAttribute('type')).toBe('button');
-      expect(tab.getAttribute('aria-controls')).toBe(panels()[i]!.id);
-      expect(panels()[i]!.getAttribute('aria-labelledby')).toBe(tab.id);
+      expect(tab.getAttribute('aria-controls')).toBe(panels()[index]!.id);
+      expect(panels()[index]!.getAttribute('aria-labelledby')).toBe(tab.id);
     });
   });
 
   it('marca el grupo como mejorado y muestra solo la primera pestaña', () => {
     const { root, tabs, panels } = setup();
     expect(root.hasAttribute('data-enhanced')).toBe(true);
-    expect(tabs().map((t) => t.getAttribute('aria-selected'))).toEqual(['true', 'false', 'false']);
-    expect(tabs().map((t) => t.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
-    expect(panels().map((p) => p.hasAttribute('hidden'))).toEqual([false, true, true]);
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'true',
+      'false',
+      'false',
+    ]);
+    expect(tabs().map((tab) => tab.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
+    expect(panels().map((panel) => panel.hasAttribute('hidden'))).toEqual([false, true, true]);
   });
 
   it('seleccionar con clic muestra su panel', () => {
     const { tabs, panels, event } = setup();
     tabs()[1]!.dispatchEvent(event('click'));
-    expect(tabs().map((t) => t.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
-    expect(tabs().map((t) => t.getAttribute('tabindex'))).toEqual(['-1', '0', '-1']);
-    expect(panels().map((p) => p.hasAttribute('hidden'))).toEqual([true, false, true]);
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+      'false',
+    ]);
+    expect(tabs().map((tab) => tab.getAttribute('tabindex'))).toEqual(['-1', '0', '-1']);
+    expect(panels().map((panel) => panel.hasAttribute('hidden'))).toEqual([true, false, true]);
   });
 
   it('ArrowRight selecciona la siguiente pestaña, enfoca y muestra su panel', () => {
     const { tabs, panels, press } = setup();
-    const focus = tabs().map((t) => (t.focus = vi.fn()));
-    const e = press(0, 'ArrowRight');
+    const focus = tabs().map((tab) => (tab.focus = vi.fn()));
+    const keydown = press(0, 'ArrowRight');
     expect(tabs()[1]!.getAttribute('aria-selected')).toBe('true');
     expect(panels()[1]!.hasAttribute('hidden')).toBe(false);
     expect(panels()[0]!.hasAttribute('hidden')).toBe(true);
     expect(focus[1]).toHaveBeenCalled();
-    expect(e.defaultPrevented).toBe(true);
+    expect(keydown.defaultPrevented).toBe(true);
   });
 
   it('las flechas dan la vuelta y Home/End van a los extremos', () => {
     const { tabs, press } = setup();
-    tabs().forEach((t) => (t.focus = vi.fn()));
+    tabs().forEach((tab) => (tab.focus = vi.fn()));
     press(0, 'ArrowLeft');
     expect(tabs()[2]!.getAttribute('aria-selected')).toBe('true');
     press(2, 'ArrowRight');
@@ -106,17 +120,17 @@ describe('initTabs', () => {
 
   it('una tecla ajena no cambia la selección ni se cancela', () => {
     const { tabs, press } = setup();
-    const e = press(0, 'a');
+    const keydown = press(0, 'a');
     expect(tabs()[0]!.getAttribute('aria-selected')).toBe('true');
-    expect(e.defaultPrevented).toBe(false);
+    expect(keydown.defaultPrevented).toBe(false);
   });
 
   it('los grupos son independientes y sus ids no chocan', () => {
     const { document, tabs, event } = setup(group(['a', 'b']) + group(['c', 'd']));
-    const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
+    const ids = [...document.querySelectorAll('[id]')].map((element) => element.id);
     expect(new Set(ids).size).toBe(ids.length);
     tabs()[1]!.dispatchEvent(event('click'));
-    expect(tabs().map((t) => t.getAttribute('aria-selected'))).toEqual([
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([
       'false',
       'true',
       'true',
@@ -143,7 +157,7 @@ describe('initTabs', () => {
   });
 
   describe('con View Transitions', () => {
-    const enhanced = (api: boolean, reduced = false) => {
+    function enhanced(api: boolean, reduced = false) {
       const { document } = parseHTML(
         `<!doctype html><html><body>${group(['a', 'b'])}</body></html>`,
       );
@@ -157,9 +171,11 @@ describe('initTabs', () => {
       if (api) Object.assign(document, { startViewTransition: start });
       initTabs(document, { matches: reduced });
       const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
-      const click = (i: number) => tabs[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+      function click(index: number) {
+        return tabs[index]!.dispatchEvent(new document.defaultView!.Event('click'));
+      }
       return { root, tabs, click, start, seen };
-    };
+    }
 
     it('cambia de pestaña dentro de la transición, con el grupo nombrado solo mientras dura', async () => {
       const { root, tabs, click, start, seen } = enhanced(true);

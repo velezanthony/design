@@ -5,26 +5,27 @@ import type { UrlPolicy } from './availability';
 import {
   fallbackRoutes,
   MissingTranslation,
-  missingEntry,
   resolvePolicies,
   sourceLocale,
   undeclaredMissing,
 } from './translation-policy';
 
-const page = (
+function page(
   slug: string,
   locale: string,
   translations?: MissingTranslation,
   sourcePath = `${slug}${locale === 'en' ? '' : `.${locale}`}.md`,
-): Page => ({
-  slug,
-  locale,
-  title: slug,
-  kind: 'native',
-  body: '',
-  sourcePath,
-  ...(translations ? { translations } : {}),
-});
+): Page {
+  return {
+    slug,
+    locale,
+    title: slug,
+    kind: 'native',
+    body: '',
+    sourcePath,
+    ...(translations ? { translations } : {}),
+  };
+}
 
 describe('MissingTranslation', () => {
   it('es un objeto as const con los tres valores del YAML', () => {
@@ -66,8 +67,8 @@ describe('resolvePolicies', () => {
       MissingTranslation.OMIT,
     );
     expect(errors).toHaveLength(1);
-    expect(errors[0].message).toContain('install.md');
-    expect(errors[0].message).toContain('install.es.md');
+    expect(errors[0]?.message).toContain('install.md');
+    expect(errors[0]?.message).toContain('install.es.md');
   });
 
   it('un grupo con conflicto no impide resolver los demás', () => {
@@ -148,53 +149,10 @@ describe('DocsErrors se usa con resolvePolicies', () => {
 });
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const cfg = { locales: ['en', 'es'], defaultLocale: 'en' };
-
-describe('missingEntry', () => {
-  const available = { en: '/repo/changelog/' };
-
-  it('link: hoja hacia el original con la insignia del idioma de origen', () => {
-    expect(
-      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.LINK, cfg, url),
-    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/changelog/', badge: 'en' });
-  });
-
-  it('link: el origen es el primer idioma disponible si falta el idioma por defecto', () => {
-    const entry = missingEntry(
-      'x',
-      'X',
-      { es: '/repo/es/x/' },
-      'en',
-      MissingTranslation.LINK,
-      cfg,
-      url,
-    );
-    expect(entry).toMatchObject({ href: '/repo/es/x/', badge: 'es' });
-  });
-
-  it('fallback: hoja normal, sin insignia, hacia la ruta de reserva del idioma', () => {
-    expect(
-      missingEntry(
-        'changelog',
-        'Changelog',
-        available,
-        'es',
-        MissingTranslation.FALLBACK,
-        cfg,
-        url,
-      ),
-    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/es/changelog/' });
-  });
-
-  it('omit: sin hoja', () => {
-    expect(
-      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.OMIT, cfg, url),
-    ).toBeNull();
-  });
-});
+const config = { locales: ['en', 'es'], defaultLocale: 'en' };
 
 describe('fallbackRoutes', () => {
-  const av = new Map([
+  const availability = new Map([
     ['changelog', { en: '/repo/changelog/' }],
     ['install', { en: '/repo/install/', es: '/repo/es/install/' }],
     ['faq', { en: '/repo/faq/' }],
@@ -206,7 +164,7 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(av, policies, cfg, url)).toEqual([
+    expect(fallbackRoutes(availability, policies, config, url)).toEqual([
       {
         slug: 'changelog',
         locale: 'es',
@@ -223,13 +181,13 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(av, policies, cfg, url)).toEqual([]);
+    expect(fallbackRoutes(availability, policies, config, url)).toEqual([]);
   });
 
   it('no cambia Availability: las rutas de reserva no son traducciones', () => {
-    const before = structuredClone([...av]);
-    fallbackRoutes(av, new Map([['changelog', 'fallback']]), cfg, url);
-    expect([...av]).toEqual(before);
+    const before = structuredClone([...availability]);
+    fallbackRoutes(availability, new Map([['changelog', 'fallback']]), config, url);
+    expect([...availability]).toEqual(before);
   });
 
   it('con tres idiomas genera una ruta por cada idioma ausente', () => {

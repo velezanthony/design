@@ -1,0 +1,35 @@
+---
+import type { Issue } from '../../../core/seo-on-page/tree/types';
+import Tag from '../../atoms/display/Tag.astro';
+import {
+  issueHelp,
+  issueMeasure,
+  KIND_LABELS,
+  SEVERITY_LABELS,
+  SEVERITY_TONES,
+} from '../../../core/seo-on-page/labels';
+
+interface Props {
+  issue: Pick<Issue, 'kind' | 'severity' | 'message' | 'fix' | 'value' | 'limit'>;
+}
+
+const { issue } = Astro.props;
+const measure = issueMeasure(issue);
+/* En la tabla no hay sitio para el arreglo entero sin romper el escaneo: va en la ayuda del ratón. */
+const help = issueHelp(issue);
+---
+
+{/* La gravedad va también como texto (oculto) y en `data-severity`: el color solo no basta. */}
+<Tag
+  tone={SEVERITY_TONES[issue.severity]}
+  bordered
+  plain
+  title={help}
+  data-severity={issue.severity}
+  data-kind={issue.kind}
+  class="items-baseline"
+>
+  <span class="sr-only">{SEVERITY_LABELS[issue.severity]}: </span>
+  {KIND_LABELS[issue.kind]}
+  {measure && <span class="font-mono">{measure}</span>}
+</Tag>

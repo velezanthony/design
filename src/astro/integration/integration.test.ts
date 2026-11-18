@@ -7,7 +7,7 @@ import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHIKI_LANG_ALIAS } from '../markdown/code-languages';
-import { clientRegistry } from '../data/client-registry';
+import { clientRegistry } from '../registry';
 import { docs, INTEGRATION_NAME } from './index';
 import { MissingTranslation } from '../../core/i18n/translation-policy';
 
@@ -70,14 +70,14 @@ async function runSetup(
 async function virtualData(userConfig: Parameters<typeof docs>[0], overrides = {}) {
   const { updateConfig } = await runSetup(satteri(), {}, userConfig, overrides);
   const partial = updateConfig.mock.calls
-    .map(([p]) => p as { vite?: { plugins?: { load: { handler: () => string } }[] } })
-    .find((p) => p.vite);
-  const source = partial?.vite?.plugins?.[0].load.handler() ?? '';
+    .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+    .find((update) => update.vite);
+  const source = partial?.vite?.plugins?.[0]?.load.handler() ?? '';
   return JSON.parse(source.replace(/^export default /, '').replace(/;$/, ''));
 }
 
 describe('docs(): identidad y config', () => {
-  it('se identifica con INTEGRATION_NAME y expone la config para el loader', () => {
+  it('se identifica con INTEGRATION_NAME y expone su config resuelta', () => {
     const integration = docs({ name: 'x', external: [{ slug: 'changelog', file: '../C.md' }] });
     expect(integration.name).toBe(INTEGRATION_NAME);
     expect(integration.resolvedConfig.external).toEqual([{ slug: 'changelog', file: '../C.md' }]);
@@ -95,7 +95,7 @@ describe('astro:config:setup: processor de Markdown', () => {
     const options = processor.options;
     await runSetup(processor);
     expect(options.features.directive).toBe(true);
-    const names = options.mdastPlugins.map((p) => (p as { name: string }).name);
+    const names = options.mdastPlugins.map((mdastPlugin) => (mdastPlugin as { name: string }).name);
     expect(names[0]).toBe('del-consumidor');
     expect(names.at(-1)).toBe('restore-directives');
   });
@@ -110,7 +110,7 @@ describe('astro:config:setup: processor de Markdown', () => {
   });
 
   it('un processor que no es Sätteri falla con un AstroError accionable', async () => {
-    const error = await runSetup({ name: 'remark' }).catch((e: unknown) => e);
+    const error = await runSetup({ name: 'remark' }).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(error).toMatchObject({
       message: expect.stringContaining('Sätteri'),
@@ -123,29 +123,29 @@ describe('astro:config:setup: fuentes y módulo virtual', () => {
   it('añade IBM Plex Sans y Mono con updateConfig({ fonts })', async () => {
     const { updateConfig } = await runSetup(satteri());
     const partial = updateConfig.mock.calls
-      .map(([p]) => p as { fonts?: { name: string }[] })
-      .find((p) => p.fonts);
-    expect(partial?.fonts?.map((f) => f.name)).toEqual(['IBM Plex Sans', 'IBM Plex Mono']);
+      .map(([update]) => update as { fonts?: { name: string }[] })
+      .find((update) => update.fonts);
+    expect(partial?.fonts?.map((font) => font.name)).toEqual(['IBM Plex Sans', 'IBM Plex Mono']);
   });
 
   it('registra un plugin de Vite con el módulo virtual', async () => {
     const { updateConfig } = await runSetup(satteri());
     const partial = updateConfig.mock.calls
-      .map(([p]) => p as { vite?: { plugins?: { name: string }[] } })
-      .find((p) => p.vite);
-    expect(partial?.vite?.plugins?.map((p) => p.name)).toContain(
+      .map(([update]) => update as { vite?: { plugins?: { name: string }[] } })
+      .find((update) => update.vite);
+    expect(partial?.vite?.plugins?.map((plugin) => plugin.name)).toContain(
       'velezanthony-design-virtual-config',
     );
   });
 });
 
 describe('astro:config:setup: Shiki', () => {
-  const shikiOf = async (processorShiki: object) => {
+  async function shikiOf(processorShiki: object) {
     const { updateConfig } = await runSetup(satteri(), processorShiki);
     return updateConfig.mock.calls
-      .map(([p]) => p as { markdown?: { shikiConfig?: Record<string, unknown> } })
-      .find((p) => p.markdown?.shikiConfig)?.markdown?.shikiConfig;
-  };
+      .map(([update]) => update as { markdown?: { shikiConfig?: Record<string, unknown> } })
+      .find((update) => update.markdown?.shikiConfig)?.markdown?.shikiConfig;
+  }
 
   it('añade los alias de lenguajes de la librería', async () => {
     expect((await shikiOf({}))?.langAlias).toEqual(SHIKI_LANG_ALIAS);
@@ -172,7 +172,7 @@ describe('astro:config:setup: Shiki', () => {
 describe('astro:config:setup: validación', () => {
   it('sin `site` en la config de Astro falla con un AstroError que lo nombra', async () => {
     const error = await runSetup(satteri(), {}, { name: 'x' }, { site: undefined }).catch(
-      (e: unknown) => e,
+      (caught: unknown) => caught,
     );
     expect(error).toBeInstanceOf(AstroError);
     expect(error).toMatchObject({
@@ -182,7 +182,7 @@ describe('astro:config:setup: validación', () => {
   });
 
   /** El título del `AstroError` es genérico; el detalle (campo + motivo) va en la pista. */
-  const hintOf = (build: () => unknown) => {
+  function hintOf(build: () => unknown) {
     try {
       build();
     } catch (error) {
@@ -190,7 +190,7 @@ describe('astro:config:setup: validación', () => {
       return (error as AstroError).hint ?? '';
     }
     throw new Error('no ha fallado');
-  };
+  }
 
   it('una opción de `ui` mal escrita falla nombrando su ruta legible', () => {
     const hint = hintOf(() =>
@@ -248,7 +248,7 @@ describe('astro:config:setup: módulo virtual', () => {
     const injectTypes = vi.fn();
     await integration.hooks['astro:config:done']?.({ injectTypes } as never);
     expect(injectTypes).toHaveBeenCalledTimes(1);
-    const { filename, content } = injectTypes.mock.calls[0][0] as {
+    const { filename, content } = injectTypes.mock.calls[0]?.[0] as {
       filename: string;
       content: string;
     };
@@ -265,7 +265,7 @@ describe('astro:config:setup: fusión de config', () => {
       {},
       { name: 'x' },
       { fonts: [{ name: 'Mine', cssVariable: '--font-plex-sans' }] },
-    ).catch((e: unknown) => e);
+    ).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(error).toMatchObject({
       message: expect.stringContaining('--font-plex-sans'),
@@ -314,12 +314,13 @@ describe('astro:config:setup: el panel SEO on page y las páginas del consumidor
       mkdirSync(join(root, 'src/pages/seo-on-page'), { recursive: true });
       writeFileSync(join(root, 'src/pages/seo-on-page/index.astro'), '');
       const setup = setupContext(satteri(), {}, { srcDir: pathToFileURL(join(root, 'src') + '/') });
-      const run = async () =>
-        docs({ name: 'x' }).hooks['astro:config:setup']?.({
+      async function run() {
+        return docs({ name: 'x' }).hooks['astro:config:setup']?.({
           ...(setup.context as object),
           command,
           addWatchFile: vi.fn(),
         } as never);
+      }
       vi.mocked(logger.warn).mockClear();
       await run();
       return vi
@@ -341,33 +342,35 @@ describe('astro:config:setup: el panel SEO on page y las páginas del consumidor
 });
 
 describe('astro:config:setup: rutas inyectadas', () => {
-  const routesOf = async (userConfig: Parameters<typeof docs>[0]) => {
+  async function routesOf(userConfig: Parameters<typeof docs>[0]) {
     const { injectRoute } = await runSetup(satteri(), {}, userConfig);
     return injectRoute.mock.calls.map(
       ([route]) => route as { pattern: string; entrypoint: string | URL; prerender?: boolean },
     );
-  };
-  const entry = (route: { entrypoint: string | URL }) => String(route.entrypoint);
+  }
+  function entry(route: { entrypoint: string | URL } | undefined) {
+    return String(route?.entrypoint);
+  }
 
   it('inyecta la página de docs, el sitemap y su hoja, el favicon y la 404', async () => {
     const routes = await routesOf({ name: 'x' });
-    expect(routes.map((r) => r.pattern)).toEqual([
+    expect(routes.map((route) => route.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
       '/_design/favicon.png',
       '/404',
     ]);
-    expect(entry(routes[0])).toMatch(/pages\/doc\.astro$/);
-    expect(entry(routes[1])).toMatch(/pages\/sitemap\.xml\.ts$/);
-    expect(entry(routes[2])).toMatch(/pages\/sitemap\.css\.ts$/);
-    expect(entry(routes[3])).toMatch(/pages\/favicon\.png\.ts$/);
-    expect(entry(routes[4])).toMatch(/pages\/not-found\.astro$/);
+    expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
+    expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
+    expect(entry(routes[2])).toMatch(/routes\/sitemap\.css\.ts$/);
+    expect(entry(routes[3])).toMatch(/routes\/favicon\.png\.ts$/);
+    expect(entry(routes[4])).toMatch(/routes\/not-found\.astro$/);
   });
 
   it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
-    expect(routes.map((r) => r.pattern)).toEqual([
+    expect(routes.map((route) => route.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
@@ -380,29 +383,29 @@ describe('astro:config:setup: rutas inyectadas', () => {
 
   it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
     const routes = await routesOf({ name: 'x', sitemap: { include: ['/lib/sitemap.xml'] } });
-    const pages = routes.find((r) => r.pattern === '/sitemap-pages.xml');
-    expect(pages && entry(pages)).toMatch(/pages\/sitemap-pages\.xml\.ts$/);
-    expect((await routesOf({ name: 'x' })).map((r) => r.pattern)).not.toContain(
+    const pages = routes.find((route) => route.pattern === '/sitemap-pages.xml');
+    expect(pages && entry(pages)).toMatch(/routes\/sitemap-pages\.xml\.ts$/);
+    expect((await routesOf({ name: 'x' })).map((route) => route.pattern)).not.toContain(
       '/sitemap-pages.xml',
     );
   });
 
   it('todas las rutas se prerenderizan', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
-    expect(routes.every((r) => r.prerender === true)).toBe(true);
+    expect(routes.every((route) => route.prerender === true)).toBe(true);
   });
 });
 
 describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
   /** Rutas inyectadas con el comando de Astro dado. */
-  const routesFor = async (command: 'dev' | 'build') => {
+  async function routesFor(command: 'dev' | 'build') {
     const integration = docs({ name: 'x', locales: ['en', 'es'] });
     const { context, injectRoute } = setupContext(satteri());
     await integration.hooks['astro:config:setup']?.({ ...(context as object), command } as never);
     return injectRoute.mock.calls.map(
       ([route]) => route as { pattern: string; entrypoint: string | URL; prerender?: boolean },
     );
-  };
+  }
 
   it('con `astro build` no inyecta ninguna ruta del panel', async () => {
     const routes = await routesFor('build');
@@ -437,12 +440,13 @@ describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
 
 describe('astro:config:setup: página de privacidad', () => {
   afterEach(() => vi.unstubAllEnvs());
-  const routesOf = async (userConfig: Parameters<typeof docs>[0]) => {
+  async function routesOf(userConfig: Parameters<typeof docs>[0]) {
     const { injectRoute } = await runSetup(satteri(), {}, userConfig);
     return injectRoute.mock.calls.map(([route]) => route as { pattern: string; entrypoint: URL });
-  };
-  const patterns = async (userConfig: Parameters<typeof docs>[0]) =>
-    (await routesOf(userConfig)).map((r) => r.pattern);
+  }
+  async function patterns(userConfig: Parameters<typeof docs>[0]) {
+    return (await routesOf(userConfig)).map((route) => route.pattern);
+  }
 
   it('por defecto no se inyecta ninguna ruta de privacidad', async () => {
     expect(await patterns({ name: 'x', locales: ['es', 'en'] })).not.toContain('/[privacy]');
@@ -450,18 +454,20 @@ describe('astro:config:setup: página de privacidad', () => {
 
   it('`page: false` tampoco', async () => {
     const all = await patterns({ name: 'x', locales: ['es', 'en'], privacy: { page: false } });
-    expect(all.some((p) => p.includes('[privacy]'))).toBe(false);
+    expect(all.some((pattern) => pattern.includes('[privacy]'))).toBe(false);
   });
 
   it('`page: true` inyecta la página por defecto y la de cada otro idioma, prerenderizadas', async () => {
     const routes = await routesOf({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
-    const privacy = routes.filter((r) => r.pattern.includes('[privacy]'));
-    expect(privacy.map((r) => r.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
-    expect(privacy.map((r) => String(r.entrypoint).split('/').at(-1))).toEqual([
+    const privacy = routes.filter((route) => route.pattern.includes('[privacy]'));
+    expect(privacy.map((route) => route.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
+    expect(privacy.map((route) => String(route.entrypoint).split('/').at(-1))).toEqual([
       'privacy.astro',
       'privacy-locale.astro',
     ]);
-    expect(privacy.every((r) => (r as { prerender?: boolean }).prerender === true)).toBe(true);
+    expect(privacy.every((route) => (route as { prerender?: boolean }).prerender === true)).toBe(
+      true,
+    );
   });
 
   it('monolingüe: solo la ruta del idioma por defecto', async () => {
@@ -517,7 +523,7 @@ describe('astro:config:setup: analítica desde el entorno', () => {
 
   it('un ID con formato inválido rompe la construcción con un AstroError', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
-    const error = await virtualData(two).catch((e: unknown) => e);
+    const error = await virtualData(two).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(String((error as AstroError).hint)).toContain('GTM-XXXXXXX');
   });
@@ -527,7 +533,7 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     const error = await virtualData({
       ...two,
       privacyUrl: { es: '/privacidad/' },
-    }).catch((e: unknown) => e);
+    }).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(String((error as AstroError).hint)).toContain('en');
   });
@@ -537,15 +543,15 @@ describe('astro:config:setup: vigilar docs.config', () => {
   /* `astro.config.mjs` importa `docs.config.mjs`, pero Astro solo reinicia `dev` cuando cambia el
      propio astro.config: sin `addWatchFile`, editar la config del sitio no tendría efecto. */
   async function watched(files: string[]) {
-    const dir = mkdtempSync(join(tmpdir(), 'design-watch-'));
-    for (const file of files) writeFileSync(join(dir, file), 'export default {};\n');
+    const directory = mkdtempSync(join(tmpdir(), 'design-watch-'));
+    for (const file of files) writeFileSync(join(directory, file), 'export default {};\n');
     const addWatchFile = vi.fn();
-    const setup = setupContext(satteri(), {}, { root: pathToFileURL(`${dir}/`) });
+    const setup = setupContext(satteri(), {}, { root: pathToFileURL(`${directory}/`) });
     await docs({ name: 'x' }).hooks['astro:config:setup']?.({
       ...(setup.context as object),
       addWatchFile,
     } as never);
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(directory, { recursive: true, force: true });
     return addWatchFile.mock.calls.map(([url]) => basename(fileURLToPath(url as URL)));
   }
 
@@ -566,9 +572,7 @@ describe('astro:config:setup: vigilar docs.config', () => {
 });
 
 describe('astro:config:setup: contenido fuera del proyecto', () => {
-  /* Vite solo sirve en dev lo que está bajo la raíz del workspace: sin `server.fs.allow`, las
-     imágenes de `../docs` darían 403 en `astro dev`. La función que calcula las carpetas tiene sus
-     tests; este comprueba que la integración de verdad la aplica. */
+  /* Sin `server.fs.allow`, Vite daría 403 en las imágenes de `../docs`; aquí se comprueba que la integración lo aplica. */
   function viteAllow(updateConfig: ReturnType<typeof vi.fn>) {
     return updateConfig.mock.calls
       .map(([partial]) => partial as { vite?: { server?: { fs?: { allow?: string[] } } } })
@@ -587,14 +591,14 @@ describe('astro:config:setup: contenido fuera del proyecto', () => {
 });
 
 describe('astro:config:setup: rutas que el sitio sustituye', () => {
-  const site = () => {
+  function site() {
     const root = mkdtempSync(join(tmpdir(), 'design-site-'));
     for (const file of ['index.astro', '404.astro', 'sitemap.xml.ts']) {
       mkdirSync(join(root, 'src', 'pages'), { recursive: true });
       writeFileSync(join(root, 'src', 'pages', file), '');
     }
     return root;
-  };
+  }
 
   it('no falla: avisa de cuáles sustituye y no inyecta las rutas exactas que ya son suyas', async () => {
     const root = site();
@@ -619,8 +623,8 @@ describe('astro:config:setup: rutas que el sitio sustituye', () => {
       );
       // El panel las enseña: quedan en el registro que comparte con la integración.
       expect(clientRegistry().overrides?.map(({ route }) => route)).toEqual([
-        'sitemap.xml',
         'index',
+        'sitemap.xml',
         '404',
       ]);
     } finally {

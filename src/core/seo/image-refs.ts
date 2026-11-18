@@ -25,10 +25,14 @@ export function collectImageRefs(
 }
 
 /** Las URLs https no se comprueban: no hay red en el build ni dimensiones que leer. */
-export const isRemoteImage = (src: string): boolean => src.startsWith('https://');
+export function isRemoteImage(src: string): boolean {
+  return src.startsWith('https://');
+}
 
 /** Ruta de una imagen de `public/` sin la barra inicial: `/img/og.png` → `img/og.png`. */
-export const publicImagePath = (src: string): string => src.slice(1);
+export function publicImagePath(src: string): string {
+  return src.slice(1);
+}
 
 /** Un error por imagen local que no existe, con archivo y campo; el adaptador dice cuáles existen. */
 export function imageErrors(refs: readonly ImageRef[], existing: ReadonlySet<string>): DocsError[] {

@@ -3,11 +3,13 @@ import type { SeoLocaleEntry } from '../tree/types';
 import { analyzeCanonical } from './canonical';
 
 const page = { slug: 'guide', locale: 'es', kind: 'native' as const, sourcePath: 'guide.es.md' };
-const present = (locale: string, url: string): SeoLocaleEntry => ({
-  locale,
-  status: 'present',
-  url,
-});
+function present(locale: string, url: string): SeoLocaleEntry {
+  return {
+    locale,
+    status: 'present',
+    url,
+  };
+}
 const locales = [present('en', '/repo/guide/'), present('es', '/repo/es/guide/')];
 
 describe('analyzeCanonical', () => {

@@ -10,10 +10,12 @@ class FakeWatcher extends EventEmitter {
   }
 }
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+function settle() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
 
 describe('watchSources', () => {
-  const setup = () => {
+  function setup() {
     const watcher = new FakeWatcher();
     const reload = vi.fn(async () => {});
     watchSources(watcher as never, {
@@ -22,7 +24,7 @@ describe('watchSources', () => {
       reload,
     });
     return { watcher, reload };
-  };
+  }
 
   it('vigila el directorio nativo y los archivos externos', () => {
     const { watcher } = setup();

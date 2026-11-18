@@ -21,17 +21,17 @@ const env = createMarkdownEnv(
   project,
 );
 
-const resolveName = (entry: unknown, fileURL: URL): string => {
-  const ctx = {
+function resolveName(entry: unknown, fileURL: URL): string {
+  const context = {
     fileURL,
     sourceFormat: 'markdown',
     source: '',
     data: {},
     features: {},
   } as PluginFactoryContext;
-  const plugin = (typeof entry === 'function' ? entry(ctx) : entry) as MdastPluginDefinition;
+  const plugin = (typeof entry === 'function' ? entry(context) : entry) as MdastPluginDefinition;
   return plugin.name;
-};
+}
 
 describe('markdownPlugins: orden', () => {
   it('githubAlerts, admonitions, tabs y restoreDirectives, este último el último', () => {
@@ -49,12 +49,13 @@ describe('markdownPlugins: orden', () => {
   });
 });
 
-const full = (source: string, fileURL: URL, consumer: MdastPluginDefinition[] = []) =>
-  renderMarkdown(source, {
+function full(source: string, fileURL: URL, consumer: MdastPluginDefinition[] = []) {
+  return renderMarkdown(source, {
     fileURL,
     features: { directive: true },
     plugins: [...consumer, ...markdownPlugins(env)],
   });
+}
 
 describe('markdownPlugins: integrados', () => {
   it('una alerta de GitHub y una directiva dan la misma salida en un doc nativo y en un external', async () => {
@@ -98,8 +99,9 @@ describe('markdownPlugins: integrados', () => {
   it('un plugin del consumidor convive con los nuestros', async () => {
     const consumer = defineMdastPlugin({
       name: 'consumidor',
-      text(node, ctx) {
-        if (node.value === 'PING') ctx.replaceNode(node, { type: 'html', value: '<i>pong</i>' });
+      text(node, context) {
+        if (node.value === 'PING')
+          context.replaceNode(node, { type: 'html', value: '<i>pong</i>' });
       },
     });
     expect(await full('PING\n\n:::note\nx\n:::', docFileURL('a.md'), [consumer])).toContain(

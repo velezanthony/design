@@ -1,8 +1,4 @@
-/**
- * La matemática del visor de diagramas a pantalla completa, sin DOM. Una vista es la
- * transformación `translate(x, y) scale(scale)` con origen arriba a la izquierda aplicada al
- * contenido; `x` e `y` son píxeles del visor. Todas las funciones devuelven una vista nueva.
- */
+/** Matemática del visor de diagramas, sin DOM: una vista es `translate(x, y) scale(scale)` y cada función devuelve una nueva. */
 export interface View {
   scale: number;
   x: number;
@@ -51,10 +47,7 @@ export function fitView(content: Size, viewport: Size, margin = 32): View {
   };
 }
 
-/**
- * Multiplica el zoom por `factor` manteniendo quieto el punto `at` (en coordenadas del visor): el
- * trozo de diagrama que está bajo el cursor sigue ahí. Si el zoom ya está en el tope, no cambia nada.
- */
+/** Multiplica el zoom por `factor` dejando quieto el punto `at` (coordenadas del visor); en el tope no cambia nada. */
 export function zoomAt(view: View, factor: number, at: Point): View {
   const scale = clampScale(view.scale * factor);
   const ratio = scale / view.scale;

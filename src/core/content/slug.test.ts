@@ -40,8 +40,8 @@ describe('findSlugCollisions', () => {
     ]);
     expect(rest).toEqual([]);
     expect(error).toBeInstanceOf(DocsError);
-    expect(error.message).toContain('a.md');
-    expect(error.message).toContain('a/index.md');
+    expect(error?.message).toContain('a.md');
+    expect(error?.message).toContain('a/index.md');
   });
 
   it('el mismo slug en otro idioma no choca', () => {

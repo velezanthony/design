@@ -25,13 +25,7 @@ function readStored(raw: string | null): { v: number; choice: Consent } | undefi
   }
 }
 
-/**
- * La elección guardada, si es legible y de una versión igual o posterior a la propia. Todo lo
- * demás (corrupto, de una versión anterior, editado a mano) es «aún sin elección»: se pregunta,
- * nunca se da por supuesto. Una versión mayor se acepta porque otro sitio que comparte la clave
- * (el portfolio) pudo subirla: quien ya respondió a una política más reciente no vuelve a ver
- * el banner.
- */
+/** La elección guardada si es legible y de versión igual o posterior (otro sitio que comparte la clave pudo subirla); todo lo demás es «aún sin elección». */
 export function parseConsent(raw: string | null, version = CONSENT_VERSION): Consent | undefined {
   const stored = readStored(raw);
   return stored && stored.v >= version ? stored.choice : undefined;
@@ -41,39 +35,29 @@ export function readConsent(storage: Storage | undefined): Consent | undefined {
   return parseConsent(safeGet(storage, CONSENT_KEY));
 }
 
-/**
- * `true` si la elección quedó guardada. Guarda `max(versión almacenada, propia)`: bajar la
- * versión haría que un sitio con una política más reciente viera la elección como obsoleta y
- * volviera a preguntar.
- */
+/** `true` si quedó guardada; guarda `max(versión almacenada, propia)` para no hacer obsoleta la elección en un sitio con política más reciente. */
 export function writeConsent(storage: Storage | undefined, choice: Consent): boolean {
   const stored = readStored(safeGet(storage, CONSENT_KEY));
   const version = Math.max(stored?.v ?? 0, CONSENT_VERSION);
   return safeSet(storage, CONSENT_KEY, serializeConsent(choice, version));
 }
 
-/**
- * Cada dominio en el que pudo ponerse una cookie de este host: el host y cada padre, con y sin
- * el punto inicial. Un dominio de primer nivel desnudo se omite: no admite cookies y el
- * navegador lo rechazaría.
- */
+/** Cada dominio donde pudo ponerse una cookie de este host (él y sus padres, con y sin punto); se omite un TLD desnudo, que no admite cookies. */
 export function domainsOf(hostname: string): string[] {
   const labels = hostname.split('.');
   const domains: string[] = [];
-  for (let i = 0; i < labels.length - 1; i++) {
-    const domain = labels.slice(i).join('.');
+  for (let index = 0; index < labels.length - 1; index++) {
+    const domain = labels.slice(index).join('.');
     domains.push(domain, `.${domain}`);
   }
   return domains;
 }
 
-const isAnalyticsCookie = (name: string) => /^_ga(_.+)?$/.test(name);
+function isAnalyticsCookie(name: string) {
+  return /^_ga(_.+)?$/.test(name);
+}
 
-/**
- * Cadenas de `document.cookie` que caducan las cookies de Google Analytics (`_ga`,
- * `_ga_<contenedor>`). Una cookie solo se borra desde el dominio donde se puso y la página no
- * sabe cuál fue, así que cada una caduca en el host solo y en cada dominio padre.
- */
+/** Cadenas de `document.cookie` que caducan las cookies de Google Analytics en el host y en cada dominio padre, porque no se sabe dónde se pusieron. */
 export function analyticsCookiesToDelete(cookieJar: string, hostname: string): string[] {
   const names = cookieJar
     .split(';')
@@ -90,71 +74,69 @@ export function analyticsCookiesToDelete(cookieJar: string, hostname: string): s
 const GTM_SCRIPT_ID = 'gtm-script';
 
 /** Idempotente: el contenedor se carga una vez por muchas veces que se conceda el consentimiento. */
-function loadGtm(doc: Document, id: string): boolean {
-  if (doc.getElementById(GTM_SCRIPT_ID)) return false;
+function loadGtm(htmlDocument: Document, id: string): boolean {
+  if (htmlDocument.getElementById(GTM_SCRIPT_ID)) return false;
 
-  const win = doc.defaultView as unknown as { dataLayer?: unknown[] };
-  win.dataLayer ??= [];
-  win.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
+  const browserWindow = htmlDocument.defaultView as unknown as { dataLayer?: unknown[] };
+  browserWindow.dataLayer ??= [];
+  browserWindow.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
 
-  const script = doc.createElement('script');
+  const script = htmlDocument.createElement('script');
   script.id = GTM_SCRIPT_ID;
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(id)}`;
-  doc.head.appendChild(script);
+  htmlDocument.head.appendChild(script);
   return true;
 }
 
 export interface ConsentEnv {
-  doc: Document;
+  htmlDocument: Document;
   storage: Storage | undefined;
   hostname: string;
   reload: () => void;
 }
 
-/**
- * Cablea el banner (`[data-consent-banner]`, con el contenedor en `data-gtm-id`). Google Tag
- * Manager se carga aquí y solo aquí, y solo para quien dijo que sí: no se pide nada a Google
- * antes. Sin `data-gtm-id` no se carga nada, se acepte o no.
- *
- * Revocar tiene que ser tan fácil como conceder, y tiene que ser real: con el contenedor en
- * marcha no se puede descargar, así que un rechazo tras una concesión borra las cookies y
- * recarga la página.
- */
-export function initConsent({ doc, storage, hostname, reload }: ConsentEnv): void {
-  const banner = doc.querySelector<HTMLElement>('[data-consent-banner]');
-  if (!banner) return;
+/** Cablea el banner; GTM se carga aquí y solo si se acepta (sin `data-gtm-id` no hay nada), y un rechazo tras conceder borra cookies y recarga porque el contenedor no se descarga. */
+export function initConsent({ htmlDocument, storage, hostname, reload }: ConsentEnv): void {
+  const foundBanner = htmlDocument.querySelector<HTMLElement>('[data-consent-banner]');
+  if (!foundBanner) return;
+  /* Las declaraciones de abajo no heredan el descarte de `null`: se fija en una constante. */
+  const banner = foundBanner;
 
   const gtmId = banner.dataset.gtmId;
   let loaded = false;
 
   /* El banner va fijo abajo; la página reserva sitio para que nunca tape el pie. */
-  const show = () => {
+  function show() {
     banner.removeAttribute('hidden');
-    doc.documentElement.style.setProperty('--consent-space', `${banner.offsetHeight ?? 0}px`);
-  };
-  const hide = () => {
+    htmlDocument.documentElement.style.setProperty(
+      '--consent-space',
+      `${banner.offsetHeight ?? 0}px`,
+    );
+  }
+  function hide() {
     banner.setAttribute('hidden', '');
-    doc.documentElement.style.removeProperty('--consent-space');
-  };
+    htmlDocument.documentElement.style.removeProperty('--consent-space');
+  }
 
-  const grant = () => {
-    if (gtmId) loaded = loadGtm(doc, gtmId) || loaded;
-  };
+  function grant() {
+    if (gtmId) loaded = loadGtm(htmlDocument, gtmId) || loaded;
+  }
 
-  const choose = (choice: Consent) => {
+  function choose(choice: Consent) {
     writeConsent(storage, choice);
     hide();
     if (choice === 'granted') return grant();
     if (!loaded) return;
-    for (const cookie of analyticsCookiesToDelete(doc.cookie, hostname)) doc.cookie = cookie;
+    for (const cookie of analyticsCookiesToDelete(htmlDocument.cookie, hostname))
+      htmlDocument.cookie = cookie;
     reload();
-  };
+  }
 
   banner.querySelector('[data-consent-accept]')?.addEventListener('click', () => choose('granted'));
   banner.querySelector('[data-consent-reject]')?.addEventListener('click', () => choose('denied'));
 
-  for (const opener of doc.querySelectorAll('[data-consent-open]')) {
+  for (const opener of htmlDocument.querySelectorAll('[data-consent-open]')) {
     opener.addEventListener('click', () => {
       show();
       /* Quien usa teclado pulsó un control del pie: la elección es donde aterriza. */

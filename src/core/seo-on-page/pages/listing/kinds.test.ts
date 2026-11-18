@@ -3,15 +3,18 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
 import { kindOptions, kindsWithIssues } from './kinds';
 
-const issue = (kind: IssueKind): Issue => ({
-  kind,
-  severity: IssueSeverity.WARNING,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
-const entry = (slug: string, locale: string, ...kinds: IssueKind[]): SeoPage =>
-  seoPage({ slug, locale, issues: kinds.map(issue) });
+function issue(kind: IssueKind): Issue {
+  return {
+    kind,
+    severity: IssueSeverity.WARNING,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
+function entry(slug: string, locale: string, ...kinds: IssueKind[]): SeoPage {
+  return seoPage({ slug, locale, issues: kinds.map(issue) });
+}
 
 const { DUPLICATE_TITLE, NO_H1, TITLE_TOO_SHORT } = IssueKind;
 
@@ -55,7 +58,6 @@ describe('kindOptions', () => {
     const options = kindOptions(tree, []);
     expect(options.all).toEqual({ checked: true, count: 3 });
     expect(options.withIssues.every(({ checked }) => checked)).toBe(true);
-    expect(options.summary).toBe('todos');
   });
 
   it('con un filtro solo se marcan los elegidos y «Todos» no', () => {
@@ -64,10 +66,5 @@ describe('kindOptions', () => {
     expect(options.withIssues.filter(({ checked }) => checked).map(({ kind }) => kind)).toEqual([
       NO_H1,
     ]);
-    expect(options.summary).toBe('1 de 3');
-  });
-
-  it('un tipo elegido a mano que no tiene incidencias no cuenta en el resumen', () => {
-    expect(kindOptions(tree, [NO_H1, IssueKind.HEADING_SKIP]).summary).toBe('1 de 3');
   });
 });

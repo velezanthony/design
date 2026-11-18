@@ -46,7 +46,9 @@ describe('sectionIndexOf', () => {
   });
 });
 
-const messages = (items: NavItem[]) => validateNav(items, slugs).map((error) => error.message);
+function messages(items: NavItem[]) {
+  return validateNav(items, slugs).map((error) => error.message);
+}
 
 describe('validateNav', () => {
   it('una config coherente no da errores', () => {

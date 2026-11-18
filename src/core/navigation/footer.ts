@@ -1,3 +1,4 @@
+import { AUTHOR } from '../author';
 import { isFooterPage, type FooterLink, type FooterPage } from '../config/footer';
 import type { ResolvedConfig } from '../config/resolve';
 import type { Label } from '../config/schema';
@@ -10,8 +11,8 @@ import { toSidebarSlug, HOME_SIDEBAR_SLUG } from './sidebar-slugs';
 
 /** Autor por defecto del footer: quien mantiene el paquete. `author: false` lo quita. */
 export const DEFAULT_AUTHOR = {
-  name: 'Anthony Vélez',
-  href: 'https://velezanthony.github.io/',
+  name: AUTHOR.shortName,
+  href: AUTHOR.url,
 } as const;
 
 /** Un enlace de la derecha del footer ya resuelto para un idioma. */
@@ -32,34 +33,37 @@ export interface FooterView {
 /** Lo que el footer necesita de la config. */
 export type FooterSource = Pick<ResolvedConfig, 'footer' | 'social'>;
 
-/** Destino de un enlace del footer a una página en el idioma de `ctx`; `undefined` si no tiene (política `omit`). */
-function footerPageHref(link: FooterPage, ctx: NavContext): string | undefined {
+/** Destino de un enlace del footer a una página en el idioma de `context`; `undefined` si no tiene (política `omit`). */
+function footerPageHref(link: FooterPage, context: NavContext): string | undefined {
   const slug = toSidebarSlug(link.slug);
-  return flatten(buildSidebarFor(ctx, (candidate) => candidate === slug))[0]?.href;
+  return flatten(buildSidebarFor(context, (candidate) => candidate === slug))[0]?.href;
 }
 
 /** Los destinos de los enlaces del footer que son páginas del sitio (los https quedan fuera). */
 export function footerPageHrefs(
   links: readonly FooterLink[] | undefined,
-  ctx: NavContext,
+  context: NavContext,
 ): string[] {
-  return (links ?? []).filter(isFooterPage).flatMap((link) => footerPageHref(link, ctx) ?? []);
+  return (links ?? []).filter(isFooterPage).flatMap((link) => footerPageHref(link, context) ?? []);
 }
 
-/**
- * Footer de una página en el idioma de `ctx`. Un enlace a una página sin destino en este idioma
- * (no existe y la política es `omit`) se quita en vez de dejar un enlace roto.
- */
-export function buildFooter(source: FooterSource, ctx: NavContext, strings: UiStrings): FooterView {
+/** Footer de una página en el idioma de `context`; quita el enlace sin destino (política `omit`) en vez de dejarlo roto. */
+export function buildFooter(
+  source: FooterSource,
+  context: NavContext,
+  strings: UiStrings,
+): FooterView {
   const { footer, social } = source;
-  const { locale } = ctx;
-  const defaultLocale = ctx.cfg.defaultLocale;
-  const label = (value: Label) => resolveLabel(value, locale, defaultLocale);
+  const { locale } = context;
+  const defaultLocale = context.config.defaultLocale;
+  function label(value: Label) {
+    return resolveLabel(value, locale, defaultLocale);
+  }
 
   const custom = (footer?.links ?? []).flatMap((link): FooterEntry[] => {
     const text = label(link.label);
     if (!isFooterPage(link)) return [{ label: text, href: link.href, external: true }];
-    const href = footerPageHref(link, ctx);
+    const href = footerPageHref(link, context);
     return href === undefined ? [] : [{ label: text, href, external: false }];
   });
 
@@ -85,10 +89,7 @@ export function buildFooter(source: FooterSource, ctx: NavContext, strings: UiSt
   };
 }
 
-/**
- * Un error por cada enlace a una página que no existe, con su ruta (`footer.links[1].slug`). Lo que
- * se juzga sin páginas (forma, https) lo valida el esquema.
- */
+/** Un error por enlace a una página inexistente; lo que se juzga sin páginas lo valida el esquema. */
 export function validateFooter(
   links: readonly FooterLink[],
   pageSlugs: ReadonlySet<string>,

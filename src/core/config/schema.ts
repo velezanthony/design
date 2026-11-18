@@ -52,25 +52,24 @@ function nonJsonPaths(value: unknown, path: (string | number)[] = []): (string |
     return [path];
   }
   if (typeof value === 'number') return Number.isFinite(value) ? [] : [path];
-  if (Array.isArray(value)) return value.flatMap((item, i) => nonJsonPaths(item, [...path, i]));
+  if (Array.isArray(value))
+    return value.flatMap((item, index) => nonJsonPaths(item, [...path, index]));
   if (value !== null && typeof value === 'object') {
     return Object.entries(value).flatMap(([key, item]) => nonJsonPaths(item, [...path, key]));
   }
   return [];
 }
 
-/* Un nodo JSON-LD: objeto con `@type` y el resto abierto (schema.org no tiene lista cerrada de
-   propiedades). La config viaja al sitio como JSON, así que los valores deben serlo; el error de
-   `@type` lleva su ruta (`seo.schema[1]['@type']`) en vez de un «Invalid input» genérico. */
+/* Nodo JSON-LD: `@type` más propiedades abiertas, y el error de `@type` lleva su ruta en vez de un «Invalid input». */
 const JsonLdSchema = z
   .looseObject({
     '@type': z.union([z.string().min(1), z.array(z.string().min(1)).min(1)], {
       error: 'Debe ser un string o una lista no vacía de strings (por ejemplo "Person").',
     }),
   })
-  .superRefine((node, ctx) => {
+  .superRefine((node, context) => {
     for (const path of nonJsonPaths(node)) {
-      ctx.addIssue({
+      context.addIssue({
         code: 'custom',
         path,
         message:
@@ -82,16 +81,16 @@ export type JsonLd = z.infer<typeof JsonLdSchema>;
 
 /* `lista | false` sin `z.union`: con una unión zod colapsa los fallos de cada rama en un «Invalid
    input» sin ruta, y justo ahí (`seo.schema[1]['@type']`) está lo que el usuario necesita leer. */
-const PageSchemasSchema = z.any().superRefine((value, ctx) => {
+const PageSchemasSchema = z.any().superRefine((value, context) => {
   if (value === false) return;
   if (!Array.isArray(value)) {
-    ctx.addIssue({ code: 'custom', message: 'Debe ser una lista de schemas o `false`.' });
+    context.addIssue({ code: 'custom', message: 'Debe ser una lista de schemas o `false`.' });
     return;
   }
   const parsed = z.array(JsonLdSchema).safeParse(value);
   if (parsed.success) return;
   for (const { path, message } of parsed.error.issues) {
-    ctx.addIssue({ code: 'custom', path, message });
+    context.addIssue({ code: 'custom', path, message });
   }
 }) as unknown as z.ZodType<JsonLd[] | false, JsonLd[] | false>;
 
@@ -107,10 +106,7 @@ export const PageSeoOverrideSchema = z.strictObject({
 });
 export type PageSeoOverride = z.infer<typeof PageSeoOverrideSchema>;
 
-/**
- * Entrada del sidebar: un slug o una sección `{ label, slug?, items }`. La portada se escribe
- * `'index'` (su slug interno es vacío). Un slug sin página hace fallar la carga.
- */
+/** Entrada del sidebar: slug o sección `{ label, slug?, items }`; la portada es `'index'` y un slug sin página falla. */
 export type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
 
 const SidebarItemSchema: z.ZodType<SidebarItem, SidebarItem> = z.lazy(() =>
@@ -185,10 +181,7 @@ const ExternalDocSchema = z.strictObject({
 });
 export type ExternalDoc = z.infer<typeof ExternalDocSchema>;
 
-/**
- * Esquema de la config pública `docs({...})`. Única fuente de verdad: `DocsUserConfig` sale de
- * aquí. Los valores por defecto los pone `resolveConfig`, no el esquema.
- */
+/** Esquema de la config pública y fuente de `DocsUserConfig`; los valores por defecto los pone `resolveConfig`. */
 export const DocsConfigSchema = z
   .strictObject({
     name: z.string().min(1),
@@ -203,9 +196,9 @@ export const DocsConfigSchema = z
     favicon: FaviconSchema.optional(),
     content: z
       .string()
-      .superRefine((dir, ctx) => {
-        const problem = contentDirProblem(dir);
-        if (problem) ctx.addIssue({ code: 'custom', message: problem });
+      .superRefine((directory, context) => {
+        const problem = contentDirProblem(directory);
+        if (problem) context.addIssue({ code: 'custom', message: problem });
       })
       .optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
@@ -245,10 +238,11 @@ export const DocsConfigSchema = z
       })
       .optional(),
   })
-  .superRefine((config, ctx) => {
+  .superRefine((config, context) => {
     const locales = config.locales ?? ['en'];
-    const issue = (path: (string | number)[], message: string) =>
-      ctx.addIssue({ code: 'custom', path, message });
+    function issue(path: (string | number)[], message: string) {
+      return context.addIssue({ code: 'custom', path, message });
+    }
 
     locales.forEach((locale, index) => {
       if (!(locale in defaultStrings)) {
@@ -310,7 +304,7 @@ function validateNavShape(
   nav: readonly NavItem[],
   issue: (path: (string | number)[], message: string) => void,
 ): void {
-  const dirs: { dir: string; index: number }[] = [];
+  const directories: { directory: string; index: number }[] = [];
   nav.forEach((raw, index) => {
     // Forma plana (ver `NavItemSchema`): se mira por claves, no por el tipo discriminado.
     const item = raw as {
@@ -345,21 +339,22 @@ function validateNavShape(
         );
         return;
       }
-      const clash = dirs.find((other) => overlaps(other.dir, item.dir!));
+      const clash = directories.find((other) => overlaps(other.directory, item.dir!));
       if (clash) {
         issue(
           ['nav', index, 'dir'],
-          `«${item.dir}» se solapa con «${clash.dir}» (nav[${clash.index}].dir): una página no puede ser de dos secciones.`,
+          `«${item.dir}» se solapa con «${clash.directory}» (nav[${clash.index}].dir): una página no puede ser de dos secciones.`,
         );
       }
-      dirs.push({ dir: item.dir, index });
+      directories.push({ directory: item.dir, index });
     }
   });
 }
 
 /** Dos carpetas se solapan si son la misma o una cuelga de la otra (`users` y `users/guide`). */
-const overlaps = (a: string, b: string): boolean =>
-  a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+function overlaps(left: string, right: string): boolean {
+  return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
+}
 
 const HTTPS = 'Debe ser una URL https (https://…).';
 

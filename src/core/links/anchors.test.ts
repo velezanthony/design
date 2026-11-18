@@ -8,14 +8,16 @@ const headings: HeadingIndex = new Map([
   [headingKey('bare', 'en'), new Set()],
 ]);
 
-const ref = (over: Partial<LinkRef> = {}): LinkRef => ({
-  file: 'guide.md',
-  line: 4,
-  slug: 'install',
-  locale: 'en',
-  anchor: 'usage',
-  ...over,
-});
+function ref(over: Partial<LinkRef> = {}): LinkRef {
+  return {
+    file: 'guide.md',
+    line: 4,
+    slug: 'install',
+    locale: 'en',
+    anchor: 'usage',
+    ...over,
+  };
+}
 
 describe('validateAnchors', () => {
   it('un ancla que existe en el destino no da error', () => {
@@ -24,9 +26,9 @@ describe('validateAnchors', () => {
 
   it('un ancla rota es un error con archivo, línea y destino', () => {
     const [error] = validateAnchors([ref({ anchor: 'nope' })], headings);
-    expect(error.file).toBe('guide.md');
-    expect(error.line).toBe(4);
-    expect(error.message).toContain('#nope');
+    expect(error?.file).toBe('guide.md');
+    expect(error?.line).toBe(4);
+    expect(error?.message).toContain('#nope');
   });
 
   it('valida contra la gemela del idioma del enlace', () => {
@@ -52,7 +54,7 @@ describe('validateAnchors', () => {
 
   it('agrega todos los fallos', () => {
     const refs = [ref({ anchor: 'a' }), ref({ anchor: 'usage' }), ref({ anchor: 'b', line: 9 })];
-    expect(validateAnchors(refs, headings).map((e) => e.line)).toEqual([4, 9]);
+    expect(validateAnchors(refs, headings).map((problem) => problem.line)).toEqual([4, 9]);
   });
 });
 

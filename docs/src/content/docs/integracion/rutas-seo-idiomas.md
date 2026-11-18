@@ -15,7 +15,7 @@ calculen la misma URL de formas distintas.
 ## Rutas
 
 Todo lo sirve la integración con `injectRoute` (ver [Cómo funciona por dentro](./por-dentro.md#los-hooks-de-la-integración)).
-La pieza central es `/[...slug]` → `src/astro/pages/doc.astro`:
+La pieza central es `/[...slug]` → `src/astro/routes/doc.astro`:
 
 - `getStaticPaths` llama a `docRoutes` (`src/astro/views/doc.ts`), que devuelve una ruta por
   cada página real y, con la política `fallback`, una **ruta de reserva** por cada traducción
@@ -29,13 +29,13 @@ La pieza central es `/[...slug]` → `src/astro/pages/doc.astro`:
 
 GitHub Pages sirve **un único** `<base>/404.html` para cualquier URL que no existe. La librería lo
 genera en el idioma por defecto e incluye, en `<template data-locale>`, el cuerpo de cada otro idioma.
-Al cargar, `bootNotFound` (`src/ui/layouts/boot.ts`) deduce el idioma de la URL pedida y
+Al cargar, `bootNotFound` (`src/components/layouts/boot.ts`) deduce el idioma de la URL pedida y
 `swapNotFound` (`src/client/not-found.ts`) cambia el cuerpo, el `lang` y el título **sin
 redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
 
 ### `sitemap.xml`
 
-`src/astro/pages/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
+`src/astro/routes/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
 (`core/seo/sitemap.ts`). Solo entran páginas **reales e indexables**, con sus alternativas
 `hreflang`; ni rutas de reserva ni la 404. La página de privacidad propia entra si existe. No hay
 `robots.txt`: es del portfolio, que vive en la raíz del dominio.
@@ -49,7 +49,7 @@ de su ruta, lee su HTML de `dist/` con el mismo `readHead` y las añade al sitem
 página del sitio se saca del sitemap con `<meta name="robots" content="noindex">` en su `<head>`.
 
 Abierto en el navegador, el sitemap se ve con estilo: enlaza `_design/sitemap.css` (ruta relativa,
-vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`ui/styles/sitemap.ts`).
+vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`components/styles/sitemap.ts`).
 La paleta se lee de `theme.css` al generar el sitio, sin copiar valores, y el título y la nota salen
 de `sitemap.title` y `sitemap.note` del idioma por defecto. Es CSS y no XSLT porque Chrome retira
 XSLT. Los buscadores ignoran la hoja: leen el XML. Un XML no puede llevar `<meta viewport>`, así que
@@ -91,7 +91,7 @@ flowchart LR
   separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > librería.
   `seo.title` en el frontmatter cambia solo el título del head, no el `h1`. `seo.titleSuffix`
   (en `docs.config.mjs` o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
-  ninguno de los dos, el sufijo es el de la librería, `Anthony Vélez Tapia`. Con `false` en la
+  ninguno de los dos, el sufijo es el de la librería, `Anthony Velez Tapia`. Con `false` en la
   página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
   sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` van
   siempre sin sufijo. La 404 compone su título igual.
@@ -99,7 +99,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   p["seo.titleSuffix<br/>de la página"] -->|si no lo define| s["seo.titleSuffix<br/>del sitio"]
-  s -->|si no lo define| l["sufijo de la librería<br/>Anthony Vélez Tapia"]
+  s -->|si no lo define| l["sufijo de la librería<br/>Anthony Velez Tapia"]
   p --> r["sufijo resuelto"]
   s --> r
   l --> r

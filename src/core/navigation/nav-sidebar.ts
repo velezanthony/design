@@ -16,9 +16,9 @@ export type NavConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'side
 /** Todo lo que hace falta para construir árboles y entradas de cabecera de una página. */
 export interface NavContext {
   pages: Page[];
-  av: Availability;
+  availability: Availability;
   locale: Locale;
-  cfg: NavConfig;
+  config: NavConfig;
   policies: TranslationPolicies;
   url: UrlPolicy;
   /** Slug de la página que se renderiza: decide a qué sección pertenece. */
@@ -27,33 +27,51 @@ export interface NavContext {
 
 /** Árbol de las páginas que cumplen `keep`, con el orden declarado en `sidebar` y la carpeta `base` como raíz. */
 export function buildSidebarFor(
-  ctx: NavContext,
+  context: NavContext,
   keep: (slug: string) => boolean,
   sidebar?: NavConfig['sidebar'],
   base = '',
 ): SidebarNode[] {
-  const av: Availability = new Map([...ctx.av].filter(([slug]) => keep(slug)));
-  const pages = ctx.pages.filter((page) => keep(page.slug));
-  return buildSidebar(pages, av, ctx.locale, { ...ctx.cfg, sidebar }, ctx.policies, ctx.url, base);
+  const availability: Availability = new Map(
+    [...context.availability].filter(([slug]) => keep(slug)),
+  );
+  const pages = context.pages.filter((page) => keep(page.slug));
+  return buildSidebar(
+    pages,
+    availability,
+    context.locale,
+    { ...context.config, sidebar },
+    context.policies,
+    context.url,
+    base,
+  );
 }
 
 /** Árbol de la sección `index` de `nav`, o el de las páginas sin sección si es `-1`. */
-export function buildSectionSidebar(ctx: NavContext, index: number): SidebarNode[] {
-  const nav = ctx.cfg.nav;
+export function buildSectionSidebar(context: NavContext, index: number): SidebarNode[] {
+  const nav = context.config.nav;
   const item = nav?.[index];
   if (item && isNavSection(item)) {
-    return buildSidebarFor(ctx, (slug) => slugInDir(item.dir, slug), item.sidebar, item.dir);
+    return buildSidebarFor(context, (slug) => slugInDir(item.dir, slug), item.sidebar, item.dir);
   }
-  return buildSidebarFor(ctx, (slug) => sectionIndexOf(nav, slug) === -1, ctx.cfg.sidebar);
+  return buildSidebarFor(
+    context,
+    (slug) => sectionIndexOf(nav, slug) === -1,
+    context.config.sidebar,
+  );
 }
 
-/**
- * Barra lateral de la página `ctx.slug`. Sin `nav` es la de siempre, con todas las páginas. Con
- * `nav`, solo la de su sección o, si no pertenece a ninguna, la de las páginas sin sección.
- */
-export function buildScopedSidebar(ctx: NavContext): SidebarNode[] {
-  if (!ctx.cfg.nav) {
-    return buildSidebar(ctx.pages, ctx.av, ctx.locale, ctx.cfg, ctx.policies, ctx.url);
+/** Barra lateral de `context.slug`: con `nav`, la de su sección o la de las páginas sin sección. */
+export function buildScopedSidebar(context: NavContext): SidebarNode[] {
+  if (!context.config.nav) {
+    return buildSidebar(
+      context.pages,
+      context.availability,
+      context.locale,
+      context.config,
+      context.policies,
+      context.url,
+    );
   }
-  return buildSectionSidebar(ctx, sectionIndexOf(ctx.cfg.nav, ctx.slug));
+  return buildSectionSidebar(context, sectionIndexOf(context.config.nav, context.slug));
 }

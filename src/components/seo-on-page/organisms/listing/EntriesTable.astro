@@ -1,0 +1,79 @@
+---
+/* La vista «Por idioma»: una fila por entrada (página + idioma), compacta. */
+import type { EntryRow } from '../../../../core/seo-on-page/pages/listing/entries';
+import { THRESHOLDS } from '../../../../core/seo-on-page/thresholds';
+import IssueBadge from '../../atoms/IssueBadge.astro';
+import LengthMeter from '../../atoms/LengthMeter.astro';
+import LocaleBadge from '../../atoms/LocaleBadge.astro';
+import DataTable from '../../molecules/DataTable.astro';
+import EmptyNotice from '../../molecules/EmptyNotice.astro';
+import RowHeader from '../../molecules/RowHeader.astro';
+import {
+  DESCRIPTION_SOURCE_LABELS,
+  ENTRIES_TABLE_LABELS as LABELS,
+} from '../../../../core/seo-on-page/labels';
+import { CELL, EDGE } from '../../tables';
+
+interface Props {
+  /** Una fila por entrada, ya ordenada por gravedad. */
+  rows: EntryRow[];
+}
+
+const { rows } = Astro.props;
+---
+
+{rows.length === 0 ? (
+  <EmptyNotice />
+) : (
+  <div class="flex flex-col gap-2">
+    <p class="text-sm text-muted">{LABELS.recommendation}</p>
+    <DataTable
+      caption={LABELS.caption}
+      columns={[LABELS.page, LABELS.locale, LABELS.title, LABELS.description, LABELS.issues]}
+      cards
+    >
+      <tbody>
+        {rows.map((row) => (
+          <tr class={EDGE} data-entry={`${row.slug}/${row.locale}`} data-card>
+            <RowHeader slug={row.slug} href={row.href}>
+              <p class="text-ink">{row.title}</p>
+            </RowHeader>
+            <td class={CELL} data-cell={LABELS.locale}>
+              <LocaleBadge locale={row.locale} tone={row.tone} />
+            </td>
+            <td class={CELL} data-cell={LABELS.title}>
+              <LengthMeter
+                value={row.titleLength}
+                max={THRESHOLDS.titleMax}
+                min={THRESHOLDS.titleMin}
+              />
+            </td>
+            <td class={CELL} data-cell={LABELS.description}>
+              <p class="text-muted">{DESCRIPTION_SOURCE_LABELS[row.descriptionSource]}</p>
+              {row.descriptionLength !== undefined && (
+                <LengthMeter
+                  value={row.descriptionLength}
+                  max={THRESHOLDS.descriptionMax}
+                  min={THRESHOLDS.descriptionMin}
+                />
+              )}
+            </td>
+            <td class={CELL} data-cell={LABELS.issues}>
+              {row.issues.length === 0 ? (
+                <span class="text-muted">{LABELS.noOwnIssues}</span>
+              ) : (
+                <ul class="flex flex-col gap-1.5">
+                  {row.issues.map((issue) => (
+                    <li>
+                      <IssueBadge issue={issue} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </DataTable>
+  </div>
+)}

@@ -42,19 +42,21 @@ describe('analyzeAltText', () => {
   });
 });
 
-const og = (
+function og(
   width?: number,
   height?: number,
   source: MetaNode['ogImageSource'] = 'page',
-): Pick<MetaNode, 'ogImage' | 'ogImageSource'> => ({
-  ogImage: {
-    src: '/og.png',
-    alt: 'x',
-    ...(width !== undefined && { width }),
-    ...(height !== undefined && { height }),
-  },
-  ogImageSource: source,
-});
+): Pick<MetaNode, 'ogImage' | 'ogImageSource'> {
+  return {
+    ogImage: {
+      src: '/og.png',
+      alt: 'x',
+      ...(width !== undefined && { width }),
+      ...(height !== undefined && { height }),
+    },
+    ogImageSource: source,
+  };
+}
 
 describe('analyzeOgImage', () => {
   it('1200×630: sin problemas', () => {
@@ -97,8 +99,9 @@ describe('analyzeOgImage', () => {
     ]);
   });
 
-  it('la proporción admite una pequeña tolerancia', () => {
+  it('la proporción admite la misma tolerancia que el aviso del build (±2 %)', () => {
     expect(analyzeOgImage(page, og(1200, 640))).toEqual([]);
+    expect(analyzeOgImage(page, og(1200, 650))).toMatchObject([{ severity: 'warning' }]);
   });
 
   it('dónde se arregla depende de quién declara la imagen', () => {

@@ -8,6 +8,8 @@ const headings = vi.hoisted(() => ({
 /* Lo que el loader guarda en `rendered.metadata` de una entrada; sin él, la entrada viene «sin renderizar». */
 const stored = vi.hoisted(() => ({ bySlug: {} as Record<string, Record<string, unknown>> }));
 
+const collectionReads = vi.hoisted(() => ({ count: 0 }));
+
 /* `render` no lo trae el doble: se completa con los encabezados de cada página. */
 vi.mock('astro:content', async () => {
   const content = mockedAstroContent({
@@ -28,12 +30,14 @@ vi.mock('astro:content', async () => {
   });
   return {
     ...content,
-    getCollection: async (name: 'docs') =>
-      (await content.getCollection(name)).map((entry) =>
+    getCollection: async (name: 'docs') => {
+      collectionReads.count += 1;
+      return (await content.getCollection(name)).map((entry) =>
         stored.bySlug[entry.data.slug]
           ? { ...entry, rendered: { html: '', metadata: stored.bySlug[entry.data.slug] } }
           : entry,
-      ),
+      );
+    },
     render: async (entry: { data: { slug: string } }) => ({
       headings: headings.bySlug[entry.data.slug] ?? [],
     }),
@@ -45,7 +49,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
-import { loadSeoTree, loadSiteFiles, seoInputOf } from './adapter';
+import { getDocData, getDocs } from '../docs-collection';
+import { loadPanel, loadSeoTree, loadSiteFiles, seoInputOf } from './adapter';
 
 const config = {
   name: 'Site',
@@ -60,6 +65,7 @@ const config = {
   site: 'https://x.dev',
   trailingSlash: 'always' as const,
   buildFormat: 'directory' as const,
+  publicDir: 'file:///site/public/',
 };
 
 describe('seoInputOf', () => {
@@ -174,7 +180,7 @@ describe('loadSeoTree', () => {
       { depth: 1, slug: 'guia', text: 'Guía' },
       { depth: 3, slug: 'salto', text: 'Salto' },
     ];
-    const tree = await loadSeoTree(config as never);
+    const tree = await loadSeoTree(config as never, await getDocs());
     expect(tree.pages.map((page) => `${page.slug || '/'}:${page.locale}`)).toEqual([
       '/:en',
       'guide:es',
@@ -188,7 +194,7 @@ describe('loadSeoTree', () => {
 
 describe('loadSeoTree: páginas del cliente', () => {
   it('las páginas de src/pages/ que se le pasan entran en el árbol junto a la colección', async () => {
-    const tree = await loadSeoTree(config as never, [
+    const tree = await loadSeoTree(config as never, await getDocs(), [
       {
         path: '/repo/cv/',
         pattern: '/cv',
@@ -211,7 +217,7 @@ describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
       [CONTENT_METADATA_KEY]: content,
     };
     try {
-      const tree = await loadSeoTree(config as never);
+      const tree = await loadSeoTree(config as never, await getDocs());
       const guide = tree.pages.find((page) => page.slug === 'guide')!;
       expect(guide.images).toEqual(content.images);
       expect(guide.issues.map((issue) => issue.kind)).toContain('image-alt-missing');
@@ -221,7 +227,7 @@ describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
   });
 
   it('una entrada sin esos datos no se juzga (ni alt ni huérfanas)', async () => {
-    const tree = await loadSeoTree(config as never);
+    const tree = await loadSeoTree(config as never, await getDocs());
     const kinds = tree.pages.flatMap((page) => page.issues.map((issue) => issue.kind));
     expect(kinds).not.toContain('image-alt-missing');
     expect(kinds).not.toContain('orphan-page');
@@ -229,21 +235,22 @@ describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
 });
 
 describe('loadSiteFiles', () => {
-  const withPublic = async (files: string[], run: (publicDir: string) => Promise<void>) => {
-    const dir = await mkdtemp(path.join(tmpdir(), 'seo-public-'));
+  async function withPublic(files: string[], run: (publicDir: string) => Promise<void>) {
+    const directory = await mkdtemp(path.join(tmpdir(), 'seo-public-'));
     try {
-      for (const file of files) await writeFile(path.join(dir, file), 'x');
-      await run(pathToFileURL(`${dir}${path.sep}`).href);
+      for (const file of files) await writeFile(path.join(directory, file), 'x');
+      await run(pathToFileURL(`${directory}${path.sep}`).href);
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await rm(directory, { recursive: true, force: true });
     }
-  };
-  const byId = (files: Awaited<ReturnType<typeof loadSiteFiles>>, id: string) =>
-    files.find((file) => file.id === id);
+  }
+  function byId(files: Awaited<ReturnType<typeof loadSiteFiles>>, id: string) {
+    return files.find((file) => file.id === id);
+  }
 
   it('robots.txt y llms.txt salen de lo que hay en public/ del consumidor', async () => {
     await withPublic(['robots.txt'], async (publicDir) => {
-      const files = await loadSiteFiles({ ...config, publicDir } as never);
+      const files = await loadSiteFiles({ ...config, publicDir } as never, await getDocData());
       expect(byId(files, 'robots')?.state).toBe('present');
       expect(byId(files, 'llms')?.state).toBe('absent');
     });
@@ -251,14 +258,35 @@ describe('loadSiteFiles', () => {
 
   it('el sitemap cuenta las URLs reales de la colección', async () => {
     await withPublic([], async (publicDir) => {
-      const files = await loadSiteFiles({ ...config, publicDir } as never);
+      const files = await loadSiteFiles({ ...config, publicDir } as never, await getDocData());
       expect(byId(files, 'sitemap')).toMatchObject({ urls: 2 });
     });
   });
 
-  it('sin publicDir en la config todo lo de public/ cuenta como ausente', async () => {
-    const files = await loadSiteFiles(config as never);
-    expect(byId(files, 'robots')?.state).toBe('absent');
-    expect(byId(files, 'llms')?.state).toBe('absent');
+  it('también cuenta las páginas de src/pages/ que entran en el sitemap, como el endpoint de dev', async () => {
+    const head = { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [] };
+    await withPublic([], async (publicDir) => {
+      const files = await loadSiteFiles({ ...config, publicDir } as never, await getDocData(), [
+        { path: '/repo/cv/', pattern: '/cv', entrypoint: 'src/pages/cv.astro', head },
+        {
+          path: '/repo/draft/',
+          pattern: '/draft',
+          entrypoint: 'src/pages/draft.astro',
+          head: { ...head, noindex: true },
+        },
+      ]);
+      expect(byId(files, 'sitemap')).toMatchObject({ urls: 3 });
+    });
+  });
+});
+
+describe('loadPanel', () => {
+  it('lee la colección una sola vez por pantalla', async () => {
+    collectionReads.count = 0;
+    const panel = await loadPanel(config as never, 'http://localhost:4321');
+    expect(collectionReads.count).toBe(1);
+    expect(panel.docs.map((doc) => doc.slug)).toEqual(['', 'guide']);
+    expect(panel.tree.pages).toHaveLength(2);
+    expect(panel.hrefs.overview).toBeDefined();
   });
 });

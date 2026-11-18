@@ -13,26 +13,26 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
 ## Un componente
 
 1. **Elige el nivel** del diseño atómico:
-   - `ui/atoms/`: una pieza indivisible sin estado propio (`Link`, `Tag`, `Icon`).
-   - `ui/molecules/`: unas pocas piezas con un propósito (`EditLink`, `PrevNext`, `ThemeToggle`).
-   - `ui/organisms/`: una zona de la página (`DocsHeader`, `Sidebar`, `ConsentBanner`).
+   - `components/atoms/<tipo>/`: una pieza indivisible sin estado propio (`Link` en `actions/`, `Tag` e `Icon` en `display/`).
+   - `components/molecules/<tipo>/`: unas pocas piezas con un propósito (`EditLink` y `PrevNext` en `navigation/`, `ThemeToggle` en `controls/`).
+   - `components/organisms/<zona>/`: una zona de la página (`DocsHeader` y `Sidebar` en `chrome/`, `ConsentBanner` en `privacy/`).
 2. **Define sus `Props`** con comentarios. Todo lo que muestra llega por props, **textos incluidos**
-   (`strings: UiStrings` y `t(strings, 'clave')`). El componente no importa `astro:*`, ni
+   (`strings: UiStrings` y `translate(strings, 'clave')`). El componente no importa `astro:*`, ni
    `virtual:*`, ni nada de `src/astro/`: ESLint lo impide.
 3. **Estilos** con utilidades de Tailwind y tokens (`text-muted`, `bg-raised`). Si la regla es larga
    o compartida, va en `theme.css` con `@apply`. Nunca colores literales.
 4. **Comportamiento en el navegador**, si lo tiene: una función `init*` en `src/client/` que recibe
    el documento y lo que necesite, su test en `client/`, y su llamada en `bootDocs`
-   (`src/ui/layouts/boot.ts`). Los textos que necesite el script viajan en atributos `data-*`.
-5. **Test** en `ui/<nivel>/<Componente>.test.ts` si tiene lógica de render (qué se pinta según las
+   (`src/components/layouts/boot.ts`). Los textos que necesite el script viajan en atributos `data-*`.
+5. **Test** en `components/<nivel>/<tipo>/<Componente>.test.ts` si tiene lógica de render (qué se pinta según las
    props, atributos ARIA, URLs). Usa `render()` de `src/testing/render.ts` y `stringsFor()`. Si es
    puramente visual, no lleva test.
 6. **Úsalo** desde el layout o el organismo que corresponda. Si necesita datos de la config o de las
    páginas, los calcula `docView` (`src/astro/views/doc.ts`) con funciones de `core/`, y el
    layout se los pasa.
 
-Los componentes se exportan solos: `@velezanthony/design/components/*` apunta a `src/ui/*`, así que
-un consumidor puede importar `@velezanthony/design/components/atoms/Tag.astro` sin tocar
+Los componentes se exportan solos: `@velezanthony/design/components/*` apunta a `src/components/*`, así que
+un consumidor puede importar `@velezanthony/design/components/atoms/display/Tag.astro` sin tocar
 `package.json`.
 
 ## Una opción de configuración
@@ -71,8 +71,8 @@ flowchart LR
    sobrescribe.
 2. Añade la misma clave al catálogo `es`. `ui-strings.test.ts` comprueba que toda clave existe en
    todos los idiomas y que ninguna está vacía: si te olvidas, falla.
-3. Si lleva variables, escríbelas como `{nombre}` y pásalas con `t(strings, 'clave', { nombre })`.
-4. Úsala en el componente con `t(strings, 'clave')`.
+3. Si lleva variables, escríbelas como `{nombre}` y pásalas con `translate(strings, 'clave', { nombre })`.
+4. Úsala en el componente con `translate(strings, 'clave')`.
 
 No hace falta tocar nada más: `UiKey` y `uiKeys` salen del catálogo `en`, y el esquema estricto de
 `ui` en la config se genera desde `uiKeys`, así que los consumidores ya pueden sobrescribir la clave

@@ -1,28 +1,4 @@
-/**
- * Pipeline de UN documento: Markdown de MkDocs Material -> Markdown de `@velezanthony/design`.
- *
- * Sin E/S: recibe el texto y unas funciones opcionales de resolución, y devuelve el texto nuevo
- * más un registro de todo lo que ha tocado. Cada conversión vive en su propio módulo (con su
- * test); aquí solo se COMPONEN, siempre en este orden:
- *
- *   1. `frontmatter`   claves que solo entiende MkDocs (`hide`, `search`, `status`).
- *   2. Línea a línea, y la PRIMERA unidad que reconoce la línea la consume:
- *        a. `fences`          bloques de código: se dejan intactos (solo se etiqueta el lenguaje).
- *        b. `admonitions`     `!!!` / `???` / `???+`  (su cuerpo vuelve a pasar por este mismo paso).
- *        c. `tabs`            `=== "x"`               (ídem).
- *        d. `api-directive`   `::: paquete.Símbolo` de mkdocstrings.
- *        e. `html-wrappers`   `<div markdown>` de las tarjetas: se quita el envoltorio.
- *        f. texto corrido, con estas conversiones en este orden:
- *           `heading-ids` -> `autorefs` -> `icons` -> `attr-lists` -> `links`.
- *
- * El orden importa: lo de código va primero para que nada lo toque; las admonitions y pestañas
- * van antes que el texto corrido porque consumen su cuerpo y lo recursan; en el texto, el id del
- * encabezado y las autorrefs van antes de los iconos y atributos para que `{ #id }` o `[X][a.b]`
- * no se confundan con ellos, y los enlaces van los últimos, con el texto ya limpio.
- *
- * Las pasadas que necesitan VARIOS ficheros a la vez (`anchors.ts`) y la comprobación de restos
- * (`leftovers.ts`) no están aquí: las compone `pipeline.ts`.
- */
+/** Pipeline de UN documento, sin E/S: compone las conversiones en orden (código primero para que nada lo toque; los enlaces, los últimos). */
 import { convertAdmonition } from '../conversions/blocks/admonitions.ts';
 import { convertApiDirective } from '../conversions/blocks/api-directive.ts';
 import { removeAttrLists } from '../conversions/inline/attr-lists.ts';
@@ -75,28 +51,31 @@ function convertLines(lines: string[], options: TransformOptions, offset: number
   const output: string[] = [];
   const log: LogEntry[] = [];
   let wrapperDepth = 0;
-  const recurse = (body: string[], bodyOffset: number) => convertLines(body, options, bodyOffset);
+  function recurse(body: string[], bodyOffset: number) {
+    return convertLines(body, options, bodyOffset);
+  }
 
-  for (let i = 0; i < lines.length; i++) {
+  for (let index = 0; index < lines.length; index++) {
     const block =
-      convertFence(lines, i, offset) ??
-      convertAdmonition(lines, i, offset, recurse) ??
-      convertTabs(lines, i, offset, recurse) ??
-      convertApiDirective(lines, i, offset, options.resolveApi);
+      convertFence(lines, index, offset) ??
+      convertAdmonition(lines, index, offset, recurse) ??
+      convertTabs(lines, index, offset, recurse) ??
+      convertApiDirective(lines, index, offset, options.resolveApi);
     if (block) {
       output.push(...block.output);
       log.push(...block.log);
-      i = block.next - 1;
+      index = block.next - 1;
       continue;
     }
 
-    const lineNumber = offset + i + 1;
-    const wrapper = stepHtmlWrapper(lines[i], wrapperDepth, lineNumber);
+    const lineNumber = offset + index + 1;
+    const line = lines[index] ?? '';
+    const wrapper = stepHtmlWrapper(line, wrapperDepth, lineNumber);
     wrapperDepth = wrapper.depth;
     log.push(...wrapper.log);
     if (wrapper.skip) continue;
 
-    const inline = convertInline(lines[i], options, lineNumber);
+    const inline = convertInline(line, options, lineNumber);
     output.push(...inline.output);
     log.push(...inline.log);
   }

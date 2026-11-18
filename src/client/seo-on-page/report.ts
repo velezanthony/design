@@ -1,13 +1,5 @@
-/**
- * «Copiar para la IA». El servidor deja en la página el informe de cada alcance ya generado
- * (`<textarea hidden data-report-text="<alcance>">`, con su bloque JSON en `data-report-json-text`) y el
- * diálogo (`[data-report-dialog]`) solo elige entre ellos: nada se recalcula aquí. El alcance «Un
- * idioma» guarda un texto por idioma bajo `locale:<idioma>`. Los botones que abren el diálogo
- * (`data-report-open="<alcance>"`) y el «Copiar prompt» de cada problema (`data-copy-prompt="<texto>"`)
- * nacen con `hidden`: sin JavaScript o sin portapapeles no se ofrece lo que no puede funcionar.
- *
- * Los textos vienen del marcado: `data-copied` y `data-failed` en el diálogo y en cada botón de prompt.
- */
+/** «Copiar para la IA»: el servidor deja un informe por alcance (`data-report-text`) y el diálogo solo elige; los botones nacen `hidden` y los textos vienen de `data-*`. */
+import { copyWithFeedback } from '../clipboard';
 
 /** Lo que separa el Markdown del bloque JSON; el servidor calcula el tamaño con el mismo. */
 const JSON_SEPARATOR = '\n\n';
@@ -20,30 +12,39 @@ export interface ReportOptions {
   schedule?: (callback: () => void, ms: number) => void;
 }
 
-const find = (root: ParentNode, name: string, key: string): HTMLElement | undefined =>
-  [...root.querySelectorAll<HTMLElement>(`[${name}]`)].find((el) => el.getAttribute(name) === key);
+function find(root: ParentNode, name: string, key: string): HTMLElement | undefined {
+  return [...root.querySelectorAll<HTMLElement>(`[${name}]`)].find(
+    (element) => element.getAttribute(name) === key,
+  );
+}
 
 export function initReport(
-  doc: Document,
-  { clipboard, resetAfterMs = 1800, schedule = (cb, ms) => void setTimeout(cb, ms) }: ReportOptions,
+  htmlDocument: Document,
+  {
+    clipboard,
+    resetAfterMs = 1800,
+    schedule = (callback, ms) => void setTimeout(callback, ms),
+  }: ReportOptions,
 ): void {
   if (!clipboard) return;
-  for (const button of doc.querySelectorAll('[data-report-open], [data-copy-prompt]')) {
+  for (const button of htmlDocument.querySelectorAll('[data-report-open], [data-copy-prompt]')) {
     button.removeAttribute('hidden');
   }
 
-  const dialog = doc.querySelector<HTMLDialogElement>('[data-report-dialog]');
-  const part = <T extends HTMLElement>(name: string) => dialog?.querySelector<T>(`[${name}]`);
-  const radios = () => [
-    ...(dialog?.querySelectorAll<HTMLInputElement>('[data-report-scope]') ?? []),
-  ];
+  const dialog = htmlDocument.querySelector<HTMLDialogElement>('[data-report-dialog]');
+  function part<T extends HTMLElement>(name: string) {
+    return dialog?.querySelector<T>(`[${name}]`);
+  }
+  function radios() {
+    return [...(dialog?.querySelectorAll<HTMLInputElement>('[data-report-scope]') ?? [])];
+  }
 
-  const setStatus = (text: string) => {
+  function setStatus(text: string) {
     const status = part('data-report-status');
     if (status) status.textContent = text;
-  };
+  }
 
-  const render = () => {
+  function render() {
     if (!dialog) return;
     const scope = radios().find((radio) => radio.checked)?.value;
     const locale = part<HTMLSelectElement>('data-report-locale')?.value;
@@ -59,9 +60,9 @@ export function initReport(
     const meta = part('data-report-meta');
     if (meta) meta.textContent = markdown?.dataset[withJson ? 'sizeJson' : 'sizePlain'] ?? '';
     setStatus('');
-  };
+  }
 
-  const open = (scope: string) => {
+  function open(scope: string) {
     if (!dialog) return;
     const choices = radios().filter((radio) => !radio.disabled);
     const choice = choices.find((radio) => radio.value === scope) ?? choices[0];
@@ -69,22 +70,14 @@ export function initReport(
     render();
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.setAttribute('open', '');
-  };
+  }
 
-  const close = () => {
+  function close() {
     if (typeof dialog?.close === 'function') dialog.close();
     else dialog?.removeAttribute('open');
-  };
+  }
 
-  /** Confirma una copia en `target` y, pasado un rato, deja lo que había. */
-  const confirm = (target: HTMLElement, text: string, original: string) => {
-    target.textContent = text;
-    schedule(() => {
-      target.textContent = original;
-    }, resetAfterMs);
-  };
-
-  doc.addEventListener('click', (event) => {
+  htmlDocument.addEventListener('click', (event) => {
     const target = event.target as Element | null;
     if (!target?.closest) return;
 
@@ -96,10 +89,13 @@ export function initReport(
       const label = prompt.querySelector<HTMLElement>('[data-label]') ?? prompt;
       // La etiqueta de siempre se guarda la primera vez: pulsar dos veces no fija «Copiado».
       const original = (label.dataset.original ??= label.textContent ?? '');
-      void clipboard.writeText(prompt.getAttribute('data-copy-prompt') ?? '').then(
-        () => confirm(label, prompt.dataset.copied ?? '', original),
-        () => confirm(label, prompt.dataset.failed ?? '', original),
-      );
+      void copyWithFeedback(clipboard, prompt.getAttribute('data-copy-prompt') ?? '', {
+        done: () => (label.textContent = prompt.dataset.copied ?? ''),
+        failed: () => (label.textContent = prompt.dataset.failed ?? ''),
+        reset: () => (label.textContent = original),
+        schedule,
+        resetAfterMs,
+      });
       return;
     }
 
@@ -107,18 +103,17 @@ export function initReport(
     if (target === dialog || target.closest('[data-report-close]')) return close();
     if (target.closest('[data-report-copy]')) {
       const text = part('data-report-preview')?.textContent ?? '';
-      const done = (message: string | undefined) => {
-        setStatus(message ?? '');
-        schedule(() => setStatus(''), resetAfterMs);
-      };
-      void clipboard.writeText(text).then(
-        () => done(dialog.dataset.copied),
-        () => done(dialog.dataset.failed),
-      );
+      void copyWithFeedback(clipboard, text, {
+        done: () => setStatus(dialog.dataset.copied ?? ''),
+        failed: () => setStatus(dialog.dataset.failed ?? ''),
+        reset: () => setStatus(''),
+        schedule,
+        resetAfterMs,
+      });
     }
   });
 
-  doc.addEventListener('change', (event) => {
+  htmlDocument.addEventListener('change', (event) => {
     const field = event.target as Element | null;
     if (!dialog || !field?.closest || !field.closest('[data-report-dialog]')) return;
     if (field.matches('[data-report-locale]')) {

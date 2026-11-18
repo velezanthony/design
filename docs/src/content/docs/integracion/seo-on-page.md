@@ -52,7 +52,7 @@ flowchart LR
 
 El adaptador (`src/astro/data/seo-on-page/adapter.ts`) es el único sitio que conoce
 `astro:content`; el resto está en capas que no dependen de Astro (`core/seo-on-page/`,
-`ui/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
+`components/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
 `panelView` (`views/seo-on-page/panel.ts`): barra lateral con las pantallas del panel, `noindex`, sin analítica ni
 aviso de consentimiento.
 
@@ -63,7 +63,7 @@ proyectos). De esas la librería no tiene frontmatter que leer, así que el pane
 ve un visitante**:
 
 1. La integración guarda sus rutas (`astro:routes:resolved`) y, en dev, el servidor de Vite
-   (`astro:server:setup`), en un registro compartido (`astro/data/client-registry.ts`).
+   (`astro:server:setup`), en un registro compartido (`astro/registry.ts`).
 2. `loadClientPages` (`astro/data/client-pages.ts`) expande las rutas dinámicas con su
    `getStaticPaths`, pide cada URL al propio servidor de desarrollo y lee su `<head>` con `readHead`
    (`core/seo/html-head.ts`): título, descripción, noindex, canonical, `hreflang`, encabezados, Open
@@ -82,7 +82,7 @@ recogen. Los arreglos nombran la etiqueta del `<head>` (`<title>`, `<meta name="
 Cada pantalla es lo mismo en pequeño: **leer la URL → pedir el árbol al adaptador → pedir el modelo
 al núcleo → pintar componentes**. Nada más.
 
-| Pantalla | Página (`astro/pages/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
+| Pantalla | Ruta (`astro/routes/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
 | --- | --- | --- |
 | Resumen | `overview.astro` | `overview/model.ts`: totales, desglose por gravedad y por tipo, schemas |
 | Páginas | `pages.astro` | `listing/model.ts`: filtros efectivos, filas de la página, paginación |
@@ -91,9 +91,10 @@ al núcleo → pintar componentes**. Nada más.
 Cada modelo es una función pura que devuelve exactamente lo que enseña su pantalla. Como el núcleo
 no sabe formar URLs (`base`, `trailingSlash`), los modelos reciben un **puerto de enlaces**
 (`PanelLinks`, en `pages/links.ts`) y devuelven los enlaces ya hechos como texto; `devHrefs`, de
-`astro/views/seo-on-page/hrefs.ts`, lo implementa. Los componentes (`ui/seo-on-page/organisms/`) son
+`astro/views/seo-on-page/hrefs.ts`, lo implementa. Cada ruta pasa el modelo a su página (`components/seo-on-page/pages/`: `OverviewPage`, `PagesPage`,
+`InspectorPage`), que solo pinta. Los componentes (`components/seo-on-page/organisms/`) son
 una sección cada uno y reciben solo su porción del modelo; las etiquetas y los textos son suyos
-(`labels.ts`), los datos no.
+(`core/seo-on-page/labels.ts`, compartidos con las vistas), los datos no.
 
 ## Los límites
 
@@ -112,7 +113,7 @@ comprobaciones de abajo.
 | `link-to-noindex` | info | regla | Una página indexable cuyo cuerpo enlaza a otra `noindex` del mismo idioma. Los enlaces de la barra lateral no cuentan (enlaza a todo y avisaría en cada página). |
 | `orphan-page` | info | regla | Una página indexable que ninguna otra enlaza, ni desde el cuerpo ni desde la navegación (barra lateral de su sección, cabecera y footer, construidas con las mismas funciones que el layout). La portada y las `noindex` no se juzgan. Con la barra lateral por defecto casi nunca salta: lista todas las páginas de su sección. |
 | `image-alt-missing` | aviso | regla | Imágenes Markdown (`![alt](src)`) del cuerpo sin texto alternativo, con el recuento por página. |
-| `og-image-size` | aviso o info | heurística | La imagen social contra 1200×630 (≈1,91:1, tolerancia del 5 %): aviso si la proporción es otra (las redes la recortan), info si solo es más pequeña. Las imágenes `https` no se leen y no se juzgan. |
+| `og-image-size` | aviso o info | heurística | La imagen social contra 1200×630 (≈1,91:1, tolerancia del 2 %, la misma con la que avisa el build): aviso si la proporción es otra (las redes la recortan), info si solo es más pequeña. Las imágenes `https` no se leen y no se juzgan. |
 
 Los enlaces y las imágenes no se detectan con una regla propia: el loader los toma de `rewriteLinks`
 (`core/links/rewrite.ts`), que ya recorre el cuerpo para reescribir y validar los enlaces, y los guarda

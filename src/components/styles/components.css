@@ -1,0 +1,264 @@
+/* Avisos y anclas de títulos son componentes de la librería: se ven igual fuera de `.prose` (el panel SEO los usa sin ella). */
+@layer components {
+  /* Admoniciones: `<aside class="admonition" data-kind>` o, si se pliega, `<details>` con
+     `<summary class="admonition-title">`. El color del tipo sale de los tokens de la paleta. */
+  .admonition {
+    --admonition-color: var(--color-accent);
+    border: 1px solid var(--color-rule);
+    border-left: 3px solid var(--admonition-color);
+    border-radius: 4px;
+    background-color: var(--color-raised);
+    padding: 0.75rem 1rem;
+    font-size: var(--text-row);
+    line-height: var(--text-row--line-height);
+  }
+
+  .admonition[data-kind='note'] {
+    --admonition-color: var(--color-accent);
+  }
+
+  .admonition[data-kind='info'] {
+    --admonition-color: var(--color-ink);
+  }
+
+  .admonition[data-kind='tip'] {
+    --admonition-color: var(--color-state-live);
+  }
+
+  .admonition[data-kind='warning'] {
+    --admonition-color: var(--color-state-wip);
+  }
+
+  .admonition[data-kind='danger'] {
+    --admonition-color: var(--color-danger);
+  }
+
+  .admonition[data-kind='question'] {
+    --admonition-color: var(--color-muted);
+  }
+
+  .admonition > * + * {
+    margin-top: 0.5em;
+  }
+
+  .admonition-title {
+    @apply label;
+    color: var(--admonition-color);
+    font-weight: 600;
+  }
+
+  /* Plegable: el título es el `<summary>`, clicable y con foco visible; el cuerpo, lo que queda
+     tras él. */
+  details.admonition > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  details.admonition > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.admonition > summary::before {
+    content: '+';
+    display: inline-block;
+    width: 1.25em;
+  }
+
+  details.admonition[open] > summary::before {
+    content: '−';
+  }
+
+  /* Ancla permanente de `client/content/anchors.ts`: aparece al señalar o enfocar el encabezado. */
+  .heading-anchor {
+    margin-left: 0.4em;
+    color: var(--color-faint);
+    text-decoration: none;
+    opacity: 0;
+  }
+
+  :is(h2, h3, h4):hover > .heading-anchor,
+  .heading-anchor:focus-visible {
+    color: var(--color-accent);
+    opacity: 1;
+  }
+
+  /* Pestañas: sin JS los paneles se apilan; con `data-enhanced` aparece la `tablist` y solo se ve el panel activo. */
+  .docs-tabs {
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+  }
+
+  .docs-tabs:not([data-enhanced]) .docs-tablist {
+    display: none;
+  }
+
+  .docs-tablist {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding: 0 0.5rem;
+    border-bottom: 1px solid var(--color-rule);
+    background-color: var(--color-raised);
+  }
+
+  .docs-tab {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid transparent;
+    color: var(--color-muted);
+    font-size: var(--text-row);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .docs-tab[aria-selected='true'] {
+    border-bottom-color: var(--color-accent);
+    color: var(--color-ink);
+  }
+
+  .docs-tab-panel {
+    padding: 0.75rem 1rem;
+  }
+
+  .docs-tab-panel + .docs-tab-panel {
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .docs-tab-panel[hidden] {
+    display: none;
+  }
+
+  .docs-tab-label {
+    @apply label text-faint;
+    margin-bottom: 0.5em;
+  }
+
+  .docs-tabs[data-enhanced] .docs-tab-label {
+    display: none;
+  }
+
+  .docs-mermaid-figure {
+    @apply overflow-x-auto rounded-[4px] border border-rule bg-canvas p-4;
+
+    & > svg {
+      @apply mx-auto block h-auto max-w-full;
+    }
+  }
+
+  .docs-mermaid[data-state='rendered'] .docs-mermaid-figure {
+    @apply rounded-t-none;
+  }
+
+  /* Botón de copiar de `client/content/copy-code.ts`: el bloque se envuelve en `.docs-code` y el botón
+     flota arriba a la derecha. Sin JavaScript no existe y el bloque queda tal cual. */
+  .docs-code {
+    position: relative;
+  }
+
+  :is(.docs-copy, .docs-expand) {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    /* Opaco y sobre el lienzo: cuando una línea larga pasa por debajo, la tapa en vez de mezclarse. */
+    background-color: var(--color-canvas);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    cursor: pointer;
+  }
+
+  /* «Pantalla completa» de un diagrama: icono de medida fija, así el botón de copiar (ancho variable) se aparta lo que ocupa. */
+  .docs-expand {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 1.5rem;
+    padding: 0;
+  }
+
+  .docs-code:has(> .docs-expand) > .docs-copy {
+    right: 3rem;
+  }
+
+  /* Con ratón, el botón solo aparece al señalar el bloque (o al enfocarlo con teclado): así no tapa
+     el final de las firmas largas mientras se leen. En táctil no hay "señalar" y queda visible. */
+  @media (hover: hover) {
+    :is(.docs-copy, .docs-expand) {
+      opacity: 0;
+      transition: opacity 120ms;
+    }
+
+    .docs-code:hover :is(.docs-copy, .docs-expand),
+    :is(.docs-copy, .docs-expand):focus-visible,
+    .docs-copy[data-state] {
+      opacity: 1;
+    }
+  }
+
+  :is(.docs-copy, .docs-expand):hover,
+  .docs-copy[data-state='copied'] {
+    color: var(--color-ink);
+  }
+
+  .docs-copy[data-state='error'] {
+    color: var(--color-danger);
+  }
+}
+
+/* Diálogo de ampliación de imágenes, colgado de `<body>`: la imagen se ajusta con su proporción para que la miniatura y la grande no se deformen, y `scrollbar-gutter` evita saltos. */
+@layer components {
+  :is(.docs-zoom-dialog, .docs-diagram-dialog) {
+    @apply fixed inset-0 m-0 size-full max-h-none max-w-none overflow-hidden border-0 bg-transparent p-4 text-ink;
+  }
+
+  :is(.docs-zoom-dialog, .docs-diagram-dialog)[open] {
+    @apply grid place-items-center;
+  }
+
+  /* Casi opaco y con un desenfoque leve: la página queda como un rumor detrás y la imagen manda. */
+  :is(.docs-zoom-dialog, .docs-diagram-dialog)::backdrop {
+    background: color-mix(in oklab, var(--color-canvas) 97%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .docs-zoom-img {
+    @apply block h-auto w-auto cursor-zoom-out rounded-[4px] border border-rule bg-canvas;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100dvh - 2rem);
+  }
+
+  .docs-zoom-close {
+    @apply absolute top-3 right-3 icon-button text-2xl leading-none;
+  }
+
+  /* Visor de diagramas: el mismo diálogo sin margen; el script pone escala y posición con `transform` y `touch-none` le deja los gestos. */
+  .docs-diagram-dialog {
+    @apply p-0;
+  }
+
+  .docs-diagram-stage {
+    @apply absolute inset-0 cursor-grab touch-none overflow-hidden outline-none select-none;
+
+    &[data-dragging] {
+      @apply cursor-grabbing;
+    }
+  }
+
+  .docs-diagram-canvas {
+    @apply absolute top-0 left-0 origin-top-left;
+
+    & > svg {
+      @apply block max-w-none;
+    }
+  }
+
+  .docs-diagram-toolbar {
+    @apply absolute top-3 right-3 flex gap-2;
+  }
+
+  .docs-diagram-tool {
+    @apply icon-button;
+  }
+}

@@ -9,7 +9,7 @@ function messages(input: unknown): string[] {
   try {
     resolveConfig(input as never);
   } catch (error) {
-    if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+    if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
     throw error;
   }
   return [];
@@ -46,12 +46,12 @@ describe('seo de la config', () => {
 
   it('la imagen base acepta ruta de public/ o https, con alt por idioma', () => {
     for (const src of ['/og.png', 'https://cdn.dev/og.png']) {
-      const cfg = resolveConfig({
+      const config = resolveConfig({
         name: 'X',
         locales: ['en', 'es'],
         seo: { image: { src, alt: { en: 'Logo', es: 'Logotipo' } } },
       });
-      expect(cfg.seo.image?.src).toBe(src);
+      expect(config.seo.image?.src).toBe(src);
     }
   });
 
@@ -80,7 +80,7 @@ describe('PageSeoOverrideSchema', () => {
   it('una imagen sin src falla en `image.src`', () => {
     const result = PageSeoOverrideSchema.safeParse({ image: { alt: 'x' } });
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].path).toEqual(['image', 'src']);
+    expect(result.error?.issues[0]?.path).toEqual(['image', 'src']);
   });
 });
 
@@ -97,11 +97,11 @@ describe('external[].seo', () => {
   });
 
   it('llega tal cual a la config resuelta', () => {
-    const cfg = resolveConfig({
+    const config = resolveConfig({
       name: 'X',
       external: [{ slug: 'a', file: 'a.md', seo: { noindex: true } }],
     });
-    expect(cfg.external[0].seo).toEqual({ noindex: true });
+    expect(config.external[0]?.seo).toEqual({ noindex: true });
   });
 });
 
@@ -319,11 +319,11 @@ describe('seo.schema (JSON-LD)', () => {
   const org = { '@type': 'Organization', name: 'Acme', sameAs: ['https://acme.dev'] };
 
   it('la config acepta una lista de objetos con @type y claves libres, tal cual', () => {
-    const cfg = resolveConfig({
+    const config = resolveConfig({
       name: 'X',
       seo: { schema: [org, { '@type': ['Person', 'Thing'] }] },
     });
-    expect(cfg.seo.schema?.[0]).toEqual(org);
+    expect(config.seo.schema?.[0]).toEqual(org);
   });
 
   it('sin schema declarado no hay nada: la librería no inventa ninguno', () => {

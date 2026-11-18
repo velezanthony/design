@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanFrontmatter } from './frontmatter';
+import { cleanFrontmatter } from './frontmatter.ts';
 
 describe('cleanFrontmatter', () => {
   it('quita las claves que solo entiende MkDocs y deja el resto', () => {

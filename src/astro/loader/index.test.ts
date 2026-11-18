@@ -5,18 +5,19 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { AstroError } from 'astro/errors';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
+import type { DocsUserConfig } from '../../core/config/schema';
+import { resolveConfigOrThrow } from '../config';
 import { docsLoader, docsLoaderFromResolved } from './index';
 import { CONTENT_METADATA_KEY } from '../../core/seo-on-page/nodes/content';
 import { docsSchema } from './schema';
 
 let root: string;
 
-const write = async (file: string, content: string) => {
+async function write(file: string, content: string) {
   const target = path.join(root, file);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content);
-};
+}
 
 /** PNG con cabecera válida (anchura × altura) para las imágenes SEO. */
 function png(width: number, height: number): Buffer {
@@ -37,8 +38,8 @@ class FakeWatcher extends EventEmitter {
   }
 }
 
-/** `ctx` mínimo del content layer: store en memoria, `parseData` con el schema real y Markdown simulado. */
-function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: string } = {}) {
+/** `context` mínimo del content layer: store en memoria, `parseData` con el schema real y Markdown simulado. */
+function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: string } = {}) {
   /* Raíz del proyecto de Astro: `root`, o una subcarpeta (`site`) si el contenido vive fuera de ella. */
   const projectRoot = options.project ? path.join(root, options.project) : root;
   const entries = new Map<
@@ -48,7 +49,7 @@ function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: stri
   const warnings: string[] = [];
   const errors: string[] = [];
   const rendered: string[] = [];
-  const ctx = {
+  const context = {
     config: {
       root: pathToFileURL(`${projectRoot}/`),
       base: options.base ?? '/',
@@ -74,25 +75,26 @@ function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: stri
       const headings = [...body.matchAll(/^#{1,6}\s+(.+?)\s*$/gm)].map((match) => ({
         depth: 1,
         text: match[1],
-        slug: match[1].toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-'),
+        slug: (match[1] ?? '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-'),
       }));
       return { html: '', metadata: { headings, imagePaths: [] } };
     },
     watcher: options.watcher,
   };
-  return { ctx: ctx as never, entries, warnings, errors, rendered };
+  return { context: context as never, entries, warnings, errors, rendered };
 }
 
-const load = (config: DocsUserConfig, made = makeCtx()) =>
-  docsLoader(config)
-    .load(made.ctx)
+async function load(config: DocsUserConfig, made = makeContext()) {
+  return docsLoader(config)
+    .load(made.context)
     .then(() => made);
+}
 
 /** Captura el `AstroError` de una carga fallida con todos los mensajes (título + pista). */
-async function failure(config: DocsUserConfig, made = makeCtx()) {
+async function failure(config: DocsUserConfig, made = makeContext()) {
   const error = await load(config, made).then(
     () => undefined,
-    (e: unknown) => e,
+    (caught: unknown) => caught,
   );
   expect(error).toBeInstanceOf(AstroError);
   return `${(error as AstroError).message}\n${(error as AstroError).hint ?? ''}`;
@@ -155,7 +157,7 @@ describe('docsLoader: frontmatter, seo y translations', () => {
     await write('src/content/docs/guide.md', '---\ntitle: G\n---\n# G\n');
     const { rendered } = await load({ name: 'T' });
     expect(rendered[0]).not.toContain('title: G');
-    expect(rendered[0].split('\n')[3]).toBe('# G');
+    expect(rendered[0]?.split('\n')[3]).toBe('# G');
   });
 
   it('external[].seo y external[].translations llegan a todos los idiomas', async () => {
@@ -223,7 +225,7 @@ describe('docsLoader: enlaces y anclas', () => {
   it('reescribe los enlaces relativos a la URL de la página, también bajo base', async () => {
     await write('src/content/docs/a.md', '# A\n\nVer [b](./b.md#seccion).\n');
     await write('src/content/docs/b.md', '# B\n\n## Seccion\n');
-    const { rendered } = await load({ name: 'T' }, makeCtx({ base: '/repo' }));
+    const { rendered } = await load({ name: 'T' }, makeContext({ base: '/repo' }));
     expect(rendered.join('\n')).toContain('[b](/repo/b/#seccion)');
   });
 
@@ -275,9 +277,12 @@ describe('docsLoader: enlaces y anclas', () => {
 });
 
 describe('docsLoader: lo que el cuerpo enlaza y muestra (para el panel SEO)', () => {
-  const metadataOf = (entry: unknown) =>
-    (entry as { rendered: { metadata: Record<string, unknown> } }).rendered.metadata;
-  const contentOf = (entry: unknown) => metadataOf(entry)[CONTENT_METADATA_KEY];
+  function metadataOf(entry: unknown) {
+    return (entry as { rendered: { metadata: Record<string, unknown> } }).rendered.metadata;
+  }
+  function contentOf(entry: unknown) {
+    return metadataOf(entry)[CONTENT_METADATA_KEY];
+  }
 
   it('guarda con la entrada las páginas que enlaza y sus imágenes, junto a los encabezados', async () => {
     await write(
@@ -341,11 +346,11 @@ describe('docsLoader: imágenes SEO', () => {
 });
 
 describe('docsLoader: traducciones no declaradas', () => {
-  const pages = async (frontmatter = '') => {
+  async function pages(frontmatter = '') {
     await write('src/content/docs/install.md', `${frontmatter}# Install\n`);
     await write('src/content/docs/index.md', '# Home\n');
     await write('src/content/docs/index.es.md', '# Inicio\n');
-  };
+  }
 
   it('avisa una vez por página con idioma que falta, sin romper la carga', async () => {
     await pages();
@@ -392,7 +397,7 @@ describe('docsLoader: slugs del sidebar', () => {
 describe('docsLoader: raíz del repositorio', () => {
   it('editUrl sin raíz del repo rompe con una pista accionable', async () => {
     await write('src/content/docs/a.md', '# A\n');
-    const made = makeCtx();
+    const made = makeContext();
     // Raíz de proyecto fuera de cualquier repo: el directorio temporal no tiene .git arriba.
     const message = await failure({ name: 'T', editUrl: 'https://x/edit/main' }, made);
     expect(message).toContain('repoRoot');
@@ -415,7 +420,7 @@ describe('docsLoader: dev (watcher)', () => {
   it('un cambio recarga todo: la entrada refleja el archivo nuevo', async () => {
     await write('src/content/docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
-    const made = makeCtx({ watcher });
+    const made = makeContext({ watcher });
     await load({ name: 'T' }, made);
     expect(made.entries.size).toBe(1);
 
@@ -434,7 +439,7 @@ describe('docsLoader: dev (watcher)', () => {
     const watcher = new FakeWatcher();
     await load(
       { name: 'T', external: [{ slug: 'changelog', file: './CHANGELOG.md' }] },
-      makeCtx({ watcher }),
+      makeContext({ watcher }),
     );
     expect(watcher.added).toEqual([
       path.join(root, 'src/content/docs'),
@@ -445,7 +450,7 @@ describe('docsLoader: dev (watcher)', () => {
   it('un error al recargar se informa por logger.error y el watcher sigue vivo', async () => {
     await write('src/content/docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
-    const made = makeCtx({ watcher });
+    const made = makeContext({ watcher });
     await load({ name: 'T' }, made);
 
     await write('src/content/docs/a.md', '# A\n\n[x](./no.md)\n');
@@ -460,13 +465,17 @@ describe('docsLoader: dev (watcher)', () => {
 });
 
 describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
-  const site = () => makeCtx({ project: 'site', base: '/repo' });
-  const config = (extra: Partial<DocsUserConfig> = {}): DocsUserConfig => ({
-    name: 'T',
-    locales: ['en', 'es'],
-    content: '../docs',
-    ...extra,
-  });
+  function site() {
+    return makeContext({ project: 'site', base: '/repo' });
+  }
+  function config(extra: Partial<DocsUserConfig> = {}): DocsUserConfig {
+    return {
+      name: 'T',
+      locales: ['en', 'es'],
+      content: '../docs',
+      ...extra,
+    };
+  }
 
   it('lee las páginas de ../docs sin mirar src/content/docs, y solo los .md', async () => {
     await write('docs/index.md', '# Home\n');
@@ -491,7 +500,7 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
     await write('docs/users/guia.md', '# Guía\n\n![c](img/captura.png)\n');
     const made = site();
     const urls: string[] = [];
-    const render = made.ctx as unknown as {
+    const render = made.context as unknown as {
       renderMarkdown: (body: string, options: { fileURL: URL }) => Promise<unknown>;
     };
     const original = render.renderMarkdown;
@@ -562,7 +571,7 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   it('vigila la carpeta externa y una edición en ella recarga', async () => {
     await write('docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
-    const made = makeCtx({ project: 'site', watcher });
+    const made = makeContext({ project: 'site', watcher });
     await load(config(), made);
     expect(watcher.added).toEqual([path.join(root, 'docs')]);
 
@@ -575,8 +584,8 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
 describe('docsLoaderFromResolved', () => {
   it('carga con una config ya resuelta, igual que docsLoader(config)', async () => {
     await write('src/content/docs/index.md', '# Home\n');
-    const made = makeCtx();
-    await docsLoaderFromResolved(resolveConfigOrThrow({ name: 'Resuelta' })).load(made.ctx);
+    const made = makeContext();
+    await docsLoaderFromResolved(resolveConfigOrThrow({ name: 'Resuelta' })).load(made.context);
     expect([...made.entries.keys()]).toEqual(['en/index']);
   });
 });

@@ -3,18 +3,19 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { codeText, initCopyCode } from './copy-code';
 
-const page = (body: string) =>
-  parseHTML(`<!doctype html><html><body>${body}</body></html>`).document;
+function page(body: string) {
+  return parseHTML(`<!doctype html><html><body>${body}</body></html>`).document;
+}
 
 describe('codeText', () => {
   it('es el texto del bloque sin el salto final que añade el resaltado', () => {
-    const doc = page('<pre><code><span>npm</span> <span>i</span>\n</code></pre>');
-    expect(codeText(doc.querySelector('pre')!)).toBe('npm i');
+    const htmlDocument = page('<pre><code><span>npm</span> <span>i</span>\n</code></pre>');
+    expect(codeText(htmlDocument.querySelector('pre')!)).toBe('npm i');
   });
 
   it('conserva las líneas internas y la sangría', () => {
-    const doc = page('<pre><code>a\n  b\n</code></pre>');
-    expect(codeText(doc.querySelector('pre')!)).toBe('a\n  b');
+    const htmlDocument = page('<pre><code>a\n  b\n</code></pre>');
+    expect(codeText(htmlDocument.querySelector('pre')!)).toBe('a\n  b');
   });
 });
 
@@ -31,11 +32,17 @@ describe('initCopyCode', () => {
       clipboard: { writeText },
       labels,
       resetAfterMs: 1500,
-      schedule: (cb) => void timers.push(cb),
+      schedule: (callback) => void timers.push(callback),
     });
-    const button = () => document.querySelector<HTMLButtonElement>('button.docs-copy');
-    const click = () => button()!.dispatchEvent(new document.defaultView!.Event('click'));
-    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+    function button() {
+      return document.querySelector<HTMLButtonElement>('button.docs-copy');
+    }
+    function click() {
+      return button()!.dispatchEvent(new document.defaultView!.Event('click'));
+    }
+    function flush() {
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
     return { document, button, click, flush, timers };
   }
 

@@ -3,14 +3,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { overrideWarning, routeOverrides, type RouteOptions } from './route-overrides';
+import type { RouteOptions } from '../routes/routes';
+import { overrideWarning, routeOverrides } from './route-overrides';
 
-const dirs: string[] = [];
+const directories: string[] = [];
 
 /** Crea un `src/pages/` temporal con los ficheros dados y devuelve su URL. */
 function pagesWith(...files: string[]): URL {
   const root = mkdtempSync(join(tmpdir(), 'design-pages-'));
-  dirs.push(root);
+  directories.push(root);
   for (const file of files) {
     const path = join(root, 'pages', file);
     mkdirSync(join(path, '..'), { recursive: true });
@@ -20,14 +21,17 @@ function pagesWith(...files: string[]): URL {
 }
 
 afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const directory of directories.splice(0))
+    rmSync(directory, { recursive: true, force: true });
 });
 
 const site: RouteOptions = { locales: ['en', 'es'], defaultLocale: 'en' };
-const files = (pages: URL, options: RouteOptions = site) =>
-  routeOverrides(pages, options).map(({ file }) => file);
-const routes = (pages: URL, options: RouteOptions = site) =>
-  routeOverrides(pages, options).map(({ route }) => route);
+function files(pages: URL, options: RouteOptions = site) {
+  return routeOverrides(pages, options).map(({ file }) => file);
+}
+function routes(pages: URL, options: RouteOptions = site) {
+  return routeOverrides(pages, options).map(({ route }) => route);
+}
 
 describe('routeOverrides', () => {
   it('sin src/pages/ no hay nada que sustituya', () => {

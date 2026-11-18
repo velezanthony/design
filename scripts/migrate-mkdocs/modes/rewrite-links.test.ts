@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createLinkRewriter } from './rewrite-links';
+import { createLinkRewriter } from './rewrite-links.ts';
 
 const rewriter = createLinkRewriter({
   published: new Set(['index.md', 'users/a.md', 'users/b.es.md', 'img/pic.png']),

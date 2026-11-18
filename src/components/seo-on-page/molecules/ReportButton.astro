@@ -1,0 +1,21 @@
+---
+/* El botón que abre «Copiar para la IA» (`client/seo-on-page/report.ts`). Nace oculto: sin JavaScript
+   no puede abrir el diálogo, y un botón que no hace nada es peor que ninguno. */
+import type { ComponentProps } from 'astro/types';
+import Button from '../../atoms/actions/Button.astro';
+import { REPORT_LABELS as labels } from '../../../core/seo-on-page/labels';
+
+interface Props {
+  /** Qué alcance abre: `site`, `filter` o `page`. */
+  scope: string;
+  variant?: ComponentProps<typeof Button>['variant'];
+  /** Sin texto propio dice «Copiar para la IA». */
+  label?: string;
+}
+
+const { scope, variant = 'primary', label = labels.open } = Astro.props;
+---
+
+<Button variant={variant} hidden data-report-open={scope}>
+  {label}
+</Button>

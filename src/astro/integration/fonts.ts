@@ -1,35 +1,31 @@
 import { AstroError } from 'astro/errors';
 import { fontProviders } from 'astro/config';
 
-/**
- * Fuentes del diseño (IBM Plex), declaradas con la API de fuentes de Astro. Los `cssVariable` son
- * los mismos que usa `theme.css`.
- */
-export const designFonts = () => [
-  {
-    provider: fontProviders.fontsource(),
-    name: 'IBM Plex Sans',
-    cssVariable: '--font-plex-sans',
-    weights: [400, 500, 600],
-    styles: ['normal' as const],
-    subsets: ['latin' as const],
-    fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
-  },
-  {
-    provider: fontProviders.fontsource(),
-    name: 'IBM Plex Mono',
-    cssVariable: '--font-plex-mono',
-    weights: [400, 500],
-    styles: ['normal' as const],
-    subsets: ['latin' as const],
-    fallbacks: ['ui-monospace', 'monospace'],
-  },
-];
+/** Fuentes del diseño (IBM Plex) con la API de fuentes de Astro; los `cssVariable` son los de `theme.css`. */
+export function designFonts() {
+  return [
+    {
+      provider: fontProviders.fontsource(),
+      name: 'IBM Plex Sans',
+      cssVariable: '--font-plex-sans',
+      weights: [400, 500, 600],
+      styles: ['normal' as const],
+      subsets: ['latin' as const],
+      fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+    },
+    {
+      provider: fontProviders.fontsource(),
+      name: 'IBM Plex Mono',
+      cssVariable: '--font-plex-mono',
+      weights: [400, 500],
+      styles: ['normal' as const],
+      subsets: ['latin' as const],
+      fallbacks: ['ui-monospace', 'monospace'],
+    },
+  ];
+}
 
-/**
- * Falla si el consumidor ya declara una fuente con el mismo `cssVariable` que las del diseño: dos
- * fuentes no pueden compartir variable y Astro no sabría cuál usar. Se avisa con la salida.
- */
+/** Falla si el consumidor declara una fuente con el mismo `cssVariable`: Astro no sabría cuál usar. */
 export function assertNoFontConflict(
   existing: readonly { cssVariable: string }[] | undefined,
   ours: readonly { cssVariable: string }[],

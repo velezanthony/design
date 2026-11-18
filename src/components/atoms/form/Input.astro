@@ -1,0 +1,61 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'class' | 'id'> {
+  /** Obligatorio: es lo que une la etiqueta con el campo (`for`/`id`). */
+  id: string;
+  /** Texto de la etiqueta. Sin él solo se pinta el campo y quien lo usa pone la etiqueta (`FormField`). */
+  label?: string;
+  type?: 'text' | 'search' | 'email' | 'password' | 'url' | 'tel' | 'number';
+  /** Deja la etiqueta solo para lectores de pantalla (un buscador con placeholder y atajo). */
+  hideLabel?: boolean;
+  required?: boolean;
+  disabled?: boolean;
+  /** Marca el campo con `aria-invalid`; el mensaje lo pone quien lo usa (`FieldError`). */
+  invalid?: boolean;
+  /** Va al contenedor: el ancho lo decide quien coloca el campo; el campo ocupa todo el suyo. */
+  class?: string;
+}
+
+const {
+  id,
+  label,
+  type = 'text',
+  hideLabel = false,
+  required = false,
+  disabled = false,
+  invalid = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const fieldClass =
+  'min-h-8 w-full border border-rule bg-canvas px-2 text-ink placeholder:text-faint focus-visible:border-accent aria-invalid:border-danger disabled:cursor-not-allowed disabled:opacity-50';
+---
+
+{label === undefined ? (
+  <input
+    id={id}
+    type={type}
+    required={required}
+    disabled={disabled}
+    aria-invalid={invalid ? 'true' : undefined}
+    class:list={[fieldClass, className]}
+    {...rest}
+  />
+) : (
+  <div class:list={['flex flex-col gap-1', className]}>
+    <label for={id} class:list={[hideLabel ? 'sr-only' : 'label text-muted']}>
+      {label}
+    </label>
+    <input
+      id={id}
+      type={type}
+      required={required}
+      disabled={disabled}
+      aria-invalid={invalid ? 'true' : undefined}
+      class={fieldClass}
+      {...rest}
+    />
+  </div>
+)}

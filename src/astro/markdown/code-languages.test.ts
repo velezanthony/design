@@ -6,13 +6,14 @@ import { docFileURL, nonDocFileURL, project, renderMarkdown } from '../../testin
 import { createMarkdownEnv } from './env';
 import { codeLanguages, SHIKI_LANG_ALIAS } from './code-languages';
 
-const make = (langAlias: Record<string, string> = SHIKI_LANG_ALIAS) => {
+function make(langAlias: Record<string, string> = SHIKI_LANG_ALIAS) {
   const warn = vi.fn();
   const env = createMarkdownEnv(resolveConfig({ name: 'x' }), project, warn);
-  const render = (source: string, fileURL = docFileURL('a.md')) =>
-    renderMarkdown(source, { fileURL, plugins: [codeLanguages(env, langAlias)] });
+  function render(source: string, fileURL = docFileURL('a.md')) {
+    return renderMarkdown(source, { fileURL, plugins: [codeLanguages(env, langAlias)] });
+  }
   return { warn, render };
-};
+}
 
 /** Alias que añadimos: Shiki no los trae y los autores los escriben a menudo. */
 const ADDED = {
@@ -70,15 +71,21 @@ describe('resaltado con los alias', () => {
   };
 
   it.each(Object.keys(sample))('«%s» se resalta (no cae a texto plano)', async (lang) => {
-    const hl = await createShikiHighlighter({ themes, langAlias: { ...SHIKI_LANG_ALIAS } });
-    const html = await hl.codeToHtml(sample[lang]!, lang, {});
+    const highlighter = await createShikiHighlighter({
+      themes,
+      langAlias: { ...SHIKI_LANG_ALIAS },
+    });
+    const html = await highlighter.codeToHtml(sample[lang]!, lang, {});
     expect(html).toContain('data-language="' + lang + '"');
     expect(html).toMatch(/<span style="color:#/);
   });
 
   it('un texto plano no lleva colores de token', async () => {
-    const hl = await createShikiHighlighter({ themes, langAlias: { ...SHIKI_LANG_ALIAS } });
-    const html = await hl.codeToHtml('KEY=value', 'plaintext', {});
+    const highlighter = await createShikiHighlighter({
+      themes,
+      langAlias: { ...SHIKI_LANG_ALIAS },
+    });
+    const html = await highlighter.codeToHtml('KEY=value', 'plaintext', {});
     expect(html).not.toMatch(/<span style="color:#/);
   });
 });

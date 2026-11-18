@@ -23,7 +23,7 @@ describe('validateSidebarSlugs', () => {
       'nope',
       { label: 'G', slug: 'ghost', items: ['guide/api', 'also-nope'] },
     ];
-    const messages = validateSidebarSlugs(items, slugs).map((e) => e.message);
+    const messages = validateSidebarSlugs(items, slugs).map((problem) => problem.message);
     expect(messages).toHaveLength(3);
     expect(messages[0]).toContain('sidebar[1]');
     expect(messages[0]).toContain('nope');

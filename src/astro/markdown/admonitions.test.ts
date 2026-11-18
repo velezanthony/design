@@ -19,13 +19,19 @@ const env = createMarkdownEnv(
   }),
   project,
 );
-const render = (source: string, fileURL = docFileURL('a.md')) =>
-  renderMarkdown(source, { fileURL, features: { directive: true }, plugins: [admonitions(env)] });
-const fails = async (source: string, fileURL = docFileURL('a.md')) =>
-  render(source, fileURL).then(
+function render(source: string, fileURL = docFileURL('a.md')) {
+  return renderMarkdown(source, {
+    fileURL,
+    features: { directive: true },
+    plugins: [admonitions(env)],
+  });
+}
+async function fails(source: string, fileURL = docFileURL('a.md')) {
+  return render(source, fileURL).then(
     () => undefined,
     (error: unknown) => error as Error,
   );
+}
 
 describe('admonitions: directivas', () => {
   it('con título dado: aside note de su tipo con ese título', async () => {

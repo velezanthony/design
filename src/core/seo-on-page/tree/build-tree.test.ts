@@ -15,14 +15,18 @@ const config = resolveConfig({
   locales: ['en', 'es'],
   seo: { titleSuffix: 'Design', description: 'Docs of the design system for the whole portfolio.' },
 });
-const h = (depth: number, text: string) => ({ depth, slug: text.toLowerCase(), text });
-const page = (extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug' | 'locale'>) => ({
-  title: extra.slug,
-  kind: 'native' as const,
-  sourcePath: `${extra.slug}.md`,
-  headings: [h(1, 'Title'), h(2, 'Section')],
-  ...extra,
-});
+function heading(depth: number, text: string) {
+  return { depth, slug: text.toLowerCase(), text };
+}
+function page(extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug' | 'locale'>) {
+  return {
+    title: extra.slug,
+    kind: 'native' as const,
+    sourcePath: `${extra.slug}.md`,
+    headings: [heading(1, 'Title'), heading(2, 'Section')],
+    ...extra,
+  };
+}
 const description = 'A description of exactly the right size that explains what this page covers.';
 
 const input: SeoInput = {
@@ -34,7 +38,7 @@ const input: SeoInput = {
       slug: 'guide',
       locale: 'en',
       title: 'Guide to the system',
-      headings: [h(1, 'Guide'), h(2, 'Setup'), h(4, 'Deep')],
+      headings: [heading(1, 'Guide'), heading(2, 'Setup'), heading(4, 'Deep')],
     }),
     page({ slug: 'install', locale: 'es', title: 'Instalar', seo: { description } }),
     page({ slug: 'install', locale: 'en', title: 'Install', seo: { description } }),
@@ -43,11 +47,12 @@ const input: SeoInput = {
 
 describe('buildSeoTree', () => {
   const tree = buildSeoTree(input);
-  const find = (slug: string, locale: string) =>
-    tree.pages.find((p) => p.slug === slug && p.locale === locale);
+  function find(slug: string, locale: string) {
+    return tree.pages.find((treePage) => treePage.slug === slug && treePage.locale === locale);
+  }
 
   it('ordena por slug y luego por idioma', () => {
-    expect(tree.pages.map((p) => `${p.slug}:${p.locale}`)).toEqual([
+    expect(tree.pages.map((treePage) => `${treePage.slug}:${treePage.locale}`)).toEqual([
       'guide:en',
       'install:en',
       'install:es',
@@ -89,7 +94,7 @@ describe('buildSeoTree', () => {
       policy: 'link',
       declared: false,
     });
-    expect(guide?.issues.map((i) => [i.kind, i.severity])).toEqual([
+    expect(guide?.issues.map((issue) => [issue.kind, issue.severity])).toEqual([
       ['description-inherited', 'info'],
       ['heading-skip', 'warning'],
       ['translation-missing', 'warning'],
@@ -123,10 +128,9 @@ describe('buildSeoTree', () => {
         }),
       ],
     });
-    expect(conflicting.pages.map((p) => p.issues.map((i) => i.kind))).toEqual([
-      ['translation-policy-conflict'],
-      ['translation-policy-conflict'],
-    ]);
+    expect(conflicting.pages.map((treePage) => treePage.issues.map((issue) => issue.kind))).toEqual(
+      [['translation-policy-conflict'], ['translation-policy-conflict']],
+    );
   });
 });
 
@@ -144,38 +148,42 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
   ];
   const imageSizes = new Map([['/og.png', { width: 1200, height: 630 }]]);
   const tree = buildSeoTree({ config, url, pages, imageSizes });
-  const content = (
-    tags: ReturnType<typeof buildHead>,
-    selector: (t: (typeof tags)[0]) => boolean,
-  ) => tags.find(selector);
+  function content(tags: ReturnType<typeof buildHead>, selector: (t: (typeof tags)[0]) => boolean) {
+    return tags.find(selector);
+  }
 
-  it.each(pages.map((p) => [`${p.slug}:${p.locale}`, p] as const))(
+  it.each(pages.map((source) => [`${source.slug}:${source.locale}`, source] as const))(
     '%s: título, descripción, canonical y og:image coinciden con buildHead',
-    (_name, p) => {
-      const base = pages.map((q) => ({ ...q, body: '' }));
-      const av = excludeNoindex(buildAvailability(base, url), noindexUrls(base, url));
-      const resolved = withImageSize(resolveMeta(config.seo, p.seo, p, p.locale), imageSizes);
+    (_name, source) => {
+      const base = pages.map((original) => ({ ...original, body: '' }));
+      const availability = excludeNoindex(buildAvailability(base, url), noindexUrls(base, url));
+      const resolved = withImageSize(
+        resolveMeta(config.seo, source.seo, source, source.locale),
+        imageSizes,
+      );
       const data = {
         kind: 'page',
-        slug: p.slug,
-        locale: p.locale,
-        url: pageUrl(p.slug, p.locale, url),
+        slug: source.slug,
+        locale: source.locale,
+        url: pageUrl(source.slug, source.locale, url),
       } as const;
-      const tags = buildHead(resolved, data, av, site, config, url);
+      const tags = buildHead(resolved, data, availability, site, config, url);
 
-      const node = tree.pages.find((t) => t.slug === p.slug && t.locale === p.locale)?.meta;
-      expect(node?.title).toBe(content(tags, (t) => t.tag === 'title')?.content);
+      const node = tree.pages.find(
+        (treePage) => treePage.slug === source.slug && treePage.locale === source.locale,
+      )?.meta;
+      expect(node?.title).toBe(content(tags, (tag) => tag.tag === 'title')?.content);
       expect(node?.description).toBe(
-        content(tags, (t) => t.attrs.name === 'description')?.attrs.content,
+        content(tags, (tag) => tag.attrs.name === 'description')?.attrs.content,
       );
       expect(new URL(node?.canonical ?? '', site).href).toBe(
-        content(tags, (t) => t.attrs.rel === 'canonical')?.attrs.href,
+        content(tags, (tag) => tag.attrs.rel === 'canonical')?.attrs.href,
       );
       expect(node?.ogTitle).toBe(
-        content(tags, (t) => t.attrs.property === 'og:title')?.attrs.content,
+        content(tags, (tag) => tag.attrs.property === 'og:title')?.attrs.content,
       );
       expect(node?.ogImage?.width).toBe(
-        Number(content(tags, (t) => t.attrs.property === 'og:image:width')?.attrs.content) ||
+        Number(content(tags, (tag) => tag.attrs.property === 'og:image:width')?.attrs.content) ||
           undefined,
       );
     },
@@ -191,50 +199,59 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
       page({ slug: 'off', locale: 'en', seo: { schema: false } }),
     ];
     const schemaTree = buildSeoTree({ config: withSchemas, url, pages: schemaPages });
-    const published = (p: (typeof schemaPages)[number]) => {
-      const base = schemaPages.map((q) => ({ ...q, body: '' }));
-      const resolved = resolveMeta(withSchemas.seo, p.seo, p, p.locale);
+    function published(source: (typeof schemaPages)[number]) {
+      const base = schemaPages.map((original) => ({ ...original, body: '' }));
+      const resolved = resolveMeta(withSchemas.seo, source.seo, source, source.locale);
       const data = {
         kind: 'page',
-        slug: p.slug,
-        locale: p.locale,
-        url: pageUrl(p.slug, p.locale, url),
+        slug: source.slug,
+        locale: source.locale,
+        url: pageUrl(source.slug, source.locale, url),
       } as const;
       return buildHead(resolved, data, buildAvailability(base, url), site, withSchemas, url)
-        .filter((t) => t.tag === 'script')
-        .map((t) => JSON.parse(t.content ?? ''));
-    };
+        .filter((tag) => tag.tag === 'script')
+        .map((tag) => JSON.parse(tag.content ?? ''));
+    }
 
-    it.each(schemaPages.map((p) => [p.slug, p] as const))(
+    it.each(schemaPages.map((source) => [source.slug, source] as const))(
       '%s: los schemas del árbol son los que buildHead publica, con su origen',
-      (_name, p) => {
-        const node = schemaTree.pages.find((t) => t.slug === p.slug)!;
-        expect(node.schemas.map((entry) => entry.schema)).toEqual(published(p));
+      (_name, source) => {
+        const node = schemaTree.pages.find((treePage) => treePage.slug === source.slug)!;
+        expect(node.schemas.map((entry) => entry.schema)).toEqual(published(source));
       },
     );
 
     it('cada schema dice si viene del sitio o de la página', () => {
-      const origin = (slug: string) =>
-        schemaTree.pages.find((t) => t.slug === slug)!.schemas.map((entry) => entry.source);
+      function origin(slug: string) {
+        return schemaTree.pages
+          .find((treePage) => treePage.slug === slug)!
+          .schemas.map((entry) => entry.source);
+      }
       expect(origin('plain')).toEqual(['site']);
       expect(origin('extra')).toEqual(['site', 'page']);
       expect(origin('off')).toEqual([]);
     });
 
     it('sin schemas en ningún sitio, la lista es vacía (no se impone ninguno)', () => {
-      expect(buildSeoTree(input).pages.every((p) => p.schemas.length === 0)).toBe(true);
+      expect(buildSeoTree(input).pages.every((treePage) => treePage.schemas.length === 0)).toBe(
+        true,
+      );
     });
   });
 
   it('todo problema lleva su arreglo, con el archivo real de la página', () => {
     const tree = buildSeoTree(input);
-    const issues = tree.pages.flatMap((p) => p.issues.map((issue) => ({ page: p, issue })));
+    const issues = tree.pages.flatMap((treePage) =>
+      treePage.issues.map((issue) => ({ page: treePage, issue })),
+    );
     expect(issues.length).toBeGreaterThan(0);
     for (const { issue } of issues) expect(issue.fix).toBeTruthy();
-    const guide = tree.pages.find((p) => p.slug === 'guide' && p.locale === 'en')!;
-    const skip = guide.issues.find((i) => i.kind === 'heading-skip');
+    const guide = tree.pages.find(
+      (treePage) => treePage.slug === 'guide' && treePage.locale === 'en',
+    )!;
+    const skip = guide.issues.find((issue) => issue.kind === 'heading-skip');
     expect(skip!.fix).toContain('guide.md');
-    const missing = guide.issues.find((i) => i.kind === 'translation-missing');
+    const missing = guide.issues.find((issue) => issue.kind === 'translation-missing');
     expect(missing!.fix).toContain('guide.es.md');
   });
 
@@ -259,15 +276,17 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
 });
 
 describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
-  const kindsOf = (tree: ReturnType<typeof buildSeoTree>, slug: string) =>
-    tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  function kindsOf(tree: ReturnType<typeof buildSeoTree>, slug: string) {
+    return tree.pages.find((treePage) => treePage.slug === slug)!.issues.map((issue) => issue.kind);
+  }
   const social = resolveConfig({
     name: 'Design',
     locales: ['en'],
     seo: { image: { src: '/og.png', alt: 'Card' } },
   });
-  const solo = (extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug'>) =>
-    page({ locale: 'en', seo: { description }, ...extra });
+  function solo(extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug'>) {
+    return page({ locale: 'en', seo: { description }, ...extra });
+  }
 
   it('sin enlaces ni imágenes recogidos no se juzgan: ni huérfanas ni alt', () => {
     const tree = buildSeoTree({ config, url, pages: [solo({ slug: 'a' }), solo({ slug: 'b' })] });
@@ -335,35 +354,38 @@ describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
 
   it('el canonical de cada versión es la suya: nunca sale este aviso con la URL que genera el sitio', () => {
     const tree = buildSeoTree(input);
-    expect(tree.pages.flatMap((p) => p.issues).map((i) => i.kind)).not.toContain(
-      'canonical-mismatch',
-    );
+    expect(
+      tree.pages.flatMap((treePage) => treePage.issues).map((issue) => issue.kind),
+    ).not.toContain('canonical-mismatch');
   });
 });
 
 describe('buildSeoTree: páginas del cliente', () => {
-  const clientPage = (path: string, extra: Partial<HeadFacts> = {}): ClientPage => ({
-    path,
-    pattern: path,
-    entrypoint: `src/pages${path}index.astro`,
-    head: {
-      lang: 'en',
-      title: 'About this design system and its whole portfolio',
-      description,
-      noindex: false,
-      alternates: [],
-      headings: [h(1, 'About')],
-      og: {},
-      jsonLd: [],
-      ...extra,
-    },
-  });
-  const kindsAt = (tree: ReturnType<typeof buildSeoTree>, slug: string) =>
-    tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  function clientPage(path: string, extra: Partial<HeadFacts> = {}): ClientPage {
+    return {
+      path,
+      pattern: path,
+      entrypoint: `src/pages${path}index.astro`,
+      head: {
+        lang: 'en',
+        title: 'About this design system and its whole portfolio',
+        description,
+        noindex: false,
+        alternates: [],
+        headings: [heading(1, 'About')],
+        og: {},
+        jsonLd: [],
+        ...extra,
+      },
+    };
+  }
+  function kindsAt(tree: ReturnType<typeof buildSeoTree>, slug: string) {
+    return tree.pages.find((treePage) => treePage.slug === slug)!.issues.map((issue) => issue.kind);
+  }
 
   it('entran en el árbol como «client», ordenadas con las demás', () => {
     const tree = buildSeoTree({ ...input, client: [clientPage('/repo/about/')] });
-    expect(tree.pages.map((p) => `${p.slug}:${p.kind}`)).toEqual([
+    expect(tree.pages.map((treePage) => `${treePage.slug}:${treePage.kind}`)).toEqual([
       'about:client',
       'guide:native',
       'install:native',
@@ -401,16 +423,18 @@ describe('buildSeoTree: páginas del cliente', () => {
       pages: [page({ slug: 'guide', locale: 'en' }), page({ slug: 'install', locale: 'en' })],
       client: [clientPage('/repo/guide/', { title: 'Own guide page with a long enough title' })],
     });
-    const guides = tree.pages.filter((p) => p.slug === 'guide');
+    const guides = tree.pages.filter((treePage) => treePage.slug === 'guide');
     expect(guides).toHaveLength(1);
     expect(guides[0]).toMatchObject({ kind: 'client', replaces: true });
     expect(guides[0]!.meta.title).toBe('Own guide page with a long enough title');
-    expect(tree.pages.find((p) => p.slug === 'install')).toMatchObject({ kind: 'native' });
+    expect(tree.pages.find((treePage) => treePage.slug === 'install')).toMatchObject({
+      kind: 'native',
+    });
   });
 
   it('una página del cliente en una URL nueva no sustituye nada', () => {
     const tree = buildSeoTree({ ...input, client: [clientPage('/repo/about/')] });
-    expect(tree.pages.find((p) => p.slug === 'about')!.replaces).toBeUndefined();
+    expect(tree.pages.find((treePage) => treePage.slug === 'about')!.replaces).toBeUndefined();
   });
 
   it('no entran en el grafo de enlaces: ni salen huérfanas ni impiden juzgar a las demás', () => {

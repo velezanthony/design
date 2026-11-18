@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { runPipeline } from './pipeline';
+import { runPipeline } from './pipeline.ts';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
+function reportMarkdown(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
 
-const page = md(
+const page = reportMarkdown(
   '---',
   'hide:',
   '  - toc',
@@ -29,7 +31,7 @@ const page = md(
   '    pnpm add x',
   '    ```',
 );
-const catalog = md('# Catálogo', '', '## El catálogo');
+const catalog = reportMarkdown('# Catálogo', '', '## El catálogo');
 
 describe('runPipeline', () => {
   const files = new Map([
@@ -40,7 +42,7 @@ describe('runPipeline', () => {
   it('compone las unidades: frontmatter, bloques, texto corrido y anclas', () => {
     const out = runPipeline(files);
     expect(out.files.get('guia.md')).toBe(
-      md(
+      reportMarkdown(
         '# Guía',
         '',
         'Empieza por [el catálogo](catalogo.md#el-catálogo).',
@@ -71,7 +73,7 @@ describe('runPipeline', () => {
   });
 
   it('registra por fichero lo convertido, incluidas las anclas', () => {
-    const kinds = runPipeline(files).log['guia.md'].map((entry) => entry.kind);
+    const kinds = runPipeline(files).log['guia.md']?.map((entry) => entry.kind);
     expect(kinds).toEqual(
       expect.arrayContaining([
         'frontmatter',
@@ -91,14 +93,16 @@ describe('runPipeline', () => {
   });
 
   it('un resto que la conversión no entiende se informa con su línea de la salida', () => {
-    const out = runPipeline(new Map([['a.md', md('# A', '', '===+ "Abierta"', '', '    x')]]));
+    const out = runPipeline(
+      new Map([['a.md', reportMarkdown('# A', '', '===+ "Abierta"', '', '    x')]]),
+    );
     expect(out.leftovers).toEqual([
       { file: 'a.md', line: 3, kind: 'tab', preview: '===+ "Abierta"' },
     ]);
   });
 
   it('un stub de snippet ni se convierte ni cuenta como resto', () => {
-    const stub = md('# Cambios', '', '--8<-- "CHANGELOG.md"');
+    const stub = reportMarkdown('# Cambios', '', '--8<-- "CHANGELOG.md"');
     const out = runPipeline(new Map([['changelog.md', stub]]));
     expect(out.files.get('changelog.md')).toBe(stub);
     expect(out.stubs).toEqual([{ file: 'changelog.md', include: 'CHANGELOG.md' }]);
@@ -112,10 +116,10 @@ describe('runPipeline', () => {
   });
 
   it('un reescritor de enlaces opcional se aplica por fichero', () => {
-    const out = runPipeline(new Map([['a.md', md('[x](y.md)')]]), {
+    const out = runPipeline(new Map([['a.md', reportMarkdown('[x](y.md)')]]), {
       rewriteHref: (file) => (href) => `${file}:${href}`,
     });
-    expect(out.files.get('a.md')).toBe(md('[x](a.md:y.md)'));
+    expect(out.files.get('a.md')).toBe(reportMarkdown('[x](a.md:y.md)'));
   });
 
   it('es idempotente: convertir lo ya convertido no cambia nada', () => {
@@ -126,8 +130,8 @@ describe('runPipeline', () => {
   it('avisa de los enlaces a un stub, con la ruta real que los sustituiría', () => {
     const out = runPipeline(
       new Map([
-        ['contributing.md', md('--8<-- "CONTRIBUTING.md"')],
-        ['users/a.md', md('# A', '', '[c](../contributing.md)')],
+        ['contributing.md', reportMarkdown('--8<-- "CONTRIBUTING.md"')],
+        ['users/a.md', reportMarkdown('# A', '', '[c](../contributing.md)')],
       ]),
     );
     expect(out.stubLinks).toEqual([

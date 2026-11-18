@@ -7,8 +7,6 @@ export interface KindOptions {
   withIssues: { kind: IssueKind; count: number; checked: boolean }[];
   /** Tipos que el análisis sabe detectar y hoy no tienen ninguna: se enseñan deshabilitados. */
   without: IssueKind[];
-  /** Lo que acompaña al título del desplegable: «todos» o «3 de 4». */
-  summary: string;
 }
 
 /** Los tipos que aparecen en alguna entrada del árbol (sin filtrar): los que tiene sentido elegir. */
@@ -17,10 +15,7 @@ export function kindsWithIssues(tree: SeoTree): IssueKind[] {
   return Object.values(IssueKind).filter((kind) => present.has(kind));
 }
 
-/**
- * Las casillas del desplegable «Tipo de problema». «Todos» marcado equivale a no filtrar por tipo
- * (`kinds` vacío), igual que en la URL: así no hay dos formas de pedir lo mismo.
- */
+/** «Todos» marcado equivale a `kinds` vacío, como en la URL: una sola forma de pedirlo. */
 export function kindOptions(tree: SeoTree, selected: readonly IssueKind[]): KindOptions {
   const slugsByKind = new Map<IssueKind, Set<string>>();
   for (const page of tree.pages) {
@@ -32,17 +27,15 @@ export function kindOptions(tree: SeoTree, selected: readonly IssueKind[]): Kind
   const withIssues = Object.values(IssueKind)
     .filter((kind) => slugsByKind.has(kind))
     // `sort` es estable: en los empates queda el orden del catálogo de tipos.
-    .sort((a, b) => (slugsByKind.get(b)?.size ?? 0) - (slugsByKind.get(a)?.size ?? 0))
+    .sort((left, right) => (slugsByKind.get(right)?.size ?? 0) - (slugsByKind.get(left)?.size ?? 0))
     .map((kind) => ({
       kind,
       count: slugsByKind.get(kind)?.size ?? 0,
       checked: all || selected.includes(kind),
     }));
-  const chosen = withIssues.filter(({ checked }) => checked).length;
   return {
     all: { checked: all, count: withIssues.length },
     withIssues,
     without: Object.values(IssueKind).filter((kind) => !slugsByKind.has(kind)),
-    summary: all ? 'todos' : `${chosen} de ${withIssues.length}`,
   };
 }

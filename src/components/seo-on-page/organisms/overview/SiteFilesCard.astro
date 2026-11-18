@@ -1,0 +1,54 @@
+---
+/* «Ficheros del sitio»: lo que leen los buscadores además de las páginas, y quién lo pone. */
+import type { OverviewModel } from '../../../../core/seo-on-page/pages/overview/model';
+import Link from '../../../atoms/actions/Link.astro';
+import Tag from '../../../atoms/display/Tag.astro';
+import CodeSpans from '../../molecules/CodeSpans.astro';
+import OverviewCard from '../../molecules/OverviewCard.astro';
+import { CARD_LABELS, FILE_LABELS, FILE_STATE_LABELS } from '../../../../core/seo-on-page/labels';
+
+interface Props {
+  files: OverviewModel['files'];
+  /** Los idiomas de la config, para el sitemap («en + es»). */
+  locales: string[];
+}
+
+const { files, locales } = Astro.props;
+const cardLabels = CARD_LABELS.files;
+---
+
+<OverviewCard id="c-files" title={cardLabels.title} why={cardLabels.why} wide>
+  <ul class="flex flex-col">
+    {files.map((file) => {
+      const state = FILE_STATE_LABELS[file.state];
+      const labels = FILE_LABELS[file.id];
+      return (
+        <li
+          class="grid gap-x-4 gap-y-1 border-b border-rule py-2 sm:grid-cols-[9rem_12rem_1fr_auto]"
+          data-file={file.id}
+          data-state={file.state}
+        >
+          <span class="font-mono text-ink">{labels.name}</span>
+          <span class:list={['text-sm', state.tone === 'live' ? 'text-state-live' : 'text-muted']}>
+            {state.glyph && <span aria-hidden="true">{state.glyph} </span>}
+            {state.text}
+          </span>
+          <span class="text-sm text-muted">
+            <CodeSpans text={labels.describe(file, locales)} />
+          </span>
+          {file.href ? (
+            <Link href={file.href} external class="text-sm">
+              {cardLabels.open}
+            </Link>
+          ) : (
+            labels.tag && (
+              <Tag bordered plain class="self-start">
+                {labels.tag}
+              </Tag>
+            )
+          )}
+        </li>
+      );
+    })}
+  </ul>
+</OverviewCard>

@@ -5,17 +5,20 @@ import { commonIssues } from './common';
 
 const INHERITED = IssueKind.DESCRIPTION_INHERITED;
 
-const issue = (kind: IssueKind, extra: Partial<Issue> = {}): Issue => ({
-  kind,
-  severity: IssueSeverity.INFO,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-  ...extra,
-});
+function issue(kind: IssueKind, extra: Partial<Issue> = {}): Issue {
+  return {
+    kind,
+    severity: IssueSeverity.INFO,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+    ...extra,
+  };
+}
 
-const entry = (slug: string, locale: string, ...issues: Issue[]): SeoPage =>
-  seoPage({ slug, locale, issues });
+function entry(slug: string, locale: string, ...issues: Issue[]): SeoPage {
+  return seoPage({ slug, locale, issues });
+}
 
 describe('commonIssues', () => {
   it('sin páginas no hay aviso común', () => {

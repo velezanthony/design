@@ -1,0 +1,33 @@
+---
+import type { SeoView } from '../../../core/seo-on-page/queries/url-filters';
+import Link from '../../atoms/actions/Link.astro';
+import { VIEW_LABELS, VIEW_SWITCH_LABELS } from '../../../core/seo-on-page/labels';
+
+interface Props {
+  /** Un enlace por vista: son enlaces, no botones, así cambiar de vista funciona sin JavaScript y se comparte. */
+  views: { view: SeoView; href: string; current: boolean }[];
+}
+
+const { views } = Astro.props;
+---
+
+<div
+  role="group"
+  aria-label={VIEW_SWITCH_LABELS.group}
+  class="inline-flex flex-wrap border border-rule text-sm"
+>
+  {views.map(({ view, href, current }) => (
+    <Link
+      href={href}
+      variant="quiet"
+      aria-current={current ? 'true' : undefined}
+      data-view={view}
+      class:list={[
+        'justify-center border-l border-rule px-3 first:border-l-0',
+        current && 'bg-accent-soft font-medium text-accent hover:text-accent',
+      ]}
+    >
+      {VIEW_LABELS[view].name}
+    </Link>
+  ))}
+</div>

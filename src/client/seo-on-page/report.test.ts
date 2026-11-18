@@ -47,27 +47,34 @@ function setup({
     clipboard: clipboard ?? undefined,
     schedule: (callback) => void scheduled.push(callback),
   });
-  const $ = <T extends Element = HTMLElement>(selector: string) =>
-    document.querySelector<T>(selector)!;
-  const click = (el: Element) => el.dispatchEvent(new window.Event('click', { bubbles: true }));
-  const change = (el: Element) => el.dispatchEvent(new window.Event('change', { bubbles: true }));
+  function query<T extends Element = HTMLElement>(selector: string) {
+    return document.querySelector<T>(selector)!;
+  }
+  function click(element: Element) {
+    return element.dispatchEvent(new window.Event('click', { bubbles: true }));
+  }
+  function change(element: Element) {
+    return element.dispatchEvent(new window.Event('change', { bubbles: true }));
+  }
   /** linkedom no desmarca los demás radios del grupo ni deja asignar `select.value`: se hace a mano. */
-  const choose = (value: string) => {
+  function choose(value: string) {
     for (const radio of document.querySelectorAll<HTMLInputElement>('[data-report-scope]')) {
       radio.checked = radio.value === value;
     }
-    change($('[data-report-scope][value="' + value + '"]'));
-  };
-  const pick = (locale: string) => {
-    const select = $<HTMLSelectElement>('[data-report-locale]');
+    change(query('[data-report-scope][value="' + value + '"]'));
+  }
+  function pick(locale: string) {
+    const select = query<HTMLSelectElement>('[data-report-locale]');
     for (const option of select.querySelectorAll('option')) {
       if (option.value === locale) option.setAttribute('selected', '');
       else option.removeAttribute('selected');
     }
     change(select);
-  };
-  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
-  return { document, dialog, modal, scheduled, $, click, change, choose, pick, flush };
+  }
+  function flush() {
+    return new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  return { document, dialog, modal, scheduled, $: query, click, change, choose, pick, flush };
 }
 
 describe('initReport: sin portapapeles', () => {

@@ -35,8 +35,9 @@ const FALLBACK_SIZE: Size = { width: 800, height: 600 };
 
 /* Iconos de trazo (heredan `currentColor`), para que sigan el color del tema y no dependan de la
    fuente: «−», «+» y «×» como texto cambian de tamaño y alineación según la tipografía. */
-const icon = (paths: string) =>
-  `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+function icon(paths: string) {
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+}
 export const ICONS = {
   zoomIn: icon('<path d="M12 5v14M5 12h14"/>'),
   zoomOut: icon('<path d="M5 12h14"/>'),
@@ -45,82 +46,77 @@ export const ICONS = {
   expand: icon('<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>'),
 };
 
-/**
- * El visor a pantalla completa de los diagramas: un `<dialog>` modal (el mismo patrón que la
- * ampliación de imágenes: Escape, botón de cerrar o clic fuera lo cierran y el foco vuelve al
- * botón que lo abrió) con un lienzo que se mueve y escala con `transform`.
- *
- * - Zoom: botones, `+` `-` `0`, rueda (centrada en el puntero) y pellizco con dos dedos.
- * - Mover: arrastrar con ratón o dedo (eventos de puntero) y flechas, que mueven la VISTA: la
- *   flecha derecha mira hacia la derecha y el diagrama se desplaza a la izquierda.
- * - Empieza ajustado a la pantalla y, mientras nadie toca la vista, vuelve a ajustarse si la
- *   ventana cambia de tamaño.
- *
- * Trabaja sobre un CLON del SVG ya dibujado, así que respeta el tema vigente al abrir. Si el tema
- * cambia con el visor abierto, quien lo gobierna (`initMermaid`) lo cierra: el clon quedaría con
- * los colores viejos y reabrirlo es un clic.
- */
-export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels): DiagramViewer {
-  const dialog = doc.createElement('dialog');
+/** Visor a pantalla completa sobre un CLON del SVG (con el tema vigente al abrir; si el tema cambia, `initMermaid` lo cierra); las flechas mueven la VISTA, no el diagrama. */
+export function createDiagramViewer(
+  htmlDocument: Document,
+  labels: DiagramViewerLabels,
+): DiagramViewer {
+  const dialog = htmlDocument.createElement('dialog');
   dialog.className = 'docs-zoom-dialog docs-diagram-dialog';
 
-  const stage = doc.createElement('div');
+  const stage = htmlDocument.createElement('div');
   stage.className = 'docs-diagram-stage';
   /* Tiene que poder recibir foco para que las teclas lleguen a él y no a la página de detrás. */
   stage.tabIndex = 0;
-  const canvas = doc.createElement('div');
+  const canvas = htmlDocument.createElement('div');
   canvas.className = 'docs-diagram-canvas';
   stage.append(canvas);
 
-  const toolbar = doc.createElement('div');
+  const toolbar = htmlDocument.createElement('div');
   toolbar.className = 'docs-diagram-toolbar';
-  const tool = (label: string, svg: string, run: () => void) => {
-    const button = doc.createElement('button');
+  function tool(label: string, svg: string, run: () => void) {
+    const button = htmlDocument.createElement('button');
     button.type = 'button';
     button.className = 'docs-diagram-tool';
     button.setAttribute('aria-label', label);
     button.innerHTML = svg;
     button.addEventListener('click', run);
     toolbar.append(button);
-  };
+  }
 
   dialog.append(stage, toolbar);
-  doc.body.append(dialog);
+  htmlDocument.body.append(dialog);
 
   let current: { trigger: HTMLElement; content: Size } | undefined;
   let view: View = { scale: 1, x: 0, y: 0 };
   /** Verdadero mientras la vista es la inicial: solo entonces un cambio de ventana la reajusta. */
   let fitted = true;
 
-  const viewport = (): Size => ({ width: stage.clientWidth, height: stage.clientHeight });
-  const centre = (): Point => ({ x: viewport().width / 2, y: viewport().height / 2 });
+  function viewport(): Size {
+    return { width: stage.clientWidth, height: stage.clientHeight };
+  }
+  function centre(): Point {
+    return { x: viewport().width / 2, y: viewport().height / 2 };
+  }
 
-  const apply = (next: View, userMoved = true) => {
+  function apply(next: View, userMoved = true) {
     view = next;
     if (userMoved) fitted = false;
     canvas.style.transform = `translate(${next.x}px, ${next.y}px) scale(${next.scale})`;
-  };
-  const fit = () => {
+  }
+  function fit() {
     if (!current) return;
     apply(fitView(current.content, viewport()), false);
     fitted = true;
-  };
-  const zoom = (factor: number, at: Point = centre()) => apply(zoomAt(view, factor, at));
+  }
+  function zoom(factor: number, at: Point = centre()) {
+    return apply(zoomAt(view, factor, at));
+  }
 
   /** Coordenadas del visor (no de la ventana) de un evento de puntero. */
-  const local = (event: { clientX: number; clientY: number }): Point => {
+  function local(event: { clientX: number; clientY: number }): Point {
     const rect = stage.getBoundingClientRect();
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-  };
+  }
 
   tool(labels.zoomOut, ICONS.zoomOut, () => zoom(1 / STEP));
   tool(labels.zoomIn, ICONS.zoomIn, () => zoom(STEP));
   tool(labels.fit, ICONS.fit, fit);
   tool(labels.close, ICONS.close, () => close());
 
-  const close = () => {
+  function close() {
     if (current && dialog.hasAttribute('open')) dialog.close();
-  };
+  }
 
   /* Pasa siempre que el diálogo se cierra, también si lo cierra el navegador (Escape). */
   dialog.addEventListener('close', () => {
@@ -164,13 +160,13 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
   let dragged = 0;
   let moved = false;
 
-  const pair = () => {
-    const [a, b] = [...pointers.values()];
+  function pair() {
+    const [first, second] = [...pointers.values()];
     return {
-      distance: Math.hypot(b!.x - a!.x, b!.y - a!.y),
-      mid: { x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 },
+      distance: Math.hypot(second!.x - first!.x, second!.y - first!.y),
+      mid: { x: (first!.x + second!.x) / 2, y: (first!.y + second!.y) / 2 },
     };
-  };
+  }
 
   stage.addEventListener('pointerdown', (event) => {
     if (event.button) return;
@@ -209,10 +205,10 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
     apply(panBy(view, dx, dy));
   });
 
-  const release = (event: { pointerId: number }) => {
+  function release(event: { pointerId: number }) {
     pointers.delete(event.pointerId);
     if (!pointers.size) delete stage.dataset.dragging;
-  };
+  }
   stage.addEventListener('pointerup', release);
   stage.addEventListener('pointercancel', release);
 
@@ -226,7 +222,7 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
     if (event.target === dialog || event.target === stage) close();
   });
 
-  doc.defaultView?.addEventListener('resize', () => {
+  htmlDocument.defaultView?.addEventListener('resize', () => {
     if (current && fitted) fit();
   });
 

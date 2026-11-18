@@ -1,0 +1,11 @@
+---
+import type { ComponentProps } from 'astro/types';
+import NotFoundLayout from '../layouts/NotFoundLayout.astro';
+
+/* Solo pinta: la ruta decide el idioma y las plantillas de los demás. */
+type Props = ComponentProps<typeof NotFoundLayout>;
+---
+
+<NotFoundLayout {...Astro.props}>
+  <slot name="head" slot="head" />
+</NotFoundLayout>

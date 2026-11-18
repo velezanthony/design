@@ -3,31 +3,35 @@ import { THRESHOLDS } from '../thresholds';
 import type { MetaNode, SeoPageFacts } from '../tree/types';
 import { analyzeDuplicates, analyzeMetadata } from './metadata';
 
-const facts = (slug: string, meta: Partial<MetaNode> = {}, locale = 'en'): SeoPageFacts => ({
-  slug,
-  locale,
-  title: slug,
-  kind: 'native',
-  sourcePath: `${slug}.md`,
-  meta: {
-    title: `Title of ${slug}`,
-    titleLength: 30,
-    descriptionSource: 'page',
-    description: `Description of ${slug}`,
-    descriptionLength: 100,
-    ogTitle: slug,
-    ogImageSource: 'none',
-    canonical: `/${slug}/`,
-    noindex: false,
-    ...meta,
-  },
-  headings: [],
-  schemas: [],
-  locales: [],
-  policy: 'link',
-});
+function facts(slug: string, meta: Partial<MetaNode> = {}, locale = 'en'): SeoPageFacts {
+  return {
+    slug,
+    locale,
+    title: slug,
+    kind: 'native',
+    sourcePath: `${slug}.md`,
+    meta: {
+      title: `Title of ${slug}`,
+      titleLength: 30,
+      descriptionSource: 'page',
+      description: `Description of ${slug}`,
+      descriptionLength: 100,
+      ogTitle: slug,
+      ogImageSource: 'none',
+      canonical: `/${slug}/`,
+      noindex: false,
+      ...meta,
+    },
+    headings: [],
+    schemas: [],
+    locales: [],
+    policy: 'link',
+  };
+}
 
-const kinds = (page: SeoPageFacts) => analyzeMetadata(page).map((issue) => issue.kind);
+function kinds(page: SeoPageFacts) {
+  return analyzeMetadata(page).map((issue) => issue.kind);
+}
 
 describe('analyzeMetadata: título', () => {
   it('largo: avisa con la longitud medida y el límite', () => {
@@ -40,7 +44,7 @@ describe('analyzeMetadata: título', () => {
       value: 72,
       limit: THRESHOLDS.titleMax,
     });
-    expect(issue.message).toEqual(expect.any(String));
+    expect(issue?.message).toEqual(expect.any(String));
   });
 
   it('justo en el límite no avisa', () => {

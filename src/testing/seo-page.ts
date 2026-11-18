@@ -1,9 +1,6 @@
 import type { SeoPage } from '../core/seo-on-page/tree/types';
 
-/**
- * Una página del árbol SEO con valores razonables, para probar la UI del panel sin pasar por
- * `buildSeoTree`: se sobrescribe solo lo que el test mira.
- */
+/** Una página del árbol SEO con valores razonables; el test sobrescribe solo lo que mira. */
 export function seoPage(overrides: Partial<SeoPage> = {}): SeoPage {
   const slug = overrides.slug ?? 'guide';
   const locale = overrides.locale ?? 'en';

@@ -9,30 +9,39 @@ const input = {
   inspector: ({ slug, locale }: { slug: string; locale: string }) => `/i/${slug}/${locale}`,
 };
 
-const present = (locale: string): SeoLocaleEntry => ({ locale, status: 'present', url: '/' });
-const missing = (locale: string): SeoLocaleEntry => ({
-  locale,
-  status: 'missing',
-  policy: 'link',
-  declared: false,
-});
+function present(locale: string): SeoLocaleEntry {
+  return { locale, status: 'present', url: '/' };
+}
+function missing(locale: string): SeoLocaleEntry {
+  return {
+    locale,
+    status: 'missing',
+    policy: 'link',
+    declared: false,
+  };
+}
 
 /** Una página en un idioma; `group` es cómo está el grupo entero (lo que dice cada entrada). */
-const entry = (slug: string, locale: string, group: SeoLocaleEntry[]): SeoPage =>
-  seoPage({ slug, locale, locales: group });
+function entry(slug: string, locale: string, group: SeoLocaleEntry[]): SeoPage {
+  return seoPage({ slug, locale, locales: group });
+}
 
-const both = (slug: string): SeoPage[] => [
-  entry(slug, 'en', [present('en'), present('es')]),
-  entry(slug, 'es', [present('en'), present('es')]),
-];
-const onlyEn = (slug: string): SeoPage => entry(slug, 'en', [present('en'), missing('es')]);
+function both(slug: string): SeoPage[] {
+  return [
+    entry(slug, 'en', [present('en'), present('es')]),
+    entry(slug, 'es', [present('en'), present('es')]),
+  ];
+}
+function onlyEn(slug: string): SeoPage {
+  return entry(slug, 'en', [present('en'), missing('es')]);
+}
 
 /** La cobertura de un sitio con varios idiomas: siempre existe. */
-const covered = (pages: SeoPage[]) => {
+function covered(pages: SeoPage[]) {
   const result = coverage({ pages }, input);
   if (!result) throw new Error('el sitio tiene dos idiomas: debe haber cobertura');
   return result;
-};
+}
 
 describe('coverage', () => {
   it('cuenta páginas en todos los idiomas y páginas en alguno solo', () => {
@@ -48,7 +57,9 @@ describe('coverage', () => {
   });
 
   it('con muchas incompletas recorta la tabla y dice cuántas quedan fuera', () => {
-    const pages = Array.from({ length: MAX_INCOMPLETE_ROWS + 3 }, (_, n) => onlyEn(`p${n}`));
+    const pages = Array.from({ length: MAX_INCOMPLETE_ROWS + 3 }, (_item, index) =>
+      onlyEn(`p${index}`),
+    );
     const result = covered(pages);
     expect(result.incomplete).toHaveLength(MAX_INCOMPLETE_ROWS);
     expect(result.moreIncomplete).toBe(3);

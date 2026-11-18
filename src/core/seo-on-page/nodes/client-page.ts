@@ -4,6 +4,7 @@ import type { MissingTranslation } from '../../i18n/translation-policy';
 import type { ClientPage } from '../../seo/client-pages';
 import type { ResolvedSchema } from '../../seo/json-ld';
 import type { MetaNode, SeoLocaleEntry, SeoPageFacts } from '../tree/types';
+import { trimBase } from '../../shared/urls';
 
 interface ClientContext {
   locales: readonly Locale[];
@@ -14,18 +15,22 @@ interface ClientContext {
 }
 
 /** La ruta sin la base ni las barras de los extremos: el slug, como en la documentación. */
-const slugOf = (path: string, base: string) =>
-  path.slice(base.replace(/\/$/, '').length).replace(/^\/+|\/+$/g, '');
-
-/** `<html lang="en-US">` cuenta como `en`; un idioma que no es de la config, como el por defecto. */
-function localeOf(lang: string | undefined, ctx: ClientContext): Locale {
-  if (!lang) return ctx.defaultLocale;
-  const short = lang.toLowerCase().split('-')[0]!;
-  return ctx.locales.find((locale) => locale === lang || locale === short) ?? ctx.defaultLocale;
+function slugOf(path: string, base: string) {
+  return path.slice(trimBase(base).length).replace(/^\/+|\/+$/g, '');
 }
 
-const isObject = (value: unknown): value is JsonLd =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
+/** `<html lang="en-US">` cuenta como `en`; un idioma que no es de la config, como el por defecto. */
+function localeOf(lang: string | undefined, context: ClientContext): Locale {
+  if (!lang) return context.defaultLocale;
+  const short = lang.toLowerCase().split('-')[0]!;
+  return (
+    context.locales.find((locale) => locale === lang || locale === short) ?? context.defaultLocale
+  );
+}
+
+function isObject(value: unknown): value is JsonLd {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 function metaOf(page: ClientPage): MetaNode {
   const { head } = page;
@@ -46,25 +51,20 @@ function metaOf(page: ClientPage): MetaNode {
   };
 }
 
-/**
- * Los hechos de las páginas que el cliente añade en `src/pages/`, sacados de lo que publica su
- * `<head>` (no hay frontmatter ni config que leer). Las versiones de una página en otros idiomas
- * se reconocen por sus `hreflang` y comparten el slug de la del idioma por defecto. Los enlaces y
- * las imágenes del cuerpo no se recogen: los análisis que los necesitan no las juzgan.
- */
-export function clientFacts(pages: readonly ClientPage[], ctx: ClientContext): SeoPageFacts[] {
+/** Se lee del `<head>`, sin frontmatter; los otros idiomas se reconocen por `hreflang` y comparten el slug del idioma por defecto. */
+export function clientFacts(pages: readonly ClientPage[], context: ClientContext): SeoPageFacts[] {
   return pages.map((page) => {
     const { head } = page;
-    const locale = localeOf(head.lang, ctx);
+    const locale = localeOf(head.lang, context);
     const declared = new Map(head.alternates.map(({ hreflang, href }) => [hreflang, href]));
-    const main = declared.get(ctx.defaultLocale);
-    const slug = slugOf(main ? new URL(main).pathname : page.path, ctx.base);
-    const locales = ctx.locales.map((other): SeoLocaleEntry => {
+    const main = declared.get(context.defaultLocale);
+    const slug = slugOf(main ? new URL(main).pathname : page.path, context.base);
+    const locales = context.locales.map((other): SeoLocaleEntry => {
       if (other === locale) return { locale: other, status: 'present', url: page.path };
       const href = declared.get(other);
       return href
         ? { locale: other, status: 'present', url: new URL(href).pathname }
-        : { locale: other, status: 'missing', policy: ctx.missing, declared: false };
+        : { locale: other, status: 'missing', policy: context.missing, declared: false };
     });
     const schemas: ResolvedSchema[] = head.jsonLd
       .flat()
@@ -80,7 +80,7 @@ export function clientFacts(pages: readonly ClientPage[], ctx: ClientContext): S
       headings: head.headings,
       schemas,
       locales,
-      policy: ctx.missing,
+      policy: context.missing,
     };
   });
 }

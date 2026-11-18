@@ -1,5 +1,6 @@
-import { IssueSeverity, type Issue, type SeoPage, type SeoTree } from '../tree/types';
+import { type Issue, type SeoPage, type SeoTree } from '../tree/types';
 import type { SeoFilters } from './url-filters';
+import { ALL_SEVERITIES } from '../severity';
 
 /** Un problema cumple tipo Y gravedad a la vez (un filtro vacío no restringe). */
 function matchesIssue(issue: Issue, filters: SeoFilters): boolean {
@@ -21,9 +22,7 @@ function matchesText(page: SeoPage, text: string): boolean {
 export function filterPages(tree: SeoTree, filters: SeoFilters): SeoPage[] {
   // Las tres gravedades a la vez equivalen a no filtrar por gravedad (también entran las páginas
   // sin ninguna incidencia): así «mostrar todo» es una URL explícita y sin valores especiales.
-  const allSeverities = Object.values(IssueSeverity).every((severity) =>
-    filters.severities.includes(severity),
-  );
+  const allSeverities = ALL_SEVERITIES.every((severity) => filters.severities.includes(severity));
   const filtersIssues =
     filters.kinds.length > 0 || (filters.severities.length > 0 && !allSeverities);
   return tree.pages.filter(

@@ -12,7 +12,7 @@ export function rewriteLinks(
   if (!rewriteHref) return { output: line, log: [] };
   const log: LogEntry[] = [];
   const output = replaceOutsideCode(line, LINK, (match) => {
-    const next = rewriteHref(match[1]);
+    const next = rewriteHref(match[1] ?? '');
     if (next === undefined || next === match[1]) return match[0];
     log.push({ kind: 'link', line: lineNumber, detail: `${match[1]} -> ${next}` });
     return `](${next}${match[2]})`;

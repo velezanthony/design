@@ -6,6 +6,7 @@ import {
   buildSidebar,
   flatten,
   isSidebarGroup,
+  missingEntry,
   type SidebarGroup,
   type SidebarNode,
 } from './sidebar';
@@ -13,15 +14,17 @@ import type { SidebarItem } from '../config/schema';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 
-const page = (slug: string, locale = 'en', extra: Partial<Page> = {}): Page => ({
-  slug,
-  locale,
-  title: slug.split('/').pop() || 'Home',
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.md`,
-  ...extra,
-});
+function page(slug: string, locale = 'en', extra: Partial<Page> = {}): Page {
+  return {
+    slug,
+    locale,
+    title: slug.split('/').pop() || 'Home',
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.md`,
+    ...extra,
+  };
+}
 
 function build(
   pages: Page[],
@@ -62,7 +65,7 @@ describe('buildSidebar: árbol', () => {
     const tree = build([page('guide', 'en', { title: 'Guide home' }), page('guide/a')]);
     const [group] = tree as SidebarGroup[];
     expect(group).toMatchObject({ label: 'Guide home', slug: 'guide', href: '/repo/guide/' });
-    expect(shape(group.items)).toEqual(['guide/a']);
+    expect(shape(group?.items ?? [])).toEqual(['guide/a']);
   });
 
   it('una página suelta es una hoja con su título y su URL', () => {
@@ -197,5 +200,66 @@ describe('buildSidebar: portada en la config', () => {
     const pages = [page(''), page('guide')];
     const tree = build(pages, 'en', [{ label: 'Home', slug: 'index', items: ['guide'] }]);
     expect((tree[0] as SidebarGroup).slug).toBe('');
+  });
+});
+
+const localeConfig = { locales: ['en', 'es'], defaultLocale: 'en' };
+
+describe('missingEntry', () => {
+  const available = { en: '/repo/changelog/' };
+
+  it('link: hoja hacia el original con la insignia del idioma de origen', () => {
+    expect(
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.LINK,
+        localeConfig,
+        url,
+      ),
+    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/changelog/', badge: 'en' });
+  });
+
+  it('link: el origen es el primer idioma disponible si falta el idioma por defecto', () => {
+    const entry = missingEntry(
+      'x',
+      'X',
+      { es: '/repo/es/x/' },
+      'en',
+      MissingTranslation.LINK,
+      localeConfig,
+      url,
+    );
+    expect(entry).toMatchObject({ href: '/repo/es/x/', badge: 'es' });
+  });
+
+  it('fallback: hoja normal, sin insignia, hacia la ruta de reserva del idioma', () => {
+    expect(
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.FALLBACK,
+        localeConfig,
+        url,
+      ),
+    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/es/changelog/' });
+  });
+
+  it('omit: sin hoja', () => {
+    expect(
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.OMIT,
+        localeConfig,
+        url,
+      ),
+    ).toBeNull();
   });
 });

@@ -11,20 +11,13 @@ export const GTM_ENV_VAR = 'PUBLIC_GTM_ID';
 /** Un ID de contenedor de GTM: `GTM-` y letras mayúsculas o dígitos. */
 const GTM_ID = /^GTM-[A-Z0-9]+$/;
 
-/**
- * Política de privacidad por defecto, por idioma: la del portfolio, que es de donde cuelgan los
- * repos con documentación. Solo se usa si hay analítica y el consumidor no dio `privacyUrl`.
- */
+/** Política de privacidad por defecto por idioma: la del portfolio; solo con analítica y sin `privacyUrl`. */
 export const DEFAULT_PRIVACY_URLS: Readonly<Record<Locale, string>> = {
   es: 'https://velezanthony.github.io/privacidad/',
   en: 'https://velezanthony.github.io/en/privacy/',
 };
 
-/**
- * Decide si hay analítica y con qué contenedor. Gana `configGtmId` (anulación explícita) y, si no,
- * el valor del entorno. Vacío o en blanco equivale a no definido: sin ID, sin analítica. Un ID con
- * un formato imposible falla aquí, en la construcción, y no como un aviso que nunca carga nada.
- */
+/** Gana `configGtmId` sobre el entorno; vacío es no definido, y un ID mal formado falla aquí. */
 export function resolveAnalytics(
   envValue: string | undefined,
   configGtmId: string | undefined,
@@ -45,11 +38,7 @@ export function resolveAnalytics(
   return id;
 }
 
-/**
- * Enlace de privacidad de cada idioma. Una cadena vale para todos; una etiqueta cae al idioma por
- * defecto como cualquier otra. Sin `privacyUrl` y con analítica se usa el del portfolio; sin
- * analítica no hay enlace. Si con analítica algún idioma se queda sin URL, falla nombrándolo.
- */
+/** Enlace de privacidad por idioma: sin `privacyUrl` y con analítica, el del portfolio; sin URL en algún idioma falla. */
 export function resolvePrivacyUrls(
   privacyUrl: Label | undefined,
   analyticsOn: boolean,
@@ -81,10 +70,7 @@ export function resolvePrivacyUrls(
   return urls;
 }
 
-/**
- * Fija la analítica efectiva de la config: el `gtmId` (config o entorno) y, ya por idioma, el
- * enlace de privacidad (a la página propia con `privacy.page`, y si no al del portfolio). Sin ID quita `gtmId`; la `privacyUrl` explícita se conserva para el footer.
- */
+/** Fija `gtmId` y el enlace de privacidad por idioma; sin ID quita `gtmId` y conserva la `privacyUrl` para el footer. */
 export function applyAnalytics(
   config: ResolvedConfig,
   envValue: string | undefined,

@@ -22,10 +22,10 @@ type Node = { textContent: string | null };
 
 /** Texto visible con el espacio colapsado, como lo leería una persona. El `textContent` de un
     documento es siempre null por especificación, así que lee el del `body`. */
-export const text = (node: Node | { body: Node } | null) => {
+export function text(node: Node | { body: Node } | null) {
   const source = node && 'body' in node ? node.body : node;
   return source?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
-};
+}
 
 /** Como `render`, pero para un componente que ES un documento (`<html>…`): se analiza tal cual. */
 export async function renderDocument(

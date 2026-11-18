@@ -65,7 +65,7 @@ defecto salen de `core/config/layout.ts`; los desconocidos fallan la validación
 - `theme.css` declara las paletas oscuras **dos veces**: una para el sistema
   (`@media (prefers-color-scheme: dark)` con `:root:not([data-theme='light'])`) y otra para la
   elección (`:root[data-theme='dark']`). Un test (`theme.test.ts`) exige que sean idénticas.
-- `<meta name="theme-color">` no puede leer variables CSS, así que `src/ui/styles/theme-colors.ts`
+- `<meta name="theme-color">` no puede leer variables CSS, así que `src/components/styles/theme-colors.ts`
   repite el `--color-canvas` de cada tema; otro test los sujeta a `theme.css`.
 
 ## Transiciones

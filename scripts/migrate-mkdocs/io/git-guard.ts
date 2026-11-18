@@ -1,12 +1,8 @@
-/**
- * Seguridad de `--in-place`: solo se reescribe `docs/` si el repo es git y `docs/` está limpio,
- * para que `git diff docs/` muestre DESPUÉS únicamente la conversión. La E/S (ejecutar git) llega
- * inyectada: `git(args)` devuelve la salida o lanza si git falla.
- */
+/** `--in-place` solo reescribe si el repo es git y `docs/` está limpio, para que `git diff docs/` muestre solo la conversión. */
 
-export type Git = (args: string[]) => string;
+export type Git = (gitArguments: string[]) => string;
 
-export function docsProblem(git: Git, docsDir = 'docs'): string | undefined {
+export function docsProblem(git: Git, docsDirectory = 'docs'): string | undefined {
   let inside: string;
   try {
     inside = git(['rev-parse', '--is-inside-work-tree']).trim();
@@ -17,12 +13,12 @@ export function docsProblem(git: Git, docsDir = 'docs'): string | undefined {
     return 'El repo no es un repositorio git: sin git no podrías revisar ni deshacer la conversión.';
   }
 
-  const dirty = git(['status', '--porcelain', '--', docsDir])
+  const dirty = git(['status', '--porcelain', '--', docsDirectory])
     .split('\n')
     .filter((line) => line.trim() !== '');
   if (dirty.length > 0) {
     return [
-      `Hay cambios sin confirmar en ${docsDir}/ (confírmalos o descártalos antes):`,
+      `Hay cambios sin confirmar en ${docsDirectory}/ (confírmalos o descártalos antes):`,
       ...dirty,
     ].join('\n');
   }

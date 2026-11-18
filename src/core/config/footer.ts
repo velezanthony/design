@@ -14,7 +14,9 @@ export interface FooterHref {
 
 export type FooterLink = FooterPage | FooterHref;
 
-export const isFooterPage = (link: FooterLink): link is FooterPage => 'slug' in link;
+export function isFooterPage(link: FooterLink): link is FooterPage {
+  return 'slug' in link;
+}
 
 /** Licencia: un texto suelto o una etiqueta con enlace al archivo de la licencia (https). */
 export type FooterLicense = string | { label: Label; href: string };
@@ -22,10 +24,7 @@ export type FooterLicense = string | { label: Label; href: string };
 /** Autor: nombre y enlace (https). `false` lo oculta. */
 export type FooterAuthor = { name: string; href: string } | false;
 
-/**
- * Footer del sitio, todo opcional. El repositorio, «informar de un error», la privacidad y las
- * preferencias de cookies no se declaran aquí: salen de `social.github`, `privacyUrl` y `gtmId`.
- */
+/** Footer del sitio, todo opcional; repositorio, errores, privacidad y cookies salen de `social.github`, `privacyUrl` y `gtmId`. */
 export interface FooterConfig {
   license?: FooterLicense;
   author?: FooterAuthor;

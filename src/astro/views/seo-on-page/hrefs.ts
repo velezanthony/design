@@ -6,29 +6,19 @@ import {
   type SeoFilters,
   type ViewState,
 } from '../../../core/seo-on-page/queries/url-filters';
+import { withBase } from '../../../core/shared/urls';
+import { SEO_ON_PAGE_DIR } from '../../routes/routes';
 
-/** Carpeta común de las rutas del panel: lo que un consumidor no debería usar para sus páginas. */
-export const SEO_ON_PAGE_DIR = 'seo-on-page';
-
-/** Las rutas que la integración inyecta SOLO en desarrollo, y el contenedor de cada una. */
-export const SEO_ON_PAGE_ROUTES = [
-  { pattern: `/${SEO_ON_PAGE_DIR}`, file: 'overview.astro' },
-  { pattern: `/${SEO_ON_PAGE_DIR}/pages`, file: 'pages.astro' },
-  { pattern: `/${SEO_ON_PAGE_DIR}/page`, file: 'page.astro' },
-] as const;
-
-const withQuery = (path: string, params: URLSearchParams) => {
+function withQuery(path: string, params: URLSearchParams) {
   const query = params.toString();
   return query === '' ? path : `${path}?${query}`;
-};
+}
 
-/**
- * Enlaces entre las pantallas del panel. Se forman con `pageUrl` (el mismo que usa el sitio), así
- * respetan `base` y `trailingSlash` y funcionan con cualquier config; el idioma por defecto evita
- * que se les añada un prefijo de idioma.
- */
+/** Enlaces del panel con `pageUrl`, para respetar `base` y `trailingSlash`; el idioma por defecto evita el prefijo. */
 export function devHrefs(url: UrlPolicy) {
-  const at = (route: string) => pageUrl(`${SEO_ON_PAGE_DIR}/${route}`, url.defaultLocale, url);
+  function at(route: string) {
+    return pageUrl(`${SEO_ON_PAGE_DIR}/${route}`, url.defaultLocale, url);
+  }
   return {
     siteHome: () => pageUrl('', url.defaultLocale, url),
     overview: () => pageUrl(SEO_ON_PAGE_DIR, url.defaultLocale, url),
@@ -43,5 +33,6 @@ export function devHrefs(url: UrlPolicy) {
 export type DevHrefs = ReturnType<typeof devHrefs>;
 
 /** `src` de una imagen para el navegador: la local cuelga de `base` (igual que `og:image`), la https no se toca. */
-export const assetHref = (base: string, src: string) =>
-  src.startsWith('https://') ? src : `${base.replace(/\/+$/, '')}${src}`;
+export function assetHref(base: string, src: string) {
+  return src.startsWith('https://') ? src : withBase(base, src);
+}

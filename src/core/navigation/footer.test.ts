@@ -9,36 +9,43 @@ import type { NavContext } from './nav-entries';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 
-const page = (slug: string, locale = 'en'): Page => ({
-  slug,
-  locale,
-  title: slug || 'Home',
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.md`,
-});
+function page(slug: string, locale = 'en'): Page {
+  return {
+    slug,
+    locale,
+    title: slug || 'Home',
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.md`,
+  };
+}
 
 const pages = [page(''), page('changelog'), page('changelog', 'es'), page('only-en')];
 
-const ctx = (locale = 'en'): NavContext => ({
-  pages,
-  av: buildAvailability(pages, url),
-  locale,
-  cfg: { locales: ['en', 'es'], defaultLocale: 'en' },
-  policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
-  url,
-  slug: '',
-});
+function context(locale = 'en'): NavContext {
+  return {
+    pages,
+    availability: buildAvailability(pages, url),
+    locale,
+    config: { locales: ['en', 'es'], defaultLocale: 'en' },
+    policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
+    url,
+    slug: '',
+  };
+}
 
-const strings = (locale: string) => defaultStrings[locale] as UiStrings;
-const view = (cfg: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') =>
-  buildFooter(cfg, ctx(locale), strings(locale));
+function strings(locale: string) {
+  return defaultStrings[locale] as UiStrings;
+}
+function view(config: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') {
+  return buildFooter(config, context(locale), strings(locale));
+}
 
 describe('buildFooter: derivaciones', () => {
   it('sin config: solo el autor por defecto, sin licencia ni enlaces', () => {
     expect(view()).toEqual({ author: DEFAULT_AUTHOR, links: [] });
     expect(DEFAULT_AUTHOR).toEqual({
-      name: 'Anthony Vélez',
+      name: 'Anthony Velez',
       href: 'https://velezanthony.github.io/',
     });
   });
@@ -106,7 +113,7 @@ describe('buildFooter: enlaces propios', () => {
     const omitted = buildFooter(
       { footer: { links: [{ label: 'Solo', slug: 'only-en' }] } },
       {
-        ...ctx('es'),
+        ...context('es'),
         policies: resolvePolicies(pages, MissingTranslation.OMIT).policies,
       },
       strings('es'),

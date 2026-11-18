@@ -1,11 +1,4 @@
-/**
- * Comprobación de restos: sintaxis de MkDocs que la conversión NO ha entendido y que seguirá en
- * el Markdown de salida. Es una red de seguridad: la detección es línea a línea (igual que la de
- * Python-Markdown) y el riesgo está en convertir bloques anidados o con sangrías raras, así que
- * se mira el RESULTADO, no se confía en que la conversión lo haya cogido todo.
- *
- * También reconoce los «stubs» de snippet: páginas cuyo cuerpo es solo `--8<-- "FICHERO"`.
- */
+/** Red de seguridad: lista la sintaxis de MkDocs que la conversión no entendió, mirando el RESULTADO, y reconoce los stubs de snippet. */
 import { FENCE } from '../pipeline/lines.ts';
 
 export type LeftoverKind = 'admonition' | 'tab' | 'icon' | 'snippet';
@@ -34,32 +27,33 @@ const PATTERNS: Array<[LeftoverKind, RegExp]> = [
 ];
 
 /** Sustituye el código en línea por espacios (misma longitud), para no detectar lo que es código. */
-export const maskInlineCode = (line: string) =>
-  line.replace(/(`+)[^`]*?\1/g, (code) => ' '.repeat(code.length));
+export function maskInlineCode(line: string) {
+  return line.replace(/(`+)[^`]*?\1/g, (code) => ' '.repeat(code.length));
+}
 
-const preview = (line: string) => {
+function preview(line: string) {
   const text = line.trim();
   return text.length > PREVIEW_LENGTH ? `${text.slice(0, PREVIEW_LENGTH - 1)}…` : text;
-};
+}
 
 /** Líneas fuera de fences con su número (1-based). Un fence sin cerrar llega hasta el final. */
 export function* proseLines(markdown: string): Generator<[number, string]> {
   let fence: { char: string; length: number } | undefined;
   for (const [index, line] of markdown.split('\n').entries()) {
-    const marker = FENCE.exec(line);
+    const marker = FENCE.exec(line)?.[1];
     if (fence) {
       if (
         marker &&
-        marker[1][0] === fence.char &&
-        marker[1].length >= fence.length &&
-        line.trim() === marker[1]
+        marker[0] === fence.char &&
+        marker.length >= fence.length &&
+        line.trim() === marker
       ) {
         fence = undefined;
       }
       continue;
     }
     if (marker) {
-      fence = { char: marker[1][0], length: marker[1].length };
+      fence = { char: marker.charAt(0), length: marker.length };
       continue;
     }
     yield [index + 1, line];
@@ -77,11 +71,7 @@ export function findLeftovers(file: string, markdown: string): Leftover[] {
   return found;
 }
 
-/**
- * Una página cuyo cuerpo (sin frontmatter, comentarios HTML, líneas en blanco ni un título) es solo includes de
- * snippet. No se convierte ni se borra: se avisa de que ese fichero se publica mejor como
- * `external[]`. Con varios includes devuelve el primero.
- */
+/** Página cuyo cuerpo son solo includes de snippet: no se convierte, se avisa de que mejor se publica como `external[]` (devuelve el primero). */
 export function findSnippetStub(file: string, markdown: string): SnippetStub | undefined {
   const lines = markdown.split('\n');
   let start = 0;
@@ -101,7 +91,7 @@ export function findSnippetStub(file: string, markdown: string): SnippetStub | u
   );
   const first = includes.find((match) => match !== null);
   if (!first || !onlyIncludesAndTitles) return undefined;
-  return { file, include: first[1] };
+  return { file, include: first[1]! };
 }
 
 /** Restos y stubs de un conjunto de ficheros ya convertidos, ordenados por fichero y línea. */
@@ -111,7 +101,7 @@ export function checkOutput(files: ReadonlyMap<string, string>): {
 } {
   const leftovers: Leftover[] = [];
   const stubs: SnippetStub[] = [];
-  for (const [file, markdown] of [...files].sort(([a], [b]) => a.localeCompare(b))) {
+  for (const [file, markdown] of [...files].sort(([left], [right]) => left.localeCompare(right))) {
     const stub = findSnippetStub(file, markdown);
     if (stub) {
       stubs.push(stub);

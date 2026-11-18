@@ -3,13 +3,15 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue } from '../../tree/types';
 import { severityCounts } from './severities';
 
-const issue = (severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
+function issue(severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
 
 describe('severityCounts', () => {
   const pages = [

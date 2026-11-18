@@ -1,0 +1,72 @@
+---
+/* Contenedor del inspector: una página e idioma elegidos por la query (`?slug=…&locale=…`; la
+   portada tiene slug vacío). Ruta bajo demanda por lo mismo que la tabla. */
+import Fonts from '../Fonts.astro';
+import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import { findEntry } from '../../../core/seo-on-page/tree/keys';
+import InspectorPage from '../../../components/seo-on-page/pages/InspectorPage.astro';
+import { PANEL_LABELS, slugLabel } from '../../../core/seo-on-page/labels';
+import { siteConfig } from '../../data/site-config';
+import { loadPanel } from '../../data/seo-on-page/adapter';
+import { assetHref } from '../../views/seo-on-page/hrefs';
+import { fixPrompts, inspectorReport } from '../../views/seo-on-page/report';
+import { inspectorHeadings, panelView } from '../../views/seo-on-page/panel';
+
+const { searchParams } = Astro.url;
+const slug = searchParams.get('slug') ?? '';
+const locale = searchParams.get('locale') ?? siteConfig.defaultLocale;
+const { docs, tree, failures, hrefs } = await loadPanel(siteConfig, Astro.url.origin);
+/* El enlace de edición, como el de las páginas de docs: `editUrl` de la config más la ruta del archivo
+   respecto a la raíz del repo, que solo conoce el loader. */
+const editPath = docs.find((doc) => doc.slug === slug && doc.locale === locale)?.editPath;
+const model = inspectorModel({
+  tree,
+  slug,
+  locale,
+  links: hrefs,
+  site: siteConfig.site,
+  asset: (src) => assetHref(siteConfig.base, src),
+  edit: siteConfig.editUrl && editPath ? { url: siteConfig.editUrl, path: editPath } : undefined,
+});
+if (!model) Astro.response.status = 404;
+/* Los informes y los prompts se generan aquí, una vez: el navegador solo elige entre ellos. */
+const entry = findEntry(tree.pages, slug, locale);
+const report = model && inspectorReport(tree, slug, siteConfig);
+const prompts =
+  model && entry
+    ? fixPrompts(
+        tree,
+        siteConfig,
+        entry,
+        model.fixes.map((fix) => fix.issue),
+      )
+    : [];
+const title = model ? `${slugLabel(slug)} · ${locale}` : PANEL_LABELS.pageNotFound;
+const view = panelView({
+  config: siteConfig,
+  data: docs,
+  hrefs,
+  screen: 'pages',
+  title,
+  headings: model
+    ? inspectorHeadings({
+        fixes: model.fixes.length,
+        translations: model.translations !== undefined,
+      })
+    : [],
+});
+---
+
+<InspectorPage
+  view={view}
+  year={new Date().getFullYear()}
+  model={model}
+  slug={slug}
+  locale={locale}
+  pagesHref={hrefs.pages()}
+  prompts={prompts}
+  failures={failures}
+  report={report}
+>
+  <Fonts slot="head" />
+</InspectorPage>

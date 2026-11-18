@@ -1,17 +1,14 @@
 import path from 'node:path';
 import type { FSWatcher } from 'vite';
 
-/**
- * Función de recarga que agrupa avisos: si llega otro cambio mientras se recarga, se hace UNA
- * recarga más al terminar (no una por aviso). Un fallo se informa y no bloquea las siguientes.
- */
+/** Recarga que agrupa avisos (UNA recarga extra si llega otro cambio mientras recarga); un fallo se informa y no bloquea. */
 export function createReloader(
   run: () => Promise<void>,
   onError: (error: unknown) => void,
 ): () => Promise<void> {
   let running: Promise<void> | undefined;
   let pending = false;
-  const loop = async () => {
+  async function loop() {
     do {
       pending = false;
       try {
@@ -21,7 +18,7 @@ export function createReloader(
       }
     } while (pending);
     running = undefined;
-  };
+  }
   return () => {
     if (running) {
       pending = true;
@@ -68,15 +65,7 @@ function createState(options: WatchOptions): WatchState {
   return state;
 }
 
-/**
- * Engancha el watcher de dev: cualquier cambio relevante dispara una recarga COMPLETA.
- *
- * Astro llama a `load` en cada sincronización completa y ANTES quita todos los listeners que los
- * loaders registraron en ese watcher (`removeAllTrackedListeners`), esperando que `load` los
- * vuelva a poner. Por eso no basta con recordar que ya enganchamos: en cada llamada se comprueba
- * qué listeners siguen puestos y se reponen solo los que faltan (así tampoco se duplican si
- * Astro llama a `load` sin quitarlos, como en una sincronización selectiva).
- */
+/** Astro quita los listeners del loader antes de cada `load`: se comprueba cuáles siguen puestos y se reponen solo los que faltan. */
 export function watchSources(watcher: FSWatcher, options: WatchOptions): void {
   const state = active.get(watcher) ?? createState(options);
   active.set(watcher, state);

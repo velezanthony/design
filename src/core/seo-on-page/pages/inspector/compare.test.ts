@@ -5,9 +5,12 @@ import { differing, lengthClass } from './compare';
 describe('lengthClass', () => {
   const { descriptionMin: min, descriptionMax: max } = THRESHOLDS;
 
-  it('en el mínimo o por debajo cuenta como corta: es donde un idioma queda justo', () => {
+  it('por debajo del mínimo es corta', () => {
     expect(lengthClass(min - 1, min, max)).toBe('low');
-    expect(lengthClass(min, min, max)).toBe('low');
+  });
+
+  it('justo en el mínimo está al límite: cumple, pero sin margen frente a otro idioma', () => {
+    expect(lengthClass(min, min, max)).toBe('edge');
   });
 
   it('entre el mínimo y el máximo está bien, máximo incluido', () => {

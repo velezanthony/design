@@ -1,0 +1,92 @@
+/* Tokens: los neutros son una rampa OKLCH de matiz 195 (no los cambies por los grises de Tailwind); los ratios son contra la superficie de cada token. */
+
+@theme {
+  /* Cada color se declara una vez, `light-dark(claro, oscuro)`; el `color-scheme` de la raíz decide cuál vale. En oscuro, más pesado es más claro, salvo el pie. Las notas dan primero el ratio claro y luego el oscuro. */
+
+  /* Superficies, de la más clara a la más pesada: el contenido, el plano del sidebar, la cabecera
+     y el pie invertido. */
+  --color-canvas: light-dark(#faf9f6, #141311); /* blanco cálido */
+  --color-raised: light-dark(#f0ede6, #1c1a17); /* piedra · 1.10:1 · 1.07:1 */
+  --color-chrome: light-dark(#d8cbb5, #2c2620); /* moka · 1.51:1 · 1.24:1 */
+  --color-inverse: light-dark(#202d32, #0b1013); /* antracita · 13.45:1 */
+
+  /* Ratios contra el canvas y, entre paréntesis, contra el plano. Sobre la cabecera solo se
+     escribe en `ink` (9.67:1): `muted` y el acento no llegan a 4.5:1 en el moka. */
+  --color-ink: light-dark(#1d2626, #ece8e1); /* 14.69:1 AAA · 15.20:1 AAA */
+  --color-muted: light-dark(#515a5a, #b5ada2); /*  6.74:1 AA (6.07) · 8.37:1 AAA (7.82) */
+  --color-faint: light-dark(#626a6a, #8e877c); /*  5.26:1 AA (4.74) · 5.22:1 AA (4.88) */
+
+  /* `accent` para texto; `accent-line` para lo que no es texto (basta 3:1): como texto daría 4.18:1 en el plano y 3.06:1 en la cabecera. */
+  --color-accent: light-dark(#2b665f, #7cc2b8); /*  6.30:1 AA (5.67) · 9.08:1 AAA (8.49) */
+  --color-accent-line: light-dark(#367c75, #5fa69c); /*  4.64:1 (3.06 en la cabecera) · 6.56:1 */
+  --color-accent-soft: light-dark(#e2efec, #17302c); /* el acento da 5.62:1 sobre él en claro */
+  --color-rule: light-dark(#d9d3c7, #2e2a25); /*  1.42:1 · 1.30:1 */
+
+  /* El pie invierte los papeles: tinta clara sobre antracita, en los dos temas. */
+  --color-inverse-ink: #e0e8e8; /* 11.38:1 AAA · 15.37:1 AAA */
+  --color-inverse-muted: #a6b0b0; /*  6.38:1 AA · 8.62:1 AAA */
+
+  --color-state-live: light-dark(#0f6b39, #6dd196); /*  6.27:1 AA · 9.91:1 AAA — mantenido */
+  --color-state-wip: light-dark(#7d4a00, #e0a44a); /*  6.99:1 AA · 8.47:1 AAA — experimental */
+
+  --color-danger: light-dark(#b42318, #f97066); /*  6.24:1 AA · 6.66:1 AA — error / peligro */
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  --text-display: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.025em;
+
+  --text-row: 0.9375rem; /* 15px */
+  --text-row--line-height: 1.6;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.14em;
+
+  /* ~78 caracteres reales: pasa del clásico 75, a cambio de menos scroll en textos largos. No `ch`:
+     mide el glifo `0`, así que 65ch se verían ~86. */
+  --container-measure: 42rem;
+
+  --container-text: 42rem;
+
+  /* La medida del texto con el ancho completo: algo más generosa, sin llegar a líneas ilegibles. */
+  --container-measure-full: 52rem;
+
+  --container-page: 80rem;
+
+  /* La curva de las transiciones de la disposición y del zoom: arranca rápido y asienta despacio. */
+  --ease-glide: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* «Oscuro» para lo que no son colores sueltos (Shiki, el borde del pie, el icono del selector): el sistema lo pide y nadie ha elegido claro, o se ha elegido oscuro. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+
+  &:where(:root[data-theme='dark'] *) {
+    @slot;
+  }
+}
+
+/* Sin tema elegido manda el sistema: sin esto el oscuro del sistema pintaba barras de scroll y
+   controles nativos en claro. Un tema elegido lo fija abajo. */
+:root {
+  color-scheme: light dark;
+  /* Fondo de los bloques de código en oscuro: el de github-dark es azul. */
+  --code-dark-bg: #0f0e0c;
+}
+
+/* Un tema elegido nombra también su `color-scheme`, o las barras de scroll y los controles nativos
+   conservan el del sistema. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

@@ -1,4 +1,5 @@
 import { DocsError } from '../errors';
+import { trimBase } from '../shared/urls';
 
 /** Ruta del favicon propio del paquete (la sirve un endpoint inyectado, con la base delante). */
 export const DEFAULT_FAVICON_PATH = '/_design/favicon.png';
@@ -22,17 +23,18 @@ export function faviconType(src: string): string | undefined {
 }
 
 /** Las URLs https no se comprueban: no hay red en el build. */
-export const isLocalFavicon = (favicon: string): boolean => !favicon.startsWith('https://');
+export function isLocalFavicon(favicon: string): boolean {
+  return !favicon.startsWith('https://');
+}
 
 /** Ruta del archivo bajo `public/` sin barra inicial: `/img/a.png` y `img/a.png` → `img/a.png`. */
-export const publicFaviconPath = (favicon: string): string => favicon.replace(/^\/+/, '');
+export function publicFaviconPath(favicon: string): string {
+  return favicon.replace(/^\/+/, '');
+}
 
-/**
- * Decide el favicon de la página: el propio del paquete si no hay config, una URL https tal cual,
- * o un archivo de `public/` con la base delante (`favicon.svg` y `/favicon.svg` son lo mismo).
- */
+/** Favicon: el del paquete sin config, una URL https tal cual o un archivo de `public/` con la base delante. */
 export function resolveFavicon(favicon: string | undefined, base: string): FaviconLink {
-  const prefix = base.replace(/\/+$/, '');
+  const prefix = trimBase(base);
   const href =
     favicon === undefined
       ? `${prefix}${DEFAULT_FAVICON_PATH}`

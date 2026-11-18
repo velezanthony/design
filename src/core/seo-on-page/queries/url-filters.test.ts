@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { ACTIONABLE_SEVERITIES, ALL_SEVERITIES } from '../severity';
 import { PAGE_SIZE } from './paginate';
 import {
-  ALL_SEVERITIES,
-  DEFAULT_SEVERITIES,
   EMPTY_FILTERS,
   filterFields,
   filtersFromUrl,
@@ -13,7 +12,9 @@ import {
   serializeFilters,
 } from './url-filters';
 
-const parse = (query: string) => parseFilters(new URLSearchParams(query));
+function parse(query: string) {
+  return parseFilters(new URLSearchParams(query));
+}
 
 describe('parseFilters', () => {
   it('sin parámetros: filtros vacíos', () => {
@@ -57,15 +58,20 @@ describe('serializeFilters', () => {
 describe('filtersFromUrl', () => {
   it('sin gravedad ni tipo en la URL aplica la gravedad por defecto (error y aviso)', () => {
     expect(filtersFromUrl(new URLSearchParams(''))).toEqual({
-      filters: { ...EMPTY_FILTERS, severities: DEFAULT_SEVERITIES },
+      filters: { ...EMPTY_FILTERS, severities: ACTIONABLE_SEVERITIES },
       defaulted: true,
     });
-    expect(DEFAULT_SEVERITIES).toEqual(['error', 'warning']);
+    expect(ACTIONABLE_SEVERITIES).toEqual(['error', 'warning']);
   });
 
   it('el idioma y el texto se conservan y no impiden el valor por defecto', () => {
     expect(filtersFromUrl(new URLSearchParams('locale=es&q=orm'))).toEqual({
-      filters: { ...EMPTY_FILTERS, severities: DEFAULT_SEVERITIES, locales: ['es'], text: 'orm' },
+      filters: {
+        ...EMPTY_FILTERS,
+        severities: ACTIONABLE_SEVERITIES,
+        locales: ['es'],
+        text: 'orm',
+      },
       defaulted: true,
     });
   });
@@ -195,7 +201,9 @@ describe('filterFields', () => {
 });
 
 describe('parseView', () => {
-  const view = (query: string) => parseView(new URLSearchParams(query));
+  function view(query: string) {
+    return parseView(new URLSearchParams(query));
+  }
 
   it('sin `view` es la vista por página', () => {
     expect(view('')).toEqual({ view: 'page' });

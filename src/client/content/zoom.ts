@@ -1,4 +1,5 @@
 import { withTransition, type MotionPreference } from '../transition';
+import { fill } from '../text';
 
 export interface ZoomLabels {
   /** Nombre accesible del botón de cada imagen; lleva `{alt}`. */
@@ -17,12 +18,7 @@ const NAME = 'docs-zoom';
 /** Por debajo de este lado declarado (px) una imagen es un icono o una línea: no se amplía. */
 const MIN_SIDE = 96;
 
-/**
- * Si una imagen merece ampliarse: tiene texto alternativo (sin él es decorativa, y el botón no
- * tendría nombre), no es diminuta, no está dentro de un enlace o botón (ya tiene su acción) y no
- * se excluyó con `data-no-zoom`. El tamaño sale de los atributos `width`/`height`: al cablear la
- * página la imagen puede no haberse cargado aún.
- */
+/** Una imagen se amplía si tiene `alt`, no es diminuta (por `width`/`height`: aún puede no estar cargada), no va en un enlace o botón y no lleva `data-no-zoom`. */
 export function isZoomable(img: Element): boolean {
   if (!img.getAttribute('alt')?.trim()) return false;
   if (img.hasAttribute('data-no-zoom') || img.closest('a, button')) return false;
@@ -33,45 +29,38 @@ export function isZoomable(img: Element): boolean {
   return true;
 }
 
-/**
- * Hace ampliables las imágenes del contenido (`.prose img`). Cada una se envuelve en un
- * `<button class="docs-zoom">`, operable con teclado, que abre un `<dialog>` modal: Escape, el
- * botón de cerrar y un clic en el fondo o en la imagen lo cierran y el foco vuelve al botón.
- * La miniatura se transforma en la imagen grande (y vuelve) con una View Transition; sin la API
- * o con movimiento reducido el diálogo se abre y se cierra sin animación. Sin JavaScript las
- * imágenes quedan como estaban.
- */
+/** Envuelve cada `.prose img` en un botón que abre un `<dialog>` modal; la miniatura se transforma con una View Transition si hay API y movimiento. */
 export function initZoom(
-  doc: Document,
+  htmlDocument: Document,
   { labels, motion = { matches: false } }: ZoomOptions,
 ): void {
-  const images = [...doc.querySelectorAll<HTMLImageElement>('.prose img')].filter(
+  const images = [...htmlDocument.querySelectorAll<HTMLImageElement>('.prose img')].filter(
     (img) => !img.closest('.docs-zoom') && isZoomable(img),
   );
   if (!images.length) return;
 
-  const dialog = doc.createElement('dialog');
+  const dialog = htmlDocument.createElement('dialog');
   dialog.className = 'docs-zoom-dialog';
-  const big = doc.createElement('img');
+  const big = htmlDocument.createElement('img');
   big.className = 'docs-zoom-img';
-  const closeButton = doc.createElement('button');
+  const closeButton = htmlDocument.createElement('button');
   closeButton.type = 'button';
   closeButton.className = 'docs-zoom-close';
   closeButton.setAttribute('aria-label', labels.close);
   closeButton.textContent = '×';
   dialog.append(big, closeButton);
-  doc.body.append(dialog);
+  htmlDocument.body.append(dialog);
 
   let current: { trigger: HTMLElement; thumb: HTMLImageElement } | undefined;
   let closing = false;
 
-  const name = (el: Element, on: boolean) => {
-    const style = (el as HTMLElement).style;
+  function name(element: Element, on: boolean) {
+    const style = (element as HTMLElement).style;
     if (on) style.setProperty('view-transition-name', NAME);
     else style.removeProperty('view-transition-name');
-  };
+  }
 
-  const open = (trigger: HTMLElement, thumb: HTMLImageElement) => {
+  function open(trigger: HTMLElement, thumb: HTMLImageElement) {
     if (current) return;
     current = { trigger, thumb };
     big.setAttribute('src', thumb.currentSrc || thumb.getAttribute('src') || '');
@@ -88,11 +77,11 @@ export function initZoom(
         /* La foto «después» se toma al resolver esta promesa: sin decodificar saldría vacía. */
         await Promise.resolve(big.decode?.()).catch(() => {});
       },
-      { doc, motion, kind: 'zoom' },
+      { htmlDocument, motion, kind: 'zoom' },
     ).then(() => name(big, false));
-  };
+  }
 
-  const close = () => {
+  function close() {
     if (!current || closing || !dialog.hasAttribute('open')) return;
     closing = true;
     const { thumb } = current;
@@ -103,9 +92,9 @@ export function initZoom(
         name(thumb, true);
         dialog.close();
       },
-      { doc, motion, kind: 'zoom' },
+      { htmlDocument, motion, kind: 'zoom' },
     ).then(() => name(thumb, false));
-  };
+  }
 
   /* Pasa siempre que el diálogo se cierra, también si lo cierra el navegador por su cuenta. */
   dialog.addEventListener('close', () => {
@@ -126,13 +115,10 @@ export function initZoom(
   dialog.addEventListener('click', close);
 
   for (const thumb of images) {
-    const trigger = doc.createElement('button');
+    const trigger = htmlDocument.createElement('button');
     trigger.type = 'button';
     trigger.className = 'docs-zoom';
-    trigger.setAttribute(
-      'aria-label',
-      labels.open.replace('{alt}', () => thumb.alt),
-    );
+    trigger.setAttribute('aria-label', fill(labels.open, { alt: thumb.alt }));
     thumb.replaceWith(trigger);
     trigger.append(thumb);
     trigger.addEventListener('click', () => open(trigger, thumb));

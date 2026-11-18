@@ -12,21 +12,24 @@ import {
   buildSitemapIndex,
   SITEMAP_PAGES,
   SITEMAP_STYLESHEET_PATH,
+  sitemapFiles,
   sitemapIncludes,
 } from './sitemap';
 
 const site = new URL('https://x.dev');
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const locs = (xml: string) => [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+function locs(xml: string) {
+  return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]);
+}
 
 describe('buildSitemap', () => {
-  const av: Availability = new Map([
+  const availability: Availability = new Map([
     ['install', { en: '/repo/install/', es: '/repo/es/install/' }],
     ['changelog', { en: '/repo/changelog/' }],
   ]);
 
   it('es un único urlset con URLs absolutas', () => {
-    const xml = buildSitemap(av, site);
+    const xml = buildSitemap(availability, site);
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
     expect(xml).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
@@ -38,13 +41,13 @@ describe('buildSitemap', () => {
   });
 
   it('enlaza su hoja de estilo con una ruta relativa, para que funcione bajo cualquier base', () => {
-    const [, stylesheet] = buildSitemap(av, site).split('\n');
+    const [, stylesheet] = buildSitemap(availability, site).split('\n');
     expect(stylesheet).toBe('<?xml-stylesheet type="text/css" href="_design/sitemap.css"?>');
     expect(SITEMAP_STYLESHEET_PATH).toBe('/_design/sitemap.css');
   });
 
   it('una pareja lista ambos alternates en cada URL', () => {
-    const xml = buildSitemap(av, site);
+    const xml = buildSitemap(availability, site);
     const block = xml.split('<url>')[1];
     expect(block).toContain('rel="alternate" hreflang="en" href="https://x.dev/repo/install/"');
     expect(block).toContain('rel="alternate" hreflang="es" href="https://x.dev/repo/es/install/"');
@@ -56,16 +59,21 @@ describe('buildSitemap', () => {
   });
 
   it('exactamente 50 000 URLs pasan y 50 001 lanzan con el número y el límite', () => {
-    const many = (count: number): Availability =>
-      new Map(Array.from({ length: count }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]));
+    function many(count: number): Availability {
+      return new Map(
+        Array.from({ length: count }, (_item, index) => [`p${index}`, { en: `/repo/p${index}/` }]),
+      );
+    }
     expect(locs(buildSitemap(many(50_000), site))).toHaveLength(50_000);
-    const attempt = () => buildSitemap(many(50_001), site);
+    function attempt() {
+      return buildSitemap(many(50_001), site);
+    }
     expect(attempt).toThrow(DocsError);
     expect(attempt).toThrow(/50001.*50000|50 001.*50 000/);
   });
 
   it('las páginas noindex salen y desaparecen de los alternates de sus gemelas', () => {
-    const xml = buildSitemap(av, site, new Set(['/repo/es/install/']));
+    const xml = buildSitemap(availability, site, new Set(['/repo/es/install/']));
     expect(locs(xml)).toEqual(['https://x.dev/repo/install/', 'https://x.dev/repo/changelog/']);
     expect(xml).not.toContain('hreflang="es"');
     expect(xml).not.toContain('xhtml:link');
@@ -143,7 +151,9 @@ describe('sitemapIncludes', () => {
   });
 
   it('una URL de otro dominio falla nombrando `sitemap.include[i]`', () => {
-    const run = () => sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+    function run() {
+      return sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+    }
     expect(run).toThrow(DocsError);
     expect(run).toThrow(/sitemap\.include\[1\].*otro\.dev/);
   });
@@ -156,12 +166,14 @@ describe('sitemapIncludes', () => {
 
 describe('clientSitemapEntries', () => {
   const portfolio = new URL('https://x.dev');
-  const client = (path: string, head: Partial<HeadFacts> = {}): ClientPage => ({
-    path,
-    pattern: path,
-    entrypoint: 'src/pages/x.astro',
-    head: { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [], ...head },
-  });
+  function client(path: string, head: Partial<HeadFacts> = {}): ClientPage {
+    return {
+      path,
+      pattern: path,
+      entrypoint: 'src/pages/x.astro',
+      head: { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [], ...head },
+    };
+  }
 
   it('cada página indexable con su URL publicada y sus idiomas tal como los declara', () => {
     const alternates = [
@@ -189,7 +201,7 @@ describe('clientSitemapEntries', () => {
 });
 
 describe('buildSitemap con páginas del cliente', () => {
-  const av: Availability = new Map([['install', { en: '/repo/install/' }]]);
+  const availability: Availability = new Map([['install', { en: '/repo/install/' }]]);
   const cv = {
     loc: 'https://x.dev/repo/cv/',
     alternates: [
@@ -199,7 +211,7 @@ describe('buildSitemap con páginas del cliente', () => {
   };
 
   it('van después de las de la documentación, con sus alternates', () => {
-    const xml = buildSitemap(av, site, new Set(), [cv]);
+    const xml = buildSitemap(availability, site, new Set(), [cv]);
     expect(locs(xml)).toEqual(['https://x.dev/repo/install/', 'https://x.dev/repo/cv/']);
     expect(xml).toContain(
       '<url><loc>https://x.dev/repo/cv/</loc><xhtml:link rel="alternate" hreflang="es" href="https://x.dev/repo/cv/"/><xhtml:link rel="alternate" hreflang="en" href="https://x.dev/repo/en/cv/"/></url>',
@@ -208,14 +220,14 @@ describe('buildSitemap con páginas del cliente', () => {
 
   it('una del cliente con la URL de una de la documentación la sustituye: no sale dos veces', () => {
     const own = { loc: 'https://x.dev/repo/install/', alternates: [] };
-    const xml = buildSitemap(av, site, new Set(), [own]);
+    const xml = buildSitemap(availability, site, new Set(), [own]);
     expect(locs(xml)).toEqual(['https://x.dev/repo/install/']);
     expect(xml).toContain('<url><loc>https://x.dev/repo/install/</loc></url>');
   });
 
   it('cuentan para el límite de URLs', () => {
     const many: Availability = new Map(
-      Array.from({ length: 50_000 }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]),
+      Array.from({ length: 50_000 }, (_item, index) => [`p${index}`, { en: `/repo/p${index}/` }]),
     );
     expect(() => buildSitemap(many, site, new Set(), [cv])).toThrow(/50001/);
   });
@@ -248,5 +260,15 @@ describe('appendToSitemap', () => {
     expect(appendToSitemap(xml, [{ loc: 'https://x.dev/?a=1&b=2', alternates: [] }])).toContain(
       '?a=1&amp;b=2',
     );
+  });
+});
+
+describe('sitemapFiles', () => {
+  it('sin otros sitemaps, las páginas van en sitemap.xml y no hay índice', () => {
+    expect(sitemapFiles([])).toEqual({ index: false, pages: 'sitemap.xml' });
+  });
+
+  it('con otros sitemaps, sitemap.xml es el índice y las páginas van aparte', () => {
+    expect(sitemapFiles(['/lib/sitemap.xml'])).toEqual({ index: true, pages: SITEMAP_PAGES });
   });
 });

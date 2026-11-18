@@ -1,4 +1,4 @@
-import { DEFAULT_CONTENT_DIR, normalizeContentDir } from '../content/content-dir';
+import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
 import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
@@ -59,11 +59,7 @@ export interface ResolvedConfig {
 const DEFAULT_LOCALES = ['en'];
 const DEFAULT_MISSING_TRANSLATION: MissingTranslation = 'link';
 
-/**
- * Valida la config del consumidor y le aplica los valores por defecto. Pura y determinista: el
- * loader (plan B) y la integración la llaman con la misma entrada y obtienen lo mismo. Si es
- * inválida lanza un `DocsErrors` con la ruta de cada campo (`external[0].seo.image.src`).
- */
+/** Valida la config y aplica los valores por defecto; si es inválida lanza `DocsErrors` con la ruta de cada campo. */
 export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   const result = DocsConfigSchema.safeParse(user);
   if (!result.success) {
@@ -84,9 +80,9 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   return {
     ...config,
     seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
-    content: normalizeContentDir(config.content ?? DEFAULT_CONTENT_DIR),
+    content: normalizePath(config.content ?? DEFAULT_CONTENT_DIR),
     locales,
-    defaultLocale: config.defaultLocale ?? locales[0],
+    defaultLocale: config.defaultLocale ?? locales[0]!, // el esquema exige al menos un idioma
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },
     ui: config.ui ?? {},
     external: config.external ?? [],

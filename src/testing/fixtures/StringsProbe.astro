@@ -1,5 +1,5 @@
 ---
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 
 interface Props {
   strings: UiStrings;
@@ -9,5 +9,5 @@ interface Props {
 const { strings, locale = '' } = Astro.props;
 ---
 
-<h2>{t(strings, 'toc.title')}</h2>
-<p>{t(strings, 'translation.badgeLabel', { locale })}</p>
+<h2>{translate(strings, 'toc.title')}</h2>
+<p>{translate(strings, 'translation.badgeLabel', { locale })}</p>

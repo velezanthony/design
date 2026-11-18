@@ -1,0 +1,72 @@
+---
+/* La vista «Matriz de idiomas»: una fila por página, una columna por idioma de la config, y lo que
+   el `<head>` anuncia a los buscadores (hreflang, x-default). */
+import Note from '../../atoms/Note.astro';
+import type { MatrixRow } from '../../../../core/seo-on-page/pages/listing/matrix';
+import DataTable from '../../molecules/DataTable.astro';
+import EmptyNotice from '../../molecules/EmptyNotice.astro';
+import RowHeader from '../../molecules/RowHeader.astro';
+import StateMark from '../../atoms/StateMark.astro';
+import { MATRIX_LABELS as LABELS } from '../../../../core/seo-on-page/labels';
+import { CELL, EDGE } from '../../tables';
+
+interface Props {
+  rows: MatrixRow[];
+  /** Los idiomas de la config, una columna cada uno. */
+  locales: string[];
+  /** Con un solo idioma no hay hreflang: se quitan sus dos columnas. */
+  hreflang: boolean;
+}
+
+const { rows, locales, hreflang } = Astro.props;
+---
+
+{rows.length === 0 ? (
+  <EmptyNotice />
+) : (
+  <div class="flex flex-col gap-3">
+    <DataTable
+      caption={LABELS.caption}
+      columns={[
+        LABELS.page,
+        ...locales.map((locale) => locale.toUpperCase()),
+        ...(hreflang ? [LABELS.hreflang, LABELS.xDefault] : []),
+      ]}
+    >
+      <tbody>
+        {rows.map((row) => (
+          <tr class={EDGE} data-page={row.slug}>
+            <RowHeader slug={row.slug} href={row.href} tags={row.tags} />
+            {row.cells.map(({ locale, state }) => (
+              <td class={CELL} data-locale={locale} data-state={state}>
+                <StateMark {...LABELS.states[state]} />
+              </td>
+            ))}
+            {hreflang && (
+              <>
+                <td class={CELL} data-hreflang={row.hreflang}>
+                  <StateMark {...LABELS.hreflangStates[row.hreflang]} />
+                </td>
+                <td class={CELL} data-x-default>
+                  {row.xDefault ? (
+                    <StateMark glyph="✓" tone="live" text={row.xDefault} />
+                  ) : (
+                    <span class="text-faint">{LABELS.none}</span>
+                  )}
+                </td>
+              </>
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </DataTable>
+    <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label={LABELS.legendLabel}>
+      {LABELS.legend.map(({ state, text }) => (
+        <li>
+          <StateMark {...LABELS.states[state]} text={text} />
+        </li>
+      ))}
+    </ul>
+    <Note>{LABELS.note}</Note>
+  </div>
+)}

@@ -1,0 +1,25 @@
+---
+import Heading from '../../atoms/display/Heading.astro';
+import {
+  INSPECTOR_SECTIONS,
+  INSPECTOR_WHY,
+  type InspectorSection,
+} from '../../../core/seo-on-page/labels';
+
+interface Props {
+  /** Qué sección es: de ahí salen el `id` del encabezado (el de «En esta página»), su texto y su porqué. */
+  section: InspectorSection;
+}
+
+const { section } = Astro.props;
+---
+
+<section aria-labelledby={section} data-section={section} class="flex flex-col gap-4">
+  <div class="flex flex-col gap-1">
+    <Heading level={2} size="md" id={section}>
+      {INSPECTOR_SECTIONS[section]}
+    </Heading>
+    <p class="text-sm text-muted">{INSPECTOR_WHY[section]}</p>
+  </div>
+  <slot />
+</section>

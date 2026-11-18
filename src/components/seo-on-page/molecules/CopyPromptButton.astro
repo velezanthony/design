@@ -1,0 +1,22 @@
+---
+/* «Copiar prompt» de un problema: lleva el texto en `data-copy-prompt` y el cliente lo copia. Nace
+   oculto por lo mismo que `ReportButton`. */
+import Button from '../../atoms/actions/Button.astro';
+import { REPORT_LABELS as labels } from '../../../core/seo-on-page/labels';
+
+interface Props {
+  prompt: string;
+}
+
+const { prompt } = Astro.props;
+---
+
+<Button
+  variant="quiet"
+  hidden
+  data-copy-prompt={prompt}
+  data-copied={labels.promptCopied}
+  data-failed={labels.promptFailed}
+>
+  <span data-label>{labels.prompt}</span>
+</Button>

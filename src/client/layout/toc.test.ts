@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { currentHeading, trackSections } from './toc';
 
 /* Posiciones de las secciones mientras se lee, relativas al viewport. */
-const at = (...tops: number[]) => tops.map((top, i) => ({ id: `s${i + 1}`, top }));
+function at(...tops: number[]) {
+  return tops.map((top, index) => ({ id: `s${index + 1}`, top }));
+}
 
 describe('currentHeading', () => {
   it('es la última sección cuyo encabezado ya pasó la línea de lectura', () => {
@@ -57,19 +59,20 @@ describe('trackSections', () => {
     const host = {
       scrollY: atBottom ? 1000 : 0,
       innerHeight: 500,
-      addEventListener: (_: 'scroll', cb: () => void) => void scrolls.push(cb),
-      requestAnimationFrame: (cb: () => void) => void frames.push(cb),
+      addEventListener: (_type: 'scroll', callback: () => void) => void scrolls.push(callback),
+      requestAnimationFrame: (callback: () => void) => void frames.push(callback),
     };
     Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1500 });
-    trackSections(document.querySelector('nav')!, { doc: document, host });
-    const current = () =>
-      [...document.querySelectorAll('nav a')]
-        .filter((a) => a.getAttribute('aria-current') === 'location')
-        .map((a) => a.getAttribute('href'));
-    const scroll = () => {
-      for (const cb of scrolls) cb();
-      for (const cb of frames.splice(0)) cb();
-    };
+    trackSections(document.querySelector('nav')!, { htmlDocument: document, host });
+    function current() {
+      return [...document.querySelectorAll('nav a')]
+        .filter((anchor) => anchor.getAttribute('aria-current') === 'location')
+        .map((anchor) => anchor.getAttribute('href'));
+    }
+    function scroll() {
+      for (const callback of scrolls) callback();
+      for (const callback of frames.splice(0)) callback();
+    }
     return { current, scroll, scrolls, frames, document };
   }
 
@@ -111,7 +114,7 @@ describe('trackSections', () => {
     const { document } = parseHTML('<nav><a href="#x">x</a></nav>');
     let added = 0;
     trackSections(document.querySelector('nav')!, {
-      doc: document,
+      htmlDocument: document,
       host: {
         scrollY: 0,
         innerHeight: 1,

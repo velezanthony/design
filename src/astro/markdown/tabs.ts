@@ -2,27 +2,25 @@ import { AstroError } from 'astro/errors';
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
 import { docsPlugin, type MarkdownEnv } from './env';
 
-const element = (hName: string, className: string, children: (MdastNode | Custom)[]): Custom => ({
-  type: 'docsElement',
-  data: { hName, hProperties: { className: [className] } },
-  children,
-});
+function element(hName: string, className: string, children: (MdastNode | Custom)[]): Custom {
+  return {
+    type: 'docsElement',
+    data: { hName, hProperties: { className: [className] } },
+    children,
+  };
+}
 
-/**
- * Pestañas: `::::tabs` con una o más `:::tab[Etiqueta]`. Sin JS son paneles apilados, cada uno con su
- * etiqueta visible (marcado de `ui/molecules/Tabs.astro`); `client/content/tabs.ts` construye la
- * `tablist` y los roles. Una pestaña sin etiqueta, o fuera de un grupo, falla con el archivo.
- */
-export const tabs = (env: MarkdownEnv) =>
-  docsPlugin(env, ({ file }) =>
+/** `::::tabs` con `:::tab[Etiqueta]`; sin JS son paneles apilados y `client/content/tabs.ts` crea la `tablist`; sin etiqueta o fuera de un grupo falla. */
+export function tabs(env: MarkdownEnv) {
+  return docsPlugin(env, ({ file }) =>
     defineMdastPlugin({
       name: 'tabs',
       options: { position: true },
-      containerDirective(node, ctx) {
+      containerDirective(node, context) {
         const where = `${file}${node.position ? `:${node.position.start.line}` : ''}`;
         if (node.name === 'tab') {
           // Las pestañas de un grupo también se visitan (el reemplazo del grupo es posterior).
-          const parent = ctx.parent(node);
+          const parent = context.parent(node);
           if (parent?.type === 'containerDirective' && parent.name === 'tabs') return;
           throw new AstroError(
             `La directiva «:::tab» solo puede ir dentro de «::::tabs» (${where}).`,
@@ -41,7 +39,7 @@ export const tabs = (env: MarkdownEnv) =>
           const [first, ...body] = child.children;
           const label =
             first?.type === 'paragraph' && first.data?.directiveLabel === true
-              ? ctx.textContent(first).trim()
+              ? context.textContent(first).trim()
               : '';
           if (!label) {
             throw new AstroError(
@@ -54,7 +52,8 @@ export const tabs = (env: MarkdownEnv) =>
             ...body,
           ]);
         });
-        ctx.replaceNode(node, element('div', 'docs-tabs', panels));
+        context.replaceNode(node, element('div', 'docs-tabs', panels));
       },
     }),
   );
+}

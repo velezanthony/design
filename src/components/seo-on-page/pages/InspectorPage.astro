@@ -1,0 +1,63 @@
+---
+import type { ComponentProps } from 'astro/types';
+import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
+import Link from '../../atoms/actions/Link.astro';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { PANEL_LABELS, slugLabel } from '../../../core/seo-on-page/labels';
+import PanelIntro from '../organisms/PanelIntro.astro';
+import ReportButton from '../molecules/ReportButton.astro';
+import FixList from '../organisms/inspector/FixList.astro';
+import HeadingsOutline from '../organisms/inspector/HeadingsOutline.astro';
+import InspectorHeader from '../organisms/inspector/InspectorHeader.astro';
+import PublishedFacts from '../organisms/inspector/PublishedFacts.astro';
+import SchemasList from '../organisms/inspector/SchemasList.astro';
+import Translations from '../organisms/inspector/Translations.astro';
+import ClientPageFailures from '../organisms/shared/ClientPageFailures.astro';
+import ReportDialog from '../organisms/shared/ReportDialog.astro';
+
+/* Solo pinta: sin `model`, la página pedida no existe y la ruta ya respondió 404. */
+interface Props {
+  view: Omit<ComponentProps<typeof DocsLayout>, 'year'>;
+  year: number;
+  model?: InspectorModel;
+  slug: string;
+  locale: string;
+  /** Enlace de vuelta a la tabla de páginas. */
+  pagesHref: string;
+  prompts: ComponentProps<typeof FixList>['prompts'];
+  failures: ComponentProps<typeof ClientPageFailures>['failures'];
+  report?: ComponentProps<typeof ReportDialog>;
+}
+
+const { view, year, model, slug, locale, pagesHref, prompts, failures, report } = Astro.props;
+---
+
+<DocsLayout {...view} year={year}>
+  <slot name="head" slot="head" />
+  <PanelIntro title={model ? slugLabel(slug) : PANEL_LABELS.pageNotFound} strings={view.strings} />
+  <ClientPageFailures failures={failures} />
+  {model ? (
+    <div class="flex flex-col gap-10">
+      <InspectorHeader header={model.header} links={model.links}>
+        <ReportButton slot="actions" scope="page" />
+      </InspectorHeader>
+      <FixList fixes={model.fixes} prompts={prompts} />
+      <PublishedFacts published={model.published} previews={model.previews} />
+      {model.translations && <Translations translations={model.translations} />}
+      <SchemasList schemas={model.schemas} />
+      <HeadingsOutline headings={model.headings} />
+      {report && <ReportDialog {...report} />}
+    </div>
+  ) : (
+    <p class="text-ink">
+      No hay ninguna página con slug «{slug}» en «{locale}».
+      <Link href={pagesHref}>{PANEL_LABELS.viewTable}</Link>
+    </p>
+  )}
+</DocsLayout>
+
+<script>
+  import { bootPanel } from '../../../client/seo-on-page/boot';
+
+  bootPanel();
+</script>

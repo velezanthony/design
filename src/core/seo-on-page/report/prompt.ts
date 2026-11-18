@@ -1,10 +1,8 @@
-import { certaintyOf } from '../certainty';
-import { verifyFor } from '../pages/inspector/fix-details';
+import { CATALOG } from '../catalog';
 import type { Issue, IssueKind, SeoPage, SeoTree } from '../tree/types';
-import { currentValue, GENERIC_FIX, keyOf, restrictionFor } from './kinds';
-
-const SEVERITY_TEXT = { error: 'error', warning: 'aviso', info: 'info' } as const;
-const CERTAINTY_TEXT = { rule: 'regla', heuristic: 'heurística' } as const;
+import { findEntry, slugLabel } from '../tree/keys';
+import { CERTAINTY_TEXT, SEVERITY_TEXT } from './format';
+import { currentValue, keyOf, restrictionFor } from './kinds';
 
 interface PromptInput {
   site: string;
@@ -16,35 +14,26 @@ interface PromptInput {
   kindLabels: Record<IssueKind, string>;
 }
 
-/**
- * Un prompt corto y autosuficiente para UN problema de UNA página e idioma: qué pasa, dónde (archivo y
- * clave), qué hay ahora, qué se pide, con qué límite y cómo comprobar que quedó bien. Se pega tal
- * cual en una conversación con la IA, sin el informe entero.
- */
+/** Prompt autosuficiente para UN problema de UNA página e idioma, para pegar sin el informe entero. */
 export function issuePrompt({ site, entry, issue, tree, kindLabels }: PromptInput): string {
-  const certainty = certaintyOf(issue.kind);
+  const certainty = CATALOG[issue.kind].certainty;
   const key = keyOf(issue.kind, entry);
   const value = currentValue(entry, issue);
   const restriction = restrictionFor(issue.kind);
   const related = issue.related ?? [];
   const relatedFiles = related.map(({ slug, locale }) => {
-    const file = tree.pages.find(
-      (page) => page.slug === slug && page.locale === locale,
-    )?.sourcePath;
-    return `\`${slug || '/'}\`${file ? ` (\`${file}\`)` : ''}`;
+    const file = findEntry(tree.pages, slug, locale)?.sourcePath;
+    return `\`${slugLabel(slug)}\`${file ? ` (\`${file}\`)` : ''}`;
   });
   return [
-    `En el sitio «${site}», la página \`${entry.slug || '/'}\` (idioma ${entry.locale}) tiene este problema de SEO: ${kindLabels[issue.kind]} (${SEVERITY_TEXT[issue.severity]}, ${CERTAINTY_TEXT[certainty]}). ${issue.message}`,
+    `En el sitio «${site}», la página \`${slugLabel(entry.slug)}\` (idioma ${entry.locale}) tiene este problema de SEO: ${kindLabels[issue.kind]} (${SEVERITY_TEXT[issue.severity]}, ${CERTAINTY_TEXT[certainty]}). ${issue.message}`,
     `Fichero: \`${entry.sourcePath}\``,
     ...(key ? [`Clave: \`${key}\``] : []),
     ...(value ? [`Valor actual: ${value.text}`] : []),
     ...(relatedFiles.length > 0 ? [`Choca con: ${relatedFiles.join(', ')}`] : []),
-    `Qué hacer: ${issue.fix ?? GENERIC_FIX[issue.kind]}`,
+    `Qué hacer: ${issue.fix ?? CATALOG[issue.kind].fix}`,
     ...(restriction ? [`Restricción: ${restriction}`] : []),
-    `Verificar: ${verifyFor(
-      issue.kind,
-      related.map(({ slug }) => slug),
-    )}`,
+    `Verificar: ${CATALOG[issue.kind].verify(related.map(({ slug }) => slug))}`,
     'No cambies el slug, la URL ni el canonical.',
   ].join('\n');
 }

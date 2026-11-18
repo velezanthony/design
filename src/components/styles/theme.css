@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './base.css';
+@import './components.css';
+@import './prose.css';
+@import './code.css';
+@import './chrome.css';
+@import './motion.css';
+
+/* Tailwind debe escanear todo `src/`, también si el paquete llega por un symlink del workspace fuera de la raíz del consumidor. */
+@source '../../';

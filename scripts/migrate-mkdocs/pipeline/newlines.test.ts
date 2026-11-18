@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyNewlineStyle, splitNewlineStyle } from './newlines';
+import { applyNewlineStyle, splitNewlineStyle } from './newlines.ts';
 
 describe('splitNewlineStyle', () => {
   it('un texto con LF queda igual y se marca como lf', () => {

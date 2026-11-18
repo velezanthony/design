@@ -8,10 +8,7 @@ export const CONSENT_KEY = 'consent';
 /** Desplazamiento de la barra lateral, en `sessionStorage`: solo vale para esta pestaña. */
 export const SIDEBAR_SCROLL_KEY = 'docs:sidebar-scroll';
 
-/**
- * Lectura que no puede romper la página. Las ventanas privadas y los datos de sitio bloqueados
- * lanzan en cada llamada, y recordar el tema nunca justifica una excepción.
- */
+/** Lectura que no rompe la página: las ventanas privadas y los datos bloqueados lanzan en cada llamada. */
 export function safeGet(storage: Storage | undefined, key: string): string | null {
   try {
     return storage?.getItem(key) ?? null;

@@ -1,0 +1,217 @@
+---
+import { navOpenScript } from '../../client/layout/nav-open';
+import { sidebarScrollScript } from '../../client/layout/sidebar-scroll';
+import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
+import type { Locale } from '../../core/i18n/locale';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
+import { editHref } from '../../core/navigation/edit-href';
+import type { FooterView } from '../../core/navigation/footer';
+import type { NavEntry } from '../../core/navigation/nav-entries';
+import type { SidebarNode } from '../../core/navigation/sidebar';
+import type { HeadConfig } from '../../core/seo/head';
+import EditLink from '../molecules/navigation/EditLink.astro';
+import FallbackNotice from '../molecules/content/FallbackNotice.astro';
+import NavList from '../molecules/navigation/NavList.astro';
+import PanelToggle from '../molecules/controls/PanelToggle.astro';
+import PrevNext from '../molecules/navigation/PrevNext.astro';
+import TableOfContents from '../molecules/navigation/TableOfContents.astro';
+import { tocEntries } from '../../core/navigation/toc-entries';
+import BackToTop from '../organisms/chrome/BackToTop.astro';
+import ConsentBanner from '../organisms/privacy/ConsentBanner.astro';
+import DocsFooter from '../organisms/chrome/DocsFooter.astro';
+import DocsHeader from '../organisms/chrome/DocsHeader.astro';
+import SearchBox from '../organisms/chrome/SearchBox.astro';
+import Sidebar from '../organisms/chrome/Sidebar.astro';
+import Shell from './Shell.astro';
+
+interface Props {
+  lang: Locale;
+  head: HeadConfig[];
+  siteName: string;
+  homeHref: string;
+  /** URL de esta página en cada idioma en que existe. */
+  hrefs: Partial<Record<Locale, string>>;
+  strings: UiStrings;
+  sidebar: SidebarNode[];
+  /** Items de la cabecera; en móvil abren el «Menú», antes de la barra lateral de la sección. */
+  nav?: NavEntry[];
+  footer?: FooterView;
+  /** URL de esta página (la entrada de la barra lateral que lleva `aria-current`). */
+  current: string;
+  headings: { depth: number; slug: string; text: string }[];
+  prev?: { label: string; href: string };
+  next?: { label: string; href: string };
+  editUrl?: string;
+  editFile?: string;
+  /** Con `gtmId` es obligatoria: el aviso de consentimiento enlaza a ella. */
+  privacyUrl?: string;
+  gtmId?: string;
+  /** Una página `noindex` o de reserva va fuera del índice de búsqueda. */
+  indexable: boolean;
+  baseUrl: string;
+  year: number;
+  /** Solo en una ruta de reserva: el contenido es el del idioma original. */
+  fallback?: { originalLocale: Locale; href: string };
+  /** Columnas plegables y ancho; sin él, todo abierto, en lectura y con los controles. */
+  layout?: ResolvedLayout;
+  /** `false` para una página con su propio marcado (herramientas, tablas): sin el estilo de `.prose`. */
+  prose?: boolean;
+}
+
+const {
+  lang,
+  head,
+  siteName,
+  homeHref,
+  hrefs,
+  strings,
+  sidebar,
+  nav = [],
+  footer,
+  current,
+  headings,
+  prev,
+  next,
+  editUrl,
+  editFile,
+  privacyUrl,
+  gtmId,
+  indexable,
+  baseUrl,
+  year,
+  fallback,
+  layout = DEFAULT_LAYOUT,
+  prose = true,
+} = Astro.props;
+/* Con índice, tres columnas; sin él, el contenido ocupa también la de la derecha. */
+const hasToc = tocEntries(headings).length > 0;
+
+if (gtmId && !privacyUrl) {
+  throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+}
+
+/* Pagefind solo indexa lo que cuelga de `data-pagefind-body`; lo demás, ni se marca. */
+const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': '' };
+---
+
+<Shell lang={lang} head={head} layout={layout}>
+  <slot name="head" slot="head" />
+  <DocsHeader
+    siteName={siteName}
+    homeHref={homeHref}
+    lang={lang}
+    hrefs={hrefs}
+    strings={strings}
+    nav={nav}
+    layoutToggles={layout.toggles}
+    layoutWidth={layout.width}
+  >
+    <SearchBox strings={strings} baseUrl={baseUrl} />
+  </DocsHeader>
+
+  <div
+    class:list={[
+      'docs-container docs-page mx-auto grid w-full max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:gap-y-0 lg:px-10 lg:py-0',
+      hasToc && 'xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]',
+    ]}
+  >
+    {/* `aside` es el plano (fondo y bordes, de la altura de la columna); lo que se desplaza, con su
+        propia barra, es el contenedor pegajoso de dentro. */}
+    <aside class="docs-sidebar">
+      <div
+        class="docs-sidebar-scroll lg:sticky lg:top-0 lg:max-h-dvh lg:overflow-y-auto"
+        data-docs-sidebar-scroll
+      >
+        {layout.toggles && (
+          <PanelToggle
+            side="left"
+            controls="docs-nav-panel"
+            open={layout.sidebar === 'open'}
+            strings={strings}
+          />
+        )}
+        <div id="docs-nav-panel" class="docs-panel">
+          {/* En móvil la navegación se pliega tras un «Menú»: llega abierta (sin JS) y el script la cierra por debajo de lg. */}
+          <details class="docs-nav" open data-docs-nav>
+            <summary class="docs-nav-toggle lg:hidden">
+              {translate(strings, 'sidebar.toggle')}
+            </summary>
+            <NavList
+              entries={nav}
+              strings={strings}
+              variant="menu"
+              class="mb-4 border-b border-rule pb-4 lg:hidden"
+            />
+            <Sidebar nodes={sidebar} current={current} strings={strings} />
+          </details>
+          <script is:inline set:html={navOpenScript()} />
+        </div>
+        {/* Tras la barra, antes del primer pintado: al cambiar de página recupera el desplazamiento (o
+        centra la entrada actual) sin que se vea el salto. */}
+        <script is:inline set:html={sidebarScrollScript()} />
+      </div>
+    </aside>
+
+    <main
+      id="main-content"
+      class="min-w-0 lg:py-8"
+      {...pagefind}
+      data-copy-label={translate(strings, 'copy.label')}
+      data-copied-label={translate(strings, 'copy.copied')}
+      data-copy-failed-label={translate(strings, 'copy.failed')}
+      data-anchor-label={strings['heading.anchor']}
+      data-zoom-label={strings['zoom.open']}
+      data-zoom-close-label={translate(strings, 'zoom.close')}
+      data-diagram-label={translate(strings, 'diagram.label')}
+      data-diagram-expand-label={translate(strings, 'diagram.expand')}
+      data-diagram-zoom-in-label={translate(strings, 'diagram.zoomIn')}
+      data-diagram-zoom-out-label={translate(strings, 'diagram.zoomOut')}
+      data-diagram-fit-label={translate(strings, 'diagram.fit')}
+    >
+      {fallback && (
+        <FallbackNotice
+          originalLocale={fallback.originalLocale}
+          href={fallback.href}
+          strings={strings}
+        />
+      )}
+      {/* `.prose` es la utilidad que da estilo al Markdown renderizado (encabezados, código, anclas,
+          admoniciones, pestañas). Va solo en el contenido: el cromo de debajo no la hereda. */}
+      <div class:list={[prose && 'prose']} lang={fallback?.originalLocale}>
+        <slot />
+      </div>
+      <div data-pagefind-ignore>
+        {editUrl && editFile && <EditLink href={editHref(editUrl, editFile)} strings={strings} />}
+        <PrevNext prev={prev} next={next} strings={strings} />
+      </div>
+    </main>
+
+    {/* Sin índice no se reserva su columna: el contenido (tablas, herramientas) usa ese ancho. */}
+    {hasToc && (
+      <div data-toc-column class="hidden xl:block xl:py-8">
+        <TableOfContents
+          headings={headings}
+          strings={strings}
+          toggles={layout.toggles}
+          open={layout.toc === 'open'}
+        />
+      </div>
+    )}
+  </div>
+
+  <DocsFooter
+    siteName={siteName}
+    year={year}
+    strings={strings}
+    privacyUrl={privacyUrl}
+    cookieControl={Boolean(gtmId)}
+    footer={footer}
+  />
+  {gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
+  <BackToTop strings={strings} />
+  <script>
+    import { bootDocs } from './boot';
+
+    bootDocs();
+  </script>
+</Shell>

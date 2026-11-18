@@ -1,0 +1,47 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import type { TagTone } from '../../../core/shared/tones';
+
+interface Props extends Omit<HTMLAttributes<'span'>, 'class'> {
+  tone?: TagTone;
+  /** Pinta un cuadrado inicial. Lo usan los marcadores de estado. */
+  dot?: boolean;
+  /** Lo enmarca con el color de su tono: una insignia, no solo un texto coloreado. */
+  bordered?: boolean;
+  /** Texto normal en vez de la tipografía de etiqueta (mayúsculas espaciadas): para frases cortas. */
+  plain?: boolean;
+  class?: string;
+}
+
+const {
+  tone = 'neutral',
+  dot = false,
+  bordered = false,
+  plain = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const tones: Record<TagTone, string> = {
+  neutral: 'text-muted',
+  accent: 'text-accent',
+  faint: 'text-faint',
+  live: 'text-state-live',
+  wip: 'text-state-wip',
+  danger: 'text-danger',
+};
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-1.5',
+    plain ? 'text-sm whitespace-nowrap' : 'label',
+    bordered && 'border border-current px-1.5 py-0.5',
+    tones[tone],
+    className,
+  ]}
+  {...rest}
+>
+  {dot && <span class="size-1.5 shrink-0 bg-current" aria-hidden="true" />}
+  <slot />
+</span>

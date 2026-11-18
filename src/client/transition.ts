@@ -2,7 +2,7 @@
 export type MotionPreference = Pick<MediaQueryList, 'matches'>;
 
 export interface TransitionOptions {
-  doc: Document;
+  htmlDocument: Document;
   /** `matches` es verdadero si quien visita pidió reducir el movimiento; se lee en cada llamada. */
   motion: MotionPreference;
   /** Nombre de la transición: queda en `<html data-transition>` para que el CSS elija su efecto. */
@@ -17,31 +17,25 @@ type StartViewTransition = (update: () => void | Promise<void>) => { finished: P
    vieja y su limpieza no debe borrar las marcas de la nueva. */
 let latest = 0;
 
-/**
- * Ejecuta `update` dentro de una View Transition del documento si el navegador la tiene y quien
- * visita no pidió reducir el movimiento; si no, lo ejecuta al instante y de forma síncrona. Con
- * `kind` y `vars` deja marcas en `<html>` mientras dura, para que el CSS dé a cada uso su efecto
- * sin tocar las demás transiciones. La promesa resuelve al acabar, y nunca rechaza: una
- * transición saltada o interrumpida no es un error de quien llama.
- */
+/** Ejecuta `update` en una View Transition si hay API y no se pidió reducir movimiento (si no, al instante); `kind`/`vars` marcan `<html>` y la promesa nunca rechaza. */
 export async function withTransition(
   update: () => void | Promise<void>,
-  { doc, motion, kind, vars = {} }: TransitionOptions,
+  { htmlDocument, motion, kind, vars = {} }: TransitionOptions,
 ): Promise<void> {
-  const start = (doc as Document & { startViewTransition?: StartViewTransition })
+  const start = (htmlDocument as Document & { startViewTransition?: StartViewTransition })
     .startViewTransition;
   if (typeof start !== 'function' || motion.matches) {
     void update();
     return;
   }
 
-  const root = doc.documentElement;
+  const root = htmlDocument.documentElement;
   const id = ++latest;
   if (kind) root.dataset.transition = kind;
   for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value);
 
   try {
-    await start.call(doc, update).finished;
+    await start.call(htmlDocument, update).finished;
   } catch {
     /* Saltada o interrumpida: el cambio de estado ya ocurrió, solo falta limpiar. */
   } finally {

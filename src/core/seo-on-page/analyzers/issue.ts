@@ -1,27 +1,5 @@
-import { IssueKind, IssueSeverity, type Issue } from '../tree/types';
-
-/** Gravedad por defecto de cada tipo; `translation-missing` la decide su analizador según la política. */
-const SEVERITY: Record<IssueKind, IssueSeverity> = {
-  [IssueKind.TITLE_TOO_LONG]: IssueSeverity.WARNING,
-  [IssueKind.TITLE_TOO_SHORT]: IssueSeverity.WARNING,
-  [IssueKind.DESCRIPTION_MISSING]: IssueSeverity.WARNING,
-  [IssueKind.DESCRIPTION_INHERITED]: IssueSeverity.INFO,
-  [IssueKind.DESCRIPTION_TOO_LONG]: IssueSeverity.WARNING,
-  [IssueKind.DESCRIPTION_TOO_SHORT]: IssueSeverity.INFO,
-  [IssueKind.DUPLICATE_TITLE]: IssueSeverity.WARNING,
-  [IssueKind.DUPLICATE_DESCRIPTION]: IssueSeverity.WARNING,
-  [IssueKind.NO_H1]: IssueSeverity.ERROR,
-  [IssueKind.MULTIPLE_H1]: IssueSeverity.WARNING,
-  [IssueKind.HEADING_SKIP]: IssueSeverity.WARNING,
-  [IssueKind.TRANSLATION_MISSING]: IssueSeverity.WARNING,
-  [IssueKind.TRANSLATION_POLICY_CONFLICT]: IssueSeverity.ERROR,
-  [IssueKind.CANONICAL_MISMATCH]: IssueSeverity.WARNING,
-  [IssueKind.LINK_TO_NOINDEX]: IssueSeverity.INFO,
-  [IssueKind.ORPHAN_PAGE]: IssueSeverity.INFO,
-  [IssueKind.IMAGE_ALT_MISSING]: IssueSeverity.WARNING,
-  // Warning si la proporción no es la de la tarjeta (se recorta); info si solo es pequeña: lo decide su analizador.
-  [IssueKind.OG_IMAGE_SIZE]: IssueSeverity.WARNING,
-};
+import { CATALOG } from '../catalog';
+import type { IssueKind, Issue } from '../tree/types';
 
 type Extra = Partial<Pick<Issue, 'severity' | 'value' | 'limit' | 'related' | 'fix'>>;
 
@@ -34,7 +12,7 @@ export function makeIssue(
 ): Issue {
   return {
     kind,
-    severity: extra.severity ?? SEVERITY[kind],
+    severity: extra.severity ?? CATALOG[kind].severity,
     slug: page.slug,
     locale: page.locale,
     message,

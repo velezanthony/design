@@ -3,15 +3,17 @@ import { seoPage } from '../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage, type SeoTree } from '../tree/types';
 import { issuePrompt } from './prompt';
 
-const issue = (kind: IssueKind, extra: Partial<Issue> = {}): Issue => ({
-  kind,
-  severity: IssueSeverity.WARNING,
-  slug: 'guide',
-  locale: 'en',
-  message: 'Otra página publica el mismo título.',
-  fix: 'Dale un título distinto: `seo.title` en `guide.md`.',
-  ...extra,
-});
+function issue(kind: IssueKind, extra: Partial<Issue> = {}): Issue {
+  return {
+    kind,
+    severity: IssueSeverity.WARNING,
+    slug: 'guide',
+    locale: 'en',
+    message: 'Otra página publica el mismo título.',
+    fix: 'Dale un título distinto: `seo.title` en `guide.md`.',
+    ...extra,
+  };
+}
 
 const twin = seoPage({ slug: 'ref', sourcePath: 'ref.md' });
 const own = seoPage({
@@ -22,8 +24,9 @@ const own = seoPage({
 const tree: SeoTree = { pages: [own, twin] };
 const labels = { [IssueKind.DUPLICATE_TITLE]: 'Título duplicado' } as Record<IssueKind, string>;
 
-const prompt = (found: Issue, entry: SeoPage = own) =>
-  issuePrompt({ site: 'SnakeORM', entry, issue: found, tree, kindLabels: labels });
+function prompt(found: Issue, entry: SeoPage = own) {
+  return issuePrompt({ site: 'SnakeORM', entry, issue: found, tree, kindLabels: labels });
+}
 
 describe('issuePrompt', () => {
   it('se explica solo: sitio, página, idioma, problema, gravedad y certeza', () => {

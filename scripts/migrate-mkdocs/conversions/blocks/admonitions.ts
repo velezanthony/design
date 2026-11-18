@@ -34,29 +34,28 @@ const ALERTS: Record<string, string> = { note: 'NOTE', tip: 'TIP', warning: 'WAR
 
 const ADMONITION = /^(\s*)(!!!|\?\?\?\+?)\s+([\w-]+)(?:\s+"((?:[^"\\]|\\.)*)")?\s*$/;
 
-const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
+function capitalize(word: string) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
-/**
- * `!!! tipo "Título"` (y `???` / `???+`) con su cuerpo indentado. Sin título y con equivalente 1:1
- * sale como alerta de GitHub; con título, plegada o anidada, como directiva `:::tipo[Título]`.
- * Los alias de Material y los tipos desconocidos se reducen a un tipo de la librería (y se
- * registran, porque pierden matiz). `recurse` convierte el cuerpo: es lo que permite anidar.
- */
+/** `!!!`/`???` con cuerpo indentado: alerta de GitHub si es 1:1 y sin título, directiva `:::tipo[Título]` en el resto. */
 export function convertAdmonition(
   lines: string[],
   start: number,
   offset: number,
   recurse: Recurse,
 ): BlockResult | undefined {
-  const match = ADMONITION.exec(lines[start]);
+  const match = ADMONITION.exec(lines[start] ?? '');
   if (!match) return undefined;
-  const [, indentText, marker, rawType, rawTitle] = match;
+  const [, indentText = '', marker, rawType = '', rawTitle] = match;
   const lineNumber = offset + start + 1;
   const [rawBody, next] = takeBody(lines, start + 1, indentText.length);
   const inner = recurse(rawBody, lineNumber);
   const body = inner.output;
   const log: LogEntry[] = [...inner.log];
-  const prefix = (text: string[]) => text.map((row) => indentText + row);
+  function prefix(text: string[]) {
+    return text.map((row) => indentText + row);
+  }
 
   let type = rawType.toLowerCase();
   let title = rawTitle === undefined ? '' : unescapeTitle(rawTitle);

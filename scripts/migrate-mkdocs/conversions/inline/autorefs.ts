@@ -3,11 +3,7 @@ import type { LineResult, LogEntry } from '../../pipeline/types.ts';
 
 const AUTOREF = /\[([^\]]+)\]\[([A-Za-z_][\w.]*)?\]/g;
 
-/**
- * Las referencias cruzadas de mkdocs-autorefs (`[Texto][paquete.Símbolo]`, o `[`paquete.Símbolo`][]`)
- * pasan a enlaces si se conoce el ancla del símbolo; si no, a texto plano y se registra. Sin punto
- * en el símbolo no es una autorref (`a[0][1]`, `[x][y]`): se deja intacto.
- */
+/** Autorrefs de mkdocs-autorefs: enlace si se conoce el ancla, texto plano (y registro) si no; sin punto en el símbolo no lo son (`a[0][1]`). */
 export function resolveAutorefs(
   line: string,
   lineNumber: number,
@@ -15,7 +11,7 @@ export function resolveAutorefs(
 ): LineResult {
   const log: LogEntry[] = [];
   const output = replaceOutsideCode(line, AUTOREF, (match) => {
-    const [whole, text, ref] = match;
+    const [whole, text = '', ref] = match;
     const symbol = ref ?? text.replace(/`/g, '');
     if (!symbol.includes('.')) return whole;
     const url = symbols?.[symbol];

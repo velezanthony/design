@@ -1,0 +1,34 @@
+---
+import Tag from '../../atoms/display/Tag.astro';
+import type { TagTone } from '../../../core/shared/tones';
+import type { LocaleTone } from '../../../core/seo-on-page/pages/listing/rows';
+import { LOCALE_TONE_LABELS } from '../../../core/seo-on-page/labels';
+
+interface Props {
+  locale: string;
+  /** Su peor gravedad; «ok» sin incidencias y «missing» si la página no existe en ese idioma. */
+  tone: LocaleTone;
+}
+
+const { locale, tone } = Astro.props;
+
+/* El color nunca va solo: cada tono lleva un glifo y el texto (oculto) para lectores de pantalla. */
+const tones: Record<LocaleTone, { tag: TagTone; classes?: string; glyph: string }> = {
+  error: { tag: 'danger', glyph: '■' },
+  warning: { tag: 'wip', glyph: '▲' },
+  info: { tag: 'neutral', glyph: '•' },
+  ok: { tag: 'live', glyph: '' },
+  missing: { tag: 'faint', classes: 'border-dashed line-through', glyph: '' },
+};
+const { tag, classes, glyph } = tones[tone];
+---
+
+<Tag bordered tone={tag} class={classes} data-locale={locale} data-tone={tone}>
+  {glyph && (
+    <span class="text-[0.6rem]" aria-hidden="true">
+      {glyph}
+    </span>
+  )}
+  {locale.toUpperCase()}
+  <span class="sr-only">: {LOCALE_TONE_LABELS[tone]}</span>
+</Tag>

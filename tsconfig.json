@@ -1,5 +1,15 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "compilerOptions": { "noUncheckedIndexedAccess": true },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "_local", "playground", "docs", "src/**/fixtures"]
+  "exclude": [
+    "dist",
+    "coverage",
+    "reports",
+    ".stryker-tmp",
+    "_local",
+    "playground",
+    "docs",
+    "src/**/fixtures"
+  ]
 }

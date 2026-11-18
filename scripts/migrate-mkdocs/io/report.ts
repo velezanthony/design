@@ -4,27 +4,32 @@ import type { StubLink } from '../checks/stub-links.ts';
 import type { LogEntry, LogKind } from '../pipeline/types.ts';
 
 /** `fichero:línea  tipo  vista previa`, una línea por resto. */
-export const formatLeftovers = (leftovers: Leftover[]): string[] =>
-  leftovers.map((item) => `${item.file}:${item.line}  ${item.kind}  ${item.preview}`);
+export function formatLeftovers(leftovers: Leftover[]): string[] {
+  return leftovers.map((item) => `${item.file}:${item.line}  ${item.kind}  ${item.preview}`);
+}
 
 /** Slug para `external[]`: la ruta de la página sin `.md` ni sufijo de idioma. */
-export const stubSlug = (file: string): string =>
-  file
+export function stubSlug(file: string): string {
+  return file
     .replace(/\.md$/, '')
     .replace(/\.[a-z]{2}(?:-[A-Za-z]{2,})?$/, '')
     .toLowerCase()
     .replace(/\s+/g, '-');
+}
 
 /** Enlaces a un stub: `docs/fichero:línea  destino  ->  sustitución`. */
-export const formatStubLinks = (links: StubLink[]): string[] =>
-  links.map((link) => `docs/${link.file}:${link.line}  ${link.href}  ->  ${link.suggestion}`);
+export function formatStubLinks(links: StubLink[]): string[] {
+  return links.map(
+    (link) => `docs/${link.file}:${link.line}  ${link.href}  ->  ${link.suggestion}`,
+  );
+}
 
-export function formatStubs(stubs: SnippetStub[], docsDir: string): string[] {
+export function formatStubs(stubs: SnippetStub[], docsDirectory: string): string[] {
   if (stubs.length === 0) return [];
   const lines = ['Páginas que solo incluyen otro fichero (`--8<--`); no se han tocado:'];
   const entries = new Set<string>();
   for (const stub of stubs) {
-    lines.push(`  ${docsDir}/${stub.file}  incluye  ${stub.include}`);
+    lines.push(`  ${docsDirectory}/${stub.file}  incluye  ${stub.include}`);
     /* `changelog.es.md` es la gemela de `changelog.md`: la misma entrada `external` las cubre. */
     const include = /\.[a-z]{2}(?:-[A-Za-z]{2,})?\.md$/.test(stub.file)
       ? stub.include.replace(/\.[a-z]{2}(?:-[A-Za-z]{2,})?\.md$/, '.md')

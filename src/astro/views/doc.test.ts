@@ -5,23 +5,27 @@ import { resolveConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
 import { docRoutes, docView, type DocRoute } from './doc';
-import type { DocData } from './pages';
+import type { DocData } from '../loader/schema';
 
-const site = (user: Partial<DocsUserConfig> = {}) =>
-  createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
+function site(user: Partial<DocsUserConfig> = {}) {
+  return createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
     base: '/repo',
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
+    publicDir: 'file:///site/public/',
   });
+}
 
-const doc = (slug: string, locale: string, extra: Partial<DocData> = {}): DocData => ({
-  slug,
-  locale,
-  title: `${slug || 'Home'} ${locale}`,
-  sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
-  ...extra,
-});
+function doc(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
+  return {
+    slug,
+    locale,
+    title: `${slug || 'Home'} ${locale}`,
+    sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
+    ...extra,
+  };
+}
 
 const all = [
   doc('', 'en'),
@@ -31,28 +35,37 @@ const all = [
   doc('only-en', 'en', { order: 3 }),
 ];
 
-const route = (routes: DocRoute[], slug: string, locale: string) =>
-  routes.find((r) => r.slug === slug && r.locale === locale)!;
+function route(routes: DocRoute[], slug: string, locale: string) {
+  return routes.find((docRoute) => docRoute.slug === slug && docRoute.locale === locale)!;
+}
 
 describe('docRoutes', () => {
   it('una ruta por página real; el idioma por defecto va sin prefijo y la portada es undefined', () => {
     const routes = docRoutes(all, site());
-    expect(routes.map((r) => r.param)).toEqual([undefined, 'es', 'guide', 'es/guide', 'only-en']);
-    expect(routes.every((r) => r.kind === 'page')).toBe(true);
+    expect(routes.map((docRoute) => docRoute.param)).toEqual([
+      undefined,
+      'es',
+      'guide',
+      'es/guide',
+      'only-en',
+    ]);
+    expect(routes.every((docRoute) => docRoute.kind === 'page')).toBe(true);
   });
 
   it('con política link u omit no hay rutas de reserva', () => {
-    expect(docRoutes(all, site()).filter((r) => r.kind === 'fallback')).toHaveLength(0);
+    expect(docRoutes(all, site()).filter((docRoute) => docRoute.kind === 'fallback')).toHaveLength(
+      0,
+    );
     expect(
       docRoutes(all, site({ translations: { missing: 'omit' } })).filter(
-        (r) => r.kind === 'fallback',
+        (docRoute) => docRoute.kind === 'fallback',
       ),
     ).toHaveLength(0);
   });
 
   it('con política fallback: una ruta de reserva por idioma ausente, del contenido original', () => {
     const routes = docRoutes(all, site({ translations: { missing: 'fallback' } }));
-    const fallback = routes.filter((r) => r.kind === 'fallback');
+    const fallback = routes.filter((docRoute) => docRoute.kind === 'fallback');
     expect(fallback).toHaveLength(1);
     expect(fallback[0]).toMatchObject({
       param: 'es/only-en',
@@ -65,13 +78,15 @@ describe('docRoutes', () => {
 
   it('sitio monolingüe: sin prefijos ni reservas', () => {
     const mono = site({ locales: ['en'] });
-    expect(docRoutes([doc('guide', 'en')], mono).map((r) => r.param)).toEqual(['guide']);
+    expect(docRoutes([doc('guide', 'en')], mono).map((docRoute) => docRoute.param)).toEqual([
+      'guide',
+    ]);
   });
 });
 
 describe('docView: página real', () => {
-  const cfg = site({ editUrl: 'https://github.com/o/r/edit/main', repoRoot: '.' });
-  const view = docView(route(docRoutes(all, cfg), 'guide', 'es'), all, cfg);
+  const config = site({ editUrl: 'https://github.com/o/r/edit/main', repoRoot: '.' });
+  const view = docView({ route: route(docRoutes(all, config), 'guide', 'es'), data: all, config });
 
   it('idioma, textos del idioma, portada, nombre y base', () => {
     expect(view.lang).toBe('es');
@@ -90,8 +105,9 @@ describe('docView: página real', () => {
   });
 
   it('head: título, canonical absoluto, hreflang y og:locale', () => {
-    const find = (tag: string, key: string, value: string) =>
-      view.head.find((h) => h.tag === tag && h.attrs[key] === value);
+    function find(tag: string, key: string, value: string) {
+      return view.head.find((headTag) => headTag.tag === tag && headTag.attrs[key] === value);
+    }
     expect(view.head[0]).toMatchObject({ tag: 'title' });
     expect(find('link', 'rel', 'canonical')!.attrs['href']).toBe('https://x.dev/repo/es/guide/');
     expect(find('link', 'hreflang', 'en')).toBeDefined();
@@ -105,31 +121,33 @@ describe('docView: página real', () => {
 
 describe('docView: edición', () => {
   it('editFile es el editPath de la entrada; sin editUrl no hay enlace', () => {
-    const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
+    const config = site({ editUrl: 'https://github.com/o/r/edit/main' });
     const data = [doc('guide', 'en', { editPath: 'docs/guide.md' })];
-    const v = docView(docRoutes(data, cfg)[0]!, data, cfg);
-    expect(v.editUrl).toBe('https://github.com/o/r/edit/main');
-    expect(v.editFile).toBe('docs/guide.md');
+    const pageView = docView({ route: docRoutes(data, config)[0]!, data, config });
+    expect(pageView.editUrl).toBe('https://github.com/o/r/edit/main');
+    expect(pageView.editFile).toBe('docs/guide.md');
     const none = site();
-    expect(docView(docRoutes(data, none)[0]!, data, none).editUrl).toBeUndefined();
+    expect(
+      docView({ route: docRoutes(data, none)[0]!, data, config: none }).editUrl,
+    ).toBeUndefined();
   });
 
   it('sin editPath no se ofrece edición aunque haya editUrl', () => {
-    const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
+    const config = site({ editUrl: 'https://github.com/o/r/edit/main' });
     const data = [doc('guide', 'en')];
-    expect(docView(docRoutes(data, cfg)[0]!, data, cfg).editUrl).toBeUndefined();
+    expect(docView({ route: docRoutes(data, config)[0]!, data, config }).editUrl).toBeUndefined();
   });
 });
 
 describe('docView: noindex', () => {
-  const cfg = site();
+  const config = site();
   const data = [doc('guide', 'en'), doc('guide', 'es', { seo: { noindex: true } })];
-  const view = docView(route(docRoutes(data, cfg), 'guide', 'es'), data, cfg);
+  const view = docView({ route: route(docRoutes(data, config), 'guide', 'es'), data, config });
 
   it('robots noindex, no indexable, y sin hreflang entre las gemelas', () => {
     expect(view.indexable).toBe(false);
-    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
-    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
+    expect(view.head.some((headTag) => headTag.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((headTag) => headTag.attrs['hreflang'])).toBe(false);
   });
 
   it('sigue siendo alcanzable desde el selector de idioma', () => {
@@ -138,12 +156,12 @@ describe('docView: noindex', () => {
 });
 
 describe('docView: ruta de reserva', () => {
-  const cfg = site({
+  const config = site({
     translations: { missing: 'fallback' },
     editUrl: 'https://github.com/o/r/edit/main',
   });
   const data = [doc('', 'en'), doc('only-en', 'en', { editPath: 'docs/only-en.md' })];
-  const view = docView(route(docRoutes(data, cfg), 'only-en', 'es'), data, cfg);
+  const view = docView({ route: route(docRoutes(data, config), 'only-en', 'es'), data, config });
 
   it('idioma de la ruta, aviso con el original, no indexable', () => {
     expect(view.lang).toBe('es');
@@ -153,11 +171,11 @@ describe('docView: ruta de reserva', () => {
   });
 
   it('head: noindex y canonical al ORIGINAL, sin alternates', () => {
-    expect(view.head.find((h) => h.attrs['rel'] === 'canonical')!.attrs['href']).toBe(
+    expect(view.head.find((headTag) => headTag.attrs['rel'] === 'canonical')!.attrs['href']).toBe(
       'https://x.dev/repo/only-en/',
     );
-    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
-    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
+    expect(view.head.some((headTag) => headTag.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((headTag) => headTag.attrs['hreflang'])).toBe(false);
   });
 
   it('selector de idioma sin gemela en es; edición apunta al archivo original', () => {
@@ -171,11 +189,18 @@ describe('docView: ruta de reserva', () => {
 });
 
 describe('docView: dimensiones de la imagen', () => {
-  const cfg = site({ seo: { image: { src: '/og.png', alt: 'Card' } } });
-  const head = (sizes?: Map<string, { width: number; height: number }>) =>
-    docView(route(docRoutes(all, cfg), 'guide', 'es'), all, cfg, sizes).head;
-  const content = (tags: ReturnType<typeof head>, property: string) =>
-    tags.find((h) => h.attrs['property'] === property)?.attrs['content'];
+  const config = site({ seo: { image: { src: '/og.png', alt: 'Card' } } });
+  function head(sizes?: Map<string, { width: number; height: number }>) {
+    return docView({
+      route: route(docRoutes(all, config), 'guide', 'es'),
+      data: all,
+      config,
+      sizes,
+    }).head;
+  }
+  function content(tags: ReturnType<typeof head>, property: string) {
+    return tags.find((headTag) => headTag.attrs['property'] === property)?.attrs['content'];
+  }
 
   it('og:image:width/height salen de los tamaños leídos', () => {
     const tags = head(new Map([['/og.png', { width: 1200, height: 630 }]]));
@@ -201,7 +226,7 @@ describe('docView: nav con secciones', () => {
     doc('users/c', 'en'),
     doc('contributors/x', 'en'),
   ];
-  const cfg = site({
+  const config = site({
     locales: ['en'],
     nav: [
       { label: 'Guide', dir: 'users' },
@@ -209,11 +234,14 @@ describe('docView: nav con secciones', () => {
     ],
     sidebar: ['index', 'showcase'],
   });
-  const view = (slug: string) => docView(route(docRoutes(pages, cfg), slug, 'en'), pages, cfg);
+  function view(slug: string) {
+    return docView({ route: route(docRoutes(pages, config), slug, 'en'), data: pages, config });
+  }
 
   it('la barra lateral es la de la sección de la página', () => {
-    const slugs = (slug: string) =>
-      view(slug).sidebar.map((node) => ('slug' in node ? node.slug : node.label));
+    function slugs(slug: string) {
+      return view(slug).sidebar.map((node) => ('slug' in node ? node.slug : node.label));
+    }
     expect(slugs('users/b')).toEqual(['users/a', 'users/b', 'users/c']);
     expect(slugs('contributors/x')).toEqual(['contributors/x']);
     expect(slugs('showcase')).toEqual(['', 'showcase']);
@@ -237,28 +265,34 @@ describe('docView: nav con secciones', () => {
 
   it('sin `nav` la lista es vacía y la barra lateral es la entera', () => {
     const plain = site({ locales: ['en'] });
-    const v = docView(route(docRoutes(pages, plain), 'users/b', 'en'), pages, plain);
-    expect(v.nav).toEqual([]);
-    expect(v.sidebar.length).toBeGreaterThan(1);
+    const pageView = docView({
+      route: route(docRoutes(pages, plain), 'users/b', 'en'),
+      data: pages,
+      config: plain,
+    });
+    expect(pageView.nav).toEqual([]);
+    expect(pageView.sidebar.length).toBeGreaterThan(1);
   });
 });
 
 describe('docView: footer', () => {
   const pages = [doc('', 'en'), doc('', 'es'), doc('changelog', 'en'), doc('changelog', 'es')];
-  const cfg = site({
+  const config = site({
     social: { github: 'https://github.com/x/y' },
     footer: {
       license: 'MIT',
       links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }],
     },
   });
-  const footerOf = (locale: string) =>
-    docView(route(docRoutes(pages, cfg), '', locale), pages, cfg).footer;
+  function footerOf(locale: string) {
+    return docView({ route: route(docRoutes(pages, config), '', locale), data: pages, config })
+      .footer;
+  }
 
   it('entrega licencia, autor por defecto y los enlaces ya resueltos para el idioma', () => {
     const footer = footerOf('es');
     expect(footer.license).toEqual({ label: 'MIT' });
-    expect(footer.author?.name).toBe('Anthony Vélez');
+    expect(footer.author?.name).toBe('Anthony Velez');
     expect(footer.links.map((link) => [link.label, link.href])).toEqual([
       ['Cambios', '/repo/es/changelog/'],
       ['Repositorio', 'https://github.com/x/y'],
@@ -268,44 +302,55 @@ describe('docView: footer', () => {
 
   it('sin config del footer solo queda el autor', () => {
     const plain = site();
-    const v = docView(route(docRoutes(pages, plain), '', 'en'), pages, plain);
-    expect(v.footer).toEqual({
-      author: { name: 'Anthony Vélez', href: 'https://velezanthony.github.io/' },
+    const pageView = docView({
+      route: route(docRoutes(pages, plain), '', 'en'),
+      data: pages,
+      config: plain,
+    });
+    expect(pageView.footer).toEqual({
+      author: { name: 'Anthony Velez', href: 'https://velezanthony.github.io/' },
       links: [],
     });
   });
 });
 
 describe('docView: analítica y privacidad', () => {
-  const withEnv = (envValue: string | undefined, user: Partial<DocsUserConfig> = {}) =>
-    createVirtualData(
+  function withEnv(envValue: string | undefined, user: Partial<DocsUserConfig> = {}) {
+    return createVirtualData(
       applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), envValue),
-      { base: '/repo', site: 'https://x.dev', trailingSlash: 'always', buildFormat: 'directory' },
+      {
+        base: '/repo',
+        site: 'https://x.dev',
+        trailingSlash: 'always',
+        buildFormat: 'directory',
+        publicDir: 'file:///site/public/',
+      },
     );
+  }
 
   it('sin analítica no hay gtmId ni enlace de privacidad', () => {
-    const view = docView(
-      route(docRoutes(all, withEnv(undefined)), '', 'en'),
-      all,
-      withEnv(undefined),
-    );
+    const view = docView({
+      route: route(docRoutes(all, withEnv(undefined)), '', 'en'),
+      data: all,
+      config: withEnv(undefined),
+    });
     expect(view.gtmId).toBeUndefined();
     expect(view.privacyUrl).toBeUndefined();
   });
 
   it('con analítica cada idioma enlaza la política del portfolio de su idioma', () => {
-    const cfg = withEnv('GTM-ENV0001');
-    const routes = docRoutes(all, cfg);
-    const en = docView(route(routes, 'guide', 'en'), all, cfg);
-    const es = docView(route(routes, 'guide', 'es'), all, cfg);
+    const config = withEnv('GTM-ENV0001');
+    const routes = docRoutes(all, config);
+    const en = docView({ route: route(routes, 'guide', 'en'), data: all, config });
+    const es = docView({ route: route(routes, 'guide', 'es'), data: all, config });
     expect(en.gtmId).toBe('GTM-ENV0001');
     expect(en.privacyUrl).toBe('https://velezanthony.github.io/en/privacy/');
     expect(es.privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
   });
 
   it('una privacyUrl explícita sin analítica se enlaza sin gtmId', () => {
-    const cfg = withEnv(undefined, { privacyUrl: '/privacy/' });
-    const view = docView(route(docRoutes(all, cfg), '', 'es'), all, cfg);
+    const config = withEnv(undefined, { privacyUrl: '/privacy/' });
+    const view = docView({ route: route(docRoutes(all, config), '', 'es'), data: all, config });
     expect(view.privacyUrl).toBe('/privacy/');
     expect(view.gtmId).toBeUndefined();
   });

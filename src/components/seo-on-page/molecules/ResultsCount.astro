@@ -1,0 +1,21 @@
+---
+import { resultsCountText } from '../../../core/seo-on-page/labels';
+
+interface Props {
+  /** Rango (1-based) de la página que se enseña; 0 y 0 sin resultados. */
+  from: number;
+  to: number;
+  /** Filas que cumplen los filtros. */
+  total: number;
+  /** Todas las del árbol, para que se vea cuánto dejan fuera los filtros. */
+  overall: number;
+  /** Lo que cuentan las filas: páginas (en casi todas las vistas) o entradas (en «Por idioma»). */
+  unit?: string;
+}
+
+const { from, to, total, overall, unit } = Astro.props;
+---
+
+<p class="text-muted" role="status">
+  {resultsCountText(from, to, total, overall, unit)}
+</p>

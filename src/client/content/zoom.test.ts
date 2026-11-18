@@ -5,10 +5,11 @@ import { initZoom, isZoomable } from './zoom';
 
 const labels = { open: 'Enlarge image: {alt}', close: 'Close' };
 
-const img = (attrs: string, inside = '') =>
-  parseHTML(
+function img(attrs: string, inside = '') {
+  return parseHTML(
     `<div class="prose">${inside}<img src="/a.png" ${attrs}>${inside ? '</a>' : ''}</div>`,
   ).document.querySelector('img')!;
+}
 
 describe('isZoomable', () => {
   it('acepta una imagen con texto alternativo', () => {
@@ -23,7 +24,7 @@ describe('isZoomable', () => {
     ['diminuta por su ancho', 'alt="Icono" width="24" height="24"'],
     ['diminuta por su alto', 'alt="Línea" width="800" height="10"'],
     ['con exclusión explícita', 'alt="Logo" data-no-zoom'],
-  ])('descarta una imagen %s', (_, attrs) => {
+  ])('descarta una imagen %s', (_label, attrs) => {
     expect(isZoomable(img(attrs))).toBe(false);
   });
 
@@ -33,13 +34,13 @@ describe('isZoomable', () => {
 });
 
 describe('initZoom', () => {
-  const page = (body: string, api?: (update: () => void | Promise<void>) => unknown) => {
+  function page(body: string, api?: (update: () => void | Promise<void>) => unknown) {
     const { document } = parseHTML(
       `<!doctype html><html><body><main><div class="prose">${body}</div></main></body></html>`,
     );
     if (api) Object.assign(document, { startViewTransition: api });
     return document;
-  };
+  }
   const figure = '<p><img src="/a.png" alt="Diagrama" width="800" height="400"></p>';
 
   /** Cablea la página y sustituye lo que linkedom no implementa de `<dialog>`. */
@@ -78,12 +79,14 @@ describe('initZoom', () => {
     const trigger = document.querySelector<HTMLButtonElement>('button.docs-zoom');
     if (trigger) trigger.focus = vi.fn();
     const Event = document.defaultView!.Event;
-    const fire = (el: Element, type: string, init: EventInit = { bubbles: true }) => {
-      const e = new Event(type, { cancelable: true, ...init });
-      el.dispatchEvent(e);
-      return e;
-    };
-    const settle = () => new Promise((resolve) => setTimeout(resolve));
+    function fire(element: Element, type: string, init: EventInit = { bubbles: true }) {
+      const event = new Event(type, { cancelable: true, ...init });
+      element.dispatchEvent(event);
+      return event;
+    }
+    function settle() {
+      return new Promise((resolve) => setTimeout(resolve));
+    }
     return { document, dialog: dialog!, trigger: trigger!, fire, start, names, settle };
   }
 
@@ -137,10 +140,18 @@ describe('initZoom', () => {
   });
 
   describe.each([
-    ['el botón de cerrar', (d: HTMLElement) => d.querySelector('.docs-zoom-close')!, 'click'],
-    ['un clic en el fondo', (d: HTMLElement) => d, 'click'],
-    ['un clic en la imagen', (d: HTMLElement) => d.querySelector('.docs-zoom-img')!, 'click'],
-  ])('se cierra con %s', (_, target, type) => {
+    [
+      'el botón de cerrar',
+      (dialog: HTMLElement) => dialog.querySelector('.docs-zoom-close')!,
+      'click',
+    ],
+    ['un clic en el fondo', (dialog: HTMLElement) => dialog, 'click'],
+    [
+      'un clic en la imagen',
+      (dialog: HTMLElement) => dialog.querySelector('.docs-zoom-img')!,
+      'click',
+    ],
+  ])('se cierra con %s', (_label, target, type) => {
     it('y devuelve el foco al botón que lo abrió', async () => {
       const { dialog, trigger, fire, settle } = setup();
       fire(trigger, 'click');
@@ -155,9 +166,9 @@ describe('initZoom', () => {
   it('Escape (el evento cancel) cierra con nuestra animación en vez de la nativa', async () => {
     const { dialog, trigger, fire, settle } = setup();
     fire(trigger, 'click');
-    const e = fire(dialog, 'cancel', {});
+    const event = fire(dialog, 'cancel', {});
     await settle();
-    expect(e.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(true);
     expect(dialog.close).toHaveBeenCalledOnce();
     expect(trigger.focus).toHaveBeenCalledOnce();
   });

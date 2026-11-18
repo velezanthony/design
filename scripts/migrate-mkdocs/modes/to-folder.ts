@@ -1,9 +1,4 @@
-/**
- * Modo carpeta (`--out`): convierte `docs/` + `mkdocs.yml` y lo escribe en otra carpeta, sin
- * tocar nunca el origen. Es el modo de las migraciones que cambian de sitio los ficheros
- * (reescribe enlaces a código, genera el sidebar y la referencia de API).
- */
-import fs from 'node:fs';
+/** Modo carpeta (`--out`): convierte `docs/` + `mkdocs.yml` a otra carpeta sin tocar nunca el origen. */
 import path from 'node:path';
 import { parse } from 'yaml';
 import { cleanGeneratedApi } from '../api/api-postprocess.ts';
@@ -28,42 +23,78 @@ export interface ToFolderOptions {
   report?: string;
 }
 
+/** Lo que el modo necesita del mundo exterior: inyectado para probarlo sin disco (como `InPlaceIo`). */
+export interface ToFolderIo {
+  readText: (file: string) => string;
+  /** Crea las carpetas que falten. */
+  writeText: (file: string, text: string) => void;
+  /** Crea las carpetas que falten. */
+  copyFile: (from: string, to: string) => void;
+  /** Todos los ficheros bajo `directory`, con rutas relativas a ella. */
+  listFiles: (directory: string) => string[];
+  removeDirectory: (directory: string) => void;
+  print: (line: string) => void;
+  printError: (line: string) => void;
+}
+
+export interface Mkdocs {
+  nav: NavEntry[];
+  excludePatterns: string[];
+  plugins: Array<Record<string, unknown> | string>;
+}
+
+/** Lee `mkdocs.yml`; sus etiquetas `!!python/name:` no las conoce `yaml` y aquí no aportan nada. */
+export function parseMkdocs(text: string): Mkdocs {
+  const parsed = parse(text.replace(/!!python\/name:\S+/g, ''), {
+    strict: false,
+    uniqueKeys: false,
+  }) as {
+    nav: NavEntry[];
+    exclude_docs?: string;
+    plugins?: Array<Record<string, unknown> | string>;
+  };
+  return {
+    nav: parsed.nav,
+    excludePatterns: (parsed.exclude_docs ?? '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean),
+    plugins: parsed.plugins ?? [],
+  };
+}
+
+/** Una barra final excluye la carpeta; sin ella, solo ese fichero. */
+export function isExcluded(patterns: string[], relative: string) {
+  return patterns.some((pattern) =>
+    pattern.endsWith('/') ? relative.startsWith(pattern) : relative === pattern,
+  );
+}
+
+/** Qué se convierte, qué se copia y qué se deja fuera, a partir de los ficheros de `docs/`. */
+export function planCopies(allFiles: string[], patterns: string[]) {
+  const all = [...allFiles].sort();
+  const markdown = all.filter((file) => file.endsWith('.md') && !isExcluded(patterns, file));
+  const images = all.filter((file) => IMAGE.test(file) && !isExcluded(patterns, file));
+  return {
+    markdown,
+    images,
+    skipped: all.filter((file) => !markdown.includes(file) && !images.includes(file)),
+    excluded: all.filter((file) => file.endsWith('.md') && isExcluded(patterns, file)),
+  };
+}
+
 /** Devuelve el código de salida: 1 si quedan restos de sintaxis MkDocs. */
-export function runToFolder(options: ToFolderOptions): number {
+export function runToFolder(io: ToFolderIo, options: ToFolderOptions): number {
   const repo = path.resolve(options.repo);
   const out = path.resolve(options.out);
   const repoBlobUrl = `${options.repoUrl.replace(/\/$/, '')}/blob/${options.branch}`;
   const docs = path.join(repo, 'docs');
 
-  /* mkdocs.yml lleva etiquetas `!!python/name:` que `yaml` no conoce: no aportan nada aquí. */
-  const mkdocs = parse(
-    fs.readFileSync(path.join(repo, 'mkdocs.yml'), 'utf8').replace(/!!python\/name:\S+/g, ''),
-    { strict: false, uniqueKeys: false },
-  ) as {
-    nav: NavEntry[];
-    exclude_docs?: string;
-    plugins?: Array<Record<string, unknown> | string>;
-  };
-
-  const excludePatterns = (mkdocs.exclude_docs ?? '')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const isExcluded = (rel: string) =>
-    excludePatterns.some((pattern) =>
-      pattern.endsWith('/') ? rel.startsWith(pattern) : rel === pattern,
-    );
-
-  const walk = (dir: string): string[] =>
-    fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-      const full = path.join(dir, entry.name);
-      return entry.isDirectory() ? walk(full) : [path.relative(docs, full)];
-    });
-
-  const all = walk(docs).sort();
-  const markdown = all.filter((file) => file.endsWith('.md') && !isExcluded(file));
-  const images = all.filter((file) => IMAGE.test(file) && !isExcluded(file));
-  const skipped = all.filter((file) => !markdown.includes(file) && !images.includes(file));
+  const mkdocs = parseMkdocs(io.readText(path.join(repo, 'mkdocs.yml')));
+  const { markdown, images, skipped, excluded } = planCopies(
+    io.listFiles(docs),
+    mkdocs.excludePatterns,
+  );
 
   const externalOut = options.externalOut ? path.resolve(options.externalOut) : undefined;
   const externals = new Map<string, string>();
@@ -85,40 +116,28 @@ export function runToFolder(options: ToFolderOptions): number {
     externals,
   });
 
-  const api: Record<string, string> = options.api
-    ? JSON.parse(fs.readFileSync(options.api, 'utf8'))
-    : {};
+  const api: Record<string, string> = options.api ? JSON.parse(io.readText(options.api)) : {};
   let strippedApiLinks = 0;
-  const resolveApi = (id: string) => {
+  function resolveApi(id: string) {
     const generated = api[id];
     if (generated === undefined) return undefined;
     const cleaned = cleanGeneratedApi(generated);
     strippedApiLinks += cleaned.stripped;
     return cleaned.markdown;
-  };
+  }
 
-  fs.rmSync(out, { recursive: true, force: true });
-  const sources = new Map(
-    markdown.map((file) => [file, fs.readFileSync(path.join(docs, file), 'utf8')]),
-  );
+  io.removeDirectory(out);
+  const sources = new Map(markdown.map((file) => [file, io.readText(path.join(docs, file))]));
   const result = runPipeline(sources, { resolveApi, rewriteHref: rewriter });
   const report: Record<string, LogEntry[]> = { ...result.log };
 
-  for (const [file, text] of result.files) {
-    const target = path.join(out, file);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, text);
-  }
-  for (const file of images) {
-    const target = path.join(out, file);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.copyFileSync(path.join(docs, file), target);
-  }
+  for (const [file, text] of result.files) io.writeText(path.join(out, file), text);
+  for (const file of images) io.copyFile(path.join(docs, file), path.join(out, file));
 
   /* Los ficheros externos: sus enlaces relativos salen de `docs/`, así que van al repositorio. */
   const externalOutputs = new Map<string, string>();
   for (const file of externals.keys()) {
-    const converted = transformMkdocs(fs.readFileSync(path.join(repo, file), 'utf8'), {
+    const converted = transformMkdocs(io.readText(path.join(repo, file)), {
       rewriteHref: createLinkRewriter({
         published: new Set(),
         repoBlobUrl,
@@ -126,14 +145,13 @@ export function runToFolder(options: ToFolderOptions): number {
         externals: new Map(),
       })('x'),
     });
-    fs.mkdirSync(externalOut!, { recursive: true });
-    fs.writeFileSync(path.join(externalOut!, path.basename(file)), converted.markdown);
+    io.writeText(path.join(externalOut!, path.basename(file)), converted.markdown);
     externalOutputs.set(file, converted.markdown);
     if (converted.log.length > 0) report[`(external) ${file}`] = converted.log;
   }
 
   if (options.sidebarOut) {
-    const i18n = mkdocs.plugins?.find(
+    const i18n = mkdocs.plugins.find(
       (
         plugin,
       ): plugin is Record<
@@ -142,9 +160,9 @@ export function runToFolder(options: ToFolderOptions): number {
       > => typeof plugin === 'object' && 'i18n' in plugin,
     );
     const es =
-      i18n?.i18n.languages?.find((language) => language.locale === 'es')?.nav_translations ?? {};
+      i18n?.i18n?.languages?.find((language) => language.locale === 'es')?.nav_translations ?? {};
     const sidebar = navToSidebar(mkdocs.nav, es);
-    fs.writeFileSync(
+    io.writeText(
       path.resolve(options.sidebarOut),
       `// Generado por scripts/migrate-mkdocs desde el nav de mkdocs.yml.\nexport default ${JSON.stringify(sidebar, null, 2)};\n`,
     );
@@ -154,20 +172,19 @@ export function runToFolder(options: ToFolderOptions): number {
   for (const entries of Object.values(report)) {
     for (const entry of entries) counts[entry.kind] = (counts[entry.kind] ?? 0) + 1;
   }
-  if (options.report)
-    fs.writeFileSync(path.resolve(options.report), JSON.stringify(report, null, 1));
+  if (options.report) io.writeText(path.resolve(options.report), JSON.stringify(report, null, 1));
 
   const externalCheck = checkOutput(
     new Map([...externalOutputs].map(([file, text]) => [`(external) ${file}`, text])),
   );
   const leftovers = [...result.leftovers, ...externalCheck.leftovers];
-  console.log(
+  io.print(
     JSON.stringify(
       {
         markdown: markdown.length,
         images: images.length,
         skipped: skipped.length,
-        excluded: all.filter((file) => file.endsWith('.md') && isExcluded(file)),
+        excluded,
         strippedApiLinks,
         counts,
         stubs: result.stubs.length,
@@ -177,10 +194,10 @@ export function runToFolder(options: ToFolderOptions): number {
       2,
     ),
   );
-  for (const line of formatStubs(result.stubs, 'docs')) console.log(line);
+  for (const line of formatStubs(result.stubs, 'docs')) io.print(line);
   if (leftovers.length > 0) {
-    console.error('Restos de sintaxis MkDocs sin convertir:');
-    for (const line of formatLeftovers(leftovers)) console.error(`  ${line}`);
+    io.printError('Restos de sintaxis MkDocs sin convertir:');
+    for (const line of formatLeftovers(leftovers)) io.printError(`  ${line}`);
   }
   return leftovers.length > 0 ? 1 : 0;
 }

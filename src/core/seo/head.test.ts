@@ -7,15 +7,17 @@ import { resolveMeta, type ResolvedMeta } from './meta';
 
 const site = new URL('https://x.dev');
 const url = { base: '/repo' };
-const cfg: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'] });
+const config: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'] });
 
-const meta = (extra: Partial<ResolvedMeta> = {}): ResolvedMeta => ({
-  title: 'Install',
-  noindex: false,
-  titleSuffix: 'Design',
-  schemas: [],
-  ...extra,
-});
+function meta(extra: Partial<ResolvedMeta> = {}): ResolvedMeta {
+  return {
+    title: 'Install',
+    noindex: false,
+    titleSuffix: 'Design',
+    schemas: [],
+    ...extra,
+  };
+}
 const enPage: PageData = { kind: 'page', slug: 'install', locale: 'en', url: '/repo/install/' };
 const esPage: PageData = { kind: 'page', slug: 'install', locale: 'es', url: '/repo/es/install/' };
 const pair: Availability = new Map([
@@ -23,20 +25,24 @@ const pair: Availability = new Map([
 ]);
 const single: Availability = new Map([['install', { en: '/repo/install/' }]]);
 
-const head = (m: ResolvedMeta, page: PageData, av: Availability) =>
-  buildHead(m, page, av, site, cfg, url);
+function head(resolvedMeta: ResolvedMeta, page: PageData, availability: Availability) {
+  return buildHead(resolvedMeta, page, availability, site, config, url);
+}
 
-const metaTag = (tags: HeadConfig[], key: 'name' | 'property', value: string) =>
-  tags.filter((t) => t.tag === 'meta' && t.attrs[key] === value);
-const value = (tags: HeadConfig[], key: 'name' | 'property', name: string) =>
-  metaTag(tags, key, name)[0]?.attrs.content;
-const links = (tags: HeadConfig[], rel: string) =>
-  tags.filter((t) => t.tag === 'link' && t.attrs.rel === rel);
+function metaTag(tags: HeadConfig[], key: 'name' | 'property', value: string) {
+  return tags.filter((tag) => tag.tag === 'meta' && tag.attrs[key] === value);
+}
+function value(tags: HeadConfig[], key: 'name' | 'property', name: string) {
+  return metaTag(tags, key, name)[0]?.attrs.content;
+}
+function links(tags: HeadConfig[], rel: string) {
+  return tags.filter((tag) => tag.tag === 'link' && tag.attrs.rel === rel);
+}
 
 describe('buildHead: página normal', () => {
   it('<title> con sufijo y og:title / twitter:title sin él', () => {
     const tags = head(meta(), enPage, single);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install | Design');
+    expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Install | Design');
     expect(value(tags, 'property', 'og:title')).toBe('Install');
     expect(value(tags, 'name', 'twitter:title')).toBe('Install');
   });
@@ -44,7 +50,7 @@ describe('buildHead: página normal', () => {
   it('un único canonical absoluto a su propia URL', () => {
     const canonical = links(head(meta(), esPage, pair), 'canonical');
     expect(canonical).toHaveLength(1);
-    expect(canonical[0].attrs.href).toBe('https://x.dev/repo/es/install/');
+    expect(canonical[0]?.attrs.href).toBe('https://x.dev/repo/es/install/');
   });
 
   it('og:* completos', () => {
@@ -54,7 +60,7 @@ describe('buildHead: página normal', () => {
     expect(value(tags, 'property', 'og:type')).toBe('article');
     expect(value(tags, 'property', 'og:site_name')).toBe('Design');
     expect(value(tags, 'property', 'og:locale')).toBe('es');
-    expect(tags.find((t) => t.attrs.name === 'description')?.attrs.content).toBe('Desc');
+    expect(tags.find((tag) => tag.attrs.name === 'description')?.attrs.content).toBe('Desc');
     expect(value(tags, 'name', 'twitter:description')).toBe('Desc');
   });
 
@@ -74,25 +80,27 @@ describe('buildHead: página normal', () => {
 describe('buildHead: sin sufijo', () => {
   it('<title> es solo el título si no hay sufijo', () => {
     const tags = head(meta({ titleSuffix: undefined }), enPage, single);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install');
+    expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Install');
   });
 });
 
 describe('buildHead: traducciones', () => {
   it('hreflang de cada idioma real (incluida ella misma) más x-default', () => {
     const alternates = links(head(meta(), esPage, pair), 'alternate');
-    expect(alternates.map((t) => [t.attrs.hreflang, t.attrs.href])).toEqual([
-      ['en', 'https://x.dev/repo/install/'],
-      ['es', 'https://x.dev/repo/es/install/'],
-      ['x-default', 'https://x.dev/repo/install/'],
-    ]);
+    expect(alternates.map((alternate) => [alternate.attrs.hreflang, alternate.attrs.href])).toEqual(
+      [
+        ['en', 'https://x.dev/repo/install/'],
+        ['es', 'https://x.dev/repo/es/install/'],
+        ['x-default', 'https://x.dev/repo/install/'],
+      ],
+    );
   });
 
   it('og:locale:alternate solo de las traducciones reales', () => {
     const tags = head(meta(), enPage, pair);
-    expect(metaTag(tags, 'property', 'og:locale:alternate').map((t) => t.attrs.content)).toEqual([
-      'es',
-    ]);
+    expect(
+      metaTag(tags, 'property', 'og:locale:alternate').map((tag) => tag.attrs.content),
+    ).toEqual(['es']);
   });
 
   it('una sola página: sin hreflang ni og:locale:alternate', () => {
@@ -136,14 +144,14 @@ describe('buildHead: imagen', () => {
   });
 
   it('con base terminada en barra no duplica la barra', () => {
-    const tags = buildHead(meta({ image }), enPage, single, site, cfg, { base: '/repo/' });
+    const tags = buildHead(meta({ image }), enPage, single, site, config, { base: '/repo/' });
     expect(value(tags, 'property', 'og:image')).toBe('https://x.dev/repo/og.png');
   });
 
   it('sin imagen no hay og:image* ni twitter:image* y la tarjeta es summary', () => {
     const tags = head(meta(), enPage, single);
     expect(
-      tags.some((t) => /og:image|twitter:image/.test(t.attrs.property ?? t.attrs.name ?? '')),
+      tags.some((tag) => /og:image|twitter:image/.test(tag.attrs.property ?? tag.attrs.name ?? '')),
     ).toBe(false);
     expect(value(tags, 'name', 'twitter:card')).toBe('summary');
   });
@@ -171,7 +179,7 @@ describe('buildHead: noindex, reserva y 404', () => {
     };
     const tags = head(meta(), fallback, new Map([['changelog', { en: '/repo/changelog/' }]]));
     expect(value(tags, 'name', 'robots')).toBe('noindex');
-    expect(links(tags, 'canonical').map((t) => t.attrs.href)).toEqual([
+    expect(links(tags, 'canonical').map((link) => link.attrs.href)).toEqual([
       'https://x.dev/repo/changelog/',
     ]);
     expect(links(tags, 'alternate')).toEqual([]);
@@ -204,18 +212,20 @@ describe('buildHead + resolveMeta', () => {
       'es',
     );
     const tags = head(resolved, esPage, pair);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Instalar Design | Design');
+    expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Instalar Design | Design');
     expect(value(tags, 'property', 'og:description')).toBe('Documentación');
   });
 });
 
 describe('buildHead: favicon', () => {
-  const icons = (tags: HeadConfig[]) => links(tags, 'icon');
+  function icons(tags: HeadConfig[]) {
+    return links(tags, 'icon');
+  }
 
   it('por defecto emite el favicon del paquete, con base, en toda página', () => {
     const page = icons(head(meta(), enPage, single));
     expect(page).toHaveLength(1);
-    expect(page[0].attrs).toEqual({
+    expect(page[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/_design/favicon.png',
       type: 'image/png',
@@ -230,22 +240,22 @@ describe('buildHead: favicon', () => {
   });
 
   it('el favicon de la config manda: ruta con base o https tal cual', () => {
-    const local = { ...cfg, favicon: 'favicon.svg' };
+    const local = { ...config, favicon: 'favicon.svg' };
     const tags = buildHead(meta(), enPage, single, site, local, url);
-    expect(icons(tags)[0].attrs).toEqual({
+    expect(icons(tags)[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/favicon.svg',
       type: 'image/svg+xml',
     });
-    const remote = { ...cfg, favicon: 'https://cdn.dev/i.ico' };
-    expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0].attrs.href).toBe(
+    const remote = { ...config, favicon: 'https://cdn.dev/i.ico' };
+    expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0]?.attrs.href).toBe(
       'https://cdn.dev/i.ico',
     );
   });
 
   it('extensión desconocida: sin atributo type', () => {
-    const odd = { ...cfg, favicon: '/i.webp' };
-    expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0].attrs).toEqual({
+    const odd = { ...config, favicon: '/i.webp' };
+    expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/i.webp',
     });
@@ -253,7 +263,9 @@ describe('buildHead: favicon', () => {
 });
 
 describe('buildHead: JSON-LD', () => {
-  const scripts = (tags: HeadConfig[]) => tags.filter((t) => t.tag === 'script');
+  function scripts(tags: HeadConfig[]) {
+    return tags.filter((tag) => tag.tag === 'script');
+  }
 
   it('sin schemas no hay ningún <script>: la librería no inyecta nada por defecto', () => {
     expect(scripts(head(meta(), enPage, single))).toEqual([]);
@@ -266,14 +278,14 @@ describe('buildHead: JSON-LD', () => {
     ];
     const found = scripts(head(meta({ schemas }), enPage, single));
     expect(found).toHaveLength(2);
-    expect(found.every((t) => t.attrs.type === 'application/ld+json')).toBe(true);
-    expect(found.map((t) => JSON.parse(t.content ?? ''))).toEqual(schemas);
+    expect(found.every((tag) => tag.attrs.type === 'application/ld+json')).toBe(true);
+    expect(found.map((tag) => JSON.parse(tag.content ?? ''))).toEqual(schemas);
   });
 
   it('un valor hostil no puede cerrar el <script>', () => {
     const schemas = [{ '@type': 'Thing', name: '</script><script>alert(1)</script>' }];
     const [tag] = scripts(head(meta({ schemas }), enPage, single));
-    expect(tag.content).not.toContain('<');
+    expect(tag?.content).not.toContain('<');
   });
 
   it('también salen en las páginas de reserva y en la 404', () => {

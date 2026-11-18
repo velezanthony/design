@@ -26,6 +26,10 @@ describe('resolveTitle', () => {
     expect(resolveTitle('~~~\n# nope\n~~~\n# Real')).toBe('Real');
   });
 
+  it('un bloque de 4 acentos graves no lo cierra uno de 3: el `#` de dentro sigue sin ser H1', () => {
+    expect(resolveTitle('````md\n```\n# Falso\n```\n````\n# Real')).toBe('Real');
+  });
+
   it('un H2 no es H1', () => {
     expect(() => resolveTitle('## Solo H2')).toThrow(DocsError);
   });
@@ -43,8 +47,8 @@ describe('resolveTitle', () => {
     const error = (() => {
       try {
         resolveTitle('texto', undefined, 'sin-titulo.md');
-      } catch (e) {
-        return e as DocsError;
+      } catch (caught) {
+        return caught as DocsError;
       }
     })();
     expect(error).toBeInstanceOf(DocsError);

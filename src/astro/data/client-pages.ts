@@ -1,7 +1,7 @@
 import { clientPagePaths, type ClientPage, type RouteParams } from '../../core/seo/client-pages';
 import { readHead } from '../../core/seo/html-head';
 import { clientSitemapEntries, type SitemapEntry } from '../../core/seo/sitemap';
-import { clientRegistry, type ClientRegistry } from './client-registry';
+import { clientRegistry, type ClientRegistry } from '../registry';
 
 export interface ClientPages {
   pages: ClientPage[];
@@ -24,12 +24,7 @@ interface Deps {
 
 const cache = new WeakMap<ClientRegistry, { key: string; result: ClientPages }>();
 
-/**
- * Las páginas que el cliente añade en `src/pages/`, leídas como las ve un visitante: cada URL se
- * pide al servidor de desarrollo y se lee su `<head>`. Las dinámicas se expanden con su
- * `getStaticPaths`. Sin servidor (fuera de dev) no hay con qué cargar los módulos y no devuelve
- * nada. Lo leído se reutiliza hasta que cambia un fichero o una ruta.
- */
+/** Páginas de `src/pages/` leídas como un visitante (pidiendo cada URL al servidor de dev); sin servidor no devuelve nada. */
 export async function loadClientPages(
   where: Where,
   deps: Deps = { registry: clientRegistry(), fetch: (url) => fetch(url) },
@@ -37,12 +32,14 @@ export async function loadClientPages(
   const { registry } = deps;
   const { load } = registry;
   if (!load) return { pages: [], failures: [] };
+  /* `staticPaths` es una declaración y no hereda el descarte de `undefined`: se fija en una constante. */
+  const loadModule = load;
   const key = `${registry.version}\0${where.origin}\0${where.site}\0${where.base}`;
   const cached = cache.get(registry);
   if (cached?.key === key) return cached.result;
 
-  const staticPaths = async (route: { entrypoint: string }): Promise<RouteParams[]> => {
-    const module = await load(route.entrypoint);
+  async function staticPaths(route: { entrypoint: string }): Promise<RouteParams[]> {
+    const module = await loadModule(route.entrypoint);
     if (typeof module.getStaticPaths !== 'function') {
       throw new Error('La ruta es dinámica y no exporta getStaticPaths.');
     }
@@ -50,7 +47,7 @@ export async function loadClientPages(
       params: RouteParams;
     }[];
     return paths.map(({ params }) => params);
-  };
+  }
   const { pages: refs, failures } = await clientPagePaths(registry.routes, staticPaths, where.base);
 
   const read = await Promise.all(
@@ -71,10 +68,7 @@ export async function loadClientPages(
   return result;
 }
 
-/**
- * Las páginas del cliente como entradas del sitemap, para los endpoints en dev. En el build no hay
- * servidor del que leerlas y devuelve nada: allí las añade `astro:build:done` desde `dist/`.
- */
+/** Páginas del cliente para el sitemap en dev; en build las añade `astro:build:done` desde `dist/`. */
 export async function loadClientSitemapEntries(where: Where, deps?: Deps): Promise<SitemapEntry[]> {
   const { pages } = await loadClientPages(where, deps);
   return clientSitemapEntries(pages, new URL(where.site));

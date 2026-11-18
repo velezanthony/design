@@ -1,13 +1,15 @@
 import type { Locale } from '../../../i18n/locale';
 import type { SiteFile } from '../../site-files';
 import { summarize, type SeoSummary } from '../../queries/summary';
-import { ALL_SEVERITIES, EMPTY_FILTERS } from '../../queries/url-filters';
+import { EMPTY_FILTERS } from '../../queries/url-filters';
+import { ALL_SEVERITIES, isActionable } from '../../severity';
+import { severityCounts } from '../listing/severities';
 import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
 import type { PanelLinks } from '../links';
 import { coverage, type Coverage } from './coverage';
 import { indexing, type Indexing } from './indexing';
-import type { Certainty } from '../../certainty';
-import { fixPriorities, type FixPriority } from './priorities';
+import type { Certainty } from '../../catalog';
+import { fixPriorities, type FixPriority } from '../../queries/priorities';
 
 export interface OverviewModel {
   kpis: {
@@ -17,10 +19,7 @@ export interface OverviewModel {
     pages: { pages: number; entries: number };
     /** Una por idioma de la config, con sus entradas. */
     locales: { locale: Locale; entries: number }[];
-    /**
-     * Páginas con error o aviso (cada una una vez), cuántas tienen error, cuántas aviso y las entradas
-     * con alguno de los dos; sin problemas, sin enlace.
-     */
+    /** Páginas con error o aviso (una vez cada una); sin problemas, sin enlace. */
     problems: {
       pages: number;
       errors: number;
@@ -72,28 +71,20 @@ interface OverviewInput {
   siteFiles: SiteFile[];
 }
 
-/**
- * Lo que enseña la vista general del panel, calculado: la pantalla y sus componentes solo pintan.
- * Los enlaces llegan hechos (texto) porque el núcleo no sabe formar URLs; ver `PanelLinks`.
- */
+/** Los enlaces llegan hechos porque el núcleo no forma URLs; ver `PanelLinks`. */
 export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewModel {
   const { locales, defaultLocale, links, siteFiles } = input;
   const summary = summarize(tree);
-  const pagesWith = (severities: readonly IssueSeverity[]) =>
-    new Set(
-      tree.pages
-        .filter((page) => page.issues.some((issue) => severities.includes(issue.severity)))
-        .map((page) => page.slug),
-    ).size;
-  const entriesWith = (severities: readonly IssueSeverity[]) =>
-    tree.pages.filter((page) => page.issues.some((issue) => severities.includes(issue.severity)))
-      .length;
-  const problemSeverities = [IssueSeverity.ERROR, IssueSeverity.WARNING];
-  const problemPages = pagesWith(problemSeverities);
-  const infoPages = pagesWith([IssueSeverity.INFO]);
+  const counts = severityCounts(tree.pages);
+  const problemPages = summary.health.total - summary.health.healthy;
+  const problemEntries = tree.pages.filter((page) =>
+    page.issues.some((issue) => isActionable(issue.severity)),
+  ).length;
 
   const priorities = fixPriorities(tree, { locales, inspector: links.inspector });
-  const kindHref = (kind: IssueKind) => links.pages({ ...EMPTY_FILTERS, kinds: [kind] });
+  function kindHref(kind: IssueKind) {
+    return links.pages({ ...EMPTY_FILTERS, kinds: [kind] });
+  }
 
   const cover = coverage(tree, { locales, defaultLocale, inspector: links.inspector });
   // El sitemap de la ruta suma las páginas de privacidad, que no son del árbol: se restan.
@@ -114,14 +105,14 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
       })),
       problems: {
         pages: problemPages,
-        errors: pagesWith([IssueSeverity.ERROR]),
-        warnings: pagesWith([IssueSeverity.WARNING]),
-        entries: entriesWith(problemSeverities),
+        errors: counts.error.pages,
+        warnings: counts.warning.pages,
+        entries: problemEntries,
         href: problemPages > 0 ? links.pages() : undefined,
       },
       info: {
-        pages: infoPages,
-        entries: entriesWith([IssueSeverity.INFO]),
+        pages: counts.info.pages,
+        entries: counts.info.entries,
         kinds: Object.values(IssueKind).filter((kind) =>
           tree.pages.some((page) =>
             page.issues.some(
@@ -130,7 +121,7 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
           ),
         ),
         href:
-          infoPages > 0
+          counts.info.pages > 0
             ? links.pages({ ...EMPTY_FILTERS, severities: [IssueSeverity.INFO] })
             : undefined,
       },

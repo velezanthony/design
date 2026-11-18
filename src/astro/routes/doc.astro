@@ -1,0 +1,38 @@
+---
+/* Contenedor de una página de docs; `render(entry)` va AQUÍ y no en el layout, porque en dev rompe el `<head>` (astro#13724). */
+import Fonts from './Fonts.astro';
+import DocPage from '../../components/pages/DocPage.astro';
+import { docRoutes, docView, type DocRoute } from '../views/doc';
+import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
+import { siteImageSizes } from '../data/image-sizes';
+import { siteConfig } from '../data/site-config';
+
+export async function getStaticPaths() {
+  return docRoutes(await getDocData(), siteConfig).map((route) => ({
+    params: { slug: route.param },
+    props: { route },
+  }));
+}
+
+const route = Astro.props.route as DocRoute;
+const entries = await getDocs();
+const entry = entries.find(
+  ({ data }) => data.slug === route.slug && data.locale === route.contentLocale,
+);
+if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slug}.`);
+
+const { Content, headings } = await renderDoc(entry);
+// Solo la imagen de esta página: la de reserva usa la del idioma del contenido, que es `entry`.
+const sizes = await siteImageSizes(siteConfig, [entry.data.seo?.image?.src]);
+const view = docView({
+  route,
+  config: siteConfig,
+  data: entries.map((item) => item.data),
+  sizes,
+});
+---
+
+<DocPage {...view} headings={headings} year={new Date().getFullYear()}>
+  <Fonts slot="head" />
+  <Content />
+</DocPage>

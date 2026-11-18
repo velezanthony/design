@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertFence } from './fences';
+import { convertFence } from './fences.ts';
 
 describe('convertFence', () => {
   it('no actúa si la línea no abre un fence', () => {
@@ -30,7 +30,7 @@ describe('convertFence', () => {
   it('cambia `text` por `sql` si empieza por una sentencia', () => {
     const out = convertFence(['  ```text', '  SELECT 1;', '  ```'], 0, 0);
     expect(out?.output).toEqual(['  ```sql', '  SELECT 1;', '  ```']);
-    expect(out?.log[0].detail).toBe('text -> sql');
+    expect(out?.log[0]?.detail).toBe('text -> sql');
   });
 
   it('nunca adivina: ante la duda deja la etiqueta como está', () => {

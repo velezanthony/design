@@ -1,9 +1,4 @@
-/**
- * Una ESTIMACIÓN del ancho que ocupa un texto en el resultado de búsqueda. Google no recorta por
- * caracteres sino por píxeles, y la fuente exacta cambia de un dispositivo a otro: aquí se usan los
- * anchos de Arial (la sans-serif que más se le parece) y por eso es un orden de magnitud, no una
- * medida. Siempre se enseña como «≈».
- */
+/** Estimación con anchos de Arial: Google recorta por píxeles, así que se enseña siempre como «≈». */
 
 /** El tamaño de letra de cada campo en el resultado de escritorio: título ~20 px, descripción ~14 px. */
 const FONT_PX = { title: 20, description: 14 } as const;
@@ -107,13 +102,13 @@ const ASCII_WIDTHS: Record<string, number> = {
 /** Lo que mide un carácter que no está en la tabla (CJK, emoji…): ancho, un em entero. */
 const WIDE = 1000;
 
-const widthOf = (char: string): number => {
+function widthOf(char: string): number {
   const known = ASCII_WIDTHS[char];
   if (known !== undefined) return known;
   /* Una letra acentuada mide lo que su base: «é» se descompone en «e» y el acento. */
   const base = char.normalize('NFD')[0];
   return (base !== undefined && ASCII_WIDTHS[base]) || WIDE;
-};
+}
 
 /** Los píxeles (redondeados) que ocuparía `text` en el campo dado. */
 export function estimateWidth(text: string, field: PixelField): number {

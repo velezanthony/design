@@ -6,7 +6,9 @@ import { makeIssue } from './issue';
 /** Título y descripción de UNA página contra los límites del resultado de búsqueda. */
 export function analyzeMetadata(page: SeoPageFacts): Issue[] {
   const { meta } = page;
-  const fix = (kind: IssueKind) => fixFor(kind, page);
+  function fix(kind: IssueKind) {
+    return fixFor(kind, page);
+  }
   const issues: Issue[] = [];
 
   if (meta.titleLength > THRESHOLDS.titleMax) {
@@ -91,18 +93,17 @@ function groupBy(pages: SeoPageFacts[], keyOf: (page: SeoPageFacts) => string | 
 }
 
 /** El resto del grupo: las páginas con las que choca `page`, sin ella misma. */
-const othersIn = (group: SeoPageFacts[], page: SeoPageFacts) =>
-  group.filter((other) => other !== page).map(({ slug, locale }) => ({ slug, locale }));
+function othersIn(group: SeoPageFacts[], page: SeoPageFacts) {
+  return group.filter((other) => other !== page).map(({ slug, locale }) => ({ slug, locale }));
+}
 
-/**
- * Títulos y descripciones repetidos entre páginas del MISMO idioma (el mismo título en `en` y `es`
- * es lo normal). Las `noindex` no compiten en los resultados, así que no cuentan; y la descripción
- * heredada del sitio ya tiene su propio aviso, no es un «duplicado».
- */
+/** Duplicados solo dentro del MISMO idioma; las `noindex` y la descripción heredada (que tiene su propio aviso) no cuentan. */
 export function analyzeDuplicates(pages: SeoPageFacts[]): Issue[] {
   const indexable = pages.filter((page) => !page.meta.noindex);
   // `\u0000` separa idioma y texto sin que ningún texto real pueda confundirse con la clave.
-  const key = (page: SeoPageFacts, text: string) => `${page.locale}\u0000${text}`;
+  function key(page: SeoPageFacts, text: string) {
+    return `${page.locale}\u0000${text}`;
+  }
   const titles = groupBy(indexable, (page) => key(page, page.meta.title));
   const descriptions = groupBy(indexable, (page) =>
     page.meta.descriptionSource === 'page' && page.meta.description !== undefined

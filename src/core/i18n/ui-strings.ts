@@ -1,8 +1,6 @@
 import type { Locale } from './locale';
 
-/* Catálogo base en inglés: sus claves son la fuente de `UiKey`, de `uiKeys` y del esquema `.strict()`
-   de `ui` en la config. Las claves son estables (no la frase), así que reescribir un texto no rompe
-   a quien lo sobrescribe. */
+/* Catálogo base en inglés, fuente de `UiKey` y del esquema `.strict()`; las claves son estables, la frase no. */
 const en = {
   'theme.toggle': 'Toggle color theme',
   'locale.switch': 'Language',
@@ -167,10 +165,7 @@ function definedOnly(overrides: Partial<UiStrings> | undefined): Partial<UiStrin
   );
 }
 
-/**
- * Fusiona los textos del consumidor sobre el catálogo, clave a clave y por idioma: lo no declarado
- * conserva el valor del paquete y un idioma sin override queda intacto. No muta la entrada.
- */
+/** Fusiona los textos del consumidor sobre el catálogo por clave e idioma, sin mutar la entrada. */
 export function mergeUiStrings(
   defaults: Record<Locale, UiStrings>,
   overrides: UiOverrides | undefined,
@@ -183,8 +178,21 @@ export function mergeUiStrings(
   );
 }
 
+/** El catálogo del sitio: los textos por defecto con los del consumidor encima, solo en sus idiomas. */
+export function siteStrings(
+  overrides: UiOverrides | undefined,
+  locales: readonly Locale[],
+): Record<Locale, UiStrings> {
+  const merged = mergeUiStrings(defaultStrings, overrides);
+  return Object.fromEntries(locales.map((locale) => [locale, merged[locale]!]));
+}
+
 /** Texto de una clave con `{variable}` interpoladas; una variable no pasada se deja tal cual. */
-export function t(strings: UiStrings, key: UiKey, vars: Record<string, string> = {}): string {
+export function translate(
+  strings: UiStrings,
+  key: UiKey,
+  vars: Record<string, string> = {},
+): string {
   return strings[key].replace(
     /\{(\w+)\}/g,
     (placeholder, name: string) => vars[name] ?? placeholder,

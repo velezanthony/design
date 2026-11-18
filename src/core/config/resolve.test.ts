@@ -9,7 +9,7 @@ function messages(input: unknown): string[] {
   try {
     resolveConfig(input as never);
   } catch (error) {
-    if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+    if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
     throw error;
   }
   return [];
@@ -35,19 +35,19 @@ describe('resolveConfig: content', () => {
 
 describe('resolveConfig: valores por defecto', () => {
   it('config mínima: solo nombre', () => {
-    const cfg = resolveConfig({ name: 'Design' });
-    expect(cfg.name).toBe('Design');
-    expect(cfg.locales).toEqual(['en']);
-    expect(cfg.defaultLocale).toBe('en');
-    expect(cfg.translations.missing).toBe(MissingTranslation.LINK);
-    expect(cfg.external).toEqual([]);
-    expect(cfg.seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
-    expect(cfg.sitemap).toEqual({ include: [] });
+    const config = resolveConfig({ name: 'Design' });
+    expect(config.name).toBe('Design');
+    expect(config.locales).toEqual(['en']);
+    expect(config.defaultLocale).toBe('en');
+    expect(config.translations.missing).toBe(MissingTranslation.LINK);
+    expect(config.external).toEqual([]);
+    expect(config.seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
+    expect(config.sitemap).toEqual({ include: [] });
   });
 
   it('conserva los sitemaps que se incluyen en el índice', () => {
-    const cfg = resolveConfig({ name: 'X', sitemap: { include: ['/lib/sitemap.xml'] } });
-    expect(cfg.sitemap.include).toEqual(['/lib/sitemap.xml']);
+    const config = resolveConfig({ name: 'X', sitemap: { include: ['/lib/sitemap.xml'] } });
+    expect(config.sitemap.include).toEqual(['/lib/sitemap.xml']);
   });
 
   it('el idioma por defecto es el primero de `locales`', () => {
@@ -55,17 +55,17 @@ describe('resolveConfig: valores por defecto', () => {
   });
 
   it('respeta lo declarado', () => {
-    const cfg = resolveConfig({
+    const config = resolveConfig({
       name: 'X',
       locales: ['en', 'es'],
       defaultLocale: 'es',
       translations: { missing: 'omit' },
       seo: { titleSuffix: 'X', description: { en: 'Docs', es: 'Documentación' } },
     });
-    expect(cfg.defaultLocale).toBe('es');
-    expect(cfg.translations.missing).toBe('omit');
-    expect(cfg.seo.titleSuffix).toBe('X');
-    expect(cfg.seo.description).toEqual({ en: 'Docs', es: 'Documentación' });
+    expect(config.defaultLocale).toBe('es');
+    expect(config.translations.missing).toBe('omit');
+    expect(config.seo.titleSuffix).toBe('X');
+    expect(config.seo.description).toEqual({ en: 'Docs', es: 'Documentación' });
   });
 
   it('no muta la entrada', () => {
@@ -154,12 +154,12 @@ describe('resolveConfig: validación', () => {
 
 describe('resolveConfig: `ui`', () => {
   it('acepta overrides de claves conocidas en idiomas del sitio', () => {
-    const cfg = resolveConfig({
+    const config = resolveConfig({
       name: 'X',
       locales: ['en', 'es'],
       ui: { es: { 'search.placeholder': 'Buscar en Design' } },
     });
-    expect(cfg.ui).toEqual({ es: { 'search.placeholder': 'Buscar en Design' } });
+    expect(config.ui).toEqual({ es: { 'search.placeholder': 'Buscar en Design' } });
   });
 
   it('clave desconocida: ruta completa `ui.es.<clave>`', () => {

@@ -5,7 +5,9 @@ import type { LinkRef } from './rewrite';
 /** Ids de encabezado por página (slug + idioma). */
 export type HeadingIndex = Map<string, ReadonlySet<string>>;
 
-export const headingKey = (slug: string, locale: Locale): string => `${locale}:${slug}`;
+export function headingKey(slug: string, locale: Locale): string {
+  return `${locale}:${slug}`;
+}
 
 function decode(anchor: string): string {
   try {

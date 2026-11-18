@@ -9,9 +9,12 @@ export function noindexUrls(pages: Page[], url: UrlPolicy): Set<string> {
 }
 
 /** Disponibilidad sin las URLs excluidas; un grupo que se queda vacío desaparece. No muta. */
-export function excludeNoindex(av: Availability, excluded: ReadonlySet<string>): Availability {
+export function excludeNoindex(
+  availability: Availability,
+  excluded: ReadonlySet<string>,
+): Availability {
   const result: Availability = new Map();
-  for (const [slug, available] of av) {
+  for (const [slug, available] of availability) {
     const kept = Object.fromEntries(
       Object.entries(available).filter(([, href]) => href !== undefined && !excluded.has(href)),
     );

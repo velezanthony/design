@@ -4,12 +4,10 @@ import { describe, expect, it } from 'vitest';
 
 const run = promisify(execFile);
 
-/**
- * Qué viaja a quien instala el paquete. El sitio de docs, el playground, las fixtures y los
- * tests viven en este mismo repo, pero NO deben publicarse: lo comprueba `npm pack --dry-run`, que
- * es lo que npm empaquetaría de verdad (respeta `files` y sus exclusiones).
- */
-const packedFiles = (): Promise<string[]> => (packed ??= pack());
+/** Qué viaja a quien instala el paquete, según `npm pack --dry-run`: docs, playground, fixtures y tests no deben publicarse. */
+function packedFiles(): Promise<string[]> {
+  return (packed ??= pack());
+}
 let packed: Promise<string[]> | undefined;
 
 async function pack(): Promise<string[]> {

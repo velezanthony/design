@@ -1,10 +1,6 @@
 const OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 
-/**
- * Una entrada por línea del cuerpo: `true` si la línea está dentro de un bloque de código con
- * fence (incluidas las líneas del propio fence). Reconoce ``` y ~~~; el cierre ha de usar el mismo
- * carácter y al menos tantos como la apertura, y un fence sin cerrar llega hasta el final.
- */
+/** Marca por línea si está dentro de un fence (``` o ~~~); el cierre usa el mismo carácter y un fence sin cerrar llega al final. */
 export function fenceMask(body: string): boolean[] {
   const mask: boolean[] = [];
   let open: { char: string; size: number } | undefined;
@@ -15,10 +11,10 @@ export function fenceMask(body: string): boolean[] {
       if (closing.test(line)) open = undefined;
       continue;
     }
-    const match = OPEN.exec(line);
+    const [, marker, info] = OPEN.exec(line) ?? [];
     // Una info string con ` no abre un fence de acentos graves (es código en línea).
-    if (match && !(match[1][0] === '`' && match[2].includes('`'))) {
-      open = { char: match[1][0], size: match[1].length };
+    if (marker && info !== undefined && !(marker.startsWith('`') && info.includes('`'))) {
+      open = { char: marker.charAt(0), size: marker.length };
       mask.push(true);
       continue;
     }

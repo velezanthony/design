@@ -3,8 +3,12 @@
 /** Apertura (o cierre) de un fence de código: tres o más `` ` `` o `~`. */
 export const FENCE = /^\s*(`{3,}|~{3,})/;
 
-export const indentOf = (line: string) => line.length - line.trimStart().length;
-export const unescapeTitle = (title: string) => title.replace(/\\(["\\])/g, '$1');
+export function indentOf(line: string) {
+  return line.length - line.trimStart().length;
+}
+export function unescapeTitle(title: string) {
+  return title.replace(/\\(["\\])/g, '$1');
+}
 
 /** Rangos `[inicio, fin)` de los spans de código en línea de la línea. */
 export function codeRanges(line: string): Array<[number, number]> {
@@ -15,10 +19,7 @@ export function codeRanges(line: string): Array<[number, number]> {
   return ranges;
 }
 
-/**
- * Como `String.replace`, pero ignora las coincidencias que empiezan dentro de un span de código
- * en línea. Una coincidencia que empieza fuera y contiene código (`[`Foo`][a.b]`) sí vale.
- */
+/** Como `String.replace`, pero ignora las coincidencias que empiezan dentro de código en línea. */
 export function replaceOutsideCode(
   line: string,
   pattern: RegExp,
@@ -41,7 +42,7 @@ export function colonsFor(body: string[], minimum: number): number {
   let widest = 0;
   for (const line of body) {
     const run = /^(:{3,})(?=[\w[{]|$)/.exec(line);
-    if (run) widest = Math.max(widest, run[1].length);
+    if (run?.[1]) widest = Math.max(widest, run[1].length);
   }
   return Math.max(minimum, widest + 1);
 }
@@ -57,7 +58,7 @@ export function takeBody(lines: string[], start: number, indent: number): [strin
   let end = start;
   let last = start;
   while (end < lines.length) {
-    const line = lines[end];
+    const line = lines[end] ?? '';
     if (line.trim() === '') {
       end++;
       continue;

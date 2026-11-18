@@ -79,9 +79,9 @@ describe('favicon local o remoto', () => {
 describe('faviconErrors', () => {
   it('una local ausente da un error accionable con el campo', () => {
     const [error] = faviconErrors('/falta.svg', false);
-    expect(error.describe()).toContain('favicon');
-    expect(error.describe()).toContain('/falta.svg');
-    expect(error.describe()).toContain('public/');
+    expect(error?.describe()).toContain('favicon');
+    expect(error?.describe()).toContain('/falta.svg');
+    expect(error?.describe()).toContain('public/');
   });
 
   it('presente, remota o sin definir: sin errores', () => {
@@ -92,15 +92,15 @@ describe('faviconErrors', () => {
 });
 
 describe('`favicon` en la config', () => {
-  const messages = (favicon: unknown): string[] => {
+  function messages(favicon: unknown): string[] {
     try {
       resolveConfig({ name: 'X', favicon } as never);
     } catch (error) {
-      if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+      if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
       throw error;
     }
     return [];
-  };
+  }
 
   it('acepta ruta relativa, con barra inicial y https', () => {
     expect(messages('favicon.svg')).toEqual([]);

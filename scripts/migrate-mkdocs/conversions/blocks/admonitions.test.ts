@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { convertAdmonition } from './admonitions';
-import type { Recurse } from '../../pipeline/types';
+import { convertAdmonition } from './admonitions.ts';
+import type { Recurse } from '../../pipeline/types.ts';
 
-const identity: Recurse = (lines) => ({ output: lines, log: [] });
-const run = (lines: string[], recurse = identity) => convertAdmonition(lines, 0, 0, recurse);
+function identity(lines: string[]): ReturnType<Recurse> {
+  return { output: lines, log: [] };
+}
+function run(lines: string[], recurse: Recurse = identity) {
+  return convertAdmonition(lines, 0, 0, recurse);
+}
 
 describe('convertAdmonition', () => {
   it('no actúa sobre una línea que no es una admonición', () => {
@@ -19,20 +23,22 @@ describe('convertAdmonition', () => {
 
   it('el cuerpo pasa por la recursión que le da quien llama, con su desplazamiento', () => {
     const seen: Array<[string[], number]> = [];
-    const recurse: Recurse = (lines, offset) => {
+    function recurse(lines: string[], offset: number): ReturnType<Recurse> {
       seen.push([lines, offset]);
       return { output: lines.map((row) => row.toUpperCase()), log: [] };
-    };
+    }
     const out = convertAdmonition(['', '!!! note "N"', '    abc'], 1, 10, recurse);
     expect(seen).toEqual([[['abc'], 12]]);
     expect(out?.output).toEqual([':::note[N]', 'ABC', ':::']);
   });
 
   it('el registro del cuerpo va antes que el de la admonición', () => {
-    const recurse: Recurse = () => ({
-      output: ['x'],
-      log: [{ kind: 'icon', line: 1, detail: 'i' }],
-    });
+    function recurse(): ReturnType<Recurse> {
+      return {
+        output: ['x'],
+        log: [{ kind: 'icon', line: 1, detail: 'i' }],
+      };
+    }
     const kinds = run(['!!! note "N"', '    x'], recurse)?.log.map((entry) => entry.kind);
     expect(kinds).toEqual(['icon', 'admonition']);
   });
@@ -76,7 +82,9 @@ describe('convertAdmonition', () => {
   });
 
   it('si el cuerpo ya trae directivas, sube los dos puntos y no usa alerta', () => {
-    const recurse: Recurse = () => ({ output: [':::warning[I]', 'deep', ':::'], log: [] });
+    function recurse() {
+      return { output: [':::warning[I]', 'deep', ':::'], log: [] };
+    }
     const out = run(['!!! note', '    !!! warning "I"', '        deep'], recurse);
     expect(out?.output).toEqual(['::::note', ':::warning[I]', 'deep', ':::', '::::']);
   });

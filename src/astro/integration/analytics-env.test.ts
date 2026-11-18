@@ -29,11 +29,16 @@ describe('readAnalyticsEnv con una fuente inyectada', () => {
 });
 
 describe('readAnalyticsEnv con Vite de verdad', () => {
-  const project = (files: Record<string, string>) => {
-    const dir = mkdtempSync(join(tmpdir(), 'design-env-'));
-    for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
-    return { dir, root: pathToFileURL(`${dir}/`), clean: () => rmSync(dir, { recursive: true }) };
-  };
+  function project(files: Record<string, string>) {
+    const directory = mkdtempSync(join(tmpdir(), 'design-env-'));
+    for (const [name, content] of Object.entries(files))
+      writeFileSync(join(directory, name), content);
+    return {
+      dir: directory,
+      root: pathToFileURL(`${directory}/`),
+      clean: () => rmSync(directory, { recursive: true }),
+    };
+  }
 
   it('lee .env.production al construir y .env.development en dev', () => {
     const site = project({

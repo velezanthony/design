@@ -1,6 +1,6 @@
 import type { Locale } from '../../i18n/locale';
-import type { ListingSelection } from '../pages/listing/selection';
-import type { HaveColumn } from '../queries/url-filters';
+import { slugLabel } from '../tree/keys';
+import type { HaveColumn, SeoFilters, ViewState } from '../queries/url-filters';
 import type { IssueKind, IssueSeverity, SeoPage, SeoTree } from '../tree/types';
 
 /** De qué trata un informe: qué entradas del árbol entran y qué problemas se cuentan de ellas. */
@@ -26,7 +26,7 @@ export interface ReportScope {
 export function pageScope(tree: SeoTree, slug: string): ReportScope {
   return {
     id: `page:${slug}`,
-    title: `\`${slug || '/'}\``,
+    title: `\`${slugLabel(slug)}\``,
     label: 'esta página',
     entries: tree.pages.filter((entry) => entry.slug === slug),
     single: true,
@@ -55,12 +55,19 @@ export function siteScope(tree: SeoTree): ReportScope {
   };
 }
 
-/**
- * Lo que la tabla de páginas enseña con su URL actual. `label` es lo que dicen los filtros, redactado
- * por quien tiene los textos. Un filtro por tipo recorta también los problemas (quien filtra por
- * «título duplicado» no quiere el resto en su informe), pero las páginas son las mismas que en la tabla.
- */
-export function filterScope(selection: ListingSelection, label: string): ReportScope {
+/** Lo que el informe toma de la selección del listado (la pantalla le pasa la suya entera). */
+export interface ScopeSelection {
+  view: ViewState;
+  filters: SeoFilters;
+  /** «Por idioma» cuenta entradas; las demás vistas, páginas. */
+  byEntry: boolean;
+  matching: SeoPage[];
+  selected: SeoPage[];
+  severities: IssueSeverity[] | undefined;
+}
+
+/** `label` lo redacta quien tiene los textos; filtrar por tipo recorta también los problemas, no las páginas. */
+export function filterScope(selection: ScopeSelection, label: string): ReportScope {
   const { filters, view, byEntry, matching, selected, severities } = selection;
   return {
     id: 'filter',

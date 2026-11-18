@@ -3,22 +3,29 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
 import { entryRows } from './entries';
 
-const issue = (kind: IssueKind, severity: IssueSeverity): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
-const warn = (kind: IssueKind = IssueKind.DUPLICATE_TITLE) => issue(kind, IssueSeverity.WARNING);
-const info = (kind: IssueKind = IssueKind.DESCRIPTION_INHERITED) => issue(kind, IssueSeverity.INFO);
+function issue(kind: IssueKind, severity: IssueSeverity): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
+function warn(kind: IssueKind = IssueKind.DUPLICATE_TITLE) {
+  return issue(kind, IssueSeverity.WARNING);
+}
+function info(kind: IssueKind = IssueKind.DESCRIPTION_INHERITED) {
+  return issue(kind, IssueSeverity.INFO);
+}
 
-const rows = (entries: SeoPage[], common: IssueKind[] = [], severities?: IssueSeverity[]) =>
-  entryRows(entries, {
+function rows(entries: SeoPage[], common: IssueKind[] = [], severities?: IssueSeverity[]) {
+  return entryRows(entries, {
     common,
     ...(severities && { severities }),
     inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
   });
+}
 
 describe('entryRows', () => {
   it('una fila por entrada página + idioma, no por página', () => {

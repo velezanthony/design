@@ -3,9 +3,7 @@ import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildFixture, type BuiltSite } from '../../../testing/build';
 
-/* Contenido fuera del proyecto de Astro: `fixtures/outside/site` (el proyecto) con las páginas en
-   su hermana `fixtures/outside/docs` (`content: '../docs'`) y el CHANGELOG en la raíz del repo. Se
-   construye UNA vez; cada test comprueba un caso de la opción. */
+/* Contenido fuera del proyecto (`fixtures/outside`), construido UNA vez; cada test comprueba un caso de la opción. */
 
 const root = resolve('src/astro/integration/builds/fixtures/outside/site');
 let site: BuiltSite;
@@ -14,7 +12,9 @@ beforeAll(async () => {
   site = await buildFixture(root);
 }, 180_000);
 
-const hrefs = (html: string) => [...html.matchAll(/<a [^>]*href="([^"]+)"/g)].map((m) => m[1]);
+function hrefs(html: string) {
+  return [...html.matchAll(/<a [^>]*href="([^"]+)"/g)].map((match) => match[1]);
+}
 
 describe('páginas de ../docs', () => {
   it('se publican, con sub-carpetas y sufijos de idioma; los que no son .md no son páginas', async () => {
@@ -57,7 +57,7 @@ describe('enlaces y anclas', () => {
 describe('imágenes', () => {
   it('relativas (`img/x.png` y `../assets/x.png`) se emiten con tamaño y alt, listas para el zoom', async () => {
     const html = await site.read('users/guia/index.html');
-    const images = [...html.matchAll(/<img [^>]*>/g)].map((m) => m[0]);
+    const images = [...html.matchAll(/<img [^>]*>/g)].map((match) => match[0]);
     const sources = images.map((img) => /src="([^"]+)"/.exec(img)?.[1]);
     expect(sources).toHaveLength(2);
     for (const src of sources) expect(src).toMatch(/^\/repo\/_astro\/.+\.(png|webp)$/);
