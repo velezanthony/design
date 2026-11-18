@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanGeneratedApi } from './api-postprocess';
+import { cleanGeneratedApi } from './api-postprocess.ts';
 
 describe('cleanGeneratedApi', () => {
   it('quita los enlaces internos `#ancla` que griffe2md no puede respaldar con un id', () => {

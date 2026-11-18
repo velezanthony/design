@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { transformMkdocs } from './transform';
+import { transformMkdocs } from './transform.ts';
 
 function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';

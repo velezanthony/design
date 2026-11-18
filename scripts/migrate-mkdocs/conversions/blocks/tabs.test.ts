@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { convertTabs } from './tabs';
-import type { Recurse } from '../../pipeline/types';
+import { convertTabs } from './tabs.ts';
+import type { Recurse } from '../../pipeline/types.ts';
 
 function identity(lines: string[]): ReturnType<Recurse> {
   return { output: lines, log: [] };

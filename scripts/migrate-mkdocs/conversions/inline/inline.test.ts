@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveAutorefs } from './autorefs';
-import { removeAttrLists } from './attr-lists';
-import { stripHeadingId } from './heading-ids';
-import { removeIcons } from './icons';
-import { rewriteLinks } from './links';
+import { resolveAutorefs } from './autorefs.ts';
+import { removeAttrLists } from './attr-lists.ts';
+import { stripHeadingId } from './heading-ids.ts';
+import { removeIcons } from './icons.ts';
+import { rewriteLinks } from './links.ts';
 
 describe('removeIcons', () => {
   it('quita los códigos de icono y el espacio que los sigue', () => {

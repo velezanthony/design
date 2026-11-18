@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkOutput, findLeftovers, findSnippetStub } from './leftovers';
+import { checkOutput, findLeftovers, findSnippetStub } from './leftovers.ts';
 
 function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';

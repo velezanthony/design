@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { runInPlace, type InPlaceIo } from './in-place';
+import { runInPlace, type InPlaceIo } from './in-place.ts';
 
 function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { runPipeline } from './pipeline';
+import { runPipeline } from './pipeline.ts';
 
 function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';

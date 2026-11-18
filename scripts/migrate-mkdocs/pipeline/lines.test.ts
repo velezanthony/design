@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { colonsFor, directive, indentOf, replaceOutsideCode, takeBody } from './lines';
+import { colonsFor, directive, indentOf, replaceOutsideCode, takeBody } from './lines.ts';
 
 describe('indentOf', () => {
   it('cuenta los espacios iniciales', () => {

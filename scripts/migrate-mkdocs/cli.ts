@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { runInPlace } from './modes/in-place.ts';
-import { nodeInPlaceIo } from './io/node-io.ts';
+import { nodeInPlaceIo, nodeToFolderIo } from './io/node-io.ts';
 import { checkOptions } from './io/options.ts';
 import { runToFolder } from './modes/to-folder.ts';
 
@@ -37,7 +37,7 @@ if (values['in-place']) {
 }
 
 process.exit(
-  runToFolder({
+  runToFolder(nodeToFolderIo(), {
     repo,
     out: values.out!,
     repoUrl: values['repo-url']!,

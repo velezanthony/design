@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { convertAdmonition } from './admonitions';
-import type { Recurse } from '../../pipeline/types';
+import { convertAdmonition } from './admonitions.ts';
+import type { Recurse } from '../../pipeline/types.ts';
 
 function identity(lines: string[]): ReturnType<Recurse> {
   return { output: lines, log: [] };

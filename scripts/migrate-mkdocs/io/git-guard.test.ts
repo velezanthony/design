@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { docsProblem } from './git-guard';
+import { docsProblem } from './git-guard.ts';
 
 function fakeGit(answers: Record<string, string | Error>) {
   return (gitArguments: string[]): string => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertFence } from './fences';
+import { convertFence } from './fences.ts';
 
 describe('convertFence', () => {
   it('no actúa si la línea no abre un fence', () => {

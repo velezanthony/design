@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findStubLinks } from './stub-links';
+import { findStubLinks } from './stub-links.ts';
 
 function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';

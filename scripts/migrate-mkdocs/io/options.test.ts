@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkOptions } from './options';
+import { checkOptions } from './options.ts';
 
 describe('checkOptions', () => {
   it('modo carpeta: exige --repo, --out y --repo-url', () => {

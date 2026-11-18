@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatLeftovers, formatStubLinks, formatStubs, formatSummary, stubSlug } from './report';
+import {
+  formatLeftovers,
+  formatStubLinks,
+  formatStubs,
+  formatSummary,
+  stubSlug,
+} from './report.ts';
 
 describe('formatLeftovers', () => {
   it('una línea por resto con `fichero:línea  tipo  vista previa`', () => {

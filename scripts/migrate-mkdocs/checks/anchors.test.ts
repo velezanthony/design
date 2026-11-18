@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fixAccentAnchors } from './anchors';
+import { fixAccentAnchors } from './anchors.ts';
 
 function reportMarkdown(...lines: string[]) {
   return lines.join('\n') + '\n';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { convertApiDirective } from './api-directive';
+import { convertApiDirective } from './api-directive.ts';
 
 describe('convertApiDirective', () => {
   it('no actúa sobre otras líneas', () => {

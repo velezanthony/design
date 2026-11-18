@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { stepHtmlWrapper } from './html-wrappers';
+import { stepHtmlWrapper } from './html-wrappers.ts';
 
 describe('stepHtmlWrapper', () => {
   it('abre al ver `<div markdown>`, salta la línea y lo registra', () => {
