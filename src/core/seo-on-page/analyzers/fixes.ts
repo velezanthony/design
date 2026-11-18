@@ -1,3 +1,4 @@
+import { localizedPath, stripLocale } from '../../i18n/locale';
 import { scopedKey } from '../key-place';
 import { THRESHOLDS } from '../thresholds';
 import { IssueKind, type Issue, type OgImageSource, type SeoPageKind } from '../tree/types';
@@ -26,24 +27,14 @@ export interface FixDetail {
   og?: { source: OgImageSource; width: number; height: number };
 }
 
-/**
- * Archivo de la misma página en otro idioma. La convención es la del descubrimiento (y de
- * `externalPath`): el idioma por defecto es el archivo tal cual y los demás llevan `.<idioma>.md`.
- */
+/** Archivo de la misma página en otro idioma (misma convención que el descubrimiento). */
 export function siblingPath(
   sourcePath: string,
   ownLocale: string,
   locale: string,
   defaultLocale: string,
 ): string {
-  const base =
-    ownLocale === defaultLocale
-      ? sourcePath
-      : sourcePath.replace(
-          new RegExp(`\\.${ownLocale.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.md$`),
-          '.md',
-        );
-  return locale === defaultLocale ? base : base.replace(/\.md$/, `.${locale}.md`);
+  return localizedPath(stripLocale(sourcePath, ownLocale, defaultLocale), locale, defaultLocale);
 }
 
 /**

@@ -1,7 +1,7 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { PageSeoOverride } from '../config/schema';
 import { collectErrors, DocsError } from '../errors';
-import { splitLocale, type Locale } from '../i18n/locale';
+import { localizedPath, splitLocale, type Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import { findSlugCollisions, toSlug } from './slug';
 import { resolveTitle } from './title';
@@ -41,10 +41,9 @@ export interface Page {
 /** `./x.md` y `x.md` son el mismo archivo. */
 const normalize = (file: string) => file.replace(/^(\.\/)+/, '');
 
-/** Ruta del archivo de un idioma: el idioma por defecto es el archivo tal cual; los demás, `x.es.md`. */
+/** Ruta del archivo de un idioma de una entrada externa. */
 export function externalPath(file: string, locale: Locale, defaultLocale: Locale): string {
-  const path = normalize(file);
-  return locale === defaultLocale ? path : path.replace(/\.md$/, `.${locale}.md`);
+  return localizedPath(normalize(file), locale, defaultLocale);
 }
 
 /** Idiomas en los que una entrada externa PUEDE existir (los declarados o, si no, todos los del sitio). */

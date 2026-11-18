@@ -30,6 +30,18 @@ export function splitLocale(
   return { stem, locale };
 }
 
+/** Archivo de un idioma: el idioma por defecto es el archivo tal cual; los demás, `x.<idioma>.md`. */
+export function localizedPath(stemPath: string, locale: Locale, defaultLocale: Locale): string {
+  return locale === defaultLocale ? stemPath : stemPath.replace(/\.md$/, `.${locale}.md`);
+}
+
+/** Lo contrario de `localizedPath`: `x.es.md` → `x.md`. */
+export function stripLocale(path: string, locale: Locale, defaultLocale: Locale): string {
+  const suffix = `.${locale}.md`;
+  if (locale === defaultLocale || !path.endsWith(suffix)) return path;
+  return `${path.slice(0, -suffix.length)}.md`;
+}
+
 /**
  * Idioma de una ruta servida: el primer segmento tras `base` si es un idioma configurado (segmento
  * completo) y, si no, el idioma por defecto. Sirve a la 404 en sitio, que corre en el navegador.
