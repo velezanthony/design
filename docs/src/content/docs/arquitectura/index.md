@@ -45,8 +45,9 @@ Las flechas son las únicas direcciones permitidas. Fíjate en lo que **no** hay
 - `client/` no importa valores del núcleo. El código de navegador se empaqueta para el cliente, y
   arrastrar valores de `core/` metería en el bundle código que no pinta nada en el navegador. Los
   datos que necesita le llegan por atributos `data-*` del HTML.
-- `components/` no ve `astro/`: un componente no lee la colección ni el módulo virtual. Eso lo hacen los
-  **páginas** de `astro/routes/` (patrón contenedor/presentacional).
+- `components/` no ve `astro/`: un componente no lee la colección ni el módulo virtual. Eso lo hacen las
+  **rutas** de `astro/routes/` (contenedores), que le pasan el modelo a las páginas de
+  `components/pages/` (presentacionales: solo pintan).
 
 ## Cómo lo hace cumplir ESLint
 

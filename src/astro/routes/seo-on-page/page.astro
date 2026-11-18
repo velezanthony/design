@@ -4,20 +4,9 @@
 import Fonts from '../Fonts.astro';
 import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
 import { findEntry } from '../../../core/seo-on-page/tree/keys';
-import DocsLayout from '../../../components/layouts/DocsLayout.astro';
-import Link from '../../../components/atoms/actions/Link.astro';
-import FixList from '../../../components/seo-on-page/organisms/inspector/FixList.astro';
-import HeadingsOutline from '../../../components/seo-on-page/organisms/inspector/HeadingsOutline.astro';
-import InspectorHeader from '../../../components/seo-on-page/organisms/inspector/InspectorHeader.astro';
-import PublishedFacts from '../../../components/seo-on-page/organisms/inspector/PublishedFacts.astro';
-import SchemasList from '../../../components/seo-on-page/organisms/inspector/SchemasList.astro';
-import Translations from '../../../components/seo-on-page/organisms/inspector/Translations.astro';
+import InspectorPage from '../../../components/seo-on-page/pages/InspectorPage.astro';
 import { PANEL_LABELS, slugLabel } from '../../../components/seo-on-page/labels';
-import PanelIntro from '../../../components/seo-on-page/molecules/PanelIntro.astro';
-import ReportButton from '../../../components/seo-on-page/molecules/ReportButton.astro';
-import ReportDialog from '../../../components/seo-on-page/organisms/shared/ReportDialog.astro';
 import { siteConfig } from '../../data/site-config';
-import ClientPageFailures from '../../../components/seo-on-page/organisms/shared/ClientPageFailures.astro';
 import { loadPanel } from '../../data/seo-on-page/adapter';
 import { assetHref } from '../../views/seo-on-page/hrefs';
 import { fixPrompts, inspectorReport } from '../../views/seo-on-page/report';
@@ -68,32 +57,16 @@ const view = panelView({
 });
 ---
 
-<DocsLayout {...view} year={new Date().getFullYear()}>
+<InspectorPage
+  view={view}
+  year={new Date().getFullYear()}
+  model={model}
+  slug={slug}
+  locale={locale}
+  pagesHref={hrefs.pages()}
+  prompts={prompts}
+  failures={failures}
+  report={report}
+>
   <Fonts slot="head" />
-  <PanelIntro title={model ? slugLabel(slug) : title} strings={view.strings} />
-  <ClientPageFailures failures={failures} />
-  {model ? (
-    <div class="flex flex-col gap-10">
-      <InspectorHeader header={model.header} links={model.links}>
-        <ReportButton slot="actions" scope="page" />
-      </InspectorHeader>
-      <FixList fixes={model.fixes} prompts={prompts} />
-      <PublishedFacts published={model.published} previews={model.previews} />
-      {model.translations && <Translations translations={model.translations} />}
-      <SchemasList schemas={model.schemas} />
-      <HeadingsOutline headings={model.headings} />
-      {report && <ReportDialog {...report} />}
-    </div>
-  ) : (
-    <p class="text-ink">
-      No hay ninguna página con slug «{slug}» en «{locale}».
-      <Link href={hrefs.pages()}>{PANEL_LABELS.viewTable}</Link>
-    </p>
-  )}
-</DocsLayout>
-
-<script>
-  import { bootPanel } from '../../../client/seo-on-page/boot';
-
-  bootPanel();
-</script>
+</InspectorPage>

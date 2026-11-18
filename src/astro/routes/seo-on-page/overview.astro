@@ -2,21 +2,9 @@
 /* Contenedor de la vista general del panel SEO; solo existe con `astro dev`. */
 import Fonts from '../Fonts.astro';
 import { overviewModel } from '../../../core/seo-on-page/pages/overview/model';
-import DocsLayout from '../../../components/layouts/DocsLayout.astro';
-import CoverageCard from '../../../components/seo-on-page/organisms/overview/CoverageCard.astro';
-import FixFirstCard from '../../../components/seo-on-page/organisms/overview/FixFirstCard.astro';
-import IndexingCard from '../../../components/seo-on-page/organisms/overview/IndexingCard.astro';
-import KindsCard from '../../../components/seo-on-page/organisms/overview/KindsCard.astro';
-import OverviewKpis from '../../../components/seo-on-page/organisms/overview/OverviewKpis.astro';
-import SchemasCard from '../../../components/seo-on-page/organisms/overview/SchemasCard.astro';
-import SiteFilesCard from '../../../components/seo-on-page/organisms/overview/SiteFilesCard.astro';
-import PanelIntro from '../../../components/seo-on-page/molecules/PanelIntro.astro';
-import ReportButton from '../../../components/seo-on-page/molecules/ReportButton.astro';
-import ReportDialog from '../../../components/seo-on-page/organisms/shared/ReportDialog.astro';
-import { OVERVIEW_LABELS, SCREEN_LABELS } from '../../../components/seo-on-page/labels';
+import OverviewPage from '../../../components/seo-on-page/pages/OverviewPage.astro';
+import { SCREEN_LABELS } from '../../../components/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
-import ClientPageFailures from '../../../components/seo-on-page/organisms/shared/ClientPageFailures.astro';
-import RouteOverridesNotice from '../../../components/seo-on-page/organisms/overview/RouteOverridesNotice.astro';
 import { loadPanel, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
@@ -39,32 +27,16 @@ const view = panelView({
   title: SCREEN_LABELS.overview,
 });
 const report = overviewReport(tree, siteConfig);
-const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteConfig.locales);
 ---
 
-<DocsLayout {...view} year={new Date().getFullYear()}>
+<OverviewPage
+  view={view}
+  year={new Date().getFullYear()}
+  model={model}
+  locales={siteConfig.locales}
+  failures={failures}
+  overrides={overrides}
+  report={report}
+>
   <Fonts slot="head" />
-  <PanelIntro title={SCREEN_LABELS.overview} lede={lede} strings={view.strings}>
-    <ReportButton slot="actions" scope="site" />
-  </PanelIntro>
-  <ClientPageFailures failures={failures} />
-  <RouteOverridesNotice overrides={overrides} />
-  <div class="flex flex-col gap-4">
-    <OverviewKpis kpis={model.kpis} />
-    <div class="grid gap-4 lg:grid-cols-2">
-      <FixFirstCard priorities={model.priorities} footer={model.footer} />
-      {model.coverage && <CoverageCard coverage={model.coverage} />}
-      <IndexingCard indexing={model.indexing} />
-      <SchemasCard schemas={model.schemas} />
-      <KindsCard kinds={model.kinds} />
-      <SiteFilesCard files={model.files} locales={siteConfig.locales} />
-    </div>
-  </div>
-  <ReportDialog {...report} />
-</DocsLayout>
-
-<script>
-  import { bootPanel } from '../../../client/seo-on-page/boot';
-
-  bootPanel();
-</script>
+</OverviewPage>

@@ -119,7 +119,9 @@ components/
 │   │   ├── inspector/   InspectorHeader, FixList, PublishedFacts, Translations, SchemasList,
 │   │   │                HeadingsOutline
 │   │   └── shared/      ClientPageFailures, ReportDialog (las usan varias pantallas)
+│   ├── pages/       OverviewPage, PagesPage, InspectorPage: las pantallas del panel, presentacionales
 │   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
+├── pages/       Páginas presentacionales: reciben el modelo por props y solo pintan (DocPage, NotFoundPage, PrivacyPage)
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
 │   ├── DocsLayout.astro     Página de docs: cabecera, barra, contenido, índice, pie

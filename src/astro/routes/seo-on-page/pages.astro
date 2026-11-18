@@ -3,19 +3,9 @@
    así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
 import Fonts from '../Fonts.astro';
 import { listingModel } from '../../../core/seo-on-page/pages/listing/model';
-import DocsLayout from '../../../components/layouts/DocsLayout.astro';
-import FiltersForm from '../../../components/seo-on-page/molecules/FiltersForm.astro';
-import InfoHiddenNote from '../../../components/seo-on-page/molecules/InfoHiddenNote.astro';
-import CommonIssueNotice from '../../../components/seo-on-page/organisms/listing/CommonIssueNotice.astro';
-import PagesListing from '../../../components/seo-on-page/organisms/listing/PagesListing.astro';
-import TableFooter from '../../../components/seo-on-page/molecules/TableFooter.astro';
-import TableHead from '../../../components/seo-on-page/molecules/TableHead.astro';
-import PanelIntro from '../../../components/seo-on-page/molecules/PanelIntro.astro';
-import ReportButton from '../../../components/seo-on-page/molecules/ReportButton.astro';
-import ReportDialog from '../../../components/seo-on-page/organisms/shared/ReportDialog.astro';
-import { headCount, SCREEN_LABELS, VIEW_LABELS } from '../../../components/seo-on-page/labels';
+import PagesPage from '../../../components/seo-on-page/pages/PagesPage.astro';
+import { SCREEN_LABELS } from '../../../components/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
-import ClientPageFailures from '../../../components/seo-on-page/organisms/shared/ClientPageFailures.astro';
 import { loadPanel } from '../../data/seo-on-page/adapter';
 import { listingReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
@@ -35,48 +25,15 @@ const model = listingModel({
   defaultLocale: siteConfig.defaultLocale,
   links: hrefs,
 });
-const { footer } = model;
 const report = listingReport(tree, Astro.url.searchParams, siteConfig);
 ---
 
-<DocsLayout {...view} year={new Date().getFullYear()}>
+<PagesPage
+  view={view}
+  year={new Date().getFullYear()}
+  model={model}
+  failures={failures}
+  report={report}
+>
   <Fonts slot="head" />
-  <PanelIntro
-    title={SCREEN_LABELS.pages}
-    lede={VIEW_LABELS[model.view.view].lede}
-    strings={view.strings}
-  >
-    <ReportButton slot="actions" scope="filter" />
-  </PanelIntro>
-  <ClientPageFailures failures={failures} />
-  <div class="flex flex-col gap-6">
-    <FiltersForm {...model.form} />
-    {model.showAllHref && <InfoHiddenNote showAllHref={model.showAllHref} />}
-    <TableHead
-      count={headCount(model.table, footer.count.total)}
-      views={model.views}
-      copyReport={model.table.view === 'have' && model.table.lacks !== undefined}
-    />
-    {model.common.issues.map((issue) => (
-      <CommonIssueNotice issue={issue} overviewHref={model.common.overviewHref} />
-    ))}
-    <PagesListing table={model.table} />
-    <TableFooter
-      filters={footer.filters}
-      perPage={footer.perPage}
-      view={footer.view}
-      action={footer.action}
-      {...footer.count}
-      page={footer.pagination.page}
-      pages={footer.pagination.pages}
-      href={footer.pagination.href}
-    />
-  </div>
-  <ReportDialog {...report} />
-</DocsLayout>
-
-<script>
-  import { bootPanel } from '../../../client/seo-on-page/boot';
-
-  bootPanel();
-</script>
+</PagesPage>

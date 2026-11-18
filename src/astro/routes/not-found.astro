@@ -2,7 +2,7 @@
 /* Contenedor de la 404. `/404` (→ `404.html`, el único que sirve GitHub Pages) es el idioma por
    defecto con una plantilla por cada otro idioma; `/[locale]/404` pinta el suyo directamente. */
 import Fonts from './Fonts.astro';
-import NotFoundLayout from '../../components/layouts/NotFoundLayout.astro';
+import NotFoundPage from '../../components/pages/NotFoundPage.astro';
 import { notFoundRoutes, notFoundView } from '../views/not-found';
 import { getDocData } from '../data/docs-collection';
 import { siteImageSizes } from '../data/image-sizes';
@@ -20,6 +20,6 @@ const view = notFoundView({
 });
 ---
 
-<NotFoundLayout {...view} year={new Date().getFullYear()}>
+<NotFoundPage {...view} year={new Date().getFullYear()}>
   <Fonts slot="head" />
-</NotFoundLayout>
+</NotFoundPage>

@@ -82,7 +82,7 @@ recogen. Los arreglos nombran la etiqueta del `<head>` (`<title>`, `<meta name="
 Cada pantalla es lo mismo en pequeño: **leer la URL → pedir el árbol al adaptador → pedir el modelo
 al núcleo → pintar componentes**. Nada más.
 
-| Pantalla | Página (`astro/routes/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
+| Pantalla | Ruta (`astro/routes/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
 | --- | --- | --- |
 | Resumen | `overview.astro` | `overview/model.ts`: totales, desglose por gravedad y por tipo, schemas |
 | Páginas | `pages.astro` | `listing/model.ts`: filtros efectivos, filas de la página, paginación |
@@ -91,7 +91,8 @@ al núcleo → pintar componentes**. Nada más.
 Cada modelo es una función pura que devuelve exactamente lo que enseña su pantalla. Como el núcleo
 no sabe formar URLs (`base`, `trailingSlash`), los modelos reciben un **puerto de enlaces**
 (`PanelLinks`, en `pages/links.ts`) y devuelven los enlaces ya hechos como texto; `devHrefs`, de
-`astro/views/seo-on-page/hrefs.ts`, lo implementa. Los componentes (`components/seo-on-page/organisms/`) son
+`astro/views/seo-on-page/hrefs.ts`, lo implementa. Cada ruta pasa el modelo a su página (`components/seo-on-page/pages/`: `OverviewPage`, `PagesPage`,
+`InspectorPage`), que solo pinta. Los componentes (`components/seo-on-page/organisms/`) son
 una sección cada uno y reciben solo su porción del modelo; las etiquetas y los textos son suyos
 (`labels.ts`), los datos no.
 

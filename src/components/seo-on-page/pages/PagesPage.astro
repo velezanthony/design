@@ -1,0 +1,70 @@
+---
+import type { ComponentProps } from 'astro/types';
+import type { ListingModel } from '../../../core/seo-on-page/pages/listing/model';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { headCount, SCREEN_LABELS, VIEW_LABELS } from '../labels';
+import FiltersForm from '../molecules/FiltersForm.astro';
+import InfoHiddenNote from '../molecules/InfoHiddenNote.astro';
+import PanelIntro from '../molecules/PanelIntro.astro';
+import ReportButton from '../molecules/ReportButton.astro';
+import TableFooter from '../molecules/TableFooter.astro';
+import TableHead from '../molecules/TableHead.astro';
+import CommonIssueNotice from '../organisms/listing/CommonIssueNotice.astro';
+import PagesListing from '../organisms/listing/PagesListing.astro';
+import ClientPageFailures from '../organisms/shared/ClientPageFailures.astro';
+import ReportDialog from '../organisms/shared/ReportDialog.astro';
+
+/* Solo pinta: los filtros viven en la query de la URL, que lee la ruta. */
+interface Props {
+  view: Omit<ComponentProps<typeof DocsLayout>, 'year'>;
+  year: number;
+  model: ListingModel;
+  failures: ComponentProps<typeof ClientPageFailures>['failures'];
+  report: ComponentProps<typeof ReportDialog>;
+}
+
+const { view, year, model, failures, report } = Astro.props;
+const { footer } = model;
+---
+
+<DocsLayout {...view} year={year}>
+  <slot name="head" slot="head" />
+  <PanelIntro
+    title={SCREEN_LABELS.pages}
+    lede={VIEW_LABELS[model.view.view].lede}
+    strings={view.strings}
+  >
+    <ReportButton slot="actions" scope="filter" />
+  </PanelIntro>
+  <ClientPageFailures failures={failures} />
+  <div class="flex flex-col gap-6">
+    <FiltersForm {...model.form} />
+    {model.showAllHref && <InfoHiddenNote showAllHref={model.showAllHref} />}
+    <TableHead
+      count={headCount(model.table, footer.count.total)}
+      views={model.views}
+      copyReport={model.table.view === 'have' && model.table.lacks !== undefined}
+    />
+    {model.common.issues.map((issue) => (
+      <CommonIssueNotice issue={issue} overviewHref={model.common.overviewHref} />
+    ))}
+    <PagesListing table={model.table} />
+    <TableFooter
+      filters={footer.filters}
+      perPage={footer.perPage}
+      view={footer.view}
+      action={footer.action}
+      {...footer.count}
+      page={footer.pagination.page}
+      pages={footer.pagination.pages}
+      href={footer.pagination.href}
+    />
+  </div>
+  <ReportDialog {...report} />
+</DocsLayout>
+
+<script>
+  import { bootPanel } from '../../../client/seo-on-page/boot';
+
+  bootPanel();
+</script>

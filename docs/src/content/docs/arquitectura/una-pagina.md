@@ -56,7 +56,7 @@ reescribe sus enlaces, lo renderiza con el pipeline de Markdown y guarda la entr
 3. Lee las dimensiones de las imágenes SEO y llama a `docView`, que reúne con funciones puras de
    `core/` todo lo que la página necesita: barra lateral de su sección, cabecera, anterior/siguiente,
    etiquetas del head, pie, textos del idioma, URL de edición.
-4. Pasa ese objeto a `DocsLayout`. Las fuentes (`<Font>` de `astro:assets`) se inyectan en la ranura
+4. Pasa ese objeto a `DocPage` (`components/pages/`), que solo pinta con `DocsLayout`. Las fuentes (`<Font>` de `astro:assets`) se inyectan en la ranura
    `head` desde el contenedor, porque `components/` no puede importar `astro:*`.
 
 ## 3. Del layout al HTML
