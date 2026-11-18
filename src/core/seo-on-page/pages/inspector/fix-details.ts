@@ -78,6 +78,6 @@ export function verifyFor(kind: IssueKind, related: readonly string[]): string {
     case IssueKind.IMAGE_ALT_MISSING:
       return 'Este aviso desaparece: todas las imágenes de la página llevan texto alternativo.';
     case IssueKind.OG_IMAGE_SIZE:
-      return 'La imagen de «Lo que se publica» mide 1200×630 (o la misma proporción, más grande).';
+      return `La imagen de «Lo que se publica» mide ${THRESHOLDS.ogWidth}×${THRESHOLDS.ogHeight} (o la misma proporción, más grande).`;
   }
 }

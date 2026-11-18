@@ -1,3 +1,4 @@
+import { THRESHOLDS } from '../thresholds';
 import type { HeadingNode } from '../tree/types';
 import { outline } from './outline';
 
@@ -27,7 +28,7 @@ export function headingCounts(headings: readonly HeadingNode[]): HeadingCounts {
   const h1 = levels[0]!.count;
   const problems: HeadingProblem[] = [];
   if (h1 === 0) problems.push({ kind: 'no-h1' });
-  if (h1 > 1) problems.push({ kind: 'multiple-h1', count: h1 });
+  if (h1 > THRESHOLDS.maxH1) problems.push({ kind: 'multiple-h1', count: h1 });
   for (const item of outline(headings)) {
     if (item.skipFrom !== undefined) {
       problems.push({ kind: 'skip', from: item.skipFrom, to: item.depth });

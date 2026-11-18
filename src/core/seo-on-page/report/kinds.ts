@@ -1,5 +1,6 @@
 import { clientTag } from '../client-tags';
 import { estimateWidth } from '../pixels';
+import { THRESHOLDS } from '../thresholds';
 import { limitOf } from '../pages/inspector/fix-details';
 import { IssueKind, type Issue, type SeoPage } from '../tree/types';
 
@@ -10,6 +11,8 @@ import { IssueKind, type Issue, type SeoPage } from '../tree/types';
  */
 
 type Field = 'title' | 'description';
+
+const OG_SIZE = `${THRESHOLDS.ogWidth}×${THRESHOLDS.ogHeight}`;
 
 const KEY: Record<IssueKind, string | undefined> = {
   [IssueKind.TITLE_TOO_LONG]: 'seo.title',
@@ -112,7 +115,7 @@ export const GENERIC_FIX: Record<IssueKind, string> = {
     'Quita el enlace o deja de marcar como noindex la página si debe indexarse.',
   [IssueKind.ORPHAN_PAGE]: 'Enlaza la página desde otra o declárala en la navegación.',
   [IssueKind.IMAGE_ALT_MISSING]: 'Escribe un texto alternativo que describa cada imagen.',
-  [IssueKind.OG_IMAGE_SIZE]: 'Usa una imagen social de 1200×630 px.',
+  [IssueKind.OG_IMAGE_SIZE]: `Usa una imagen social de ${OG_SIZE} px.`,
 };
 
 /**
@@ -125,7 +128,7 @@ export function restrictionFor(kind: IssueKind): string | undefined {
   if (kind === IssueKind.DUPLICATE_TITLE || kind === IssueKind.DUPLICATE_DESCRIPTION) {
     return 'No cambies el slug ni la URL para distinguirlas.';
   }
-  if (kind === IssueKind.OG_IMAGE_SIZE) return '1200×630 px (recomendación)';
+  if (kind === IssueKind.OG_IMAGE_SIZE) return `${OG_SIZE} px (recomendación)`;
   if (kind === IssueKind.IMAGE_ALT_MISSING) {
     return 'Describe lo que muestra la imagen; no repitas el nombre del archivo ni rellenes con palabras clave.';
   }
