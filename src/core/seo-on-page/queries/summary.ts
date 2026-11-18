@@ -1,5 +1,6 @@
-import { IssueKind, type SeoPage, type SeoTree } from '../tree/types';
+import { IssueKind, type SeoTree } from '../tree/types';
 import { isActionable } from '../severity';
+import { schemaTypes, slugsOf } from '../tree/keys';
 
 /** Hasta dónde llega un `@type`: a todas las páginas, solo a la portada o a algunas. */
 export type SchemaScope = 'site' | 'home' | 'pages';
@@ -22,19 +23,14 @@ export interface SeoSummary {
   };
 }
 
-/** Los `@type` de una página, sin repetir (un `@type` puede ser una lista). */
-const typesOf = (page: SeoPage) => [
-  ...new Set(page.schemas.flatMap(({ schema }) => [schema['@type']].flat())),
-];
-
 function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
   // Por página (slug): la misma página en dos idiomas declara lo mismo y no es otro trabajo.
-  const slugs = new Set(tree.pages.map((page) => page.slug));
+  const slugs = slugsOf(tree.pages);
   const byType = new Map<string, Set<string>>();
   const withSchemas = new Set<string>();
   for (const page of tree.pages) {
     if (page.schemas.length > 0) withSchemas.add(page.slug);
-    for (const type of typesOf(page)) {
+    for (const type of schemaTypes(page.schemas)) {
       byType.set(type, (byType.get(type) ?? new Set()).add(page.slug));
     }
   }
@@ -54,7 +50,7 @@ function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
  * aviso. Contar entradas daba otra cifra que «Páginas» y no se podía explicar con el total a la vista.
  */
 function healthOf(tree: SeoTree): SeoSummary['health'] {
-  const slugs = new Set(tree.pages.map((page) => page.slug));
+  const slugs = slugsOf(tree.pages);
   const unhealthy = new Set(
     tree.pages
       .filter((page) => page.issues.some((issue) => isActionable(issue.severity)))

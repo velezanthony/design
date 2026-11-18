@@ -9,6 +9,7 @@ import {
 import type { IssueSeverity, SeoPage, SeoTree } from '../../tree/types';
 import { kindsWithIssues } from './kinds';
 import { ALL_SEVERITIES } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /**
  * Pedir TODOS los tipos con incidencias es no filtrar por tipo («Todos» marcado): sin esto, enviar
@@ -68,7 +69,7 @@ export function selectListing(tree: SeoTree, params: URLSearchParams): ListingSe
       ? { filters: { ...parsed.filters, severities: [...ALL_SEVERITIES] }, defaulted: false }
       : parsed;
   const matching = filterPages(tree, filters);
-  const slugs = new Set(matching.map((entry) => entry.slug));
+  const slugs = slugsOf(matching);
   return {
     view,
     filters,

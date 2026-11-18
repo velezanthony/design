@@ -17,6 +17,7 @@ import { contentDirs } from './content-dirs';
 import { LACKS } from './lacks';
 import { currentValue, GENERIC_FIX, keyOf, placeOf, restrictionFor, scoped, WHY } from './kinds';
 import type { ReportScope } from './scope';
+import { pageKey } from '../tree/keys';
 
 /** Lo que el informe necesita saber del sitio, además del alcance. */
 export interface ReportContext {
@@ -165,12 +166,12 @@ interface IssueEntry {
 
 /** Con qué páginas chocan los problemas, sin las que ya están en la lista. */
 function relatedLines(hits: readonly Hit[], ctx: ReportContext): string[] {
-  const listed = new Set(hits.map(({ entry }) => `${entry.slug}\0${entry.locale}`));
+  const listed = new Set(hits.map(({ entry }) => pageKey(entry)));
   const seen = new Set<string>();
   const lines: string[] = [];
   for (const { issue } of hits) {
     for (const { slug, locale } of issue.related ?? []) {
-      const key = `${slug}\0${locale}`;
+      const key = pageKey({ slug, locale });
       if (listed.has(key) || seen.has(key)) continue;
       seen.add(key);
       const other = ctx.tree.pages.find((page) => page.slug === slug && page.locale === locale);

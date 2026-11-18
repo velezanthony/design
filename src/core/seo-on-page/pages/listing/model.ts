@@ -20,6 +20,7 @@ import { pageRows, type PageRow } from './rows';
 import { isInventoryView, selectListing } from './selection';
 import { severityCounts, type SeverityCounts } from './severities';
 import { ALL_SEVERITIES } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /** Lo que pinta la tabla según la vista; cada una trae sus filas, ya paginadas. */
 export type ListingTable =
@@ -243,7 +244,7 @@ export function listingModel({
         from: paging.from,
         to: paging.to,
         total: paging.total,
-        overall: byEntry ? tree.pages.length : new Set(tree.pages.map((entry) => entry.slug)).size,
+        overall: byEntry ? tree.pages.length : slugsOf(tree.pages).size,
       },
       pagination: {
         page: paging.page,

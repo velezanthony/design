@@ -8,8 +8,7 @@ import { buildSectionSidebar, type NavContext } from '../../navigation/nav-sideb
 import { sectionIndexOf } from '../../navigation/nav-sections';
 import { flatten } from '../../navigation/sidebar';
 import type { PageLink } from '../tree/types';
-
-const keyOf = (slug: string, locale: string) => `${slug}\u0000${locale}`;
+import { pageKey } from '../tree/keys';
 
 /** Lo que la navegación necesita de la config: la misma porción que usa el layout. */
 type NavigationConfig = Pick<
@@ -72,12 +71,12 @@ export function navigationLinks(
     for (const href of hrefsFor(page, sectionIndexOf(config.nav, page.slug))) {
       const target = byHref.get(href);
       if (!target) continue;
-      const key = keyOf(target.slug, target.locale);
-      if (key === keyOf(page.slug, page.locale) || seen.has(key)) continue;
+      const key = pageKey({ slug: target.slug, locale: target.locale });
+      if (key === pageKey({ slug: page.slug, locale: page.locale }) || seen.has(key)) continue;
       seen.add(key);
       targets.push(target);
     }
-    result.set(keyOf(page.slug, page.locale), targets);
+    result.set(pageKey({ slug: page.slug, locale: page.locale }), targets);
   }
   return result;
 }

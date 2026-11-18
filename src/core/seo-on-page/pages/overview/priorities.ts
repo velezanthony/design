@@ -2,6 +2,7 @@ import type { Locale } from '../../../i18n/locale';
 import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
 import { certaintyOf, type Certainty } from '../../certainty';
 import { SEVERITY_RANK } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /** Un tipo de problema del sitio, con lo que hace falta para decidir si arreglarlo ya. */
 export interface FixPriority {
@@ -48,7 +49,7 @@ interface Group {
  * gravedad: es deuda en bloque (p. ej. la descripción heredada), no una tarea que cerrar.
  */
 export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): FixPriority[] {
-  const total = new Set(tree.pages.map((page) => page.slug)).size;
+  const total = slugsOf(tree.pages).size;
   const groups = new Map<IssueKind, Group>();
   for (const page of tree.pages) {
     for (const found of page.issues) {

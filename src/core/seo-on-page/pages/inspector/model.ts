@@ -18,6 +18,7 @@ import type { LocaleTone } from '../listing/rows';
 import { ALL_SEVERITIES, SEVERITY_RANK, worst } from '../../severity';
 import { differing, lengthClass, type LengthClass } from './compare';
 import { limitOf, verifyFor, type Limit } from './fix-details';
+import { schemaTypes } from '../../tree/keys';
 
 /** Una de las páginas con las que choca un problema (un título duplicado, por ejemplo). */
 export interface RelatedPage {
@@ -353,7 +354,7 @@ export function inspectorModel({
     schemas: page.schemas.map(({ schema, source }) => {
       const json = JSON.stringify(schema, null, 2);
       return {
-        types: [schema['@type']].flat(),
+        types: schemaTypes([{ schema, source }]),
         source,
         json,
         pages: source === 'site' ? pagesWith(tree, json) : undefined,

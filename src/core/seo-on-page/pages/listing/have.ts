@@ -4,6 +4,7 @@ import { IssueKind, type SeoPage } from '../../tree/types';
 import { localeCells } from './matrix';
 import { tagsOf, type PageTag } from './rows';
 import { groupBySlug, mainEntry } from './group';
+import { schemaTypes } from '../../tree/keys';
 
 /**
  * Qué tiene una página en una columna: `own` lo dice ella, `site` lo hereda del sitio (no es un
@@ -58,8 +59,8 @@ const fromSource = (source: 'page' | 'site' | 'none'): HaveCell => ({
 function schemaOf(entry: SeoPage): HaveCell {
   const own = entry.schemas.filter(({ source }) => source === 'page');
   if (own.length > 0) {
-    const types = own.flatMap(({ schema }) => [schema['@type']].flat());
-    return { state: 'own', detail: [...new Set(types)].join(', ') };
+    const types = schemaTypes(own);
+    return { state: 'own', detail: types.join(', ') };
   }
   return { state: entry.schemas.length > 0 ? 'site' : 'missing' };
 }

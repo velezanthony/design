@@ -1,5 +1,6 @@
 import type { BodyImage, LinkRef } from '../../links/rewrite';
 import type { PageImage, PageLink } from '../tree/types';
+import { pageKey } from '../tree/keys';
 
 /**
  * Clave bajo la que el loader guarda estos datos en `rendered.metadata` de cada entrada, junto a
@@ -22,7 +23,7 @@ export function contentFacts(
   for (const { slug, locale } of refs) {
     // Un ancla de la propia página (`[x](#intro)`) llega como ref a sí misma: no es un enlace saliente.
     if (slug === own.slug && locale === own.locale) continue;
-    const key = `${slug}\u0000${locale}`;
+    const key = pageKey({ slug, locale });
     if (seen.has(key)) continue;
     seen.add(key);
     links.push({ slug, locale });

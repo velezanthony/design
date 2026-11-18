@@ -1,4 +1,5 @@
 import type { SeoPage, SeoTree } from '../../tree/types';
+import { slugsOf } from '../../tree/keys';
 
 export interface Indexing {
   /** Páginas (slugs). */
@@ -44,7 +45,7 @@ const hasOwnCanonical = (page: SeoPage) =>
  * sitemap, sin bajar de cero): el panel solo conoce cuántas URLs tiene, no cuáles.
  */
 export function indexing(tree: SeoTree, { sitemapUrls, fallbacks }: Input): Indexing {
-  const slugs = new Set(tree.pages.map((page) => page.slug));
+  const slugs = slugsOf(tree.pages);
   const noindexSlugs = new Set(
     tree.pages.filter((page) => page.meta.noindex).map((page) => page.slug),
   );

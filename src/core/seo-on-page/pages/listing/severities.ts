@@ -1,5 +1,6 @@
 import { IssueSeverity, type SeoPage } from '../../tree/types';
 import { ALL_SEVERITIES } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /** Cuántas páginas (slugs) y entradas (página + idioma) tienen alguna incidencia de una gravedad. */
 export type SeverityCounts = Record<IssueSeverity, { pages: number; entries: number }>;
@@ -11,10 +12,7 @@ export function severityCounts(entries: readonly SeoPage[]): SeverityCounts {
       const hit = entries.filter((entry) =>
         entry.issues.some((issue) => issue.severity === severity),
       );
-      return [
-        severity,
-        { pages: new Set(hit.map((entry) => entry.slug)).size, entries: hit.length },
-      ];
+      return [severity, { pages: slugsOf(hit).size, entries: hit.length }];
     }),
   ) as SeverityCounts;
 }

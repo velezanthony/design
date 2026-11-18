@@ -19,14 +19,13 @@ import { buildMetaNode } from '../nodes/meta';
 import { navigationLinks } from '../nodes/navigation';
 import type { SeoInput, SeoPageInput } from './input';
 import type { Issue, SeoPage, SeoPageFacts, SeoTree } from './types';
+import { pageKey } from './keys';
 
 /** Comparación por unidades de código: no depende del idioma del sistema, así que es determinista. */
 const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 const sortPages = (pages: SeoPageInput[]) =>
   [...pages].sort((a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale));
-
-const keyOf = (page: { slug: string; locale: string }) => `${page.slug}\u0000${page.locale}`;
 
 /**
  * Los helpers de i18n trabajan con `Page`, y de ella solo leen slug, idioma, política y rutas; el
@@ -101,14 +100,14 @@ export function buildSeoTree(input: SeoInput): SeoTree {
   // de la documentación compite igual en los resultados.
   const duplicates = new Map<string, Issue[]>();
   for (const issue of analyzeDuplicates(all)) {
-    duplicates.set(keyOf(issue), [...(duplicates.get(keyOf(issue)) ?? []), issue]);
+    duplicates.set(pageKey(issue), [...(duplicates.get(pageKey(issue)) ?? []), issue]);
   }
 
   // El grafo de enlaces es solo de la documentación: de las páginas del cliente no se recogen sus
   // enlaces, y meterlas saldría en falsos «huérfana» (o impediría juzgar a las demás).
   const crossPage = new Map<string, Issue[]>();
   for (const issue of analyzeLinks(library, navigationLinks(pages, config, url))) {
-    crossPage.set(keyOf(issue), [...(crossPage.get(keyOf(issue)) ?? []), issue]);
+    crossPage.set(pageKey(issue), [...(crossPage.get(pageKey(issue)) ?? []), issue]);
   }
 
   return {
@@ -116,13 +115,13 @@ export function buildSeoTree(input: SeoInput): SeoTree {
       ...page,
       issues: [
         ...analyzeMetadata(page),
-        ...(duplicates.get(keyOf(page)) ?? []),
+        ...(duplicates.get(pageKey(page)) ?? []),
         ...analyzeHeadings(page, page.headings),
         ...analyzeMultilingual(page, page.locales, page.policy, config.defaultLocale),
         ...analyzeCanonical({ ...page, canonical: page.meta.canonical }, page.locales),
         ...analyzeAltText(page, page.images),
         ...analyzeOgImage(page, page.meta),
-        ...(crossPage.get(keyOf(page)) ?? []),
+        ...(crossPage.get(pageKey(page)) ?? []),
       ],
     })),
   };

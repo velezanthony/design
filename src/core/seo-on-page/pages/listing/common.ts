@@ -1,5 +1,6 @@
 import type { IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
 import { SEVERITY_RANK } from '../../severity';
+import { slugsOf } from '../../tree/keys';
 
 /** Un tipo de problema que comparten TODAS las páginas que se están viendo. */
 export interface CommonIssue {
@@ -35,7 +36,7 @@ export function commonIssues(
     severities,
   }: { ignore?: readonly IssueKind[]; severities?: readonly IssueSeverity[] } = {},
 ): CommonIssue[] {
-  const slugs = new Set(entries.map((entry) => entry.slug));
+  const slugs = slugsOf(entries);
   if (slugs.size < 2) return [];
   const byKind = new Map<IssueKind, Seen>();
   for (const entry of entries) {
