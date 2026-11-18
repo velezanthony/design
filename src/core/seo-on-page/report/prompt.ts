@@ -1,7 +1,6 @@
-import { certaintyOf } from '../certainty';
-import { verifyFor } from '../pages/inspector/fix-details';
+import { CATALOG } from '../catalog';
 import type { Issue, IssueKind, SeoPage, SeoTree } from '../tree/types';
-import { currentValue, GENERIC_FIX, keyOf, restrictionFor } from './kinds';
+import { currentValue, keyOf, restrictionFor } from './kinds';
 
 const SEVERITY_TEXT = { error: 'error', warning: 'aviso', info: 'info' } as const;
 const CERTAINTY_TEXT = { rule: 'regla', heuristic: 'heurística' } as const;
@@ -18,7 +17,7 @@ interface PromptInput {
 
 /** Prompt autosuficiente para UN problema de UNA página e idioma, para pegar sin el informe entero. */
 export function issuePrompt({ site, entry, issue, tree, kindLabels }: PromptInput): string {
-  const certainty = certaintyOf(issue.kind);
+  const certainty = CATALOG[issue.kind].certainty;
   const key = keyOf(issue.kind, entry);
   const value = currentValue(entry, issue);
   const restriction = restrictionFor(issue.kind);
@@ -35,12 +34,9 @@ export function issuePrompt({ site, entry, issue, tree, kindLabels }: PromptInpu
     ...(key ? [`Clave: \`${key}\``] : []),
     ...(value ? [`Valor actual: ${value.text}`] : []),
     ...(relatedFiles.length > 0 ? [`Choca con: ${relatedFiles.join(', ')}`] : []),
-    `Qué hacer: ${issue.fix ?? GENERIC_FIX[issue.kind]}`,
+    `Qué hacer: ${issue.fix ?? CATALOG[issue.kind].fix}`,
     ...(restriction ? [`Restricción: ${restriction}`] : []),
-    `Verificar: ${verifyFor(
-      issue.kind,
-      related.map(({ slug }) => slug),
-    )}`,
+    `Verificar: ${CATALOG[issue.kind].verify(related.map(({ slug }) => slug))}`,
     'No cambies el slug, la URL ni el canonical.',
   ].join('\n');
 }

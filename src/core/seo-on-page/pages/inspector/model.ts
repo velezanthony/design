@@ -1,5 +1,5 @@
 import type { Locale } from '../../../i18n/locale';
-import { certaintyOf, type Certainty } from '../../certainty';
+import { CATALOG, type Certainty, type Limit } from '../../catalog';
 import { estimateWidth } from '../../pixels';
 import { headingCounts, type HeadingCounts } from '../../queries/heading-counts';
 import { outline, type OutlineItem } from '../../queries/outline';
@@ -18,7 +18,6 @@ import { localeTone, type LocaleTone } from '../listing/rows';
 import { editHref } from '../../../navigation/edit-href';
 import { ALL_SEVERITIES, SEVERITY_RANK } from '../../severity';
 import { differing, lengthClass, type LengthClass } from './compare';
-import { limitOf, verifyFor, type Limit } from './fix-details';
 import { schemaTypes } from '../../tree/keys';
 
 /** Una de las páginas con las que choca un problema (un título duplicado, por ejemplo). */
@@ -315,12 +314,9 @@ export function inspectorModel({
         const related = issue.related ?? [];
         return {
           issue,
-          certainty: certaintyOf(issue.kind),
-          limit: limitOf(issue.kind),
-          verify: verifyFor(
-            issue.kind,
-            related.map((other) => other.slug),
-          ),
+          certainty: CATALOG[issue.kind].certainty,
+          limit: CATALOG[issue.kind].limit,
+          verify: CATALOG[issue.kind].verify(related.map((other) => other.slug)),
           related: related.map((other) => ({
             slug: other.slug,
             href: links.inspector(other),

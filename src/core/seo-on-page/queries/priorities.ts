@@ -1,8 +1,8 @@
-import type { Locale } from '../../../i18n/locale';
-import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
-import { certaintyOf, type Certainty } from '../../certainty';
-import { SEVERITY_RANK } from '../../severity';
-import { slugsOf } from '../../tree/keys';
+import type { Locale } from '../../i18n/locale';
+import { IssueKind, IssueSeverity, type SeoTree } from '../tree/types';
+import { CATALOG, type Certainty } from '../catalog';
+import { SEVERITY_RANK } from '../severity';
+import { slugsOf } from '../tree/keys';
 
 /** Un tipo de problema del sitio, con lo que hace falta para decidir si arreglarlo ya. */
 export interface FixPriority {
@@ -27,7 +27,8 @@ export interface FixPriority {
 /** Más páginas que esto no se listan una a una: el recuento y el enlace a la tabla lo dicen mejor. */
 const MAX_LISTED_PAGES = 5;
 
-const CATALOG = Object.values(IssueKind);
+/** Con todo igual, el orden del catálogo desempata. */
+const KIND_ORDER = Object.values(IssueKind);
 
 interface Input {
   /** Idiomas de la config, en su orden. */
@@ -77,7 +78,7 @@ export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): Fix
         SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] ||
         Number(bulk(left)) - Number(bulk(right)) ||
         right.slugs.size - left.slugs.size ||
-        CATALOG.indexOf(kindA) - CATALOG.indexOf(kindB)
+        KIND_ORDER.indexOf(kindA) - KIND_ORDER.indexOf(kindB)
       );
     })
     .map(([kind, group]) => ({
@@ -87,7 +88,7 @@ export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): Fix
       percent: Math.max(1, Math.round((group.slugs.size / total) * 100)),
       entries: group.entries,
       locales: locales.filter((locale) => group.locales.has(locale)),
-      certainty: certaintyOf(kind),
+      certainty: CATALOG[kind].certainty,
       ...(group.fix !== undefined && { fix: group.fix }),
       affected:
         group.slugs.size > MAX_LISTED_PAGES

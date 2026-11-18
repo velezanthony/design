@@ -1,7 +1,7 @@
 import type { TagTone } from '../atoms/tones';
 import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare';
 import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
-import type { Certainty } from '../../core/seo-on-page/certainty';
+import type { Certainty } from '../../core/seo-on-page/catalog';
 import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
 import {
   LACKS_PHRASES,

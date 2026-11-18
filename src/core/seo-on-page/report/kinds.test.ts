@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { seoPage } from '../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../tree/types';
-import { currentValue, GENERIC_FIX, keyOf, restrictionFor, WHY } from './kinds';
+import { currentValue, keyOf, restrictionFor } from './kinds';
 
 function issue(kind: IssueKind, message = 'mensaje'): Issue {
   return {
@@ -121,14 +121,5 @@ describe('restrictionFor', () => {
 
   it('sin límite ni advertencia no hay restricción', () => {
     expect(restrictionFor(IssueKind.NO_H1)).toBeUndefined();
-  });
-});
-
-describe('textos por tipo', () => {
-  it('todos los tipos tienen su porqué y su arreglo genérico', () => {
-    for (const kind of Object.values(IssueKind)) {
-      expect(WHY[kind], kind).not.toBe('');
-      expect(GENERIC_FIX[kind], kind).not.toBe('');
-    }
   });
 });

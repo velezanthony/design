@@ -1,7 +1,6 @@
 import type { Locale } from '../../i18n/locale';
-import type { Certainty } from '../certainty';
-import { verifyFor } from '../pages/inspector/fix-details';
-import { fixPriorities } from '../pages/overview/priorities';
+import { CATALOG, type Certainty } from '../catalog';
+import { fixPriorities } from '../queries/priorities';
 import { HAVE_CELLS, isGood, LACKS_PHRASES } from '../pages/listing/have';
 import { THRESHOLDS } from '../thresholds';
 import type { HaveColumn } from '../queries/url-filters';
@@ -15,7 +14,7 @@ import {
 } from '../tree/types';
 import { contentDirs } from './content-dirs';
 import { LACKS } from './lacks';
-import { currentValue, GENERIC_FIX, keyOf, restrictionFor, WHY } from './kinds';
+import { currentValue, keyOf, restrictionFor } from './kinds';
 import { keyPlace, scopedKey } from '../key-place';
 import type { ReportScope } from './scope';
 import { pageKey } from '../tree/keys';
@@ -266,9 +265,9 @@ function sectionOf(
     lines.push(`- Valor actual: ${own.join(' · ')}${repeated}`);
   }
   lines.push(...relatedLines(hits, context));
-  lines.push(`- Por qué: ${WHY[kind]}`);
+  lines.push(`- Por qué: ${CATALOG[kind].why}`);
   const fixes = unique(hits.map(({ issue }) => issue.fix));
-  const fix = fixes.length === 1 && fixes[0] !== undefined && !bulk ? fixes[0] : GENERIC_FIX[kind];
+  const fix = fixes.length === 1 && fixes[0] !== undefined && !bulk ? fixes[0] : CATALOG[kind].fix;
   lines.push(`- Arreglo: ${fix}`);
   const restriction = restrictionFor(kind);
   if (restriction) lines.push(`- Restricción: ${restriction}`);
@@ -278,15 +277,12 @@ function sectionOf(
 
 function verifyText(kind: IssueKind, hits: readonly Hit[]): string {
   if (hits.length === 1) {
-    return verifyFor(
-      kind,
-      (hits[0]!.issue.related ?? []).map(({ slug }) => slug),
-    );
+    return CATALOG[kind].verify((hits[0]!.issue.related ?? []).map(({ slug }) => slug));
   }
   if (kind === IssueKind.DUPLICATE_TITLE || kind === IssueKind.DUPLICATE_DESCRIPTION) {
     return 'El aviso desaparece de todas las páginas listadas.';
   }
-  return verifyFor(kind, []);
+  return CATALOG[kind].verify([]);
 }
 
 interface JsonPage {

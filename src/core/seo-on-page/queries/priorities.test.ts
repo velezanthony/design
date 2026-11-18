@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { seoPage } from '../../../../testing/seo-page';
-import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
+import { seoPage } from '../../../testing/seo-page';
+import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../tree/types';
 import { fixPriorities } from './priorities';
 
 function issue(kind: IssueKind, severity: IssueSeverity, extra: Partial<Issue> = {}): Issue {
