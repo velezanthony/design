@@ -26,12 +26,12 @@ import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const { tree, failures, overrides } = await loadPanelTree(siteConfig, Astro.url.origin);
+const { tree, client, failures, overrides } = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = overviewModel(tree, {
   locales: siteConfig.locales,
   defaultLocale: siteConfig.defaultLocale,
   links: hrefs,
-  siteFiles: await loadSiteFiles(siteConfig),
+  siteFiles: await loadSiteFiles(siteConfig, client),
 });
 const view = panelView({
   cfg: siteConfig,

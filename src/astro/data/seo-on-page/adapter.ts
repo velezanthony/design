@@ -2,6 +2,7 @@ import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/inpu
 import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import type { ClientPage } from '../../../core/seo/client-pages';
+import { clientSitemapEntries } from '../../../core/seo/sitemap';
 import { loadClientPages, type ClientPages } from '../client-pages';
 import { clientRegistry, type ClientRegistry } from '../client-registry';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
@@ -106,6 +107,8 @@ export async function loadPanelTree(
   origin: string,
 ): Promise<{
   tree: SeoTree;
+  /** Las páginas de `src/pages/` ya leídas, para quien las necesite además del árbol. */
+  client: ClientPage[];
   failures: ClientPages['failures'];
   overrides: NonNullable<ClientRegistry['overrides']>;
 }> {
@@ -116,6 +119,7 @@ export async function loadPanelTree(
   });
   return {
     tree: await loadSeoTree(config, pages),
+    client: pages,
     failures,
     overrides: clientRegistry().overrides ?? [],
   };
@@ -127,14 +131,20 @@ export async function loadDocData(): Promise<DocData[]> {
 }
 
 /**
- * Los archivos de sitio del panel. Las URLs del sitemap se cuentan sobre el propio `sitemap.xml`
- * que sirve la ruta (una sola fuente), y `robots.txt` / `llms.txt` se buscan en el `public/` del
- * consumidor: la librería no los genera, así que su ausencia es un estado y no un problema.
+ * Los archivos de sitio del panel. Las URLs del sitemap son las mismas que sirve en dev, con las
+ * páginas de `src/pages/`; `robots.txt` y `llms.txt` se buscan en el `public/` del consumidor.
  */
-export async function loadSiteFiles(config: VirtualConfig): Promise<SiteFile[]> {
+export async function loadSiteFiles(
+  config: VirtualConfig,
+  client: ClientPage[] = [],
+): Promise<SiteFile[]> {
   const publicDir = new URL(config.publicDir);
   const exists = async (file: string) => (await readPublic(publicDir, file)) !== undefined;
-  const sitemap = sitemapXml(await loadDocData(), config);
+  const sitemap = sitemapXml(
+    await loadDocData(),
+    config,
+    clientSitemapEntries(client, new URL(config.site)),
+  );
   return siteFiles({
     url: urlPolicyOf(config),
     locales: config.locales,

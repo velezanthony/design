@@ -256,4 +256,20 @@ describe('loadSiteFiles', () => {
       expect(byId(files, 'sitemap')).toMatchObject({ urls: 2 });
     });
   });
+
+  it('también cuenta las páginas de src/pages/ que entran en el sitemap, como el endpoint de dev', async () => {
+    const head = { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [] };
+    await withPublic([], async (publicDir) => {
+      const files = await loadSiteFiles({ ...config, publicDir } as never, [
+        { path: '/repo/cv/', pattern: '/cv', entrypoint: 'src/pages/cv.astro', head },
+        {
+          path: '/repo/draft/',
+          pattern: '/draft',
+          entrypoint: 'src/pages/draft.astro',
+          head: { ...head, noindex: true },
+        },
+      ]);
+      expect(byId(files, 'sitemap')).toMatchObject({ urls: 3 });
+    });
+  });
 });
