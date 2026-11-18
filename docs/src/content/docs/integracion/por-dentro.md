@@ -96,7 +96,8 @@ Es donde ocurre casi todo. En orden:
 | Patrón | Contenedor | Cuándo |
 | --- | --- | --- |
 | `/[...slug]` | `doc.astro` | Siempre: todas las páginas de docs, en todos los idiomas. |
-| `/sitemap.xml` | `sitemap.xml.ts` | Siempre. |
+| `/sitemap.xml` | `sitemap.xml.ts` | Siempre: las páginas o, con `sitemap.include`, el índice. |
+| `/sitemap-pages.xml` | `sitemap-pages.xml.ts` | Con `sitemap.include`: las páginas propias. |
 | `/_design/sitemap.css` | `sitemap.css.ts` | Siempre (la hoja con la que el navegador pinta el sitemap). |
 | `/_design/favicon.png` | `favicon.png.ts` | Siempre (el favicon por defecto, con espacio de nombres propio). |
 | `/404` | `not-found.astro` | Siempre. |

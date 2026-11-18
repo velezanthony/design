@@ -47,6 +47,26 @@ de `sitemap.title` y `sitemap.note` del idioma por defecto. Es CSS y no XSLT por
 XSLT. Los buscadores ignoran la hoja: leen el XML. Un XML no puede llevar `<meta viewport>`, así que
 en el móvil se ve con el ancho de escritorio.
 
+#### Índice con otros sitemaps del dominio
+
+En GitHub Pages cada proyecto es una carpeta del mismo dominio y genera su propio sitemap
+(`/snake-orm/sitemap.xml`) sin tocar la raíz. El sitio de la raíz, el principal, puede declarar los
+demás con `sitemap.include`:
+
+```js
+// docs.config.mjs del sitio principal
+sitemap: { include: ['/snake-orm/sitemap.xml', '/cotton-props/sitemap.xml'] },
+```
+
+Con `include`, `sitemap.xml` pasa a ser un índice (`sitemapIndexXml` → `buildSitemapIndex`): primero
+`sitemap-pages.xml`, con las páginas propias de siempre, y luego cada sitemap declarado. Así Search
+Console y `robots.txt` siguen con una sola URL; es lo que hace Yoast con su `sitemap_index.xml`. Sin
+`include` no cambia nada y `sitemap-pages.xml` no existe.
+
+Las rutas se resuelven contra el **origen** de `site`, no contra `base`. El build falla
+(`sitemapIncludes`) si una es de otro dominio, porque el protocolo solo admite sitemaps del mismo
+sitio, o si es el propio índice o el de páginas.
+
 ## SEO
 
 La cascada se resuelve **campo a campo** en `resolveMeta` (`src/core/seo/meta.ts`):
