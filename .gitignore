@@ -1,5 +1,10 @@
 # build output
 dist/
+# informes de cobertura y de mutaciones
+coverage/
+reports/
+.stryker-tmp/
+.stryker-cache/
 # generated types
 .astro/
 
