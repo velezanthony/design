@@ -15,7 +15,7 @@ calculen la misma URL de formas distintas.
 ## Rutas
 
 Todo lo sirve la integración con `injectRoute` (ver [Cómo funciona por dentro](./por-dentro.md#los-hooks-de-la-integración)).
-La pieza central es `/[...slug]` → `src/astro/pages/doc.astro`:
+La pieza central es `/[...slug]` → `src/astro/routes/doc.astro`:
 
 - `getStaticPaths` llama a `docRoutes` (`src/astro/views/doc.ts`), que devuelve una ruta por
   cada página real y, con la política `fallback`, una **ruta de reserva** por cada traducción
@@ -35,7 +35,7 @@ redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
 
 ### `sitemap.xml`
 
-`src/astro/pages/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
+`src/astro/routes/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
 (`core/seo/sitemap.ts`). Solo entran páginas **reales e indexables**, con sus alternativas
 `hreflang`; ni rutas de reserva ni la 404. La página de privacidad propia entra si existe. No hay
 `robots.txt`: es del portfolio, que vive en la raíz del dominio.

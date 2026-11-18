@@ -46,7 +46,7 @@ const forbidden: [string, string, string][] = [
   ],
   ['components/ no importa astro:content', UI, `import { getCollection } from 'astro:content';`],
   ['components/ no importa astro', UI, `import { defineConfig } from 'astro';`],
-  ['components/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/pages/doc';`],
+  ['components/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/routes/doc';`],
 ];
 
 const allowed: [string, string, string][] = [

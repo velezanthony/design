@@ -10,7 +10,7 @@ function patterns(options: RouteOptions) {
 }
 
 describe('ROUTES', () => {
-  it('cada ruta tiene su contenedor en astro/pages/', () => {
+  it('cada ruta tiene su contenedor en astro/routes/', () => {
     for (const { file } of ROUTES) {
       expect(existsSync(new URL(file, import.meta.url)), file).toBe(true);
     }

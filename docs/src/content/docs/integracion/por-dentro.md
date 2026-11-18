@@ -37,7 +37,7 @@ sequenceDiagram
   participant Vite as Vite + módulo virtual
   participant Ldr as collections · content/index.ts + loader/index.ts
   participant MD as Sätteri + plugins mdast
-  participant Rt as Rutas inyectadas · astro/pages/
+  participant Rt as Rutas inyectadas · astro/routes/
   participant PF as Pagefind
 
   CLI->>Int: docs(docsConfig) → resolveConfig (zod)
@@ -90,7 +90,7 @@ Es donde ocurre casi todo. En orden:
      **solo si el consumidor no eligió temas**.
    - `fonts`: IBM Plex Sans y Mono vía la API de fuentes de Astro (`src/astro/integration/fonts.ts`).
    - `vite.plugins`: el plugin del módulo virtual.
-6. **`injectRoute`.** Todas las rutas salen de una tabla, `src/astro/pages/routes.ts` (patrón, contenedor y cuándo: `site`, `dev` o una opción); las del sitio llevan `prerender: true` y las de dev, no:
+6. **`injectRoute`.** Todas las rutas salen de una tabla, `src/astro/routes/routes.ts` (patrón, contenedor y cuándo: `site`, `dev` o una opción); las del sitio llevan `prerender: true` y las de dev, no:
 
 | Patrón | Contenedor | Cuándo |
 | --- | --- | --- |
@@ -116,7 +116,7 @@ Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-
 
 ## El módulo virtual
 
-Las páginas de `src/astro/pages/` necesitan la config resuelta, pero se ejecutan dentro de
+Las páginas de `src/astro/routes/` necesitan la config resuelta, pero se ejecutan dentro de
 Vite, lejos del hook que la conoce. El puente es un **módulo virtual** (el mismo patrón que usa
 Starlight):
 

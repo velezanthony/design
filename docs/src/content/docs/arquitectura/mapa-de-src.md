@@ -154,7 +154,7 @@ astro/
 ├── content/
 │   └── index.ts             `collections`: la colección docs con la config del módulo virtual
 ├── markdown/                Plugins mdast y su registro (ver Integración → Markdown)
-├── pages/                   SOLO lo que Astro sirve: rutas y endpoints (las inyecta la integración)
+├── routes/                  SOLO lo que Astro sirve: rutas y endpoints (las inyecta la integración)
 │   ├── doc.astro            /[...slug]
 │   ├── not-found.astro      /404 (y /<idioma>/404)
 │   ├── privacy.astro, privacy-locale.astro   Página de privacidad propia

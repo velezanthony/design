@@ -11,7 +11,7 @@ import { clientRegistry } from '../registry';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
 import { mergeLangAlias } from '../markdown/register';
-import { routesFor } from '../pages/routes';
+import { routesFor } from '../routes/routes';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
 import { applyAnalyticsOrThrow, readAnalyticsEnv } from './analytics-env';
@@ -30,9 +30,9 @@ export interface DocsIntegration extends AstroIntegration {
   resolvedConfig: ResolvedConfig;
 }
 
-/** Ruta de un contenedor del paquete (vive en `astro/pages/`, junto a esta carpeta). */
+/** Ruta de un contenedor del paquete (vive en `astro/routes/`, junto a esta carpeta). */
 function route(file: string) {
-  return new URL(`../pages/${file}`, import.meta.url);
+  return new URL(`../routes/${file}`, import.meta.url);
 }
 
 /** Los `.d.ts` del módulo virtual, tal cual: `injectTypes` los copia al `.astro/` del consumidor. */

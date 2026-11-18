@@ -16,7 +16,7 @@ import {
 import type { DocData } from '../../loader/schema';
 import { navContextOf, siteContext } from '../chrome';
 import type { VirtualConfig } from '../../virtual/data';
-import { SEO_ON_PAGE_DIR } from '../../pages/routes';
+import { SEO_ON_PAGE_DIR } from '../../routes/routes';
 import type { DevHrefs } from './hrefs';
 import { baseUrl } from '../../../core/shared/urls';
 

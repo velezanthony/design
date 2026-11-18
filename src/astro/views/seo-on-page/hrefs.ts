@@ -7,7 +7,7 @@ import {
   type ViewState,
 } from '../../../core/seo-on-page/queries/url-filters';
 import { withBase } from '../../../core/shared/urls';
-import { SEO_ON_PAGE_DIR } from '../../pages/routes';
+import { SEO_ON_PAGE_DIR } from '../../routes/routes';
 
 function withQuery(path: string, params: URLSearchParams) {
   const query = params.toString();

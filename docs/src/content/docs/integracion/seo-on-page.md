@@ -82,7 +82,7 @@ recogen. Los arreglos nombran la etiqueta del `<head>` (`<title>`, `<meta name="
 Cada pantalla es lo mismo en pequeño: **leer la URL → pedir el árbol al adaptador → pedir el modelo
 al núcleo → pintar componentes**. Nada más.
 
-| Pantalla | Página (`astro/pages/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
+| Pantalla | Página (`astro/routes/seo-on-page/`) | Modelo (`core/seo-on-page/pages/`) |
 | --- | --- | --- |
 | Resumen | `overview.astro` | `overview/model.ts`: totales, desglose por gravedad y por tipo, schemas |
 | Páginas | `pages.astro` | `listing/model.ts`: filtros efectivos, filas de la página, paginación |

@@ -361,11 +361,11 @@ describe('astro:config:setup: rutas inyectadas', () => {
       '/_design/favicon.png',
       '/404',
     ]);
-    expect(entry(routes[0])).toMatch(/pages\/doc\.astro$/);
-    expect(entry(routes[1])).toMatch(/pages\/sitemap\.xml\.ts$/);
-    expect(entry(routes[2])).toMatch(/pages\/sitemap\.css\.ts$/);
-    expect(entry(routes[3])).toMatch(/pages\/favicon\.png\.ts$/);
-    expect(entry(routes[4])).toMatch(/pages\/not-found\.astro$/);
+    expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
+    expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
+    expect(entry(routes[2])).toMatch(/routes\/sitemap\.css\.ts$/);
+    expect(entry(routes[3])).toMatch(/routes\/favicon\.png\.ts$/);
+    expect(entry(routes[4])).toMatch(/routes\/not-found\.astro$/);
   });
 
   it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
@@ -384,7 +384,7 @@ describe('astro:config:setup: rutas inyectadas', () => {
   it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
     const routes = await routesOf({ name: 'x', sitemap: { include: ['/lib/sitemap.xml'] } });
     const pages = routes.find((route) => route.pattern === '/sitemap-pages.xml');
-    expect(pages && entry(pages)).toMatch(/pages\/sitemap-pages\.xml\.ts$/);
+    expect(pages && entry(pages)).toMatch(/routes\/sitemap-pages\.xml\.ts$/);
     expect((await routesOf({ name: 'x' })).map((route) => route.pattern)).not.toContain(
       '/sitemap-pages.xml',
     );
