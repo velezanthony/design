@@ -1,22 +1,12 @@
 /* En oscuro, el fondo de github-dark (#0d1117) es azul y choca con la paleta cálida: va un negro
    cálido algo más hondo que el canvas (`--code-dark-bg`). Sus colores conservan el contraste (comentarios 6.27:1). */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .astro-code,
-  :root:not([data-theme='light']) .astro-code span {
+.astro-code,
+.astro-code span {
+  @variant dark {
     color: var(--shiki-dark) !important;
     background-color: var(--code-dark-bg) !important;
     font-style: var(--shiki-dark-font-style) !important;
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
   }
-}
-
-/* Elegido con el selector contra un sistema claro: sin esto el código sigue claro en una página oscura. */
-:root[data-theme='dark'] .astro-code,
-:root[data-theme='dark'] .astro-code span {
-  color: var(--shiki-dark) !important;
-  background-color: var(--code-dark-bg) !important;
-  font-style: var(--shiki-dark-font-style) !important;
-  font-weight: var(--shiki-dark-font-weight) !important;
-  text-decoration: var(--shiki-dark-text-decoration) !important;
 }

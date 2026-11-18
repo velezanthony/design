@@ -34,19 +34,15 @@ describe('codeThemes', () => {
 /* Shiki escribe los colores oscuros como `--shiki-dark` y deja el cambio al sitio. El sitio pasa a
    oscuro de dos maneras (lo pide el sistema o lo elige la persona) y el código debe seguir ambas. */
 describe('el tema oscuro del código', () => {
-  const selectors = [
-    ...readFileSync('src/ui/styles/code.css', 'utf8')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .matchAll(/([^{}]+)\{[^{}]*color:\s*var\(--shiki-dark\)/g),
-  ]
-    .flatMap((match) => match[1]!.split(','))
-    .map((selector) => selector.trim());
+  const css = readFileSync('src/ui/styles/code.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const [, selectors, body] = /([^{}]+)\{\s*@variant dark\s*\{([^{}]*)\}/.exec(css) ?? [];
 
-  it.each([":root:not([data-theme='light'])", ":root[data-theme='dark']"])(
-    'se aplica bajo %s',
-    (root) => {
-      expect(selectors).toContain(`${root} .astro-code`);
-      expect(selectors).toContain(`${root} .astro-code span`);
-    },
-  );
+  /* `@variant dark` (en `tokens.css`) ya cubre las dos maneras de pasar a oscuro. */
+  it('el bloque y sus tramos de código pasan a oscuro con la variante `dark`', () => {
+    expect(selectors?.split(',').map((selector) => selector.trim())).toEqual([
+      '.astro-code',
+      '.astro-code span',
+    ]);
+    expect(body).toMatch(/color:\s*var\(--shiki-dark\)/);
+  });
 });

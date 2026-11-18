@@ -40,6 +40,8 @@ const label = translate(strings, 'theme.toggle');
 </button>
 
 <style>
+  @reference '../styles/theme.css';
+
   /* El preflight de Tailwind 4 pone `cursor: default` a todo botón. */
   .theme-toggle {
     cursor: pointer;
@@ -58,32 +60,18 @@ const label = translate(strings, 'theme.toggle');
     background-color: color-mix(in oklab, var(--color-ink) 8%, transparent);
   }
 
-  /* Muestra el icono del tema actual: sol en claro, luna en oscuro. Una elección manda sobre la
-     preferencia del sistema en ambos sentidos, de ahí las reglas de claro al final. */
-  .icon-moon {
-    display: none;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme='light']) .icon-sun {
+  /* Muestra el icono del tema actual: sol en claro, luna en oscuro; la variante `dark` ya sabe que una elección manda sobre el sistema. */
+  .icon-sun {
+    @variant dark {
       display: none;
     }
-    :root:not([data-theme='light']) .icon-moon {
+  }
+
+  .icon-moon {
+    display: none;
+
+    @variant dark {
       display: block;
     }
-  }
-
-  :root[data-theme='dark'] .icon-sun {
-    display: none;
-  }
-  :root[data-theme='dark'] .icon-moon {
-    display: block;
-  }
-
-  :root[data-theme='light'] .icon-sun {
-    display: block;
-  }
-  :root[data-theme='light'] .icon-moon {
-    display: none;
   }
 </style>

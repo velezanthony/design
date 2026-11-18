@@ -5,6 +5,7 @@ import { initLayout, type RailQuery } from '../../client/layout/layout';
 import { RAIL_QUERY } from '../../client/layout/rail';
 import type { MermaidImporter } from '../../client/diagrams/mermaid';
 import { DIAGRAM_SELECTOR } from '../../client/diagrams/selector';
+import { readToken } from '../../client/diagrams/token';
 import { swapNotFound } from '../../client/not-found';
 import { initSearch, initSearchShortcut } from '../../client/search';
 import { initSidebarScroll } from '../../client/layout/sidebar-scroll';
@@ -52,7 +53,7 @@ function browserEnv(): BootEnv {
     /* `import('mermaid')` es un trozo aparte que el navegador solo descarga si una página lo pide. */
     mermaid: {
       importer: () => import('mermaid'),
-      readToken: (name) => getComputedStyle(document.documentElement).getPropertyValue(name),
+      readToken: (name) => readToken(document, name),
     },
     clipboard: navigator.clipboard,
     hostname: location.hostname,

@@ -4,18 +4,35 @@ import { describe, expect, it } from 'vitest';
 import { SITEMAP_TOKENS, sitemapCss, themePalette } from './sitemap';
 
 describe('themePalette', () => {
-  it('toma de cada token el valor claro (el primero) y el oscuro (el segundo)', () => {
-    const css = ':root { --color-ink: #111; } @media (x) { :root { --color-ink: #eee; } }';
+  it('toma de cada `light-dark()` el valor claro (el primero) y el oscuro (el segundo)', () => {
+    const css = '@theme { --color-ink: light-dark(#111, #eee); /* nota */ }';
     expect(themePalette(css, ['ink'])).toEqual({ light: { ink: '#111' }, dark: { ink: '#eee' } });
   });
 
-  it('falla con el nombre del token si el tema no lo define en los dos modos', () => {
-    expect(() => themePalette(':root { --color-ink: #111; }', ['ink'])).toThrow(/--color-ink/);
+  it('un token sin `light-dark()` vale igual en los dos modos', () => {
+    const css = '@theme { --color-inverse-ink: #e0e8e8; }';
+    expect(themePalette(css, ['inverse-ink'])).toEqual({
+      light: { 'inverse-ink': '#e0e8e8' },
+      dark: { 'inverse-ink': '#e0e8e8' },
+    });
+  });
+
+  it('falla con el nombre del token si el tema no lo define', () => {
+    expect(() => themePalette('@theme { --color-ink: light-dark(#111, #eee); }', ['rule'])).toThrow(
+      /--color-rule/,
+    );
+  });
+
+  it('el valor oscuro de un `light-dark()` no se confunde con el de otro token', () => {
+    const css = '--color-a: light-dark(#111, #222); --color-b: light-dark(#333, #444);';
+    expect(themePalette(css, ['b']).dark).toEqual({ b: '#444' });
   });
 
   it('el tema real define todos los tokens que usa la hoja', () => {
     const theme = readFileSync('src/ui/styles/tokens.css', 'utf8');
-    expect(themePalette(theme, SITEMAP_TOKENS).light.canvas).toBe('#faf9f6');
+    const palette = themePalette(theme, SITEMAP_TOKENS);
+    expect(palette.light.canvas).toBe('#faf9f6');
+    expect(palette.dark.canvas).toBe('#141311');
   });
 });
 

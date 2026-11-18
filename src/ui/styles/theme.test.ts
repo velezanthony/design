@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { contrast } from '../../testing/contrast';
+import { themePalette } from './sitemap';
 
 /* `theme.css` es solo la entrada: importa los ficheros por tema, y el test mira el conjunto. */
 const entry = readFileSync('src/ui/styles/theme.css', 'utf8');
@@ -25,22 +26,9 @@ function block(source: string, opener: RegExp): string {
   throw new Error(`bloque sin cerrar: ${opener}`);
 }
 
-/** `--color-x: #abc;` de un bloque a mapa. */
-function palette(body: string): Record<string, string> {
-  return Object.fromEntries(
-    [...body.matchAll(/--color-([\w-]+):\s*(#[0-9a-fA-F]{3,8})\s*;/g)].map((match) => [
-      match[1]!,
-      match[2]!,
-    ]),
-  );
-}
-
-const light = palette(block(css, /@theme\s*\{/));
-const darkSystem = block(
-  css,
-  /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme='light'\]\)\s*\{/,
-);
-const darkChosen = block(css, /:root\[data-theme='dark'\]\s*\{/);
+const theme = block(css, /@theme\s*\{/);
+const colorNames = [...theme.matchAll(/--color-([\w-]+):/g)].map((match) => match[1]!);
+const { light, dark } = themePalette(theme, colorNames);
 
 describe('tokens', () => {
   it.each([
@@ -97,18 +85,30 @@ describe('lo exclusivo del portfolio', () => {
 });
 
 describe('modos oscuros', () => {
-  it('declaran paletas completas', () => {
-    expect(Object.keys(palette(darkSystem)).sort()).toEqual(Object.keys(light).sort());
+  it.each(colorNames)('el color %s se declara una sola vez', (name) => {
+    expect(theme.match(new RegExp(`--color-${name}:`, 'g'))).toHaveLength(1);
   });
 
-  it('el del sistema y el elegido con el selector tienen las mismas paletas', () => {
-    expect(palette(darkChosen)).toEqual(palette(darkSystem));
+  it('fuera de `@theme` no hay otra paleta: el pie solo reasigna tokens', () => {
+    expect(css.replace(theme, '')).not.toMatch(/--color-[\w-]+:\s*(#|light-dark)/);
   });
 
-  it('el claro forzado en sistema oscuro no entra en el bloque del sistema', () => {
-    expect(css).toMatch(
-      /@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme='light'\]\)/,
-    );
+  it('cada color tiene su par claro y oscuro (solo el pie lleva el mismo en los dos)', () => {
+    const same = colorNames.filter((name) => light[name] === dark[name]).sort();
+    expect(same).toEqual(['inverse-ink', 'inverse-muted']);
+  });
+
+  it('el sistema decide con `color-scheme` y el selector no repite la paleta', () => {
+    expect(css).toMatch(/:root\s*\{[^{}]*color-scheme:\s*light dark\s*;/);
+    expect(css).not.toMatch(/@media \(prefers-color-scheme: dark\)\s*\{\s*:root/);
+  });
+
+  /* El oscuro para lo que no son colores sueltos: el claro elegido gana al sistema oscuro. */
+  it('la variante `dark` cubre el sistema oscuro sin claro elegido y el oscuro elegido', () => {
+    const variant = block(css, /@custom-variant dark\s*\{/);
+    expect(variant).toContain('prefers-color-scheme: dark');
+    expect(variant).toContain(":root:not([data-theme='light'])");
+    expect(variant).toContain(":root[data-theme='dark']");
   });
 
   /* Los controles nativos y las barras de scroll toman el esquema del sistema salvo que la página
@@ -144,7 +144,7 @@ const pairs: [string, string, number][] = [
 
 describe.each([
   ['claro', light],
-  ['oscuro', palette(darkChosen)],
+  ['oscuro', dark],
 ])('contraste (%s)', (_label, colors) => {
   it.each(pairs)('%s sobre %s ≥ %d:1', (foreground, background, min) => {
     expect(colors[foreground], `falta --color-${foreground}`).toBeDefined();

@@ -214,14 +214,8 @@
   --color-accent-line: var(--color-inverse-muted);
   background-color: var(--color-inverse);
   color: var(--color-ink);
-}
 
-:root[data-theme='dark'] .docs-footer {
-  border-top: 1px solid var(--color-rule);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .docs-footer {
+  @variant dark {
     border-top: 1px solid var(--color-rule);
   }
 }

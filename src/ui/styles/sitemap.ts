@@ -1,4 +1,4 @@
-/** Los colores del tema que usa la hoja del sitemap (`--color-<token>` en `theme.css`). */
+/** Los colores del tema que usa la hoja del sitemap (`--color-<token>` en `tokens.css`). */
 export const SITEMAP_TOKENS = ['canvas', 'ink', 'muted', 'faint', 'accent', 'rule'] as const;
 
 export interface Palette {
@@ -6,18 +6,16 @@ export interface Palette {
   dark: Record<string, string>;
 }
 
-/** Paleta leída de `theme.css` (el sitemap es XML y no carga el tema); por token, primer valor claro y segundo oscuro; falla si falta alguno. */
+/** Paleta leída de `tokens.css` (el sitemap es XML y no carga el tema): cada token es `light-dark(claro, oscuro)`, o un valor único si vale en los dos; falla si falta alguno. */
 export function themePalette(theme: string, tokens: readonly string[]): Palette {
   const palette: Palette = { light: {}, dark: {} };
   for (const token of tokens) {
-    const [light, dark] = [...theme.matchAll(new RegExp(`--color-${token}:\\s*([^;]+);`, 'g'))].map(
-      (match) => match[1]!.trim(),
-    );
-    if (light === undefined || dark === undefined) {
-      throw new Error(`theme.css no define --color-${token} en modo claro y oscuro.`);
-    }
-    palette.light[token] = light;
-    palette.dark[token] = dark;
+    const declaration = new RegExp(`--color-${token}:\\s*([^;]+);`).exec(theme);
+    if (declaration === null) throw new Error(`tokens.css no define --color-${token}.`);
+    const value = declaration[1]!.trim();
+    const pair = /^light-dark\(\s*([^,]+?)\s*,\s*([^)]+?)\s*\)/.exec(value);
+    palette.light[token] = pair?.[1] ?? value;
+    palette.dark[token] = pair?.[2] ?? value;
   }
   return palette;
 }
