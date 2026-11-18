@@ -1,5 +1,6 @@
 import type { Locale } from '../../../i18n/locale';
 import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
+import { SEVERITY_RANK, worst } from '../../severity';
 
 /** Una etiqueta de la página. Los textos los pone la UI. */
 export type PageTag =
@@ -63,14 +64,6 @@ interface RowsInput {
   severities?: readonly IssueSeverity[];
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
-
-export const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
-
-export const worst = (severities: readonly IssueSeverity[]): IssueSeverity | undefined =>
-  severities.reduce<IssueSeverity | undefined>(
-    (acc, severity) => (acc === undefined || RANK[severity] < RANK[acc] ? severity : acc),
-    undefined,
-  );
 
 /** El problema sin su medida (`value` y `limit`). */
 function withoutMeasure(issue: Issue): Issue {
@@ -141,7 +134,8 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
         continue;
       }
       seen.locales.push(locale);
-      const worstIssue = RANK[issue.severity] < RANK[seen.issue.severity] ? issue : seen.issue;
+      const worstIssue =
+        SEVERITY_RANK[issue.severity] < SEVERITY_RANK[seen.issue.severity] ? issue : seen.issue;
       const sameMeasure = issue.value === seen.issue.value && issue.limit === seen.issue.limit;
       seen.issue = sameMeasure ? worstIssue : withoutMeasure(worstIssue);
     }
@@ -156,7 +150,7 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
     locales: details,
     issues: [...grouped]
       .map(([kind, seen]) => ({ kind, severity: seen.issue.severity, ...seen }))
-      .sort((a, b) => RANK[a.severity] - RANK[b.severity]),
+      .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]),
     severity: worst(entries.flatMap((entry) => entry.issues.map((issue) => issue.severity))),
   };
 }
@@ -169,7 +163,7 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
 export function pageRows(entries: readonly SeoPage[], input: RowsInput): PageRow[] {
   const bySlug = new Map<string, SeoPage[]>();
   for (const entry of entries) bySlug.set(entry.slug, [...(bySlug.get(entry.slug) ?? []), entry]);
-  const rank = (row: PageRow) => (row.severity === undefined ? 3 : RANK[row.severity]);
+  const rank = (row: PageRow) => (row.severity === undefined ? 3 : SEVERITY_RANK[row.severity]);
   return [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))
     .sort((a, b) => rank(a) - rank(b));

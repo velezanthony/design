@@ -1,4 +1,5 @@
 import type { IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
+import { SEVERITY_RANK } from '../../severity';
 
 /** Un tipo de problema que comparten TODAS las páginas que se están viendo. */
 export interface CommonIssue {
@@ -12,8 +13,6 @@ export interface CommonIssue {
   /** Cómo arreglarlo, solo si es el mismo texto en todas las incidencias. */
   fix?: string;
 }
-
-const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
 
 interface Seen {
   slugs: Set<string>;
@@ -51,7 +50,8 @@ export function commonIssues(
       };
       seen.slugs.add(entry.slug);
       seen.entries.add(entry);
-      if (RANK[issue.severity] < RANK[seen.severity]) seen.severity = issue.severity;
+      if (SEVERITY_RANK[issue.severity] < SEVERITY_RANK[seen.severity])
+        seen.severity = issue.severity;
       seen.fixes.add(issue.fix);
       byKind.set(issue.kind, seen);
     }
@@ -68,5 +68,5 @@ export function commonIssues(
         ...(fix !== undefined && others.length === 0 && { fix }),
       };
     })
-    .sort((a, b) => RANK[a.severity] - RANK[b.severity]);
+    .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);
 }

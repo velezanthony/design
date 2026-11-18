@@ -1,6 +1,7 @@
 import type { Locale } from '../../i18n/locale';
 import { IssueKind, IssueSeverity } from '../tree/types';
 import { PAGE_SIZE, PAGE_SIZES } from './paginate';
+import { ACTIONABLE_SEVERITIES } from '../severity';
 
 /** Filtros de la tabla. Vacío = sin restricción; los distintos campos se combinan con Y. */
 export interface SeoFilters {
@@ -138,16 +139,6 @@ export function filterFields(
   }));
 }
 
-/** Las tres gravedades: pedirlas a la vez es «mostrar todo» (ver `filterPages`). */
-export const ALL_SEVERITIES: IssueSeverity[] = [
-  IssueSeverity.ERROR,
-  IssueSeverity.WARNING,
-  IssueSeverity.INFO,
-];
-
-/** Lo que la tabla enseña si la URL no pide otra cosa: lo accionable, sin la información. */
-export const DEFAULT_SEVERITIES: IssueSeverity[] = [IssueSeverity.ERROR, IssueSeverity.WARNING];
-
 /**
  * Filtros EFECTIVOS de la tabla. `parseFilters` sigue siendo un lector fiel de la URL; este paso
  * aparte decide el valor por defecto: si la URL no nombra ninguna gravedad ni ningún tipo, la
@@ -165,7 +156,7 @@ export function filtersFromUrl(params: URLSearchParams): {
   const filters = parseFilters(params);
   const defaulted = filters.severities.length === 0 && filters.kinds.length === 0;
   return {
-    filters: defaulted ? { ...filters, severities: [...DEFAULT_SEVERITIES] } : filters,
+    filters: defaulted ? { ...filters, severities: [...ACTIONABLE_SEVERITIES] } : filters,
     defaulted,
   };
 }

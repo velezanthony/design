@@ -1,6 +1,7 @@
 import type { Locale } from '../../../i18n/locale';
 import type { Issue, IssueKind, IssueSeverity, SeoPage } from '../../tree/types';
-import { RANK, worst, type LocaleTone } from './rows';
+import type { LocaleTone } from './rows';
+import { SEVERITY_RANK, worst } from '../../severity';
 
 /** Una fila de la vista «Por idioma»: una entrada (página + idioma), con lo que se publica de ella. */
 export interface EntryRow {
@@ -25,7 +26,7 @@ interface EntriesInput {
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
 
-const rank = (row: EntryRow) => (row.tone === 'ok' ? 3 : RANK[row.tone]);
+const rank = (row: EntryRow) => (row.tone === 'ok' ? 3 : SEVERITY_RANK[row.tone]);
 
 /**
  * Las filas de la vista «Por idioma»: una por entrada, tal como se publica cada idioma. Salen de la

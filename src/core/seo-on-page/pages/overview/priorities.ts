@@ -1,6 +1,7 @@
 import type { Locale } from '../../../i18n/locale';
 import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
 import { certaintyOf, type Certainty } from '../../certainty';
+import { SEVERITY_RANK } from '../../severity';
 
 /** Un tipo de problema del sitio, con lo que hace falta para decidir si arreglarlo ya. */
 export interface FixPriority {
@@ -25,7 +26,6 @@ export interface FixPriority {
 /** Más páginas que esto no se listan una a una: el recuento y el enlace a la tabla lo dicen mejor. */
 const MAX_LISTED_PAGES = 5;
 
-const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
 const CATALOG = Object.values(IssueKind);
 
 interface Input {
@@ -59,7 +59,8 @@ export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): Fix
         locales: new Set<Locale>(),
         fix: found.fix,
       };
-      if (RANK[found.severity] < RANK[group.severity]) group.severity = found.severity;
+      if (SEVERITY_RANK[found.severity] < SEVERITY_RANK[group.severity])
+        group.severity = found.severity;
       const first = group.slugs.get(page.slug);
       // El enlace va al primer idioma de la config donde ocurre.
       if (first === undefined || locales.indexOf(page.locale) < locales.indexOf(first)) {
@@ -74,7 +75,7 @@ export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): Fix
   return [...groups]
     .sort(([kindA, a], [kindB, b]) => {
       return (
-        RANK[a.severity] - RANK[b.severity] ||
+        SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
         Number(bulk(a)) - Number(bulk(b)) ||
         b.slugs.size - a.slugs.size ||
         CATALOG.indexOf(kindA) - CATALOG.indexOf(kindB)

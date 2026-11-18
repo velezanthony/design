@@ -14,7 +14,8 @@ import type {
   SeoTree,
 } from '../../tree/types';
 import type { PanelLinks } from '../links';
-import { RANK, worst, type LocaleTone } from '../listing/rows';
+import type { LocaleTone } from '../listing/rows';
+import { ALL_SEVERITIES, SEVERITY_RANK, worst } from '../../severity';
 import { differing, lengthClass, type LengthClass } from './compare';
 import { limitOf, verifyFor, type Limit } from './fix-details';
 
@@ -277,12 +278,10 @@ export function inspectorModel({
           href: sibling && !current ? links.inspector({ slug, locale: entry.locale }) : undefined,
         };
       }),
-      counts: (['error', 'warning', 'info'] as const)
-        .map((severity) => ({
-          severity,
-          count: page.issues.filter((issue) => issue.severity === severity).length,
-        }))
-        .filter(({ count }) => count > 0),
+      counts: ALL_SEVERITIES.map((severity) => ({
+        severity,
+        count: page.issues.filter((issue) => issue.severity === severity).length,
+      })).filter(({ count }) => count > 0),
       noindex: meta.noindex,
       presentIn: page.locales
         .filter((entry) => entry.status === 'present')
@@ -299,7 +298,7 @@ export function inspectorModel({
     },
     // `sort` es estable: a igual gravedad, se conserva el orden del análisis.
     fixes: [...page.issues]
-      .sort((a, b) => RANK[a.severity] - RANK[b.severity])
+      .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])
       .map((issue): FixBlock => {
         const related = issue.related ?? [];
         return {

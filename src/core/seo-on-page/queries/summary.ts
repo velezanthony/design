@@ -1,4 +1,5 @@
-import { IssueKind, IssueSeverity, type SeoPage, type SeoTree } from '../tree/types';
+import { IssueKind, type SeoPage, type SeoTree } from '../tree/types';
+import { isActionable } from '../severity';
 
 /** Hasta dónde llega un `@type`: a todas las páginas, solo a la portada o a algunas. */
 export type SchemaScope = 'site' | 'home' | 'pages';
@@ -56,7 +57,7 @@ function healthOf(tree: SeoTree): SeoSummary['health'] {
   const slugs = new Set(tree.pages.map((page) => page.slug));
   const unhealthy = new Set(
     tree.pages
-      .filter((page) => page.issues.some((issue) => issue.severity !== IssueSeverity.INFO))
+      .filter((page) => page.issues.some((issue) => isActionable(issue.severity)))
       .map((page) => page.slug),
   );
   const healthy = slugs.size - unhealthy.size;

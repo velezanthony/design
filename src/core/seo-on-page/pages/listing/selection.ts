@@ -1,6 +1,5 @@
 import { filterPages } from '../../queries/filter';
 import {
-  ALL_SEVERITIES,
   filtersFromUrl,
   parseView,
   SeoView,
@@ -9,6 +8,7 @@ import {
 } from '../../queries/url-filters';
 import type { IssueSeverity, SeoPage, SeoTree } from '../../tree/types';
 import { kindsWithIssues } from './kinds';
+import { ALL_SEVERITIES } from '../../severity';
 
 /**
  * Pedir TODOS los tipos con incidencias es no filtrar por tipo («Todos» marcado): sin esto, enviar

@@ -1,7 +1,6 @@
 import type { Locale } from '../../../i18n/locale';
 import { paginate, type Paginated } from '../../queries/paginate';
 import {
-  ALL_SEVERITIES,
   EMPTY_FILTERS,
   parsePage,
   parsePerPage,
@@ -20,6 +19,7 @@ import { matrixRows, type MatrixRow } from './matrix';
 import { pageRows, type PageRow } from './rows';
 import { selectListing } from './selection';
 import { severityCounts, type SeverityCounts } from './severities';
+import { ALL_SEVERITIES } from '../../severity';
 
 /** Lo que pinta la tabla según la vista; cada una trae sus filas, ya paginadas. */
 export type ListingTable =

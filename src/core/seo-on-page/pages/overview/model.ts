@@ -1,7 +1,8 @@
 import type { Locale } from '../../../i18n/locale';
 import type { SiteFile } from '../../site-files';
 import { summarize, type SeoSummary } from '../../queries/summary';
-import { ALL_SEVERITIES, EMPTY_FILTERS } from '../../queries/url-filters';
+import { EMPTY_FILTERS } from '../../queries/url-filters';
+import { ACTIONABLE_SEVERITIES, ALL_SEVERITIES } from '../../severity';
 import { IssueKind, IssueSeverity, type SeoTree } from '../../tree/types';
 import type { PanelLinks } from '../links';
 import { coverage, type Coverage } from './coverage';
@@ -88,7 +89,7 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
   const entriesWith = (severities: readonly IssueSeverity[]) =>
     tree.pages.filter((page) => page.issues.some((issue) => severities.includes(issue.severity)))
       .length;
-  const problemSeverities = [IssueSeverity.ERROR, IssueSeverity.WARNING];
+  const problemSeverities = ACTIONABLE_SEVERITIES;
   const problemPages = pagesWith(problemSeverities);
   const infoPages = pagesWith([IssueSeverity.INFO]);
 
