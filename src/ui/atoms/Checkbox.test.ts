@@ -64,4 +64,37 @@ describe('Checkbox', () => {
     expect(doc.querySelector('input')!.getAttribute('id')).toBe('sev-error');
     expect(doc.querySelector('label')!.classList.contains('extra')).toBe(true);
   });
+
+  describe('variante chip', () => {
+    const chip = async (props: Record<string, unknown> = {}) =>
+      checkbox({ variant: 'chip', ...props });
+
+    it('sigue siendo un checkbox con su name y value, dentro de su etiqueta', async () => {
+      const input = (await chip({ checked: true })).querySelector('input')!;
+      expect(input.getAttribute('type')).toBe('checkbox');
+      expect(input.getAttribute('name')).toBe('severity');
+      expect(input.hasAttribute('checked')).toBe(true);
+      expect(input.closest('label')).not.toBeNull();
+    });
+
+    it('esconde la casilla solo a la vista: sigue en el orden de tabulación y la lee un lector', async () => {
+      const input = (await chip()).querySelector('input')!;
+      expect(input.classList.contains('sr-only')).toBe(true);
+      expect(input.classList.contains('hidden')).toBe(false);
+    });
+
+    it('el estado marcado se ve con un glifo, no solo con el color', async () => {
+      const mark = (await chip()).querySelector('label [aria-hidden="true"]')!;
+      expect(text(mark)).toBe('✓');
+    });
+
+    it('lleva el puntero, y deshabilitada lo quita', async () => {
+      expect((await chip()).querySelector('label')!.classList.contains('cursor-pointer')).toBe(
+        true,
+      );
+      const off = (await chip({ disabled: true })).querySelector('label')!;
+      expect(off.classList.contains('cursor-not-allowed')).toBe(true);
+      expect(off.classList.contains('cursor-pointer')).toBe(false);
+    });
+  });
 });
