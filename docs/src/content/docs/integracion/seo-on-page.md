@@ -35,7 +35,7 @@ fichero borrar.
 
 ## Los mismos datos que el sitio
 
-No hay rastreo ni lectura de HTML. La librería ya sabe cómo genera cada página, así que el panel
+Para la documentación no hay rastreo ni lectura de HTML. La librería ya sabe cómo genera cada página, así que el panel
 reutiliza esas mismas funciones: la cascada de metadatos (`resolveMeta`), el sufijo del título
 (`composeTitle`), las URLs y la disponibilidad por idioma (`buildAvailability`) y las políticas de
 traducción. Lo que enseña es, por construcción, lo que sale en el `<head>`.
@@ -55,6 +55,27 @@ El adaptador (`src/astro/data/seo-on-page/adapter.ts`) es el único sitio que co
 `ui/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
 `panelView` (`views/seo-on-page/panel.ts`): barra lateral con las pantallas del panel, `noindex`, sin analítica ni
 aviso de consentimiento.
+
+### Las páginas que añade el sitio en `src/pages/`
+
+Un sitio puede tener páginas propias además de la documentación (el portfolio: portada, CV,
+proyectos). De esas la librería no tiene frontmatter que leer, así que el panel las lee **como las
+ve un visitante**:
+
+1. La integración guarda sus rutas (`astro:routes:resolved`) y, en dev, el servidor de Vite
+   (`astro:server:setup`), en un registro compartido (`astro/data/client-registry.ts`).
+2. `loadClientPages` (`astro/data/client-pages.ts`) expande las rutas dinámicas con su
+   `getStaticPaths`, pide cada URL al propio servidor de desarrollo y lee su `<head>` con `readHead`
+   (`core/seo/html-head.ts`): título, descripción, noindex, canonical, `hreflang`, encabezados, Open
+   Graph y JSON-LD. Lo leído se reutiliza hasta que cambia un fichero.
+3. `clientFacts` (`core/seo-on-page/nodes/client-page.ts`) las convierte en páginas del árbol de tipo
+   `client` (etiqueta «Astro»). Las versiones de una página en cada idioma se agrupan por sus
+   `hreflang`.
+
+Pasan por los mismos analizadores, y los duplicados se buscan entre todas las páginas. El grafo de
+enlaces (huérfanas, enlaces a noindex) sigue siendo solo de la documentación: sus enlaces no se
+recogen. Los arreglos nombran la etiqueta del `<head>` (`<title>`, `<meta name="description">`) y el
+`.astro`, no una clave de frontmatter.
 
 ## Cómo se reparte cada pantalla
 
