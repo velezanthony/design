@@ -213,6 +213,37 @@ describe('buildReport: detalle de un tipo', () => {
     expect(outside.markdown).toContain('  - `docs/b.md` (`b`, en)');
   });
 
+  it('si el problema afecta a todas las páginas el arreglo es el general, aunque todas digan el mismo', () => {
+    const same: SeoTree = { pages: [page('a', 'en', [dup()]), page('b', 'en', [dup()])] };
+    const text = md(siteScope(same), same);
+    expect(text).toContain('- Arreglo: Dale a cada página un título que la distinga');
+    expect(text).not.toContain('- Arreglo: Cambia `seo.title`.');
+  });
+
+  it('con una sola página afectada no dice «el mismo en todas»', () => {
+    const one: SeoTree = { pages: [page('a', 'en', [dup()]), page('b', 'en')] };
+    const text = md(siteScope(one), one);
+    expect(text).toContain('- Valor actual: «Guide | Site»');
+    expect(text).not.toContain('(el mismo en todas)');
+  });
+
+  it('no nombra como «fuera del alcance» las páginas que ya están en la lista', () => {
+    expect(md(localeScope(tree, 'en'))).not.toContain('Con las que choca');
+  });
+
+  it('una página implicada desde varias se nombra una sola vez', () => {
+    const toZ = () => dup([{ slug: 'z', locale: 'en' }]);
+    const shared: SeoTree = {
+      pages: [page('x', 'en', [toZ()]), page('y', 'en', [toZ()]), page('z', 'en', [dup()])],
+    };
+    const scope = siteScope(shared);
+    const text = md(
+      { ...scope, entries: scope.entries.filter(({ slug }) => slug !== 'z') },
+      shared,
+    );
+    expect(text.split('\n').filter((line) => line === '  - `docs/z.md` (`z`, en)')).toHaveLength(1);
+  });
+
   it('una página externa dice dónde vive su clave', () => {
     const external: SeoTree = {
       pages: [page('changelog', 'en', [dup()], { kind: 'external', sourcePath: 'CHANGELOG.md' })],
@@ -311,6 +342,11 @@ describe('buildReport: alcances', () => {
     expect(text).not.toContain('%');
   });
 
+  it('una página sin encabezados lo dice en su contexto', () => {
+    const bare: SeoTree = { pages: [page('a', 'en', [], { headings: [] })] };
+    expect(md(pageScope(bare, 'a'), bare)).toContain('- Encabezados (en): ninguno');
+  });
+
   it('un idioma cubre solo las entradas de ese idioma', () => {
     const text = md(localeScope(tree, 'es'));
     expect(text).toContain('# SEO on page — SnakeORM · solo `es`');
@@ -404,6 +440,80 @@ describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
     expect(have('view=have&lacks=desc', external).markdown).toContain(
       '`external[].seo.description` en docs.config.mjs — sin descripción',
     );
+  });
+
+  it('una página en dos idiomas cuenta como una página y dos entradas', () => {
+    const both: SeoTree = {
+      pages: [
+        page('a', 'en', [], { meta: meta({ descriptionSource: 'site' }) }),
+        page('a', 'es', [], { meta: meta({ descriptionSource: 'site' }) }),
+      ],
+    };
+    expect(have('view=have&lacks=desc', both)).toMatchObject({ pages: 1, entries: 2 });
+  });
+
+  it('sin schema propio distingue si hereda el del sitio o no tiene ninguno', () => {
+    const schemas: SeoTree = {
+      pages: [
+        page('site', 'en', [], {
+          schemas: [{ source: 'site', schema: { '@type': 'WebSite' } }],
+        }),
+        page('none', 'en'),
+      ],
+    };
+    const { markdown } = have('view=have&lacks=schema', schemas);
+    expect(markdown).toContain('(`site`, en) — solo el schema del sitio');
+    expect(markdown).toContain('(`none`, en) — sin schema');
+  });
+
+  it('sin imagen OG propia distingue si usa la del sitio o no hay ninguna', () => {
+    const images: SeoTree = {
+      pages: [
+        page('site', 'en', [], { meta: meta({ ogImageSource: 'site' }) }),
+        page('none', 'en'),
+      ],
+    };
+    const { markdown } = have('view=have&lacks=og', images);
+    expect(markdown).toContain('(`site`, en) — imagen del sitio');
+    expect(markdown).toContain('(`none`, en) — sin imagen');
+  });
+
+  it('sin un H1 único distingue si no hay ninguno o hay varios, y cuáles', () => {
+    const h1s: SeoTree = {
+      pages: [
+        page('none', 'en', [issue(IssueKind.NO_H1, IssueSeverity.ERROR)], { headings: [] }),
+        page('two', 'en', [issue(IssueKind.MULTIPLE_H1, IssueSeverity.ERROR)], {
+          headings: [
+            { depth: 1, slug: 'uno', text: 'Uno' },
+            { depth: 1, slug: 'dos', text: 'Dos' },
+          ],
+        }),
+      ],
+    };
+    const { markdown } = have('view=have&lacks=h1', h1s);
+    expect(markdown).toContain('(`none`, en) — sin H1');
+    expect(markdown).toContain('(`two`, en) — 2 H1: «Uno», «Dos»');
+  });
+
+  it('una página excluida de los buscadores dice noindex', () => {
+    const hidden: SeoTree = { pages: [page('a', 'en', [], { meta: meta({ noindex: true }) })] };
+    expect(have('view=have&lacks=index', hidden).markdown).toContain('(`a`, en) — noindex');
+  });
+
+  it('en el JSON la clave de una página externa es la de docs.config.mjs', () => {
+    const external: SeoTree = {
+      pages: [
+        page('changelog', 'en', [], {
+          kind: 'external',
+          sourcePath: 'CHANGELOG.md',
+          meta: meta({ descriptionSource: 'none', description: undefined }),
+        }),
+      ],
+    };
+    const parsed = JSON.parse(
+      have('view=have&lacks=desc', external).json.replace(/^```json\n|\n```$/g, ''),
+    );
+    expect(parsed.pages[0].key).toBe('external[].seo.description');
   });
 
   it('si todas la tienen lo dice', () => {
