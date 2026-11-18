@@ -1,4 +1,6 @@
 ---
+import { PREVIEW_LABELS } from '../labels';
+
 interface Props {
   title: string;
   description?: string;
@@ -22,7 +24,7 @@ const { title, description, host, image } = Astro.props;
     />
   ) : (
     <div class="flex aspect-[1.91/1] items-center justify-center border-b border-rule bg-raised text-muted">
-      Sin imagen
+      {PREVIEW_LABELS.noImage}
     </div>
   )}
   <div class="p-3">

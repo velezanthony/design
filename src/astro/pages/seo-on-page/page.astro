@@ -11,7 +11,7 @@ import InspectorHeader from '../../../ui/seo-on-page/organisms/InspectorHeader.a
 import PublishedFacts from '../../../ui/seo-on-page/organisms/PublishedFacts.astro';
 import SchemasList from '../../../ui/seo-on-page/organisms/SchemasList.astro';
 import Translations from '../../../ui/seo-on-page/organisms/Translations.astro';
-import { slugLabel } from '../../../ui/seo-on-page/labels';
+import { PANEL_LABELS, slugLabel } from '../../../ui/seo-on-page/labels';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
 import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
@@ -51,7 +51,7 @@ const prompts =
         model.fixes.map((fix) => fix.issue),
       )
     : [];
-const title = model ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada';
+const title = model ? `${slugLabel(slug)} · ${locale}` : PANEL_LABELS.pageNotFound;
 const view = panelView({
   cfg: siteConfig,
   data: docs,
@@ -86,7 +86,7 @@ const view = panelView({
   ) : (
     <p class="text-ink">
       No hay ninguna página con slug «{slug}» en «{locale}».
-      <Link href={hrefs.pages()}>Ver la tabla</Link>
+      <Link href={hrefs.pages()}>{PANEL_LABELS.viewTable}</Link>
     </p>
   )}
 </DocsLayout>

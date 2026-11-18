@@ -15,7 +15,7 @@ import SiteFilesCard from '../../../ui/seo-on-page/organisms/SiteFilesCard.astro
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
 import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
-import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
+import { OVERVIEW_LABELS, SCREEN_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
 import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
 import RouteOverridesNotice from '../../../ui/seo-on-page/organisms/RouteOverridesNotice.astro';
@@ -38,7 +38,7 @@ const view = panelView({
   data: docs,
   hrefs,
   screen: 'overview',
-  title: 'Resumen',
+  title: SCREEN_LABELS.overview,
 });
 const report = overviewReport(tree, siteConfig);
 const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteConfig.locales);
@@ -46,7 +46,7 @@ const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteC
 
 <DocsLayout {...view} year={new Date().getFullYear()}>
   <Fonts slot="head" />
-  <PanelIntro title="Resumen" lede={lede} strings={view.strings}>
+  <PanelIntro title={SCREEN_LABELS.overview} lede={lede} strings={view.strings}>
     <ReportButton slot="actions" scope="site" />
   </PanelIntro>
   <ClientPageFailures failures={failures} />

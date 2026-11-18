@@ -13,7 +13,7 @@ import TableHead from '../../../ui/seo-on-page/molecules/TableHead.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
 import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
 import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
-import { headCount, VIEW_LABELS } from '../../../ui/seo-on-page/labels';
+import { headCount, SCREEN_LABELS, VIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
 import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
 import { loadPanel } from '../../data/seo-on-page/adapter';
@@ -26,7 +26,7 @@ const view = panelView({
   data: docs,
   hrefs,
   screen: 'pages',
-  title: 'Páginas',
+  title: SCREEN_LABELS.pages,
 });
 const model = listingModel({
   tree,
@@ -41,7 +41,11 @@ const report = listingReport(tree, Astro.url.searchParams, siteConfig);
 
 <DocsLayout {...view} year={new Date().getFullYear()}>
   <Fonts slot="head" />
-  <PanelIntro title="Páginas" lede={VIEW_LABELS[model.view.view].lede} strings={view.strings}>
+  <PanelIntro
+    title={SCREEN_LABELS.pages}
+    lede={VIEW_LABELS[model.view.view].lede}
+    strings={view.strings}
+  >
     <ReportButton slot="actions" scope="filter" />
   </PanelIntro>
   <ClientPageFailures failures={failures} />

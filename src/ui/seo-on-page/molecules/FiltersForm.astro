@@ -100,9 +100,10 @@ const separator = 'hidden w-px self-stretch bg-rule sm:block';
       >
         {kinds.all.checked
           ? KINDS_LABELS.countAll
-          : KINDS_LABELS.countSome
-              .replace('{on}', String(kinds.withIssues.filter(({ checked }) => checked).length))
-              .replace('{total}', String(kinds.all.count))}
+          : KINDS_LABELS.count(
+              kinds.withIssues.filter(({ checked }) => checked).length,
+              kinds.all.count,
+            )}
       </span>
     </summary>
     <div

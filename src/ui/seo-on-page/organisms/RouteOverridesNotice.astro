@@ -3,7 +3,7 @@ import { ROUTE_OVERRIDE_LABELS as L } from '../labels';
 
 interface Props {
   /** Las rutas de la librería que el sitio sustituye con un fichero de `src/pages/`. */
-  overrides: { file: string; route: string }[];
+  overrides: { file: string; path: string }[];
 }
 
 const { overrides } = Astro.props;
@@ -20,9 +20,9 @@ const { overrides } = Astro.props;
       <strong class="font-semibold text-ink">{L.title(overrides.length)}</strong>. {L.why}
     </p>
     <ul class="mt-2 list-disc pl-5">
-      {overrides.map(({ file, route }) => (
+      {overrides.map(({ file, path }) => (
         <li>
-          <code>{file}</code> → <code>{L.path(route)}</code>
+          <code>{file}</code> → <code>{path}</code>
         </li>
       ))}
     </ul>

@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
 import { EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
-import { haveCellText, headCount, reportFilterText } from './labels';
+import {
+  haveCellText,
+  headCount,
+  issueHelp,
+  issueMeasure,
+  KINDS_LABELS,
+  reportFilterText,
+  resultsCountText,
+} from './labels';
 
 const matrix = (complete: number): ListingTable => ({
   view: 'matrix',
@@ -95,5 +103,49 @@ describe('reportFilterText', () => {
     expect(text({ severities: ['info'] }, { view: 'have', lacks: 'desc' } as never)).toBe(
       'informativos · sin descripción propia',
     );
+  });
+});
+
+describe('resultsCountText', () => {
+  it('sin resultados dice cuántas hay en total', () => {
+    expect(resultsCountText(0, 0, 0, 151, 'páginas')).toBe('0 de 151 páginas');
+  });
+
+  it('sin filtrar da el rango y el total', () => {
+    expect(resultsCountText(1, 25, 151, 151, 'páginas')).toBe('1–25 de 151 páginas');
+  });
+
+  it('filtrado añade cuántas hay en total', () => {
+    expect(resultsCountText(1, 10, 75, 151, 'entradas')).toBe('1–10 de 75 entradas · 151 en total');
+  });
+
+  it('por defecto cuenta páginas', () => {
+    expect(resultsCountText(1, 2, 2, 2)).toBe('1–2 de 2 páginas');
+  });
+});
+
+describe('issueHelp', () => {
+  it('sin arreglo es solo el mensaje', () => {
+    expect(issueHelp({ message: 'Falta el título' })).toBe('Falta el título');
+  });
+
+  it('con arreglo lo añade sin las comillas de código', () => {
+    expect(issueHelp({ message: 'Falta', fix: 'Añade `<title>`' })).toBe(
+      'Falta\nCómo arreglarlo: Añade <title>',
+    );
+  });
+});
+
+describe('issueMeasure', () => {
+  it('da lo medido contra su límite solo si hay ambos', () => {
+    expect(issueMeasure({ value: 72, limit: 60 })).toBe('72 / 60');
+    expect(issueMeasure({ value: 72 })).toBeUndefined();
+    expect(issueMeasure({ limit: 60 })).toBeUndefined();
+  });
+});
+
+describe('KINDS_LABELS.count', () => {
+  it('dice cuántos tipos hay marcados de los totales', () => {
+    expect(KINDS_LABELS.count(3, 12)).toBe('· 3 de 12');
   });
 });

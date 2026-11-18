@@ -11,7 +11,7 @@ import {
 import Button from '../../atoms/Button.astro';
 import Select from '../../atoms/Select.astro';
 import Pagination from '../../molecules/Pagination.astro';
-import { PAGINATION_LABELS, rowsUnit } from '../labels';
+import { PAGINATION_LABELS, rowsUnit, TABLE_FOOTER_LABELS } from '../labels';
 import ResultsCount from './ResultsCount.astro';
 
 interface Props {
@@ -43,7 +43,7 @@ const { filters, perPage, view, action, from, to, total, overall, page, pages, h
     <Select
       id="seo-table-per"
       name="per"
-      label="Filas por página"
+      label={TABLE_FOOTER_LABELS.perPage}
       value={String(perPage)}
       options={PAGE_SIZES.map((size) => ({ value: String(size), label: String(size) }))}
       inline
@@ -52,7 +52,7 @@ const { filters, perPage, view, action, from, to, total, overall, page, pages, h
     {/* Con JavaScript, elegir un tamaño ya envía el formulario (`client/seo-on-page/auto-submit.ts`). */}
     <noscript>
       <Button type="submit" variant="secondary">
-        Aplicar
+        {TABLE_FOOTER_LABELS.apply}
       </Button>
     </noscript>
   </form>

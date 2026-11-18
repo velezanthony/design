@@ -4,7 +4,8 @@ import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import type { ClientPage } from '../../../core/seo/client-pages';
 import { clientSitemapEntries } from '../../../core/seo/sitemap';
 import { loadClientPages, type ClientPages } from '../client-pages';
-import { clientRegistry, type ClientRegistry } from '../client-registry';
+import { clientRegistry } from '../client-registry';
+import { routePath } from '../../integration/route-overrides';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type {
   HeadingNode,
@@ -105,7 +106,8 @@ export async function loadPanel(
   tree: SeoTree;
   client: ClientPage[];
   failures: ClientPages['failures'];
-  overrides: NonNullable<ClientRegistry['overrides']>;
+  /** Los ficheros del sitio que sustituyen rutas de la librería, con la ruta tal como se visita. */
+  overrides: { file: string; path: string }[];
   hrefs: DevHrefs;
 }> {
   const entries = await getDocs();
@@ -119,7 +121,10 @@ export async function loadPanel(
     tree: await loadSeoTree(config, entries, pages),
     client: pages,
     failures,
-    overrides: clientRegistry().overrides ?? [],
+    overrides: (clientRegistry().overrides ?? []).map(({ file, route }) => ({
+      file,
+      path: routePath(route),
+    })),
     hrefs: devHrefs(urlPolicyOf(config, config.defaultLocale)),
   };
 }

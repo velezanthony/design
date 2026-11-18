@@ -12,8 +12,8 @@ describe('RouteOverridesNotice', () => {
   it('dice cuántas rutas sustituye el sitio y, de cada una, el fichero y la ruta', async () => {
     const doc = await render(RouteOverridesNotice, {
       overrides: [
-        { file: 'src/pages/index.astro', route: 'index' },
-        { file: 'src/pages/sitemap.xml.ts', route: 'sitemap.xml' },
+        { file: 'src/pages/index.astro', path: '/' },
+        { file: 'src/pages/sitemap.xml.ts', path: '/sitemap.xml' },
       ],
     });
     const aside = doc.querySelector('aside')!;

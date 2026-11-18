@@ -31,10 +31,10 @@ const edge = 'border-b border-rule';
       <thead>
         <tr class="label text-muted">
           <th scope="col" class:list={[cell, edge]}>
-            Página
+            {PAGES_TABLE_LABELS.page}
           </th>
           <th scope="col" class:list={[cell, edge]}>
-            Idiomas
+            {PAGES_TABLE_LABELS.locales}
           </th>
           <th scope="col" class:list={[cell, edge]}>
             &lt;title&gt;
@@ -63,7 +63,7 @@ const edge = 'border-b border-rule';
                 </p>
               )}
             </th>
-            <td class={cell} data-cell="Idiomas">
+            <td class={cell} data-cell={PAGES_TABLE_LABELS.locales}>
               <div class="flex flex-wrap gap-1.5">
                 {row.locales.map(({ locale, tone }) => (
                   <LocaleBadge locale={locale} tone={tone} />

@@ -21,6 +21,7 @@ import type {
   IssueKind,
   IssueSeverity,
 } from '../../core/seo-on-page/tree/types';
+import { plainText } from '../../core/seo-on-page/queries/code-spans';
 import { listOf, plural } from '../../core/shared/text';
 
 /* Datos de presentación del panel (textos y tonos), no un componente: por eso vive en la raíz de
@@ -87,6 +88,21 @@ export const PAGINATION_LABELS = {
 };
 
 export const PANEL_NAME = 'SEO on page';
+
+/** Lo que dice el panel de sí mismo: el aviso de «solo en desarrollo» y los títulos de las pantallas sueltas. */
+export const PANEL_LABELS = {
+  devOnly: 'Solo en desarrollo',
+  devOnlyBody:
+    'Lee los mismos datos con los que se genera el sitio y no existe en la build publicada.',
+  pageNotFound: 'Página no encontrada',
+  viewTable: 'Ver la tabla',
+};
+
+/** Los textos de las vistas previas de lo que se comparte (buscador y redes). */
+export const PREVIEW_LABELS = {
+  noImage: 'Sin imagen',
+  noDescription: 'Sin descripción: el buscador elegirá un fragmento del cuerpo de la página.',
+};
 
 /** Las pantallas del panel, para su navegación y su `<title>`. */
 export const SCREEN_LABELS = {
@@ -281,6 +297,8 @@ export const KINDS_LABELS = {
   /** Plantillas del resumen del título; el cliente rellena `{on}` y `{total}`. */
   countAll: '· todos',
   countSome: '· {on} de {total}',
+  count: (on: number, total: number) =>
+    KINDS_LABELS.countSome.replace('{on}', String(on)).replace('{total}', String(total)),
 };
 
 /** Textos de la tabla de páginas agrupada. */
@@ -294,7 +312,35 @@ export const PAGES_TABLE_LABELS = {
   description: 'Descripción',
   title: 'Título',
   issues: 'Problemas',
+  page: 'Página',
+  locales: 'Idiomas',
 };
+
+/** Los controles del pie de la tabla. */
+export const TABLE_FOOTER_LABELS = {
+  perPage: 'Filas por página',
+  apply: 'Aplicar',
+};
+
+/** El aviso de que la vista por defecto oculta lo informativo. */
+export const INFO_HIDDEN_LABELS = {
+  text: 'Se ocultan las incidencias informativas y las páginas sin problemas.',
+  showAll: 'Mostrar también las informativas',
+};
+
+/** Lo medido contra su límite («72 / 60»), solo cuando el análisis aporta ambos. */
+export function issueMeasure(issue: { value?: number; limit?: number }): string | undefined {
+  return issue.value !== undefined && issue.limit !== undefined
+    ? `${issue.value} / ${issue.limit}`
+    : undefined;
+}
+
+/** La ayuda del ratón de una incidencia: un `title` no admite HTML, así que el arreglo va sin comillas de código. */
+export function issueHelp(issue: { message: string; fix?: string }): string {
+  return issue.fix
+    ? `${issue.message}\n${COMMON_ISSUE_LABELS.fix}: ${plainText(issue.fix)}`
+    : issue.message;
+}
 
 /** El aviso de lo que comparten todas las páginas filtradas. */
 export const COMMON_ISSUE_LABELS = {
@@ -310,8 +356,6 @@ export const ROUTE_OVERRIDE_LABELS = {
   region: 'Rutas de la librería que sustituye el sitio',
   title: (count: number) => `Tu sitio sustituye ${plural(count, 'ruta', 'rutas')} de la librería`,
   why: 'Se publican sus páginas, y el panel analiza esas en lugar de las de la librería.',
-  /** La ruta tal como se visita: `index` es `/`, `es/index` es `/es/`. */
-  path: (route: string) => `/${route.replace(/(^|\/)index$/, '$1')}`,
 };
 
 export const CLIENT_FAILURE_LABELS = {
@@ -382,6 +426,18 @@ export function headCount(table: ListingTable, total: number): string {
 
 /** Lo que cuentan las filas del pie: entradas en «Por idioma», páginas en el resto. */
 export const rowsUnit = (view: SeoView) => (view === 'locale' ? 'entradas' : 'páginas');
+
+/** El rango sobre la tabla: «1–25 de 75 páginas · 151 en total» (el total solo si los filtros dejan fuera algo). */
+export function resultsCountText(
+  from: number,
+  to: number,
+  total: number,
+  overall: number,
+  unit = rowsUnit('page'),
+): string {
+  if (total === 0) return `0 de ${overall} ${unit}`;
+  return `${from}–${to} de ${total} ${unit}${total !== overall ? ` · ${overall} en total` : ''}`;
+}
 
 /** La tabla «Por idioma». */
 export const ENTRIES_TABLE_LABELS = {

@@ -1,4 +1,6 @@
 ---
+import { resultsCountText } from '../labels';
+
 interface Props {
   /** Rango (1-based) de la página que se enseña; 0 y 0 sin resultados. */
   from: number;
@@ -11,11 +13,9 @@ interface Props {
   unit?: string;
 }
 
-const { from, to, total, overall, unit = 'páginas' } = Astro.props;
+const { from, to, total, overall, unit } = Astro.props;
 ---
 
 <p class="text-muted" role="status">
-  {total === 0
-    ? `0 de ${overall} ${unit}`
-    : `${from}–${to} de ${total} ${unit}${total !== overall ? ` · ${overall} en total` : ''}`}
+  {resultsCountText(from, to, total, overall, unit)}
 </p>

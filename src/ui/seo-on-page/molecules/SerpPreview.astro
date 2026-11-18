@@ -1,5 +1,6 @@
 ---
 import { clip } from '../../../core/seo-on-page/queries/clip';
+import { PREVIEW_LABELS } from '../labels';
 
 interface Props {
   /** El `<title>` tal como se publica. */
@@ -28,7 +29,7 @@ const { title, url, description, titleMax, descriptionMax } = Astro.props;
     </p>
   ) : (
     <p class="mt-1 text-muted italic" data-serp="description">
-      Sin descripción: el buscador elegirá un fragmento del cuerpo de la página.
+      {PREVIEW_LABELS.noDescription}
     </p>
   )}
 </div>
