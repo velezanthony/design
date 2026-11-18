@@ -1,7 +1,13 @@
 ---
 import type { Issue } from '../../../core/seo-on-page/tree/types';
 import Tag from '../../atoms/display/Tag.astro';
-import { issueHelp, issueMeasure, KIND_LABELS, SEVERITY_LABELS, SEVERITY_TONES } from '../labels';
+import {
+  issueHelp,
+  issueMeasure,
+  KIND_LABELS,
+  SEVERITY_LABELS,
+  SEVERITY_TONES,
+} from '../../../core/seo-on-page/labels';
 
 interface Props {
   issue: Pick<Issue, 'kind' | 'severity' | 'message' | 'fix' | 'value' | 'limit'>;

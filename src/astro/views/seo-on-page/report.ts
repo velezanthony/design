@@ -11,11 +11,7 @@ import {
 } from '../../../core/seo-on-page/report/scope';
 import { reportTexts, type ReportText } from '../../../core/seo-on-page/report/texts';
 import type { Issue, SeoPage, SeoTree } from '../../../core/seo-on-page/tree/types';
-import {
-  KIND_LABELS,
-  REPORT_LABELS,
-  reportFilterText,
-} from '../../../components/seo-on-page/labels';
+import { KIND_LABELS, REPORT_LABELS, reportFilterText } from '../../../core/seo-on-page/labels';
 
 /** El sitio, tal como lo conoce la config: nombre e idiomas. */
 export interface ReportSite {

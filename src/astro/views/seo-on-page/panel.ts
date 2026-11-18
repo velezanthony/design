@@ -12,7 +12,7 @@ import {
   SCREEN_LABELS,
   inspectorTocText,
   type InspectorSection,
-} from '../../../components/seo-on-page/labels';
+} from '../../../core/seo-on-page/labels';
 import type { DocData } from '../../loader/schema';
 import { navContextOf, siteContext } from '../chrome';
 import type { VirtualConfig } from '../../virtual/data';

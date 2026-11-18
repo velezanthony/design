@@ -6,11 +6,16 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-/* Dependencia entre capas (ver `design.md`): cada capa declara lo que NO puede importar; `src/testing/boundaries.test.ts` fija cada regla. */
+/* Dependencia entre capas (ver `design.md`): cada capa declara lo que NO puede importar, y `astro/` además por subcarpeta; `src/testing/boundaries.test.ts` fija cada regla. */
 
 /** Import relativo que entra en alguna de las carpetas dadas, p. ej. `../../components/atoms/Link`. */
 function relativeTo(/** @type {string[]} */ folders) {
   return `^\\.{1,2}/(.*/)?(${folders.join('|')})(/|$)`;
+}
+
+/** Import relativo cuyo primer tramo tras los `../` es una de las carpetas dadas: distingue `../data` (la subcapa) de `../virtual/data`. */
+function siblingOf(/** @type {string[]} */ folders) {
+  return `^(\\.\\./)+(${folders.join('|')})(/|$)`;
 }
 
 /* El paquete `astro` va por `paths` (coincidencia exacta): como patrón, `astro` también atraparía
@@ -29,14 +34,22 @@ const noAstroFolder = {
   message: 'Nada fuera de `astro/` puede importar la carpeta `astro/`.',
 };
 
+/* Valla de dev: lo publicado no importa nada de `seo-on-page` (el panel solo existe en desarrollo). */
+const noSeoOnPage = {
+  regex: relativeTo(['seo-on-page']),
+  message: 'Lo publicado no importa `seo-on-page`: el panel es solo de desarrollo.',
+};
+
 /** @returns {import('eslint').Linter.Config} */
 function layer(
   /** @type {string} */ folder,
   /** @type {object[]} */ paths,
   /** @type {object[]} */ patterns,
+  /** @type {string[]} */ ignores = [],
 ) {
   return {
     files: [`src/${folder}/**/*.{ts,astro}`],
+    ignores,
     rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths, patterns }] },
   };
 }
@@ -70,7 +83,26 @@ export default defineConfig(
       message: 'El núcleo no depende de `client/`, `components/` ni `astro/`.',
     },
   ]),
-  layer('client', astroPackage, [
+  layer(
+    'client',
+    astroPackage,
+    [
+      {
+        regex: relativeTo(['core']),
+        allowTypeImports: true,
+        message: 'Desde `client/` solo se importan tipos de `core/` (`import type`).',
+      },
+      {
+        regex: relativeTo(['components', 'astro']),
+        message: '`client/` no depende de `components/` ni de `astro/`.',
+      },
+      noAstroScheme,
+      noVirtual,
+      noSeoOnPage,
+    ],
+    ['src/client/seo-on-page/**'],
+  ),
+  layer('client/seo-on-page', astroPackage, [
     {
       regex: relativeTo(['core']),
       allowTypeImports: true,
@@ -83,7 +115,47 @@ export default defineConfig(
     noAstroScheme,
     noVirtual,
   ]),
-  layer('components', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
+  layer(
+    'components',
+    astroPackage,
+    [noAstroScheme, noVirtual, noAstroFolder, noSeoOnPage],
+    ['src/components/seo-on-page/**'],
+  ),
+  layer('components/seo-on-page', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
+
+  /* Subcapas de `astro/`: datos y presentación no se importan entre sí; solo `routes/` conoce a las dos. */
+  layer('astro/views', astroPackage, [
+    noAstroScheme,
+    {
+      regex: siblingOf(['data']),
+      message: '`views/` no lee datos: recibe lo que necesita por parámetros.',
+    },
+    {
+      regex: siblingOf(['components']),
+      message: 'Solo `routes/` conoce a la vez los datos y los componentes.',
+    },
+  ]),
+  layer(
+    'astro/loader',
+    [],
+    [
+      {
+        regex: siblingOf(['integration']),
+        message: 'El loader no depende de `integration/`.',
+      },
+    ],
+  ),
+  layer(
+    'astro/data',
+    [],
+    [
+      {
+        regex: siblingOf(['routes', 'components']),
+        message: '`data/` no depende de `routes/` ni de `components/`.',
+      },
+    ],
+  ),
+  layer('astro/routes', [], [noSeoOnPage], ['src/astro/routes/seo-on-page/**']),
 
   /* Nada de `enum` de TypeScript (no es sintaxis borrable y publicamos `.ts` sin build): un objeto `as const` más un tipo derivado. */
   {

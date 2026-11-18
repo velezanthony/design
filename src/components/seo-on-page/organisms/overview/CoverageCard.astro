@@ -6,7 +6,13 @@ import Link from '../../../atoms/actions/Link.astro';
 import Tag from '../../../atoms/display/Tag.astro';
 import OverviewCard from '../../molecules/OverviewCard.astro';
 import StateMark from '../../atoms/StateMark.astro';
-import { CARD_LABELS, MATRIX_LABELS, slugLabel, TAG_HINTS, tagLabel } from '../../labels';
+import {
+  CARD_LABELS,
+  MATRIX_LABELS,
+  slugLabel,
+  TAG_HINTS,
+  tagLabel,
+} from '../../../../core/seo-on-page/labels';
 
 interface Props {
   coverage: NonNullable<OverviewModel['coverage']>;

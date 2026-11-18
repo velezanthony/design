@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { renderDocument } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
-import { PANEL_LABELS } from '../labels';
+import { PANEL_LABELS } from '../../../core/seo-on-page/labels';
 import InspectorPage from './InspectorPage.astro';
 
 /* La página solo recibe el modelo por props: se prueba sin datos ni Astro. */

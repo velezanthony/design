@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
-import { EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
+import type { ListingTable } from './pages/listing/model';
+import { EMPTY_FILTERS } from './queries/url-filters';
 import {
   haveCellText,
   headCount,

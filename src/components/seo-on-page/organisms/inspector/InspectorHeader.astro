@@ -3,7 +3,10 @@ import type { InspectorModel } from '../../../../core/seo-on-page/pages/inspecto
 import Link from '../../../atoms/actions/Link.astro';
 import Tag from '../../../atoms/display/Tag.astro';
 import LocaleBadge from '../../atoms/LocaleBadge.astro';
-import { INSPECTOR_HEADER_LABELS as labels, SEVERITY_TONES } from '../../labels';
+import {
+  INSPECTOR_HEADER_LABELS as labels,
+  SEVERITY_TONES,
+} from '../../../../core/seo-on-page/labels';
 
 interface Props {
   header: InspectorModel['header'];

@@ -94,7 +94,7 @@ no sabe formar URLs (`base`, `trailingSlash`), los modelos reciben un **puerto d
 `astro/views/seo-on-page/hrefs.ts`, lo implementa. Cada ruta pasa el modelo a su página (`components/seo-on-page/pages/`: `OverviewPage`, `PagesPage`,
 `InspectorPage`), que solo pinta. Los componentes (`components/seo-on-page/organisms/`) son
 una sección cada uno y reciben solo su porción del modelo; las etiquetas y los textos son suyos
-(`labels.ts`), los datos no.
+(`core/seo-on-page/labels.ts`, compartidos con las vistas), los datos no.
 
 ## Los límites
 

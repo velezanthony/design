@@ -1,27 +1,18 @@
-import type { TagTone } from '../atoms/display/tones';
-import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare';
-import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
-import { slugLabel } from '../../core/seo-on-page/tree/keys';
-import type { Certainty } from '../../core/seo-on-page/catalog';
-import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
-import { LACKS_PHRASES, type HaveCell, type HaveState } from '../../core/seo-on-page/have';
-import type { HreflangState } from '../../core/seo-on-page/pages/listing/matrix';
-import type { MatrixState } from '../../core/seo-on-page/tree/locale-cells';
-import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
-import type { LocaleTone, PageTag } from '../../core/seo-on-page/pages/listing/rows';
-import type {
-  HaveColumn,
-  SeoFilters,
-  SeoView,
-  ViewState,
-} from '../../core/seo-on-page/queries/url-filters';
-import type {
-  DescriptionSource,
-  IssueKind,
-  IssueSeverity,
-} from '../../core/seo-on-page/tree/types';
-import { plainText } from '../../core/seo-on-page/queries/code-spans';
-import { listOf, plural } from '../../core/shared/text';
+import type { TagTone } from '../shared/tones';
+import type { LengthClass } from './pages/inspector/compare';
+import type { HeadingProblem } from './queries/heading-counts';
+import { slugLabel } from './tree/keys';
+import type { Certainty } from './catalog';
+import type { SiteFile, SiteFileId, SiteFileState } from './site-files';
+import { LACKS_PHRASES, type HaveCell, type HaveState } from './have';
+import type { HreflangState } from './pages/listing/matrix';
+import type { MatrixState } from './tree/locale-cells';
+import type { ListingTable } from './pages/listing/model';
+import type { LocaleTone, PageTag } from './pages/listing/rows';
+import type { HaveColumn, SeoFilters, SeoView, ViewState } from './queries/url-filters';
+import type { DescriptionSource, IssueKind, IssueSeverity } from './tree/types';
+import { plainText } from './queries/code-spans';
+import { listOf, plural } from '../shared/text';
 
 /* Datos de presentación del panel, en español y fuera del catálogo de la interfaz (que es del sitio, por idioma). */
 
