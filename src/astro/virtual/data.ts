@@ -1,5 +1,5 @@
 import type { ResolvedConfig } from '../../core/config/resolve';
-import { defaultStrings, mergeUiStrings, type UiStrings } from '../../core/i18n/ui-strings';
+import { siteStrings, type UiStrings } from '../../core/i18n/ui-strings';
 import type { Locale } from '../../core/i18n/locale';
 
 /** Lo que Astro sabe y la integración no: viene de `astro.config`. */
@@ -23,10 +23,5 @@ export interface VirtualConfig extends Omit<ResolvedConfig, 'ui'>, AstroSiteConf
  */
 export function createVirtualData(config: ResolvedConfig, astro: AstroSiteConfig): VirtualConfig {
   const { ui, ...rest } = config;
-  const merged = mergeUiStrings(defaultStrings, ui);
-  return {
-    ...rest,
-    ...astro,
-    strings: Object.fromEntries(config.locales.map((locale) => [locale, merged[locale]])),
-  };
+  return { ...rest, ...astro, strings: siteStrings(ui, config.locales) };
 }

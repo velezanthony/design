@@ -3,6 +3,7 @@ import {
   defaultStrings,
   localeNames,
   mergeUiStrings,
+  siteStrings,
   t,
   uiKeys,
   type UiStrings,
@@ -106,5 +107,13 @@ describe('mergeUiStrings', () => {
       es: { 'notFound.title': 'Nada por aquí' },
     });
     expect(Object.keys(merged.es).sort()).toEqual([...uiKeys].sort());
+  });
+});
+
+describe('siteStrings', () => {
+  it('solo los idiomas del sitio, con los textos del consumidor encima', () => {
+    const strings = siteStrings({ es: { 'search.placeholder': 'Busca' } }, ['es']);
+    expect(Object.keys(strings)).toEqual(['es']);
+    expect(strings.es?.['search.placeholder']).toBe('Busca');
   });
 });

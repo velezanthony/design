@@ -183,6 +183,15 @@ export function mergeUiStrings(
   );
 }
 
+/** El catálogo del sitio: los textos por defecto con los del consumidor encima, solo en sus idiomas. */
+export function siteStrings(
+  overrides: UiOverrides | undefined,
+  locales: readonly Locale[],
+): Record<Locale, UiStrings> {
+  const merged = mergeUiStrings(defaultStrings, overrides);
+  return Object.fromEntries(locales.map((locale) => [locale, merged[locale]!]));
+}
+
 /** Texto de una clave con `{variable}` interpoladas; una variable no pasada se deja tal cual. */
 export function t(strings: UiStrings, key: UiKey, vars: Record<string, string> = {}): string {
   return strings[key].replace(

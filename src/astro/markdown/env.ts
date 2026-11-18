@@ -5,7 +5,7 @@ import type { ResolvedConfig } from '../../core/config/resolve';
 import { externalCandidates } from '../../core/content/discovery';
 import type { Locale } from '../../core/i18n/locale';
 import { splitLocale } from '../../core/i18n/locale';
-import { defaultStrings, mergeUiStrings, type UiStrings } from '../../core/i18n/ui-strings';
+import { siteStrings, type UiStrings } from '../../core/i18n/ui-strings';
 import { createScope, shouldTransform, type Scope } from './path-filter';
 
 /** Lo que los plugins necesitan saber del sitio, calculado una vez al configurar la integración. */
@@ -32,7 +32,7 @@ export function createMarkdownEnv(
     scope: createScope(root, externalCandidates(config), config.content),
     locales: config.locales,
     defaultLocale: config.defaultLocale,
-    strings: mergeUiStrings(defaultStrings, config.ui),
+    strings: siteStrings(config.ui, config.locales),
     warn,
   };
 }
