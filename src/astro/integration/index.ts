@@ -23,7 +23,7 @@ import { buildPagefindIndex } from './pagefind';
 import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
 import { addClientPagesToSitemap } from './client-sitemap';
-import { assertNoRouteCollision } from './route-collisions';
+import { overrideWarning, routeOverrides } from './route-overrides';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
 export const INTEGRATION_NAME = '@velezanthony/design';
@@ -84,6 +84,8 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
   const resolvedConfig = resolveConfigOrThrow(userConfig);
   // Dónde se publica, para el sitemap del build; lo fija `astro:config:setup`.
   let published = { site: '', base: '/' };
+  // Si el sitio sustituye el sitemap, el build no le añade nada: ese fichero ya no es nuestro.
+  let ownSitemap = true;
   return {
     name: INTEGRATION_NAME,
     resolvedConfig,
@@ -119,13 +121,21 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
             defaultLocale: resolvedConfig.defaultLocale,
           },
         );
-        assertNoRouteCollision(
-          new URL('pages/', config.srcDir),
-          resolvedConfig.locales,
-          resolvedConfig.defaultLocale,
-          resolvedConfig.privacy.page,
-          command === 'dev',
-          resolvedConfig.sitemap.include.length > 0,
+        // El sitio puede sustituir páginas de la librería con las suyas: se avisa, y las rutas
+        // exactas que ya son suyas no se inyectan (Astro no registra dos para la misma URL).
+        const overrides = routeOverrides(new URL('pages/', config.srcDir), {
+          locales: resolvedConfig.locales,
+          defaultLocale: resolvedConfig.defaultLocale,
+          privacyPage: resolvedConfig.privacy.page,
+          seoOnPage: command === 'dev',
+          sitemapIndex: resolvedConfig.sitemap.include.length > 0,
+        });
+        const warning = overrideWarning(overrides);
+        if (warning) logger.warn(warning);
+        const theirs = new Set(overrides.map(({ route }) => `/${route}`));
+        const own = (pattern: string) => !theirs.has(pattern);
+        ownSitemap = own(
+          resolvedConfig.sitemap.include.length > 0 ? `/${SITEMAP_PAGES}` : '/sitemap.xml',
         );
         published = { site: config.site ?? '', base: config.base };
         const fonts = designFonts();
@@ -160,30 +170,35 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           },
         });
         injectRoute({ pattern: '/[...slug]', entrypoint: route('doc.astro'), prerender: true });
-        injectRoute({
-          pattern: '/sitemap.xml',
-          entrypoint: route('sitemap.xml.ts'),
-          prerender: true,
-        });
+        if (own('/sitemap.xml'))
+          injectRoute({
+            pattern: '/sitemap.xml',
+            entrypoint: route('sitemap.xml.ts'),
+            prerender: true,
+          });
         // Con otros sitemaps del dominio, `sitemap.xml` es su índice y las páginas propias van aparte.
-        if (resolvedConfig.sitemap.include.length > 0) {
+        if (resolvedConfig.sitemap.include.length > 0 && own(`/${SITEMAP_PAGES}`)) {
           injectRoute({
             pattern: `/${SITEMAP_PAGES}`,
             entrypoint: route('sitemap-pages.xml.ts'),
             prerender: true,
           });
         }
-        injectRoute({
-          pattern: SITEMAP_STYLESHEET_PATH,
-          entrypoint: route('sitemap.css.ts'),
-          prerender: true,
-        });
-        injectRoute({
-          pattern: DEFAULT_FAVICON_PATH,
-          entrypoint: route('favicon.png.ts'),
-          prerender: true,
-        });
-        injectRoute({ pattern: '/404', entrypoint: route('not-found.astro'), prerender: true });
+        if (own(SITEMAP_STYLESHEET_PATH))
+          injectRoute({
+            pattern: SITEMAP_STYLESHEET_PATH,
+            entrypoint: route('sitemap.css.ts'),
+            prerender: true,
+          });
+        if (own(DEFAULT_FAVICON_PATH))
+          injectRoute({
+            pattern: DEFAULT_FAVICON_PATH,
+            entrypoint: route('favicon.png.ts'),
+            prerender: true,
+          });
+        if (own('/404')) {
+          injectRoute({ pattern: '/404', entrypoint: route('not-found.astro'), prerender: true });
+        }
         // Página de privacidad propia (opcional): la del idioma por defecto sin prefijo y la de cada otro.
         if (resolvedConfig.privacy.page) {
           injectRoute({
@@ -225,6 +240,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
       },
       'astro:build:done': async ({ dir, pages, logger }) => {
         await buildPagefindIndex(dir, logger);
+        if (!ownSitemap) return;
         const added = await addClientPagesToSitemap({
           dir,
           pages,

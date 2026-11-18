@@ -31,7 +31,8 @@ npm create astro@latest docs -- --template minimal --no-git
 Borra después lo que el scaffold trae y la librería ya resuelve:
 
 - `docs/src/pages/index.astro`: la portada es el `index.md` de la carpeta de contenido (`src/content/docs/index.md` por defecto). Si dejas una página en
-  `/`, `/404` o `/sitemap.xml`, el build falla a propósito (`route-collisions.ts`).
+  `/`, `/404` o `/sitemap.xml`, sustituye a la de la librería y al arrancar se avisa con el fichero
+  (`route-overrides.ts`): bórrala si no es a propósito.
 - `docs/public/favicon.svg` y `favicon.ico`, salvo que quieras usarlos con la opción `favicon`.
 
 ## 2. Instalar la librería y sus _peer dependencies_

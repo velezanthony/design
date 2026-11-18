@@ -285,22 +285,19 @@ describe('astro:config:setup: fusión de config', () => {
 });
 
 describe('astro:config:setup: páginas del consumidor', () => {
-  it('una `src/pages/index.astro` que pisa la home falla con un mensaje accionable', async () => {
+  it('una `src/pages/index.astro` sustituye la portada: no falla, avisa con el fichero', async () => {
     const root = mkdtempSync(join(tmpdir(), 'design-setup-'));
     try {
       mkdirSync(join(root, 'src/pages'), { recursive: true });
       writeFileSync(join(root, 'src/pages/index.astro'), '');
-      const error = await runSetup(
+      vi.mocked(logger.warn).mockClear();
+      await runSetup(
         satteri(),
         {},
         { name: 'x' },
         { srcDir: pathToFileURL(join(root, 'src') + '/') },
-      ).catch((e: unknown) => e);
-      expect(error).toBeInstanceOf(AstroError);
-      expect(error).toMatchObject({
-        message: expect.stringContaining('src/pages/index.astro'),
-        hint: expect.any(String),
-      });
+      );
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('src/pages/index.astro'));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -308,35 +305,37 @@ describe('astro:config:setup: páginas del consumidor', () => {
 });
 
 describe('astro:config:setup: el panel SEO on page y las páginas del consumidor', () => {
-  /* El panel solo existe en dev, así que solo ahí puede chocar con una página del repo. La
-     comprobación de colisiones tiene sus tests; estos aseguran que la integración le pasa el modo. */
+  /* El panel solo existe en dev, así que solo ahí puede sustituirlo una página del repo. Las
+     sustituciones tienen sus tests; estos aseguran que la integración les pasa el modo. */
   async function setupWithPage(command: 'dev' | 'build') {
     const root = mkdtempSync(join(tmpdir(), 'design-seo-'));
     try {
       mkdirSync(join(root, 'src/pages/seo-on-page'), { recursive: true });
       writeFileSync(join(root, 'src/pages/seo-on-page/index.astro'), '');
       const setup = setupContext(satteri(), {}, { srcDir: pathToFileURL(join(root, 'src') + '/') });
-      // `async` para que un `throw` síncrono del hook llegue como rechazo y lo recoja el `catch`.
       const run = async () =>
         docs({ name: 'x' }).hooks['astro:config:setup']?.({
           ...(setup.context as object),
           command,
           addWatchFile: vi.fn(),
         } as never);
-      return await run().catch((e: unknown) => e);
+      vi.mocked(logger.warn).mockClear();
+      await run();
+      return vi
+        .mocked(logger.warn)
+        .mock.calls.map(([message]) => String(message))
+        .join('\n');
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
   }
 
-  it('en dev, una página del repo en /seo-on-page/ choca con el panel y lo dice', async () => {
-    const error = await setupWithPage('dev');
-    expect(error).toBeInstanceOf(AstroError);
-    expect(error).toMatchObject({ message: expect.stringContaining('seo-on-page') });
+  it('en dev, una página del repo en /seo-on-page/ sustituye al panel y lo avisa', async () => {
+    expect(await setupWithPage('dev')).toContain('src/pages/seo-on-page/index.astro');
   });
 
-  it('en build no hay panel, así que esa página no choca con nada', async () => {
-    expect(await setupWithPage('build')).not.toBeInstanceOf(AstroError);
+  it('en build no hay panel, así que esa página no sustituye nada', async () => {
+    expect(await setupWithPage('build')).not.toContain('seo-on-page');
   });
 });
 
@@ -583,5 +582,42 @@ describe('astro:config:setup: contenido fuera del proyecto', () => {
   it('con content dentro del proyecto, no toca server.fs.allow', async () => {
     const { updateConfig } = await runSetup(satteri(), {}, { name: 'x' });
     expect(viteAllow(updateConfig)).toBeUndefined();
+  });
+});
+
+describe('astro:config:setup: rutas que el sitio sustituye', () => {
+  const site = () => {
+    const root = mkdtempSync(join(tmpdir(), 'design-site-'));
+    for (const file of ['index.astro', '404.astro', 'sitemap.xml.ts']) {
+      mkdirSync(join(root, 'src', 'pages'), { recursive: true });
+      writeFileSync(join(root, 'src', 'pages', file), '');
+    }
+    return root;
+  };
+
+  it('no falla: avisa de cuáles sustituye y no inyecta las rutas exactas que ya son suyas', async () => {
+    const root = site();
+    try {
+      vi.mocked(logger.warn).mockClear();
+      const { injectRoute } = await runSetup(
+        satteri(),
+        {},
+        { name: 'x' },
+        {
+          srcDir: pathToFileURL(`${root}/src/`),
+        },
+      );
+      const patterns = injectRoute.mock.calls.map(
+        ([route]) => (route as { pattern: string }).pattern,
+      );
+      expect(patterns).toContain('/[...slug]');
+      expect(patterns).not.toContain('/sitemap.xml');
+      expect(patterns).not.toContain('/404');
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Tu sitio sustituye 3 rutas de @velezanthony/design'),
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

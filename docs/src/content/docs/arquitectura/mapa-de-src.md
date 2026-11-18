@@ -132,7 +132,7 @@ astro/
 ├── integration/
 │   ├── index.ts             docs(), defineDocsConfig, hooks, exports públicos
 │   ├── analytics-env.ts     Lee PUBLIC_GTM_ID con loadEnv
-│   ├── route-collisions.ts  Falla si src/pages/ pisa una ruta de la librería
+│   ├── route-overrides.ts   Avisa de las rutas de la librería que src/pages/ sustituye
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
 │   ├── companions.ts        Integraciones auxiliares (hoy ninguna)
 │   ├── pagefind.ts          Índice de búsqueda tras el build

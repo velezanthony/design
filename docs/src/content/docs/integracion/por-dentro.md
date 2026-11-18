@@ -43,7 +43,7 @@ sequenceDiagram
   CLI->>Int: docs(docsConfig) → resolveConfig (zod)
   CLI->>Int: astro:config:setup
   Int->>Int: exige site, lee PUBLIC_GTM_ID (applyAnalytics)
-  Int->>Int: assertNoRouteCollision, assertNoFontConflict
+  Int->>Int: routeOverrides (aviso), assertNoFontConflict
   Int->>MD: extendMarkdownProcessor (directivas + plugins)
   Int->>Vite: updateConfig (shikiConfig, fonts, plugin virtual)
   Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml y su hoja, favicon, privacidad
@@ -76,8 +76,10 @@ Es donde ocurre casi todo. En orden:
 2. **Analítica.** `readAnalyticsEnv` lee `PUBLIC_GTM_ID` con `loadEnv` de Vite (en este hook los
    `.env` aún no están en `process.env`) y `applyAnalytics` decide si se activa. Detalle en
    [Analítica y privacidad](./analitica-y-privacidad.md).
-3. **Colisiones.** `assertNoRouteCollision` falla si `src/pages/` del consumidor ocupa una ruta de la
-   librería; `assertNoFontConflict`, si el consumidor declara una fuente con `--font-plex-sans` o
+3. **Sustituciones y conflictos.** `routeOverrides` lista las rutas de la librería que el
+   consumidor sustituye con un fichero de `src/pages/` (la portada, la 404, el sitemap, `/_design/`…):
+   no es un error, se avisa al arrancar y las rutas exactas que ya son suyas no se inyectan.
+   `assertNoFontConflict` falla si el consumidor declara una fuente con `--font-plex-sans` o
    `--font-plex-mono`.
 4. **Compañeras.** `addCompanions` inserta integraciones auxiliares tras la nuestra. Hoy la lista
    (`COMPANIONS`) está vacía: sitemap, búsqueda y 404 son propios. El mecanismo queda listo para
