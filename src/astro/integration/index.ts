@@ -7,6 +7,7 @@ import type { UrlPolicy } from '../../core/i18n/availability';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
+import { SITEMAP_STYLESHEET_PATH } from '../../core/seo/sitemap';
 import { codeThemes } from '../../ui/styles/code-themes';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
@@ -156,6 +157,11 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         injectRoute({
           pattern: '/sitemap.xml',
           entrypoint: route('sitemap.xml.ts'),
+          prerender: true,
+        });
+        injectRoute({
+          pattern: SITEMAP_STYLESHEET_PATH,
+          entrypoint: route('sitemap.css.ts'),
           prerender: true,
         });
         injectRoute({

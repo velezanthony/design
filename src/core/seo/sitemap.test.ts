@@ -3,7 +3,7 @@ import type { Page } from '../content/discovery';
 import { buildAvailability, type Availability, type UrlPolicy } from '../i18n/availability';
 import { DocsError } from '../errors';
 import { fallbackRoutes } from '../i18n/translation-policy';
-import { buildSitemap } from './sitemap';
+import { buildSitemap, SITEMAP_STYLESHEET_PATH } from './sitemap';
 
 const site = new URL('https://x.dev');
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
@@ -25,6 +25,12 @@ describe('buildSitemap', () => {
       'https://x.dev/repo/es/install/',
       'https://x.dev/repo/changelog/',
     ]);
+  });
+
+  it('enlaza su hoja de estilo con una ruta relativa, para que funcione bajo cualquier base', () => {
+    const [, stylesheet] = buildSitemap(av, site).split('\n');
+    expect(stylesheet).toBe('<?xml-stylesheet type="text/css" href="_design/sitemap.css"?>');
+    expect(SITEMAP_STYLESHEET_PATH).toBe('/_design/sitemap.css');
   });
 
   it('una pareja lista ambos alternates en cada URL', () => {

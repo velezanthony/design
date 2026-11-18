@@ -2,6 +2,12 @@ import { DocsError } from '../errors';
 import type { Availability } from '../i18n/availability';
 import { excludeNoindex } from './indexable';
 
+/**
+ * Hoja de estilo del sitemap, bajo `/_design/` (como el favicon) para no chocar con un `public/` del
+ * consumidor. Es CSS y no XSLT: Chrome retira XSLT, y Google ignora la instrucción en ambos casos.
+ */
+export const SITEMAP_STYLESHEET_PATH = '/_design/sitemap.css';
+
 /** Un único `sitemap.xml` admite hasta 50 000 URLs (protocolo sitemaps.org). */
 export const SITEMAP_LIMIT = 50_000;
 
@@ -49,6 +55,8 @@ export function buildSitemap(
   }
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
+    // Relativa: el sitemap vive en la raíz de `base`, así que resuelve igual con o sin base.
+    `<?xml-stylesheet type="text/css" href="${SITEMAP_STYLESHEET_PATH.slice(1)}"?>`,
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ...entries,
     '</urlset>',
