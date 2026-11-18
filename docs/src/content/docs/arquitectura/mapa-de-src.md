@@ -107,7 +107,7 @@ ui/
 │   │                OverviewCard, StatRow, CodeSpans, InspectorSection
 │   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewKpis,
 │   │                las tarjetas del Resumen (FixFirstCard, CoverageCard, IndexingCard,
-│   │                SchemasCard, KindsCard, SiteFilesCard, SoonCard), PagesTable, y las del
+│   │                SchemasCard, KindsCard, SiteFilesCard), PagesTable, y las del
 │   │                inspector (InspectorHeader, FixList, PublishedFacts con sus vistas previas,
 │   │                Translations, SchemasList, HeadingsOutline)
 │   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente

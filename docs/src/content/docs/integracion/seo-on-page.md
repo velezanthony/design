@@ -45,7 +45,7 @@ flowchart LR
   col["Colección docs<br/>datos + encabezados"] --> ad["Adaptador<br/>astro/data/seo-on-page"]
   cfg["Config del sitio<br/>módulo virtual"] --> ad
   ad --> tree["buildSeoTree<br/>(núcleo, puro)"]
-  tree --> an["Analizadores<br/>título · descripción · H1 · idiomas"]
+  tree --> an["Analizadores<br/>título · descripción · H1 · idiomas · enlaces · imágenes"]
   an --> model["Modelo de cada pantalla<br/>core/seo-on-page/pages (puro)"]
   model --> ui["Rutas de dev + UI<br/>solo pintan el modelo"]
 ```
@@ -80,7 +80,25 @@ Se miden en caracteres del texto final y son orientativos (los buscadores recort
 cambian de criterio): `<title>` de 15 a 60, descripción de 70 a 160 y exactamente un H1. Viven todos
 en `src/core/seo-on-page/thresholds.ts`. Los problemas que detecta: título largo o corto, descripción
 ausente, heredada del sitio, larga o corta, título o descripción duplicados, ningún H1 o varios,
-saltos de nivel (H2 → H4) y traducciones ausentes o con políticas en conflicto.
+saltos de nivel (H2 → H4), traducciones ausentes o con políticas en conflicto y las cinco
+comprobaciones de abajo.
+
+### Canonical, enlaces, imágenes y tarjeta social
+
+| Tipo (`kind`) | Gravedad | Certeza | Qué mira |
+| --- | --- | --- | --- |
+| `canonical-mismatch` | aviso | regla | Que el canonical de cada versión de idioma sea SU URL y no la de otro idioma. Con la URL que genera la librería no salta nunca: es una red contra regresiones. |
+| `link-to-noindex` | info | regla | Una página indexable cuyo cuerpo enlaza a otra `noindex` del mismo idioma. Los enlaces de la barra lateral no cuentan (enlaza a todo y avisaría en cada página). |
+| `orphan-page` | info | regla | Una página indexable que ninguna otra enlaza, ni desde el cuerpo ni desde la navegación (barra lateral de su sección, cabecera y footer, construidas con las mismas funciones que el layout). La portada y las `noindex` no se juzgan. Con la barra lateral por defecto casi nunca salta: lista todas las páginas de su sección. |
+| `image-alt-missing` | aviso | regla | Imágenes Markdown (`![alt](src)`) del cuerpo sin texto alternativo, con el recuento por página. |
+| `og-image-size` | aviso o info | heurística | La imagen social contra 1200×630 (≈1,91:1, tolerancia del 5 %): aviso si la proporción es otra (las redes la recortan), info si solo es más pequeña. Las imágenes `https` no se leen y no se juzgan. |
+
+Los enlaces y las imágenes no se detectan con una regla propia: el loader los toma de `rewriteLinks`
+(`core/links/rewrite.ts`), que ya recorre el cuerpo para reescribir y validar los enlaces, y los guarda
+en `rendered.metadata` de cada entrada junto a los encabezados. Solo cuentan los enlaces relativos a
+un `.md` (los que `rewriteLinks` resuelve a una página); una ruta absoluta o un `<a>` en HTML no se
+ven. En Markdown, `![](x)` no distingue una imagen decorativa de un olvido, así que cuenta como sin
+alt; una decorativa se escribe en HTML (`<img alt="">`), que el análisis no ve.
 
 El JSON-LD (`seo.schema`) solo se **muestra**: la librería no impone ninguno, así que no hay
 incidencias por tenerlo o no. Sale de la misma cascada que `buildHead` (sitio y después página,
