@@ -34,8 +34,13 @@ function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
       byType.set(type, (byType.get(type) ?? new Set()).add(page.slug));
     }
   }
-  const scopeOf = (pages: Set<string>): SchemaScope =>
-    pages.size === slugs.size ? 'site' : pages.size === 1 && pages.has('') ? 'home' : 'pages';
+  function scopeOf(pages: Set<string>): SchemaScope {
+    return pages.size === slugs.size
+      ? 'site'
+      : pages.size === 1 && pages.has('')
+        ? 'home'
+        : 'pages';
+  }
   return {
     withSchemas: withSchemas.size,
     withoutSchemas: slugs.size - withSchemas.size,

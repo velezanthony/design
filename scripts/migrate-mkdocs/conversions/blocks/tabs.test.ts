@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { convertTabs } from './tabs';
 import type { Recurse } from '../../pipeline/types';
 
-const identity: Recurse = (lines) => ({ output: lines, log: [] });
-const run = (lines: string[], recurse = identity) => convertTabs(lines, 0, 0, recurse);
+function identity(lines: string[]): ReturnType<Recurse> {
+  return { output: lines, log: [] };
+}
+function run(lines: string[], recurse: Recurse = identity) {
+  return convertTabs(lines, 0, 0, recurse);
+}
 
 describe('convertTabs', () => {
   it('no actúa sobre una línea que no es una pestaña', () => {
@@ -50,19 +54,18 @@ describe('convertTabs', () => {
 
   it('cada cuerpo pasa por la recursión con su desplazamiento', () => {
     const offsets: number[] = [];
-    const recurse: Recurse = (lines, offset) => {
+    function recurse(lines: string[], offset: number): ReturnType<Recurse> {
       offsets.push(offset);
       return { output: lines, log: [] };
-    };
+    }
     run(['=== "A"', '    a', '=== "B"', '    b'], recurse);
     expect(offsets).toEqual([1, 3]);
   });
 
   it('el registro de los cuerpos va antes que el de las pestañas', () => {
-    const recurse: Recurse = (lines) => ({
-      output: lines,
-      log: [{ kind: 'icon', line: 1, detail: 'i' }],
-    });
+    function recurse(lines: string[]): ReturnType<Recurse> {
+      return { output: lines, log: [{ kind: 'icon', line: 1, detail: 'i' }] };
+    }
     expect(run(['=== "A"', '    a'], recurse)?.log.map((entry) => entry.kind)).toEqual([
       'icon',
       'tabs',
@@ -70,7 +73,9 @@ describe('convertTabs', () => {
   });
 
   it('con directivas dentro, el contenedor sube los dos puntos', () => {
-    const recurse: Recurse = () => ({ output: [':::note[N]', 'x', ':::'], log: [] });
+    function recurse() {
+      return { output: [':::note[N]', 'x', ':::'], log: [] };
+    }
     const out = run(['=== "A"', '    !!! note "N"', '        x'], recurse);
     expect(out?.output).toEqual([
       ':::::tabs',

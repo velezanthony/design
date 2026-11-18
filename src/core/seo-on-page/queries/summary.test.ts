@@ -2,21 +2,24 @@ import { describe, expect, it } from 'vitest';
 import { IssueKind, type Issue, type SeoPage, type SeoTree } from '../tree/types';
 import { summarize } from './summary';
 
-const issue = (kind: Issue['kind'], severity: Issue['severity']): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: '',
-});
-const page = (issues: Issue[], types: (string | string[])[] = []): SeoPage =>
-  ({
+function issue(kind: Issue['kind'], severity: Issue['severity']): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: '',
+  };
+}
+function page(issues: Issue[], types: (string | string[])[] = []): SeoPage {
+  return {
     issues,
     schemas: types.map((type) => ({
       schema: { '@context': 'https://schema.org', '@type': type },
       source: 'site' as const,
     })),
-  }) as unknown as SeoPage;
+  } as unknown as SeoPage;
+}
 
 describe('summarize', () => {
   it('árbol vacío: todo a cero y con todas las claves', () => {
@@ -43,8 +46,9 @@ describe('summarize', () => {
 
 describe('summarize: JSON-LD', () => {
   /** Una entrada con su slug e idioma: los schemas se cuentan por página, no por idioma. */
-  const withSchemas = (slug: string, types: (string | string[])[], locale = 'en'): SeoPage =>
-    ({ ...page([], types), slug, locale }) as SeoPage;
+  function withSchemas(slug: string, types: (string | string[])[], locale = 'en'): SeoPage {
+    return { ...page([], types), slug, locale } as SeoPage;
+  }
 
   it('árbol vacío: ninguna página con ni sin schemas', () => {
     expect(summarize({ pages: [] }).schemas).toEqual({
@@ -95,8 +99,11 @@ describe('summarize: JSON-LD', () => {
   });
 
   describe('alcance', () => {
-    const scopes = (tree: SeoTree) =>
-      Object.fromEntries(summarize(tree).schemas.types.map(({ type, scope }) => [type, scope]));
+    function scopes(tree: SeoTree) {
+      return Object.fromEntries(
+        summarize(tree).schemas.types.map(({ type, scope }) => [type, scope]),
+      );
+    }
 
     it('en todas las páginas: todo el sitio', () => {
       const tree: SeoTree = {
@@ -125,8 +132,9 @@ describe('summarize: JSON-LD', () => {
   });
 
   describe('salud', () => {
-    const entry = (slug: string, issues: Issue[], locale = 'en'): SeoPage =>
-      ({ ...page(issues), slug, locale }) as SeoPage;
+    function entry(slug: string, issues: Issue[], locale = 'en'): SeoPage {
+      return { ...page(issues), slug, locale } as SeoPage;
+    }
 
     it('cuenta páginas sin errores ni avisos; las informativas no restan', () => {
       const tree: SeoTree = {

@@ -33,23 +33,25 @@ function setup() {
   trigger.focus = vi.fn();
   const svg = document.querySelector<SVGElement>('#source svg')! as unknown as SVGElement;
 
-  const fire = (el: Element, type: string, props: Record<string, unknown> = {}) => {
+  function fire(el: Element, type: string, props: Record<string, unknown> = {}) {
     const event = new win.Event(type, { bubbles: true, cancelable: true });
     Object.assign(event, props);
     el.dispatchEvent(event);
     return event;
-  };
-  const key = (k: string, extra: Record<string, unknown> = {}) =>
-    fire(stage, 'keydown', { key: k, ...extra });
+  }
+  function key(k: string, extra: Record<string, unknown> = {}) {
+    return fire(stage, 'keydown', { key: k, ...extra });
+  }
   /** `translate(x px, y px) scale(s)` del lienzo, ya como números. */
-  const view = () => {
+  function view() {
     const m = /translate\((-?[\d.]+)px, (-?[\d.]+)px\) scale\(([\d.]+)\)/.exec(
       canvas.style.transform,
     )!;
     return { x: Number(m[1]), y: Number(m[2]), scale: Number(m[3]) };
-  };
-  const button = (label: string) =>
-    dialog.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!;
+  }
+  function button(label: string) {
+    return dialog.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!;
+  }
   return { document, size, viewer, dialog, stage, canvas, trigger, svg, fire, key, view, button };
 }
 
@@ -146,10 +148,12 @@ describe('createDiagramViewer', () => {
       fire(button('Zoom in'), 'click');
       expect(view().scale).toBeGreaterThan(start.scale);
       /* El centro del visor sigue apuntando al mismo punto del diagrama. */
-      const contentAtCentre = (v: typeof start) => ({
-        x: (400 - v.x) / v.scale,
-        y: (300 - v.y) / v.scale,
-      });
+      function contentAtCentre(v: typeof start) {
+        return {
+          x: (400 - v.x) / v.scale,
+          y: (300 - v.y) / v.scale,
+        };
+      }
       expect(contentAtCentre(view()).x).toBeCloseTo(contentAtCentre(start).x);
       fire(button('Zoom out'), 'click');
       fire(button('Zoom out'), 'click');

@@ -14,5 +14,6 @@ const HEURISTICS: ReadonlySet<IssueKind> = new Set([
   IssueKind.OG_IMAGE_SIZE,
 ]);
 
-export const certaintyOf = (kind: IssueKind): Certainty =>
-  HEURISTICS.has(kind) ? 'heuristic' : 'rule';
+export function certaintyOf(kind: IssueKind): Certainty {
+  return HEURISTICS.has(kind) ? 'heuristic' : 'rule';
+}

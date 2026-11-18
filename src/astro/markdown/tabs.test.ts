@@ -7,12 +7,13 @@ import { createMarkdownEnv } from './env';
 import { tabs } from './tabs';
 
 const env = createMarkdownEnv(resolveConfig({ name: 'x', locales: ['en', 'es'] }), project);
-const render = (source: string, fileURL = docFileURL('a.md')) =>
-  renderMarkdown(source, {
+function render(source: string, fileURL = docFileURL('a.md')) {
+  return renderMarkdown(source, {
     fileURL,
     features: { directive: true },
     plugins: [admonitions(env), tabs(env)],
   });
+}
 
 describe('tabs', () => {
   const two = '::::tabs\n:::tab[npm]\nnpm i\n:::\n:::tab[pnpm]\npnpm add\n:::\n::::';

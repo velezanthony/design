@@ -29,7 +29,9 @@ export function pagefindUrl(base: string): { module: string; bundlePath: string 
 }
 
 /** Importa un módulo por URL; el `@vite-ignore` evita que Vite intente resolverlo en el build. */
-const defaultImporter = (url: string): Promise<unknown> => import(/* @vite-ignore */ url);
+function defaultImporter(url: string): Promise<unknown> {
+  return import(/* @vite-ignore */ url);
+}
 
 /**
  * Carga y configura Pagefind. `undefined` si no se puede: sin índice (servidor de desarrollo,
@@ -72,12 +74,13 @@ export async function runSearch(
  * las entidades que Pagefind escapa.
  */
 export function excerptParts(excerpt: string): { text: string; mark: boolean }[] {
-  const decode = (text: string) =>
-    text
+  function decode(text: string) {
+    return text
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .replace(/&amp;/g, '&');
+  }
   const parts: { text: string; mark: boolean }[] = [];
   for (const [i, chunk] of excerpt.split(/<\/?mark>/).entries()) {
     if (chunk) parts.push({ text: decode(chunk), mark: i % 2 === 1 });
@@ -111,23 +114,27 @@ export function initSearch(
     limit = 8,
   }: SearchOptions = {},
 ): void {
-  const input = root.querySelector<HTMLInputElement>('[data-search-input]');
-  const status = root.querySelector<HTMLElement>('[data-search-status]');
-  const list = root.querySelector<HTMLElement>('[data-search-results]');
-  if (!input || !status || !list) return;
+  const foundInput = root.querySelector<HTMLInputElement>('[data-search-input]');
+  const foundStatus = root.querySelector<HTMLElement>('[data-search-status]');
+  const foundList = root.querySelector<HTMLElement>('[data-search-results]');
+  if (!foundInput || !foundStatus || !foundList) return;
+  /* Las declaraciones de abajo no heredan el descarte de `null`: se fija en constantes. */
+  const input = foundInput;
+  const status = foundStatus;
+  const list = foundList;
 
   const doc = root.ownerDocument;
   const base = root.dataset.baseUrl ?? '/';
   let api: Promise<PagefindApi | undefined> | undefined;
   let latest = 0;
 
-  const setState = (state: string | undefined, message = '') => {
+  function setState(state: string | undefined, message = '') {
     if (state) root.setAttribute('data-state', state);
     else root.removeAttribute('data-state');
     status.textContent = message;
-  };
+  }
 
-  const render = (hits: SearchHit[]) => {
+  function render(hits: SearchHit[]) {
     list.replaceChildren(
       ...hits.map((hit) => {
         const item = doc.createElement('li');
@@ -150,9 +157,9 @@ export function initSearch(
         return item;
       }),
     );
-  };
+  }
 
-  const search = async () => {
+  async function search() {
     const query = input.value;
     const ticket = ++latest;
     if (!query.trim()) {
@@ -173,11 +180,13 @@ export function initSearch(
     render(hits);
     if (hits.length) setState('results');
     else setState('empty', fill(root.dataset.noResults ?? '', { query }));
-  };
+  }
 
   input.addEventListener('input', () => schedule(() => void search(), debounceMs));
 
-  const links = () => [...list.querySelectorAll<HTMLElement>('a')];
+  function links() {
+    return [...list.querySelectorAll<HTMLElement>('a')];
+  }
   root.addEventListener('keydown', (event) => {
     const { key } = event as KeyboardEvent;
     const target = event.target as Element;

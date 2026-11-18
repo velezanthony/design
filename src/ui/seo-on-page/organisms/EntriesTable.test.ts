@@ -3,18 +3,20 @@ import type { EntryRow } from '../../../core/seo-on-page/pages/listing/entries';
 import { render, text } from '../../../testing/render';
 import EntriesTable from './EntriesTable.astro';
 
-const entry = (locale: string, extra: Partial<EntryRow> = {}): EntryRow => ({
-  slug: 'guide',
-  locale,
-  href: `/i/?slug=guide&locale=${locale}`,
-  title: `Guide ${locale} | Site`,
-  titleLength: 20,
-  descriptionSource: 'site',
-  descriptionLength: 93,
-  issues: [],
-  tone: 'ok',
-  ...extra,
-});
+function entry(locale: string, extra: Partial<EntryRow> = {}): EntryRow {
+  return {
+    slug: 'guide',
+    locale,
+    href: `/i/?slug=guide&locale=${locale}`,
+    title: `Guide ${locale} | Site`,
+    titleLength: 20,
+    descriptionSource: 'site',
+    descriptionLength: 93,
+    issues: [],
+    tone: 'ok',
+    ...extra,
+  };
+}
 
 describe('EntriesTable', () => {
   it('una fila por entrada, cada una enlazada a su inspector, con su idioma', async () => {

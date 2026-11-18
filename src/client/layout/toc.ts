@@ -44,8 +44,9 @@ export function trackSections(
     host = globalThis as unknown as ScrollHost,
   }: TrackOptions = {},
 ): void {
-  const idOf = (link: HTMLAnchorElement) =>
-    decodeURIComponent((link.getAttribute('href') ?? '').slice(1));
+  function idOf(link: HTMLAnchorElement) {
+    return decodeURIComponent((link.getAttribute('href') ?? '').slice(1));
+  }
   const links = [...nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')];
   const targets = links
     .map((link) => doc.getElementById(idOf(link)))
@@ -53,7 +54,7 @@ export function trackSections(
   if (!targets.length) return;
 
   let queued = false;
-  const update = () => {
+  function update() {
     queued = false;
     const id = currentHeading(
       targets.map((el) => ({ id: el.id, top: el.getBoundingClientRect().top })),
@@ -65,7 +66,7 @@ export function trackSections(
       if (idOf(link) === id) link.setAttribute('aria-current', 'location');
       else link.removeAttribute('aria-current');
     }
-  };
+  }
 
   host.addEventListener(
     'scroll',

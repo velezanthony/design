@@ -9,7 +9,9 @@ const run = promisify(execFile);
  * tests viven en este mismo repo, pero NO deben publicarse: lo comprueba `npm pack --dry-run`, que
  * es lo que npm empaquetaría de verdad (respeta `files` y sus exclusiones).
  */
-const packedFiles = (): Promise<string[]> => (packed ??= pack());
+function packedFiles(): Promise<string[]> {
+  return (packed ??= pack());
+}
 let packed: Promise<string[]> | undefined;
 
 async function pack(): Promise<string[]> {

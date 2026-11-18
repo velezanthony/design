@@ -14,15 +14,17 @@ import type { SidebarItem } from '../config/schema';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 
-const page = (slug: string, locale = 'en', extra: Partial<Page> = {}): Page => ({
-  slug,
-  locale,
-  title: slug.split('/').pop() || 'Home',
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.md`,
-  ...extra,
-});
+function page(slug: string, locale = 'en', extra: Partial<Page> = {}): Page {
+  return {
+    slug,
+    locale,
+    title: slug.split('/').pop() || 'Home',
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.md`,
+    ...extra,
+  };
+}
 
 function build(
   pages: Page[],

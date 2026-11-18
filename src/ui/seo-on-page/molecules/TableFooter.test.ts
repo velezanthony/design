@@ -4,8 +4,8 @@ import { render, text } from '../../../testing/render';
 import TableFooter from './TableFooter.astro';
 
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
-const footer = (filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) =>
-  render(TableFooter, {
+function footer(filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) {
+  return render(TableFooter, {
     filters,
     perPage,
     view,
@@ -18,6 +18,7 @@ const footer = (filters: SeoFilters = none, perPage = 25, view: ViewState = { vi
     pages: 8,
     href: (number: number) => `?page=${number}`,
   });
+}
 
 describe('TableFooter', () => {
   it('lleva las filas por página en su propio formulario GET, con el tamaño actual', async () => {

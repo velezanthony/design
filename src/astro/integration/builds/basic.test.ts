@@ -14,7 +14,9 @@ beforeAll(async () => {
   site = await buildFixture(root);
 }, 180_000);
 
-const probe = async () => JSON.parse(await readFile(resolve(root, 'probe.json'), 'utf8'));
+async function probe() {
+  return JSON.parse(await readFile(resolve(root, 'probe.json'), 'utf8'));
+}
 
 describe('#1 el loader lee la config de ctx.config.integrations (plan A) o de docs.config.mjs (plan B)', () => {
   it('plan A inviable: Astro descarta la config adjunta a la integración', async () => {
@@ -77,7 +79,9 @@ describe('#4 Pagefind por la API de Node con base', () => {
     globalThis.fetch = realFetch;
   });
 
-  const search = (lang: string, term: string) => searchBuilt(site.dist, lang, term);
+  function search(lang: string, term: string) {
+    return searchBuilt(site.dist, lang, term);
+  }
 
   it('escribe el índice en dist/pagefind/', async () => {
     expect(await site.read('pagefind/pagefind-entry.json')).toContain('languages');
@@ -177,7 +181,9 @@ describe('#10 fusión: el plugin de Vite del consumidor se conserva', () => {
 });
 
 describe('#11 layouts y rutas de la Fase 12', () => {
-  const count = (html: string, needle: string) => html.split(needle).length - 1;
+  function count(html: string, needle: string) {
+    return html.split(needle).length - 1;
+  }
 
   it('página real: lang, head con canonical y hreflang, salto, <main> indexable y barra lateral', async () => {
     const html = await site.read('es/guide/index.html');
@@ -262,7 +268,9 @@ describe('#12 alcance del índice de búsqueda', () => {
   afterAll(() => {
     globalThis.fetch = realFetch;
   });
-  const search = (lang: string, term: string) => searchBuilt(site.dist, lang, term);
+  function search(lang: string, term: string) {
+    return searchBuilt(site.dist, lang, term);
+  }
 
   it('control positivo: el cuerpo de una página indexable sí se encuentra', async () => {
     expect(await search('en', 'zzfallbackunico')).toEqual(['/repo/fallback-demo/']);
@@ -300,11 +308,14 @@ function metaContent(html: string, key: string): string | undefined {
   });
   return tag && /content="([^"]*)"/.exec(tag)?.[1];
 }
-const metaAll = (html: string, key: string) =>
-  (html.match(/<meta\b[^>]*>/g) ?? [])
+function metaAll(html: string, key: string) {
+  return (html.match(/<meta\b[^>]*>/g) ?? [])
     .filter((tag) => tag.includes(`property="${key}"`) || tag.includes(`name="${key}"`))
     .map((tag) => /content="([^"]*)"/.exec(tag)?.[1]);
-const titleOf = (html: string) => /<title>([^<]*)<\/title>/.exec(html)?.[1];
+}
+function titleOf(html: string) {
+  return /<title>([^<]*)<\/title>/.exec(html)?.[1];
+}
 
 describe('#13 sitemap único y sin robots.txt', () => {
   it('solo existe sitemap.xml: ni índice ni sitemap-N.xml ni robots.txt', async () => {
@@ -403,7 +414,9 @@ describe('#15 etiquetas SEO y cascada', () => {
 });
 
 describe('#16 políticas de traducción y textos en una build real', () => {
-  const sidebarHtml = () => site.read('es/guide/index.html');
+  function sidebarHtml() {
+    return site.read('es/guide/index.html');
+  }
 
   it('link: la barra es muestra la insignia en inglés y no existe /es/<slug>/', async () => {
     const html = await sidebarHtml();
@@ -498,10 +511,11 @@ describe('#20 favicon por defecto', () => {
 
 describe('#21 el panel SEO on page no llega a la build', () => {
   /** Todos los ficheros de `dist/`, con ruta relativa. */
-  const distFiles = async () =>
-    (await readdir(site.dist, { recursive: true, withFileTypes: true }))
+  async function distFiles() {
+    return (await readdir(site.dist, { recursive: true, withFileTypes: true }))
       .filter((entry) => entry.isFile())
       .map((entry) => resolve(entry.parentPath, entry.name));
+  }
 
   it('dist/ no tiene ninguna ruta seo-on-page', async () => {
     const files = await distFiles();
@@ -520,12 +534,12 @@ describe('#21 el panel SEO on page no llega a la build', () => {
 });
 
 describe('JSON-LD declarado por el sitio y por el frontmatter', () => {
-  const blocks = async (page: string) => {
+  async function blocks(page: string) {
     const html = await site.read(page);
     return [...html.matchAll(/<script type="application\/ld\+json">([^<]*)<\/script>/g)].map(
       (match) => JSON.parse(match[1]),
     );
-  };
+  }
 
   it('el schema del sitio sale en una página sin frontmatter, con @context', async () => {
     const found = await blocks('lonely/index.html');

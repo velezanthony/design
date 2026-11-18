@@ -10,5 +10,6 @@ export function splitNewlineStyle(text: string): { text: string; crlf: boolean }
   return { text: text.replace(/\r\n/g, '\n'), crlf: crlf > lf };
 }
 
-export const applyNewlineStyle = (text: string, crlf: boolean) =>
-  crlf ? text.replace(/\n/g, '\r\n') : text;
+export function applyNewlineStyle(text: string, crlf: boolean) {
+  return crlf ? text.replace(/\n/g, '\r\n') : text;
+}

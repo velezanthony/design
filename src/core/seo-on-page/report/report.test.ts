@@ -9,17 +9,19 @@ const kindLabels = Object.fromEntries(
   Object.values(IssueKind).map((kind) => [kind, `«${kind}»`]),
 ) as ReportContext['kindLabels'];
 
-const issue = (kind: IssueKind, severity: IssueSeverity, extra: Partial<Issue> = {}): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: `m:${kind}`,
-  ...extra,
-});
+function issue(kind: IssueKind, severity: IssueSeverity, extra: Partial<Issue> = {}): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: `m:${kind}`,
+    ...extra,
+  };
+}
 
-const page = (slug: string, locale: string, issues: Issue[] = [], extra: Partial<SeoPage> = {}) =>
-  seoPage({
+function page(slug: string, locale: string, issues: Issue[] = [], extra: Partial<SeoPage> = {}) {
+  return seoPage({
     slug,
     locale,
     sourcePath:
@@ -27,21 +29,27 @@ const page = (slug: string, locale: string, issues: Issue[] = [], extra: Partial
     issues,
     ...extra,
   });
+}
 
-const meta = (overrides: Partial<SeoPage['meta']>): SeoPage['meta'] => ({
-  ...seoPage().meta,
-  ...overrides,
-});
+function meta(overrides: Partial<SeoPage['meta']>): SeoPage['meta'] {
+  return {
+    ...seoPage().meta,
+    ...overrides,
+  };
+}
 
-const ctxOf = (tree: SeoTree): ReportContext => ({
-  site: 'SnakeORM',
-  locales: ['en', 'es'],
-  tree,
-  kindLabels,
-});
+function ctxOf(tree: SeoTree): ReportContext {
+  return {
+    site: 'SnakeORM',
+    locales: ['en', 'es'],
+    tree,
+    kindLabels,
+  };
+}
 
-const dup = (related: { slug: string; locale: string }[] = [], fix = 'Cambia `seo.title`.') =>
-  issue(IssueKind.DUPLICATE_TITLE, IssueSeverity.WARNING, { fix, related });
+function dup(related: { slug: string; locale: string }[] = [], fix = 'Cambia `seo.title`.') {
+  return issue(IssueKind.DUPLICATE_TITLE, IssueSeverity.WARNING, { fix, related });
+}
 
 /** Cuatro páginas en dos idiomas: dos con título duplicado, una corta, y todas heredan la descripción. */
 const tree: SeoTree = {
@@ -91,9 +99,15 @@ const tree: SeoTree = {
   ],
 };
 
-const report = (scope = siteScope(tree), t = tree) => buildReport(scope, ctxOf(t));
-const md = (scope = siteScope(tree), t = tree) => report(scope, t).markdown;
-const sections = (text: string) => text.split('\n').filter((line) => line.startsWith('## '));
+function report(scope = siteScope(tree), t = tree) {
+  return buildReport(scope, ctxOf(t));
+}
+function md(scope = siteScope(tree), t = tree) {
+  return report(scope, t).markdown;
+}
+function sections(text: string) {
+  return text.split('\n').filter((line) => line.startsWith('## '));
+}
 
 describe('buildReport: cabecera', () => {
   it('abre con el título, el alcance con sus números y la leyenda de certeza', () => {
@@ -146,11 +160,11 @@ describe('buildReport: orden y secciones', () => {
 });
 
 describe('buildReport: detalle de un tipo', () => {
-  const duplicate = () => {
+  function duplicate() {
     const text = md();
     const start = text.indexOf('## 2.');
     return text.slice(start, text.indexOf('## 3.'));
-  };
+  }
 
   it('lista cada fichero con su página e idioma bajo la clave que se toca', () => {
     const text = duplicate();
@@ -232,7 +246,9 @@ describe('buildReport: detalle de un tipo', () => {
   });
 
   it('una página implicada desde varias se nombra una sola vez', () => {
-    const toZ = () => dup([{ slug: 'z', locale: 'en' }]);
+    function toZ() {
+      return dup([{ slug: 'z', locale: 'en' }]);
+    }
     const shared: SeoTree = {
       pages: [page('x', 'en', [toZ()]), page('y', 'en', [toZ()]), page('z', 'en', [dup()])],
     };
@@ -369,11 +385,12 @@ describe('buildReport: alcances', () => {
 });
 
 describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
-  const have = (query: string, t = tree) =>
-    buildReport(
+  function have(query: string, t = tree) {
+    return buildReport(
       filterScope(selectListing(t, new URLSearchParams(query)), 'sin descripción propia'),
       ctxOf(t),
     );
+  }
 
   it('lista las páginas que no la tienen, con su archivo, la clave que falta y qué hay ahora', () => {
     const { markdown } = have('view=have&lacks=desc');
@@ -536,7 +553,9 @@ describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
 });
 
 describe('buildReport: bloque JSON', () => {
-  const parse = (text: string) => JSON.parse(text.replace(/^```json\n|\n```$/g, ''));
+  function parse(text: string) {
+    return JSON.parse(text.replace(/^```json\n|\n```$/g, ''));
+  }
 
   it('va vallado como json', () => {
     const { json } = report();
@@ -626,8 +645,8 @@ describe('JSON_SEPARATOR', () => {
 });
 
 describe('buildReport: páginas del cliente (.astro)', () => {
-  const astro = (issues: Issue[] = [], extra: Partial<SeoPage> = {}) =>
-    seoPage({
+  function astro(issues: Issue[] = [], extra: Partial<SeoPage> = {}) {
+    return seoPage({
       slug: 'cv',
       locale: 'en',
       kind: 'client',
@@ -635,6 +654,7 @@ describe('buildReport: páginas del cliente (.astro)', () => {
       issues,
       ...extra,
     });
+  }
 
   it('se marcan como página Astro y nombran la etiqueta de su <head>, no una clave de frontmatter', () => {
     const own: SeoTree = {

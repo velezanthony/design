@@ -8,14 +8,15 @@ import {
   type PrivacyBlock,
 } from './copy';
 
-const shape = (blocks: PrivacyBlock[]) =>
-  blocks.map((block) =>
+function shape(blocks: PrivacyBlock[]) {
+  return blocks.map((block) =>
     block.kind === 'table'
       ? [block.kind, block.head.length, block.rows.length]
       : block.kind === 'list'
         ? [block.kind, block.items.length]
         : [block.kind],
   );
+}
 
 describe('DEFAULT_CONTROLLER', () => {
   it('es el del portfolio', () => {

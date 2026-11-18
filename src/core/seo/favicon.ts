@@ -23,10 +23,14 @@ export function faviconType(src: string): string | undefined {
 }
 
 /** Las URLs https no se comprueban: no hay red en el build. */
-export const isLocalFavicon = (favicon: string): boolean => !favicon.startsWith('https://');
+export function isLocalFavicon(favicon: string): boolean {
+  return !favicon.startsWith('https://');
+}
 
 /** Ruta del archivo bajo `public/` sin barra inicial: `/img/a.png` y `img/a.png` → `img/a.png`. */
-export const publicFaviconPath = (favicon: string): string => favicon.replace(/^\/+/, '');
+export function publicFaviconPath(favicon: string): string {
+  return favicon.replace(/^\/+/, '');
+}
 
 /**
  * Decide el favicon de la página: el propio del paquete si no hay config, una URL https tal cual,

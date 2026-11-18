@@ -4,13 +4,15 @@ import { render, text } from '../../testing/render';
 import PrivacyPolicy from './PrivacyPolicy.astro';
 
 const controller = { name: 'Ada Test', email: 'ada@test.dev' };
-const props = (lang: 'es' | 'en') => ({
-  title: 'Política',
-  eyebrow: 'Privacidad',
-  updatedLabel: 'Última actualización',
-  updated: { iso: '2026-11-17', text: '17 de noviembre de 2026' },
-  sections: privacyCopy(lang, controller),
-});
+function props(lang: 'es' | 'en') {
+  return {
+    title: 'Política',
+    eyebrow: 'Privacidad',
+    updatedLabel: 'Última actualización',
+    updated: { iso: '2026-11-17', text: '17 de noviembre de 2026' },
+    sections: privacyCopy(lang, controller),
+  };
+}
 
 describe('PrivacyPolicy', () => {
   it('un h1 y un h2 con ancla por sección', async () => {

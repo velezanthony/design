@@ -3,11 +3,13 @@ import type { SeoLocaleEntry } from '../tree/types';
 import { analyzeMultilingual } from './multilingual';
 
 const page = { slug: 'a', locale: 'en', kind: 'native' as const, sourcePath: 'docs/a.md' };
-const missing = (
+function missing(
   policy: 'link' | 'omit' | 'fallback',
   declared: boolean,
   locale = 'es',
-): SeoLocaleEntry => ({ locale, status: 'missing', policy, declared });
+): SeoLocaleEntry {
+  return { locale, status: 'missing', policy, declared };
+}
 const present: SeoLocaleEntry = { locale: 'en', status: 'present', url: '/a/' };
 
 describe('analyzeMultilingual', () => {

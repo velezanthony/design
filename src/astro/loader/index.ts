@@ -31,8 +31,9 @@ import { createReloader, watchSources } from './watch';
 const LOAD_ERROR = 'No se puede cargar el contenido de docs.';
 
 /** Carpeta de las páginas nativas, absoluta: `content` está resuelta contra la raíz del proyecto. */
-const contentDir = (root: string, config: Pick<LoaderConfig, 'content'>) =>
-  path.resolve(root, config.content);
+function contentDir(root: string, config: Pick<LoaderConfig, 'content'>) {
+  return path.resolve(root, config.content);
+}
 
 /** Falla con la ruta ya resuelta si la carpeta de contenido no existe o no es una carpeta. */
 async function assertContentDir(dir: string, config: Pick<LoaderConfig, 'content'>) {
@@ -83,10 +84,11 @@ async function readSources(
 }
 
 /** Archivo absoluto de una página: las nativas cuelgan del directorio de contenido. */
-const absolutePath = (root: string, config: LoaderConfig, page: Page) =>
-  page.kind === 'native'
+function absolutePath(root: string, config: LoaderConfig, page: Page) {
+  return page.kind === 'native'
     ? path.join(contentDir(root, config), page.sourcePath)
     : path.resolve(root, page.sourcePath);
+}
 
 /** Errores de `discoverPages` como lista, para sumarlos a los demás en vez de cortar la carga. */
 function discoverOrErrors(
@@ -228,10 +230,11 @@ function createLoader(getConfig: () => LoaderConfig): Loader {
     schema: docsSchema(),
     async load(ctx) {
       const docsConfig = getConfig();
-      const run = () =>
-        sync(ctx, docsConfig).catch((error: unknown) => {
+      async function run() {
+        return sync(ctx, docsConfig).catch((error: unknown) => {
           throw toAstroError(error, LOAD_ERROR);
         });
+      }
       await run();
 
       if (ctx.watcher) {

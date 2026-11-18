@@ -12,21 +12,23 @@ import {
   runSearch,
 } from './search';
 
-const fakeApi = (
+function fakeApi(
   docs: { url: string; title: string; excerpt: string }[] = [],
-): PagefindApi & { options: ReturnType<typeof vi.fn>; search: ReturnType<typeof vi.fn> } => ({
-  options: vi.fn(() => Promise.resolve()),
-  search: vi.fn((q: string) =>
-    Promise.resolve({
-      results: q
-        ? docs.map((d) => ({
-            data: () =>
-              Promise.resolve({ url: d.url, meta: { title: d.title }, excerpt: d.excerpt }),
-          }))
-        : [],
-    }),
-  ),
-});
+): PagefindApi & { options: ReturnType<typeof vi.fn>; search: ReturnType<typeof vi.fn> } {
+  return {
+    options: vi.fn(() => Promise.resolve()),
+    search: vi.fn((q: string) =>
+      Promise.resolve({
+        results: q
+          ? docs.map((d) => ({
+              data: () =>
+                Promise.resolve({ url: d.url, meta: { title: d.title }, excerpt: d.excerpt }),
+            }))
+          : [],
+      }),
+    ),
+  };
+}
 
 describe('normalizeBase / pagefindUrl', () => {
   it.each([
@@ -58,7 +60,9 @@ describe('loadPagefind', () => {
   });
 
   it('es undefined si la importación falla (sin índice)', async () => {
-    const importer = () => Promise.reject(new Error('404'));
+    function importer() {
+      return Promise.reject(new Error('404'));
+    }
     expect(await loadPagefind('/repo/', importer)).toBeUndefined();
   });
 
@@ -133,18 +137,23 @@ describe('initSearch', () => {
     initSearch(root, { importer, debounceMs: 0, schedule: (cb) => cb() });
     const input = document.querySelector<HTMLInputElement>('[data-search-input]')!;
     const status = document.querySelector('[data-search-status]')!;
-    const items = () => [...document.querySelectorAll('[data-search-results] li')];
-    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
-    const type = async (value: string) => {
+    function items() {
+      return [...document.querySelectorAll('[data-search-results] li')];
+    }
+    function flush() {
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    async function type(value: string) {
       input.value = value;
       input.dispatchEvent(new document.defaultView!.Event('input'));
       await flush();
-    };
-    const event = (type: string, props: object = {}) =>
-      Object.assign(
+    }
+    function event(type: string, props: object = {}) {
+      return Object.assign(
         new document.defaultView!.Event(type, { cancelable: true, bubbles: true }),
         props,
       );
+    }
     return { document, root, input, status, items, type, flush, event };
   }
 
@@ -233,7 +242,9 @@ describe('initSearch', () => {
     ]);
     const { document, input, items, type, event } = setup(() => Promise.resolve(api));
     await type('x');
-    const links = () => [...document.querySelectorAll<HTMLElement>('[data-search-results] a')];
+    function links() {
+      return [...document.querySelectorAll<HTMLElement>('[data-search-results] a')];
+    }
     links().forEach((a) => (a.focus = vi.fn()));
     input.dispatchEvent(event('keydown', { key: 'ArrowDown' }));
     expect(links()[0]!.focus).toHaveBeenCalled();
@@ -266,23 +277,23 @@ describe('initSearchShortcut: anuncio del atajo', () => {
 });
 
 describe('initSearchShortcut', () => {
-  const page = (
+  function page(
     body = '<input data-search-input type="search"><input id="other"><textarea id="area"></textarea><div id="edit" contenteditable="true"></div><button id="btn">x</button>',
-  ) => {
+  ) {
     const { document } = parseHTML(`<!doctype html><html><body>${body}</body></html>`);
     initSearchShortcut(document);
     const input = document.querySelector<HTMLInputElement>('[data-search-input]');
     if (input) input.focus = vi.fn();
-    const press = (props: object = {}, target: Element = document.body) => {
+    function press(props: object = {}, target: Element = document.body) {
       const event = Object.assign(
         new document.defaultView!.Event('keydown', { cancelable: true, bubbles: true }),
         { key: '/', ...props },
       );
       target.dispatchEvent(event);
       return event;
-    };
+    }
     return { document, input, press };
-  };
+  }
 
   it('«/» enfoca el buscador y no escribe la barra en ningún sitio', () => {
     const { input, press } = page();

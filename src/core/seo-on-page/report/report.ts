@@ -52,8 +52,12 @@ const SEVERITY_TEXT: Record<IssueSeverity, string> = {
 };
 const CERTAINTY_TEXT: Record<Certainty, string> = { rule: 'regla', heuristic: 'heurística' };
 
-const code = (text: string) => `\`${text}\``;
-const slugOf = (slug: string) => code(slug || '/');
+function code(text: string) {
+  return `\`${text}\``;
+}
+function slugOf(slug: string) {
+  return code(slug || '/');
+}
 
 interface Hit {
   entry: SeoPage;
@@ -73,9 +77,12 @@ function hitsOf(scope: ReportScope): Hit[] {
   );
 }
 
-const unique = <T>(items: readonly T[]) => [...new Set(items)];
-const localesOf = (entries: readonly SeoPage[], order: readonly Locale[]) =>
-  order.filter((locale) => entries.some((entry) => entry.locale === locale));
+function unique<T>(items: readonly T[]) {
+  return [...new Set(items)];
+}
+function localesOf(entries: readonly SeoPage[], order: readonly Locale[]) {
+  return order.filter((locale) => entries.some((entry) => entry.locale === locale));
+}
 
 function dirsText(ctx: ReportContext, locales: readonly Locale[]): string {
   const dirs = contentDirs(ctx.tree);
@@ -102,10 +109,10 @@ const NO_FRONTMATTER = [
 ] as const;
 
 /** Una entrada como línea de lista: su archivo, su página y su idioma. */
-const entryLine = (entry: SeoPage, extra = '') => {
+function entryLine(entry: SeoPage, extra = '') {
   const where = `${code(entry.slug ? entry.slug : '/')}, ${entry.locale}${KIND_MARK[entry.kind]}`;
   return `  - ${code(entry.sourcePath)} (${where})${extra}`;
-};
+}
 
 function introOf(scope: ReportScope, ctx: ReportContext): string[] {
   const pages = unique(scope.entries.map((entry) => entry.slug)).length;
@@ -122,7 +129,9 @@ function introOf(scope: ReportScope, ctx: ReportContext): string[] {
   ];
 }
 
-const pipe = (text: string) => text.replaceAll('|', '\\|');
+function pipe(text: string) {
+  return text.replaceAll('|', '\\|');
+}
 
 /** La tabla de una página: un idioma por fila, con lo que publica. */
 function pageTable(entries: readonly SeoPage[]): string[] {
@@ -189,7 +198,9 @@ function sectionOf(
 ): string[] {
   const { kind, hits, bulk } = item;
   const key = keyOf(kind, { kind: 'native' });
-  const valueOf = ({ entry, issue }: Hit) => currentValue(entry, issue)?.text ?? '';
+  function valueOf({ entry, issue }: Hit) {
+    return currentValue(entry, issue)?.text ?? '';
+  }
   const values = unique(hits.map(valueOf));
   // «El mismo en todas», o el mismo en todas las de cada idioma (la descripción del sitio por idioma).
   const byLocale = ctx.locales
@@ -284,7 +295,9 @@ interface JsonPage {
   detail?: string;
 }
 
-const fenced = (value: unknown) => `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``;
+function fenced(value: unknown) {
+  return `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``;
+}
 
 const LIMITS = {
   title: [THRESHOLDS.titleMin, THRESHOLDS.titleMax],

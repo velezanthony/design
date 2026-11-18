@@ -14,7 +14,9 @@ export interface FooterHref {
 
 export type FooterLink = FooterPage | FooterHref;
 
-export const isFooterPage = (link: FooterLink): link is FooterPage => 'slug' in link;
+export function isFooterPage(link: FooterLink): link is FooterPage {
+  return 'slug' in link;
+}
 
 /** Licencia: un texto suelto o una etiqueta con enlace al archivo de la licencia (https). */
 export type FooterLicense = string | { label: Label; href: string };

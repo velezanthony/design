@@ -49,16 +49,18 @@ export function runToFolder(options: ToFolderOptions): number {
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
-  const isExcluded = (rel: string) =>
-    excludePatterns.some((pattern) =>
+  function isExcluded(rel: string) {
+    return excludePatterns.some((pattern) =>
       pattern.endsWith('/') ? rel.startsWith(pattern) : rel === pattern,
     );
+  }
 
-  const walk = (dir: string): string[] =>
-    fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+  function walk(dir: string): string[] {
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       const full = path.join(dir, entry.name);
       return entry.isDirectory() ? walk(full) : [path.relative(docs, full)];
     });
+  }
 
   const all = walk(docs).sort();
   const markdown = all.filter((file) => file.endsWith('.md') && !isExcluded(file));
@@ -89,13 +91,13 @@ export function runToFolder(options: ToFolderOptions): number {
     ? JSON.parse(fs.readFileSync(options.api, 'utf8'))
     : {};
   let strippedApiLinks = 0;
-  const resolveApi = (id: string) => {
+  function resolveApi(id: string) {
     const generated = api[id];
     if (generated === undefined) return undefined;
     const cleaned = cleanGeneratedApi(generated);
     strippedApiLinks += cleaned.stripped;
     return cleaned.markdown;
-  };
+  }
 
   fs.rmSync(out, { recursive: true, force: true });
   const sources = new Map(

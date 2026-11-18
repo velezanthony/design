@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../testing/render';
 import Button from './Button.astro';
 
-const button = async (props: Record<string, unknown> = {}) =>
-  (await render(Button, props, { default: 'Filtrar' })).querySelector('button')!;
+async function button(props: Record<string, unknown> = {}) {
+  return (await render(Button, props, { default: 'Filtrar' })).querySelector('button')!;
+}
 
 describe('Button', () => {
   it('es un <button> con su texto', async () => {

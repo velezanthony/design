@@ -34,7 +34,9 @@ const ALERTS: Record<string, string> = { note: 'NOTE', tip: 'TIP', warning: 'WAR
 
 const ADMONITION = /^(\s*)(!!!|\?\?\?\+?)\s+([\w-]+)(?:\s+"((?:[^"\\]|\\.)*)")?\s*$/;
 
-const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
+function capitalize(word: string) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
 /**
  * `!!! tipo "Título"` (y `???` / `???+`) con su cuerpo indentado. Sin título y con equivalente 1:1
@@ -56,7 +58,9 @@ export function convertAdmonition(
   const inner = recurse(rawBody, lineNumber);
   const body = inner.output;
   const log: LogEntry[] = [...inner.log];
-  const prefix = (text: string[]) => text.map((row) => indentText + row);
+  function prefix(text: string[]) {
+    return text.map((row) => indentText + row);
+  }
 
   let type = rawType.toLowerCase();
   let title = rawTitle === undefined ? '' : unescapeTitle(rawTitle);

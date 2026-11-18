@@ -6,8 +6,9 @@ import PrevNext from './PrevNext.astro';
 
 const prev = { label: 'Instalación', href: '/install/' };
 const next = { label: 'Uso', href: '/usage/' };
-const nav = (props: Record<string, unknown>) =>
-  render(PrevNext, { strings: stringsFor('es'), ...props });
+function nav(props: Record<string, unknown>) {
+  return render(PrevNext, { strings: stringsFor('es'), ...props });
+}
 
 describe('PrevNext', () => {
   it('página intermedia: anterior y siguiente con rel y texto del catálogo', async () => {

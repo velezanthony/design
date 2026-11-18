@@ -3,23 +3,25 @@ import { render, text } from '../../../testing/render';
 import Translations from './Translations.astro';
 
 const none = { titleLength: false, descriptionLength: false, descriptionSource: false };
-const present = (locale: string, overrides = {}) => ({
-  state: 'present',
-  locale,
-  tone: 'ok',
-  current: locale === 'en',
-  href: locale === 'en' ? undefined : `/i/?slug=guide&locale=${locale}`,
-  title: `Guide ${locale}`,
-  titleLength: 20,
-  titleClass: 'ok',
-  description: `Desc ${locale}`,
-  descriptionLength: 93,
-  descriptionClass: 'ok',
-  descriptionSource: 'page',
-  issues: [],
-  differs: none,
-  ...overrides,
-});
+function present(locale: string, overrides = {}) {
+  return {
+    state: 'present',
+    locale,
+    tone: 'ok',
+    current: locale === 'en',
+    href: locale === 'en' ? undefined : `/i/?slug=guide&locale=${locale}`,
+    title: `Guide ${locale}`,
+    titleLength: 20,
+    titleClass: 'ok',
+    description: `Desc ${locale}`,
+    descriptionLength: 93,
+    descriptionClass: 'ok',
+    descriptionSource: 'page',
+    issues: [],
+    differs: none,
+    ...overrides,
+  };
+}
 
 describe('Translations', () => {
   it('una columna por idioma y una fila por campo', async () => {

@@ -6,8 +6,9 @@ import { GTM_ENV_VAR } from '../../core/analytics/resolve';
 export type LoadEnv = (mode: string, envDir: string, prefix: string) => Record<string, string>;
 
 /** Modo de Vite según el comando de Astro: `dev` es development; build y el resto, production. */
-export const modeOf = (command: string): 'development' | 'production' =>
-  command === 'dev' ? 'development' : 'production';
+export function modeOf(command: string): 'development' | 'production' {
+  return command === 'dev' ? 'development' : 'production';
+}
 
 /**
  * Valor de `PUBLIC_GTM_ID` para este comando. En `astro:config:setup` los `.env` aún no están en

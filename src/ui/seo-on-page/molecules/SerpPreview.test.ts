@@ -2,14 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import SerpPreview from './SerpPreview.astro';
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  title: 'Guide | Site',
-  url: 'https://x.dev/repo/guide/',
-  description: 'A description.',
-  titleMax: 60,
-  descriptionMax: 160,
-  ...extra,
-});
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    title: 'Guide | Site',
+    url: 'https://x.dev/repo/guide/',
+    description: 'A description.',
+    titleMax: 60,
+    descriptionMax: 160,
+    ...extra,
+  };
+}
 
 describe('SerpPreview', () => {
   it('enseña título, URL y descripción tal como salen', async () => {

@@ -11,16 +11,16 @@ function run(initiallyWide: boolean) {
     addEventListener: (_type: string, listener: () => void) => listeners.push(listener),
   };
   const asked: string[] = [];
-  const matchMedia = (media: string) => {
+  function matchMedia(media: string) {
     asked.push(media);
     return query;
-  };
+  }
   const document = { currentScript: { previousElementSibling: nav } };
   new Function('document', 'matchMedia', navOpenScript())(document, matchMedia);
-  const resize = (wide: boolean) => {
+  function resize(wide: boolean) {
     query.matches = wide;
     for (const listener of listeners) listener();
-  };
+  }
   return { nav, asked, resize };
 }
 

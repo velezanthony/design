@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { bootDocs, bootNotFound, type BootEnv } from './boot';
 
-const env = (html: string, extra: Partial<BootEnv> = {}): BootEnv => {
+function env(html: string, extra: Partial<BootEnv> = {}): BootEnv {
   const { document } = parseHTML(
     `<!doctype html><html lang="en"><head></head><body>${html}</body></html>`,
   );
@@ -18,7 +18,7 @@ const env = (html: string, extra: Partial<BootEnv> = {}): BootEnv => {
     pathname: '/repo/guide/',
     ...extra,
   };
-};
+}
 
 const content = `
   <button data-theme-toggle aria-pressed="false"></button>
@@ -66,12 +66,14 @@ describe('bootDocs', () => {
 
   describe('diagramas de Mermaid', () => {
     const diagram = `<main data-diagram-label="Diagrama" data-copy-label="Copiar" data-copied-label="Copiado" data-copy-failed-label="Error" data-diagram-expand-label="Pantalla completa" data-diagram-zoom-in-label="Acercar" data-diagram-zoom-out-label="Alejar" data-diagram-fit-label="Ajustar" data-zoom-close-label="Cerrar"><div class="docs-mermaid" data-mermaid><pre class="astro-code" data-language="mermaid"><code>A--&gt;B</code></pre></div></main>`;
-    const mermaid = () => ({
-      importer: vi.fn(async () => ({
-        default: { initialize: vi.fn(), render: vi.fn(async () => ({ svg: '<svg></svg>' })) },
-      })),
-      readToken: () => '#fff',
-    });
+    function mermaid() {
+      return {
+        importer: vi.fn(async () => ({
+          default: { initialize: vi.fn(), render: vi.fn(async () => ({ svg: '<svg></svg>' })) },
+        })),
+        readToken: () => '#fff',
+      };
+    }
 
     it('los dibuja con la etiqueta de <main>', async () => {
       const m = mermaid();
@@ -152,20 +154,21 @@ describe('bootDocs', () => {
 });
 
 describe('bootNotFound', () => {
-  const page = (pathname: string) =>
-    env(
+  function page(pathname: string) {
+    return env(
       `<main>EN</main>
        <template data-locale="es" data-title="Perdida"><main>ES</main></template>`,
       { pathname },
     );
-  const prepare = (e: BootEnv) => {
+  }
+  function prepare(e: BootEnv) {
     const root = e.doc.documentElement;
     root.setAttribute('data-nf-base', '/repo/');
     root.setAttribute('data-nf-locales', 'en,es');
     root.setAttribute('data-nf-default', 'en');
     root.classList.add('nf-pending');
     return e;
-  };
+  }
 
   it('sustituye el cuerpo según la URL pedida (localeFromPath con base)', () => {
     const e = prepare(page('/repo/es/no-existe/'));

@@ -43,7 +43,7 @@ export function navigationLinks(
 
   // Dependen del idioma y de la sección, no de la página: se calculan una vez por par.
   const shared = new Map<string, string[]>();
-  const hrefsFor = (page: Page, index: number): string[] => {
+  function hrefsFor(page: Page, index: number): string[] {
     const key = `${page.locale}\u0000${index}`;
     const cached = shared.get(key);
     if (cached) return cached;
@@ -65,7 +65,7 @@ export function navigationLinks(
     ];
     shared.set(key, hrefs);
     return hrefs;
-  };
+  }
 
   const result = new Map<string, PageLink[]>();
   for (const page of pages) {

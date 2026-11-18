@@ -18,8 +18,9 @@ import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 
 /** Parámetros de `getStaticPaths` de la página de privacidad (ver `core/privacy/pages`). */
-export const privacyRoutes = (cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) =>
-  routesOf(cfg.locales, cfg.defaultLocale);
+export function privacyRoutes(cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) {
+  return routesOf(cfg.locales, cfg.defaultLocale);
+}
 
 /** Todo lo que `PrivacyLayout` necesita, ya calculado: el contenedor solo lo pasa. */
 export interface PrivacyView {

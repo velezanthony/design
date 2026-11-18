@@ -29,12 +29,12 @@ export function resolveSchemas(
   page: readonly JsonLd[] | false | undefined,
 ): ResolvedSchema[] {
   if (page === false) return [];
-  const tag =
-    (source: SchemaSource) =>
-    (schema: JsonLd): ResolvedSchema => ({
+  function tag(source: SchemaSource) {
+    return (schema: JsonLd): ResolvedSchema => ({
       schema: withContext(schema),
       source,
     });
+  }
   return [...(site ?? []).map(tag('site')), ...(page ?? []).map(tag('page'))];
 }
 

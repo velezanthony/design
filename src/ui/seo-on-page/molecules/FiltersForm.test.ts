@@ -8,7 +8,7 @@ import FiltersForm from './FiltersForm.astro';
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
 /** Tres tipos con incidencias y el resto sin, como un árbol real; `selected` vacío = «Todos». */
 const WITH: IssueKind[] = [IssueKind.NO_H1, IssueKind.DUPLICATE_TITLE, IssueKind.TITLE_TOO_SHORT];
-const kindOptions = (selected: IssueKind[] = []): KindOptions => {
+function kindOptions(selected: IssueKind[] = []): KindOptions {
   const all = selected.length === 0;
   return {
     all: { checked: all, count: WITH.length },
@@ -19,9 +19,9 @@ const kindOptions = (selected: IssueKind[] = []): KindOptions => {
     })),
     without: Object.values(IssueKind).filter((kind) => !WITH.includes(kind)),
   };
-};
-const form = (filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) =>
-  render(FiltersForm, {
+}
+function form(filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) {
+  return render(FiltersForm, {
     filters,
     perPage,
     view,
@@ -31,10 +31,12 @@ const form = (filters: SeoFilters = none, perPage = 25, view: ViewState = { view
     locales: ['en', 'es'],
     action: '/repo/seo-on-page/pages/',
   });
-const checked = (doc: Document, name: string) =>
-  [...doc.querySelectorAll(`input[name="${name}"]`)]
+}
+function checked(doc: Document, name: string) {
+  return [...doc.querySelectorAll(`input[name="${name}"]`)]
     .filter((input) => input.hasAttribute('checked'))
     .map((input) => input.getAttribute('value'));
+}
 
 describe('FiltersForm', () => {
   it('es un GET a la tabla: los filtros viajan en la URL, sin JavaScript', async () => {
@@ -70,8 +72,9 @@ describe('FiltersForm', () => {
   });
 
   describe('Tipo de problema', () => {
-    const kinds = async (filters: SeoFilters = none) =>
-      (await form(filters)).querySelector('[data-kinds]')!;
+    async function kinds(filters: SeoFilters = none) {
+      return (await form(filters)).querySelector('[data-kinds]')!;
+    }
 
     it('«Todos» va arriba, sin nombre (no viaja) y con el recuento de tipos con incidencias', async () => {
       const group = await kinds();
@@ -108,13 +111,14 @@ describe('FiltersForm', () => {
     });
 
     it('cada tipo lleva su recuento de páginas', async () => {
-      const count = async (kind: string) =>
-        text(
+      async function count(kind: string) {
+        return text(
           (await kinds())
             .querySelector(`input[value="${kind}"]`)!
             .closest('label')!
             .querySelector('span'),
         );
+      }
       expect(await count('no-h1')).toBe('3');
       expect(await count('duplicate-title')).toBe('2');
     });

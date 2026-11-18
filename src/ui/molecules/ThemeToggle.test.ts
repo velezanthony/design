@@ -4,8 +4,9 @@ import { render } from '../../testing/render';
 import { stringsFor } from '../../testing/strings';
 import ThemeToggle from './ThemeToggle.astro';
 
-const button = async (props: Record<string, unknown>) =>
-  (await render(ThemeToggle, props)).querySelector('button')!;
+async function button(props: Record<string, unknown>) {
+  return (await render(ThemeToggle, props)).querySelector('button')!;
+}
 
 describe('ThemeToggle', () => {
   /* Es el gancho que `initTheme` busca: sin él nadie lo cablea. */

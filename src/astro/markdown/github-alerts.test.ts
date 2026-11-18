@@ -13,12 +13,13 @@ const env = createMarkdownEnv(
   }),
   project,
 );
-const render = (source: string, fileURL = docFileURL('a.md')) =>
-  renderMarkdown(source, {
+function render(source: string, fileURL = docFileURL('a.md')) {
+  return renderMarkdown(source, {
     fileURL,
     features: { directive: true },
     plugins: [githubAlerts(env), admonitions(env)],
   });
+}
 
 describe('githubAlerts', () => {
   it('la salida es IDÉNTICA a `:::warning` sin título', async () => {

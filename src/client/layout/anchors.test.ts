@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 
 import { initHeadingAnchors } from './anchors';
 
-const page = (html: string) =>
-  parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+function page(html: string) {
+  return parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+}
 
 describe('initHeadingAnchors', () => {
   it('añade un ancla permanente a cada h2-h4 con id, con texto accesible', () => {

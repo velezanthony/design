@@ -2,7 +2,7 @@ import { defineMdastPlugin } from 'satteri';
 
 /* Factoría `({ fileURL }) => plugin`: sustituye el texto `PROBE` por un marcador con el idioma
    y el archivo que el plugin ve. Comprueba que `fileURL` llega también para los `external`. */
-export const probeLocale = ({ fileURL }) => {
+export function probeLocale({ fileURL }) {
   const file = fileURL ? fileURL.pathname.split('/').pop() : 'sin-fileURL';
   const locale = file.endsWith('.es.md') ? 'es' : 'en';
   return defineMdastPlugin({
@@ -15,4 +15,4 @@ export const probeLocale = ({ fileURL }) => {
       });
     },
   });
-};
+}

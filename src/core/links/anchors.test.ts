@@ -8,14 +8,16 @@ const headings: HeadingIndex = new Map([
   [headingKey('bare', 'en'), new Set()],
 ]);
 
-const ref = (over: Partial<LinkRef> = {}): LinkRef => ({
-  file: 'guide.md',
-  line: 4,
-  slug: 'install',
-  locale: 'en',
-  anchor: 'usage',
-  ...over,
-});
+function ref(over: Partial<LinkRef> = {}): LinkRef {
+  return {
+    file: 'guide.md',
+    line: 4,
+    slug: 'install',
+    locale: 'en',
+    anchor: 'usage',
+    ...over,
+  };
+}
 
 describe('validateAnchors', () => {
   it('un ancla que existe en el destino no da error', () => {

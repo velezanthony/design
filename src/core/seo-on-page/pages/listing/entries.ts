@@ -27,7 +27,9 @@ interface EntriesInput {
   inspector: (target: { slug: string; locale: Locale }) => string;
 }
 
-const rank = (row: EntryRow) => (row.tone === 'ok' ? 3 : SEVERITY_RANK[row.tone]);
+function rank(row: EntryRow) {
+  return row.tone === 'ok' ? 3 : SEVERITY_RANK[row.tone];
+}
 
 /**
  * Las filas de la vista «Por idioma»: una por entrada, tal como se publica cada idioma. Salen de la

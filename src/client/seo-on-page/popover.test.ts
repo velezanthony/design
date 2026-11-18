@@ -11,13 +11,14 @@ function setup() {
   </body></html>`);
   initPopovers(document);
   const [open, closed, plain] = [...document.querySelectorAll('details')] as HTMLDetailsElement[];
-  const press = (target: Element) =>
-    target.dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
-  const key = (name: string) => {
+  function press(target: Element) {
+    return target.dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
+  }
+  function key(name: string) {
     const event = new window.Event('keydown', { bubbles: true }) as KeyboardEvent;
     Object.defineProperty(event, 'key', { value: name });
     document.dispatchEvent(event);
-  };
+  }
   return { document, open: open!, closed: closed!, plain: plain!, press, key };
 }
 

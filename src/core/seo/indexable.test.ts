@@ -4,15 +4,17 @@ import type { Availability, UrlPolicy } from '../i18n/availability';
 import { excludeNoindex, noindexUrls } from './indexable';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const page = (slug: string, locale: string, noindex?: boolean): Page => ({
-  slug,
-  locale,
-  title: slug,
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.${locale}.md`,
-  ...(noindex !== undefined && { seo: { noindex } }),
-});
+function page(slug: string, locale: string, noindex?: boolean): Page {
+  return {
+    slug,
+    locale,
+    title: slug,
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.${locale}.md`,
+    ...(noindex !== undefined && { seo: { noindex } }),
+  };
+}
 
 describe('noindexUrls', () => {
   it('reúne la URL de cada página con seo.noindex', () => {

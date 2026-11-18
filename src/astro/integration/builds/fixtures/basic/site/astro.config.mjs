@@ -9,13 +9,13 @@ import docsConfig from './docs.config.mjs';
 import { probeLocale } from './probe-plugin.mjs';
 
 /** Ruta real del `astro` que resuelve un archivo (vacía si no lo encuentra). */
-const resolveAstro = (from) => {
+function resolveAstro(from) {
   try {
     return createRequire(fileURLToPath(from)).resolve('astro/package.json');
   } catch {
     return '';
   }
-};
+}
 
 /* Proyecto consumidor mínimo para las pruebas de integración: `base` de subruta, barra final
    siempre, un processor Sätteri propio (con un plugin que comprueba `fileURL`) y una fuente propia. */

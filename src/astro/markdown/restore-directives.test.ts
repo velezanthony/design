@@ -3,12 +3,13 @@ import { defineMdastPlugin, type MdastPluginList } from 'satteri';
 import { docFileURL, renderMarkdown } from '../../testing/markdown';
 import { restoreDirectives } from './restore-directives';
 
-const render = (source: string, plugins: MdastPluginList = [restoreDirectives]) =>
-  renderMarkdown(source, {
+function render(source: string, plugins: MdastPluginList = [restoreDirectives]) {
+  return renderMarkdown(source, {
     fileURL: docFileURL('a.md'),
     features: { directive: true },
     plugins,
   });
+}
 
 describe('restoreDirectives', () => {
   it.each([

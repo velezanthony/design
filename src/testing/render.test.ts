@@ -10,8 +10,9 @@ describe('render', () => {
   });
 
   it('pasa las props al componente', async () => {
-    const path = async (name: string) =>
-      (await render(Icon, { name })).querySelector('path')?.getAttribute('d');
+    async function path(name: string) {
+      return (await render(Icon, { name })).querySelector('path')?.getAttribute('d');
+    }
     expect(await path('arrow')).not.toBe(await path('github'));
   });
 

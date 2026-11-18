@@ -15,14 +15,18 @@ const config = resolveConfig({
   locales: ['en', 'es'],
   seo: { titleSuffix: 'Design', description: 'Docs of the design system for the whole portfolio.' },
 });
-const h = (depth: number, text: string) => ({ depth, slug: text.toLowerCase(), text });
-const page = (extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug' | 'locale'>) => ({
-  title: extra.slug,
-  kind: 'native' as const,
-  sourcePath: `${extra.slug}.md`,
-  headings: [h(1, 'Title'), h(2, 'Section')],
-  ...extra,
-});
+function h(depth: number, text: string) {
+  return { depth, slug: text.toLowerCase(), text };
+}
+function page(extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug' | 'locale'>) {
+  return {
+    title: extra.slug,
+    kind: 'native' as const,
+    sourcePath: `${extra.slug}.md`,
+    headings: [h(1, 'Title'), h(2, 'Section')],
+    ...extra,
+  };
+}
 const description = 'A description of exactly the right size that explains what this page covers.';
 
 const input: SeoInput = {
@@ -43,8 +47,9 @@ const input: SeoInput = {
 
 describe('buildSeoTree', () => {
   const tree = buildSeoTree(input);
-  const find = (slug: string, locale: string) =>
-    tree.pages.find((p) => p.slug === slug && p.locale === locale);
+  function find(slug: string, locale: string) {
+    return tree.pages.find((p) => p.slug === slug && p.locale === locale);
+  }
 
   it('ordena por slug y luego por idioma', () => {
     expect(tree.pages.map((p) => `${p.slug}:${p.locale}`)).toEqual([
@@ -144,10 +149,9 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
   ];
   const imageSizes = new Map([['/og.png', { width: 1200, height: 630 }]]);
   const tree = buildSeoTree({ config, url, pages, imageSizes });
-  const content = (
-    tags: ReturnType<typeof buildHead>,
-    selector: (t: (typeof tags)[0]) => boolean,
-  ) => tags.find(selector);
+  function content(tags: ReturnType<typeof buildHead>, selector: (t: (typeof tags)[0]) => boolean) {
+    return tags.find(selector);
+  }
 
   it.each(pages.map((p) => [`${p.slug}:${p.locale}`, p] as const))(
     '%s: título, descripción, canonical y og:image coinciden con buildHead',
@@ -191,7 +195,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
       page({ slug: 'off', locale: 'en', seo: { schema: false } }),
     ];
     const schemaTree = buildSeoTree({ config: withSchemas, url, pages: schemaPages });
-    const published = (p: (typeof schemaPages)[number]) => {
+    function published(p: (typeof schemaPages)[number]) {
       const base = schemaPages.map((q) => ({ ...q, body: '' }));
       const resolved = resolveMeta(withSchemas.seo, p.seo, p, p.locale);
       const data = {
@@ -203,7 +207,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
       return buildHead(resolved, data, buildAvailability(base, url), site, withSchemas, url)
         .filter((t) => t.tag === 'script')
         .map((t) => JSON.parse(t.content ?? ''));
-    };
+    }
 
     it.each(schemaPages.map((p) => [p.slug, p] as const))(
       '%s: los schemas del árbol son los que buildHead publica, con su origen',
@@ -214,8 +218,9 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
     );
 
     it('cada schema dice si viene del sitio o de la página', () => {
-      const origin = (slug: string) =>
-        schemaTree.pages.find((t) => t.slug === slug)!.schemas.map((entry) => entry.source);
+      function origin(slug: string) {
+        return schemaTree.pages.find((t) => t.slug === slug)!.schemas.map((entry) => entry.source);
+      }
       expect(origin('plain')).toEqual(['site']);
       expect(origin('extra')).toEqual(['site', 'page']);
       expect(origin('off')).toEqual([]);
@@ -259,15 +264,17 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
 });
 
 describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
-  const kindsOf = (tree: ReturnType<typeof buildSeoTree>, slug: string) =>
-    tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  function kindsOf(tree: ReturnType<typeof buildSeoTree>, slug: string) {
+    return tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  }
   const social = resolveConfig({
     name: 'Design',
     locales: ['en'],
     seo: { image: { src: '/og.png', alt: 'Card' } },
   });
-  const solo = (extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug'>) =>
-    page({ locale: 'en', seo: { description }, ...extra });
+  function solo(extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug'>) {
+    return page({ locale: 'en', seo: { description }, ...extra });
+  }
 
   it('sin enlaces ni imágenes recogidos no se juzgan: ni huérfanas ni alt', () => {
     const tree = buildSeoTree({ config, url, pages: [solo({ slug: 'a' }), solo({ slug: 'b' })] });
@@ -342,24 +349,27 @@ describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
 });
 
 describe('buildSeoTree: páginas del cliente', () => {
-  const clientPage = (path: string, extra: Partial<HeadFacts> = {}): ClientPage => ({
-    path,
-    pattern: path,
-    entrypoint: `src/pages${path}index.astro`,
-    head: {
-      lang: 'en',
-      title: 'About this design system and its whole portfolio',
-      description,
-      noindex: false,
-      alternates: [],
-      headings: [h(1, 'About')],
-      og: {},
-      jsonLd: [],
-      ...extra,
-    },
-  });
-  const kindsAt = (tree: ReturnType<typeof buildSeoTree>, slug: string) =>
-    tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  function clientPage(path: string, extra: Partial<HeadFacts> = {}): ClientPage {
+    return {
+      path,
+      pattern: path,
+      entrypoint: `src/pages${path}index.astro`,
+      head: {
+        lang: 'en',
+        title: 'About this design system and its whole portfolio',
+        description,
+        noindex: false,
+        alternates: [],
+        headings: [h(1, 'About')],
+        og: {},
+        jsonLd: [],
+        ...extra,
+      },
+    };
+  }
+  function kindsAt(tree: ReturnType<typeof buildSeoTree>, slug: string) {
+    return tree.pages.find((p) => p.slug === slug)!.issues.map((issue) => issue.kind);
+  }
 
   it('entran en el árbol como «client», ordenadas con las demás', () => {
     const tree = buildSeoTree({ ...input, client: [clientPage('/repo/about/')] });

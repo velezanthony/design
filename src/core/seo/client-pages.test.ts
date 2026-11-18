@@ -8,28 +8,32 @@ import {
 } from './client-pages';
 
 /** Una ruta como la da Astro: `generate` interpola los params en el patrón y pone la barra final. */
-const route = (pattern: string, params: string[] = []): SiteRoute => ({
-  pattern,
-  entrypoint: `src/pages${pattern}.astro`,
-  params,
-  generate: (data: Record<string, string | undefined> = {}) =>
-    `${pattern
-      .split('/')
-      .map((segment) =>
-        segment.replace(/^\[(?:\.\.\.)?(\w+)\]$/, (_, name: string) => data[name] ?? ''),
-      )
-      .filter(Boolean)
-      .map((segment) => `/${segment}`)
-      .join('')}/`,
-});
+function route(pattern: string, params: string[] = []): SiteRoute {
+  return {
+    pattern,
+    entrypoint: `src/pages${pattern}.astro`,
+    params,
+    generate: (data: Record<string, string | undefined> = {}) =>
+      `${pattern
+        .split('/')
+        .map((segment) =>
+          segment.replace(/^\[(?:\.\.\.)?(\w+)\]$/, (_, name: string) => data[name] ?? ''),
+        )
+        .filter(Boolean)
+        .map((segment) => `/${segment}`)
+        .join('')}/`,
+  };
+}
 
 describe('clientRoutes', () => {
-  const resolved = (pattern: string, extra: { origin?: string; type?: string } = {}) => ({
-    pattern,
-    origin: 'project',
-    type: 'page',
-    ...extra,
-  });
+  function resolved(pattern: string, extra: { origin?: string; type?: string } = {}) {
+    return {
+      pattern,
+      origin: 'project',
+      type: 'page',
+      ...extra,
+    };
+  }
 
   it('se queda con las páginas del proyecto', () => {
     const routes = [
@@ -48,7 +52,9 @@ describe('clientRoutes', () => {
 });
 
 describe('clientPagePaths', () => {
-  const none = async () => [];
+  async function none() {
+    return [];
+  }
 
   it('una ruta fija da su URL, con la base delante', async () => {
     const { pages } = await clientPagePaths([route('/cv')], none, '/repo');
@@ -64,10 +70,12 @@ describe('clientPagePaths', () => {
 
   it('una ruta dinámica da una URL por cada entrada de su getStaticPaths', async () => {
     const projects = route('/[...lang]/[slug]', ['lang', 'slug']);
-    const staticPaths = async () => [
-      { lang: undefined, slug: 'uno' },
-      { lang: 'en', slug: 'uno' },
-    ];
+    async function staticPaths() {
+      return [
+        { lang: undefined, slug: 'uno' },
+        { lang: 'en', slug: 'uno' },
+      ];
+    }
     const { pages } = await clientPagePaths([projects], staticPaths, '/');
     expect(pages.map(({ path }) => path)).toEqual(['/uno/', '/en/uno/']);
   });
@@ -106,10 +114,12 @@ describe('clientPagePaths', () => {
 });
 
 describe('builtClientPages', () => {
-  const matching = (pattern: string, regex: RegExp): SiteRoute => ({
-    ...route(pattern),
-    match: (path) => regex.test(path),
-  });
+  function matching(pattern: string, regex: RegExp): SiteRoute {
+    return {
+      ...route(pattern),
+      match: (path) => regex.test(path),
+    };
+  }
 
   it('de las páginas generadas, se queda con las que salen de una ruta del cliente', () => {
     const cv = matching('/cv', /^\/cv\/$/);

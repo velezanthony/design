@@ -3,13 +3,15 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoTree } from '../../tree/types';
 import { selectListing } from './selection';
 
-const issue = (severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
+function issue(severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
 
 const tree: SeoTree = {
   pages: [
@@ -24,7 +26,9 @@ const tree: SeoTree = {
   ],
 };
 
-const select = (query = '') => selectListing(tree, new URLSearchParams(query));
+function select(query = '') {
+  return selectListing(tree, new URLSearchParams(query));
+}
 
 describe('selectListing', () => {
   it('sin filtros parte de error + aviso: solo entran las páginas con algo accionable', () => {

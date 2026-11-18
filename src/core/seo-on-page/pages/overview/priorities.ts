@@ -72,7 +72,9 @@ export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): Fix
       groups.set(found.kind, group);
     }
   }
-  const bulk = (group: Group) => total > 1 && group.slugs.size === total;
+  function bulk(group: Group) {
+    return total > 1 && group.slugs.size === total;
+  }
   return [...groups]
     .sort(([kindA, a], [kindB, b]) => {
       return (

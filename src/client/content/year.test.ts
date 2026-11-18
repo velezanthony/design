@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 
 import { initCurrentYear } from './year';
 
-const page = (html: string) =>
-  parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+function page(html: string) {
+  return parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+}
 
 describe('initCurrentYear', () => {
   it('sustituye el año del build por el del reloj inyectado', () => {

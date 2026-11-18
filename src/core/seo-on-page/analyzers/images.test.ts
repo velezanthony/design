@@ -42,19 +42,21 @@ describe('analyzeAltText', () => {
   });
 });
 
-const og = (
+function og(
   width?: number,
   height?: number,
   source: MetaNode['ogImageSource'] = 'page',
-): Pick<MetaNode, 'ogImage' | 'ogImageSource'> => ({
-  ogImage: {
-    src: '/og.png',
-    alt: 'x',
-    ...(width !== undefined && { width }),
-    ...(height !== undefined && { height }),
-  },
-  ogImageSource: source,
-});
+): Pick<MetaNode, 'ogImage' | 'ogImageSource'> {
+  return {
+    ogImage: {
+      src: '/og.png',
+      alt: 'x',
+      ...(width !== undefined && { width }),
+      ...(height !== undefined && { height }),
+    },
+    ogImageSource: source,
+  };
+}
 
 describe('analyzeOgImage', () => {
   it('1200×630: sin problemas', () => {

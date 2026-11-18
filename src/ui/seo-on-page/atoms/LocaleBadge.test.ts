@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import LocaleBadge from './LocaleBadge.astro';
 
-const badge = async (tone: 'error' | 'warning' | 'info' | 'ok' | 'missing') =>
-  (await render(LocaleBadge, { locale: 'en', tone })).querySelector('[data-locale]')!;
+async function badge(tone: 'error' | 'warning' | 'info' | 'ok' | 'missing') {
+  return (await render(LocaleBadge, { locale: 'en', tone })).querySelector('[data-locale]')!;
+}
 
 describe('LocaleBadge', () => {
   it('muestra el idioma en mayúsculas y la gravedad también como texto oculto', async () => {
@@ -13,8 +14,9 @@ describe('LocaleBadge', () => {
   });
 
   it('el color nunca va solo: errores, avisos e informativos llevan un glifo distinto', async () => {
-    const glyph = async (tone: 'error' | 'warning' | 'info') =>
-      (await badge(tone)).querySelector('[aria-hidden]')!.textContent;
+    async function glyph(tone: 'error' | 'warning' | 'info') {
+      return (await badge(tone)).querySelector('[aria-hidden]')!.textContent;
+    }
     expect(new Set([await glyph('error'), await glyph('warning'), await glyph('info')]).size).toBe(
       3,
     );

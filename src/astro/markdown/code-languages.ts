@@ -24,12 +24,15 @@ const PLAIN = new Set(['text', 'txt', 'plain', 'plaintext']);
 const SPECIAL = new Set(['ansi']);
 
 /** Un bloque con fence ocupa más líneas que su contenido (las del fence); uno con sangría, las mismas. */
-const isFenced = (node: {
+function isFenced(node: {
   value: string;
   position?: { start: { line: number }; end: { line: number } };
-}) =>
-  node.position !== undefined &&
-  node.position.end.line - node.position.start.line + 1 > node.value.split('\n').length;
+}) {
+  return (
+    node.position !== undefined &&
+    node.position.end.line - node.position.start.line + 1 > node.value.split('\n').length
+  );
+}
 
 /**
  * Avisa de un bloque de código con un lenguaje que Shiki no conoce (ni por alias) y de los
@@ -38,8 +41,8 @@ const isFenced = (node: {
  *
  * @param langAlias alias efectivos (los nuestros más los del consumidor).
  */
-export const codeLanguages = (env: MarkdownEnv, langAlias: Readonly<Record<string, string>>) =>
-  docsPlugin(env, ({ file }) =>
+export function codeLanguages(env: MarkdownEnv, langAlias: Readonly<Record<string, string>>) {
+  return docsPlugin(env, ({ file }) =>
     defineMdastPlugin({
       name: 'code-languages',
       options: { position: true },
@@ -68,3 +71,4 @@ export const codeLanguages = (env: MarkdownEnv, langAlias: Readonly<Record<strin
       },
     }),
   );
+}

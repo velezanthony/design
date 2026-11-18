@@ -5,10 +5,11 @@ import { initZoom, isZoomable } from './zoom';
 
 const labels = { open: 'Enlarge image: {alt}', close: 'Close' };
 
-const img = (attrs: string, inside = '') =>
-  parseHTML(
+function img(attrs: string, inside = '') {
+  return parseHTML(
     `<div class="prose">${inside}<img src="/a.png" ${attrs}>${inside ? '</a>' : ''}</div>`,
   ).document.querySelector('img')!;
+}
 
 describe('isZoomable', () => {
   it('acepta una imagen con texto alternativo', () => {
@@ -33,13 +34,13 @@ describe('isZoomable', () => {
 });
 
 describe('initZoom', () => {
-  const page = (body: string, api?: (update: () => void | Promise<void>) => unknown) => {
+  function page(body: string, api?: (update: () => void | Promise<void>) => unknown) {
     const { document } = parseHTML(
       `<!doctype html><html><body><main><div class="prose">${body}</div></main></body></html>`,
     );
     if (api) Object.assign(document, { startViewTransition: api });
     return document;
-  };
+  }
   const figure = '<p><img src="/a.png" alt="Diagrama" width="800" height="400"></p>';
 
   /** Cablea la página y sustituye lo que linkedom no implementa de `<dialog>`. */
@@ -78,12 +79,14 @@ describe('initZoom', () => {
     const trigger = document.querySelector<HTMLButtonElement>('button.docs-zoom');
     if (trigger) trigger.focus = vi.fn();
     const Event = document.defaultView!.Event;
-    const fire = (el: Element, type: string, init: EventInit = { bubbles: true }) => {
+    function fire(el: Element, type: string, init: EventInit = { bubbles: true }) {
       const e = new Event(type, { cancelable: true, ...init });
       el.dispatchEvent(e);
       return e;
-    };
-    const settle = () => new Promise((resolve) => setTimeout(resolve));
+    }
+    function settle() {
+      return new Promise((resolve) => setTimeout(resolve));
+    }
     return { document, dialog: dialog!, trigger: trigger!, fire, start, names, settle };
   }
 

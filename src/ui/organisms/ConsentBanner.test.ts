@@ -6,8 +6,11 @@ import BackToTop from './BackToTop.astro';
 import ConsentBanner from './ConsentBanner.astro';
 
 const props = { gtmId: 'GTM-TEST', privacyUrl: '/privacidad/', strings: stringsFor('es') };
-const banner = async (extra: Record<string, unknown> = {}) =>
-  (await render(ConsentBanner, { ...props, ...extra })).querySelector('[data-consent-banner]')!;
+async function banner(extra: Record<string, unknown> = {}) {
+  return (await render(ConsentBanner, { ...props, ...extra })).querySelector(
+    '[data-consent-banner]',
+  )!;
+}
 
 describe('ConsentBanner', () => {
   it('nace oculto: sin JS no hay nada que lo conteste', async () => {

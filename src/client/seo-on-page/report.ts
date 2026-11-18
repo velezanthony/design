@@ -21,8 +21,11 @@ export interface ReportOptions {
   schedule?: (callback: () => void, ms: number) => void;
 }
 
-const find = (root: ParentNode, name: string, key: string): HTMLElement | undefined =>
-  [...root.querySelectorAll<HTMLElement>(`[${name}]`)].find((el) => el.getAttribute(name) === key);
+function find(root: ParentNode, name: string, key: string): HTMLElement | undefined {
+  return [...root.querySelectorAll<HTMLElement>(`[${name}]`)].find(
+    (el) => el.getAttribute(name) === key,
+  );
+}
 
 export function initReport(
   doc: Document,
@@ -34,17 +37,19 @@ export function initReport(
   }
 
   const dialog = doc.querySelector<HTMLDialogElement>('[data-report-dialog]');
-  const part = <T extends HTMLElement>(name: string) => dialog?.querySelector<T>(`[${name}]`);
-  const radios = () => [
-    ...(dialog?.querySelectorAll<HTMLInputElement>('[data-report-scope]') ?? []),
-  ];
+  function part<T extends HTMLElement>(name: string) {
+    return dialog?.querySelector<T>(`[${name}]`);
+  }
+  function radios() {
+    return [...(dialog?.querySelectorAll<HTMLInputElement>('[data-report-scope]') ?? [])];
+  }
 
-  const setStatus = (text: string) => {
+  function setStatus(text: string) {
     const status = part('data-report-status');
     if (status) status.textContent = text;
-  };
+  }
 
-  const render = () => {
+  function render() {
     if (!dialog) return;
     const scope = radios().find((radio) => radio.checked)?.value;
     const locale = part<HTMLSelectElement>('data-report-locale')?.value;
@@ -60,9 +65,9 @@ export function initReport(
     const meta = part('data-report-meta');
     if (meta) meta.textContent = markdown?.dataset[withJson ? 'sizeJson' : 'sizePlain'] ?? '';
     setStatus('');
-  };
+  }
 
-  const open = (scope: string) => {
+  function open(scope: string) {
     if (!dialog) return;
     const choices = radios().filter((radio) => !radio.disabled);
     const choice = choices.find((radio) => radio.value === scope) ?? choices[0];
@@ -70,12 +75,12 @@ export function initReport(
     render();
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.setAttribute('open', '');
-  };
+  }
 
-  const close = () => {
+  function close() {
     if (typeof dialog?.close === 'function') dialog.close();
     else dialog?.removeAttribute('open');
-  };
+  }
 
   doc.addEventListener('click', (event) => {
     const target = event.target as Element | null;

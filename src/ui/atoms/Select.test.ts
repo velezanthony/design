@@ -9,13 +9,15 @@ const options = [
   { value: '50', label: 'Cincuenta' },
 ];
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  id: 'per',
-  name: 'per',
-  label: 'Filas por página',
-  options,
-  ...extra,
-});
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    id: 'per',
+    name: 'per',
+    label: 'Filas por página',
+    options,
+    ...extra,
+  };
+}
 
 describe('Select', () => {
   it('asocia la etiqueta con el campo por for/id', async () => {

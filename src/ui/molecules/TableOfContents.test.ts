@@ -12,8 +12,9 @@ const headings = [
   { depth: 2, slug: 'qué-es', text: 'Qué es' },
   { depth: 2, slug: 'restricciones', text: 'Restricciones' },
 ];
-const toc = (props: Record<string, unknown>) =>
-  render(TableOfContents, { headings, strings: stringsFor('es'), ...props });
+function toc(props: Record<string, unknown>) {
+  return render(TableOfContents, { headings, strings: stringsFor('es'), ...props });
+}
 
 describe('TableOfContents', () => {
   it('lista los encabezados h2 y h3, no h1 ni h4', async () => {

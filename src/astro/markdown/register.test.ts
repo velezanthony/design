@@ -21,7 +21,7 @@ const env = createMarkdownEnv(
   project,
 );
 
-const resolveName = (entry: unknown, fileURL: URL): string => {
+function resolveName(entry: unknown, fileURL: URL): string {
   const ctx = {
     fileURL,
     sourceFormat: 'markdown',
@@ -31,7 +31,7 @@ const resolveName = (entry: unknown, fileURL: URL): string => {
   } as PluginFactoryContext;
   const plugin = (typeof entry === 'function' ? entry(ctx) : entry) as MdastPluginDefinition;
   return plugin.name;
-};
+}
 
 describe('markdownPlugins: orden', () => {
   it('githubAlerts, admonitions, tabs y restoreDirectives, este último el último', () => {
@@ -49,12 +49,13 @@ describe('markdownPlugins: orden', () => {
   });
 });
 
-const full = (source: string, fileURL: URL, consumer: MdastPluginDefinition[] = []) =>
-  renderMarkdown(source, {
+function full(source: string, fileURL: URL, consumer: MdastPluginDefinition[] = []) {
+  return renderMarkdown(source, {
     fileURL,
     features: { directive: true },
     plugins: [...consumer, ...markdownPlugins(env)],
   });
+}
 
 describe('markdownPlugins: integrados', () => {
   it('una alerta de GitHub y una directiva dan la misma salida en un doc nativo y en un external', async () => {

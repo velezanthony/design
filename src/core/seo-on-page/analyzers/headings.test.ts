@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import type { HeadingNode } from '../tree/types';
 import { analyzeHeadings } from './headings';
 
-const h = (depth: number, text = `h${depth}`): HeadingNode => ({ depth, slug: text, text });
-const analyze = (headings: HeadingNode[]) =>
-  analyzeHeadings({ slug: 'a', locale: 'en', kind: 'native', sourcePath: 'docs/a.md' }, headings);
+function h(depth: number, text = `h${depth}`): HeadingNode {
+  return { depth, slug: text, text };
+}
+function analyze(headings: HeadingNode[]) {
+  return analyzeHeadings(
+    { slug: 'a', locale: 'en', kind: 'native', sourcePath: 'docs/a.md' },
+    headings,
+  );
+}
 
 describe('analyzeHeadings', () => {
   it('estructura correcta: sin problemas', () => {

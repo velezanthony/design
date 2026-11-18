@@ -8,11 +8,12 @@ import { SHIKI_LANG_ALIAS } from './code-languages';
 
 const warn = vi.fn();
 const env = createMarkdownEnv(resolveConfig({ name: 'x' }), project, warn);
-const render = (source: string, fileURL = docFileURL('a.md')) =>
-  renderMarkdown(source, {
+function render(source: string, fileURL = docFileURL('a.md')) {
+  return renderMarkdown(source, {
     fileURL,
     plugins: [mermaid(env), codeLanguages(env, SHIKI_LANG_ALIAS)],
   });
+}
 const diagram = '```mermaid\ngraph TD\n  A-->B\n```';
 
 describe('mermaid', () => {

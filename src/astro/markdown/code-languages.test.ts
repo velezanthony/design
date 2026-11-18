@@ -6,13 +6,14 @@ import { docFileURL, nonDocFileURL, project, renderMarkdown } from '../../testin
 import { createMarkdownEnv } from './env';
 import { codeLanguages, SHIKI_LANG_ALIAS } from './code-languages';
 
-const make = (langAlias: Record<string, string> = SHIKI_LANG_ALIAS) => {
+function make(langAlias: Record<string, string> = SHIKI_LANG_ALIAS) {
   const warn = vi.fn();
   const env = createMarkdownEnv(resolveConfig({ name: 'x' }), project, warn);
-  const render = (source: string, fileURL = docFileURL('a.md')) =>
-    renderMarkdown(source, { fileURL, plugins: [codeLanguages(env, langAlias)] });
+  function render(source: string, fileURL = docFileURL('a.md')) {
+    return renderMarkdown(source, { fileURL, plugins: [codeLanguages(env, langAlias)] });
+  }
   return { warn, render };
-};
+}
 
 /** Alias que añadimos: Shiki no los trae y los autores los escriben a menudo. */
 const ADDED = {

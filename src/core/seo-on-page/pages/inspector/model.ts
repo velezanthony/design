@@ -276,8 +276,9 @@ export function inspectorModel({
   const group = tree.pages.filter((item) => item.slug === slug);
   const { meta } = page;
   const displayUrl = new URL(meta.canonical, site).href;
-  const titleOf = (target: string) =>
-    tree.pages.find((item) => item.slug === target && item.locale === locale)?.meta.title;
+  function titleOf(target: string) {
+    return tree.pages.find((item) => item.slug === target && item.locale === locale)?.meta.title;
+  }
   return {
     slug,
     locale,

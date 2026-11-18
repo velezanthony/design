@@ -28,12 +28,15 @@ export interface HeadFacts {
 const ROBOTS = ['robots', 'googlebot'];
 const EXCLUDES = ['noindex', 'none'];
 
-const clean = (text: string | null | undefined) => text?.replace(/\s+/g, ' ').trim() || undefined;
-const tokens = (value: string | null) =>
-  (value ?? '')
+function clean(text: string | null | undefined) {
+  return text?.replace(/\s+/g, ' ').trim() || undefined;
+}
+function tokens(value: string | null) {
+  return (value ?? '')
     .toLowerCase()
     .split(/[\s,]+/)
     .filter(Boolean);
+}
 
 /**
  * Lee del HTML de una página lo que decide su SEO: título, descripción, indexación, canonical,
@@ -44,19 +47,24 @@ export function readHead(html: string, url: URL): HeadFacts {
   const { document } = parseHTML(html);
   const head = document.head;
   const metas = [...head.querySelectorAll('meta[name]')];
-  const meta = (names: string[]) =>
-    metas.filter((element) => names.includes(element.getAttribute('name')!.toLowerCase()));
-  const links = (rel: string) =>
-    [...head.querySelectorAll('link[rel][href]')].filter((element) =>
+  function meta(names: string[]) {
+    return metas.filter((element) => names.includes(element.getAttribute('name')!.toLowerCase()));
+  }
+  function links(rel: string) {
+    return [...head.querySelectorAll('link[rel][href]')].filter((element) =>
       tokens(element.getAttribute('rel')).includes(rel),
     );
-  const absolute = (href: string) => new URL(href, url).href;
-  const property = (name: string) =>
-    clean(head.querySelector(`meta[property="${name}"]`)?.getAttribute('content'));
-  const size = (name: string) => {
+  }
+  function absolute(href: string) {
+    return new URL(href, url).href;
+  }
+  function property(name: string) {
+    return clean(head.querySelector(`meta[property="${name}"]`)?.getAttribute('content'));
+  }
+  function size(name: string) {
     const value = Number(property(name));
     return Number.isFinite(value) && value > 0 ? value : undefined;
-  };
+  }
 
   const description = clean(meta(['description'])[0]?.getAttribute('content'));
   const canonical = links('canonical')[0]?.getAttribute('href');

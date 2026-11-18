@@ -107,13 +107,13 @@ const ASCII_WIDTHS: Record<string, number> = {
 /** Lo que mide un carácter que no está en la tabla (CJK, emoji…): ancho, un em entero. */
 const WIDE = 1000;
 
-const widthOf = (char: string): number => {
+function widthOf(char: string): number {
   const known = ASCII_WIDTHS[char];
   if (known !== undefined) return known;
   /* Una letra acentuada mide lo que su base: «é» se descompone en «e» y el acento. */
   const base = char.normalize('NFD')[0];
   return (base !== undefined && ASCII_WIDTHS[base]) || WIDE;
-};
+}
 
 /** Los píxeles (redondeados) que ocuparía `text` en el campo dado. */
 export function estimateWidth(text: string, field: PixelField): number {

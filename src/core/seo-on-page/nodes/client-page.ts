@@ -15,8 +15,9 @@ interface ClientContext {
 }
 
 /** La ruta sin la base ni las barras de los extremos: el slug, como en la documentación. */
-const slugOf = (path: string, base: string) =>
-  path.slice(trimBase(base).length).replace(/^\/+|\/+$/g, '');
+function slugOf(path: string, base: string) {
+  return path.slice(trimBase(base).length).replace(/^\/+|\/+$/g, '');
+}
 
 /** `<html lang="en-US">` cuenta como `en`; un idioma que no es de la config, como el por defecto. */
 function localeOf(lang: string | undefined, ctx: ClientContext): Locale {
@@ -25,8 +26,9 @@ function localeOf(lang: string | undefined, ctx: ClientContext): Locale {
   return ctx.locales.find((locale) => locale === lang || locale === short) ?? ctx.defaultLocale;
 }
 
-const isObject = (value: unknown): value is JsonLd =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
+function isObject(value: unknown): value is JsonLd {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 function metaOf(page: ClientPage): MetaNode {
   const { head } = page;

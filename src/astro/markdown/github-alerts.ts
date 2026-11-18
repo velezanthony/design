@@ -19,8 +19,8 @@ const MARKER = /^\[!([A-Za-z]+)\][ \t]*(?:\r?\n([\s\S]*))?$/;
  * título es la etiqueta de GitHub localizada. Un marcador desconocido, o con texto detrás, deja
  * la cita como `<blockquote>` normal y sin error.
  */
-export const githubAlerts = (env: MarkdownEnv) =>
-  docsPlugin(env, ({ strings }) =>
+export function githubAlerts(env: MarkdownEnv) {
+  return docsPlugin(env, ({ strings }) =>
     defineMdastPlugin({
       name: 'github-alerts',
       blockquote(node, ctx) {
@@ -51,3 +51,4 @@ export const githubAlerts = (env: MarkdownEnv) =>
       },
     }),
   );
+}

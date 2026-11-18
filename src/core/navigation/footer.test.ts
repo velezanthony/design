@@ -9,30 +9,37 @@ import type { NavContext } from './nav-entries';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 
-const page = (slug: string, locale = 'en'): Page => ({
-  slug,
-  locale,
-  title: slug || 'Home',
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.md`,
-});
+function page(slug: string, locale = 'en'): Page {
+  return {
+    slug,
+    locale,
+    title: slug || 'Home',
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.md`,
+  };
+}
 
 const pages = [page(''), page('changelog'), page('changelog', 'es'), page('only-en')];
 
-const ctx = (locale = 'en'): NavContext => ({
-  pages,
-  av: buildAvailability(pages, url),
-  locale,
-  cfg: { locales: ['en', 'es'], defaultLocale: 'en' },
-  policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
-  url,
-  slug: '',
-});
+function ctx(locale = 'en'): NavContext {
+  return {
+    pages,
+    av: buildAvailability(pages, url),
+    locale,
+    cfg: { locales: ['en', 'es'], defaultLocale: 'en' },
+    policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
+    url,
+    slug: '',
+  };
+}
 
-const strings = (locale: string) => defaultStrings[locale] as UiStrings;
-const view = (cfg: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') =>
-  buildFooter(cfg, ctx(locale), strings(locale));
+function strings(locale: string) {
+  return defaultStrings[locale] as UiStrings;
+}
+function view(cfg: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') {
+  return buildFooter(cfg, ctx(locale), strings(locale));
+}
 
 describe('buildFooter: derivaciones', () => {
   it('sin config: solo el autor por defecto, sin licencia ni enlaces', () => {

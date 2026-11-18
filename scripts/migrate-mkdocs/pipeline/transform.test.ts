@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { transformMkdocs } from './transform';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
-const run = (source: string, options = {}) => transformMkdocs(source, options);
-const kinds = (source: string, options = {}) => run(source, options).log.map((entry) => entry.kind);
+function md(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
+function run(source: string, options = {}) {
+  return transformMkdocs(source, options);
+}
+function kinds(source: string, options = {}) {
+  return run(source, options).log.map((entry) => entry.kind);
+}
 
 describe('admonitions', () => {
   it('convierte `!!! type "Título"` en una directiva con el cuerpo desindentado', () => {
@@ -270,8 +276,9 @@ describe('enlaces', () => {
 });
 
 describe('lenguaje de los bloques de código', () => {
-  const upgrades = (source: string) =>
-    run(source).log.filter((entry) => entry.kind === 'code-language');
+  function upgrades(source: string) {
+    return run(source).log.filter((entry) => entry.kind === 'code-language');
+  }
 
   it('una sesión de shell sin lenguaje pasa a console', () => {
     const out = run(md('```', '$ npm install', '$ npm test', '```'));

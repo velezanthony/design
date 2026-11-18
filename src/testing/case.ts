@@ -35,11 +35,11 @@ export async function buildFailingCase(buildCase: BuildCase): Promise<FailedBuil
   const contentDir = buildCase.config.content ?? 'src/content/docs';
   // Con contenido fuera del proyecto, este vive en `site/` y `..` cae dentro de la carpeta del caso.
   const root = contentDir.startsWith('..') ? resolve(caseDir, 'site') : caseDir;
-  const write = async (relativePath: string, content: string | Uint8Array) => {
+  async function write(relativePath: string, content: string | Uint8Array) {
     const file = resolve(root, relativePath);
     await mkdir(dirname(file), { recursive: true });
     await writeFile(file, content);
-  };
+  }
   await rm(caseDir, { recursive: true, force: true });
   try {
     await write(

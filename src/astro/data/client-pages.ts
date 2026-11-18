@@ -37,12 +37,14 @@ export async function loadClientPages(
   const { registry } = deps;
   const { load } = registry;
   if (!load) return { pages: [], failures: [] };
+  /* `staticPaths` es una declaración y no hereda el descarte de `undefined`: se fija en una constante. */
+  const loadModule = load;
   const key = `${registry.version}\0${where.origin}\0${where.site}\0${where.base}`;
   const cached = cache.get(registry);
   if (cached?.key === key) return cached.result;
 
-  const staticPaths = async (route: { entrypoint: string }): Promise<RouteParams[]> => {
-    const module = await load(route.entrypoint);
+  async function staticPaths(route: { entrypoint: string }): Promise<RouteParams[]> {
+    const module = await loadModule(route.entrypoint);
     if (typeof module.getStaticPaths !== 'function') {
       throw new Error('La ruta es dinámica y no exporta getStaticPaths.');
     }
@@ -50,7 +52,7 @@ export async function loadClientPages(
       params: RouteParams;
     }[];
     return paths.map(({ params }) => params);
-  };
+  }
   const { pages: refs, failures } = await clientPagePaths(registry.routes, staticPaths, where.base);
 
   const read = await Promise.all(

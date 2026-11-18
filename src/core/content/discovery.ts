@@ -39,7 +39,9 @@ export interface Page {
 }
 
 /** `./x.md` y `x.md` son el mismo archivo. */
-const normalize = (file: string) => file.replace(/^(\.\/)+/, '');
+function normalize(file: string) {
+  return file.replace(/^(\.\/)+/, '');
+}
 
 /** Ruta del archivo de un idioma de una entrada externa. */
 export function externalPath(file: string, locale: Locale, defaultLocale: Locale): string {

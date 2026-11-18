@@ -5,8 +5,9 @@ import { stringsFor } from '../../testing/strings';
 import LocaleSwitch from './LocaleSwitch.astro';
 
 const hrefs = { es: '/es/install/', en: '/install/' };
-const switcher = (props: Record<string, unknown>) =>
-  render(LocaleSwitch, { strings: stringsFor('en'), ...props });
+function switcher(props: Record<string, unknown>) {
+  return render(LocaleSwitch, { strings: stringsFor('en'), ...props });
+}
 
 describe('LocaleSwitch', () => {
   it('con gemela enlaza cada idioma con hreflang', async () => {

@@ -11,9 +11,9 @@ export interface Span {
  */
 export function codeSpans(message: string): Span[] {
   const spans: Span[] = [];
-  const push = (text: string, code: boolean) => {
+  function push(text: string, code: boolean) {
     if (text !== '') spans.push({ text, code });
-  };
+  }
   const pattern = /`([^`]+)`/g;
   let last = 0;
   for (const match of message.matchAll(pattern)) {

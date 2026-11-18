@@ -4,10 +4,14 @@ import { outline as outlineOf } from '../../../core/seo-on-page/queries/outline'
 import { render, text } from '../../../testing/render';
 import HeadingsOutline from './HeadingsOutline.astro';
 
-const h = (depth: number, label = `T${depth}`) => ({ depth, slug: label, text: label });
-const props = (headings: ReturnType<typeof h>[]) => ({
-  headings: { counts: headingCounts(headings), outline: outlineOf(headings) },
-});
+function h(depth: number, label = `T${depth}`) {
+  return { depth, slug: label, text: label };
+}
+function props(headings: ReturnType<typeof h>[]) {
+  return {
+    headings: { counts: headingCounts(headings), outline: outlineOf(headings) },
+  };
+}
 
 describe('HeadingsOutline', () => {
   it('una estructura buena dice «Un H1 · sin saltos de nivel»', async () => {

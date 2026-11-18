@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { seoPage } from '../../../testing/seo-page';
 import { contentDirs } from './content-dirs';
 
-const at = (locale: string, sourcePath: string, kind: 'native' | 'external' = 'native') =>
-  seoPage({ slug: sourcePath, locale, sourcePath, kind });
+function at(locale: string, sourcePath: string, kind: 'native' | 'external' = 'native') {
+  return seoPage({ slug: sourcePath, locale, sourcePath, kind });
+}
 
 describe('contentDirs', () => {
   it('es la carpeta común de los archivos de cada idioma, con barra final', () => {

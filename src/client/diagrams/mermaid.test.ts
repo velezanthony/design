@@ -19,7 +19,9 @@ const TOKENS: Record<string, string> = {
   '--color-rule': '#d9d3c7',
   '--font-sans': 'IBM Plex Sans, sans-serif',
 };
-const readToken = (name: string) => TOKENS[name] ?? '';
+function readToken(name: string) {
+  return TOKENS[name] ?? '';
+}
 
 describe('mermaidThemeVariables', () => {
   it('toma los colores y la fuente de los tokens del tema', () => {
@@ -91,8 +93,9 @@ const viewerLabels = {
 };
 
 describe('initMermaid', () => {
-  const block = (source: string) =>
-    `<div class="docs-mermaid" data-mermaid><pre><code>${source}</code></pre></div>`;
+  function block(source: string) {
+    return `<div class="docs-mermaid" data-mermaid><pre><code>${source}</code></pre></div>`;
+  }
 
   function setup(
     body: string,
@@ -116,7 +119,9 @@ describe('initMermaid', () => {
       viewerLabels: withViewer ? viewerLabels : undefined,
       warn,
     });
-    const box = () => document.querySelector<HTMLElement>('.docs-mermaid')!;
+    function box() {
+      return document.querySelector<HTMLElement>('.docs-mermaid')!;
+    }
     return { document, api, importer, system, listeners, warn, ready, box };
   }
 

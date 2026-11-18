@@ -21,8 +21,9 @@ import tseslint from 'typescript-eslint';
    `src/testing/boundaries.test.ts` comprueba cada regla: si alguien la relaja, falla. */
 
 /** Import relativo que entra en alguna de las carpetas dadas, p. ej. `../../ui/atoms/Link`. */
-const relativeTo = (/** @type {string[]} */ folders) =>
-  `^\\.{1,2}/(.*/)?(${folders.join('|')})(/|$)`;
+function relativeTo(/** @type {string[]} */ folders) {
+  return `^\\.{1,2}/(.*/)?(${folders.join('|')})(/|$)`;
+}
 
 /* El paquete `astro` va por `paths` (coincidencia exacta): como patrón, `astro` también atraparía
    `astro/zod`, y un patrón no puede reincorporar lo que cuelga de una carpeta ya excluida. */
@@ -41,14 +42,16 @@ const noAstroFolder = {
 };
 
 /** @returns {import('eslint').Linter.Config} */
-const layer = (
+function layer(
   /** @type {string} */ folder,
   /** @type {object[]} */ paths,
   /** @type {object[]} */ patterns,
-) => ({
-  files: [`src/${folder}/**/*.{ts,astro}`],
-  rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths, patterns }] },
-});
+) {
+  return {
+    files: [`src/${folder}/**/*.{ts,astro}`],
+    rules: { '@typescript-eslint/no-restricted-imports': ['error', { paths, patterns }] },
+  };
+}
 
 /* Sin linting con tipos: `astro check` ya es el dueño de los tipos, y el parser tendría que
    escribir un `.tsx` por cada `.astro` para comprobarlos. */
@@ -111,6 +114,13 @@ export default defineConfig(
         },
       ],
     },
+  },
+
+  /* Las funciones de nivel módulo y las locales con nombre son declaraciones; la flecha queda para
+     los callbacks en línea. */
+  {
+    files: ['**/*.{ts,mjs,astro}'],
+    rules: { 'func-style': ['error', 'declaration', { allowArrowFunctions: false }] },
   },
 
   /* El último, para que el formato sea cosa solo de Prettier. */

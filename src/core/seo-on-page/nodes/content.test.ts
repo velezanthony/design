@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { contentFacts } from './content';
 
 const own = { slug: 'guide', locale: 'en' };
-const ref = (slug: string, locale: string, anchor?: string) => ({
-  file: 'guide.md',
-  line: 1,
-  slug,
-  locale,
-  ...(anchor && { anchor }),
-});
-const image = (src: string, alt: string) => ({ file: 'guide.md', line: 1, src, alt });
+function ref(slug: string, locale: string, anchor?: string) {
+  return {
+    file: 'guide.md',
+    line: 1,
+    slug,
+    locale,
+    ...(anchor && { anchor }),
+  };
+}
+function image(src: string, alt: string) {
+  return { file: 'guide.md', line: 1, src, alt };
+}
 
 describe('contentFacts', () => {
   it('cada página enlazada cuenta una vez, aunque se enlace varias veces o con anclas distintas', () => {

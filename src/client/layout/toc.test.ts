@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { currentHeading, trackSections } from './toc';
 
 /* Posiciones de las secciones mientras se lee, relativas al viewport. */
-const at = (...tops: number[]) => tops.map((top, i) => ({ id: `s${i + 1}`, top }));
+function at(...tops: number[]) {
+  return tops.map((top, i) => ({ id: `s${i + 1}`, top }));
+}
 
 describe('currentHeading', () => {
   it('es la última sección cuyo encabezado ya pasó la línea de lectura', () => {
@@ -62,14 +64,15 @@ describe('trackSections', () => {
     };
     Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1500 });
     trackSections(document.querySelector('nav')!, { doc: document, host });
-    const current = () =>
-      [...document.querySelectorAll('nav a')]
+    function current() {
+      return [...document.querySelectorAll('nav a')]
         .filter((a) => a.getAttribute('aria-current') === 'location')
         .map((a) => a.getAttribute('href'));
-    const scroll = () => {
+    }
+    function scroll() {
       for (const cb of scrolls) cb();
       for (const cb of frames.splice(0)) cb();
-    };
+    }
     return { current, scroll, scrolls, frames, document };
   }
 

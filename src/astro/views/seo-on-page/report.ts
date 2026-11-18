@@ -27,12 +27,14 @@ export interface ReportDialogModel {
   texts: Record<string, ReportText>;
 }
 
-const contextOf = (tree: SeoTree, site: ReportSite): ReportContext => ({
-  site: site.name,
-  locales: site.locales,
-  tree,
-  kindLabels: KIND_LABELS,
-});
+function contextOf(tree: SeoTree, site: ReportSite): ReportContext {
+  return {
+    site: site.name,
+    locales: site.locales,
+    tree,
+    kindLabels: KIND_LABELS,
+  };
+}
 
 /**
  * Junta el alcance principal de la pantalla con «Un idioma» (si el sitio tiene varios) y genera el

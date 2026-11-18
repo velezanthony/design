@@ -4,8 +4,9 @@ import { render, text } from '../../testing/render';
 import { stringsFor } from '../../testing/strings';
 import SearchBox from './SearchBox.astro';
 
-const box = (props: Record<string, unknown> = {}) =>
-  render(SearchBox, { strings: stringsFor('es'), baseUrl: '/repo/', ...props });
+function box(props: Record<string, unknown> = {}) {
+  return render(SearchBox, { strings: stringsFor('es'), baseUrl: '/repo/', ...props });
+}
 
 describe('SearchBox', () => {
   it('expone el contrato que cablea client/search.ts', async () => {

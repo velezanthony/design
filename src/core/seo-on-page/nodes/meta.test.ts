@@ -4,15 +4,17 @@ import type { SeoPageInput } from '../tree/input';
 import { buildMetaNode } from './meta';
 
 const url = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' } as const;
-const page = (extra: Partial<SeoPageInput> = {}): SeoPageInput => ({
-  slug: 'install',
-  locale: 'en',
-  title: 'Install',
-  kind: 'native',
-  sourcePath: 'install.md',
-  headings: [],
-  ...extra,
-});
+function page(extra: Partial<SeoPageInput> = {}): SeoPageInput {
+  return {
+    slug: 'install',
+    locale: 'en',
+    title: 'Install',
+    kind: 'native',
+    sourcePath: 'install.md',
+    headings: [],
+    ...extra,
+  };
+}
 
 describe('buildMetaNode', () => {
   it('el título final lleva el sufijo del sitio y su longitud se mide sobre él', () => {

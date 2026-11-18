@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../testing/render';
 import Input from './Input.astro';
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  id: 'q',
-  name: 'q',
-  label: 'Buscar',
-  ...extra,
-});
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    id: 'q',
+    name: 'q',
+    label: 'Buscar',
+    ...extra,
+  };
+}
 
 describe('Input', () => {
   it('asocia la etiqueta con el campo por for/id', async () => {

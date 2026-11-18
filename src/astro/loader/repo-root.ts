@@ -3,11 +3,12 @@ import path from 'node:path';
 import type { ResolvedConfig } from '../../core/config/resolve';
 import { DocsError } from '../../core/errors';
 
-const exists = (file: string) =>
-  access(file).then(
+function exists(file: string) {
+  return access(file).then(
     () => true,
     () => false,
   );
+}
 
 /** Primer ancestro (incluido `start`) que contiene alguno de los `markers`. */
 export async function findRepoRoot(

@@ -23,13 +23,14 @@ const nodes: SidebarNode[] = [
   { label: 'Changelog', href: '/repo/en/changelog/', slug: 'changelog', badge: 'en' },
 ];
 
-const sidebar = (props: Record<string, unknown> = {}) =>
-  render(Sidebar, {
+function sidebar(props: Record<string, unknown> = {}) {
+  return render(Sidebar, {
     nodes,
     current: '/repo/es/guide/install/',
     strings: stringsFor('es'),
     ...props,
   });
+}
 
 describe('Sidebar', () => {
   it('es una nav con nombre accesible localizado', async () => {

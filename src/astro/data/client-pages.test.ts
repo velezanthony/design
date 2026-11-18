@@ -6,36 +6,42 @@ import type { ClientRegistry } from './client-registry';
 const site = 'https://x.dev';
 const origin = 'http://localhost:4321';
 
-const route = (pattern: string, params: string[] = []): SiteRoute => ({
-  pattern,
-  entrypoint: `src/pages${pattern}.astro`,
-  params,
-  generate: (data: Record<string, string | undefined> = {}) =>
-    `${pattern.replace(/\[(\w+)\]/g, (_, name: string) => data[name] ?? '')}/`,
-});
+function route(pattern: string, params: string[] = []): SiteRoute {
+  return {
+    pattern,
+    entrypoint: `src/pages${pattern}.astro`,
+    params,
+    generate: (data: Record<string, string | undefined> = {}) =>
+      `${pattern.replace(/\[(\w+)\]/g, (_, name: string) => data[name] ?? '')}/`,
+  };
+}
 
-const page = (title: string, head = '') =>
-  `<html><head><title>${title}</title>${head}</head><body></body></html>`;
+function page(title: string, head = '') {
+  return `<html><head><title>${title}</title>${head}</head><body></body></html>`;
+}
 
 /** Un servidor de mentira: responde el HTML de cada ruta y apunta lo que le piden. */
 function server(pages: Record<string, string>) {
   const asked: string[] = [];
-  const fetch = async (url: URL) => {
+  async function fetch(url: URL) {
     asked.push(url.pathname);
     const html = pages[url.pathname];
     return new Response(html ?? 'no', { status: html ? 200 : 404 });
-  };
+  }
   return { fetch, asked };
 }
 
-const registry = (routes: SiteRoute[], modules: Record<string, unknown> = {}): ClientRegistry => ({
-  routes,
-  version: 1,
-  load: async (entrypoint) => modules[entrypoint] as Record<string, unknown>,
-});
+function registry(routes: SiteRoute[], modules: Record<string, unknown> = {}): ClientRegistry {
+  return {
+    routes,
+    version: 1,
+    load: async (entrypoint) => modules[entrypoint] as Record<string, unknown>,
+  };
+}
 
-const load = (reg: ClientRegistry, fetch: (url: URL) => Promise<Response>, base = '/') =>
-  loadClientPages({ origin, site, base }, { registry: reg, fetch });
+function load(reg: ClientRegistry, fetch: (url: URL) => Promise<Response>, base = '/') {
+  return loadClientPages({ origin, site, base }, { registry: reg, fetch });
+}
 
 describe('loadClientPages', () => {
   it('pide cada página al servidor y lee su <head>', async () => {

@@ -16,7 +16,9 @@ interface Built {
   pagesFile: string;
 }
 
-const readIfExists = (url: URL) => readFile(url, 'utf8').catch(() => undefined);
+async function readIfExists(url: URL) {
+  return readFile(url, 'utf8').catch(() => undefined);
+}
 
 /** El HTML de una página generada, con `build.format` de carpetas (`cv/index.html`) o de ficheros (`cv.html`). */
 async function builtHtml(dir: URL, pathname: string): Promise<string | undefined> {

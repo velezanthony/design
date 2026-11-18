@@ -9,13 +9,15 @@ const site = new URL('https://x.dev');
 const url = { base: '/repo' };
 const cfg: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'] });
 
-const meta = (extra: Partial<ResolvedMeta> = {}): ResolvedMeta => ({
-  title: 'Install',
-  noindex: false,
-  titleSuffix: 'Design',
-  schemas: [],
-  ...extra,
-});
+function meta(extra: Partial<ResolvedMeta> = {}): ResolvedMeta {
+  return {
+    title: 'Install',
+    noindex: false,
+    titleSuffix: 'Design',
+    schemas: [],
+    ...extra,
+  };
+}
 const enPage: PageData = { kind: 'page', slug: 'install', locale: 'en', url: '/repo/install/' };
 const esPage: PageData = { kind: 'page', slug: 'install', locale: 'es', url: '/repo/es/install/' };
 const pair: Availability = new Map([
@@ -23,15 +25,19 @@ const pair: Availability = new Map([
 ]);
 const single: Availability = new Map([['install', { en: '/repo/install/' }]]);
 
-const head = (m: ResolvedMeta, page: PageData, av: Availability) =>
-  buildHead(m, page, av, site, cfg, url);
+function head(m: ResolvedMeta, page: PageData, av: Availability) {
+  return buildHead(m, page, av, site, cfg, url);
+}
 
-const metaTag = (tags: HeadConfig[], key: 'name' | 'property', value: string) =>
-  tags.filter((t) => t.tag === 'meta' && t.attrs[key] === value);
-const value = (tags: HeadConfig[], key: 'name' | 'property', name: string) =>
-  metaTag(tags, key, name)[0]?.attrs.content;
-const links = (tags: HeadConfig[], rel: string) =>
-  tags.filter((t) => t.tag === 'link' && t.attrs.rel === rel);
+function metaTag(tags: HeadConfig[], key: 'name' | 'property', value: string) {
+  return tags.filter((t) => t.tag === 'meta' && t.attrs[key] === value);
+}
+function value(tags: HeadConfig[], key: 'name' | 'property', name: string) {
+  return metaTag(tags, key, name)[0]?.attrs.content;
+}
+function links(tags: HeadConfig[], rel: string) {
+  return tags.filter((t) => t.tag === 'link' && t.attrs.rel === rel);
+}
 
 describe('buildHead: página normal', () => {
   it('<title> con sufijo y og:title / twitter:title sin él', () => {
@@ -210,7 +216,9 @@ describe('buildHead + resolveMeta', () => {
 });
 
 describe('buildHead: favicon', () => {
-  const icons = (tags: HeadConfig[]) => links(tags, 'icon');
+  function icons(tags: HeadConfig[]) {
+    return links(tags, 'icon');
+  }
 
   it('por defecto emite el favicon del paquete, con base, en toda página', () => {
     const page = icons(head(meta(), enPage, single));
@@ -253,7 +261,9 @@ describe('buildHead: favicon', () => {
 });
 
 describe('buildHead: JSON-LD', () => {
-  const scripts = (tags: HeadConfig[]) => tags.filter((t) => t.tag === 'script');
+  function scripts(tags: HeadConfig[]) {
+    return tags.filter((t) => t.tag === 'script');
+  }
 
   it('sin schemas no hay ningún <script>: la librería no inyecta nada por defecto', () => {
     expect(scripts(head(meta(), enPage, single))).toEqual([]);

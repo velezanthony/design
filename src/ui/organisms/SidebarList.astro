@@ -19,8 +19,9 @@ const itemClass =
 const pageClass = `${itemClass} text-muted hover:text-ink aria-[current=page]:font-medium`;
 /* Título de grupo: tinta y seminegrita, que es lo que lo separa de las páginas. */
 const groupClass = 'label font-semibold tracking-[0.08em] text-ink';
-const badgeName = (locale: Locale) =>
-  t(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
+function badgeName(locale: Locale) {
+  return t(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
+}
 ---
 
 <ul class:list={['space-y-0.5', !root && 'ml-3 border-l border-rule pl-1']}>

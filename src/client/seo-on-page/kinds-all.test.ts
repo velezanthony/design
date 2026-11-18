@@ -2,7 +2,8 @@ import { parseHTML } from 'linkedom';
 import { describe, expect, it } from 'vitest';
 import { initKindsAll } from './kinds-all';
 
-const group = (checked: boolean[], disabled = 0) => `
+function group(checked: boolean[], disabled = 0) {
+  return `
   <details>
     <summary>Tipo <span data-kinds-count data-label-all="· todos" data-label-some="· {on} de {total}">· todos</span></summary>
     <div data-kinds>
@@ -11,6 +12,7 @@ const group = (checked: boolean[], disabled = 0) => `
       ${Array.from({ length: disabled }, () => '<input type="checkbox" data-kind disabled>').join('')}
     </div>
   </details>`;
+}
 
 function setup(checked: boolean[], disabled = 0) {
   const { document } = parseHTML(
@@ -24,10 +26,10 @@ function setup(checked: boolean[], disabled = 0) {
   const all = document.querySelector<HTMLInputElement>('[data-kinds-all]')!;
   const kinds = [...document.querySelectorAll<HTMLInputElement>('[data-kind]:not(:disabled)')];
   const count = document.querySelector('[data-kinds-count]')!;
-  const change = (input: HTMLInputElement, value: boolean) => {
+  function change(input: HTMLInputElement, value: boolean) {
     input.checked = value;
     input.dispatchEvent(new document.defaultView!.Event('change', { bubbles: true }));
-  };
+  }
   return { all, kinds, count, change, document };
 }
 

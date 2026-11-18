@@ -40,24 +40,26 @@ export interface BootEnv {
 }
 
 /** El entorno real. Se lee al ejecutar el script, nunca al importar el módulo. */
-const browserEnv = (): BootEnv => ({
-  doc: document,
-  storage: storageOf('localStorage'),
-  session: storageOf('sessionStorage'),
-  win: window,
-  system: matchMedia('(prefers-color-scheme: dark)'),
-  motion: matchMedia('(prefers-reduced-motion: reduce)'),
-  rail: matchMedia(RAIL_QUERY),
-  /* `import('mermaid')` es un trozo aparte que el navegador solo descarga si una página lo pide. */
-  mermaid: {
-    importer: () => import('mermaid'),
-    readToken: (name) => getComputedStyle(document.documentElement).getPropertyValue(name),
-  },
-  clipboard: navigator.clipboard,
-  hostname: location.hostname,
-  reload: () => location.reload(),
-  pathname: location.pathname,
-});
+function browserEnv(): BootEnv {
+  return {
+    doc: document,
+    storage: storageOf('localStorage'),
+    session: storageOf('sessionStorage'),
+    win: window,
+    system: matchMedia('(prefers-color-scheme: dark)'),
+    motion: matchMedia('(prefers-reduced-motion: reduce)'),
+    rail: matchMedia(RAIL_QUERY),
+    /* `import('mermaid')` es un trozo aparte que el navegador solo descarga si una página lo pide. */
+    mermaid: {
+      importer: () => import('mermaid'),
+      readToken: (name) => getComputedStyle(document.documentElement).getPropertyValue(name),
+    },
+    clipboard: navigator.clipboard,
+    hostname: location.hostname,
+    reload: () => location.reload(),
+    pathname: location.pathname,
+  };
+}
 
 /**
  * Cablea todo el cliente de una página de docs: tema, columnas plegables y ancho, consentimiento, buscadores, pestañas, botón

@@ -125,8 +125,9 @@ export function restrictionFor(kind: IssueKind): string | undefined {
   return undefined;
 }
 
-const measured = (text: string, length: number, field: Field) =>
-  `«${text}» (${length} car., ≈${estimateWidth(text, field)} px)`;
+function measured(text: string, length: number, field: Field) {
+  return `«${text}» (${length} car., ≈${estimateWidth(text, field)} px)`;
+}
 
 /**
  * Lo que la página publica ahora mismo en lo que el problema toca. `text` es para leer y `raw` el valor

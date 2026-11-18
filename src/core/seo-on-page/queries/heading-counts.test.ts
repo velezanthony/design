@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { headingCounts } from './heading-counts';
 
-const h = (depth: number, text = `H${depth}`) => ({ depth, slug: text, text });
+function h(depth: number, text = `H${depth}`) {
+  return { depth, slug: text, text };
+}
 
 describe('headingCounts', () => {
   it('cuenta cuántos hay de cada nivel, de H1 a H6, y el total', () => {

@@ -2,21 +2,25 @@ import { describe, expect, it } from 'vitest';
 import type { Page } from '../content/discovery';
 import { buildAvailability, pageUrl, type UrlPolicy } from './availability';
 
-const policy = (extra: Partial<UrlPolicy> = {}): UrlPolicy => ({
-  base: '/',
-  trailingSlash: 'always',
-  defaultLocale: 'en',
-  ...extra,
-});
+function policy(extra: Partial<UrlPolicy> = {}): UrlPolicy {
+  return {
+    base: '/',
+    trailingSlash: 'always',
+    defaultLocale: 'en',
+    ...extra,
+  };
+}
 
-const page = (slug: string, locale: string): Page => ({
-  slug,
-  locale,
-  title: slug,
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.md`,
-});
+function page(slug: string, locale: string): Page {
+  return {
+    slug,
+    locale,
+    title: slug,
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.md`,
+  };
+}
 
 describe('pageUrl', () => {
   it('el idioma por defecto va sin prefijo y los demás con prefijo', () => {

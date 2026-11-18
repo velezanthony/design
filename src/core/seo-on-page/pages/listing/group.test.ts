@@ -3,14 +3,18 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity } from '../../tree/types';
 import { groupBySlug, mainEntry, ownIssues } from './group';
 
-const entry = (slug: string, locale: string) => seoPage({ slug, locale });
-const issue = (kind: IssueKind, severity: IssueSeverity) => ({
-  kind,
-  severity,
-  slug: 'a',
-  locale: 'en',
-  message: '',
-});
+function entry(slug: string, locale: string) {
+  return seoPage({ slug, locale });
+}
+function issue(kind: IssueKind, severity: IssueSeverity) {
+  return {
+    kind,
+    severity,
+    slug: 'a',
+    locale: 'en',
+    message: '',
+  };
+}
 
 describe('groupBySlug', () => {
   it('junta los idiomas de cada página, en el orden en que llegan', () => {

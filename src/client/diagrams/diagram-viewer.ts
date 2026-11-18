@@ -35,8 +35,9 @@ const FALLBACK_SIZE: Size = { width: 800, height: 600 };
 
 /* Iconos de trazo (heredan `currentColor`), para que sigan el color del tema y no dependan de la
    fuente: «−», «+» y «×» como texto cambian de tamaño y alineación según la tipografía. */
-const icon = (paths: string) =>
-  `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+function icon(paths: string) {
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
+}
 export const ICONS = {
   zoomIn: icon('<path d="M12 5v14M5 12h14"/>'),
   zoomOut: icon('<path d="M5 12h14"/>'),
@@ -74,7 +75,7 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
 
   const toolbar = doc.createElement('div');
   toolbar.className = 'docs-diagram-toolbar';
-  const tool = (label: string, svg: string, run: () => void) => {
+  function tool(label: string, svg: string, run: () => void) {
     const button = doc.createElement('button');
     button.type = 'button';
     button.className = 'docs-diagram-tool';
@@ -82,7 +83,7 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
     button.innerHTML = svg;
     button.addEventListener('click', run);
     toolbar.append(button);
-  };
+  }
 
   dialog.append(stage, toolbar);
   doc.body.append(dialog);
@@ -92,35 +93,41 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
   /** Verdadero mientras la vista es la inicial: solo entonces un cambio de ventana la reajusta. */
   let fitted = true;
 
-  const viewport = (): Size => ({ width: stage.clientWidth, height: stage.clientHeight });
-  const centre = (): Point => ({ x: viewport().width / 2, y: viewport().height / 2 });
+  function viewport(): Size {
+    return { width: stage.clientWidth, height: stage.clientHeight };
+  }
+  function centre(): Point {
+    return { x: viewport().width / 2, y: viewport().height / 2 };
+  }
 
-  const apply = (next: View, userMoved = true) => {
+  function apply(next: View, userMoved = true) {
     view = next;
     if (userMoved) fitted = false;
     canvas.style.transform = `translate(${next.x}px, ${next.y}px) scale(${next.scale})`;
-  };
-  const fit = () => {
+  }
+  function fit() {
     if (!current) return;
     apply(fitView(current.content, viewport()), false);
     fitted = true;
-  };
-  const zoom = (factor: number, at: Point = centre()) => apply(zoomAt(view, factor, at));
+  }
+  function zoom(factor: number, at: Point = centre()) {
+    return apply(zoomAt(view, factor, at));
+  }
 
   /** Coordenadas del visor (no de la ventana) de un evento de puntero. */
-  const local = (event: { clientX: number; clientY: number }): Point => {
+  function local(event: { clientX: number; clientY: number }): Point {
     const rect = stage.getBoundingClientRect();
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-  };
+  }
 
   tool(labels.zoomOut, ICONS.zoomOut, () => zoom(1 / STEP));
   tool(labels.zoomIn, ICONS.zoomIn, () => zoom(STEP));
   tool(labels.fit, ICONS.fit, fit);
   tool(labels.close, ICONS.close, () => close());
 
-  const close = () => {
+  function close() {
     if (current && dialog.hasAttribute('open')) dialog.close();
-  };
+  }
 
   /* Pasa siempre que el diálogo se cierra, también si lo cierra el navegador (Escape). */
   dialog.addEventListener('close', () => {
@@ -164,13 +171,13 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
   let dragged = 0;
   let moved = false;
 
-  const pair = () => {
+  function pair() {
     const [a, b] = [...pointers.values()];
     return {
       distance: Math.hypot(b!.x - a!.x, b!.y - a!.y),
       mid: { x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 },
     };
-  };
+  }
 
   stage.addEventListener('pointerdown', (event) => {
     if (event.button) return;
@@ -209,10 +216,10 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
     apply(panBy(view, dx, dy));
   });
 
-  const release = (event: { pointerId: number }) => {
+  function release(event: { pointerId: number }) {
     pointers.delete(event.pointerId);
     if (!pointers.size) delete stage.dataset.dragging;
-  };
+  }
   stage.addEventListener('pointerup', release);
   stage.addEventListener('pointercancel', release);
 

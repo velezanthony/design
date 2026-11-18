@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../testing/render';
 import Link from './Link.astro';
 
-const link = async (props: Record<string, unknown>) =>
-  (await render(Link, { href: '/x/', ...props })).querySelector('a')!;
+async function link(props: Record<string, unknown>) {
+  return (await render(Link, { href: '/x/', ...props })).querySelector('a')!;
+}
 
 describe('Link', () => {
   /* WCAG 2.5.8: objetivo de al menos 24px. Una etiqueta de 12px sola mide 14px. */

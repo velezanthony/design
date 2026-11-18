@@ -10,15 +10,17 @@ import { prevNext } from './prev-next';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 
-const page = (slug: string, locale = 'en', extra: Partial<Page> = {}): Page => ({
-  slug,
-  locale,
-  title: slug.split('/').pop() || 'Home',
-  kind: 'native',
-  body: '',
-  sourcePath: `${slug}.md`,
-  ...extra,
-});
+function page(slug: string, locale = 'en', extra: Partial<Page> = {}): Page {
+  return {
+    slug,
+    locale,
+    title: slug.split('/').pop() || 'Home',
+    kind: 'native',
+    body: '',
+    sourcePath: `${slug}.md`,
+    ...extra,
+  };
+}
 
 const pages = [
   page(''),
@@ -43,11 +45,11 @@ const nav: NavItem[] = [
   { label: 'Code', href: 'https://github.com/x/y', icon: 'github' },
 ];
 
-const ctx = (
+function ctx(
   locale = 'en',
   slug = '',
   extra: { nav?: NavItem[]; sidebar?: string[]; missing?: MissingTranslation } = {},
-): NavContext => {
+): NavContext {
   const { policies } = resolvePolicies(pages, extra.missing ?? MissingTranslation.LINK);
   return {
     pages,
@@ -63,11 +65,16 @@ const ctx = (
     url,
     slug,
   };
-};
+}
 
-const slugsOf = (nodes: SidebarNode[]) => flatten(nodes).map((leaf) => leaf.slug);
-const shape = (nodes: SidebarNode[]): unknown[] =>
-  nodes.map((node) => (isSidebarGroup(node) ? { [node.label]: shape(node.items) } : node.slug));
+function slugsOf(nodes: SidebarNode[]) {
+  return flatten(nodes).map((leaf) => leaf.slug);
+}
+function shape(nodes: SidebarNode[]): unknown[] {
+  return nodes.map((node) =>
+    isSidebarGroup(node) ? { [node.label]: shape(node.items) } : node.slug,
+  );
+}
 
 describe('buildScopedSidebar', () => {
   it('una página de una sección ve solo el árbol de esa sección', () => {

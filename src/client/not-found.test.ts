@@ -3,12 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import { swapNotFound } from './not-found';
 
-const doc = (extra = '') =>
-  parseHTML(`<!doctype html><html lang="en" class="nf-pending"><head><title>Not found</title></head>
+function doc(extra = '') {
+  return parseHTML(`<!doctype html><html lang="en" class="nf-pending"><head><title>Not found</title></head>
 <body><main>English</main>
 <template data-locale="es" data-title="No encontrada"><header>Cabecera</header><main>Español</main></template>
 <template data-locale="fr" data-title="Introuvable"><main>Français</main></template>${extra}</body></html>`)
     .document;
+}
 
 describe('swapNotFound', () => {
   it('sustituye el cuerpo, lang y título por los de la plantilla del idioma', () => {

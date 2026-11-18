@@ -8,8 +8,11 @@ import { fill } from '../text';
  * indeterminada si solo hay unos pocos y el resumen del título (`data-kinds-count`) cuenta cuántos.
  * Los textos del resumen viajan en `data-label-all` y `data-label-some` (con `{on}` y `{total}`).
  */
-const enabledKinds = (group: Element) =>
-  [...group.querySelectorAll<HTMLInputElement>('[data-kind]')].filter((input) => !input.disabled);
+function enabledKinds(group: Element) {
+  return [...group.querySelectorAll<HTMLInputElement>('[data-kind]')].filter(
+    (input) => !input.disabled,
+  );
+}
 
 function sync(group: Element): void {
   const all = group.querySelector<HTMLInputElement>('[data-kinds-all]');

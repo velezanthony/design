@@ -8,7 +8,7 @@ import {
   resolvePrivacyUrls,
 } from './resolve';
 
-const fails = (run: () => unknown): string[] => {
+function fails(run: () => unknown): string[] {
   try {
     run();
   } catch (error) {
@@ -17,7 +17,7 @@ const fails = (run: () => unknown): string[] => {
     throw error;
   }
   return [];
-};
+}
 
 describe('resolveAnalytics', () => {
   it.each([undefined, '', '   ', '\n'])('sin valor (%j) no hay analítica', (value) => {
@@ -128,13 +128,14 @@ describe('applyAnalytics', () => {
 
 describe('applyAnalytics: página de privacidad propia', () => {
   const url = { base: '/repo', trailingSlash: 'always' as const, defaultLocale: 'es' };
-  const page = (extra = {}) =>
-    resolveConfig({
+  function page(extra = {}) {
+    return resolveConfig({
       name: 'X',
       locales: ['es', 'en'],
       privacy: { page: true },
       ...extra,
     });
+  }
 
   it('con `page: true` el enlace apunta a la página local, también sin analítica', () => {
     const cfg = applyAnalytics(page(), undefined, url);

@@ -34,13 +34,14 @@ const PATTERNS: Array<[LeftoverKind, RegExp]> = [
 ];
 
 /** Sustituye el código en línea por espacios (misma longitud), para no detectar lo que es código. */
-export const maskInlineCode = (line: string) =>
-  line.replace(/(`+)[^`]*?\1/g, (code) => ' '.repeat(code.length));
+export function maskInlineCode(line: string) {
+  return line.replace(/(`+)[^`]*?\1/g, (code) => ' '.repeat(code.length));
+}
 
-const preview = (line: string) => {
+function preview(line: string) {
   const text = line.trim();
   return text.length > PREVIEW_LENGTH ? `${text.slice(0, PREVIEW_LENGTH - 1)}…` : text;
-};
+}
 
 /** Líneas fuera de fences con su número (1-based). Un fence sin cerrar llega hasta el final. */
 export function* proseLines(markdown: string): Generator<[number, string]> {

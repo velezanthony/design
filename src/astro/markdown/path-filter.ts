@@ -14,7 +14,9 @@ export interface Scope {
 }
 
 /** Una raíz sin barra final resolvería `src/...` como hermana de la carpeta, no como hija. */
-const withSlash = (root: URL) => (root.href.endsWith('/') ? root : new URL(`${root.href}/`));
+function withSlash(root: URL) {
+  return root.href.endsWith('/') ? root : new URL(`${root.href}/`);
+}
 
 /**
  * @param root raíz del proyecto consumidor.

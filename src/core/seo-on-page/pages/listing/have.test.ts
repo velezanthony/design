@@ -5,37 +5,47 @@ import { HaveColumn } from '../../queries/url-filters';
 import { IssueKind, IssueSeverity, type SeoLocaleEntry, type SeoPage } from '../../tree/types';
 import { haveCounts, haveRows, lacking, type HaveRow } from './have';
 
-const meta = (extra: Partial<SeoPage['meta']>) => ({ ...seoPage().meta, ...extra });
-const present = (locale: string): SeoLocaleEntry => ({ locale, status: 'present', url: '/' });
-const missing = (locale: string, policy: MissingTranslation): SeoLocaleEntry => ({
-  locale,
-  status: 'missing',
-  policy,
-  declared: true,
-});
+function meta(extra: Partial<SeoPage['meta']>) {
+  return { ...seoPage().meta, ...extra };
+}
+function present(locale: string): SeoLocaleEntry {
+  return { locale, status: 'present', url: '/' };
+}
+function missing(locale: string, policy: MissingTranslation): SeoLocaleEntry {
+  return {
+    locale,
+    status: 'missing',
+    policy,
+    declared: true,
+  };
+}
 
-const rows = (entries: SeoPage[], locales = ['en', 'es']) =>
-  haveRows(entries, {
+function rows(entries: SeoPage[], locales = ['en', 'es']) {
+  return haveRows(entries, {
     locales,
     defaultLocale: 'en',
     inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
   });
+}
 /** Las celdas de una única página con estos hechos. */
-const cells = (extra: Partial<SeoPage>, locales = ['en']) =>
-  rows([seoPage({ locales: locales.map(present), ...extra })], locales)[0]!.cells;
+function cells(extra: Partial<SeoPage>, locales = ['en']) {
+  return rows([seoPage({ locales: locales.map(present), ...extra })], locales)[0]!.cells;
+}
 
 describe('haveRows: una celda por columna', () => {
   it('descripción: propia, del sitio o falta', () => {
-    const state = (descriptionSource: 'page' | 'site' | 'none') =>
-      cells({ meta: meta({ descriptionSource }) }).desc.state;
+    function state(descriptionSource: 'page' | 'site' | 'none') {
+      return cells({ meta: meta({ descriptionSource }) }).desc.state;
+    }
     expect(state('page')).toBe('own');
     expect(state('site')).toBe('site');
     expect(state('none')).toBe('missing');
   });
 
   it('imagen OG: propia, del sitio o falta', () => {
-    const state = (ogImageSource: 'page' | 'site' | 'none') =>
-      cells({ meta: meta({ ogImageSource }) }).og.state;
+    function state(ogImageSource: 'page' | 'site' | 'none') {
+      return cells({ meta: meta({ ogImageSource }) }).og.state;
+    }
     expect(state('page')).toBe('own');
     expect(state('site')).toBe('site');
     expect(state('none')).toBe('missing');
@@ -62,13 +72,15 @@ describe('haveRows: una celda por columna', () => {
   });
 
   it('H1 único: cumple salvo que falte o sobre (lo dicen los problemas del análisis)', () => {
-    const issue = (kind: IssueKind) => ({
-      kind,
-      severity: IssueSeverity.ERROR,
-      slug: 'x',
-      locale: 'en',
-      message: kind,
-    });
+    function issue(kind: IssueKind) {
+      return {
+        kind,
+        severity: IssueSeverity.ERROR,
+        slug: 'x',
+        locale: 'en',
+        message: kind,
+      };
+    }
     expect(cells({}).h1.state).toBe('ok');
     expect(cells({ issues: [issue(IssueKind.NO_H1)] }).h1.state).toBe('missing');
     expect(cells({ issues: [issue(IssueKind.MULTIPLE_H1)] }).h1.state).toBe('missing');
@@ -80,8 +92,9 @@ describe('haveRows: una celda por columna', () => {
   });
 
   describe('traducida', () => {
-    const state = (policy: MissingTranslation) =>
-      cells({ locales: [present('en'), missing('es', policy)] }, ['en', 'es']).i18n;
+    function state(policy: MissingTranslation) {
+      return cells({ locales: [present('en'), missing('es', policy)] }, ['en', 'es']).i18n;
+    }
 
     it('con todos los idiomas cumple', () => {
       expect(cells({}, ['en', 'es']).i18n.state).toBe('ok');

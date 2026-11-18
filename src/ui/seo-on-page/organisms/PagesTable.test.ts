@@ -3,37 +3,43 @@ import type { PageRow } from '../../../core/seo-on-page/pages/listing/rows';
 import { render, text } from '../../../testing/render';
 import PagesTable from './PagesTable.astro';
 
-const detail = (locale: string, extra: object = {}) => ({
-  locale,
-  tone: 'ok' as const,
-  present: true as const,
-  href: `/i/?slug=guide&locale=${locale}`,
-  title: `Guide ${locale} | Site`,
-  titleLength: 20,
-  descriptionSource: 'page' as const,
-  descriptionLength: 90,
-  issues: [],
-  ...extra,
-});
+function detail(locale: string, extra: object = {}) {
+  return {
+    locale,
+    tone: 'ok' as const,
+    present: true as const,
+    href: `/i/?slug=guide&locale=${locale}`,
+    title: `Guide ${locale} | Site`,
+    titleLength: 20,
+    descriptionSource: 'page' as const,
+    descriptionLength: 90,
+    issues: [],
+    ...extra,
+  };
+}
 
-const row = (extra: Partial<PageRow> = {}): PageRow => ({
-  slug: 'guide',
-  title: 'Guide | Site',
-  titleLength: 12,
-  href: '/i/?slug=guide&locale=en',
-  tags: [],
-  locales: [detail('en'), detail('es')],
-  issues: [],
-  severity: undefined,
-  ...extra,
-});
+function row(extra: Partial<PageRow> = {}): PageRow {
+  return {
+    slug: 'guide',
+    title: 'Guide | Site',
+    titleLength: 12,
+    href: '/i/?slug=guide&locale=en',
+    tags: [],
+    locales: [detail('en'), detail('es')],
+    issues: [],
+    severity: undefined,
+    ...extra,
+  };
+}
 
-const issue = (kind: 'no-h1' | 'duplicate-title', severity: 'error' | 'warning') => ({
-  kind,
-  severity,
-  locales: ['en', 'es'],
-  issue: { kind, severity, slug: 'guide', locale: 'en', message: 'm' },
-});
+function issue(kind: 'no-h1' | 'duplicate-title', severity: 'error' | 'warning') {
+  return {
+    kind,
+    severity,
+    locales: ['en', 'es'],
+    issue: { kind, severity, slug: 'guide', locale: 'en', message: 'm' },
+  };
+}
 
 describe('PagesTable', () => {
   it('una fila por página: slug enlazado al inspector y su título', async () => {

@@ -1,15 +1,22 @@
 import { describe, expect, it, vi } from 'vitest';
 import { copyWithFeedback } from './clipboard';
 
-const setup = (writeText: (text: string) => Promise<void>) => {
+function setup(writeText: (text: string) => Promise<void>) {
   const done = vi.fn();
   const failed = vi.fn();
   const reset = vi.fn();
   const schedule = vi.fn();
-  const copy = () =>
-    copyWithFeedback({ writeText }, 'hola', { done, failed, reset, schedule, resetAfterMs: 1800 });
+  function copy() {
+    return copyWithFeedback({ writeText }, 'hola', {
+      done,
+      failed,
+      reset,
+      schedule,
+      resetAfterMs: 1800,
+    });
+  }
   return { done, failed, reset, schedule, copy };
-};
+}
 
 describe('copyWithFeedback', () => {
   it('copia el texto, avisa del éxito y programa la vuelta', async () => {

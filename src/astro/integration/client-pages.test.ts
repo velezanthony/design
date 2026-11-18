@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { clientRegistry } from '../data/client-registry';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
 
-const resolved = (pattern: string, origin = 'project') => ({
-  pattern,
-  origin,
-  type: 'page',
-  entrypoint: `src/pages${pattern}.astro`,
-  params: [] as string[],
-  generate: () => `${pattern}/`,
-  patternRegex: new RegExp(`^${pattern}/$`),
-});
+function resolved(pattern: string, origin = 'project') {
+  return {
+    pattern,
+    origin,
+    type: 'page',
+    entrypoint: `src/pages${pattern}.astro`,
+    params: [] as string[],
+    generate: () => `${pattern}/`,
+    patternRegex: new RegExp(`^${pattern}/$`),
+  };
+}
 
 beforeEach(() => {
   const registry = clientRegistry();

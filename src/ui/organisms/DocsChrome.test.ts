@@ -5,8 +5,8 @@ import { stringsFor } from '../../testing/strings';
 import DocsFooter from './DocsFooter.astro';
 import DocsHeader from './DocsHeader.astro';
 
-const header = (props: Record<string, unknown> = {}) =>
-  render(DocsHeader, {
+function header(props: Record<string, unknown> = {}) {
+  return render(DocsHeader, {
     siteName: 'Design',
     homeHref: '/repo/es/',
     lang: 'es',
@@ -14,6 +14,7 @@ const header = (props: Record<string, unknown> = {}) =>
     strings: stringsFor('es'),
     ...props,
   });
+}
 
 const navEntries = [
   { label: 'Guía', href: '/repo/es/users/a/', kind: 'section', current: 'true' },
@@ -133,8 +134,14 @@ describe('DocsHeader', () => {
   });
 });
 
-const footer = (props: Record<string, unknown> = {}) =>
-  render(DocsFooter, { siteName: 'Design', year: 2026, strings: stringsFor('es'), ...props });
+function footer(props: Record<string, unknown> = {}) {
+  return render(DocsFooter, {
+    siteName: 'Design',
+    year: 2026,
+    strings: stringsFor('es'),
+    ...props,
+  });
+}
 
 describe('DocsFooter', () => {
   it('es el landmark footer con el copyright que se le pasa', async () => {

@@ -29,6 +29,12 @@ export interface NavLink {
 
 export type NavItem = NavSection | NavPage | NavLink;
 
-export const isNavSection = (item: NavItem): item is NavSection => 'dir' in item;
-export const isNavPage = (item: NavItem): item is NavPage => 'slug' in item;
-export const isNavLink = (item: NavItem): item is NavLink => 'href' in item;
+export function isNavSection(item: NavItem): item is NavSection {
+  return 'dir' in item;
+}
+export function isNavPage(item: NavItem): item is NavPage {
+  return 'slug' in item;
+}
+export function isNavLink(item: NavItem): item is NavLink {
+  return 'href' in item;
+}

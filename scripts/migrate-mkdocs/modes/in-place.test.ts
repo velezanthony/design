@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { runInPlace, type InPlaceIo } from './in-place';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
+function md(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
 
 function fakeIo(files: Record<string, string>, git: InPlaceIo['git'] = cleanGit) {
   const written = new Map<string, string>();
@@ -14,7 +16,9 @@ function fakeIo(files: Record<string, string>, git: InPlaceIo['git'] = cleanGit)
   return { io, written };
 }
 
-const cleanGit: InPlaceIo['git'] = (args) => (args[0] === 'rev-parse' ? 'true\n' : '');
+function cleanGit(args: string[]) {
+  return args[0] === 'rev-parse' ? 'true\n' : '';
+}
 
 describe('runInPlace', () => {
   const converted = md('!!! note "N"', '', '    x');
@@ -35,8 +39,9 @@ describe('runInPlace', () => {
   });
 
   it('con docs/ sucio se niega, no escribe nada y sale con error', () => {
-    const dirty: InPlaceIo['git'] = (args) =>
-      args[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
+    function dirty(args: string[]) {
+      return args[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
+    }
     const { io, written } = fakeIo({ 'a.md': converted }, dirty);
     const out = runInPlace(io, { force: false });
     expect(out.exitCode).not.toBe(0);
@@ -45,17 +50,18 @@ describe('runInPlace', () => {
   });
 
   it('fuera de un repo git se niega', () => {
-    const noGit: InPlaceIo['git'] = () => {
+    function noGit(): string {
       throw new Error('not a git repository');
-    };
+    }
     const { io, written } = fakeIo({ 'a.md': converted }, noGit);
     expect(runInPlace(io, { force: false }).exitCode).not.toBe(0);
     expect(written.size).toBe(0);
   });
 
   it('con --force sigue adelante pero avisa', () => {
-    const dirty: InPlaceIo['git'] = (args) =>
-      args[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
+    function dirty(args: string[]) {
+      return args[0] === 'rev-parse' ? 'true\n' : ' M docs/a.md\n';
+    }
     const { io, written } = fakeIo({ 'a.md': converted }, dirty);
     const out = runInPlace(io, { force: true });
     expect(written.size).toBe(1);

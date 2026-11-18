@@ -57,7 +57,7 @@ export function initTabs(doc: Document, motion: MotionPreference = { matches: fa
       return tab;
     });
 
-    const select = (index: number) => {
+    function select(index: number) {
       tabs.forEach((tab, i) => {
         const on = i === index;
         tab.setAttribute('aria-selected', String(on));
@@ -65,16 +65,16 @@ export function initTabs(doc: Document, motion: MotionPreference = { matches: fa
         if (on) panels[i]!.removeAttribute('hidden');
         else panels[i]!.setAttribute('hidden', '');
       });
-    };
+    }
 
     /* Lo que hace quien visita: con transición, y sin ella si ya está seleccionada. */
-    const show = (index: number) => {
+    function show(index: number) {
       if (tabs[index]!.getAttribute('aria-selected') === 'true') return;
       root.style.setProperty('view-transition-name', 'docs-tabs');
       void withTransition(() => select(index), { doc, motion, kind: 'tabs' }).then(() =>
         root.style.removeProperty('view-transition-name'),
       );
-    };
+    }
 
     tabs.forEach((tab, i) => {
       tab.addEventListener('click', () => show(i));

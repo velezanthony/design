@@ -3,9 +3,9 @@
  * Escape (y entonces el foco vuelve a su `<summary>`, para no perderlo). Sin JavaScript sigue siendo
  * un `<details>` que se abre y se cierra con su título.
  */
-const openPopovers = (doc: Document) => [
-  ...doc.querySelectorAll<HTMLDetailsElement>('details[data-popover][open]'),
-];
+function openPopovers(doc: Document) {
+  return [...doc.querySelectorAll<HTMLDetailsElement>('details[data-popover][open]')];
+}
 
 export function initPopovers(doc: Document): void {
   doc.addEventListener('pointerdown', (event) => {

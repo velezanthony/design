@@ -1,18 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { siteFiles, type SiteFilesFacts } from './site-files';
 
-const facts = (extra: Partial<SiteFilesFacts> = {}): SiteFilesFacts => ({
-  url: { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' },
-  locales: ['en'],
-  sitemapUrls: 12,
-  robots: false,
-  llms: false,
-  privacyPage: false,
-  ...extra,
-});
+function facts(extra: Partial<SiteFilesFacts> = {}): SiteFilesFacts {
+  return {
+    url: { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' },
+    locales: ['en'],
+    sitemapUrls: 12,
+    robots: false,
+    llms: false,
+    privacyPage: false,
+    ...extra,
+  };
+}
 
-const entry = (id: string, extra: Partial<SiteFilesFacts> = {}) =>
-  siteFiles(facts(extra)).find((file) => file.id === id)!;
+function entry(id: string, extra: Partial<SiteFilesFacts> = {}) {
+  return siteFiles(facts(extra)).find((file) => file.id === id)!;
+}
 
 describe('siteFiles', () => {
   it('devuelve las entradas en el orden en que las enseña el panel', () => {

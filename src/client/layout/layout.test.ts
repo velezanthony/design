@@ -14,13 +14,13 @@ import { LAYOUT_KEY } from '../preferences/storage';
 
 const defaults: LayoutState = { left: 'open', right: 'open', width: 'reading' };
 
-const memory = (initial: Record<string, string> = {}): Storage => {
+function memory(initial: Record<string, string> = {}): Storage {
   const items = new Map(Object.entries(initial));
   return {
     getItem: (key: string) => items.get(key) ?? null,
     setItem: (key: string, value: string) => void items.set(key, value),
   } as Storage;
-};
+}
 
 describe('parseLayout', () => {
   it('sin nada guardado devuelve los valores por defecto', () => {
@@ -86,8 +86,8 @@ describe('togglePanel / withWidth', () => {
   });
 });
 
-const page = (attrs = 'data-left="open" data-right="open" data-width="reading"') =>
-  parseHTML(`<!doctype html><html ${attrs}><body>
+function page(attrs = 'data-left="open" data-right="open" data-width="reading"') {
+  return parseHTML(`<!doctype html><html ${attrs}><body>
     <button data-layout-toggle="left" aria-controls="nav-panel" aria-expanded="true"
       data-collapse-label="Collapse navigation" data-expand-label="Expand navigation"></button>
     <div id="nav-panel"></div>
@@ -97,10 +97,14 @@ const page = (attrs = 'data-left="open" data-right="open" data-width="reading"')
     <button data-layout-width="reading" aria-pressed="true"></button>
     <button data-layout-width="full" aria-pressed="false"></button>
   </body></html>`).document;
+}
 
-const click = (el: Element | null) => (el as HTMLElement).click();
-const stored = (storage: Storage) =>
-  JSON.parse(storage.getItem(LAYOUT_KEY) ?? 'null') as LayoutState | null;
+function click(el: Element | null) {
+  return (el as HTMLElement).click();
+}
+function stored(storage: Storage) {
+  return JSON.parse(storage.getItem(LAYOUT_KEY) ?? 'null') as LayoutState | null;
+}
 
 describe('initLayout', () => {
   it('sincroniza aria y inert con el estado que ya trae <html>', () => {
@@ -210,14 +214,14 @@ describe('initLayout', () => {
 });
 
 describe('layoutBootstrapScript', () => {
-  const run = (script: string, saved?: string) => {
+  function run(script: string, saved?: string) {
     const { document } = parseHTML(
       '<!doctype html><html data-left="open" data-right="open" data-width="reading"><body></body></html>',
     );
     const storage = memory(saved === undefined ? {} : { [LAYOUT_KEY]: saved });
     new Function('document', 'localStorage', script)(document, storage);
     return document.documentElement;
-  };
+  }
 
   it('aplica el estado guardado antes del primer pintado', () => {
     const root = run(

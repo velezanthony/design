@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { fixAccentAnchors } from './anchors';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
+function md(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
 
 describe('fixAccentAnchors', () => {
   it('repone los acentos que MkDocs quitaba de los ids (`catalogo` -> `catálogo`)', () => {

@@ -12,7 +12,9 @@ import {
   serializeFilters,
 } from './url-filters';
 
-const parse = (query: string) => parseFilters(new URLSearchParams(query));
+function parse(query: string) {
+  return parseFilters(new URLSearchParams(query));
+}
 
 describe('parseFilters', () => {
   it('sin parámetros: filtros vacíos', () => {
@@ -199,7 +201,9 @@ describe('filterFields', () => {
 });
 
 describe('parseView', () => {
-  const view = (query: string) => parseView(new URLSearchParams(query));
+  function view(query: string) {
+    return parseView(new URLSearchParams(query));
+  }
 
   it('sin `view` es la vista por página', () => {
     expect(view('')).toEqual({ view: 'page' });

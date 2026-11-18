@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { render } from '../../testing/render';
 import Icon from './Icon.astro';
 
-const svg = async (props: Record<string, unknown>) =>
-  (await render(Icon, props)).querySelector('svg')!;
+async function svg(props: Record<string, unknown>) {
+  return (await render(Icon, props)).querySelector('svg')!;
+}
 
 describe('Icon', () => {
   it('es decorativo: oculto a la accesibilidad y sin foco', async () => {

@@ -12,11 +12,11 @@ import { docsSchema } from './schema';
 
 let root: string;
 
-const write = async (file: string, content: string) => {
+async function write(file: string, content: string) {
   const target = path.join(root, file);
   await mkdir(path.dirname(target), { recursive: true });
   await writeFile(target, content);
-};
+}
 
 /** PNG con cabecera válida (anchura × altura) para las imágenes SEO. */
 function png(width: number, height: number): Buffer {
@@ -83,10 +83,11 @@ function makeCtx(options: { base?: string; watcher?: FakeWatcher; project?: stri
   return { ctx: ctx as never, entries, warnings, errors, rendered };
 }
 
-const load = (config: DocsUserConfig, made = makeCtx()) =>
-  docsLoader(config)
+async function load(config: DocsUserConfig, made = makeCtx()) {
+  return docsLoader(config)
     .load(made.ctx)
     .then(() => made);
+}
 
 /** Captura el `AstroError` de una carga fallida con todos los mensajes (título + pista). */
 async function failure(config: DocsUserConfig, made = makeCtx()) {
@@ -275,9 +276,12 @@ describe('docsLoader: enlaces y anclas', () => {
 });
 
 describe('docsLoader: lo que el cuerpo enlaza y muestra (para el panel SEO)', () => {
-  const metadataOf = (entry: unknown) =>
-    (entry as { rendered: { metadata: Record<string, unknown> } }).rendered.metadata;
-  const contentOf = (entry: unknown) => metadataOf(entry)[CONTENT_METADATA_KEY];
+  function metadataOf(entry: unknown) {
+    return (entry as { rendered: { metadata: Record<string, unknown> } }).rendered.metadata;
+  }
+  function contentOf(entry: unknown) {
+    return metadataOf(entry)[CONTENT_METADATA_KEY];
+  }
 
   it('guarda con la entrada las páginas que enlaza y sus imágenes, junto a los encabezados', async () => {
     await write(
@@ -341,11 +345,11 @@ describe('docsLoader: imágenes SEO', () => {
 });
 
 describe('docsLoader: traducciones no declaradas', () => {
-  const pages = async (frontmatter = '') => {
+  async function pages(frontmatter = '') {
     await write('src/content/docs/install.md', `${frontmatter}# Install\n`);
     await write('src/content/docs/index.md', '# Home\n');
     await write('src/content/docs/index.es.md', '# Inicio\n');
-  };
+  }
 
   it('avisa una vez por página con idioma que falta, sin romper la carga', async () => {
     await pages();
@@ -460,13 +464,17 @@ describe('docsLoader: dev (watcher)', () => {
 });
 
 describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
-  const site = () => makeCtx({ project: 'site', base: '/repo' });
-  const config = (extra: Partial<DocsUserConfig> = {}): DocsUserConfig => ({
-    name: 'T',
-    locales: ['en', 'es'],
-    content: '../docs',
-    ...extra,
-  });
+  function site() {
+    return makeCtx({ project: 'site', base: '/repo' });
+  }
+  function config(extra: Partial<DocsUserConfig> = {}): DocsUserConfig {
+    return {
+      name: 'T',
+      locales: ['en', 'es'],
+      content: '../docs',
+      ...extra,
+    };
+  }
 
   it('lee las páginas de ../docs sin mirar src/content/docs, y solo los .md', async () => {
     await write('docs/index.md', '# Home\n');

@@ -3,15 +3,18 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
 import { kindOptions, kindsWithIssues } from './kinds';
 
-const issue = (kind: IssueKind): Issue => ({
-  kind,
-  severity: IssueSeverity.WARNING,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
-const entry = (slug: string, locale: string, ...kinds: IssueKind[]): SeoPage =>
-  seoPage({ slug, locale, issues: kinds.map(issue) });
+function issue(kind: IssueKind): Issue {
+  return {
+    kind,
+    severity: IssueSeverity.WARNING,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
+function entry(slug: string, locale: string, ...kinds: IssueKind[]): SeoPage {
+  return seoPage({ slug, locale, issues: kinds.map(issue) });
+}
 
 const { DUPLICATE_TITLE, NO_H1, TITLE_TOO_SHORT } = IssueKind;
 

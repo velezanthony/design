@@ -93,10 +93,12 @@ export function initTheme({
   const buttons = doc.querySelectorAll('[data-theme-toggle]');
   if (!buttons.length) return;
 
-  const chosen = () => parseTheme(root.dataset.theme);
-  const sync = () => {
+  function chosen() {
+    return parseTheme(root.dataset.theme);
+  }
+  function sync() {
     for (const button of buttons) syncToggle(button, isDark(chosen(), system.matches));
-  };
+  }
 
   for (const button of buttons) {
     button.addEventListener('click', () => {

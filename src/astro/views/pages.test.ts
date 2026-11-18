@@ -12,13 +12,15 @@ const cfg = {
   privacy: { page: false },
 };
 
-const data = (slug: string, locale: string, extra: Partial<DocData> = {}): DocData => ({
-  slug,
-  locale,
-  title: slug || 'Home',
-  sourcePath: `${slug || 'index'}.md`,
-  ...extra,
-});
+function data(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
+  return {
+    slug,
+    locale,
+    title: slug || 'Home',
+    sourcePath: `${slug || 'index'}.md`,
+    ...extra,
+  };
+}
 
 describe('pagesOf', () => {
   it('reconstruye Page desde los datos de la colección', () => {
@@ -111,7 +113,9 @@ describe('sitemapXml: página de privacidad', () => {
 });
 
 describe('sitemapIndexXml', () => {
-  const locs = (xml: string) => [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+  function locs(xml: string) {
+    return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+  }
 
   it('apunta primero a las páginas propias, bajo la base, y luego a los incluidos', () => {
     const xml = sitemapIndexXml({ ...cfg, sitemap: { include: ['/lib/sitemap.xml'] } });

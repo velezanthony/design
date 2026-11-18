@@ -2,15 +2,17 @@ import { describe, expect, it } from 'vitest';
 import type { Page } from '../content/discovery';
 import { collectImageRefs, imageErrors, isRemoteImage, publicImagePath } from './image-refs';
 
-const page = (sourcePath: string, seo?: Page['seo']): Page => ({
-  slug: 'x',
-  locale: 'en',
-  title: 'X',
-  kind: 'native',
-  sourcePath,
-  body: '',
-  ...(seo && { seo }),
-});
+function page(sourcePath: string, seo?: Page['seo']): Page {
+  return {
+    slug: 'x',
+    locale: 'en',
+    title: 'X',
+    kind: 'native',
+    sourcePath,
+    body: '',
+    ...(seo && { seo }),
+  };
+}
 
 describe('collectImageRefs', () => {
   it('reúne la imagen de la base y las de cada página con su procedencia', () => {

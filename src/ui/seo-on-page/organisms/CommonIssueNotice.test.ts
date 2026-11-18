@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import CommonIssueNotice from './CommonIssueNotice.astro';
 
-const notice = (extra: object = {}) =>
-  render(CommonIssueNotice, {
+function notice(extra: object = {}) {
+  return render(CommonIssueNotice, {
     issue: { kind: 'description-inherited', severity: 'info', pages: 38, entries: 75, ...extra },
     overviewHref: '/o/',
   });
+}
 
 describe('CommonIssueNotice', () => {
   it('dice el tipo, a cuántas páginas y entradas afecta, y por qué no se repite', async () => {

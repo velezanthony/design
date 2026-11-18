@@ -13,21 +13,22 @@ import {
 
 const colors = { light: '#fcfefe', dark: '#0e1111' };
 
-const memory = (initial: Record<string, string> = {}): Storage => {
+function memory(initial: Record<string, string> = {}): Storage {
   const items = new Map(Object.entries(initial));
   return {
     getItem: (key: string) => items.get(key) ?? null,
     setItem: (key: string, value: string) => void items.set(key, value),
   } as Storage;
-};
+}
 
-const page = () =>
-  parseHTML(
+function page() {
+  return parseHTML(
     '<!doctype html><html><head>' +
       '<meta name="theme-color" content="#fcfefe" media="(prefers-color-scheme: light)">' +
       '<meta name="theme-color" content="#0e1111" media="(prefers-color-scheme: dark)">' +
       '</head><body><button data-theme-toggle></button><button data-theme-toggle></button></body></html>',
   ).document;
+}
 
 describe('parseTheme', () => {
   it.each(['dark', 'light'])('acepta %s', (value) => {
@@ -61,7 +62,9 @@ describe('nextTheme', () => {
 
 /* El botón enciende y apaga el modo oscuro: `aria-pressed` es si está encendido. */
 describe('syncToggle', () => {
-  const button = () => parseHTML('<button></button>').document.querySelector('button')!;
+  function button() {
+    return parseHTML('<button></button>').document.querySelector('button')!;
+  }
 
   it.each([true, false])('con modo oscuro %s', (dark) => {
     const b = button();
@@ -86,7 +89,7 @@ describe('syncThemeColor', () => {
 /* Se ejecuta en línea antes del pintado: sin él la página se pinta con el tema del sistema y
    luego salta. No puede importar nada, por eso es una cadena y se prueba ejecutándola. */
 describe('themeBootstrapScript', () => {
-  const run = (storage: Storage | 'throws') => {
+  function run(storage: Storage | 'throws') {
     const document = page();
     const localStorage =
       storage === 'throws'
@@ -98,7 +101,7 @@ describe('themeBootstrapScript', () => {
         : storage;
     new Function('document', 'localStorage', themeBootstrapScript(colors))(document, localStorage);
     return document;
-  };
+  }
 
   it('aplica el tema guardado y el color de la barra', () => {
     const document = run(memory({ theme: 'dark' }));
@@ -131,7 +134,7 @@ describe('themeBootstrapScript', () => {
 });
 
 describe('initTheme', () => {
-  const setup = (
+  function setup(
     opts: {
       storage?: Storage;
       systemDark?: boolean;
@@ -139,7 +142,7 @@ describe('initTheme', () => {
       api?: boolean;
       reduced?: boolean;
     } = {},
-  ) => {
+  ) {
     const document = page();
     const seen: { kind?: string; x: string; y: string; r: string }[] = [];
     if (opts.api) {
@@ -165,9 +168,11 @@ describe('initTheme', () => {
     const storage = opts.storage ?? memory();
     initTheme({ doc: document, storage, system, colors, motion: { matches: !!opts.reduced } });
     const buttons = [...document.querySelectorAll('[data-theme-toggle]')];
-    const click = (i = 0) => buttons[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+    function click(i = 0) {
+      return buttons[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+    }
     return { document, storage, buttons, click, system, listeners, seen };
-  };
+  }
 
   it('refleja el tema del sistema en aria-pressed al arrancar', () => {
     const { buttons } = setup({ systemDark: true });

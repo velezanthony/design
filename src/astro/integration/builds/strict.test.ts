@@ -5,7 +5,9 @@ import { buildFailingCase } from '../../../testing/case';
    y un mensaje que diga qué archivo o campo arreglar. Comparten un esqueleto (`testing/case.ts`). */
 
 const bilingual = { name: 'Strict', locales: ['en', 'es'] };
-const page = (title: string, body = 'Texto.') => `# ${title}\n\n${body}\n`;
+function page(title: string, body = 'Texto.') {
+  return `# ${title}\n\n${body}\n`;
+}
 
 describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('sufijo de idioma no configurado: x.fr.md con locales en y es', async () => {

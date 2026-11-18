@@ -2,14 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import IssueBadge from './IssueBadge.astro';
 
-const issue = (extra: Record<string, unknown> = {}) => ({
-  kind: 'title-too-long',
-  severity: 'warning',
-  slug: 'guide',
-  locale: 'en',
-  message: 'm',
-  ...extra,
-});
+function issue(extra: Record<string, unknown> = {}) {
+  return {
+    kind: 'title-too-long',
+    severity: 'warning',
+    slug: 'guide',
+    locale: 'en',
+    message: 'm',
+    ...extra,
+  };
+}
 
 describe('IssueBadge', () => {
   it('dice el problema y lo medido contra su límite («72 / 60»)', async () => {

@@ -3,15 +3,17 @@ import { seoPage } from '../../../../testing/seo-page';
 import type { SeoPage } from '../../tree/types';
 import { indexing } from './indexing';
 
-const entry = (slug: string, locale = 'en', over: Partial<SeoPage['meta']> = {}): SeoPage => {
+function entry(slug: string, locale = 'en', over: Partial<SeoPage['meta']> = {}): SeoPage {
   const base = seoPage({ slug, locale });
   return {
     ...base,
     meta: { ...base.meta, canonical: `/${locale}/${slug}/`, ...over },
     locales: [{ locale, status: 'present', url: `/${locale}/${slug}/` }],
   };
-};
-const noindex = (slug: string, locale = 'en') => entry(slug, locale, { noindex: true });
+}
+function noindex(slug: string, locale = 'en') {
+  return entry(slug, locale, { noindex: true });
+}
 
 const base = { sitemapUrls: 0, fallbacks: 0 };
 

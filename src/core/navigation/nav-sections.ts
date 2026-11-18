@@ -3,8 +3,9 @@ import { isNavPage, isNavSection, type NavItem, type NavSection } from '../confi
 import { HOME_SIDEBAR_SLUG, sidebarSlugRefs, toSidebarSlug } from './sidebar-slugs';
 
 /** ¿Pertenece `slug` a la carpeta `dir`? Es la propia carpeta o cuelga de ella: `users-extra` no. */
-export const slugInDir = (dir: string, slug: string): boolean =>
-  slug === dir || slug.startsWith(`${dir}/`);
+export function slugInDir(dir: string, slug: string): boolean {
+  return slug === dir || slug.startsWith(`${dir}/`);
+}
 
 /** Posición en `nav` de la sección a la que pertenece `slug`, o `-1` si no pertenece a ninguna. */
 export function sectionIndexOf(nav: readonly NavItem[] | undefined, slug: string): number {

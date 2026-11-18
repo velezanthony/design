@@ -6,22 +6,27 @@ import { resolvePolicies } from '../../i18n/translation-policy';
 import { navigationLinks } from './navigation';
 
 const url = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' } as const;
-const page = (slug: string, locale = 'en'): Page => ({
-  slug,
-  locale,
-  title: slug || 'Home',
-  kind: 'native',
-  sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
-  body: '',
-});
-const links = (pages: Page[], user: Partial<Parameters<typeof resolveConfig>[0]> = {}) => {
+function page(slug: string, locale = 'en'): Page {
+  return {
+    slug,
+    locale,
+    title: slug || 'Home',
+    kind: 'native',
+    sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
+    body: '',
+  };
+}
+function links(pages: Page[], user: Partial<Parameters<typeof resolveConfig>[0]> = {}) {
   const config = resolveConfig({ ...user, name: 'X', locales: ['en', 'es'] });
   const availability = buildAvailability(pages, url);
   const { policies } = resolvePolicies(pages, config.translations.missing);
   return navigationLinks(pages, config, { url, availability, policies });
-};
-const targets = (map: ReturnType<typeof links>, slug: string, locale = 'en') =>
-  (map.get(`${slug}\u0000${locale}`) ?? []).map((link) => `${link.slug}:${link.locale}`).sort();
+}
+function targets(map: ReturnType<typeof links>, slug: string, locale = 'en') {
+  return (map.get(`${slug}\u0000${locale}`) ?? [])
+    .map((link) => `${link.slug}:${link.locale}`)
+    .sort();
+}
 
 describe('navigationLinks', () => {
   it('sin `nav`, la barra lateral de cada página enlaza a todas las demás de su idioma', () => {

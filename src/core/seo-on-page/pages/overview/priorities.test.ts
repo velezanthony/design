@@ -3,24 +3,29 @@ import { seoPage } from '../../../../testing/seo-page';
 import { IssueKind, IssueSeverity, type Issue, type SeoPage } from '../../tree/types';
 import { fixPriorities } from './priorities';
 
-const issue = (kind: IssueKind, severity: IssueSeverity, extra: Partial<Issue> = {}): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-  ...extra,
-});
+function issue(kind: IssueKind, severity: IssueSeverity, extra: Partial<Issue> = {}): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+    ...extra,
+  };
+}
 
-const entry = (slug: string, issues: Issue[], locale = 'en'): SeoPage =>
-  seoPage({ slug, locale, issues });
+function entry(slug: string, issues: Issue[], locale = 'en'): SeoPage {
+  return seoPage({ slug, locale, issues });
+}
 
 const input = {
   locales: ['en', 'es'],
   inspector: ({ slug, locale }: { slug: string; locale: string }) => `/i/${slug}/${locale}`,
 };
 
-const rank = (pages: SeoPage[]) => fixPriorities({ pages }, input).map((p) => p.kind);
+function rank(pages: SeoPage[]) {
+  return fixPriorities({ pages }, input).map((p) => p.kind);
+}
 
 describe('fixPriorities', () => {
   it('sin incidencias no hay nada que arreglar', () => {

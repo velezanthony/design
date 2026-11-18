@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../testing/render';
 import Pagination from './Pagination.astro';
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  page: 2,
-  pages: 3,
-  href: (page: number) => `/t/?page=${page}`,
-  ...extra,
-});
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    page: 2,
+    pages: 3,
+    href: (page: number) => `/t/?page=${page}`,
+    ...extra,
+  };
+}
 
 describe('Pagination', () => {
   it('con una sola página sigue ahí: la 1 como actual y anterior y siguiente deshabilitados', async () => {

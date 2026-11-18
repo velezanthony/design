@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { withTransition } from './transition';
 
 /** Un documento cuyo `startViewTransition` ejecuta el callback y acaba al instante. */
-const page = (withApi: boolean) => {
+function page(withApi: boolean) {
   const { document } = parseHTML('<!doctype html><html><body></body></html>');
   const doc = document;
   const seen: { kind?: string; vars: Record<string, string> }[] = [];
@@ -16,7 +16,7 @@ const page = (withApi: boolean) => {
   });
   if (withApi) Object.assign(doc, { startViewTransition: start });
   return { doc, start, seen };
-};
+}
 
 const motion = { matches: false };
 const reduced = { matches: true };

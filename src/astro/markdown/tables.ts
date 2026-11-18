@@ -5,8 +5,8 @@ import { docsPlugin, type MarkdownEnv } from './env';
  * Envuelve cada tabla GFM en un contenedor que se desplaza en horizontal por su cuenta: la
  * tabla ancha no desborda la página. Es enfocable para poder desplazarla con el teclado.
  */
-export const scrollableTables = (env: MarkdownEnv) =>
-  docsPlugin(env, () =>
+export function scrollableTables(env: MarkdownEnv) {
+  return docsPlugin(env, () =>
     defineMdastPlugin({
       name: 'scrollable-tables',
       table(node, ctx) {
@@ -21,3 +21,4 @@ export const scrollableTables = (env: MarkdownEnv) =>
       },
     }),
   );
+}

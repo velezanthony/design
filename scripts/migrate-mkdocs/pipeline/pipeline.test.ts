@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { runPipeline } from './pipeline';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
+function md(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
 
 const page = md(
   '---',

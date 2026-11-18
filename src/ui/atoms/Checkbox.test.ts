@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../testing/render';
 import Checkbox from './Checkbox.astro';
 
-const checkbox = async (props: Record<string, unknown> = {}, label = 'Errores') =>
-  render(Checkbox, { name: 'severity', value: 'error', ...props }, { default: label });
+async function checkbox(props: Record<string, unknown> = {}, label = 'Errores') {
+  return render(Checkbox, { name: 'severity', value: 'error', ...props }, { default: label });
+}
 
 describe('Checkbox', () => {
   it('es un input checkbox dentro de su etiqueta, así que pulsar el texto lo marca', async () => {
@@ -66,8 +67,9 @@ describe('Checkbox', () => {
   });
 
   describe('variante chip', () => {
-    const chip = async (props: Record<string, unknown> = {}) =>
-      checkbox({ variant: 'chip', ...props });
+    async function chip(props: Record<string, unknown> = {}) {
+      return checkbox({ variant: 'chip', ...props });
+    }
 
     it('sigue siendo un checkbox con su name y value, dentro de su etiqueta', async () => {
       const input = (await chip({ checked: true })).querySelector('input')!;

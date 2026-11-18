@@ -24,10 +24,12 @@ afterEach(() => {
 });
 
 const site: RouteOptions = { locales: ['en', 'es'], defaultLocale: 'en' };
-const files = (pages: URL, options: RouteOptions = site) =>
-  routeOverrides(pages, options).map(({ file }) => file);
-const routes = (pages: URL, options: RouteOptions = site) =>
-  routeOverrides(pages, options).map(({ route }) => route);
+function files(pages: URL, options: RouteOptions = site) {
+  return routeOverrides(pages, options).map(({ file }) => file);
+}
+function routes(pages: URL, options: RouteOptions = site) {
+  return routeOverrides(pages, options).map(({ route }) => route);
+}
 
 describe('routeOverrides', () => {
   it('sin src/pages/ no hay nada que sustituya', () => {

@@ -247,8 +247,9 @@ export const DocsConfigSchema = z
   })
   .superRefine((config, ctx) => {
     const locales = config.locales ?? ['en'];
-    const issue = (path: (string | number)[], message: string) =>
-      ctx.addIssue({ code: 'custom', path, message });
+    function issue(path: (string | number)[], message: string) {
+      return ctx.addIssue({ code: 'custom', path, message });
+    }
 
     locales.forEach((locale, index) => {
       if (!(locale in defaultStrings)) {
@@ -358,8 +359,9 @@ function validateNavShape(
 }
 
 /** Dos carpetas se solapan si son la misma o una cuelga de la otra (`users` y `users/guide`). */
-const overlaps = (a: string, b: string): boolean =>
-  a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+function overlaps(a: string, b: string): boolean {
+  return a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+}
 
 const HTTPS = 'Debe ser una URL https (https://…).';
 

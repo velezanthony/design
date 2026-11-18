@@ -111,7 +111,9 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
   const { locales, defaultLocale, common, severities, inspector } = input;
   const byLocale = new Map(entries.map((entry) => [entry.locale, entry]));
   const main = mainEntry(entries, locales, defaultLocale);
-  const own = (entry: SeoPage) => ownIssues(entry, common, severities);
+  function own(entry: SeoPage) {
+    return ownIssues(entry, common, severities);
+  }
 
   const details = locales.map((locale): LocaleDetail => {
     const entry = byLocale.get(locale);
@@ -167,7 +169,9 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
  */
 export function pageRows(entries: readonly SeoPage[], input: RowsInput): PageRow[] {
   const bySlug = groupBySlug(entries);
-  const rank = (row: PageRow) => (row.severity === undefined ? 3 : SEVERITY_RANK[row.severity]);
+  function rank(row: PageRow) {
+    return row.severity === undefined ? 3 : SEVERITY_RANK[row.severity];
+  }
   return [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))
     .sort((a, b) => rank(a) - rank(b));

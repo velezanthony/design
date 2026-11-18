@@ -97,13 +97,15 @@ export interface SidebarScrollEnv {
  * lg, o con el raíl plegado, no guarda: lo ya guardado se conserva.
  */
 export function initSidebarScroll({ doc, storage, win, rail }: SidebarScrollEnv): void {
-  const box = doc.querySelector<HTMLElement>('[data-docs-sidebar-scroll]');
-  if (!box) return;
+  const foundBox = doc.querySelector<HTMLElement>('[data-docs-sidebar-scroll]');
+  if (!foundBox) return;
+  /* `save` es una declaración y no hereda el descarte de `null`: se fija en una constante. */
+  const box = foundBox;
 
-  const save = () => {
+  function save() {
     if (rail?.matches === false || doc.documentElement.dataset.left === 'collapsed') return;
     safeSet(storage, SIDEBAR_SCROLL_KEY, String(Math.round(box.scrollTop)));
-  };
+  }
 
   box.addEventListener('click', (event) => {
     if ((event.target as Element | null)?.closest?.('a')) save();

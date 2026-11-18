@@ -235,7 +235,7 @@ describe('loadSeoTree: lo que el loader guardó del cuerpo', () => {
 });
 
 describe('loadSiteFiles', () => {
-  const withPublic = async (files: string[], run: (publicDir: string) => Promise<void>) => {
+  async function withPublic(files: string[], run: (publicDir: string) => Promise<void>) {
     const dir = await mkdtemp(path.join(tmpdir(), 'seo-public-'));
     try {
       for (const file of files) await writeFile(path.join(dir, file), 'x');
@@ -243,9 +243,10 @@ describe('loadSiteFiles', () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
-  };
-  const byId = (files: Awaited<ReturnType<typeof loadSiteFiles>>, id: string) =>
-    files.find((file) => file.id === id);
+  }
+  function byId(files: Awaited<ReturnType<typeof loadSiteFiles>>, id: string) {
+    return files.find((file) => file.id === id);
+  }
 
   it('robots.txt y llms.txt salen de lo que hay en public/ del consumidor', async () => {
     await withPublic(['robots.txt'], async (publicDir) => {

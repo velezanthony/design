@@ -13,10 +13,12 @@ export interface LayoutState {
 const PANEL_STATES: readonly PanelState[] = ['open', 'collapsed'];
 const WIDTHS: readonly LayoutWidth[] = ['reading', 'full'];
 
-const panelOf = (value: unknown): PanelState | undefined =>
-  PANEL_STATES.find((state) => state === value);
-const widthOf = (value: unknown): LayoutWidth | undefined =>
-  WIDTHS.find((width) => width === value);
+function panelOf(value: unknown): PanelState | undefined {
+  return PANEL_STATES.find((state) => state === value);
+}
+function widthOf(value: unknown): LayoutWidth | undefined {
+  return WIDTHS.find((width) => width === value);
+}
 
 /**
  * Lo guardado, campo a campo: un valor ausente, desconocido o de otro tipo cae al de `fallback`
@@ -111,7 +113,7 @@ export function initLayout({ doc, storage, rail }: LayoutEnv): void {
   const widths = [...doc.querySelectorAll<HTMLElement>('[data-layout-width]')];
   if (!toggles.length && !widths.length) return;
 
-  const apply = (state: LayoutState) => {
+  function apply(state: LayoutState) {
     root.dataset.left = state.left;
     root.dataset.right = state.right;
     root.dataset.width = state.width;
@@ -131,13 +133,13 @@ export function initLayout({ doc, storage, rail }: LayoutEnv): void {
     for (const button of widths) {
       button.setAttribute('aria-pressed', String(button.dataset.layoutWidth === state.width));
     }
-  };
+  }
 
-  const change = (next: (state: LayoutState) => LayoutState) => {
+  function change(next: (state: LayoutState) => LayoutState) {
     const state = next(readLayout(root));
     apply(state);
     safeSet(storage, LAYOUT_KEY, serializeLayout(state));
-  };
+  }
 
   for (const button of toggles) {
     button.addEventListener('click', () =>

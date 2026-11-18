@@ -2,33 +2,40 @@ import { describe, expect, it } from 'vitest';
 import type { PageLink, SeoPageFacts } from '../tree/types';
 import { analyzeLinks } from './links';
 
-const facts = (
+function facts(
   slug: string,
   options: { links?: PageLink[]; noindex?: boolean; locale?: string } = {},
-): SeoPageFacts => ({
-  slug,
-  locale: options.locale ?? 'en',
-  title: slug,
-  kind: 'native',
-  sourcePath: `${slug || 'index'}.md`,
-  meta: {
+): SeoPageFacts {
+  return {
+    slug,
+    locale: options.locale ?? 'en',
     title: slug,
-    titleLength: 30,
-    descriptionSource: 'page',
-    ogTitle: slug,
-    ogImageSource: 'none',
-    canonical: `/${slug}/`,
-    noindex: options.noindex ?? false,
-  },
-  headings: [],
-  schemas: [],
-  locales: [],
-  ...('links' in options ? { links: options.links } : { links: [] }),
-});
-const to = (slug: string, locale = 'en'): PageLink => ({ slug, locale });
-const kinds = (issues: { kind: string }[]) => issues.map((issue) => issue.kind);
-const forPage = (issues: ReturnType<typeof analyzeLinks>, slug: string) =>
-  issues.filter((issue) => issue.slug === slug);
+    kind: 'native',
+    sourcePath: `${slug || 'index'}.md`,
+    meta: {
+      title: slug,
+      titleLength: 30,
+      descriptionSource: 'page',
+      ogTitle: slug,
+      ogImageSource: 'none',
+      canonical: `/${slug}/`,
+      noindex: options.noindex ?? false,
+    },
+    headings: [],
+    schemas: [],
+    locales: [],
+    ...('links' in options ? { links: options.links } : { links: [] }),
+  };
+}
+function to(slug: string, locale = 'en'): PageLink {
+  return { slug, locale };
+}
+function kinds(issues: { kind: string }[]) {
+  return issues.map((issue) => issue.kind);
+}
+function forPage(issues: ReturnType<typeof analyzeLinks>, slug: string) {
+  return issues.filter((issue) => issue.slug === slug);
+}
 
 describe('analyzeLinks: enlaces a páginas noindex', () => {
   it('una página indexable que enlaza a una noindex: aviso con la noindex como relacionada', () => {

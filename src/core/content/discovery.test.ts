@@ -3,11 +3,15 @@ import { resolveConfig } from '../config/resolve';
 import { DocsErrors } from '../errors';
 import { discoverPages, externalPath, type SourceFile } from './discovery';
 
-const cfg = (extra: object = {}) => resolveConfig({ name: 'X', locales: ['en', 'es'], ...extra });
-const native = (path: string, body = `# ${path}`, frontmatter?: SourceFile['frontmatter']) =>
-  ({ kind: 'native', path, body, frontmatter }) satisfies SourceFile;
-const external = (path: string, body = `# ${path}`) =>
-  ({ kind: 'external', path, body }) satisfies SourceFile;
+function cfg(extra: object = {}) {
+  return resolveConfig({ name: 'X', locales: ['en', 'es'], ...extra });
+}
+function native(path: string, body = `# ${path}`, frontmatter?: SourceFile['frontmatter']) {
+  return { kind: 'native', path, body, frontmatter } satisfies SourceFile;
+}
+function external(path: string, body = `# ${path}`) {
+  return { kind: 'external', path, body } satisfies SourceFile;
+}
 
 function errorsOf(run: () => unknown): string[] {
   try {

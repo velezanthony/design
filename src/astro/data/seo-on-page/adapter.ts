@@ -138,7 +138,9 @@ export async function loadSiteFiles(
   client: ClientPage[] = [],
 ): Promise<SiteFile[]> {
   const publicDir = new URL(config.publicDir);
-  const exists = async (file: string) => (await readPublic(publicDir, file)) !== undefined;
+  async function exists(file: string) {
+    return (await readPublic(publicDir, file)) !== undefined;
+  }
   const sitemap = sitemapXml(docs, config, clientSitemapEntries(client, new URL(config.site)));
   return siteFiles({
     url: urlPolicyOf(config, config.defaultLocale),

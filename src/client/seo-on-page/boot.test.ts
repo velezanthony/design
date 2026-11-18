@@ -2,8 +2,9 @@ import { parseHTML } from 'linkedom';
 import { describe, expect, it, vi } from 'vitest';
 import { bootPanel } from './boot';
 
-const page = (html: string) =>
-  parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+function page(html: string) {
+  return parseHTML(`<!doctype html><html><body>${html}</body></html>`).document;
+}
 const clipboard = { writeText: vi.fn(async () => {}) };
 
 describe('bootPanel', () => {

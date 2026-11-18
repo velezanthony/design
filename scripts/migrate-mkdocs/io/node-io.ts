@@ -4,11 +4,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { InPlaceIo } from '../modes/in-place.ts';
 
-const walk = (dir: string, root: string): string[] =>
-  fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+function walk(dir: string, root: string): string[] {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
     return entry.isDirectory() ? walk(full, root) : [path.relative(root, full)];
   });
+}
 
 export function nodeInPlaceIo(repo: string): InPlaceIo {
   const docs = path.join(repo, 'docs');

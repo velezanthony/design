@@ -7,22 +7,25 @@ import { createVirtualData } from '../virtual/data';
 import { docRoutes, docView, type DocRoute } from './doc';
 import type { DocData } from '../loader/schema';
 
-const site = (user: Partial<DocsUserConfig> = {}) =>
-  createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
+function site(user: Partial<DocsUserConfig> = {}) {
+  return createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
     base: '/repo',
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
     publicDir: 'file:///site/public/',
   });
+}
 
-const doc = (slug: string, locale: string, extra: Partial<DocData> = {}): DocData => ({
-  slug,
-  locale,
-  title: `${slug || 'Home'} ${locale}`,
-  sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
-  ...extra,
-});
+function doc(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
+  return {
+    slug,
+    locale,
+    title: `${slug || 'Home'} ${locale}`,
+    sourcePath: `${slug || 'index'}${locale === 'en' ? '' : `.${locale}`}.md`,
+    ...extra,
+  };
+}
 
 const all = [
   doc('', 'en'),
@@ -32,8 +35,9 @@ const all = [
   doc('only-en', 'en', { order: 3 }),
 ];
 
-const route = (routes: DocRoute[], slug: string, locale: string) =>
-  routes.find((r) => r.slug === slug && r.locale === locale)!;
+function route(routes: DocRoute[], slug: string, locale: string) {
+  return routes.find((r) => r.slug === slug && r.locale === locale)!;
+}
 
 describe('docRoutes', () => {
   it('una ruta por página real; el idioma por defecto va sin prefijo y la portada es undefined', () => {
@@ -91,8 +95,9 @@ describe('docView: página real', () => {
   });
 
   it('head: título, canonical absoluto, hreflang y og:locale', () => {
-    const find = (tag: string, key: string, value: string) =>
-      view.head.find((h) => h.tag === tag && h.attrs[key] === value);
+    function find(tag: string, key: string, value: string) {
+      return view.head.find((h) => h.tag === tag && h.attrs[key] === value);
+    }
     expect(view.head[0]).toMatchObject({ tag: 'title' });
     expect(find('link', 'rel', 'canonical')!.attrs['href']).toBe('https://x.dev/repo/es/guide/');
     expect(find('link', 'hreflang', 'en')).toBeDefined();
@@ -173,10 +178,13 @@ describe('docView: ruta de reserva', () => {
 
 describe('docView: dimensiones de la imagen', () => {
   const cfg = site({ seo: { image: { src: '/og.png', alt: 'Card' } } });
-  const head = (sizes?: Map<string, { width: number; height: number }>) =>
-    docView({ route: route(docRoutes(all, cfg), 'guide', 'es'), data: all, cfg, sizes }).head;
-  const content = (tags: ReturnType<typeof head>, property: string) =>
-    tags.find((h) => h.attrs['property'] === property)?.attrs['content'];
+  function head(sizes?: Map<string, { width: number; height: number }>) {
+    return docView({ route: route(docRoutes(all, cfg), 'guide', 'es'), data: all, cfg, sizes })
+      .head;
+  }
+  function content(tags: ReturnType<typeof head>, property: string) {
+    return tags.find((h) => h.attrs['property'] === property)?.attrs['content'];
+  }
 
   it('og:image:width/height salen de los tamaños leídos', () => {
     const tags = head(new Map([['/og.png', { width: 1200, height: 630 }]]));
@@ -210,12 +218,14 @@ describe('docView: nav con secciones', () => {
     ],
     sidebar: ['index', 'showcase'],
   });
-  const view = (slug: string) =>
-    docView({ route: route(docRoutes(pages, cfg), slug, 'en'), data: pages, cfg });
+  function view(slug: string) {
+    return docView({ route: route(docRoutes(pages, cfg), slug, 'en'), data: pages, cfg });
+  }
 
   it('la barra lateral es la de la sección de la página', () => {
-    const slugs = (slug: string) =>
-      view(slug).sidebar.map((node) => ('slug' in node ? node.slug : node.label));
+    function slugs(slug: string) {
+      return view(slug).sidebar.map((node) => ('slug' in node ? node.slug : node.label));
+    }
     expect(slugs('users/b')).toEqual(['users/a', 'users/b', 'users/c']);
     expect(slugs('contributors/x')).toEqual(['contributors/x']);
     expect(slugs('showcase')).toEqual(['', 'showcase']);
@@ -258,8 +268,9 @@ describe('docView: footer', () => {
       links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }],
     },
   });
-  const footerOf = (locale: string) =>
-    docView({ route: route(docRoutes(pages, cfg), '', locale), data: pages, cfg }).footer;
+  function footerOf(locale: string) {
+    return docView({ route: route(docRoutes(pages, cfg), '', locale), data: pages, cfg }).footer;
+  }
 
   it('entrega licencia, autor por defecto y los enlaces ya resueltos para el idioma', () => {
     const footer = footerOf('es');
@@ -283,8 +294,8 @@ describe('docView: footer', () => {
 });
 
 describe('docView: analítica y privacidad', () => {
-  const withEnv = (envValue: string | undefined, user: Partial<DocsUserConfig> = {}) =>
-    createVirtualData(
+  function withEnv(envValue: string | undefined, user: Partial<DocsUserConfig> = {}) {
+    return createVirtualData(
       applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), envValue),
       {
         base: '/repo',
@@ -294,6 +305,7 @@ describe('docView: analítica y privacidad', () => {
         publicDir: 'file:///site/public/',
       },
     );
+  }
 
   it('sin analítica no hay gtmId ni enlace de privacidad', () => {
     const view = docView({

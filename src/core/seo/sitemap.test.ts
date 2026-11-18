@@ -18,7 +18,9 @@ import {
 
 const site = new URL('https://x.dev');
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const locs = (xml: string) => [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+function locs(xml: string) {
+  return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+}
 
 describe('buildSitemap', () => {
   const av: Availability = new Map([
@@ -57,10 +59,13 @@ describe('buildSitemap', () => {
   });
 
   it('exactamente 50 000 URLs pasan y 50 001 lanzan con el número y el límite', () => {
-    const many = (count: number): Availability =>
-      new Map(Array.from({ length: count }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]));
+    function many(count: number): Availability {
+      return new Map(Array.from({ length: count }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]));
+    }
     expect(locs(buildSitemap(many(50_000), site))).toHaveLength(50_000);
-    const attempt = () => buildSitemap(many(50_001), site);
+    function attempt() {
+      return buildSitemap(many(50_001), site);
+    }
     expect(attempt).toThrow(DocsError);
     expect(attempt).toThrow(/50001.*50000|50 001.*50 000/);
   });
@@ -144,7 +149,9 @@ describe('sitemapIncludes', () => {
   });
 
   it('una URL de otro dominio falla nombrando `sitemap.include[i]`', () => {
-    const run = () => sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+    function run() {
+      return sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+    }
     expect(run).toThrow(DocsError);
     expect(run).toThrow(/sitemap\.include\[1\].*otro\.dev/);
   });
@@ -157,12 +164,14 @@ describe('sitemapIncludes', () => {
 
 describe('clientSitemapEntries', () => {
   const portfolio = new URL('https://x.dev');
-  const client = (path: string, head: Partial<HeadFacts> = {}): ClientPage => ({
-    path,
-    pattern: path,
-    entrypoint: 'src/pages/x.astro',
-    head: { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [], ...head },
-  });
+  function client(path: string, head: Partial<HeadFacts> = {}): ClientPage {
+    return {
+      path,
+      pattern: path,
+      entrypoint: 'src/pages/x.astro',
+      head: { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [], ...head },
+    };
+  }
 
   it('cada página indexable con su URL publicada y sus idiomas tal como los declara', () => {
     const alternates = [

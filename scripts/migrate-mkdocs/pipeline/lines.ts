@@ -3,8 +3,12 @@
 /** Apertura (o cierre) de un fence de código: tres o más `` ` `` o `~`. */
 export const FENCE = /^\s*(`{3,}|~{3,})/;
 
-export const indentOf = (line: string) => line.length - line.trimStart().length;
-export const unescapeTitle = (title: string) => title.replace(/\\(["\\])/g, '$1');
+export function indentOf(line: string) {
+  return line.length - line.trimStart().length;
+}
+export function unescapeTitle(title: string) {
+  return title.replace(/\\(["\\])/g, '$1');
+}
 
 /** Rangos `[inicio, fin)` de los spans de código en línea de la línea. */
 export function codeRanges(line: string): Array<[number, number]> {

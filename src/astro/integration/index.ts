@@ -62,14 +62,19 @@ export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
  * `docs()` (astro.config.mjs) y a `docsLoader()` (content.config.ts). Plan B del test #1: Astro
  * descarta las propiedades extra de la integración, así que el loader no puede leerla de ella.
  */
-export const defineDocsConfig = (config: DocsUserConfig): DocsUserConfig => config;
+export function defineDocsConfig(config: DocsUserConfig): DocsUserConfig {
+  return config;
+}
 
 /** Ruta de un contenedor del paquete (vive en `astro/pages/`, junto a esta carpeta). */
-const route = (file: string) => new URL(`../pages/${file}`, import.meta.url);
+function route(file: string) {
+  return new URL(`../pages/${file}`, import.meta.url);
+}
 
 /** Los `.d.ts` del módulo virtual, tal cual: `injectTypes` los copia al `.astro/` del consumidor. */
-const virtualTypes = () =>
-  readFileSync(new URL('../virtual/virtual.d.ts', import.meta.url), 'utf8');
+function virtualTypes() {
+  return readFileSync(new URL('../virtual/virtual.d.ts', import.meta.url), 'utf8');
+}
 
 /** `applyAnalytics` con los errores del núcleo traducidos a `AstroError`. */
 function applyAnalyticsOrThrow(
@@ -133,7 +138,9 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         const warning = overrideWarning(overrides);
         if (warning) logger.warn(warning);
         const theirs = new Set(overrides.map(({ route }) => `/${route}`));
-        const own = (pattern: string) => !theirs.has(pattern);
+        function own(pattern: string) {
+          return !theirs.has(pattern);
+        }
         ownSitemap = own(`/${sitemap.pages}`);
         published = { site: config.site, base: config.base };
         const fonts = designFonts();

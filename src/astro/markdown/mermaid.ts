@@ -1,8 +1,13 @@
 import { defineMdastPlugin } from 'satteri';
 import { docsPlugin, type MarkdownEnv } from './env';
 
-const escapeHtml = (text: string) =>
-  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 /**
  * Un bloque ```mermaid se convierte en el contenedor `.docs-mermaid[data-mermaid]` con el código
@@ -16,8 +21,8 @@ const escapeHtml = (text: string) =>
  * de las líneas, y en Mermaid la sangría es sintaxis (mindmap, gitGraph…).
  * Va ANTES de `codeLanguages`, que no debe avisar de un lenguaje que Shiki no conoce a propósito.
  */
-export const mermaid = (env: MarkdownEnv) =>
-  docsPlugin(env, () =>
+export function mermaid(env: MarkdownEnv) {
+  return docsPlugin(env, () =>
     defineMdastPlugin({
       name: 'mermaid',
       code(node, ctx) {
@@ -29,3 +34,4 @@ export const mermaid = (env: MarkdownEnv) =>
       },
     }),
   );
+}

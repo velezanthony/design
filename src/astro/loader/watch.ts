@@ -11,7 +11,7 @@ export function createReloader(
 ): () => Promise<void> {
   let running: Promise<void> | undefined;
   let pending = false;
-  const loop = async () => {
+  async function loop() {
     do {
       pending = false;
       try {
@@ -21,7 +21,7 @@ export function createReloader(
       }
     } while (pending);
     running = undefined;
-  };
+  }
   return () => {
     if (running) {
       pending = true;

@@ -25,8 +25,13 @@ export function sitemapFiles(include: readonly string[]): { index: boolean; page
 /** Un único `sitemap.xml` admite hasta 50 000 URLs (protocolo sitemaps.org). */
 const SITEMAP_LIMIT = 50_000;
 
-const escapeXml = (text: string) =>
-  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function escapeXml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 /**
  * Sitemap de las páginas REALES indexables, con sus alternates `xhtml:link` por idioma. Las rutas
@@ -42,7 +47,9 @@ export function buildSitemap(
   const indexable = excludeNoindex(av, noindex);
   // Una página del cliente con la URL de una de la librería la sustituye: Astro publica la suya.
   const taken = new Set(extra.map(({ loc }) => loc));
-  const absolute = (href: string) => escapeXml(new URL(href, site).href);
+  function absolute(href: string) {
+    return escapeXml(new URL(href, site).href);
+  }
   const entries: string[] = [];
   for (const available of indexable.values()) {
     const languages = Object.entries(available).filter(
@@ -84,13 +91,14 @@ export interface SitemapEntry {
   alternates: { hreflang: string; href: string }[];
 }
 
-const urlElement = ({ loc, alternates }: SitemapEntry) =>
-  `<url><loc>${escapeXml(loc)}</loc>${alternates
+function urlElement({ loc, alternates }: SitemapEntry) {
+  return `<url><loc>${escapeXml(loc)}</loc>${alternates
     .map(
       ({ hreflang, href }) =>
         `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}"/>`,
     )
     .join('')}</url>`;
+}
 
 /**
  * Las páginas que el cliente añade en `src/pages/`, como entradas del sitemap: las que dice su
@@ -123,8 +131,8 @@ export function appendToSitemap(xml: string, extra: readonly SitemapEntry[]): st
 }
 
 /** Declaración, hoja de estilo, raíz y entradas: lo común al sitemap de páginas y al índice. */
-const xmlDocument = (open: string, entries: string[], close: string) =>
-  [
+function xmlDocument(open: string, entries: string[], close: string) {
+  return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     // Relativa: el sitemap vive en la raíz de `base`, así que resuelve igual con o sin base.
     `<?xml-stylesheet type="text/css" href="${SITEMAP_STYLESHEET_PATH.slice(1)}"?>`,
@@ -133,6 +141,7 @@ const xmlDocument = (open: string, entries: string[], close: string) =>
     close,
     '',
   ].join('\n');
+}
 
 /** El índice de sitemaps: un `<sitemap>` por URL absoluta, en el orden dado. */
 export function buildSitemapIndex(urls: readonly string[]): string {

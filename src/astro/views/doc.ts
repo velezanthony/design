@@ -30,8 +30,9 @@ export interface DocRoute {
   canonical?: string;
 }
 
-const paramOf = (slug: string, locale: Locale, defaultLocale: Locale) =>
-  [locale === defaultLocale ? '' : locale, slug].filter(Boolean).join('/') || undefined;
+function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
+  return [locale === defaultLocale ? '' : locale, slug].filter(Boolean).join('/') || undefined;
+}
 
 /** Todas las rutas del sitio: las páginas reales y, con política `fallback`, las de reserva. */
 export function docRoutes(data: DocData[], cfg: VirtualConfig): DocRoute[] {
@@ -121,8 +122,9 @@ export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): 
   const navContext = navContextOf(site, route.locale, route.slug);
   const sidebar = buildScopedSidebar(navContext);
   const neighbours = prevNext(flatten(sidebar), route.slug);
-  const link = (leaf?: { label: string; href: string }) =>
-    leaf && { label: leaf.label, href: leaf.href };
+  function link(leaf?: { label: string; href: string }) {
+    return leaf && { label: leaf.label, href: leaf.href };
+  }
   const editable = cfg.editUrl !== undefined && original.editPath !== undefined;
   const { prev, next } = { prev: link(neighbours.prev), next: link(neighbours.next) };
 

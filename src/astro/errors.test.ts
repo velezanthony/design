@@ -34,10 +34,11 @@ describe('orAstroError', () => {
   });
 
   it('traduce un error del núcleo con el título dado', () => {
-    const run = () =>
-      orAstroError('Config inválida', () => {
+    function run() {
+      return orAstroError('Config inválida', () => {
         throw new DocsError('x', { file: 'a.md' });
       });
+    }
     expect(run).toThrow(AstroError);
     expect(run).toThrow('Config inválida');
   });

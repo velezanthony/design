@@ -17,16 +17,18 @@ const es = {
   strings: stringsFor('es'),
 };
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  lang: 'en',
-  head,
-  siteName: 'Docs',
-  homeHref: '/repo/',
-  strings: stringsFor('en'),
-  baseUrl: '/repo/',
-  year: 2026,
-  ...extra,
-});
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    lang: 'en',
+    head,
+    siteName: 'Docs',
+    homeHref: '/repo/',
+    strings: stringsFor('en'),
+    baseUrl: '/repo/',
+    year: 2026,
+    ...extra,
+  };
+}
 
 const multi = props({
   others: [es],

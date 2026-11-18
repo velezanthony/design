@@ -4,13 +4,15 @@ import { selectListing } from '../pages/listing/selection';
 import { IssueKind, IssueSeverity, type Issue, type SeoTree } from '../tree/types';
 import { filterScope, localeScope, pageScope, siteScope } from './scope';
 
-const issue = (severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: kind,
-});
+function issue(severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: kind,
+  };
+}
 
 const tree: SeoTree = {
   pages: [
@@ -25,8 +27,9 @@ const tree: SeoTree = {
   ],
 };
 
-const ids = (entries: { slug: string; locale: string }[]) =>
-  entries.map((entry) => `${entry.slug || '/'}:${entry.locale}`);
+function ids(entries: { slug: string; locale: string }[]) {
+  return entries.map((entry) => `${entry.slug || '/'}:${entry.locale}`);
+}
 
 describe('pageScope', () => {
   it('son todos los idiomas de la página, y es de una sola página', () => {
@@ -64,8 +67,9 @@ describe('siteScope', () => {
 });
 
 describe('filterScope', () => {
-  const scope = (query: string) =>
-    filterScope(selectListing(tree, new URLSearchParams(query)), 'lo que sea');
+  function scope(query: string) {
+    return filterScope(selectListing(tree, new URLSearchParams(query)), 'lo que sea');
+  }
 
   it('es lo que enseña la tabla: las páginas que cumplen, con todos sus idiomas', () => {
     const result = scope('');

@@ -10,20 +10,22 @@ import {
   undeclaredMissing,
 } from './translation-policy';
 
-const page = (
+function page(
   slug: string,
   locale: string,
   translations?: MissingTranslation,
   sourcePath = `${slug}${locale === 'en' ? '' : `.${locale}`}.md`,
-): Page => ({
-  slug,
-  locale,
-  title: slug,
-  kind: 'native',
-  body: '',
-  sourcePath,
-  ...(translations ? { translations } : {}),
-});
+): Page {
+  return {
+    slug,
+    locale,
+    title: slug,
+    kind: 'native',
+    body: '',
+    sourcePath,
+    ...(translations ? { translations } : {}),
+  };
+}
 
 describe('MissingTranslation', () => {
   it('es un objeto as const con los tres valores del YAML', () => {

@@ -4,7 +4,7 @@ import { resolveConfig } from '../../core/config/resolve';
 import { createVirtualData } from '../virtual/data';
 import { privacyRoutes, privacyView } from './privacy';
 
-const site = (privacy: object = { page: true }, extra: object = {}) => {
+function site(privacy: object = { page: true }, extra: object = {}) {
   const resolved = resolveConfig({
     name: 'Docs',
     locales: ['es', 'en'],
@@ -25,7 +25,7 @@ const site = (privacy: object = { page: true }, extra: object = {}) => {
       publicDir: 'file:///site/public/',
     },
   );
-};
+}
 
 describe('privacyRoutes', () => {
   it('el idioma por defecto sin prefijo y el resto bajo [locale]', () => {

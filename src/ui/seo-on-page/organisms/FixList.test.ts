@@ -2,21 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import FixList from './FixList.astro';
 
-const block = (overrides = {}) => ({
-  issue: {
-    kind: 'duplicate-title',
-    severity: 'warning',
-    slug: 'guide',
-    locale: 'en',
-    message: 'Otra página publica el mismo título.',
-    fix: 'Cambia `seo.title` en `guide.md`.',
-  },
-  certainty: 'rule',
-  limit: undefined,
-  verify: 'Este aviso desaparece aquí.',
-  related: [],
-  ...overrides,
-});
+function block(overrides = {}) {
+  return {
+    issue: {
+      kind: 'duplicate-title',
+      severity: 'warning',
+      slug: 'guide',
+      locale: 'en',
+      message: 'Otra página publica el mismo título.',
+      fix: 'Cambia `seo.title` en `guide.md`.',
+    },
+    certainty: 'rule',
+    limit: undefined,
+    verify: 'Este aviso desaparece aquí.',
+    related: [],
+    ...overrides,
+  };
+}
 
 describe('FixList', () => {
   it('un problema lleva su gravedad, su certeza, el enunciado, el arreglo con el código resaltado y cómo verificarlo', async () => {

@@ -55,7 +55,9 @@ export function buildFooter(source: FooterSource, ctx: NavContext, strings: UiSt
   const { footer, social } = source;
   const { locale } = ctx;
   const defaultLocale = ctx.cfg.defaultLocale;
-  const label = (value: Label) => resolveLabel(value, locale, defaultLocale);
+  function label(value: Label) {
+    return resolveLabel(value, locale, defaultLocale);
+  }
 
   const custom = (footer?.links ?? []).flatMap((link): FooterEntry[] => {
     const text = label(link.label);

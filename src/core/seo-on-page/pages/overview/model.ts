@@ -88,7 +88,9 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
   ).length;
 
   const priorities = fixPriorities(tree, { locales, inspector: links.inspector });
-  const kindHref = (kind: IssueKind) => links.pages({ ...EMPTY_FILTERS, kinds: [kind] });
+  function kindHref(kind: IssueKind) {
+    return links.pages({ ...EMPTY_FILTERS, kinds: [kind] });
+  }
 
   const cover = coverage(tree, { locales, defaultLocale, inspector: links.inspector });
   // El sitemap de la ruta suma las páginas de privacidad, que no son del árbol: se restan.

@@ -24,15 +24,21 @@ function dist(files: Record<string, string>): URL {
   return pathToFileURL(`${root}/`);
 }
 
-const route = (pattern: string, regex: RegExp): SiteRoute => ({
-  pattern,
-  entrypoint: `src/pages${pattern}.astro`,
-  params: [],
-  generate: () => `${pattern}/`,
-  match: (path) => regex.test(path),
-});
-const registry = (routes: SiteRoute[]): ClientRegistry => ({ routes, version: 1 });
-const html = (head = '') => `<html><head><title>x</title>${head}</head><body></body></html>`;
+function route(pattern: string, regex: RegExp): SiteRoute {
+  return {
+    pattern,
+    entrypoint: `src/pages${pattern}.astro`,
+    params: [],
+    generate: () => `${pattern}/`,
+    match: (path) => regex.test(path),
+  };
+}
+function registry(routes: SiteRoute[]): ClientRegistry {
+  return { routes, version: 1 };
+}
+function html(head = '') {
+  return `<html><head><title>x</title>${head}</head><body></body></html>`;
+}
 const docsSitemap = buildSitemap(new Map([['guide', { en: '/guide/' }]]), new URL('https://x.dev'));
 const where = { site: 'https://x.dev', base: '/', pagesFile: 'sitemap.xml' };
 

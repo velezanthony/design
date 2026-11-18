@@ -7,30 +7,33 @@ import HaveTable from './HaveTable.astro';
 type Columns = Extract<ListingTable, { view: 'have' }>['columns'];
 
 const ok = { state: 'ok' } as const;
-const row = (slug: string, cells: Partial<HaveRow['cells']> = {}): HaveRow => ({
-  slug,
-  title: slug,
-  href: `/i/?slug=${slug}&locale=en`,
-  tags: [],
-  cells: {
-    desc: { state: 'site' },
-    schema: { state: 'own', detail: 'WebSite' },
-    og: { state: 'site' },
-    h1: ok,
-    i18n: ok,
-    index: ok,
-    ...cells,
-  },
-});
+function row(slug: string, cells: Partial<HaveRow['cells']> = {}): HaveRow {
+  return {
+    slug,
+    title: slug,
+    href: `/i/?slug=${slug}&locale=en`,
+    tags: [],
+    cells: {
+      desc: { state: 'site' },
+      schema: { state: 'own', detail: 'WebSite' },
+      og: { state: 'site' },
+      h1: ok,
+      i18n: ok,
+      index: ok,
+      ...cells,
+    },
+  };
+}
 
-const columns = (pressed?: string): Columns =>
-  (['desc', 'schema', 'og', 'h1', 'i18n', 'index'] as const).map((column) => ({
+function columns(pressed?: string): Columns {
+  return (['desc', 'schema', 'og', 'h1', 'i18n', 'index'] as const).map((column) => ({
     column,
     pressed: column === pressed,
     href: `/t/?view=have&lacks=${column}`,
     good: column === 'h1' ? 38 : 1,
     total: 38,
   }));
+}
 
 describe('HaveTable', () => {
   it('cada cabecera es un enlace con su recuento «N/M propia»', async () => {
@@ -57,7 +60,9 @@ describe('HaveTable', () => {
       rows: [row('a', { i18n: { state: 'missing', detail: 'es' }, index: { state: 'no' } })],
       columns: columns(),
     });
-    const cell = (col: string) => doc.querySelector(`td[data-col="${col}"]`)!;
+    function cell(col: string) {
+      return doc.querySelector(`td[data-col="${col}"]`)!;
+    }
     expect(cell('desc').getAttribute('data-state')).toBe('site');
     expect(text(cell('desc'))).toContain('del sitio');
     expect(text(cell('schema'))).toContain('WebSite');

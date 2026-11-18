@@ -10,24 +10,27 @@ import type { DocData } from '../../loader/schema';
 import { devHrefs } from './hrefs';
 import { inspectorHeadings, panelView } from './panel';
 
-const site = (user: Partial<DocsUserConfig> = {}) =>
-  createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
+function site(user: Partial<DocsUserConfig> = {}) {
+  return createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
     base: '/repo',
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
     publicDir: 'file:///site/public/',
   });
+}
 
-const doc = (slug: string, locale: string): DocData => ({
-  slug,
-  locale,
-  title: `${slug || 'Home'} ${locale}`,
-  sourcePath: `${slug || 'index'}.md`,
-});
+function doc(slug: string, locale: string): DocData {
+  return {
+    slug,
+    locale,
+    title: `${slug || 'Home'} ${locale}`,
+    sourcePath: `${slug || 'index'}.md`,
+  };
+}
 const data = [doc('', 'en'), doc('guide', 'en')];
 
-const view = (extra: Partial<Parameters<typeof panelView>[0]> = {}) => {
+function view(extra: Partial<Parameters<typeof panelView>[0]> = {}) {
   const cfg = extra.cfg ?? site();
   return panelView({
     cfg,
@@ -37,7 +40,7 @@ const view = (extra: Partial<Parameters<typeof panelView>[0]> = {}) => {
     title: 'Resumen',
     ...extra,
   });
-};
+}
 
 describe('panelView', () => {
   it('el <title> lleva la pantalla y el nombre del panel, y la página nunca se indexa', () => {
@@ -147,7 +150,7 @@ describe('inspectorHeadings', () => {
 });
 
 describe('DocsLayout alimentado por panelView', () => {
-  const page = () => {
+  function page() {
     const cfg = site({ gtmId: 'GTM-ABC123', privacyUrl: '/repo/privacy/' });
     return renderDocument(
       DocsLayout,
@@ -157,7 +160,7 @@ describe('DocsLayout alimentado por panelView', () => {
       },
       { default: '<p>contenido</p>' },
     );
-  };
+  }
 
   it('pinta cabecera, barra lateral con la pantalla actual y el contenido en <main>', async () => {
     const doc = await page();

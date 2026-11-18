@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { checkOutput, findLeftovers, findSnippetStub } from './leftovers';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
-const find = (source: string) => findLeftovers('a.md', source);
+function md(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
+function find(source: string) {
+  return findLeftovers('a.md', source);
+}
 
 describe('findLeftovers', () => {
   it('un texto ya convertido no deja nada', () => {

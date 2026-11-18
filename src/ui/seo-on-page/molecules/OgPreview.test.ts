@@ -2,13 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import OgPreview from './OgPreview.astro';
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  title: 'Guide',
-  description: 'A description.',
-  host: 'x.dev',
-  image: { src: '/repo/og.png', alt: 'Card', width: 1200, height: 630 },
-  ...extra,
-});
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    title: 'Guide',
+    description: 'A description.',
+    host: 'x.dev',
+    image: { src: '/repo/og.png', alt: 'Card', width: 1200, height: 630 },
+    ...extra,
+  };
+}
 
 describe('OgPreview', () => {
   it('pinta la imagen con su alt, el dominio, el título y la descripción', async () => {

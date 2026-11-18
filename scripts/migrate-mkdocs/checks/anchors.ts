@@ -16,7 +16,9 @@ export interface AnchorLog {
 /** Sufijo de idioma de una página (`guia.es.md` -> `es`). */
 const LOCALE_SUFFIX = /\.([a-z]{2}(?:-[A-Za-z]{2,})?)\.md$/;
 
-const strip = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '');
+function strip(text: string) {
+  return text.normalize('NFD').replace(/\p{M}/gu, '');
+}
 
 /** Aproximación de github-slugger: minúsculas, sin puntuación, espacios a guiones, `-n` si repite. */
 function headingIds(markdown: string): Set<string> {

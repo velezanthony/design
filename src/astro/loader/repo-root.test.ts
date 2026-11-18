@@ -28,7 +28,9 @@ describe('findRepoRoot', () => {
 });
 
 describe('resolveRepoRoot', () => {
-  const root = () => path.join(dir, 'sites/docs');
+  function root() {
+    return path.join(dir, 'sites/docs');
+  }
 
   it('sin editUrl no hace falta raíz y no se busca', async () => {
     expect(await resolveRepoRoot({}, root())).toBeUndefined();

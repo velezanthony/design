@@ -7,17 +7,20 @@ import { docsPlugin, type MarkdownEnv } from './env';
 const ADMONITION_KINDS = ['note', 'info', 'tip', 'warning', 'danger', 'question'] as const;
 export type AdmonitionKind = (typeof ADMONITION_KINDS)[number];
 
-const isKind = (name: string): name is AdmonitionKind =>
-  (ADMONITION_KINDS as readonly string[]).includes(name);
+function isKind(name: string): name is AdmonitionKind {
+  return (ADMONITION_KINDS as readonly string[]).includes(name);
+}
 
 /** Contenedores que pertenecen a `tabs.ts`: esta capa no los rechaza. */
 const FOREIGN = new Set(['tabs', 'tab']);
 
-const element = (
+function element(
   hName: string,
   properties: Record<string, unknown>,
   children: (MdastNode | Custom)[],
-): Custom => ({ type: 'docsElement', data: { hName, hProperties: properties }, children });
+): Custom {
+  return { type: 'docsElement', data: { hName, hProperties: properties }, children };
+}
 
 interface AdmonitionOptions {
   kind: AdmonitionKind;
@@ -51,15 +54,16 @@ export function admonitionNode({
 }
 
 /** Título por defecto de un tipo en el idioma de la página. */
-export const kindTitle = (strings: Parameters<typeof t>[0], key: `admonition.${string}`) =>
-  t(strings, key as UiKey);
+export function kindTitle(strings: Parameters<typeof t>[0], key: `admonition.${string}`) {
+  return t(strings, key as UiKey);
+}
 
 /**
  * Directivas contenedor `:::tipo[Título]{collapsed}`. Un tipo o un atributo desconocidos fallan
  * con archivo y nombre: una admonición mal escrita es contenido perdido, no algo que ignorar.
  */
-export const admonitions = (env: MarkdownEnv) =>
-  docsPlugin(env, ({ file, strings }) =>
+export function admonitions(env: MarkdownEnv) {
+  return docsPlugin(env, ({ file, strings }) =>
     defineMdastPlugin({
       name: 'admonitions',
       options: { position: true },
@@ -96,3 +100,4 @@ export const admonitions = (env: MarkdownEnv) =>
       },
     }),
   );
+}

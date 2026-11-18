@@ -11,19 +11,23 @@ import {
   resultsCountText,
 } from './labels';
 
-const matrix = (complete: number): ListingTable => ({
-  view: 'matrix',
-  rows: [],
-  locales: ['en', 'es'],
-  hreflang: true,
-  complete,
-});
-const have = (lacks?: 'i18n' | 'og'): ListingTable => ({
-  view: 'have',
-  rows: [],
-  columns: [],
-  lacks,
-});
+function matrix(complete: number): ListingTable {
+  return {
+    view: 'matrix',
+    rows: [],
+    locales: ['en', 'es'],
+    hreflang: true,
+    complete,
+  };
+}
+function have(lacks?: 'i18n' | 'og'): ListingTable {
+  return {
+    view: 'have',
+    rows: [],
+    columns: [],
+    lacks,
+  };
+}
 
 describe('headCount', () => {
   it('por página cuenta páginas, con su singular', () => {
@@ -76,8 +80,9 @@ describe('haveCellText', () => {
 });
 
 describe('reportFilterText', () => {
-  const text = (filters: Partial<typeof EMPTY_FILTERS>, view = { view: 'page' } as const) =>
-    reportFilterText({ ...EMPTY_FILTERS, ...filters }, view);
+  function text(filters: Partial<typeof EMPTY_FILTERS>, view = { view: 'page' } as const) {
+    return reportFilterText({ ...EMPTY_FILTERS, ...filters }, view);
+  }
 
   it('sin filtros son todas las páginas', () => {
     expect(text({})).toBe('todas las páginas');

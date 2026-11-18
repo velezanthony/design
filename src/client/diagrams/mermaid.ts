@@ -45,7 +45,9 @@ export function mermaidThemeVariables(
   readToken: (name: string) => string,
   dark: boolean,
 ): Record<string, string | boolean> {
-  const token = (name: string) => readToken(name).trim();
+  function token(name: string) {
+    return readToken(name).trim();
+  }
   const ink = token('--color-ink');
   const canvas = token('--color-canvas');
   const raised = token('--color-raised');
@@ -174,7 +176,7 @@ export async function initMermaid(
     ? createDiagramViewer(doc, viewerLabels)
     : undefined;
 
-  const renderAll = async () => {
+  async function renderAll() {
     const dark = isDark(parseTheme(root.dataset.theme), system.matches);
     mermaid.initialize(mermaidConfig(readToken, dark));
     for (const block of blocks) {
@@ -204,14 +206,14 @@ export async function initMermaid(
         warn('No se pudo dibujar un diagrama de Mermaid; se deja su código.', error);
       }
     }
-  };
+  }
 
   let chain = renderAll();
-  const redraw = () => {
+  function redraw() {
     /* El visor trabaja con un clon del dibujo viejo: con otro tema tendría los colores equivocados. */
     viewer?.close();
     chain = chain.then(renderAll);
-  };
+  }
   const Observer = doc.defaultView?.MutationObserver;
   if (Observer) {
     new Observer(redraw).observe(root, { attributes: true, attributeFilter: ['data-theme'] });

@@ -67,7 +67,9 @@ export function domainsOf(hostname: string): string[] {
   return domains;
 }
 
-const isAnalyticsCookie = (name: string) => /^_ga(_.+)?$/.test(name);
+function isAnalyticsCookie(name: string) {
+  return /^_ga(_.+)?$/.test(name);
+}
 
 /**
  * Cadenas de `document.cookie` que caducan las cookies de Google Analytics (`_ga`,
@@ -122,34 +124,36 @@ export interface ConsentEnv {
  * recarga la página.
  */
 export function initConsent({ doc, storage, hostname, reload }: ConsentEnv): void {
-  const banner = doc.querySelector<HTMLElement>('[data-consent-banner]');
-  if (!banner) return;
+  const foundBanner = doc.querySelector<HTMLElement>('[data-consent-banner]');
+  if (!foundBanner) return;
+  /* Las declaraciones de abajo no heredan el descarte de `null`: se fija en una constante. */
+  const banner = foundBanner;
 
   const gtmId = banner.dataset.gtmId;
   let loaded = false;
 
   /* El banner va fijo abajo; la página reserva sitio para que nunca tape el pie. */
-  const show = () => {
+  function show() {
     banner.removeAttribute('hidden');
     doc.documentElement.style.setProperty('--consent-space', `${banner.offsetHeight ?? 0}px`);
-  };
-  const hide = () => {
+  }
+  function hide() {
     banner.setAttribute('hidden', '');
     doc.documentElement.style.removeProperty('--consent-space');
-  };
+  }
 
-  const grant = () => {
+  function grant() {
     if (gtmId) loaded = loadGtm(doc, gtmId) || loaded;
-  };
+  }
 
-  const choose = (choice: Consent) => {
+  function choose(choice: Consent) {
     writeConsent(storage, choice);
     hide();
     if (choice === 'granted') return grant();
     if (!loaded) return;
     for (const cookie of analyticsCookiesToDelete(doc.cookie, hostname)) doc.cookie = cookie;
     reload();
-  };
+  }
 
   banner.querySelector('[data-consent-accept]')?.addEventListener('click', () => choose('granted'));
   banner.querySelector('[data-consent-reject]')?.addEventListener('click', () => choose('denied'));

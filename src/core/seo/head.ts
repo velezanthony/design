@@ -29,13 +29,17 @@ export interface PageData {
   canonical?: string;
 }
 
-const meta = (key: 'name' | 'property', name: string, content: string): HeadConfig => ({
-  tag: 'meta',
-  attrs: { [key]: name, content },
-});
+function meta(key: 'name' | 'property', name: string, content: string): HeadConfig {
+  return {
+    tag: 'meta',
+    attrs: { [key]: name, content },
+  };
+}
 
 /** `pt-BR` → `pt_BR`, el formato de `og:locale`. */
-const ogLocale = (locale: Locale) => locale.replace('-', '_');
+function ogLocale(locale: Locale) {
+  return locale.replace('-', '_');
+}
 
 /**
  * Etiquetas del `<head>` de una página como datos puros. El `canonical` y los alternates salen de
@@ -52,7 +56,9 @@ export function buildHead(
   cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon'>,
   url: Pick<UrlPolicy, 'base'>,
 ): HeadConfig[] {
-  const absolute = (path: string) => new URL(path, site).href;
+  function absolute(path: string) {
+    return new URL(path, site).href;
+  }
   const isPage = page.kind === 'page';
   const canonicalPath = isPage ? page.url : page.kind === 'fallback' ? page.canonical : undefined;
   const canonical = canonicalPath === undefined ? undefined : absolute(canonicalPath);

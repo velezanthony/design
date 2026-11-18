@@ -2,19 +2,21 @@ import { AstroError } from 'astro/errors';
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
 import { docsPlugin, type MarkdownEnv } from './env';
 
-const element = (hName: string, className: string, children: (MdastNode | Custom)[]): Custom => ({
-  type: 'docsElement',
-  data: { hName, hProperties: { className: [className] } },
-  children,
-});
+function element(hName: string, className: string, children: (MdastNode | Custom)[]): Custom {
+  return {
+    type: 'docsElement',
+    data: { hName, hProperties: { className: [className] } },
+    children,
+  };
+}
 
 /**
  * Pestañas: `::::tabs` con una o más `:::tab[Etiqueta]`. Sin JS son paneles apilados, cada uno con su
  * etiqueta visible (marcado de `ui/molecules/Tabs.astro`); `client/content/tabs.ts` construye la
  * `tablist` y los roles. Una pestaña sin etiqueta, o fuera de un grupo, falla con el archivo.
  */
-export const tabs = (env: MarkdownEnv) =>
-  docsPlugin(env, ({ file }) =>
+export function tabs(env: MarkdownEnv) {
+  return docsPlugin(env, ({ file }) =>
     defineMdastPlugin({
       name: 'tabs',
       options: { position: true },
@@ -58,3 +60,4 @@ export const tabs = (env: MarkdownEnv) =>
       },
     }),
   );
+}

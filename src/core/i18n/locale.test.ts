@@ -42,8 +42,9 @@ describe('splitLocale', () => {
 });
 
 describe('localeFromPath', () => {
-  const detect = (pathname: string, base = '/repo') =>
-    localeFromPath(pathname, base, locales, 'en');
+  function detect(pathname: string, base = '/repo') {
+    return localeFromPath(pathname, base, locales, 'en');
+  }
 
   it('detecta el idioma por el primer segmento tras la base', () => {
     expect(detect('/repo/es/x')).toBe('es');

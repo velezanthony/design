@@ -20,27 +20,30 @@ const headings = [
   { depth: 3, slug: 'c', text: 'C' },
 ];
 
-const props = (extra: Record<string, unknown> = {}) => ({
-  lang: 'es',
-  head,
-  siteName: 'Docs',
-  homeHref: '/repo/es/',
-  hrefs: { es: '/repo/es/guide/', en: '/repo/guide/' },
-  strings: stringsFor('es'),
-  sidebar,
-  current: '/repo/es/guide/',
-  headings,
-  prev: { label: 'Inicio', href: '/repo/es/' },
-  next: { label: 'Siguiente', href: '/repo/es/next/' },
-  editUrl: 'https://github.com/o/r/edit/main',
-  editFile: 'docs/guide.es.md',
-  indexable: true,
-  baseUrl: '/repo/',
-  year: 2026,
-  ...extra,
-});
-const page = (extra: Record<string, unknown> = {}, slot = '<h1 id="t">Guía</h1><p>Hola</p>') =>
-  renderDocument(DocsLayout, props(extra), { default: slot });
+function props(extra: Record<string, unknown> = {}) {
+  return {
+    lang: 'es',
+    head,
+    siteName: 'Docs',
+    homeHref: '/repo/es/',
+    hrefs: { es: '/repo/es/guide/', en: '/repo/guide/' },
+    strings: stringsFor('es'),
+    sidebar,
+    current: '/repo/es/guide/',
+    headings,
+    prev: { label: 'Inicio', href: '/repo/es/' },
+    next: { label: 'Siguiente', href: '/repo/es/next/' },
+    editUrl: 'https://github.com/o/r/edit/main',
+    editFile: 'docs/guide.es.md',
+    indexable: true,
+    baseUrl: '/repo/',
+    year: 2026,
+    ...extra,
+  };
+}
+function page(extra: Record<string, unknown> = {}, slot = '<h1 id="t">Guía</h1><p>Hola</p>') {
+  return renderDocument(DocsLayout, props(extra), { default: slot });
+}
 
 describe('DocsLayout: documento', () => {
   it('<html lang> es el idioma de la ruta y el head sale de los datos', async () => {
@@ -182,13 +185,15 @@ describe('DocsLayout: textos de cliente', () => {
 });
 
 describe('DocsLayout: columnas plegables y ancho', () => {
-  const layout = (extra: Record<string, unknown> = {}) => ({
-    sidebar: 'open',
-    toc: 'open',
-    width: 'reading',
-    toggles: true,
-    ...extra,
-  });
+  function layout(extra: Record<string, unknown> = {}) {
+    return {
+      sidebar: 'open',
+      toc: 'open',
+      width: 'reading',
+      toggles: true,
+      ...extra,
+    };
+  }
 
   it('por defecto: abierto, en lectura, y con los controles', async () => {
     const doc = await page();

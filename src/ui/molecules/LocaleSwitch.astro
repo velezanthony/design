@@ -20,7 +20,9 @@ interface Props {
 const { lang, hrefs, strings, locales, class: className } = Astro.props;
 
 const listed = locales ?? [...new Set([...Object.keys(hrefs), lang])];
-const name = (locale: Locale) => localeNames[locale] ?? locale;
+function name(locale: Locale) {
+  return localeNames[locale] ?? locale;
+}
 ---
 
 {/* Con un solo idioma no hay nada que elegir. */}

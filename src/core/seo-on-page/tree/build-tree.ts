@@ -22,16 +22,21 @@ import type { Issue, SeoPage, SeoPageFacts, SeoTree } from './types';
 import { pageKey } from './keys';
 
 /** Comparación por unidades de código: no depende del idioma del sistema, así que es determinista. */
-const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+function compare(a: string, b: string) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
 
-const sortPages = (pages: SeoPageInput[]) =>
-  [...pages].sort((a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale));
+function sortPages(pages: SeoPageInput[]) {
+  return [...pages].sort((a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale));
+}
 
 /**
  * Los helpers de i18n trabajan con `Page`, y de ella solo leen slug, idioma, política y rutas; el
  * cuerpo no interviene, así que se rellena vacío en vez de duplicar esos helpers.
  */
-const asPage = (page: SeoPageInput): Page => ({ ...page, body: '' });
+function asPage(page: SeoPageInput): Page {
+  return { ...page, body: '' };
+}
 
 /**
  * Árbol de datos del análisis SEO on-page. Primero se componen los HECHOS de cada página con las

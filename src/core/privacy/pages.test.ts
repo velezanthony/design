@@ -8,12 +8,14 @@ import {
   privacySlug,
 } from './pages';
 
-const url = (defaultLocale: string, extra = {}) => ({
-  base: '/repo',
-  trailingSlash: 'always' as const,
-  defaultLocale,
-  ...extra,
-});
+function url(defaultLocale: string, extra = {}) {
+  return {
+    base: '/repo',
+    trailingSlash: 'always' as const,
+    defaultLocale,
+    ...extra,
+  };
+}
 
 describe('privacySlug', () => {
   it('es → privacidad, en → privacy', () => {

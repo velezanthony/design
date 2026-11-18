@@ -52,9 +52,11 @@ const GOOD: readonly HaveState[] = ['own', 'ok'];
 /** Cuánto pesa cada estado al juntar los idiomas de una página: gana el peor. */
 const WEIGHT: Record<HaveState, number> = { own: 0, ok: 0, site: 1, partial: 2, missing: 3, no: 3 };
 
-const fromSource = (source: 'page' | 'site' | 'none'): HaveCell => ({
-  state: { page: 'own', site: 'site', none: 'missing' }[source] as HaveState,
-});
+function fromSource(source: 'page' | 'site' | 'none'): HaveCell {
+  return {
+    state: { page: 'own', site: 'site', none: 'missing' }[source] as HaveState,
+  };
+}
 
 function schemaOf(entry: SeoPage): HaveCell {
   const own = entry.schemas.filter(({ source }) => source === 'page');
@@ -67,11 +69,12 @@ function schemaOf(entry: SeoPage): HaveCell {
 
 function translatedOf(entry: SeoPage, locales: readonly Locale[]): HaveCell {
   const cells = localeCells(entry.locales, locales);
-  const where = (state: 'missing' | 'fallback') =>
-    cells
+  function where(state: 'missing' | 'fallback') {
+    return cells
       .filter((cell) => cell.state === state)
       .map(({ locale }) => locale)
       .join(' ');
+  }
   if (cells.some(({ state }) => state === 'missing')) {
     return { state: 'missing', detail: where('missing') };
   }
@@ -101,8 +104,9 @@ export const HAVE_CELLS: Record<
   [HaveColumn.INDEXABLE]: (entry) => ({ state: entry.meta.noindex ? 'no' : 'ok' }),
 };
 
-const worstCell = (cells: HaveCell[]): HaveCell =>
-  cells.reduce((worst, cell) => (WEIGHT[cell.state] > WEIGHT[worst.state] ? cell : worst));
+function worstCell(cells: HaveCell[]): HaveCell {
+  return cells.reduce((worst, cell) => (WEIGHT[cell.state] > WEIGHT[worst.state] ? cell : worst));
+}
 
 function rowOf(slug: string, entries: SeoPage[], input: HaveInput): HaveRow {
   const { locales, defaultLocale, inspector } = input;
@@ -148,7 +152,9 @@ export function haveCounts(
 }
 
 /** Si una celda cuenta como «lo tiene» (propio o cumple); lo heredado no. */
-export const isGood = (cell: HaveCell): boolean => GOOD.includes(cell.state);
+export function isGood(cell: HaveCell): boolean {
+  return GOOD.includes(cell.state);
+}
 
 /** Las páginas a las que les falta lo propio de esa columna; sin columna, todas. */
 export function lacking(rows: HaveRow[], column: HaveColumn | undefined): HaveRow[] {

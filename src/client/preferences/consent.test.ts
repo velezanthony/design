@@ -165,12 +165,14 @@ describe('analyticsCookiesToDelete', () => {
 });
 
 describe('initConsent', () => {
-  const markup = (gtm: string) => `
+  function markup(gtm: string) {
+    return `
     <section data-consent-banner ${gtm} hidden>
       <button data-consent-accept>Accept</button>
       <button data-consent-reject>Reject</button>
     </section>
     <button data-consent-open>Preferences</button>`;
+  }
 
   function setup(storage: Storage | undefined, cookie = '', gtm = 'data-gtm-id="GTM-TEST"') {
     const { document } = parseHTML(
@@ -188,9 +190,14 @@ describe('initConsent', () => {
     const reload = vi.fn();
     initConsent({ doc: document, storage, hostname: 'example.com', reload });
     const banner = document.querySelector('[data-consent-banner]')!;
-    const click = (selector: string) =>
-      document.querySelector(selector)!.dispatchEvent(new document.defaultView!.Event('click'));
-    const gtmScripts = () => document.querySelectorAll('script[src*="googletagmanager.com"]');
+    function click(selector: string) {
+      return document
+        .querySelector(selector)!
+        .dispatchEvent(new document.defaultView!.Event('click'));
+    }
+    function gtmScripts() {
+      return document.querySelectorAll('script[src*="googletagmanager.com"]');
+    }
     return { document, banner, click, gtmScripts, reload, written };
   }
 

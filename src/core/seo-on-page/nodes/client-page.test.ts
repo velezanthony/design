@@ -5,21 +5,25 @@ import { clientFacts } from './client-page';
 
 const ctx = { locales: ['es', 'en'], defaultLocale: 'es', missing: 'link' as const, base: '/repo' };
 
-const head = (extra: Partial<HeadFacts> = {}): HeadFacts => ({
-  noindex: false,
-  alternates: [],
-  headings: [],
-  og: {},
-  jsonLd: [],
-  ...extra,
-});
+function head(extra: Partial<HeadFacts> = {}): HeadFacts {
+  return {
+    noindex: false,
+    alternates: [],
+    headings: [],
+    og: {},
+    jsonLd: [],
+    ...extra,
+  };
+}
 
-const client = (path: string, extra: Partial<HeadFacts> = {}): ClientPage => ({
-  path,
-  pattern: '/cv',
-  entrypoint: 'src/pages/cv.astro',
-  head: head(extra),
-});
+function client(path: string, extra: Partial<HeadFacts> = {}): ClientPage {
+  return {
+    path,
+    pattern: '/cv',
+    entrypoint: 'src/pages/cv.astro',
+    head: head(extra),
+  };
+}
 
 describe('clientFacts: identidad', () => {
   it('su slug es la ruta sin la base, su fichero el .astro y su tipo «client»', () => {

@@ -5,14 +5,15 @@ import { resolveConfig } from '../../core/config/resolve';
 import { createVirtualData } from '../virtual/data';
 import { notFoundRoutes, notFoundView } from './not-found';
 
-const site = (locales: string[], ui = {}) =>
-  createVirtualData(resolveConfig({ name: 'Docs', locales, ui }), {
+function site(locales: string[], ui = {}) {
+  return createVirtualData(resolveConfig({ name: 'Docs', locales, ui }), {
     base: '/repo',
     site: 'https://x.dev',
     trailingSlash: 'always',
     buildFormat: 'directory',
     publicDir: 'file:///site/public/',
   });
+}
 
 describe('notFoundRoutes', () => {
   it('uno por idioma que no es el de defecto', () => {
@@ -133,8 +134,8 @@ describe('notFoundView: footer', () => {
 });
 
 describe('notFoundView: analítica y privacidad', () => {
-  const on = (envValue: string | undefined) =>
-    createVirtualData(
+  function on(envValue: string | undefined) {
+    return createVirtualData(
       applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'] }), envValue),
       {
         base: '/repo',
@@ -144,6 +145,7 @@ describe('notFoundView: analítica y privacidad', () => {
         publicDir: 'file:///site/public/',
       },
     );
+  }
 
   it('sin analítica la 404 no trae gtmId ni privacidad, tampoco las plantillas', () => {
     const view = notFoundView({ locale: undefined, cfg: on(undefined) });

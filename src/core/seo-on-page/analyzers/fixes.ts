@@ -74,10 +74,13 @@ function clientFix(kind: IssueKind, file: string, detail: FixDetail): string | u
   }
 }
 
-const basename = (path: string) => path.split('/').pop() ?? path;
+function basename(path: string) {
+  return path.split('/').pop() ?? path;
+}
 
-const slugs = (related: Issue['related']) =>
-  (related ?? []).map((other) => `«${other.slug || '/'}»`).join(', ');
+function slugs(related: Issue['related']) {
+  return (related ?? []).map((other) => `«${other.slug || '/'}»`).join(', ');
+}
 
 /**
  * Qué cambiar y dónde para arreglar un problema, en una frase de acción. Pura: sale del tipo, de la

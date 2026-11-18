@@ -4,8 +4,9 @@ import { render, text } from '../../testing/render';
 import { stringsFor } from '../../testing/strings';
 import Admonition from './Admonition.astro';
 
-const admonition = (props: Record<string, unknown>, body = '<p>Cuerpo</p>') =>
-  render(Admonition, { strings: stringsFor('es'), ...props }, { default: body });
+function admonition(props: Record<string, unknown>, body = '<p>Cuerpo</p>') {
+  return render(Admonition, { strings: stringsFor('es'), ...props }, { default: body });
+}
 
 describe('Admonition', () => {
   it('es un aside note con data-kind y nombre accesible (salida común)', async () => {

@@ -34,7 +34,9 @@ async function inspect(bytes: Buffer): Promise<LocalImage> {
   }
 }
 
-const where = (ref: ImageRef) => (ref.file ? `${ref.file}: ` : '');
+function where(ref: ImageRef) {
+  return ref.file ? `${ref.file}: ` : '';
+}
 
 /**
  * Comprueba las imágenes SEO: las locales tienen que existir bajo `public/` (error, todos juntos) y

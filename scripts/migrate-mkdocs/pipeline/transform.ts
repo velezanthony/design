@@ -75,7 +75,9 @@ function convertLines(lines: string[], options: TransformOptions, offset: number
   const output: string[] = [];
   const log: LogEntry[] = [];
   let wrapperDepth = 0;
-  const recurse = (body: string[], bodyOffset: number) => convertLines(body, options, bodyOffset);
+  function recurse(body: string[], bodyOffset: number) {
+    return convertLines(body, options, bodyOffset);
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const block =

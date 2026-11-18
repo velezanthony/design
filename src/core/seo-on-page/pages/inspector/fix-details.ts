@@ -35,7 +35,9 @@ export function limitOf(kind: IssueKind): Limit | undefined {
   }
 }
 
-const quoted = (slugs: readonly string[]) => slugs.map((slug) => `«${slug || '/'}»`).join(', ');
+function quoted(slugs: readonly string[]) {
+  return slugs.map((slug) => `«${slug || '/'}»`).join(', ');
+}
 
 /**
  * Cómo comprobar que el problema está arreglado, en una frase y sin mirar fuera del panel: dónde

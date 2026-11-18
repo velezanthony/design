@@ -22,8 +22,9 @@ export function privacySlug(locale: Locale): string {
 }
 
 /** Idiomas de la lista que no tienen texto de privacidad, en su orden. */
-export const missingPrivacyLocales = (locales: readonly Locale[]): Locale[] =>
-  locales.filter((locale) => !hasPrivacyCopy(locale));
+export function missingPrivacyLocales(locales: readonly Locale[]): Locale[] {
+  return locales.filter((locale) => !hasPrivacyCopy(locale));
+}
 
 /** URL (con base) de la página en cada idioma, bajo la política de URLs del sitio. */
 export function privacyPageUrls(

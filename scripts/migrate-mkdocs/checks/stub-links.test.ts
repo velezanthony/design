@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { findStubLinks } from './stub-links';
 
-const md = (...lines: string[]) => lines.join('\n') + '\n';
+function md(...lines: string[]) {
+  return lines.join('\n') + '\n';
+}
 const stubs = [{ file: 'contributing.md', include: 'CONTRIBUTING.md' }];
 
 describe('findStubLinks', () => {

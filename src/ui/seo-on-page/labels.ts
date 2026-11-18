@@ -78,7 +78,9 @@ export const DESCRIPTION_SOURCE_LABELS: Record<DescriptionSource, string> = {
 };
 
 /** La portada tiene slug vacío; en pantalla se enseña como la raíz. */
-export const slugLabel = (slug: string) => (slug === '' ? '/' : slug);
+export function slugLabel(slug: string) {
+  return slug === '' ? '/' : slug;
+}
 
 /** Los textos de la paginación de la tabla: el componente es genérico y el idioma lo pone el panel. */
 export const PAGINATION_LABELS = {
@@ -139,8 +141,11 @@ export const INSPECTOR_WHY: Record<InspectorSection, string> = {
 };
 
 /** El texto del enlace de «En esta página» de una sección: con el recuento donde lo hay. */
-export const inspectorTocText = (section: InspectorSection, count?: number): string =>
-  count === undefined ? INSPECTOR_SECTIONS[section] : `${INSPECTOR_SECTIONS[section]} (${count})`;
+export function inspectorTocText(section: InspectorSection, count?: number): string {
+  return count === undefined
+    ? INSPECTOR_SECTIONS[section]
+    : `${INSPECTOR_SECTIONS[section]} (${count})`;
+}
 
 /** La cabecera de estado del inspector. */
 export const INSPECTOR_HEADER_LABELS = {
@@ -250,8 +255,8 @@ export const HEADINGS_LABELS = {
 };
 
 /** Las etiquetas de una página en la tabla; «Solo EN» lleva el idioma en el que sí existe. */
-export const tagLabel = (tag: PageTag): string =>
-  ({
+export function tagLabel(tag: PageTag): string {
+  return {
     home: 'Portada',
     only: `Solo ${tag.kind === 'only' ? tag.locale.toUpperCase() : ''}`,
     fallback: `Respaldo ${tag.kind === 'fallback' ? tag.locales.map((locale) => locale.toUpperCase()).join(' ') : ''}`,
@@ -259,7 +264,8 @@ export const tagLabel = (tag: PageTag): string =>
     client: 'Astro',
     replaces: 'Sustituye',
     noindex: 'noindex',
-  })[tag.kind];
+  }[tag.kind];
+}
 
 /** Ayuda al ratón de las etiquetas que no se explican solas. */
 export const TAG_HINTS: Partial<Record<PageTag['kind'], string>> = {
@@ -426,7 +432,9 @@ export function headCount(table: ListingTable, total: number): string {
 }
 
 /** Lo que cuentan las filas del pie: entradas en «Por idioma», páginas en el resto. */
-export const rowsUnit = (view: SeoView) => (view === 'locale' ? 'entradas' : 'páginas');
+export function rowsUnit(view: SeoView) {
+  return view === 'locale' ? 'entradas' : 'páginas';
+}
 
 /** El rango sobre la tabla: «1–25 de 75 páginas · 151 en total» (el total solo si los filtros dejan fuera algo). */
 export function resultsCountText(
@@ -536,7 +544,9 @@ export function haveCellText(column: HaveColumn, cell: HaveCell): string {
 /** «en», «en y es», «en, es y fr». */
 
 /** Un porcentaje con espacio duro: nunca queda el «%» solo en la línea siguiente. */
-export const percentText = (percent: number) => `${percent}\u00a0%`;
+export function percentText(percent: number) {
+  return `${percent}\u00a0%`;
+}
 
 /** La pantalla de Resumen: su frase de apertura, los indicadores y los títulos de cada tarjeta. */
 export const OVERVIEW_LABELS = {

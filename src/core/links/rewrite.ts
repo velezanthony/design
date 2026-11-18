@@ -40,7 +40,9 @@ const DEFINITION = /^( {0,3}\[[^\]]+\]:\s*)(<[^>]*>|\S+)/;
 const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/)/i;
 
 /** `./x.md` y `x.md` son la misma ruta. */
-const stripDot = (path: string) => path.replace(/^(\.\/)+/, '');
+function stripDot(path: string) {
+  return path.replace(/^(\.\/)+/, '');
+}
 
 /** Resuelve `target` contra el directorio de `fromPath`: `../README.md` + `./A.md` → `../A.md`. */
 function resolvePath(fromPath: string, target: string): string {
@@ -89,8 +91,9 @@ function codeSpans(line: string): [number, number][] {
   return spans;
 }
 
-const inside = (spans: [number, number][], index: number) =>
-  spans.some(([start, end]) => index >= start && index < end);
+function inside(spans: [number, number][], index: number) {
+  return spans.some(([start, end]) => index >= start && index < end);
+}
 
 interface Context {
   from: Page;

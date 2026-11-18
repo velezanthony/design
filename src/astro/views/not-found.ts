@@ -11,10 +11,11 @@ import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 
 /** Rutas `[locale]/404`: una por idioma que no es el de defecto (`/404` sirve el de defecto). */
-export const notFoundRoutes = (cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) =>
-  cfg.locales
+export function notFoundRoutes(cfg: Pick<VirtualConfig, 'locales' | 'defaultLocale'>) {
+  return cfg.locales
     .filter((locale) => locale !== cfg.defaultLocale)
     .map((locale) => ({ params: { locale } }));
+}
 
 /** Cuerpo de la 404 de otro idioma, para su `<template data-locale>`. */
 export interface NotFoundOther {
@@ -63,8 +64,9 @@ export function notFoundView({
   const { url } = site;
   const strings = cfg.strings[lang] as UiStrings;
   // La 404 no es una página: el contexto solo sirve para resolver a dónde apuntan los enlaces del footer.
-  const footerFor = (locale: Locale) =>
-    buildFooter(cfg, navContextOf(site, locale, ''), cfg.strings[locale] as UiStrings);
+  function footerFor(locale: Locale) {
+    return buildFooter(cfg, navContextOf(site, locale, ''), cfg.strings[locale] as UiStrings);
+  }
   const meta = withImageSize(
     resolveMeta(
       cfg.seo,

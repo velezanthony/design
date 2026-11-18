@@ -3,15 +3,18 @@ import type { Issue, SeoPage, SeoTree } from '../tree/types';
 import { filterPages } from './filter';
 import { EMPTY_FILTERS } from './url-filters';
 
-const issue = (kind: Issue['kind'], severity: Issue['severity']): Issue => ({
-  kind,
-  severity,
-  slug: 'x',
-  locale: 'en',
-  message: '',
-});
-const page = (slug: string, locale: string, title: string, issues: Issue[] = []): SeoPage =>
-  ({ slug, locale, title, meta: { title: `${title} | Site` }, issues }) as SeoPage;
+function issue(kind: Issue['kind'], severity: Issue['severity']): Issue {
+  return {
+    kind,
+    severity,
+    slug: 'x',
+    locale: 'en',
+    message: '',
+  };
+}
+function page(slug: string, locale: string, title: string, issues: Issue[] = []): SeoPage {
+  return { slug, locale, title, meta: { title: `${title} | Site` }, issues } as SeoPage;
+}
 
 const tree: SeoTree = {
   pages: [
@@ -23,8 +26,9 @@ const tree: SeoTree = {
     page('guide/start', 'en', 'Getting started'),
   ],
 };
-const ids = (filters = {}) =>
-  filterPages(tree, { ...EMPTY_FILTERS, ...filters }).map((p) => `${p.slug}:${p.locale}`);
+function ids(filters = {}) {
+  return filterPages(tree, { ...EMPTY_FILTERS, ...filters }).map((p) => `${p.slug}:${p.locale}`);
+}
 
 describe('filterPages', () => {
   it('sin filtros devuelve todas, en el mismo orden', () => {

@@ -5,8 +5,9 @@ import { stringsFor } from '../../testing/strings';
 import FallbackNotice from './FallbackNotice.astro';
 
 const props = { originalLocale: 'en', href: '/changelog/', strings: stringsFor('es') };
-const notice = (extra: Record<string, unknown> = {}) =>
-  render(FallbackNotice, { ...props, ...extra });
+function notice(extra: Record<string, unknown> = {}) {
+  return render(FallbackNotice, { ...props, ...extra });
+}
 
 describe('FallbackNotice', () => {
   it('muestra el texto translation.fallbackNotice del catálogo', async () => {

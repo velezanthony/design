@@ -32,13 +32,14 @@ interface Input {
 }
 
 /** El canonical propio es el de la propia URL, no el de otra página ni el de otro idioma. */
-const hasOwnCanonical = (page: SeoPage) =>
-  page.locales.some(
+function hasOwnCanonical(page: SeoPage) {
+  return page.locales.some(
     (entry) =>
       entry.locale === page.locale &&
       entry.status === 'present' &&
       entry.url === page.meta.canonical,
   );
+}
 
 /**
  * Qué se indexa y qué no, y por qué. «Fuera del sitemap» es una resta (indexables menos URLs del

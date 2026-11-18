@@ -14,7 +14,9 @@ beforeAll(async () => {
   site = await buildFixture(root);
 }, 180_000);
 
-const hrefs = (html: string) => [...html.matchAll(/<a [^>]*href="([^"]+)"/g)].map((m) => m[1]);
+function hrefs(html: string) {
+  return [...html.matchAll(/<a [^>]*href="([^"]+)"/g)].map((m) => m[1]);
+}
 
 describe('páginas de ../docs', () => {
   it('se publican, con sub-carpetas y sufijos de idioma; los que no son .md no son páginas', async () => {

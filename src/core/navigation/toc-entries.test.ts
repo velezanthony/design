@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { tocEntries } from './toc-entries';
 
-const h = (depth: number, slug: string) => ({ depth, slug, text: slug.toUpperCase() });
+function h(depth: number, slug: string) {
+  return { depth, slug, text: slug.toUpperCase() };
+}
 
 describe('tocEntries', () => {
   it('solo cuentan los H2 y H3: el H1 es el título y los H4 serían ruido', () => {

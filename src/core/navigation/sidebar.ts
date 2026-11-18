@@ -30,7 +30,9 @@ export interface SidebarGroup {
 
 export type SidebarNode = SidebarLeaf | SidebarGroup;
 
-export const isSidebarGroup = (node: SidebarNode): node is SidebarGroup => 'items' in node;
+export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
+  return 'items' in node;
+}
 
 /** Lo que el árbol necesita de la config: idiomas y el orden declarado. */
 type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'>;
@@ -131,15 +133,15 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
  */
 function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
-  const sectionPath = (slug: string) => {
+  function sectionPath(slug: string) {
     const segments = slug.split('/');
     const path = segments.slice(0, Math.min(segments.length - 1, rootDepth + MAX_SECTION_DEPTH));
     return path.length > rootDepth ? path : [];
-  };
-  const parentOf = (path: string) => {
+  }
+  function parentOf(path: string) {
     const parent = path.split('/').slice(0, -1);
     return parent.length > rootDepth ? parent.join('/') : '';
-  };
+  }
   // Un slug es una sección si algún otro cuelga de él como carpeta.
   const sections = new Set<string>();
   for (const { slug } of entries) {
@@ -150,7 +152,7 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
   }
 
   const groups = new Map<string, { group: SidebarGroup; sort: Sortable[]; order?: number }>();
-  const groupFor = (path: string) => {
+  function groupFor(path: string) {
     let found = groups.get(path);
     if (!found) {
       const label = humanize(path.split('/').pop() ?? path);
@@ -158,7 +160,7 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
       groups.set(path, found);
     }
     return found;
-  };
+  }
   const root: Sortable[] = [];
 
   for (const entry of entries) {
@@ -180,12 +182,12 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
     });
   }
 
-  const compare = (a: Sortable, b: Sortable) => {
+  function compare(a: Sortable, b: Sortable) {
     if (a.order !== undefined && b.order !== undefined && a.order !== b.order)
       return a.order - b.order;
     if ((a.order === undefined) !== (b.order === undefined)) return a.order === undefined ? 1 : -1;
     return collator.compare(a.key, b.key);
-  };
+  }
 
   // Las secciones más profundas primero para colgarlas de su padre ya completo.
   const paths = [...sections].sort((a, b) => b.split('/').length - a.split('/').length);

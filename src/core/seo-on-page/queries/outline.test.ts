@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { outline } from './outline';
 
-const h = (depth: number, text = `H${depth}`) => ({ depth, slug: text.toLowerCase(), text });
+function h(depth: number, text = `H${depth}`) {
+  return { depth, slug: text.toLowerCase(), text };
+}
 
 describe('outline', () => {
   it('sin encabezados no hay esquema', () => {

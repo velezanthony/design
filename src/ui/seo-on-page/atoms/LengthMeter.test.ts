@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import LengthMeter from './LengthMeter.astro';
 
-const meter = (value: number) => render(LengthMeter, { value, max: 60, min: 15 });
-const root = (doc: Document) => doc.querySelector('[data-meter]')!;
+function meter(value: number) {
+  return render(LengthMeter, { value, max: 60, min: 15 });
+}
+function root(doc: Document) {
+  return doc.querySelector('[data-meter]')!;
+}
 
 describe('LengthMeter', () => {
   it('dentro del rango no marca nada y dice «21 de 60 caracteres»', async () => {

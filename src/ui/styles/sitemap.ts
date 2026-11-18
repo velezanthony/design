@@ -27,13 +27,15 @@ export function themePalette(theme: string, tokens: readonly string[]): Palette 
 }
 
 /** Un texto como cadena CSS: las comillas, las barras y los saltos de línea no cierran la cadena. */
-const cssString = (text: string) =>
-  `"${text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\A ')}"`;
+function cssString(text: string) {
+  return `"${text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\A ')}"`;
+}
 
-const declare = (colors: Record<string, string>) =>
-  Object.entries(colors)
+function declare(colors: Record<string, string>) {
+  return Object.entries(colors)
     .map(([name, value]) => `--${name}: ${value};`)
     .join(' ');
+}
 
 /**
  * La hoja con la que el navegador pinta `sitemap.xml` para las personas (los buscadores leen el

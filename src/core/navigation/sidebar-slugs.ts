@@ -8,7 +8,9 @@ export const HOME_SIDEBAR_SLUG = 'index';
  * Slug interno de lo que se escribe en `sidebar`: `'index'` es la portada (`''`), el resto tal cual.
  * No hay ambigüedad porque ninguna página puede tener el slug `index`: `index.md` colapsa a `''`.
  */
-export const toSidebarSlug = (slug: string): string => (slug === HOME_SIDEBAR_SLUG ? '' : slug);
+export function toSidebarSlug(slug: string): string {
+  return slug === HOME_SIDEBAR_SLUG ? '' : slug;
+}
 
 /** Un slug escrito en un `sidebar` con su ruta en la config (`sidebar[2].items[0]`). */
 export interface SidebarSlugRef {

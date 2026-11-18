@@ -13,7 +13,9 @@ const { value, max, min } = Astro.props;
 /* `edge` (justo en el mínimo) cumple: solo se avisa por debajo o por encima. */
 const length = lengthClass(value, min, max);
 const state = length === 'low' ? 'short' : length === 'long' ? 'long' : undefined;
-const percent = (amount: number) => `${Math.min(100, (amount / max) * 100)}%`;
+function percent(amount: number) {
+  return `${Math.min(100, (amount / max) * 100)}%`;
+}
 /* «8/60» sin contexto obligaba a recordar el rango: fuera de él se dice en palabras y cambia de color. */
 const reading = [
   METER_LABELS.reading(value, max),

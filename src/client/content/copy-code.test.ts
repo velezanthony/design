@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { codeText, initCopyCode } from './copy-code';
 
-const page = (body: string) =>
-  parseHTML(`<!doctype html><html><body>${body}</body></html>`).document;
+function page(body: string) {
+  return parseHTML(`<!doctype html><html><body>${body}</body></html>`).document;
+}
 
 describe('codeText', () => {
   it('es el texto del bloque sin el salto final que añade el resaltado', () => {
@@ -33,9 +34,15 @@ describe('initCopyCode', () => {
       resetAfterMs: 1500,
       schedule: (cb) => void timers.push(cb),
     });
-    const button = () => document.querySelector<HTMLButtonElement>('button.docs-copy');
-    const click = () => button()!.dispatchEvent(new document.defaultView!.Event('click'));
-    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+    function button() {
+      return document.querySelector<HTMLButtonElement>('button.docs-copy');
+    }
+    function click() {
+      return button()!.dispatchEvent(new document.defaultView!.Event('click'));
+    }
+    function flush() {
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
     return { document, button, click, flush, timers };
   }
 

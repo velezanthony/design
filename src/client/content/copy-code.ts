@@ -52,11 +52,11 @@ export function initCopyCode(
     button.textContent = labels.copy;
     wrapper.append(button);
 
-    const show = (label: string, state?: 'copied' | 'error') => {
+    function show(label: string, state?: 'copied' | 'error') {
       button.textContent = label;
       if (state) button.setAttribute('data-state', state);
       else button.removeAttribute('data-state');
-    };
+    }
 
     button.addEventListener('click', () => {
       void copyWithFeedback(clipboard, codeText(pre), {

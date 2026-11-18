@@ -17,9 +17,9 @@ const KINDS: readonly string[] = Object.values(IssueKind);
 const SEVERITIES: readonly string[] = Object.values(IssueSeverity);
 
 /** Valores repetidos de un parámetro, sin vacíos ni duplicados y en su orden de aparición. */
-const values = (params: URLSearchParams, name: string) => [
-  ...new Set(params.getAll(name).filter((value) => value !== '')),
-];
+function values(params: URLSearchParams, name: string) {
+  return [...new Set(params.getAll(name).filter((value) => value !== ''))];
+}
 
 /**
  * Filtros desde la query de la URL. Lo que no se reconoce se ignora en vez de fallar: la URL la

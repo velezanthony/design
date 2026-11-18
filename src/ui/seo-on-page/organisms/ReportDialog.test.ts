@@ -18,7 +18,9 @@ const props = {
     'locale:en': { markdown: 'solo en', json: '{}', size: { plain: 'a', withJson: 'b' } },
   },
 };
-const dialog = async () => (await render(ReportDialog, props)).querySelector('dialog')!;
+async function dialog() {
+  return (await render(ReportDialog, props)).querySelector('dialog')!;
+}
 
 describe('ReportDialog', () => {
   it('es un diálogo con título accesible', async () => {

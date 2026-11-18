@@ -135,9 +135,11 @@ export function listingModel({
         ...(severities && { severities }),
       });
   const commonKinds = common.map(({ kind }) => kind);
-  const href = (to: ViewState, page = 1) => links.pages(written, page, perPage, to);
+  function href(to: ViewState, page = 1) {
+    return links.pages(written, page, perPage, to);
+  }
 
-  const tableOf = (): { table: ListingTable; paging: Omit<Paginated<unknown>, 'rows'> } => {
+  function tableOf(): { table: ListingTable; paging: Omit<Paginated<unknown>, 'rows'> } {
     const at = parsePage(params);
     switch (view.view) {
       case SeoView.LOCALE: {
@@ -200,7 +202,7 @@ export function listingModel({
         return { table: { view: 'page', rows }, paging };
       }
     }
-  };
+  }
   const { table, paging } = tableOf();
 
   const counts = severityCounts(tree.pages);

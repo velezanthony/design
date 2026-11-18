@@ -25,27 +25,33 @@ describe('nextTabIndex', () => {
 });
 
 describe('initTabs', () => {
-  const group = (labels: string[]) =>
-    `<div class="docs-tabs">${labels
+  function group(labels: string[]) {
+    return `<div class="docs-tabs">${labels
       .map(
         (label) =>
           `<div class="docs-tab-panel"><div class="docs-tab-label">${label}</div><p>Contenido ${label}</p></div>`,
       )
       .join('')}</div>`;
+  }
 
   function setup(body = group(['npm', 'pnpm', 'yarn'])) {
     const { document } = parseHTML(`<!doctype html><html><body>${body}</body></html>`);
     initTabs(document);
     const root = document.querySelector('.docs-tabs')!;
-    const tabs = () => [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
-    const panels = () => [...document.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    const event = (type: string, props: object = {}) =>
-      Object.assign(new document.defaultView!.Event(type, { cancelable: true }), props);
-    const press = (index: number, key: string) => {
+    function tabs() {
+      return [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    }
+    function panels() {
+      return [...document.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    }
+    function event(type: string, props: object = {}) {
+      return Object.assign(new document.defaultView!.Event(type, { cancelable: true }), props);
+    }
+    function press(index: number, key: string) {
       const e = event('keydown', { key });
       tabs()[index]!.dispatchEvent(e);
       return e;
-    };
+    }
     return { document, root, tabs, panels, event, press };
   }
 
@@ -143,7 +149,7 @@ describe('initTabs', () => {
   });
 
   describe('con View Transitions', () => {
-    const enhanced = (api: boolean, reduced = false) => {
+    function enhanced(api: boolean, reduced = false) {
       const { document } = parseHTML(
         `<!doctype html><html><body>${group(['a', 'b'])}</body></html>`,
       );
@@ -157,9 +163,11 @@ describe('initTabs', () => {
       if (api) Object.assign(document, { startViewTransition: start });
       initTabs(document, { matches: reduced });
       const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
-      const click = (i: number) => tabs[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+      function click(i: number) {
+        return tabs[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+      }
       return { root, tabs, click, start, seen };
-    };
+    }
 
     it('cambia de pestaña dentro de la transición, con el grupo nombrado solo mientras dura', async () => {
       const { root, tabs, click, start, seen } = enhanced(true);

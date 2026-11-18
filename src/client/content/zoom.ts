@@ -66,13 +66,13 @@ export function initZoom(
   let current: { trigger: HTMLElement; thumb: HTMLImageElement } | undefined;
   let closing = false;
 
-  const name = (el: Element, on: boolean) => {
+  function name(el: Element, on: boolean) {
     const style = (el as HTMLElement).style;
     if (on) style.setProperty('view-transition-name', NAME);
     else style.removeProperty('view-transition-name');
-  };
+  }
 
-  const open = (trigger: HTMLElement, thumb: HTMLImageElement) => {
+  function open(trigger: HTMLElement, thumb: HTMLImageElement) {
     if (current) return;
     current = { trigger, thumb };
     big.setAttribute('src', thumb.currentSrc || thumb.getAttribute('src') || '');
@@ -91,9 +91,9 @@ export function initZoom(
       },
       { doc, motion, kind: 'zoom' },
     ).then(() => name(big, false));
-  };
+  }
 
-  const close = () => {
+  function close() {
     if (!current || closing || !dialog.hasAttribute('open')) return;
     closing = true;
     const { thumb } = current;
@@ -106,7 +106,7 @@ export function initZoom(
       },
       { doc, motion, kind: 'zoom' },
     ).then(() => name(thumb, false));
-  };
+  }
 
   /* Pasa siempre que el diálogo se cierra, también si lo cierra el navegador por su cuenta. */
   dialog.addEventListener('close', () => {

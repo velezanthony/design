@@ -92,7 +92,7 @@ describe('faviconErrors', () => {
 });
 
 describe('`favicon` en la config', () => {
-  const messages = (favicon: unknown): string[] => {
+  function messages(favicon: unknown): string[] {
     try {
       resolveConfig({ name: 'X', favicon } as never);
     } catch (error) {
@@ -100,7 +100,7 @@ describe('`favicon` en la config', () => {
       throw error;
     }
     return [];
-  };
+  }
 
   it('acepta ruta relativa, con barra inicial y https', () => {
     expect(messages('favicon.svg')).toEqual([]);

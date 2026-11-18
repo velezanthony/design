@@ -3,23 +3,26 @@ import type { MatrixRow } from '../../../core/seo-on-page/pages/listing/matrix';
 import { render, text } from '../../../testing/render';
 import LanguageMatrix from './LanguageMatrix.astro';
 
-const row = (extra: Partial<MatrixRow> = {}): MatrixRow => ({
-  slug: 'guide',
-  title: 'Guide',
-  href: '/i/?slug=guide&locale=en',
-  tags: [],
-  cells: [
-    { locale: 'en', state: 'exists' },
-    { locale: 'es', state: 'exists' },
-  ],
-  hreflang: 'reciprocal',
-  xDefault: 'en',
-  complete: true,
-  ...extra,
-});
+function row(extra: Partial<MatrixRow> = {}): MatrixRow {
+  return {
+    slug: 'guide',
+    title: 'Guide',
+    href: '/i/?slug=guide&locale=en',
+    tags: [],
+    cells: [
+      { locale: 'en', state: 'exists' },
+      { locale: 'es', state: 'exists' },
+    ],
+    hreflang: 'reciprocal',
+    xDefault: 'en',
+    complete: true,
+    ...extra,
+  };
+}
 
-const matrix = (rows: MatrixRow[], hreflang = true, locales = ['en', 'es']) =>
-  render(LanguageMatrix, { rows, locales, hreflang });
+function matrix(rows: MatrixRow[], hreflang = true, locales = ['en', 'es']) {
+  return render(LanguageMatrix, { rows, locales, hreflang });
+}
 
 describe('LanguageMatrix', () => {
   it('una columna por idioma, más hreflang y x-default', async () => {
