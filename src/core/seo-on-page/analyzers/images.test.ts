@@ -97,8 +97,9 @@ describe('analyzeOgImage', () => {
     ]);
   });
 
-  it('la proporción admite una pequeña tolerancia', () => {
+  it('la proporción admite la misma tolerancia que el aviso del build (±2 %)', () => {
     expect(analyzeOgImage(page, og(1200, 640))).toEqual([]);
+    expect(analyzeOgImage(page, og(1200, 650))).toMatchObject([{ severity: 'warning' }]);
   });
 
   it('dónde se arregla depende de quién declara la imagen', () => {

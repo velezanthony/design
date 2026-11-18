@@ -1,3 +1,5 @@
+import { OG_IMAGE } from '../seo/image-checks';
+
 /**
  * Todos los límites del análisis, en un solo sitio. Se miden en caracteres del texto FINAL (el
  * `<title>` ya con sufijo), que es lo que enseña el resultado de búsqueda. Son orientativos: los
@@ -32,12 +34,8 @@ export const THRESHOLDS = {
   descriptionMaxPx: 920,
   /** Más de un H1 diluye de qué trata la página: debe haber exactamente uno. */
   maxH1: 1,
-  /**
-   * La imagen social recomendada para las tarjetas grandes (Facebook, LinkedIn, X): 1200×630 px,
-   * proporción ≈1,91:1. Con otra proporción las redes la recortan; más pequeña se ve borrosa.
-   */
-  ogWidth: 1200,
-  ogHeight: 630,
-  /** Cuánto puede desviarse la proporción de la ideal sin que se considere otra (un 5 %). */
-  ogRatioTolerance: 0.05,
+  /** La imagen social: la misma medida y tolerancia con las que avisa el build. */
+  ogWidth: OG_IMAGE.width,
+  ogHeight: OG_IMAGE.height,
+  ogRatioTolerance: OG_IMAGE.ratioTolerance,
 } as const;

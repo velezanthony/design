@@ -16,7 +16,7 @@ describe('THRESHOLDS', () => {
       maxH1: 1,
       ogWidth: 1200,
       ogHeight: 630,
-      ogRatioTolerance: 0.05,
+      ogRatioTolerance: 0.02,
     });
   });
 });

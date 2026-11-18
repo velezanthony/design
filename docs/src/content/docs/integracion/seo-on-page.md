@@ -112,7 +112,7 @@ comprobaciones de abajo.
 | `link-to-noindex` | info | regla | Una página indexable cuyo cuerpo enlaza a otra `noindex` del mismo idioma. Los enlaces de la barra lateral no cuentan (enlaza a todo y avisaría en cada página). |
 | `orphan-page` | info | regla | Una página indexable que ninguna otra enlaza, ni desde el cuerpo ni desde la navegación (barra lateral de su sección, cabecera y footer, construidas con las mismas funciones que el layout). La portada y las `noindex` no se juzgan. Con la barra lateral por defecto casi nunca salta: lista todas las páginas de su sección. |
 | `image-alt-missing` | aviso | regla | Imágenes Markdown (`![alt](src)`) del cuerpo sin texto alternativo, con el recuento por página. |
-| `og-image-size` | aviso o info | heurística | La imagen social contra 1200×630 (≈1,91:1, tolerancia del 5 %): aviso si la proporción es otra (las redes la recortan), info si solo es más pequeña. Las imágenes `https` no se leen y no se juzgan. |
+| `og-image-size` | aviso o info | heurística | La imagen social contra 1200×630 (≈1,91:1, tolerancia del 2 %, la misma con la que avisa el build): aviso si la proporción es otra (las redes la recortan), info si solo es más pequeña. Las imágenes `https` no se leen y no se juzgan. |
 
 Los enlaces y las imágenes no se detectan con una regla propia: el loader los toma de `rewriteLinks`
 (`core/links/rewrite.ts`), que ya recorre el cuerpo para reescribir y validar los enlaces, y los guarda
