@@ -1,0 +1,327 @@
+@utility prose {
+  /* El texto conserva su medida; lo ancho (código, tablas, pestañas, capturas) la desborda hasta
+     `--wide-max`. La caja de `prose` ocupa toda la columna: la medida va en los hijos. */
+  & > * {
+    max-width: var(--prose-measure);
+  }
+
+  & > :is(pre, .docs-code, .docs-tabs, .docs-mermaid, p:has(> img, > .docs-zoom)) {
+    max-width: var(--wide-max);
+  }
+
+  /* La raya sobre cada sección llega hasta donde llegan el código y las tablas: si se quedara en la
+     medida del texto, con columnas plegadas o ancho completo parecería cortada. */
+  & > h2 {
+    max-width: var(--wide-max);
+  }
+
+  /* Su relleno lateral (abajo) ya sobresale 0.75rem por cada lado. */
+  & > .table-scroll {
+    max-width: calc(var(--wide-max) + 1.5rem);
+  }
+
+  /* Un encabezado al que se llega desde el índice o un #enlace compartido aterriza con aire por
+     encima, no pegado al borde. */
+  & :is(h2, h3, h4) {
+    scroll-margin-top: 2rem;
+  }
+
+  & > * + * {
+    margin-top: 1.25em;
+  }
+
+  /* En las docs el `# Título` del Markdown ES el título de la página (en el portfolio lo pintaba un
+     componente fuera de `prose`), así que lleva la escala display. */
+  & h1 {
+    font-size: var(--text-display);
+    font-weight: 600;
+    letter-spacing: var(--text-display--letter-spacing);
+    line-height: var(--text-display--line-height);
+    text-wrap: balance;
+  }
+
+  & h1 + * {
+    margin-top: 1em;
+  }
+
+  & h2 {
+    margin-top: 1.75em;
+    padding-top: 1em;
+    border-top: 1px solid var(--color-rule);
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+
+  & > h2:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  & h3 {
+    margin-top: 2em;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* La referencia de API generada (griffe2md) baja hasta h4: un miembro por encabezado. */
+  & h4 {
+    margin-top: 1.75em;
+    font-family: var(--font-mono);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  & h2 + *,
+  & h3 + * {
+    margin-top: 0.75em;
+  }
+
+  & a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+
+  & strong {
+    font-weight: 600;
+  }
+
+  & ul,
+  & ol {
+    padding-left: 1.25em;
+  }
+
+  & ul {
+    list-style: disc;
+  }
+
+  & ol {
+    list-style: decimal;
+  }
+
+  & li + li {
+    margin-top: 0.4em;
+  }
+
+  & li::marker {
+    color: var(--color-faint);
+  }
+
+  /* El preflight de Tailwind quita los bordes de tabla: estas reglas devuelven la rejilla y `.table-scroll` evita ensanchar el documento. */
+  & .table-scroll {
+    overflow-x: auto;
+    width: calc(100% + 1.5rem);
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  /* La tabla mide lo que su contenido (nunca menos que el texto): estirar dos columnas cortas a
+     todo el ancho separa cada valor de su fila. Si no cabe, hace scroll en su `.table-scroll`. */
+  & table {
+    width: auto;
+    min-width: min(100%, var(--prose-measure));
+    border-collapse: collapse;
+    font-size: var(--text-row);
+    text-align: left;
+  }
+
+  & thead th {
+    padding: 0 0.875em 0.5em;
+    border-bottom: 1px solid var(--color-ink);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+    white-space: nowrap;
+  }
+
+  & tbody th,
+  & tbody td {
+    padding: 0.6em 0.875em;
+    border-bottom: 1px solid var(--color-rule);
+    vertical-align: baseline;
+  }
+
+  & tbody th {
+    font-weight: 500;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+
+  & tbody td {
+    color: var(--color-muted);
+  }
+
+  & :is(thead th, tbody th, tbody td):first-child {
+    padding-left: 0;
+  }
+
+  & :is(thead th, tbody th, tbody td):last-child {
+    padding-right: 0;
+  }
+
+  & tbody tr:last-child :is(th, td) {
+    border-bottom: 0;
+  }
+
+  & blockquote {
+    border-left: 2px solid var(--color-rule);
+    padding-left: 1.25em;
+    color: var(--color-muted);
+  }
+
+  /* El código en línea (rutas, módulos, ids) sin cortes explícitos provoca scroll lateral en móvil. */
+  & code {
+    font-family: var(--font-mono);
+    /* Un paso menos: a 1em el avance completo y la caja hacían de cada identificador la palabra
+       más ruidosa de su frase, y la caja llenaba la línea. */
+    font-size: 0.9em;
+    /* Sin borde: solo el fondo, un tinte de acento sobre el tono de la navegación. La caja
+       marcada llenaba la línea; el tinte separa el identificador sin competir con el texto. */
+    background-color: color-mix(in oklab, var(--color-accent-soft) 70%, var(--color-raised));
+    border: 0;
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    overflow-wrap: anywhere;
+  }
+
+  & pre {
+    background-color: var(--color-raised);
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+    padding: 1rem 1.125rem;
+    overflow-x: auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  & pre code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+    overflow-wrap: normal;
+  }
+
+  /* En un encabezado el código ya destaca por el propio encabezado (y en la API generada cada
+     miembro es un `h4` con su nombre en código): la caja sería un segundo estilo encima. */
+  & :is(h1, h2, h3, h4) code {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  & hr {
+    border: 0;
+    border-top: 1px solid var(--color-rule);
+  }
+
+  /* En móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o todo el documento haría scroll lateral. */
+  & img {
+    display: block;
+    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+    max-width: var(--img-max);
+    height: auto;
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+  }
+
+  & p:has(> img, > .docs-zoom) {
+    margin-top: 2em;
+  }
+
+  /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la captura y esta rellena el
+     botón, así que el foco rodea la imagen y no cambia nada de la maquetación. */
+  & .docs-zoom {
+    @apply block cursor-zoom-in rounded-[4px] p-0;
+    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+    max-width: var(--img-max);
+  }
+
+  & .docs-zoom > img {
+    @apply w-full max-w-none;
+  }
+
+  /* Dentro de una caja (pestaña, admonición) no hay margen al que sobresalir: la captura se ajusta
+     a la caja o se sale de su borde. */
+  & :is(.docs-tab-panel, .admonition) :is(img, .docs-zoom) {
+    @apply w-full max-w-full;
+  }
+
+  /* El aire extra sobre una captura separa del texto corrido; dentro de una caja ya lo da su padding. */
+  & .docs-tab-panel p:has(> img, > .docs-zoom) {
+    @apply mt-0;
+  }
+
+  & .docs-zoom:focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  /* Diagrama de Mermaid: un bloque de código más; con `data-state="rendered"` el SVG ocupa el lugar del código y el `pre` queda como franja de etiqueta y botones. */
+  & .docs-mermaid {
+    @apply my-6;
+  }
+
+  & .docs-mermaid[data-state='rendered'] pre.astro-code {
+    @apply mb-0 rounded-b-none border-b-0 pt-2 pb-0;
+
+    & code {
+      @apply hidden;
+    }
+  }
+
+  /* El panel ya es la caja: un `pre` con su propio borde dentro sería caja dentro de caja. */
+  & .docs-tab-panel pre {
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* El ritmo de `prose` solo alcanza a sus hijos directos: dentro de un panel, dos bloques
+     seguidos quedaban pegados. */
+  & .docs-tab-panel > :not(.docs-tab-label) + * {
+    margin-top: 1em;
+  }
+
+  /* Etiqueta del lenguaje: franja en flujo arriba del bloque (no flota) para no solaparse con el botón de copiar; `sticky` la deja fija al hacer scroll horizontal. */
+  &
+    pre.astro-code[data-language]:not(
+      [data-language='text' i],
+      [data-language='txt' i],
+      [data-language='plain' i],
+      [data-language='plaintext' i]
+    ) {
+    padding-top: 0.5rem;
+
+    &::before {
+      content: attr(data-language);
+      display: block;
+      position: sticky;
+      left: 0;
+      margin-bottom: 0.5rem;
+      /* La altura del botón de copiar (`.docs-copy`), para que ambos compartan franja y centro. */
+      line-height: 1.5rem;
+      color: var(--color-faint);
+      font-family: var(--font-mono);
+      font-size: var(--text-label);
+      text-transform: lowercase;
+      white-space: normal;
+      user-select: none;
+    }
+  }
+
+  /* En táctil no hay «señalar»: el botón está siempre visible, así que el bloque le deja una franja
+     propia arriba y el código empieza debajo, sin solaparse nunca. */
+  @media (pointer: coarse) {
+    & .docs-code pre {
+      padding-top: 2.75rem;
+    }
+  }
+}

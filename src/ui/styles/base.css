@@ -1,0 +1,105 @@
+/* Barras finas con los colores del tema en vez de las nativas con flechas (barra lateral, código,
+   tablas). El pulgar sale del texto tenue a media opacidad: se ve en los dos temas sin pesar. */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-faint) 55%, transparent) transparent;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-canvas);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+}
+
+/* El marco de los avisos del panel: discontinuo; el color del borde lo pone cada aviso. */
+@utility notice-frame {
+  @apply border border-dashed p-3 text-sm text-muted;
+}
+
+@utility label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--text-label--letter-spacing);
+  line-height: var(--text-label--line-height);
+  text-transform: uppercase;
+}
+
+/* Botón de solo icono de los visores (zoom e imagen): caja de 44px con el borde y el foco de la paleta. */
+@utility icon-button {
+  @apply grid size-11 cursor-pointer place-items-center rounded-[3px] border border-rule bg-canvas text-ink hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+}
+
+/* `label` es global y Mermaid la pone a sus nodos; va por id del SVG y fuera de capas (las utilidades ganan a cualquier capa) y no a la figura, porque Mermaid mide el texto en un elemento temporal bajo `body`. */
+svg[id^='docs-mermaid-'] .label {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: normal;
+  /* La de Mermaid: con ella mide las cajas; la del texto (1.7) bajaría la etiqueta. */
+  line-height: 1.5;
+  text-transform: none;
+}
+
+/* Tabla que en pantallas estrechas pasa a una tarjeta por elemento `[data-card]` (una fila o un
+   `<tbody>`): sin desplazamiento horizontal, cada celda dice su columna con `data-cell`. */
+@utility table-cards {
+  @variant max-md {
+    & thead {
+      @apply sr-only;
+    }
+    &,
+    & tbody,
+    & tr,
+    & th,
+    & td {
+      @apply block w-full;
+    }
+    & [data-card] {
+      @apply mt-3 border border-rule;
+    }
+    & [data-cell]::before {
+      content: attr(data-cell);
+      @apply mb-1 block label text-faint;
+    }
+  }
+}

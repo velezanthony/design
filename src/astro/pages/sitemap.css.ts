@@ -1,5 +1,5 @@
 // `?raw` trae el tema como texto al bundle: la ruta se prerenderiza y no puede leer del disco del paquete.
-import theme from '../../ui/styles/theme.css?raw';
+import theme from '../../ui/styles/tokens.css?raw';
 import { translate } from '../../core/i18n/ui-strings';
 import { SITEMAP_TOKENS, sitemapCss, themePalette } from '../../ui/styles/sitemap';
 import { siteConfig } from '../data/site-config';

@@ -1,0 +1,160 @@
+/* Transiciones solo con `no-preference`; el grupo de página no anima la posición (`0s`) porque con scroll el elemento viejo está en otro sitio y se vería deslizarse. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  .docs-header {
+    view-transition-name: docs-header;
+  }
+
+  .docs-sidebar {
+    view-transition-name: docs-sidebar;
+  }
+
+  .toc {
+    view-transition-name: docs-toc;
+  }
+
+  :root[data-transition] :is(.docs-header, .docs-sidebar, .toc) {
+    view-transition-name: none;
+  }
+
+  ::view-transition-group(docs-header),
+  ::view-transition-group(docs-sidebar),
+  ::view-transition-group(docs-toc) {
+    animation-duration: 0s;
+  }
+
+  /* La página vieja se queda debajo y la nueva entra encima: así no hay un valle de opacidad en
+     mitad del cruce, que con dos fundidos simultáneos dejaría ver el fondo del navegador. */
+  :root:not([data-transition])::view-transition-old(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  :root:not([data-transition])::view-transition-new(root) {
+    animation: docs-page-in 200ms ease-out both;
+    mix-blend-mode: normal;
+  }
+
+  @keyframes docs-page-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+
+  /* Tema: el tema nuevo se revela con un círculo que nace en el botón (`--reveal-*` los pone
+     `client/preferences/theme.ts`) y crece hasta la esquina más lejana. */
+  :root[data-transition='theme']::view-transition-old(root),
+  :root[data-transition='theme']::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  :root[data-transition='theme']::view-transition-new(root) {
+    animation: docs-reveal 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  @keyframes docs-reveal {
+    from {
+      clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 0));
+    }
+    to {
+      clip-path: circle(var(--reveal-r, 150vmax) at var(--reveal-x, 50%) var(--reveal-y, 0));
+    }
+  }
+
+  /* Pestañas: solo el grupo (nombrado por `client/content/tabs.ts`) hace un fundido rápido; el resto de la
+     página no se anima. */
+  :root[data-transition='tabs']::view-transition-old(root),
+  :root[data-transition='tabs']::view-transition-new(root) {
+    animation: none;
+  }
+
+  ::view-transition-group(docs-tabs),
+  ::view-transition-old(docs-tabs),
+  ::view-transition-new(docs-tabs) {
+    animation-duration: 160ms;
+    animation-timing-function: ease-out;
+  }
+
+  /* Zoom: la miniatura y la imagen grande comparten nombre, así que el navegador las mueve de una
+     a otra; el resto de la página (el fondo del diálogo) se funde. */
+  :root[data-transition='zoom']::view-transition-old(root),
+  :root[data-transition='zoom']::view-transition-new(root) {
+    animation-duration: 300ms;
+    animation-timing-function: ease;
+  }
+
+  ::view-transition-group(docs-zoom) {
+    animation-duration: 340ms;
+    animation-timing-function: var(--ease-glide);
+  }
+}
+
+/* Transiciones de la disposición (rejilla, ancho y panel); con movimiento reducido no hay ninguna. */
+@media (prefers-reduced-motion: no-preference) {
+  .docs-container {
+    transition:
+      max-width 450ms var(--ease-glide),
+      padding 450ms var(--ease-glide),
+      grid-template-columns 450ms var(--ease-glide);
+  }
+
+  .docs-panel {
+    transition:
+      opacity 250ms var(--ease-glide),
+      transform 350ms var(--ease-glide),
+      visibility 0s;
+  }
+
+  /* `visibility` espera a que acabe el fundido para ocultar; al desplegar cambia al instante. */
+  :root[data-left='collapsed'] .docs-sidebar .docs-panel,
+  :root[data-right='collapsed'] .toc .docs-panel {
+    transition:
+      opacity 250ms var(--ease-glide),
+      transform 350ms var(--ease-glide),
+      visibility 0s linear 350ms;
+  }
+
+  .docs-panel-toggle svg {
+    transition: transform 350ms var(--ease-glide);
+  }
+
+  .prose > * {
+    transition: max-width 450ms var(--ease-glide);
+  }
+
+  .docs-sidebar-scroll,
+  .docs-brand {
+    transition:
+      padding 450ms var(--ease-glide),
+      min-width 450ms var(--ease-glide);
+  }
+}
+
+/* El «Menú» móvil se despliega con `::details-content` e `interpolate-size` (mejora progresiva: sin ellos abre al instante). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (interpolate-size: allow-keywords) and selector(::details-content) {
+    .docs-nav {
+      interpolate-size: allow-keywords;
+    }
+
+    .docs-nav::details-content {
+      block-size: 0;
+      overflow: clip;
+      opacity: 0;
+      transition:
+        block-size 240ms ease,
+        opacity 180ms ease,
+        content-visibility 240ms allow-discrete;
+    }
+
+    .docs-nav[open]::details-content {
+      block-size: auto;
+      opacity: 1;
+    }
+  }
+}

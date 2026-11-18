@@ -14,7 +14,7 @@ describe('themePalette', () => {
   });
 
   it('el tema real define todos los tokens que usa la hoja', () => {
-    const theme = readFileSync('src/ui/styles/theme.css', 'utf8');
+    const theme = readFileSync('src/ui/styles/tokens.css', 'utf8');
     expect(themePalette(theme, SITEMAP_TOKENS).light.canvas).toBe('#faf9f6');
   });
 });

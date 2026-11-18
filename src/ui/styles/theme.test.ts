@@ -5,8 +5,12 @@ import { describe, expect, it } from 'vitest';
 
 import { contrast } from '../../testing/contrast';
 
-const raw = readFileSync('src/ui/styles/theme.css', 'utf8');
-const css = raw.replace(/\/\*[\s\S]*?\*\//g, '');
+/* `theme.css` es solo la entrada: importa los ficheros por tema, y el test mira el conjunto. */
+const entry = readFileSync('src/ui/styles/theme.css', 'utf8');
+const parts = [...entry.matchAll(/@import '\.\/([^']+)'/g)].map((match) =>
+  readFileSync(`src/ui/styles/${match[1]}`, 'utf8'),
+);
+const css = [entry, ...parts].join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
 /** Cuerpo del primer bloque `{ ... }` (sin llaves anidadas) tras `opener`. */
 function block(source: string, opener: RegExp): string {
@@ -208,4 +212,24 @@ describe('prose', () => {
     const outsideShiki = docs.replace(/var\(--shiki[^)]*\)/g, '');
     expect(outsideShiki).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
+});
+
+describe('estructura del tema', () => {
+  it('declara una sola vez la navegación entre páginas con transición', () => {
+    expect(css.match(/@view-transition\s*\{/g)).toHaveLength(1);
+  });
+
+  it('la curva de las transiciones solo se escribe en su token', () => {
+    expect(css.match(/cubic-bezier\(0\.2,\s*0\.8,\s*0\.2,\s*1\)/g)).toHaveLength(1);
+    expect(css).toContain('--ease-glide:');
+  });
+
+  /* Tabs es un componente público y `DocsLayout` admite `prose={false}`: sin `.prose` debe verse igual. */
+  it.each(['.docs-tablist', '.docs-tab-label {', '.docs-copy', '.docs-mermaid-figure'])(
+    'el estilo de %s no cuelga de `prose`',
+    (selector) => {
+      expect(block(css, /@utility prose\s*\{/)).not.toContain(selector);
+      expect(css).toContain(selector);
+    },
+  );
 });

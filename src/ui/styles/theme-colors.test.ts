@@ -7,7 +7,7 @@ import { themeColors } from './theme-colors';
    dos veces. Este test es lo que mantiene honesta la copia cuando cambia la paleta. */
 describe('themeColors', () => {
   const canvas = [
-    ...readFileSync('src/ui/styles/theme.css', 'utf8').matchAll(/--color-canvas:\s*([^;]+);/g),
+    ...readFileSync('src/ui/styles/tokens.css', 'utf8').matchAll(/--color-canvas:\s*([^;]+);/g),
   ].map((match) => match[1]!.trim());
 
   it('coincide con el canvas claro', () => {

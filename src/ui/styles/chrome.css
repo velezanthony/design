@@ -1,0 +1,290 @@
+/* Disposición de las páginas de docs: el estado vive en `<html data-left data-right data-width>` y aquí solo se traduce a variables. */
+:root {
+  --rail: 2.75rem;
+  /* La columna izquierda mide lo que su plano; el panel cabe dentro, entre el relleno del plano. */
+  --col-left: 17rem;
+  --panel-w: 15rem;
+  --col-right: 14rem;
+  --page-max: var(--container-page);
+  --prose-measure: var(--container-measure);
+  /* Hasta dónde llegan los elementos anchos; la medida más 12rem es lo que ya cabía en la página. */
+  --wide-max: calc(var(--container-measure) + 12rem);
+  /* Cuánto sobresale una captura de la medida, y hasta dónde puede crecer. */
+  --img-bleed: 6rem;
+  --img-max: var(--container-text);
+}
+
+:root[data-width='full'] {
+  --page-max: 100%;
+  --prose-measure: var(--container-measure-full);
+  /* Anclado: la columna lateral pega al borde y tiene un ancho fijo algo mayor. */
+  --col-left: 18rem;
+  --panel-w: 15.25rem;
+  /* Con ancho completo (o una columna plegada, abajo) lo ancho llena la columna. */
+  --wide-max: 100%;
+  --img-bleed: 0rem;
+  --img-max: 100%;
+}
+
+/* La columna izquierda se pliega desde lg y la derecha desde xl. */
+
+@media (width >= theme(--breakpoint-lg)) {
+  :root[data-left='collapsed'] {
+    --col-left: var(--rail);
+    --wide-max: 100%;
+    --img-bleed: 0rem;
+    --img-max: 100%;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root[data-right='collapsed'] {
+    --col-right: var(--rail);
+    --wide-max: 100%;
+    --img-bleed: 0rem;
+    --img-max: 100%;
+  }
+}
+
+/* «Menú» de la navegación en móvil (`DocsLayout`): desde lg no se muestra y el `<details>` queda
+   abierto. En `components` para que la utilidad `lg:hidden` gane. */
+@layer components {
+  .docs-nav-toggle {
+    @apply label;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--color-rule);
+    color: var(--color-ink);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .docs-nav-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .docs-nav-toggle::after {
+    content: '+';
+    color: var(--color-muted);
+  }
+
+  .docs-nav[open] > .docs-nav-toggle::after {
+    content: '−';
+  }
+
+  .docs-nav[open] > .docs-nav-toggle + * {
+    margin-top: 1rem;
+  }
+
+  /* Por debajo de lg el «Menú» es una caja en el tono de la navegación (como la cabecera), y su
+     contenido, ya dentro de ella, se separa del borde. */
+  @media (max-width: 63.999rem) {
+    .docs-nav {
+      border: 1px solid var(--color-rule);
+      background-color: var(--color-raised);
+    }
+
+    .docs-nav-toggle {
+      border: 0;
+    }
+
+    .docs-nav > :not(.docs-nav-toggle) {
+      margin-inline: 0.875rem;
+    }
+
+    .docs-nav > :last-child {
+      margin-bottom: 0.875rem;
+    }
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    .docs-nav[open] > .docs-nav-toggle + * {
+      margin-top: 0;
+    }
+  }
+}
+
+/* Columnas laterales plegables: desde lg la barra y desde xl el índice se pliegan a un raíl (botón y etiqueta vertical, panel `inert`); por debajo manda el «Menú». */
+@layer components {
+  .docs-panel-head {
+    @apply mb-4 hidden items-center justify-between gap-[0.875rem] lg:flex;
+  }
+
+  .docs-panel-head-right {
+    @apply flex-row-reverse;
+  }
+
+  /* Sin esto, una etiqueta larga empuja el botón fuera de la columna. */
+  .docs-panel-title {
+    @apply min-w-0 truncate;
+  }
+
+  /* Solo icono: la caja (borde) aparece al señalarlo o enfocarlo, no antes. Conserva los 44px de
+     área de pulsación y el anillo de foco. */
+  .docs-panel-toggle {
+    @apply grid size-(--rail) shrink-0 cursor-pointer place-items-center rounded-[4px] border border-transparent bg-transparent text-muted hover:border-rule hover:text-ink focus-visible:border-rule focus-visible:text-ink focus-visible:outline-offset-[-3px];
+  }
+
+  .docs-rail-label {
+    @apply mx-auto mt-4 hidden;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  /* El panel conserva su ancho al plegarse: la columna se estrecha y lo recorta, sin recolocar el texto. */
+  @media (width >= theme(--breakpoint-lg)) {
+    .docs-sidebar-scroll {
+      overflow-x: hidden;
+    }
+
+    .docs-sidebar .docs-panel {
+      width: var(--panel-w);
+      /* La barra de scroll de la columna resta ancho: el panel no puede meterse debajo de ella. */
+      max-width: 100%;
+    }
+  }
+
+  .toc .docs-panel {
+    width: 14rem;
+    max-width: 100%;
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    :root[data-left='collapsed'] .docs-sidebar .docs-panel {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-1rem);
+    }
+
+    :root[data-left='collapsed'] .docs-sidebar .docs-panel-title {
+      display: none;
+    }
+
+    :root[data-left='collapsed'] .docs-sidebar .docs-rail-label {
+      display: block;
+    }
+
+    :root[data-left='collapsed'] .docs-sidebar .docs-panel-toggle svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  @media (min-width: 80rem) {
+    :root[data-right='collapsed'] .toc .docs-panel {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(1rem);
+    }
+
+    :root[data-right='collapsed'] .toc .docs-panel-title {
+      display: none;
+    }
+
+    :root[data-right='collapsed'] .toc .docs-rail-label {
+      display: block;
+    }
+
+    :root[data-right='collapsed'] .toc .docs-panel-toggle svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  /* Lectura / Ancho: dos botones de solo icono pegados; el activo lleva el tinte y el color del
+     acento (no un bloque de tinta), así que la cabecera se queda tranquila y en oscuro se ve bien. */
+  .docs-width-switch {
+    @apply overflow-hidden rounded-[4px] border border-ink/25 bg-canvas/40;
+  }
+
+  .docs-width-switch button {
+    @apply inline-flex cursor-pointer items-center p-1.5 text-ink transition-colors hover:bg-accent-soft/60 focus-visible:outline-offset-[-2px] aria-pressed:bg-accent-soft aria-pressed:text-accent;
+  }
+}
+
+/* El pie es una superficie invertida que redefine los tokens en su ámbito; el foco usa tinta clara (el verde da 2.9:1) y conserva el filete en oscuro (1.03:1). */
+.docs-footer {
+  --color-ink: var(--color-inverse-ink);
+  --color-muted: var(--color-inverse-muted);
+  --color-faint: var(--color-inverse-muted);
+  --color-accent: var(--color-inverse-ink);
+  --color-accent-line: var(--color-inverse-muted);
+  background-color: var(--color-inverse);
+  color: var(--color-ink);
+}
+
+:root[data-theme='dark'] .docs-footer {
+  border-top: 1px solid var(--color-rule);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .docs-footer {
+    border-top: 1px solid var(--color-rule);
+  }
+}
+
+/* Plano de la barra lateral (`aside.docs-sidebar`): celda de la rejilla pegada a la cabecera; los bordes van como sombra interior para no restar ancho al raíl de 44px. */
+@media (width >= theme(--breakpoint-lg)) {
+  .docs-sidebar {
+    background-color: var(--color-raised);
+    box-shadow:
+      inset 1px 0 0 var(--color-rule),
+      inset -1px 0 0 var(--color-rule);
+  }
+
+  .docs-sidebar-scroll {
+    padding: 2rem 1rem;
+  }
+
+  :root[data-width='full'] .docs-sidebar {
+    box-shadow: inset -1px 0 0 var(--color-rule);
+  }
+
+  :root[data-width='full'] .docs-sidebar-scroll {
+    padding: 2rem 1.25rem 2rem 1.5rem;
+  }
+
+  /* El anclado quita el relleno izquierdo de la página y la cabecera se ensancha con ella: el nombre
+     del sitio ocupa la columna de la barra, así que las secciones empiezan donde el contenido. */
+  :root[data-width='full'] .docs-page {
+    padding-left: 0;
+  }
+
+  :root[data-width='full'] .docs-header .docs-container {
+    padding-left: 1.5rem;
+  }
+
+  .docs-brand {
+    min-width: 0;
+  }
+
+  /* En full el nombre ocupa la columna abierta (18rem); con el raíl plegado no se encoge, porque no cabe en 44px y una cabecera que salta molesta más. */
+  :root[data-width='full'] .docs-brand {
+    min-width: calc(18rem - 0.5rem);
+  }
+
+  :root[data-left='collapsed'] .docs-sidebar-scroll {
+    padding-inline: 0;
+  }
+}
+
+/* Plegada, la barra no debe enseñar scroll sobre el raíl; va fuera de capas para ganar a la utilidad `overflow-y-auto`. */
+@media (width >= theme(--breakpoint-lg)) {
+  :root[data-left='collapsed'] .docs-sidebar-scroll {
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root[data-right='collapsed'] .toc {
+    overflow: hidden;
+  }
+}
+
+html:has(:is(.docs-zoom-dialog, .docs-diagram-dialog)[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}

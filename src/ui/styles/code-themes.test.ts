@@ -35,7 +35,7 @@ describe('codeThemes', () => {
    oscuro de dos maneras (lo pide el sistema o lo elige la persona) y el código debe seguir ambas. */
 describe('el tema oscuro del código', () => {
   const selectors = [
-    ...readFileSync('src/ui/styles/theme.css', 'utf8')
+    ...readFileSync('src/ui/styles/code.css', 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .matchAll(/([^{}]+)\{[^{}]*color:\s*var\(--shiki-dark\)/g),
   ]

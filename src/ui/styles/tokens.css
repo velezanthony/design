@@ -1,0 +1,118 @@
+/* Tokens: los neutros son una rampa OKLCH de matiz 195 (no los cambies por los grises de Tailwind); los ratios son contra la superficie de cada token. */
+
+@theme {
+  /* Superficies, de la más clara a la más pesada: el contenido, el plano del sidebar, la cabecera
+     y el pie invertido. */
+  --color-canvas: #faf9f6; /* blanco cálido */
+  --color-raised: #f0ede6; /* piedra · 1.10:1 */
+  --color-chrome: #d8cbb5; /* moka · 1.51:1 */
+  --color-inverse: #202d32; /* antracita · 13.45:1 */
+
+  /* Ratios contra el canvas y, entre paréntesis, contra el plano. Sobre la cabecera solo se
+     escribe en `ink` (9.67:1): `muted` y el acento no llegan a 4.5:1 en el moka. */
+  --color-ink: #1d2626; /* 14.69:1  AAA */
+  --color-muted: #515a5a; /*  6.74:1  AA  (6.07) */
+  --color-faint: #626a6a; /*  5.26:1  AA  (4.74) */
+
+  /* `accent` para texto; `accent-line` para lo que no es texto (basta 3:1): como texto daría 4.18:1 en el plano y 3.06:1 en la cabecera. */
+  --color-accent: #2b665f; /*  6.30:1  AA  (5.67) */
+  --color-accent-line: #367c75; /*  4.64:1  (3.06 en la cabecera) */
+  --color-accent-soft: #e2efec; /* el acento da 5.62:1 sobre él */
+  --color-rule: #d9d3c7; /*  1.42:1 */
+
+  /* El pie invierte los papeles: tinta clara sobre antracita. */
+  --color-inverse-ink: #e0e8e8; /* 11.38:1  AAA */
+  --color-inverse-muted: #a6b0b0; /*  6.38:1  AA  */
+
+  --color-state-live: #0f6b39; /*  6.27:1  AA  — mantenido    */
+  --color-state-wip: #7d4a00; /*  6.99:1  AA  — experimental */
+
+  --color-danger: #b42318; /*  6.24:1  AA  — error / peligro */
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  --text-display: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.025em;
+
+  --text-row: 0.9375rem; /* 15px */
+  --text-row--line-height: 1.6;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.14em;
+
+  /* ~78 caracteres reales: pasa del clásico 75, a cambio de menos scroll en textos largos. No `ch`:
+     mide el glifo `0`, así que 65ch se verían ~86. */
+  --container-measure: 42rem;
+
+  --container-text: 42rem;
+
+  /* La medida del texto con el ancho completo: algo más generosa, sin llegar a líneas ilegibles. */
+  --container-measure-full: 52rem;
+
+  --container-page: 80rem;
+
+  /* La curva de las transiciones de la disposición y del zoom: arranca rápido y asienta despacio. */
+  --ease-glide: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* Mismos matices que en claro; en oscuro, más pesado es más claro, salvo el pie. */
+    --color-canvas: #141311;
+    --color-raised: #1c1a17; /*  1.07:1 */
+    --color-chrome: #2c2620; /*  1.24:1 */
+    --color-inverse: #0b1013;
+    --color-ink: #ece8e1; /* 15.20:1  AAA */
+    --color-muted: #b5ada2; /*  8.37:1  AAA (7.82) */
+    --color-faint: #8e877c; /*  5.22:1  AA  (4.88) */
+    --color-accent: #7cc2b8; /*  9.08:1  AAA (8.49) */
+    --color-accent-line: #5fa69c; /*  6.56:1 */
+    --color-accent-soft: #17302c;
+    --color-rule: #2e2a25; /*  1.30:1 */
+    --color-inverse-ink: #e0e8e8; /* 15.37:1  AAA */
+    --color-inverse-muted: #a6b0b0; /*  8.62:1  AAA */
+    --color-state-live: #6dd196; /*  9.91:1  AAA */
+    --color-state-wip: #e0a44a; /*  8.47:1  AAA */
+    --color-danger: #f97066; /*  6.66:1  AA  */
+    /* Fondo de los bloques de código: el de github-dark es azul. */
+    --code-dark-bg: #0f0e0c;
+  }
+}
+
+/* Sin tema elegido manda el sistema: sin esto el oscuro del sistema pintaba barras de scroll y
+   controles nativos en claro. Un tema elegido lo fija abajo. */
+:root {
+  color-scheme: light dark;
+}
+
+/* Un tema elegido nombra también su `color-scheme`, o las barras de scroll y los controles nativos
+   conservan el del sistema. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  /* Mismos matices que en claro; en oscuro, más pesado es más claro, salvo el pie. */
+  --color-canvas: #141311;
+  --color-raised: #1c1a17; /*  1.07:1 */
+  --color-chrome: #2c2620; /*  1.24:1 */
+  --color-inverse: #0b1013;
+  --color-ink: #ece8e1; /* 15.20:1  AAA */
+  --color-muted: #b5ada2; /*  8.37:1  AAA (7.82) */
+  --color-faint: #8e877c; /*  5.22:1  AA  (4.88) */
+  --color-accent: #7cc2b8; /*  9.08:1  AAA (8.49) */
+  --color-accent-line: #5fa69c; /*  6.56:1 */
+  --color-accent-soft: #17302c;
+  --color-rule: #2e2a25; /*  1.30:1 */
+  --color-inverse-ink: #e0e8e8; /* 15.37:1  AAA */
+  --color-inverse-muted: #a6b0b0; /*  8.62:1  AAA */
+  --color-state-live: #6dd196; /*  9.91:1  AAA */
+  --color-state-wip: #e0a44a; /*  8.47:1  AAA */
+  --color-danger: #f97066; /*  6.66:1  AA  */
+  /* Fondo de los bloques de código: el de github-dark es azul. */
+  --code-dark-bg: #0f0e0c;
+}
