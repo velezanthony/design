@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteRoute } from '../../core/seo/client-pages';
-import { loadClientPages } from './client-pages';
+import { loadClientPages, loadClientSitemapEntries } from './client-pages';
 import type { ClientRegistry } from './client-registry';
 
 const site = 'https://x.dev';
@@ -99,5 +99,19 @@ describe('loadClientPages', () => {
     reg.version += 1;
     await load(reg, fetch);
     expect(asked).toEqual(['/cv/', '/cv/']);
+  });
+});
+
+describe('loadClientSitemapEntries', () => {
+  it('las páginas del cliente indexables, como entradas del sitemap con su URL publicada', async () => {
+    const { fetch } = server({
+      '/repo/cv/': page('CV'),
+      '/repo/privacy/': page('Privacidad', '<meta name="robots" content="noindex">'),
+    });
+    const entries = await loadClientSitemapEntries(
+      { origin, site, base: '/repo' },
+      { registry: registry([route('/cv'), route('/privacy')]), fetch },
+    );
+    expect(entries).toEqual([{ loc: 'https://x.dev/repo/cv/', alternates: [] }]);
   });
 });

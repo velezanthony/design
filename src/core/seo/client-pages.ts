@@ -12,6 +12,8 @@ export interface SiteRoute {
   params: string[];
   /** Interpola los params en el patrón y devuelve la ruta sin la base (`/en/uno/`). */
   generate: (params?: RouteParams) => string;
+  /** Si una ruta generada (sin la base, `/en/uno/`) sale de este patrón; sin él no se reconoce. */
+  match?: (path: string) => boolean;
 }
 
 /** Una página del cliente ya con su URL: la ruta (con la base) y de qué fichero sale. */
@@ -73,4 +75,23 @@ export async function clientPagePaths(
     }
   }
   return { pages: [...pages.values()], failures };
+}
+
+/**
+ * De las páginas que generó el build (`astro:build:done`, rutas sin la base: `''`, `cv/`), las que
+ * salen de una ruta del cliente. Cada una es de la primera ruta que encaja, en el orden en que Astro
+ * las resuelve. Sirve en el build, donde no hay servidor que expanda los `getStaticPaths`.
+ */
+export function builtClientPages(
+  pathnames: readonly string[],
+  routes: readonly SiteRoute[],
+  base: string,
+): ClientPageRef[] {
+  return pathnames.flatMap((pathname) => {
+    const own = `/${pathname}`;
+    const route = routes.find((candidate) => candidate.match?.(own));
+    return route
+      ? [{ path: withBase(base, own), pattern: route.pattern, entrypoint: route.entrypoint }]
+      : [];
+  });
 }

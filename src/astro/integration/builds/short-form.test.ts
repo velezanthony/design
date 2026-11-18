@@ -38,6 +38,13 @@ describe('sitio monolingüe', () => {
     expect(xml).not.toContain('xhtml:link');
   });
 
+  it('las páginas propias de src/pages/ entran en el sitemap, salvo las noindex', async () => {
+    const xml = await site.read('sitemap.xml');
+    expect(xml).toContain('<loc>https://example.dev/mono/about/</loc>');
+    expect(xml).not.toContain('hidden');
+    expect(site.output).toContain('sitemap: 1 páginas de src/pages/');
+  });
+
   it('un sitio que no declara JSON-LD no lleva ninguno: la librería no inyecta nada por defecto', async () => {
     expect(await site.read('index.html')).not.toContain('ld+json');
     expect(await site.read('404.html')).not.toContain('ld+json');

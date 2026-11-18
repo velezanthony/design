@@ -6,6 +6,7 @@ import {
   buildSitemapIndex,
   SITEMAP_PAGES,
   sitemapIncludes,
+  type SitemapEntry,
 } from '../../core/seo/sitemap';
 import type { Locale } from '../../core/i18n/locale';
 import { privacyAvailability } from '../../core/privacy/pages';
@@ -63,6 +64,8 @@ export function sitemapXml(
     locales?: Locale[];
     privacy?: { page: boolean };
   },
+  /** Las páginas del cliente (`src/pages/`), ya decididas, que van después de las de la documentación. */
+  extra: readonly SitemapEntry[] = [],
 ): string {
   const pages = pagesOf(data);
   const url = urlPolicyOf(cfg);
@@ -72,7 +75,7 @@ export function sitemapXml(
     for (const [key, urls] of privacyAvailability(cfg.locales, url)) av.set(key, urls);
   }
   try {
-    return buildSitemap(av, new URL(cfg.site), noindexUrls(pages, url));
+    return buildSitemap(av, new URL(cfg.site), noindexUrls(pages, url), extra);
   } catch (error) {
     throw toAstroError(error, 'No se puede generar sitemap.xml.');
   }

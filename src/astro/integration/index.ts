@@ -22,6 +22,7 @@ import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
 import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
+import { addClientPagesToSitemap } from './client-sitemap';
 import { assertNoRouteCollision } from './route-collisions';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
@@ -81,6 +82,8 @@ function applyAnalyticsOrThrow(
 
 export function docs(userConfig: DocsUserConfig): DocsIntegration {
   const resolvedConfig = resolveConfigOrThrow(userConfig);
+  // Dónde se publica, para el sitemap del build; lo fija `astro:config:setup`.
+  let published = { site: '', base: '/' };
   return {
     name: INTEGRATION_NAME,
     resolvedConfig,
@@ -124,6 +127,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           command === 'dev',
           resolvedConfig.sitemap.include.length > 0,
         );
+        published = { site: config.site ?? '', base: config.base };
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
         addCompanions(config.integrations, INTEGRATION_NAME, COMPANIONS);
@@ -212,15 +216,22 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           });
         }
       },
-      // `injectTypes` solo existe en `astro:config:done`, no en `config:setup`.
       // Las páginas que el cliente añade en `src/pages/`, para el panel SEO y el sitemap.
       'astro:routes:resolved': ({ routes }) => rememberClientRoutes(routes),
       'astro:server:setup': ({ server }) => watchClientPages(server),
+      // `injectTypes` solo existe en `astro:config:done`, no en `config:setup`.
       'astro:config:done': ({ injectTypes }) => {
         injectTypes({ filename: 'virtual.d.ts', content: virtualTypes() });
       },
-      'astro:build:done': async ({ dir, logger }) => {
+      'astro:build:done': async ({ dir, pages, logger }) => {
         await buildPagefindIndex(dir, logger);
+        const added = await addClientPagesToSitemap({
+          dir,
+          pages,
+          ...published,
+          index: resolvedConfig.sitemap.include.length > 0,
+        });
+        if (added > 0) logger.info(`sitemap: ${added} páginas de src/pages/`);
       },
     },
   };

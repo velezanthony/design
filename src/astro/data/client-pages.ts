@@ -1,5 +1,6 @@
 import { clientPagePaths, type ClientPage, type RouteParams } from '../../core/seo/client-pages';
 import { readHead } from '../../core/seo/html-head';
+import { clientSitemapEntries, type SitemapEntry } from '../../core/seo/sitemap';
 import { clientRegistry, type ClientRegistry } from './client-registry';
 
 export interface ClientPages {
@@ -68,4 +69,13 @@ export async function loadClientPages(
   const result = { pages: read.filter((page) => page !== undefined), failures };
   cache.set(registry, { key, result });
   return result;
+}
+
+/**
+ * Las páginas del cliente como entradas del sitemap, para los endpoints en dev. En el build no hay
+ * servidor del que leerlas y devuelve nada: allí las añade `astro:build:done` desde `dist/`.
+ */
+export async function loadClientSitemapEntries(where: Where, deps?: Deps): Promise<SitemapEntry[]> {
+  const { pages } = await loadClientPages(where, deps);
+  return clientSitemapEntries(pages, new URL(where.site));
 }

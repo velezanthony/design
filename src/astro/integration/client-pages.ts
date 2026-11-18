@@ -11,6 +11,7 @@ export function rememberClientRoutes(routes: IntegrationResolvedRoute[]): void {
     entrypoint: route.entrypoint,
     params: route.params,
     generate: route.generate,
+    match: (path) => route.patternRegex.test(path),
   }));
   registry.version += 1;
 }

@@ -79,6 +79,18 @@ describe('sitemapXml', () => {
   });
 });
 
+describe('sitemapXml: páginas del cliente', () => {
+  it('las entradas que se le pasan van después de las de la documentación', () => {
+    const xml = sitemapXml([data('guide', 'en')], cfg, [
+      { loc: 'https://x.dev/repo/cv/', alternates: [] },
+    ]);
+    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual([
+      'https://x.dev/repo/guide/',
+      'https://x.dev/repo/cv/',
+    ]);
+  });
+});
+
 describe('sitemapXml: página de privacidad', () => {
   const withPrivacy = {
     ...cfg,

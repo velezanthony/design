@@ -10,6 +10,7 @@ const resolved = (pattern: string, origin = 'project') => ({
   entrypoint: `src/pages${pattern}.astro`,
   params: [] as string[],
   generate: () => `${pattern}/`,
+  patternRegex: new RegExp(`^${pattern}/$`),
 });
 
 beforeEach(() => {
@@ -25,6 +26,8 @@ describe('rememberClientRoutes', () => {
     const registry = clientRegistry();
     expect(registry.routes.map(({ pattern }) => pattern)).toEqual(['/cv']);
     expect(registry.routes[0]!.generate()).toBe('/cv/');
+    expect(registry.routes[0]!.match?.('/cv/')).toBe(true);
+    expect(registry.routes[0]!.match?.('/otra/')).toBe(false);
     expect(registry.version).toBe(1);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clientPagePaths, clientRoutes, type SiteRoute } from './client-pages';
+import { builtClientPages, clientPagePaths, clientRoutes, type SiteRoute } from './client-pages';
 
 /** Una ruta como la da Astro: `generate` interpola los params en el patrón y pone la barra final. */
 const route = (pattern: string, params: string[] = []): SiteRoute => ({
@@ -96,5 +96,32 @@ describe('clientPagePaths', () => {
     const dup = route('/[slug]', ['slug']);
     const { pages } = await clientPagePaths([dup], async () => [{ slug: 'a' }, { slug: 'a' }], '/');
     expect(pages).toHaveLength(1);
+  });
+});
+
+describe('builtClientPages', () => {
+  const matching = (pattern: string, regex: RegExp): SiteRoute => ({
+    ...route(pattern),
+    match: (path) => regex.test(path),
+  });
+
+  it('de las páginas generadas, se queda con las que salen de una ruta del cliente', () => {
+    const cv = matching('/cv', /^\/cv\/$/);
+    const projects = matching('/[slug]', /^\/(?!docs)[^/]+\/$/);
+    const pages = builtClientPages(['', 'cv/', 'uno/', 'docs/guide/'], [cv, projects], '/repo');
+    expect(pages).toEqual([
+      { path: '/repo/cv/', pattern: '/cv', entrypoint: 'src/pages/cv.astro' },
+      { path: '/repo/uno/', pattern: '/[slug]', entrypoint: 'src/pages/[slug].astro' },
+    ]);
+  });
+
+  it('la primera ruta que encaja es la suya, como en el enrutado de Astro', () => {
+    const fixed = matching('/cv', /^\/cv\/$/);
+    const dynamic = matching('/[slug]', /^\/[^/]+\/$/);
+    expect(builtClientPages(['cv/'], [fixed, dynamic], '/')[0]!.pattern).toBe('/cv');
+  });
+
+  it('una ruta sin forma de reconocerse no se adivina', () => {
+    expect(builtClientPages(['cv/'], [route('/cv')], '/')).toEqual([]);
   });
 });

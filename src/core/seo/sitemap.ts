@@ -1,4 +1,5 @@
 import { DocsError } from '../errors';
+import type { ClientPage } from './client-pages';
 import type { Availability } from '../i18n/availability';
 import { excludeNoindex } from './indexable';
 
@@ -26,9 +27,11 @@ export function buildSitemap(
   av: Availability,
   site: URL,
   noindex: ReadonlySet<string> = new Set(),
+  extra: readonly SitemapEntry[] = [],
 ): string {
   const indexable = excludeNoindex(av, noindex);
-  const total = [...indexable.values()].reduce((sum, a) => sum + Object.keys(a).length, 0);
+  const total =
+    [...indexable.values()].reduce((sum, a) => sum + Object.keys(a).length, 0) + extra.length;
   if (total > SITEMAP_LIMIT) {
     throw new DocsError(
       `El sitemap tiene ${total} URLs y un sitemap.xml admite como máximo ${SITEMAP_LIMIT}.`,
@@ -58,9 +61,46 @@ export function buildSitemap(
   }
   return xmlDocument(
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-    entries,
+    [...entries, ...extra.map(urlElement)],
     '</urlset>',
   );
+}
+
+/** Una URL del sitemap ya decidida, con sus versiones por idioma; todo absoluto. */
+export interface SitemapEntry {
+  loc: string;
+  alternates: { hreflang: string; href: string }[];
+}
+
+const urlElement = ({ loc, alternates }: SitemapEntry) =>
+  `<url><loc>${escapeXml(loc)}</loc>${alternates
+    .map(
+      ({ hreflang, href }) =>
+        `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}"/>`,
+    )
+    .join('')}</url>`;
+
+/**
+ * Las páginas que el cliente añade en `src/pages/`, como entradas del sitemap: las que dice su
+ * `<head>` que se indexan y que son canónicas de sí mismas (el sitemap solo lleva URLs canónicas),
+ * con los idiomas que declaran sus `hreflang`.
+ */
+export function clientSitemapEntries(pages: readonly ClientPage[], site: URL): SitemapEntry[] {
+  return pages.flatMap(({ path, head }) => {
+    const loc = new URL(path, site).href;
+    if (head.noindex || (head.canonical !== undefined && head.canonical !== loc)) return [];
+    return [{ loc, alternates: head.alternates }];
+  });
+}
+
+/**
+ * Añade entradas a un sitemap ya escrito por `buildSitemap`, antes de su cierre. Es lo que hace el
+ * build con las páginas del cliente, que solo existen leídas cuando el sitio ya está generado.
+ */
+export function appendToSitemap(xml: string, extra: readonly SitemapEntry[]): string {
+  if (extra.length === 0) return xml;
+  const close = xml.lastIndexOf('</urlset>');
+  return `${xml.slice(0, close)}${extra.map(urlElement).join('\n')}\n${xml.slice(close)}`;
 }
 
 /** Declaración, hoja de estilo, raíz y entradas: lo común al sitemap de páginas y al índice. */
