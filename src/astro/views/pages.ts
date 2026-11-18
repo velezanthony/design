@@ -10,7 +10,7 @@ import {
 } from '../../core/seo/sitemap';
 import type { Locale } from '../../core/i18n/locale';
 import { privacyAvailability } from '../../core/privacy/pages';
-import { toAstroError } from '../integration/errors';
+import { orAstroError } from '../errors';
 import type { VirtualConfig } from '../virtual/data';
 import { withBase } from '../../core/shared/urls';
 
@@ -75,11 +75,9 @@ export function sitemapXml(
   if (cfg.privacy?.page && cfg.locales) {
     for (const [key, urls] of privacyAvailability(cfg.locales, url)) av.set(key, urls);
   }
-  try {
-    return buildSitemap(av, new URL(cfg.site), noindexUrls(pages, url), extra);
-  } catch (error) {
-    throw toAstroError(error, 'No se puede generar sitemap.xml.');
-  }
+  return orAstroError('No se puede generar sitemap.xml.', () =>
+    buildSitemap(av, new URL(cfg.site), noindexUrls(pages, url), extra),
+  );
 }
 
 /**
@@ -89,9 +87,7 @@ export function sitemapXml(
 export function sitemapIndexXml(cfg: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
   const site = new URL(cfg.site);
   const pages = new URL(withBase(cfg.base, `/${SITEMAP_PAGES}`), site.origin).href;
-  try {
-    return buildSitemapIndex([pages, ...sitemapIncludes(cfg.sitemap.include, site, cfg.base)]);
-  } catch (error) {
-    throw toAstroError(error, 'No se puede generar el índice sitemap.xml.');
-  }
+  return orAstroError('No se puede generar el índice sitemap.xml.', () =>
+    buildSitemapIndex([pages, ...sitemapIncludes(cfg.sitemap.include, site, cfg.base)]),
+  );
 }

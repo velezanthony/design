@@ -1,10 +1,7 @@
 import { AstroError } from 'astro/errors';
-import { DocsError, DocsErrors } from '../../core/errors';
+import { DocsError, DocsErrors } from '../core/errors';
 
-/**
- * Traduce los errores puros del núcleo a `AstroError` (título + pista), que es lo que Astro
- * muestra bien. Cualquier otro error se devuelve intacto: no es nuestro y no hay que disfrazarlo.
- */
+/** Errores del núcleo → `AstroError` (título + pista); uno ajeno se devuelve intacto, no se disfraza. */
 export function toAstroError(error: DocsError | DocsErrors, title: string): AstroError;
 export function toAstroError(error: unknown, title: string): unknown;
 export function toAstroError(error: unknown, title: string): unknown {
@@ -13,4 +10,13 @@ export function toAstroError(error: unknown, title: string): unknown {
   }
   if (error instanceof DocsError) return new AstroError(title, error.describe());
   return error;
+}
+
+/** Ejecuta `run` y traduce sus errores del núcleo a `AstroError` con `title`. */
+export function orAstroError<T>(title: string, run: () => T): T {
+  try {
+    return run();
+  } catch (error) {
+    throw toAstroError(error, title);
+  }
 }

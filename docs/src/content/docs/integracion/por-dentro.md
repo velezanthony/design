@@ -16,7 +16,7 @@ La integración tiene dos puertas de entrada, una por cada archivo que toca el c
 La config se carga UNA vez: `astro.config.mjs` importa `docs.config.mjs` y se lo pasa a `docs()`, que
 lo pasa por `resolveConfig` (`src/core/config/resolve.ts`: valida con el esquema zod y rellena los
 valores por defecto). Un error ahí sale como `AstroError` con la ruta de la clave (`toAstroError`, en
-`src/astro/integration/errors.ts`).
+`src/astro/errors.ts`).
 
 El loader se evalúa fuera de la integración y Astro descarta las propiedades que esta le adjunte a
 su objeto, así que no puede leerla de ahí. Tampoco hace falta que importe `docs.config.mjs` por su

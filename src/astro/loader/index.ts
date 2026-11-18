@@ -19,7 +19,7 @@ import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
 import { CONTENT_METADATA_KEY, contentFacts } from '../../core/seo-on-page/nodes/content';
 import { resolveConfigOrThrow, type DocsUserConfig } from '../integration';
-import { toAstroError } from '../integration/errors';
+import { toAstroError } from '../errors';
 import { readFrontmatter } from './frontmatter';
 import { checkFavicon } from './favicon';
 import { checkSeoImages } from './images';

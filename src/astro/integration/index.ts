@@ -15,7 +15,7 @@ import { mergeLangAlias } from '../markdown/register';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
 import { readAnalyticsEnv } from './analytics-env';
-import { toAstroError } from './errors';
+import { orAstroError } from '../errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
@@ -41,16 +41,14 @@ export interface DocsIntegration extends AstroIntegration {
   resolvedConfig: ResolvedConfig;
 }
 
-/** `resolveConfig` con los errores del núcleo traducidos a `AstroError`. */
 /** Nombres con los que la documentación da por hecho que vive la config del sitio, en la raíz. */
 const CONFIG_FILES = ['docs.config.mjs', 'docs.config.js', 'docs.config.ts'] as const;
 
+/** `resolveConfig` con los errores del núcleo traducidos a `AstroError`. */
 export function resolveConfigOrThrow(config: DocsUserConfig): ResolvedConfig {
-  try {
-    return resolveConfig(config);
-  } catch (error) {
-    throw toAstroError(error, 'La config de `@velezanthony/design` no es válida.');
-  }
+  return orAstroError('La config de `@velezanthony/design` no es válida.', () =>
+    resolveConfig(config),
+  );
 }
 
 /**
@@ -73,11 +71,9 @@ function applyAnalyticsOrThrow(
   envValue: string | undefined,
   url: UrlPolicy,
 ) {
-  try {
-    return applyAnalytics(config, envValue, url);
-  } catch (error) {
-    throw toAstroError(error, 'La analítica de `@velezanthony/design` no es válida.');
-  }
+  return orAstroError('La analítica de `@velezanthony/design` no es válida.', () =>
+    applyAnalytics(config, envValue, url),
+  );
 }
 
 export function docs(userConfig: DocsUserConfig): DocsIntegration {

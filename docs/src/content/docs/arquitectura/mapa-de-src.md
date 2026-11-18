@@ -129,13 +129,13 @@ ui/
 
 ```text
 astro/
+├── errors.ts                DocsError → AstroError (toAstroError, orAstroError)
 ├── integration/
 │   ├── index.ts             docs(), defineDocsConfig, hooks, exports públicos
 │   ├── analytics-env.ts     Lee PUBLIC_GTM_ID con loadEnv
 │   ├── route-overrides.ts   Avisa de las rutas de la librería que src/pages/ sustituye
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
-│   ├── pagefind.ts          Índice de búsqueda tras el build
-│   └── errors.ts            DocsError → AstroError
+│   └── pagefind.ts          Índice de búsqueda tras el build
 ├── loader/
 │   ├── index.ts             docsLoader / docsLoaderFromResolved: descubrir, renderizar, validar
 │   ├── schema.ts            docsSchema: los datos de cada entrada
