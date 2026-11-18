@@ -208,11 +208,11 @@ describe('DocsFooter', () => {
     const doc = await footer({
       footer: {
         license: { label: 'MIT', href: 'https://x.dev/LICENSE' },
-        author: { name: 'Anthony Vélez', href: 'https://velezanthony.github.io/' },
+        author: { name: 'Anthony Velez', href: 'https://velezanthony.github.io/' },
         links: [],
       },
     });
-    expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design por Anthony Vélez');
+    expect(text(doc.querySelector('[data-footer-meta]'))).toBe('© 2026 Design por Anthony Velez');
     expect(doc.querySelector('a[href="https://velezanthony.github.io/"]')).not.toBeNull();
     const plain = await footer({ footer: { license: { label: 'MIT' }, links: [] } });
     expect(text(plain.querySelector('[data-footer-meta]'))).toBe('© 2026 Design');

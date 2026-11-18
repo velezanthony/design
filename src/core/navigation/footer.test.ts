@@ -38,7 +38,7 @@ describe('buildFooter: derivaciones', () => {
   it('sin config: solo el autor por defecto, sin licencia ni enlaces', () => {
     expect(view()).toEqual({ author: DEFAULT_AUTHOR, links: [] });
     expect(DEFAULT_AUTHOR).toEqual({
-      name: 'Anthony Vélez',
+      name: 'Anthony Velez',
       href: 'https://velezanthony.github.io/',
     });
   });

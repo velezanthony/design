@@ -259,7 +259,7 @@ describe('docView: footer', () => {
   it('entrega licencia, autor por defecto y los enlaces ya resueltos para el idioma', () => {
     const footer = footerOf('es');
     expect(footer.license).toEqual({ label: 'MIT' });
-    expect(footer.author?.name).toBe('Anthony Vélez');
+    expect(footer.author?.name).toBe('Anthony Velez');
     expect(footer.links.map((link) => [link.label, link.href])).toEqual([
       ['Cambios', '/repo/es/changelog/'],
       ['Repositorio', 'https://github.com/x/y'],
@@ -271,7 +271,7 @@ describe('docView: footer', () => {
     const plain = site();
     const v = docView(route(docRoutes(pages, plain), '', 'en'), pages, plain);
     expect(v.footer).toEqual({
-      author: { name: 'Anthony Vélez', href: 'https://velezanthony.github.io/' },
+      author: { name: 'Anthony Velez', href: 'https://velezanthony.github.io/' },
       links: [],
     });
   });

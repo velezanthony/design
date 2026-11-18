@@ -167,7 +167,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 
 ```js
 seo: {
-  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto 'Anthony Vélez Tapia'
+  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto 'Anthony Velez Tapia'
   description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string o por idioma
   image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // bajo public/ o https absoluta
 }
@@ -194,7 +194,7 @@ seo:
 ---
 ```
 
-Sin `titleSuffix` en el sitio ni en la página, el sufijo es el de la librería (`Anthony Vélez Tapia`).
+Sin `titleSuffix` en el sitio ni en la página, el sufijo es el de la librería (`Anthony Velez Tapia`).
 `titleTemplate` ya no existe: dejarlo en la config falla el build.
 La imagen OG debería medir unos 1,91:1 y pesar menos de 300 KB (si no, avisa). Las páginas
 `noindex` salen de `sitemap.xml` y de la búsqueda.
@@ -316,7 +316,7 @@ Dos filas, iguales en todas las páginas (la 404 incluida). Todo es opcional.
 ```js
 footer: {
   license: { label: 'MIT', href: 'https://github.com/o/r/blob/main/LICENSE' }, // o solo 'MIT'
-  author: { name: 'Ana', href: 'https://ana.dev' }, // por defecto: Anthony Vélez; false lo oculta
+  author: { name: 'Ana', href: 'https://ana.dev' }, // por defecto: Anthony Velez; false lo oculta
   links: [
     { label: { en: 'Changelog', es: 'Cambios' }, slug: 'changelog' }, // una página
     { label: 'Blog', href: 'https://blog.dev' }, // externo, solo https

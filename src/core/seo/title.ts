@@ -1,3 +1,4 @@
+import { AUTHOR } from '../author';
 import type { Label } from '../config/schema';
 import type { Locale } from '../i18n/locale';
 
@@ -5,7 +6,7 @@ import type { Locale } from '../i18n/locale';
  * Sufijo del `<title>` cuando ni el sitio ni la página definen el suyo. Es una librería personal de
  * su autor: sus docs llevan su nombre salvo que decidan otra cosa (o `false` para quitarlo).
  */
-export const DEFAULT_TITLE_SUFFIX = 'Anthony Vélez Tapia';
+export const DEFAULT_TITLE_SUFFIX = AUTHOR.name;
 
 /** Separador entre título y sufijo en el `<title>`. Fijo: la librería decide el formato, no la config. */
 export const TITLE_SEPARATOR = ' | ';

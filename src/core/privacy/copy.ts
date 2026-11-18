@@ -1,3 +1,4 @@
+import { AUTHOR } from '../author';
 import type { Locale } from '../i18n/locale';
 
 /** Quién responde de los datos: nombre y correo de contacto de la política. */
@@ -8,8 +9,8 @@ export interface Controller {
 
 /** El responsable por defecto: el del portfolio, del que cuelgan las webs de documentación. */
 export const DEFAULT_CONTROLLER: Readonly<Controller> = {
-  name: 'Anthony Velez Tapia',
-  email: 'velezanthony2000@gmail.com',
+  name: AUTHOR.name,
+  email: AUTHOR.email,
 };
 
 /** Idiomas con texto de privacidad. Añadir uno es añadir su función a `COPY` y su slug. */

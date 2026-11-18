@@ -24,7 +24,7 @@ describe('composeTitle', () => {
 describe('resolveTitleSuffix: cascada página > sitio > librería', () => {
   it('sin nada en la página ni en el sitio, el de la librería', () => {
     expect(resolveTitleSuffix(undefined, undefined, 'en')).toBe(DEFAULT_TITLE_SUFFIX);
-    expect(DEFAULT_TITLE_SUFFIX).toBe('Anthony Vélez Tapia');
+    expect(DEFAULT_TITLE_SUFFIX).toBe('Anthony Velez Tapia');
   });
 
   it('el del sitio gana al de la librería', () => {

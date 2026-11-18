@@ -59,7 +59,7 @@ describe('notFoundView', () => {
     expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
     expect(view.others.map((o) => o.lang)).toEqual(['es']);
     expect(view.others[0]).toMatchObject({
-      title: 'Perdido | Anthony Vélez Tapia',
+      title: 'Perdido | Anthony Velez Tapia',
       homeHref: '/repo/es/',
     });
     expect(view.swap).toEqual({ base: '/repo/', locales: ['en', 'es'], defaultLocale: 'en' });

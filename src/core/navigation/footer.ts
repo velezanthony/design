@@ -1,3 +1,4 @@
+import { AUTHOR } from '../author';
 import { isFooterPage, type FooterLink, type FooterPage } from '../config/footer';
 import type { ResolvedConfig } from '../config/resolve';
 import type { Label } from '../config/schema';
@@ -10,8 +11,8 @@ import { toSidebarSlug, HOME_SIDEBAR_SLUG } from './sidebar-slugs';
 
 /** Autor por defecto del footer: quien mantiene el paquete. `author: false` lo quita. */
 export const DEFAULT_AUTHOR = {
-  name: 'Anthony Vélez',
-  href: 'https://velezanthony.github.io/',
+  name: AUTHOR.shortName,
+  href: AUTHOR.url,
 } as const;
 
 /** Un enlace de la derecha del footer ya resuelto para un idioma. */
