@@ -194,10 +194,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/integration` | `src/astro/integration/index.ts` |
 | `@velezanthony/design/loader` | `src/astro/loader/index.ts` |
 | `@velezanthony/design/content` | `src/astro/content/index.ts` |
-| `@velezanthony/design/client/*` | `src/client/*.ts` (con su carpeta: `client/preferences/theme`) |
 | `@velezanthony/design/components/*` | `src/ui/*` |
-| `@velezanthony/design/layouts/*` | `src/ui/layouts/*` |
-| `@velezanthony/design/pages/*` | `src/astro/pages/*` |
 | `@velezanthony/design/theme.css` | `src/ui/styles/theme.css` |
 | `@velezanthony/design/theme-colors` | `src/ui/styles/theme-colors.ts` |
 

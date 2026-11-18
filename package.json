@@ -22,10 +22,7 @@
     "./integration": "./src/astro/integration/index.ts",
     "./loader": "./src/astro/loader/index.ts",
     "./content": "./src/astro/content/index.ts",
-    "./client/*": "./src/client/*.ts",
     "./components/*": "./src/ui/*",
-    "./layouts/*": "./src/ui/layouts/*",
-    "./pages/*": "./src/astro/pages/*",
     "./theme.css": "./src/ui/styles/theme.css",
     "./theme-colors": "./src/ui/styles/theme-colors.ts"
   },
