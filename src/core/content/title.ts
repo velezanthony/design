@@ -1,6 +1,6 @@
 import { DocsError } from '../errors';
+import { fenceMask } from '../links/fences';
 
-const FENCE = /^\s{0,3}(`{3,}|~{3,})/;
 const H1 = /^#[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/;
 
 /** Quita el marcado inline que no forma parte del texto visible del título. */
@@ -15,16 +15,10 @@ function stripInline(text: string): string {
 
 /** Texto del primer H1 fuera de bloques de código, sin marcado inline; `undefined` si no hay. */
 function firstHeading(body: string): string | undefined {
-  let fence: string | undefined;
-  for (const line of body.split('\n')) {
-    const opening = FENCE.exec(line);
-    if (opening) {
-      const marker = opening[1];
-      if (fence === undefined) fence = marker[0];
-      else if (marker[0] === fence) fence = undefined;
-      continue;
-    }
-    if (fence !== undefined) continue;
+  const inCode = fenceMask(body);
+  const lines = body.split('\n');
+  for (const [index, line] of lines.entries()) {
+    if (inCode[index]) continue;
     const heading = H1.exec(line);
     if (heading) return stripInline(heading[1]);
   }
