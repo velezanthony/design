@@ -48,6 +48,7 @@
     "docs:check": "npm run check -w docs"
   },
   "dependencies": {
+    "linkedom": "^0.18.15",
     "mdast-util-directive": "^3.2.0",
     "mdast-util-to-markdown": "^2.2.3",
     "mermaid": "^11.17.2",
@@ -68,7 +69,6 @@
     "eslint-plugin-astro": "^3.2.1",
     "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "globals": "^17.14.0",
-    "linkedom": "^0.18.15",
     "prettier": "^3.10.1",
     "prettier-plugin-astro": "^1.1.2",
     "prettier-plugin-tailwindcss": "^0.8.1",
