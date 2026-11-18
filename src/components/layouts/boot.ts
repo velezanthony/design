@@ -1,4 +1,4 @@
-import { initHeadingAnchors } from '../../client/layout/anchors';
+import { initHeadingAnchors } from '../../client/content/anchors';
 import { initConsent } from '../../client/preferences/consent';
 import { initCopyCode } from '../../client/content/copy-code';
 import { initLayout, type RailQuery } from '../../client/layout/layout';
@@ -13,7 +13,7 @@ import { storageOf } from '../../client/preferences/storage';
 import { initTabs } from '../../client/content/tabs';
 import { initTheme } from '../../client/preferences/theme';
 import type { MotionPreference } from '../../client/transition';
-import { initCurrentYear } from '../../client/content/year';
+import { initCurrentYear } from '../../client/layout/year';
 import { initZoom } from '../../client/content/zoom';
 import { trackSections } from '../../client/layout/toc';
 import { localeFromPath } from '../../core/i18n/locale';

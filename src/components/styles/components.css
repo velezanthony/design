@@ -68,7 +68,7 @@
     content: '−';
   }
 
-  /* Ancla permanente de `client/layout/anchors.ts`: aparece al señalar o enfocar el encabezado. */
+  /* Ancla permanente de `client/content/anchors.ts`: aparece al señalar o enfocar el encabezado. */
   .heading-anchor {
     margin-left: 0.4em;
     color: var(--color-faint);

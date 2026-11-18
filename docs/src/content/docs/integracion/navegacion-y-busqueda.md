@@ -72,7 +72,7 @@ real, así que siguen funcionando en GitHub. El enlace «Editar esta página» a
 Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al repositorio y a
 «Informar de un error» (a partir de `social.github`); debajo, licencia, privacidad y «Preferencias de
 cookies» (solo con analítica). Este sitio no declara licencia todavía. El año sale del reloj del
-visitante (`client/content/year.ts`); el del build queda como respaldo sin JavaScript.
+visitante (`client/layout/year.ts`); el del build queda como respaldo sin JavaScript.
 
 ## Búsqueda
 

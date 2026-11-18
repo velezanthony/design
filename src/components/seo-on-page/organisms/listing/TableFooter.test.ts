@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { SeoFilters, ViewState } from '../../../core/seo-on-page/queries/url-filters';
-import { render, text } from '../../../testing/render';
+import type { SeoFilters, ViewState } from '../../../../core/seo-on-page/queries/url-filters';
+import { render, text } from '../../../../testing/render';
 import TableFooter from './TableFooter.astro';
 
 const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
