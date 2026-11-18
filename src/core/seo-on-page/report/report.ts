@@ -19,6 +19,7 @@ import { currentValue, GENERIC_FIX, keyOf, restrictionFor, WHY } from './kinds';
 import { keyPlace, scopedKey } from '../key-place';
 import type { ReportScope } from './scope';
 import { pageKey } from '../tree/keys';
+import { listOf, plural } from '../../shared/text';
 
 /** Lo que el informe necesita saber del sitio, además del alcance. */
 export interface ReportContext {
@@ -53,9 +54,6 @@ const CERTAINTY_TEXT: Record<Certainty, string> = { rule: 'regla', heuristic: 'h
 
 const code = (text: string) => `\`${text}\``;
 const slugOf = (slug: string) => code(slug || '/');
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-const listOf = (items: readonly string[]) =>
-  new Intl.ListFormat('es', { style: 'long', type: 'conjunction' }).format(items);
 
 interface Hit {
   entry: SeoPage;

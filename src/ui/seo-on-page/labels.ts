@@ -21,6 +21,7 @@ import type {
   IssueKind,
   IssueSeverity,
 } from '../../core/seo-on-page/tree/types';
+import { listOf, plural } from '../../core/shared/text';
 
 /* Datos de presentación del panel (textos y tonos), no un componente: por eso vive en la raíz de
    `seo-on-page/` y no en un nivel atómico. Lo consumen átomos, moléculas, organismos y el contenedor.
@@ -124,9 +125,6 @@ export const INSPECTOR_WHY: Record<InspectorSection, string> = {
 export const inspectorTocText = (section: InspectorSection, count?: number): string =>
   count === undefined ? INSPECTOR_SECTIONS[section] : `${INSPECTOR_SECTIONS[section]} (${count})`;
 
-const countOf = (count: number, one: string, many: string) =>
-  `${count} ${count === 1 ? one : many}`;
-
 /** La cabecera de estado del inspector. */
 export const INSPECTOR_HEADER_LABELS = {
   back: '← Todas las páginas',
@@ -136,8 +134,8 @@ export const INSPECTOR_HEADER_LABELS = {
   /** «1 aviso», «2 errores», «3 info»: la gravedad en palabras, con su recuento. */
   count: (severity: IssueSeverity, count: number) =>
     ({
-      error: countOf(count, 'error', 'errores'),
-      warning: countOf(count, 'aviso', 'avisos'),
+      error: plural(count, 'error', 'errores'),
+      warning: plural(count, 'aviso', 'avisos'),
       info: `${count} info`,
     })[severity],
   indexable: 'Indexable',
@@ -212,7 +210,7 @@ export const SCHEMA_LABELS = {
   site: 'Del sitio',
   page: 'De la página',
   inPages: (pages: number) =>
-    `en ${pages === 1 ? 'la' : 'las'} ${countOf(pages, 'página', 'páginas')}`,
+    `en ${pages === 1 ? 'la' : 'las'} ${plural(pages, 'página', 'páginas')}`,
 };
 
 /** «Encabezados». */
@@ -302,7 +300,7 @@ export const PAGES_TABLE_LABELS = {
 export const COMMON_ISSUE_LABELS = {
   region: 'Común a todas las páginas',
   affects: (pages: number, entries: number) =>
-    `Afecta a ${pages === 1 ? 'la' : 'las'} ${pages} ${pages === 1 ? 'página' : 'páginas'} (${entries} ${entries === 1 ? 'entrada' : 'entradas'})`,
+    `Afecta a ${pages === 1 ? 'la' : 'las'} ${plural(pages, 'página', 'páginas')} (${plural(entries, 'entrada', 'entradas')})`,
   why: 'así que no se repite en cada fila: así se ven las diferencias entre páginas.',
   fix: 'Cómo arreglarlo',
   overview: 'Ver en la vista general',
@@ -310,8 +308,7 @@ export const COMMON_ISSUE_LABELS = {
 
 export const ROUTE_OVERRIDE_LABELS = {
   region: 'Rutas de la librería que sustituye el sitio',
-  title: (count: number) =>
-    `Tu sitio sustituye ${count === 1 ? '1 ruta' : `${count} rutas`} de la librería`,
+  title: (count: number) => `Tu sitio sustituye ${plural(count, 'ruta', 'rutas')} de la librería`,
   why: 'Se publican sus páginas, y el panel analiza esas en lugar de las de la librería.',
   /** La ruta tal como se visita: `index` es `/`, `es/index` es `/es/`. */
   path: (route: string) => `/${route.replace(/(^|\/)index$/, '$1')}`,
@@ -367,19 +364,19 @@ export const FILTER_LABELS = {
   clear: 'Limpiar',
 };
 
-const pagesOf = (count: number) => `${count} ${count === 1 ? 'página' : 'páginas'}`;
-
 /** El recuento sobre la tabla: cuenta filas de la vista y dice qué son (páginas o entradas). */
 export function headCount(table: ListingTable, total: number): string {
   switch (table.view) {
     case 'locale':
-      return `${total} ${total === 1 ? 'entrada' : 'entradas'} página + idioma`;
+      return `${plural(total, 'entrada', 'entradas')} página + idioma`;
     case 'matrix':
-      return `${pagesOf(total)} × ${table.locales.length} idiomas · ${table.complete} ${table.complete === 1 ? 'completa' : 'completas'}`;
+      return `${plural(total, 'página', 'páginas')} × ${table.locales.length} idiomas · ${plural(table.complete, 'completa', 'completas')}`;
     case 'have':
-      return table.lacks ? `${pagesOf(total)} sin ${LACKS_PHRASES[table.lacks]}` : pagesOf(total);
+      return table.lacks
+        ? `${plural(total, 'página', 'páginas')} sin ${LACKS_PHRASES[table.lacks]}`
+        : plural(total, 'página', 'páginas');
     case 'page':
-      return pagesOf(total);
+      return plural(total, 'página', 'páginas');
   }
 }
 
@@ -479,11 +476,7 @@ export function haveCellText(column: HaveColumn, cell: HaveCell): string {
   return detail ? `${word} ${detail}` : word;
 }
 
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
-
 /** «en», «en y es», «en, es y fr». */
-const listOf = (items: readonly string[]) =>
-  new Intl.ListFormat('es', { style: 'long', type: 'conjunction' }).format(items);
 
 /** Un porcentaje con espacio duro: nunca queda el «%» solo en la línea siguiente. */
 export const percentText = (percent: number) => `${percent}\u00a0%`;
@@ -712,9 +705,9 @@ export const REPORT_LABELS = {
   subs: {
     page: (slug: string, locales: readonly string[]) =>
       `${slugLabel(slug)} · ${locales.join(' y ')}`,
-    filter: (text: string, pages: number) => `${text} · ${pagesOf(pages)}`,
+    filter: (text: string, pages: number) => `${text} · ${plural(pages, 'página', 'páginas')}`,
     site: (pages: number, locales: readonly string[]) =>
-      `${pagesOf(pages)} · ${locales.join(' y ')}`,
+      `${plural(pages, 'página', 'páginas')} · ${locales.join(' y ')}`,
     locale: 'Todo el sitio en',
   },
   localeSelect: 'Idioma del informe',
