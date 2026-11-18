@@ -1,4 +1,4 @@
-import { clientTag } from '../client-tags';
+import { scopedKey } from '../key-place';
 import { estimateWidth } from '../pixels';
 import { THRESHOLDS } from '../thresholds';
 import { limitOf } from '../pages/inspector/fix-details';
@@ -42,21 +42,8 @@ const KEY: Record<IssueKind, string | undefined> = {
  */
 export function keyOf(kind: IssueKind, entry: Pick<SeoPage, 'kind'>): string | undefined {
   const key = KEY[kind];
-  return key === undefined ? undefined : scoped(key, entry);
+  return key === undefined ? undefined : scopedKey(key, entry.kind);
 }
-
-/**
- * Una clave de frontmatter tal como se escribe para esa página: en una externa, bajo `external[]`;
- * en una página del cliente (`.astro`), la etiqueta de su `<head>` que hace lo mismo.
- */
-export function scoped(key: string, entry: Pick<SeoPage, 'kind'>): string {
-  if (entry.kind === 'client') return clientTag(key);
-  return entry.kind === 'external' ? `external[].${key}` : key;
-}
-
-/** Dónde vive la clave de una página que no es un `.md` de la carpeta de contenido. */
-export const placeOf = (entry: Pick<SeoPage, 'kind'>): string =>
-  entry.kind === 'client' ? 'en su <head>' : 'en docs.config.mjs';
 
 export const WHY: Record<IssueKind, string> = {
   [IssueKind.TITLE_TOO_LONG]: 'Google recorta los títulos largos con «…» y lo recortado no se lee.',

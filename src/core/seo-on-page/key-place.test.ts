@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clientTag } from './client-tags';
+import { clientTag } from './key-place';
 
 describe('clientTag', () => {
   it.each([

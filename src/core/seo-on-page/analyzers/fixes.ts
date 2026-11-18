@@ -1,4 +1,4 @@
-import { clientTag } from '../client-tags';
+import { scopedKey } from '../key-place';
 import { THRESHOLDS } from '../thresholds';
 import { IssueKind, type Issue, type OgImageSource, type SeoPageKind } from '../tree/types';
 
@@ -52,12 +52,12 @@ export function siblingPath(
  * `docs.config.mjs`. Decirlo mal mandaría a editar un archivo cuyo cambio no tendría efecto.
  */
 function where(page: FixPage, key: string): string {
-  if (page.kind === 'client') {
-    return `\`${clientTag(key)}\` de \`${page.sourcePath}\` (o lo que le pase a su layout)`;
-  }
+  const scoped = `\`${scopedKey(key, page.kind)}\``;
+  if (page.kind === 'client')
+    return `${scoped} de \`${page.sourcePath}\` (o lo que le pase a su layout)`;
   return page.kind === 'external'
-    ? `\`external[].${key}\` de la entrada «${page.slug}» en docs.config.mjs`
-    : `\`${key}\` en el frontmatter de \`${page.sourcePath}\``;
+    ? `${scoped} de la entrada «${page.slug}» en docs.config.mjs`
+    : `${scoped} en el frontmatter de \`${page.sourcePath}\``;
 }
 
 /** Los arreglos que en un `.astro` se dicen en HTML (encabezados, idiomas, canonical). */

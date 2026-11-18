@@ -15,7 +15,8 @@ import {
 } from '../tree/types';
 import { contentDirs } from './content-dirs';
 import { LACKS } from './lacks';
-import { currentValue, GENERIC_FIX, keyOf, placeOf, restrictionFor, scoped, WHY } from './kinds';
+import { currentValue, GENERIC_FIX, keyOf, restrictionFor, WHY } from './kinds';
+import { keyPlace, scopedKey } from '../key-place';
 import type { ReportScope } from './scope';
 import { pageKey } from '../tree/keys';
 
@@ -238,7 +239,9 @@ function sectionOf(
     for (const { entry, issue } of hits) {
       const own = entry.kind === 'native' ? undefined : keyOf(kind, entry);
       const value = stated ? '' : ` — ${currentValue(entry, issue)?.text ?? ''}`;
-      lines.push(entryLine(entry, `${own ? ` — ${code(own)} ${placeOf(entry)}` : ''}${value}`));
+      lines.push(
+        entryLine(entry, `${own ? ` — ${code(own)} ${keyPlace(entry.kind)}` : ''}${value}`),
+      );
     }
   }
   if (sameEverywhere) {
@@ -422,7 +425,9 @@ function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext)
     lines.push('- Páginas y ficheros:');
     for (const entry of lacking) {
       const external =
-        key && entry.kind !== 'native' ? ` — ${code(scoped(key, entry))} ${placeOf(entry)}` : '';
+        key && entry.kind !== 'native'
+          ? ` — ${code(scopedKey(key, entry.kind))} ${keyPlace(entry.kind)}`
+          : '';
       lines.push(entryLine(entry, `${external} — ${lackNote(column, entry, ctx)}`));
     }
     lines.push('', ...DO_NOT_TOUCH);
@@ -436,7 +441,7 @@ function lacksReport(column: HaveColumn, scope: ReportScope, ctx: ReportContext)
       slug: entry.slug,
       locale: entry.locale,
       file: entry.sourcePath,
-      key: key ? scoped(key, entry) : null,
+      key: key ? scopedKey(key, entry.kind) : null,
       current: column === 'desc' ? (entry.meta.description ?? null) : null,
       detail: lackNote(column, entry, ctx),
     })),
