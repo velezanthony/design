@@ -28,7 +28,11 @@ vi.mock('astro:content', () => ({
   }),
 }));
 
-import { loadSeoTree, seoInputOf } from './adapter';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { loadSeoTree, loadSiteFiles, seoInputOf } from './adapter';
 
 const config = {
   name: 'Site',
@@ -139,5 +143,40 @@ describe('loadSeoTree', () => {
     expect(guide.meta.title).toBe('Guía | Site');
     expect(guide.meta.description).toBe('Una guía');
     expect(guide.issues.map((issue) => issue.kind)).toContain('heading-skip');
+  });
+});
+
+describe('loadSiteFiles', () => {
+  const withPublic = async (files: string[], run: (publicDir: string) => Promise<void>) => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'seo-public-'));
+    try {
+      for (const file of files) await writeFile(path.join(dir, file), 'x');
+      await run(pathToFileURL(`${dir}${path.sep}`).href);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  };
+  const byId = (files: Awaited<ReturnType<typeof loadSiteFiles>>, id: string) =>
+    files.find((file) => file.id === id);
+
+  it('robots.txt y llms.txt salen de lo que hay en public/ del consumidor', async () => {
+    await withPublic(['robots.txt'], async (publicDir) => {
+      const files = await loadSiteFiles({ ...config, publicDir } as never);
+      expect(byId(files, 'robots')?.state).toBe('present');
+      expect(byId(files, 'llms')?.state).toBe('absent');
+    });
+  });
+
+  it('el sitemap cuenta las URLs reales de la colección', async () => {
+    await withPublic([], async (publicDir) => {
+      const files = await loadSiteFiles({ ...config, publicDir } as never);
+      expect(byId(files, 'sitemap')).toMatchObject({ urls: 2 });
+    });
+  });
+
+  it('sin publicDir en la config todo lo de public/ cuenta como ausente', async () => {
+    const files = await loadSiteFiles(config as never);
+    expect(byId(files, 'robots')?.state).toBe('absent');
+    expect(byId(files, 'llms')?.state).toBe('absent');
   });
 });

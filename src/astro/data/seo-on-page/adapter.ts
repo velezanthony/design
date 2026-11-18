@@ -1,8 +1,9 @@
 import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/input';
+import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type { HeadingNode, SeoTree } from '../../../core/seo-on-page/tree/types';
-import { readImageSizes } from '../../loader/images';
-import { urlPolicyOf } from '../../views/pages';
+import { readImageSizes, readPublic } from '../../loader/images';
+import { sitemapXml, urlPolicyOf } from '../../views/pages';
 import type { DocData } from '../../views/pages';
 import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
 import type { VirtualConfig } from '../../virtual/data';
@@ -69,4 +70,26 @@ export async function loadSeoTree(config: VirtualConfig): Promise<SeoTree> {
 /** Los datos de la colección tal cual, para que la cabecera y el pie del panel se resuelvan como los del sitio. */
 export async function loadDocData(): Promise<DocData[]> {
   return (await getDocs()).map((entry) => entry.data);
+}
+
+/**
+ * Los archivos de sitio del panel. Las URLs del sitemap se cuentan sobre el propio `sitemap.xml`
+ * que sirve la ruta (una sola fuente), y `robots.txt` / `llms.txt` se buscan en el `public/` del
+ * consumidor: la librería no los genera, así que su ausencia es un estado y no un problema.
+ */
+export async function loadSiteFiles(config: VirtualConfig): Promise<SiteFile[]> {
+  // Sin `publicDir` no hay dónde buscar: ausente, nunca la raíz del disco.
+  const publicDir = config.publicDir === undefined ? undefined : new URL(config.publicDir);
+  const exists = async (file: string) =>
+    publicDir !== undefined && (await readPublic(publicDir, file)) !== undefined;
+  const sitemap = sitemapXml(await loadDocData(), config);
+  return siteFiles({
+    url: urlPolicyOf(config),
+    locales: config.locales,
+    sitemapUrls: sitemap.split('<loc>').length - 1,
+    robots: await exists('/robots.txt'),
+    llms: await exists('/llms.txt'),
+    privacyPage: config.privacy.page,
+    ...(config.favicon !== undefined && { favicon: config.favicon }),
+  });
 }
