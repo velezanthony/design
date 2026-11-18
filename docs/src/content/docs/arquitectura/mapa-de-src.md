@@ -89,13 +89,13 @@ client/
 └── not-found.ts        Cambia la 404 al idioma de la URL
 ```
 
-## `ui/`: lo que se ve
+## `components/`: lo que se ve
 
 Diseño atómico. Ningún componente lee datos por su cuenta: todo llega por props, incluidos los
 textos (`strings: UiStrings`).
 
 ```text
-ui/
+components/
 ├── atoms/       Button, Checkbox, Heading, Icon, Input, Link, Rule, Tag
 ├── molecules/   Admonition, EditLink, FallbackNotice, LocaleSwitch, NavList, PanelToggle,
 │                Pagination, PrevNext, TableOfContents, Tabs, ThemeToggle
@@ -194,9 +194,9 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/integration` | `src/astro/integration/index.ts` |
 | `@velezanthony/design/loader` | `src/astro/loader/index.ts` |
 | `@velezanthony/design/content` | `src/astro/content/index.ts` |
-| `@velezanthony/design/components/*` | `src/ui/*` |
-| `@velezanthony/design/theme.css` | `src/ui/styles/theme.css` |
-| `@velezanthony/design/theme-colors` | `src/ui/styles/theme-colors.ts` |
+| `@velezanthony/design/components/*` | `src/components/*` |
+| `@velezanthony/design/theme.css` | `src/components/styles/theme.css` |
+| `@velezanthony/design/theme-colors` | `src/components/styles/theme-colors.ts` |
 
 Mover un archivo a los que apunta una de estas subrutas es un cambio incompatible para los
 consumidores. `src/astro/integration/public-api.test.ts` sujeta lo que exporta la integración.

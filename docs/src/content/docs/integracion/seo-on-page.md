@@ -52,7 +52,7 @@ flowchart LR
 
 El adaptador (`src/astro/data/seo-on-page/adapter.ts`) es el único sitio que conoce
 `astro:content`; el resto está en capas que no dependen de Astro (`core/seo-on-page/`,
-`ui/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
+`components/seo-on-page/`). Las pantallas se pintan con `DocsLayout`, como el resto del sitio, alimentado por
 `panelView` (`views/seo-on-page/panel.ts`): barra lateral con las pantallas del panel, `noindex`, sin analítica ni
 aviso de consentimiento.
 
@@ -91,7 +91,7 @@ al núcleo → pintar componentes**. Nada más.
 Cada modelo es una función pura que devuelve exactamente lo que enseña su pantalla. Como el núcleo
 no sabe formar URLs (`base`, `trailingSlash`), los modelos reciben un **puerto de enlaces**
 (`PanelLinks`, en `pages/links.ts`) y devuelven los enlaces ya hechos como texto; `devHrefs`, de
-`astro/views/seo-on-page/hrefs.ts`, lo implementa. Los componentes (`ui/seo-on-page/organisms/`) son
+`astro/views/seo-on-page/hrefs.ts`, lo implementa. Los componentes (`components/seo-on-page/organisms/`) son
 una sección cada uno y reciben solo su porción del modelo; las etiquetas y los textos son suyos
 (`labels.ts`), los datos no.
 

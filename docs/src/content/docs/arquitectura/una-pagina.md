@@ -21,12 +21,12 @@ flowchart TD
     store --> doc["doc.astro<br/>getStaticPaths → docRoutes"]
     vm["virtual:@velezanthony/design/config"] --> doc
     doc --> view["docView · astro/views/doc.ts<br/>(llama a core/navigation, core/seo, core/i18n)"]
-    view --> lay["DocsLayout + Shell<br/>ui/layouts"]
+    view --> lay["DocsLayout + Shell<br/>components/layouts"]
     lay --> html["dist/guia/instalar/index.html"]
   end
   subgraph browser["En el navegador"]
     html --> pre["Scripts inline del head:<br/>tema y disposición antes de pintar"]
-    pre --> boot["bootDocs · ui/layouts/boot.ts"]
+    pre --> boot["bootDocs · components/layouts/boot.ts"]
     boot --> inits["initTheme, initLayout, initConsent,<br/>initSearch, initTabs, initCopyCode,<br/>initZoom, trackSections…"]
   end
 ```
@@ -57,7 +57,7 @@ reescribe sus enlaces, lo renderiza con el pipeline de Markdown y guarda la entr
    `core/` todo lo que la página necesita: barra lateral de su sección, cabecera, anterior/siguiente,
    etiquetas del head, pie, textos del idioma, URL de edición.
 4. Pasa ese objeto a `DocsLayout`. Las fuentes (`<Font>` de `astro:assets`) se inyectan en la ranura
-   `head` desde el contenedor, porque `ui/` no puede importar `astro:*`.
+   `head` desde el contenedor, porque `components/` no puede importar `astro:*`.
 
 ## 3. Del layout al HTML
 
@@ -81,7 +81,7 @@ Al final de `DocsLayout.astro` hay un único `<script>` de módulo:
 </script>
 ```
 
-`bootDocs` (`src/ui/layouts/boot.ts`) cablea todo el cliente en un orden fijo:
+`bootDocs` (`src/components/layouts/boot.ts`) cablea todo el cliente en un orden fijo:
 
 ```mermaid
 sequenceDiagram
@@ -121,5 +121,5 @@ llama a `bootDocs`, para que los `init*` vean el DOM definitivo.
 | Barra lateral, cabecera o anterior/siguiente | `core/navigation/` |
 | Etiquetas del head | `core/seo/meta.ts`, `core/seo/head.ts` |
 | Un dato de la config no llega a la página | `astro/virtual/data.ts`, `astro/views/doc.ts` |
-| Un comportamiento en el navegador | `client/` y su llamada en `ui/layouts/boot.ts` |
-| Aspecto visual | `ui/styles/theme.css` y el componente en `ui/` |
+| Un comportamiento en el navegador | `client/` y su llamada en `components/layouts/boot.ts` |
+| Aspecto visual | `components/styles/theme.css` y el componente en `components/` |

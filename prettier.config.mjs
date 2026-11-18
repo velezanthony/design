@@ -10,5 +10,5 @@ export default {
   overrides: [{ files: '*.astro', options: { parser: 'astro' } }],
 
   /* La hoja que define `@theme` y las utilidades propias, para que se ordenen como las de Tailwind. */
-  tailwindStylesheet: './src/ui/styles/theme.css',
+  tailwindStylesheet: './src/components/styles/theme.css',
 };

@@ -5,7 +5,7 @@ import { AstroError } from 'astro/errors';
 import type { ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { sitemapFiles } from '../../core/seo/sitemap';
-import { codeThemes } from '../../ui/styles/code-themes';
+import { codeThemes } from '../../components/styles/code-themes';
 import { resolveConfigOrThrow, urlPolicyOf } from '../config';
 import { clientRegistry } from '../registry';
 import { createMarkdownEnv } from '../markdown/env';

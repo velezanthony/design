@@ -8,7 +8,7 @@ seo:
 # Paleta y tokens
 
 Todos los colores, tamaños de texto y medidas son **tokens** de Tailwind 4 declarados en el bloque
-`@theme` de `src/ui/styles/theme.css`. Un token `--color-accent` genera las utilidades
+`@theme` de `src/components/styles/theme.css`. Un token `--color-accent` genera las utilidades
 `text-accent`, `bg-accent`, `border-accent`… y además existe como variable CSS. Ningún componente
 escribe colores literales: un test de `theme.test.ts` lo comprueba en las reglas de prosa,
 admoniciones y pestañas.
@@ -64,7 +64,7 @@ El primer número es el contraste contra el canvas; el del paréntesis, contra e
 porque **cambiar un color sin mirar su ratio es la forma más rápida de romper la accesibilidad**, y
 el comentario te obliga a verlo al editarlo. Pero el comentario no es la garantía: lo es el test.
 
-`src/ui/styles/theme.test.ts` extrae las paletas clara y oscura de `theme.css` y comprueba una
+`src/components/styles/theme.test.ts` extrae las paletas clara y oscura de `theme.css` y comprueba una
 lista de pares texto/fondo con `contrast()` (`src/testing/contrast.ts`):
 
 - 4.5:1 para texto normal: `ink`, `muted`, `faint`, `accent`, `state-live`, `state-wip` y `danger`
@@ -83,7 +83,7 @@ La paleta oscura se declara dos veces en `theme.css`:
 2. `:root[data-theme='dark'] { … }`: el visitante eligió oscuro.
 
 `theme.test.ts` exige que ambos bloques sean **idénticos** y completos. Si tocas un color oscuro,
-tócalo en los dos. Y `src/ui/styles/theme-colors.ts` repite el canvas de cada tema para
+tócalo en los dos. Y `src/components/styles/theme-colors.ts` repite el canvas de cada tema para
 `<meta name="theme-color">`; `theme-colors.test.ts` lo sujeta a `theme.css`.
 
 ## El pie: re-tematizado por ámbito

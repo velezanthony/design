@@ -7,7 +7,7 @@ import { themeColors } from './theme-colors';
 /* `<meta name="theme-color">` no puede leer una propiedad CSS, así que los valores se escriben
    dos veces. Este test es lo que mantiene honesta la copia cuando cambia la paleta. */
 describe('themeColors', () => {
-  const canvas = themePalette(readFileSync('src/ui/styles/tokens.css', 'utf8'), ['canvas']);
+  const canvas = themePalette(readFileSync('src/components/styles/tokens.css', 'utf8'), ['canvas']);
 
   it('coincide con el canvas claro', () => {
     expect(canvas.light.canvas).toBe(themeColors.light);

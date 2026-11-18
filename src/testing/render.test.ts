@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import Icon from '../ui/atoms/Icon.astro';
+import Icon from '../components/atoms/Icon.astro';
 import { render, text } from './render';
 
 describe('render', () => {

@@ -22,9 +22,9 @@
     "./integration": "./src/astro/integration/index.ts",
     "./loader": "./src/astro/loader/index.ts",
     "./content": "./src/astro/content/index.ts",
-    "./components/*": "./src/ui/*",
-    "./theme.css": "./src/ui/styles/theme.css",
-    "./theme-colors": "./src/ui/styles/theme-colors.ts"
+    "./components/*": "./src/components/*",
+    "./theme.css": "./src/components/styles/theme.css",
+    "./theme-colors": "./src/components/styles/theme-colors.ts"
   },
   "scripts": {
     "dev": "astro dev",

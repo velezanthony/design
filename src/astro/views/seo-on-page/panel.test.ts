@@ -4,7 +4,7 @@ import { defaultStrings } from '../../../core/i18n/ui-strings';
 import { resolveConfig } from '../../../core/config/resolve';
 import type { DocsUserConfig } from '../../../core/config/schema';
 import { renderDocument, text } from '../../../testing/render';
-import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
+import DocsLayout from '../../../components/layouts/DocsLayout.astro';
 import { createVirtualData } from '../../virtual/data';
 import type { DocData } from '../../loader/schema';
 import { devHrefs } from './hrefs';

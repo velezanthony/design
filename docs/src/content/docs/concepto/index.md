@@ -54,7 +54,7 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 
 | La librería (`@velezanthony/design`) | El consumidor (`docs/` de su repo) |
 | --- | --- |
-| Estilos, tokens y paleta (`src/ui/styles/theme.css`) | El contenido Markdown |
+| Estilos, tokens y paleta (`src/components/styles/theme.css`) | El contenido Markdown |
 | Tema claro/oscuro y su selector | `docs.config.mjs`: nombre, idiomas, `nav`, `sidebar`, SEO base |
 | Fuentes (IBM Plex vía la API de fuentes de Astro) | `site` y `base` en `astro.config.mjs` |
 | Componentes genéricos: cabecera, barra lateral, índice, pie, pestañas, admoniciones | Imágenes de `public/` (imagen OG, favicon propio si quiere) |

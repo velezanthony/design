@@ -7,9 +7,9 @@ import { contrast } from '../../testing/contrast';
 import { themePalette } from './sitemap';
 
 /* `theme.css` es solo la entrada: importa los ficheros por tema, y el test mira el conjunto. */
-const entry = readFileSync('src/ui/styles/theme.css', 'utf8');
+const entry = readFileSync('src/components/styles/theme.css', 'utf8');
 const parts = [...entry.matchAll(/@import '\.\/([^']+)'/g)].map((match) =>
-  readFileSync(`src/ui/styles/${match[1]}`, 'utf8'),
+  readFileSync(`src/components/styles/${match[1]}`, 'utf8'),
 );
 const css = [entry, ...parts].join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
@@ -61,9 +61,9 @@ describe('tokens', () => {
     expect(css).toContain("@import 'tailwindcss';");
     const source = /@source '([^']+)';/.exec(css)?.[1];
     expect(source).toBeDefined();
-    // Relativa a este fichero: tiene que llegar a src/, no quedarse en src/ui/styles/.
+    // Relativa a este fichero: tiene que llegar a src/, no quedarse en src/components/styles/.
     const scanned = resolve(dirname(fileURLToPath(import.meta.url)), source!);
-    expect(existsSync(resolve(scanned, 'ui/molecules'))).toBe(true);
+    expect(existsSync(resolve(scanned, 'components/molecules'))).toBe(true);
     expect(existsSync(resolve(scanned, 'astro/pages'))).toBe(true);
   });
 });

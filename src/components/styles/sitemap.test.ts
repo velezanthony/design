@@ -29,7 +29,7 @@ describe('themePalette', () => {
   });
 
   it('el tema real define todos los tokens que usa la hoja', () => {
-    const theme = readFileSync('src/ui/styles/tokens.css', 'utf8');
+    const theme = readFileSync('src/components/styles/tokens.css', 'utf8');
     const palette = themePalette(theme, SITEMAP_TOKENS);
     expect(palette.light.canvas).toBe('#faf9f6');
     expect(palette.dark.canvas).toBe('#141311');

@@ -34,7 +34,10 @@ describe('codeThemes', () => {
 /* Shiki escribe los colores oscuros como `--shiki-dark` y deja el cambio al sitio. El sitio pasa a
    oscuro de dos maneras (lo pide el sistema o lo elige la persona) y el código debe seguir ambas. */
 describe('el tema oscuro del código', () => {
-  const css = readFileSync('src/ui/styles/code.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const css = readFileSync('src/components/styles/code.css', 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  );
   const [, selectors, body] = /([^{}]+)\{\s*@variant dark\s*\{([^{}]*)\}/.exec(css) ?? [];
 
   /* `@variant dark` (en `tokens.css`) ya cubre las dos maneras de pasar a oscuro. */

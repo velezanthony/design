@@ -29,7 +29,7 @@ La pieza central es `/[...slug]` → `src/astro/pages/doc.astro`:
 
 GitHub Pages sirve **un único** `<base>/404.html` para cualquier URL que no existe. La librería lo
 genera en el idioma por defecto e incluye, en `<template data-locale>`, el cuerpo de cada otro idioma.
-Al cargar, `bootNotFound` (`src/ui/layouts/boot.ts`) deduce el idioma de la URL pedida y
+Al cargar, `bootNotFound` (`src/components/layouts/boot.ts`) deduce el idioma de la URL pedida y
 `swapNotFound` (`src/client/not-found.ts`) cambia el cuerpo, el `lang` y el título **sin
 redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
 
@@ -49,7 +49,7 @@ de su ruta, lee su HTML de `dist/` con el mismo `readHead` y las añade al sitem
 página del sitio se saca del sitemap con `<meta name="robots" content="noindex">` en su `<head>`.
 
 Abierto en el navegador, el sitemap se ve con estilo: enlaza `_design/sitemap.css` (ruta relativa,
-vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`ui/styles/sitemap.ts`).
+vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`components/styles/sitemap.ts`).
 La paleta se lee de `theme.css` al generar el sitio, sin copiar valores, y el título y la nota salen
 de `sitemap.title` y `sitemap.note` del idioma por defecto. Es CSS y no XSLT porque Chrome retira
 XSLT. Los buscadores ignoran la hoja: leen el XML. Un XML no puede llevar `<meta viewport>`, así que

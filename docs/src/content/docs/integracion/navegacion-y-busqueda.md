@@ -23,7 +23,7 @@ flowchart TD
   ft --> foot["DocsFooter"]
 ```
 
-Todo el cálculo es puro y vive en `src/core/navigation/`; los componentes de `src/ui/` solo pintan
+Todo el cálculo es puro y vive en `src/core/navigation/`; los componentes de `src/components/` solo pintan
 lo que reciben.
 
 ### Cabecera (`nav`)

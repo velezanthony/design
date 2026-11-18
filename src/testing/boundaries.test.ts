@@ -18,7 +18,7 @@ async function violations(filePath: string, code: string, rule = RULE): Promise<
 
 const CORE = 'src/core/content/slug.ts';
 const CLIENT = 'src/client/theme.ts';
-const UI = 'src/ui/organisms/Header.ts';
+const UI = 'src/components/organisms/Header.ts';
 const ASTRO = 'src/astro/loader/index.ts';
 
 const forbidden: [string, string, string][] = [
@@ -27,11 +27,11 @@ const forbidden: [string, string, string][] = [
   ['core/ no importa astro/loaders', CORE, `import { glob } from 'astro/loaders';`],
   ['core/ no importa virtual:*', CORE, `import cfg from 'virtual:@velezanthony/design/config';`],
   ['core/ no importa node:*', CORE, `import { readFile } from 'node:fs/promises';`],
-  ['core/ no importa ../ui', CORE, `import { x } from '../../ui/atoms/Link';`],
+  ['core/ no importa ../components', CORE, `import { x } from '../../components/atoms/Link';`],
   ['core/ no importa ../client', CORE, `import { x } from '../../client/theme';`],
   ['core/ no importa ../astro', CORE, `import { x } from '../../astro/loader';`],
   ['client/ no importa valores de core/', CLIENT, `import { x } from '../core/i18n/locale';`],
-  ['client/ no importa ui/', CLIENT, `import { x } from '../ui/atoms/Link';`],
+  ['client/ no importa components/', CLIENT, `import { x } from '../components/atoms/Link';`],
   ['client/ no importa astro/ (carpeta)', CLIENT, `import { x } from '../astro/loader';`],
   ['client/ no importa astro:*', CLIENT, `import { x } from 'astro:content';`],
   [
@@ -39,10 +39,14 @@ const forbidden: [string, string, string][] = [
     CLIENT,
     `import cfg from 'virtual:@velezanthony/design/config';`,
   ],
-  ['ui/ no importa virtual:*', UI, `import cfg from 'virtual:@velezanthony/design/config';`],
-  ['ui/ no importa astro:content', UI, `import { getCollection } from 'astro:content';`],
-  ['ui/ no importa astro', UI, `import { defineConfig } from 'astro';`],
-  ['ui/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/pages/doc';`],
+  [
+    'components/ no importa virtual:*',
+    UI,
+    `import cfg from 'virtual:@velezanthony/design/config';`,
+  ],
+  ['components/ no importa astro:content', UI, `import { getCollection } from 'astro:content';`],
+  ['components/ no importa astro', UI, `import { defineConfig } from 'astro';`],
+  ['components/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/pages/doc';`],
 ];
 
 const allowed: [string, string, string][] = [
@@ -58,14 +62,14 @@ const allowed: [string, string, string][] = [
     CLIENT,
     `import { type Locale } from '../core/i18n/locale';`,
   ],
-  ['ui/ sí importa core/', UI, `import { translate } from '../../core/i18n/ui-strings';`],
-  ['ui/ sí importa client/', UI, `import { x } from '../../client/theme';`],
+  ['components/ sí importa core/', UI, `import { translate } from '../../core/i18n/ui-strings';`],
+  ['components/ sí importa client/', UI, `import { x } from '../../client/theme';`],
   ['astro/ sí importa astro:content', ASTRO, `import { getCollection } from 'astro:content';`],
   ['astro/ sí importa astro', ASTRO, `import { defineConfig } from 'astro';`],
   ['astro/ sí importa astro/loaders', ASTRO, `import { glob } from 'astro/loaders';`],
   ['astro/ sí importa virtual:*', ASTRO, `import cfg from 'virtual:@velezanthony/design/config';`],
   ['astro/ sí importa valores de core/', ASTRO, `import { x } from '../../core/i18n/locale';`],
-  ['astro/ sí importa ui/', ASTRO, `import { x } from '../../ui/atoms/Link';`],
+  ['astro/ sí importa components/', ASTRO, `import { x } from '../../components/atoms/Link';`],
   ['astro/ sí importa client/', ASTRO, `import { x } from '../../client/theme';`],
 ];
 
@@ -92,7 +96,7 @@ describe('fronteras entre capas', () => {
 const layers: [string, string][] = [
   ['core/', CORE],
   ['client/', CLIENT],
-  ['ui/', UI],
+  ['components/', UI],
   ['astro/', ASTRO],
 ];
 

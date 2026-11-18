@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 
 /* Dependencia entre capas (ver `design.md`): cada capa declara lo que NO puede importar; `src/testing/boundaries.test.ts` fija cada regla. */
 
-/** Import relativo que entra en alguna de las carpetas dadas, p. ej. `../../ui/atoms/Link`. */
+/** Import relativo que entra en alguna de las carpetas dadas, p. ej. `../../components/atoms/Link`. */
 function relativeTo(/** @type {string[]} */ folders) {
   return `^\\.{1,2}/(.*/)?(${folders.join('|')})(/|$)`;
 }
@@ -66,8 +66,8 @@ export default defineConfig(
     noVirtual,
     { group: ['node:*'], message: 'El núcleo es puro: sin Node.' },
     {
-      regex: relativeTo(['client', 'ui', 'astro']),
-      message: 'El núcleo no depende de `client/`, `ui/` ni `astro/`.',
+      regex: relativeTo(['client', 'components', 'astro']),
+      message: 'El núcleo no depende de `client/`, `components/` ni `astro/`.',
     },
   ]),
   layer('client', astroPackage, [
@@ -77,13 +77,13 @@ export default defineConfig(
       message: 'Desde `client/` solo se importan tipos de `core/` (`import type`).',
     },
     {
-      regex: relativeTo(['ui', 'astro']),
-      message: '`client/` no depende de `ui/` ni de `astro/`.',
+      regex: relativeTo(['components', 'astro']),
+      message: '`client/` no depende de `components/` ni de `astro/`.',
     },
     noAstroScheme,
     noVirtual,
   ]),
-  layer('ui', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
+  layer('components', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
 
   /* Nada de `enum` de TypeScript (no es sintaxis borrable y publicamos `.ts` sin build): un objeto `as const` más un tipo derivado. */
   {

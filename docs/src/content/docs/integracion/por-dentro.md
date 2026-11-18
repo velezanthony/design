@@ -86,7 +86,7 @@ Es donde ocurre casi todo. En orden:
    [Markdown](./markdown.md)).
 5. **`updateConfig`.** Fusiona en la config de Astro:
    - `markdown.shikiConfig.langAlias`: nuestros alias más los del consumidor (mandan los suyos).
-   - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/ui/styles/code-themes.ts`),
+   - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/components/styles/code-themes.ts`),
      **solo si el consumidor no eligió temas**.
    - `fonts`: IBM Plex Sans y Mono vía la API de fuentes de Astro (`src/astro/integration/fonts.ts`).
    - `vite.plugins`: el plugin del módulo virtual.

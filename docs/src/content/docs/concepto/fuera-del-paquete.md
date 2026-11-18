@@ -97,17 +97,17 @@ formas, por la barrera 1, esas carpetas ni siquiera están en el tarball.
 ### 4. Tailwind solo escanea `src/`
 
 Los componentes de la librería usan clases de utilidad, y Tailwind necesita leerlas para generar el
-CSS. En `src/ui/styles/theme.css`:
+CSS. En `src/components/styles/theme.css`:
 
 ```css
 @source '../../';
 ```
 
-La ruta es relativa al propio `theme.css` (`src/ui/styles/`), así que `../../` es **`src/`**, ni un
+La ruta es relativa al propio `theme.css` (`src/components/styles/`), así que `../../` es **`src/`**, ni un
 nivel más. Funciona igual venga el paquete de `node_modules` o de un symlink del workspace. El
 contenido del playground o de este sitio nunca se escanea como si fuera de la librería, y las clases
 que usen sus páginas no engordan el CSS de los consumidores. Un test de
-`src/ui/styles/theme.test.ts` fija que el `@source` apunte a `src/`.
+`src/components/styles/theme.test.ts` fija que el `@source` apunte a `src/`.
 
 ### 5. Un test de guarda con `npm pack --dry-run`
 
