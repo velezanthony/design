@@ -18,13 +18,14 @@ import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
+import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
 import { loadDocData, loadPanelTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
 import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const tree = await loadPanelTree(siteConfig, Astro.url.origin);
+const { tree, failures } = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = overviewModel(tree, {
   locales: siteConfig.locales,
   defaultLocale: siteConfig.defaultLocale,
@@ -50,6 +51,7 @@ const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteC
   <PanelIntro title="Resumen" lede={lede} strings={view.strings}>
     <ReportButton slot="actions" scope="site" />
   </PanelIntro>
+  <ClientPageFailures failures={failures} />
   <div class="flex flex-col gap-4">
     <OverviewKpis kpis={model.kpis} />
     <div class="grid gap-4 lg:grid-cols-2">

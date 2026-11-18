@@ -303,6 +303,15 @@ export const COMMON_ISSUE_LABELS = {
   overview: 'Ver en la vista general',
 };
 
+export const CLIENT_FAILURE_LABELS = {
+  region: 'Páginas de src/pages/ que no se pudieron leer',
+  title: (count: number) =>
+    count === 1
+      ? '1 página de src/pages/ no se pudo leer'
+      : `${count} páginas de src/pages/ no se pudieron leer`,
+  why: 'No salen en el panel ni en el sitemap de dev hasta que se lean bien.',
+};
+
 /** Una marca de celda (matriz, «Qué tiene»): glifo + palabra, que el color solo no basta. `tone` es el de `Tag`. */
 interface MarkLabel {
   glyph: string;

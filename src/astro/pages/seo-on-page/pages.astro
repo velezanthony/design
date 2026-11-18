@@ -16,6 +16,7 @@ import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { urlPolicyOf } from '../../views/pages';
 import { headCount, VIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { siteConfig } from '../../data/site-config';
+import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
 import { loadDocData, loadPanelTree } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
 import { listingReport } from '../../views/seo-on-page/report';
@@ -29,7 +30,7 @@ const view = panelView({
   screen: 'pages',
   title: 'Páginas',
 });
-const tree = await loadPanelTree(siteConfig, Astro.url.origin);
+const { tree, failures } = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = listingModel({
   tree,
   params: Astro.url.searchParams,
@@ -49,6 +50,7 @@ const report = listingReport(tree, Astro.url.searchParams, siteConfig);
   <PanelIntro title="Páginas" lede={VIEW_LABELS[model.view.view].lede} strings={view.strings}>
     <ReportButton slot="actions" scope="filter" />
   </PanelIntro>
+  <ClientPageFailures failures={failures} />
   <div class="flex flex-col gap-6">
     <FiltersForm {...model.form} />
     {model.showAllHref && <InfoHiddenNote showAllHref={model.showAllHref} />}

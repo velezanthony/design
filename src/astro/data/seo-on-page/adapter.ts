@@ -2,7 +2,7 @@ import type { SeoInput, SeoPageInput } from '../../../core/seo-on-page/tree/inpu
 import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import type { ClientPage } from '../../../core/seo/client-pages';
-import { loadClientPages } from '../client-pages';
+import { loadClientPages, type ClientPages } from '../client-pages';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type {
   HeadingNode,
@@ -97,11 +97,19 @@ export async function loadSeoTree(
 
 /**
  * El árbol del panel con todo lo que publica el sitio: la colección y las páginas que el cliente
- * añade en `src/pages/`, que se piden al servidor de desarrollo en el que corre el propio panel.
+ * añade en `src/pages/`, que se piden al servidor de desarrollo en el que corre el propio panel. Las
+ * que no se pudieron leer vuelven aparte, para avisar en pantalla en vez de que desaparezcan.
  */
-export async function loadPanelTree(config: VirtualConfig, origin: string): Promise<SeoTree> {
-  const { pages } = await loadClientPages({ origin, site: config.site, base: config.base });
-  return loadSeoTree(config, pages);
+export async function loadPanelTree(
+  config: VirtualConfig,
+  origin: string,
+): Promise<{ tree: SeoTree; failures: ClientPages['failures'] }> {
+  const { pages, failures } = await loadClientPages({
+    origin,
+    site: config.site,
+    base: config.base,
+  });
+  return { tree: await loadSeoTree(config, pages), failures };
 }
 
 /** Los datos de la colección tal cual, para que la cabecera y el pie del panel se resuelvan como los del sitio. */
