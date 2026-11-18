@@ -6,6 +6,7 @@ import {
   buildSidebar,
   flatten,
   isSidebarGroup,
+  missingEntry,
   type SidebarGroup,
   type SidebarNode,
 } from './sidebar';
@@ -197,5 +198,50 @@ describe('buildSidebar: portada en la config', () => {
     const pages = [page(''), page('guide')];
     const tree = build(pages, 'en', [{ label: 'Home', slug: 'index', items: ['guide'] }]);
     expect((tree[0] as SidebarGroup).slug).toBe('');
+  });
+});
+
+const cfg = { locales: ['en', 'es'], defaultLocale: 'en' };
+
+describe('missingEntry', () => {
+  const available = { en: '/repo/changelog/' };
+
+  it('link: hoja hacia el original con la insignia del idioma de origen', () => {
+    expect(
+      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.LINK, cfg, url),
+    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/changelog/', badge: 'en' });
+  });
+
+  it('link: el origen es el primer idioma disponible si falta el idioma por defecto', () => {
+    const entry = missingEntry(
+      'x',
+      'X',
+      { es: '/repo/es/x/' },
+      'en',
+      MissingTranslation.LINK,
+      cfg,
+      url,
+    );
+    expect(entry).toMatchObject({ href: '/repo/es/x/', badge: 'es' });
+  });
+
+  it('fallback: hoja normal, sin insignia, hacia la ruta de reserva del idioma', () => {
+    expect(
+      missingEntry(
+        'changelog',
+        'Changelog',
+        available,
+        'es',
+        MissingTranslation.FALLBACK,
+        cfg,
+        url,
+      ),
+    ).toEqual({ label: 'Changelog', slug: 'changelog', href: '/repo/es/changelog/' });
+  });
+
+  it('omit: sin hoja', () => {
+    expect(
+      missingEntry('changelog', 'Changelog', available, 'es', MissingTranslation.OMIT, cfg, url),
+    ).toBeNull();
   });
 });

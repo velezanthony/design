@@ -1,7 +1,6 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { Page } from '../content/discovery';
 import { DocsError } from '../errors';
-import type { SidebarLeaf } from '../navigation/sidebar';
 import { pageUrl, type Availability, type UrlPolicy } from './availability';
 import type { Locale } from './locale';
 
@@ -85,36 +84,6 @@ export function undeclaredMissing(
 
 /** Lo que las políticas necesitan de la config: los idiomas del sitio y el que va sin prefijo. */
 type LocaleConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale'>;
-
-/**
- * Hoja de barra lateral de un idioma sin traducción: `link` → hacia el original con la insignia de
- * su idioma, `fallback` → hacia la ruta de reserva del idioma y `omit` → ninguna.
- */
-export function missingEntry(
-  slug: string,
-  title: string,
-  available: Partial<Record<Locale, string>>,
-  locale: Locale,
-  policy: MissingTranslation,
-  cfg: LocaleConfig,
-  url: UrlPolicy,
-): SidebarLeaf | null {
-  switch (policy) {
-    case MissingTranslation.LINK: {
-      const source = sourceLocale(available, cfg.locales, cfg.defaultLocale);
-      return {
-        label: title,
-        slug,
-        href: available[source] ?? pageUrl(slug, source, url),
-        badge: source,
-      };
-    }
-    case MissingTranslation.FALLBACK:
-      return { label: title, slug, href: pageUrl(slug, locale, url) };
-    case MissingTranslation.OMIT:
-      return null;
-  }
-}
 
 /** Ruta que sirve el contenido original en un idioma sin traducción (política `fallback`). */
 export interface RouteSpec {

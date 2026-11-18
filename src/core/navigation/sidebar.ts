@@ -1,11 +1,10 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
 import type { Page } from '../content/discovery';
-import type { Availability, UrlPolicy } from '../i18n/availability';
+import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import {
   MissingTranslation,
-  missingEntry,
   sourceLocale,
   type TranslationPolicies,
 } from '../i18n/translation-policy';
@@ -82,6 +81,33 @@ function toEntries(
     }
   }
   return entries;
+}
+
+/** Hoja de un idioma sin traducción: `link` al original con insignia, `fallback` a la reserva, `omit` nada. */
+export function missingEntry(
+  slug: string,
+  title: string,
+  available: Partial<Record<Locale, string>>,
+  locale: Locale,
+  policy: MissingTranslation,
+  cfg: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
+  url: UrlPolicy,
+): SidebarLeaf | null {
+  switch (policy) {
+    case MissingTranslation.LINK: {
+      const source = sourceLocale(available, cfg.locales, cfg.defaultLocale);
+      return {
+        label: title,
+        slug,
+        href: available[source] ?? pageUrl(slug, source, url),
+        badge: source,
+      };
+    }
+    case MissingTranslation.FALLBACK:
+      return { label: title, slug, href: pageUrl(slug, locale, url) };
+    case MissingTranslation.OMIT:
+      return null;
+  }
 }
 
 /** Nodo con la clave de orden de sus hermanos. */
