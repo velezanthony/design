@@ -45,6 +45,28 @@ describe('analyzeLinks: enlaces a páginas noindex', () => {
     expect(issue!.fix).toContain('a.md');
   });
 
+  it('varias noindex enlazadas: una incidencia con el recuento', () => {
+    const issues = analyzeLinks(
+      [
+        facts('a', { links: [to('s1'), to('s2')] }),
+        facts('s1', { noindex: true }),
+        facts('s2', { noindex: true }),
+      ],
+      new Map(),
+    );
+    const [issue] = forPage(issues, 'a').filter((i) => i.kind === 'link-to-noindex');
+    expect(issue).toMatchObject({ value: 2 });
+    expect(issue!.message).toBe('El cuerpo enlaza a 2 páginas noindex.');
+  });
+
+  it('una sola noindex enlazada se dice en singular', () => {
+    const issues = analyzeLinks(
+      [facts('a', { links: [to('secret')] }), facts('secret', { noindex: true })],
+      new Map(),
+    );
+    expect(forPage(issues, 'a')[0]!.message).toBe('El cuerpo enlaza a una página noindex.');
+  });
+
   it('una página noindex que enlaza a otra noindex no dice nada: no compite en los resultados', () => {
     const issues = analyzeLinks(
       [facts('a', { noindex: true, links: [to('secret')] }), facts('secret', { noindex: true })],
@@ -142,5 +164,12 @@ describe('analyzeLinks: páginas huérfanas', () => {
     const fix = forPage(issues, 'lonely')[0]!.fix!;
     expect(fix).toContain('docs.config.mjs');
     expect(fix).toContain('lonely.md');
+  });
+
+  it('el enlace que propone usa solo el nombre del archivo, no su carpeta', () => {
+    const lonely = { ...facts('lonely'), sourcePath: 'guides/lonely.md' };
+    const fix = forPage(analyzeLinks([facts('a'), lonely], new Map()), 'lonely')[0]!.fix!;
+    expect(fix).toContain('(./lonely.md)');
+    expect(fix).not.toContain('guides/');
   });
 });

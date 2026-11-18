@@ -28,7 +28,7 @@ describe('analyzeAltText', () => {
 
   it('el mensaje y el arreglo nombran las imágenes y el archivo', () => {
     const [issue] = analyzeAltText(page, [{ src: 'img/a.png', alt: '' }]);
-    expect(issue!.message).toContain('img/a.png');
+    expect(issue!.message).toMatch(/^Una imagen sin texto alternativo: «img\/a\.png»/);
     expect(issue!.fix).toContain('docs/guide.md');
     expect(issue!.fix).toContain('img/a.png');
   });
@@ -68,6 +68,16 @@ describe('analyzeOgImage', () => {
   it('sin imagen o sin dimensiones conocidas (una URL https): no se juzga', () => {
     expect(analyzeOgImage(page, { ogImageSource: 'none' })).toEqual([]);
     expect(analyzeOgImage(page, og())).toEqual([]);
+  });
+
+  it('con el ancho pero sin el alto tampoco se juzga: no hay proporción', () => {
+    expect(analyzeOgImage(page, og(600))).toEqual([]);
+  });
+
+  it('el valor es el ancho y el mensaje dice que se recorta', () => {
+    const [issue] = analyzeOgImage(page, og(1200, 800));
+    expect(issue).toMatchObject({ value: 1200, severity: 'warning' });
+    expect(issue!.message).toContain('las redes la recortan');
   });
 
   it('proporción distinta (cuadrada): aviso, porque las redes la recortan', () => {

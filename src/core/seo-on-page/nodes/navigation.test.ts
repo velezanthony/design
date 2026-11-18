@@ -52,6 +52,13 @@ describe('navigationLinks', () => {
     expect(targets(map, 'api/b')).toContain('legal:en');
   });
 
+  it('una página enlazada desde la barra lateral y el footer cuenta una vez', () => {
+    const map = links([page('guide'), page('legal')], {
+      footer: { links: [{ label: 'Legal', slug: 'legal' }] },
+    });
+    expect(targets(map, 'guide')).toEqual(['legal:en']);
+  });
+
   it('un enlace https del footer no apunta a ninguna página', () => {
     const map = links([page('guide'), page('legal')], {
       footer: { links: [{ label: 'Web', href: 'https://x.dev' }] },
