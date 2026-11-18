@@ -81,7 +81,7 @@ La búsqueda es **Pagefind**: un índice estático generado al final del build, 
 ```mermaid
 sequenceDiagram
   participant B as astro build
-  participant I as integration/pagefind.ts
+  participant I as integration/build/pagefind.ts
   participant D as dist/
   participant N as Navegador
   participant S as client/search.ts

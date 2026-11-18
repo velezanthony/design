@@ -1,7 +1,8 @@
 import tailwindcss from '@tailwindcss/vite';
 import type { AstroUserConfig } from 'astro';
 import { AstroError } from 'astro/errors';
-import { docs, type DocsUserConfig } from './index';
+import type { DocsUserConfig } from '../../core/config/schema';
+import { docs } from './docs';
 
 /** Origen de GitHub Pages del propietario. Es solo el valor por defecto: `options.site` lo cambia. */
 export const DEFAULT_SITE = 'https://velezanthony.github.io';

@@ -9,7 +9,7 @@ seo:
 
 La integración tiene dos puertas de entrada, una por cada archivo que toca el consumidor:
 
-- `docs(config)` en `astro.config.mjs` → `src/astro/integration/index.ts`.
+- `docs(config)` en `astro.config.mjs` → `src/astro/integration/docs.ts` (`index.ts` solo reexporta la API pública).
 - La colección de `content.config.ts` (`@velezanthony/design/content`) →
   `src/astro/content/index.ts` y `src/astro/loader/index.ts`.
 
@@ -33,7 +33,7 @@ variante `.js`/`.ts`) con `addWatchFile` si existe en la raíz: solo lo vigila, 
 sequenceDiagram
   autonumber
   participant CLI as astro build
-  participant Int as docs() · integration/index.ts
+  participant Int as docs() · integration/docs.ts
   participant Vite as Vite + módulo virtual
   participant Ldr as collections · content/index.ts + loader/index.ts
   participant MD as Sätteri + plugins mdast
@@ -111,7 +111,7 @@ en `config:setup`.
 
 ### `astro:build:done`
 
-`buildPagefindIndex` (`src/astro/integration/pagefind.ts`) indexa `dist/` con la API de Node de
+`buildPagefindIndex` (`src/astro/integration/build/pagefind.ts`, que llama `build/build-done.ts`) indexa `dist/` con la API de Node de
 Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-y-busqueda.md).
 
 ## El módulo virtual

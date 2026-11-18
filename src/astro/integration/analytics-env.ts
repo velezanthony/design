@@ -1,6 +1,9 @@
 import { fileURLToPath } from 'node:url';
 import { loadEnv } from 'vite';
-import { GTM_ENV_VAR } from '../../core/analytics/resolve';
+import { applyAnalytics, GTM_ENV_VAR } from '../../core/analytics/resolve';
+import type { ResolvedConfig } from '../../core/config/resolve';
+import type { UrlPolicy } from '../../core/i18n/availability';
+import { orAstroError } from '../errors';
 
 /** Fuente de variables de entorno: `loadEnv` de Vite o un doble en los tests. */
 export type LoadEnv = (mode: string, envDir: string, prefix: string) => Record<string, string>;
@@ -17,4 +20,15 @@ export function readAnalyticsEnv(
   load: LoadEnv = loadEnv,
 ): string | undefined {
   return load(modeOf(command), fileURLToPath(root), 'PUBLIC_')[GTM_ENV_VAR];
+}
+
+/** `applyAnalytics` con los errores del núcleo traducidos a `AstroError`. */
+export function applyAnalyticsOrThrow(
+  config: ResolvedConfig,
+  envValue: string | undefined,
+  url: UrlPolicy,
+) {
+  return orAstroError('La analítica de `@velezanthony/design` no es válida.', () =>
+    applyAnalytics(config, envValue, url),
+  );
 }
