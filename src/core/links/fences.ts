@@ -15,10 +15,10 @@ export function fenceMask(body: string): boolean[] {
       if (closing.test(line)) open = undefined;
       continue;
     }
-    const match = OPEN.exec(line);
+    const [, marker, info] = OPEN.exec(line) ?? [];
     // Una info string con ` no abre un fence de acentos graves (es código en línea).
-    if (match && !(match[1][0] === '`' && match[2].includes('`'))) {
-      open = { char: match[1][0], size: match[1].length };
+    if (marker && info !== undefined && !(marker.startsWith('`') && info.includes('`'))) {
+      open = { char: marker.charAt(0), size: marker.length };
       mask.push(true);
       continue;
     }

@@ -12,7 +12,7 @@ describe('stringsFor', () => {
   it('sobrescribe solo las claves indicadas, sin mutar el catálogo', () => {
     const strings = stringsFor('en', { 'toc.title': 'Contents' });
     expect(strings['toc.title']).toBe('Contents');
-    expect(strings['edit.page']).toBe(defaultStrings.en['edit.page']);
-    expect(defaultStrings.en['toc.title']).toBe('On this page');
+    expect(strings['edit.page']).toBe(defaultStrings.en?.['edit.page']);
+    expect(defaultStrings.en?.['toc.title']).toBe('On this page');
   });
 });

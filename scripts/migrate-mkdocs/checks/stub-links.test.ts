@@ -26,13 +26,13 @@ describe('findStubLinks', () => {
 
   it('desde la raíz de docs/ la ruta sube un solo nivel', () => {
     const files = new Map([['index.md', reportMarkdown('[c](contributing.md)')]]);
-    expect(findStubLinks(files, stubs)[0].suggestion).toBe('../CONTRIBUTING.md');
+    expect(findStubLinks(files, stubs)[0]?.suggestion).toBe('../CONTRIBUTING.md');
   });
 
   it('el fichero incluido puede estar en una subcarpeta del repo', () => {
     const files = new Map([['index.md', reportMarkdown('[c](a.md)')]]);
     const found = findStubLinks(files, [{ file: 'a.md', include: 'meta/A.md' }]);
-    expect(found[0].suggestion).toBe('../meta/A.md');
+    expect(found[0]?.suggestion).toBe('../meta/A.md');
   });
 
   it('ignora enlaces a otras páginas, externos y los de código', () => {

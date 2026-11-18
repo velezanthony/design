@@ -15,7 +15,7 @@ export function resolveAutorefs(
 ): LineResult {
   const log: LogEntry[] = [];
   const output = replaceOutsideCode(line, AUTOREF, (match) => {
-    const [whole, text, ref] = match;
+    const [whole, text = '', ref] = match;
     const symbol = ref ?? text.replace(/`/g, '');
     if (!symbol.includes('.')) return whole;
     const url = symbols?.[symbol];

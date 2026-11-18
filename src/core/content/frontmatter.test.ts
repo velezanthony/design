@@ -72,20 +72,20 @@ describe('parseFrontmatter', () => {
     const { errors } = parseFrontmatter({ seo: { image: { src: 'og.png' } } }, 'guide.md');
     expect(errors).toHaveLength(1);
     expect(errors[0]).toBeInstanceOf(DocsError);
-    expect(errors[0].file).toBe('guide.md');
-    expect(errors[0].message).toContain('seo.image.src');
+    expect(errors[0]?.file).toBe('guide.md');
+    expect(errors[0]?.message).toContain('seo.image.src');
   });
 
   it('una clave desconocida dentro de seo se nombra con su ruta', () => {
     const { errors } = parseFrontmatter({ seo: { titel: 'x' } }, 'guide.md');
-    expect(errors[0].message).toContain('seo.titel');
+    expect(errors[0]?.message).toContain('seo.titel');
   });
 
   it('translations inválido lista los valores permitidos', () => {
     const { errors } = parseFrontmatter({ translations: 'ocultar' }, 'guide.md');
     expect(errors).toHaveLength(1);
-    expect(errors[0].message).toContain('translations');
-    expect(errors[0].message).toMatch(/link.*omit.*fallback/s);
+    expect(errors[0]?.message).toContain('translations');
+    expect(errors[0]?.message).toMatch(/link.*omit.*fallback/s);
   });
 
   it('agrega todos los fallos, no solo el primero', () => {
@@ -96,6 +96,6 @@ describe('parseFrontmatter', () => {
   it('algo que no es un mapa falla', () => {
     const { errors } = parseFrontmatter('hola', 'a.md');
     expect(errors).toHaveLength(1);
-    expect(errors[0].file).toBe('a.md');
+    expect(errors[0]?.file).toBe('a.md');
   });
 });

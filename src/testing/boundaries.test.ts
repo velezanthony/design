@@ -12,6 +12,7 @@ const eslint = new ESLint({ overrideConfigFile: resolve('eslint.config.mjs') });
 /** Devuelve cuántas veces salta la regla indicada sobre el fragmento. */
 async function violations(filePath: string, code: string, rule = RULE): Promise<number> {
   const [result] = await eslint.lintText(code, { filePath: resolve(filePath) });
+  if (!result) throw new Error('ESLint no devolvió resultado');
   return result.messages.filter((message) => message.ruleId === rule).length;
 }
 

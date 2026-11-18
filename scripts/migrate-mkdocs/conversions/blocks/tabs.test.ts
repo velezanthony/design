@@ -49,7 +49,7 @@ describe('convertTabs', () => {
 
   it('una pestaña con otra indentación no se une al grupo', () => {
     const out = run(['=== "A"', '    a', '  === "B"', '      b']);
-    expect(out?.log[0].detail).toBe('1 tabs');
+    expect(out?.log[0]?.detail).toBe('1 tabs');
   });
 
   it('cada cuerpo pasa por la recursión con su desplazamiento', () => {

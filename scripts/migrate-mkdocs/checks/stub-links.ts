@@ -29,7 +29,7 @@ export function findStubLinks(
     if (byPath.has(file)) continue;
     for (const [line, text] of proseLines(markdown)) {
       for (const match of maskInlineCode(text).matchAll(LINK)) {
-        const [, target, anchor = ''] = match;
+        const [, target = '', anchor = ''] = match;
         if (SCHEME.test(target) || target.startsWith('/')) continue;
         const stub = byPath.get(path.normalize(path.join(path.dirname(file), target)));
         if (!stub) continue;

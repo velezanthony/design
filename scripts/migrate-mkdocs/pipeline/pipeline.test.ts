@@ -73,7 +73,7 @@ describe('runPipeline', () => {
   });
 
   it('registra por fichero lo convertido, incluidas las anclas', () => {
-    const kinds = runPipeline(files).log['guia.md'].map((entry) => entry.kind);
+    const kinds = runPipeline(files).log['guia.md']?.map((entry) => entry.kind);
     expect(kinds).toEqual(
       expect.arrayContaining([
         'frontmatter',

@@ -22,7 +22,7 @@ export function navToSidebar(
 ): SidebarEntry[] {
   return nav.map((entry): SidebarEntry => {
     if (typeof entry === 'string') return slugOf(entry);
-    const [title, value] = Object.entries(entry)[0];
+    const [title, value] = Object.entries(entry)[0] ?? ['', []];
     if (typeof value === 'string') return slugOf(value);
     return {
       label: { en: title, es: translations[title] ?? title },

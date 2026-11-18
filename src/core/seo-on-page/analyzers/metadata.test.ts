@@ -44,7 +44,7 @@ describe('analyzeMetadata: título', () => {
       value: 72,
       limit: THRESHOLDS.titleMax,
     });
-    expect(issue.message).toEqual(expect.any(String));
+    expect(issue?.message).toEqual(expect.any(String));
   });
 
   it('justo en el límite no avisa', () => {

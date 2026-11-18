@@ -26,9 +26,9 @@ describe('validateAnchors', () => {
 
   it('un ancla rota es un error con archivo, línea y destino', () => {
     const [error] = validateAnchors([ref({ anchor: 'nope' })], headings);
-    expect(error.file).toBe('guide.md');
-    expect(error.line).toBe(4);
-    expect(error.message).toContain('#nope');
+    expect(error?.file).toBe('guide.md');
+    expect(error?.line).toBe(4);
+    expect(error?.message).toContain('#nope');
   });
 
   it('valida contra la gemela del idioma del enlace', () => {

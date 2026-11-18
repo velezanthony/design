@@ -24,8 +24,8 @@ describe('checkFavicon', () => {
 
   it('uno ausente falla nombrando el campo y el archivo', async () => {
     const [error] = await checkFavicon('/falta.svg', publicDir);
-    expect(error.describe()).toContain('favicon');
-    expect(error.describe()).toContain('/falta.svg');
+    expect(error?.describe()).toContain('favicon');
+    expect(error?.describe()).toContain('/falta.svg');
   });
 
   it('una ruta que se sale de public/ cuenta como ausente', async () => {

@@ -21,13 +21,9 @@ function inferLanguage(body: string[]): string | undefined {
 /** Índice de la línea que cierra el fence abierto en `start`, o `undefined` si no se cierra. */
 function closingIndex(lines: string[], start: number, char: string, length: number) {
   for (let lineIndex = start + 1; lineIndex < lines.length; lineIndex++) {
-    const close = FENCE.exec(lines[lineIndex]);
-    if (
-      close &&
-      close[1][0] === char &&
-      close[1].length >= length &&
-      lines[lineIndex].trim() === close[1]
-    ) {
+    const line = lines[lineIndex] ?? '';
+    const fence = FENCE.exec(line)?.[1];
+    if (fence && fence[0] === char && fence.length >= length && line.trim() === fence) {
       return lineIndex;
     }
   }
@@ -44,15 +40,15 @@ export function convertFence(
   start: number,
   offset: number,
 ): BlockResult | undefined {
-  const open = FENCE.exec(lines[start]);
+  const open = FENCE.exec(lines[start] ?? '')?.[1];
   if (!open) return undefined;
-  const char = open[1][0];
-  const close = closingIndex(lines, start, char, open[1].length);
+  const char = open.charAt(0);
+  const close = closingIndex(lines, start, char, open.length);
   const next = close === undefined ? lines.length : close + 1;
   const output = lines.slice(start, next);
   const log: BlockResult['log'] = [];
 
-  const bare = FENCE_OPEN.exec(lines[start]);
+  const bare = FENCE_OPEN.exec(lines[start] ?? '');
   const language =
     bare && close !== undefined ? inferLanguage(lines.slice(start + 1, close)) : undefined;
   if (bare && language) {

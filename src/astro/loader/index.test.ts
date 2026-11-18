@@ -74,7 +74,7 @@ function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: 
       const headings = [...body.matchAll(/^#{1,6}\s+(.+?)\s*$/gm)].map((match) => ({
         depth: 1,
         text: match[1],
-        slug: match[1].toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-'),
+        slug: (match[1] ?? '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-'),
       }));
       return { html: '', metadata: { headings, imagePaths: [] } };
     },
@@ -156,7 +156,7 @@ describe('docsLoader: frontmatter, seo y translations', () => {
     await write('src/content/docs/guide.md', '---\ntitle: G\n---\n# G\n');
     const { rendered } = await load({ name: 'T' });
     expect(rendered[0]).not.toContain('title: G');
-    expect(rendered[0].split('\n')[3]).toBe('# G');
+    expect(rendered[0]?.split('\n')[3]).toBe('# G');
   });
 
   it('external[].seo y external[].translations llegan a todos los idiomas', async () => {

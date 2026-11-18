@@ -144,7 +144,7 @@ export function runToFolder(options: ToFolderOptions): number {
       > => typeof plugin === 'object' && 'i18n' in plugin,
     );
     const es =
-      i18n?.i18n.languages?.find((language) => language.locale === 'es')?.nav_translations ?? {};
+      i18n?.i18n?.languages?.find((language) => language.locale === 'es')?.nav_translations ?? {};
     const sidebar = navToSidebar(mkdocs.nav, es);
     fs.writeFileSync(
       path.resolve(options.sidebarOut),

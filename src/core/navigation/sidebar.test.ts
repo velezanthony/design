@@ -65,7 +65,7 @@ describe('buildSidebar: árbol', () => {
     const tree = build([page('guide', 'en', { title: 'Guide home' }), page('guide/a')]);
     const [group] = tree as SidebarGroup[];
     expect(group).toMatchObject({ label: 'Guide home', slug: 'guide', href: '/repo/guide/' });
-    expect(shape(group.items)).toEqual(['guide/a']);
+    expect(shape(group?.items ?? [])).toEqual(['guide/a']);
   });
 
   it('una página suelta es una hoja con su título y su URL', () => {

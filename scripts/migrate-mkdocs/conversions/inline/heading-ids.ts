@@ -7,7 +7,7 @@ export function stripHeadingId(line: string, lineNumber: number): LineResult {
   const heading = HEADING_ID.exec(line);
   if (!heading) return { output: line, log: [] };
   return {
-    output: heading[1],
+    output: heading[1] ?? line,
     log: [{ kind: 'heading-id', line: lineNumber, detail: line.trim() }],
   };
 }

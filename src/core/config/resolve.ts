@@ -86,7 +86,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
     content: normalizePath(config.content ?? DEFAULT_CONTENT_DIR),
     locales,
-    defaultLocale: config.defaultLocale ?? locales[0],
+    defaultLocale: config.defaultLocale ?? locales[0]!, // el esquema exige al menos un idioma
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },
     ui: config.ui ?? {},
     external: config.external ?? [],

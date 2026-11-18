@@ -93,12 +93,13 @@ function convertLines(lines: string[], options: TransformOptions, offset: number
     }
 
     const lineNumber = offset + index + 1;
-    const wrapper = stepHtmlWrapper(lines[index], wrapperDepth, lineNumber);
+    const line = lines[index] ?? '';
+    const wrapper = stepHtmlWrapper(line, wrapperDepth, lineNumber);
     wrapperDepth = wrapper.depth;
     log.push(...wrapper.log);
     if (wrapper.skip) continue;
 
-    const inline = convertInline(lines[index], options, lineNumber);
+    const inline = convertInline(line, options, lineNumber);
     output.push(...inline.output);
     log.push(...inline.log);
   }

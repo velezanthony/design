@@ -50,7 +50,7 @@ describe('buildHead: página normal', () => {
   it('un único canonical absoluto a su propia URL', () => {
     const canonical = links(head(meta(), esPage, pair), 'canonical');
     expect(canonical).toHaveLength(1);
-    expect(canonical[0].attrs.href).toBe('https://x.dev/repo/es/install/');
+    expect(canonical[0]?.attrs.href).toBe('https://x.dev/repo/es/install/');
   });
 
   it('og:* completos', () => {
@@ -225,7 +225,7 @@ describe('buildHead: favicon', () => {
   it('por defecto emite el favicon del paquete, con base, en toda página', () => {
     const page = icons(head(meta(), enPage, single));
     expect(page).toHaveLength(1);
-    expect(page[0].attrs).toEqual({
+    expect(page[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/_design/favicon.png',
       type: 'image/png',
@@ -242,20 +242,20 @@ describe('buildHead: favicon', () => {
   it('el favicon de la config manda: ruta con base o https tal cual', () => {
     const local = { ...config, favicon: 'favicon.svg' };
     const tags = buildHead(meta(), enPage, single, site, local, url);
-    expect(icons(tags)[0].attrs).toEqual({
+    expect(icons(tags)[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/favicon.svg',
       type: 'image/svg+xml',
     });
     const remote = { ...config, favicon: 'https://cdn.dev/i.ico' };
-    expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0].attrs.href).toBe(
+    expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0]?.attrs.href).toBe(
       'https://cdn.dev/i.ico',
     );
   });
 
   it('extensión desconocida: sin atributo type', () => {
     const odd = { ...config, favicon: '/i.webp' };
-    expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0].attrs).toEqual({
+    expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/i.webp',
     });
@@ -285,7 +285,7 @@ describe('buildHead: JSON-LD', () => {
   it('un valor hostil no puede cerrar el <script>', () => {
     const schemas = [{ '@type': 'Thing', name: '</script><script>alert(1)</script>' }];
     const [tag] = scripts(head(meta({ schemas }), enPage, single));
-    expect(tag.content).not.toContain('<');
+    expect(tag?.content).not.toContain('<');
   });
 
   it('también salen en las páginas de reserva y en la 404', () => {

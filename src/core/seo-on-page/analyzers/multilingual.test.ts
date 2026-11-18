@@ -20,7 +20,7 @@ describe('analyzeMultilingual', () => {
   it('falta sin declarar la política: warning que nombra el idioma', () => {
     const issues = analyzeMultilingual(page, [present, missing('link', false)], 'link', 'en');
     expect(issues).toMatchObject([{ kind: 'translation-missing', severity: 'warning' }]);
-    expect(issues[0].message).toContain('es');
+    expect(issues[0]?.message).toContain('es');
   });
 
   it('falta con política declarada: info (decisión explícita)', () => {

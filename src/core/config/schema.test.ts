@@ -80,7 +80,7 @@ describe('PageSeoOverrideSchema', () => {
   it('una imagen sin src falla en `image.src`', () => {
     const result = PageSeoOverrideSchema.safeParse({ image: { alt: 'x' } });
     expect(result.success).toBe(false);
-    expect(result.error?.issues[0].path).toEqual(['image', 'src']);
+    expect(result.error?.issues[0]?.path).toEqual(['image', 'src']);
   });
 });
 
@@ -101,7 +101,7 @@ describe('external[].seo', () => {
       name: 'X',
       external: [{ slug: 'a', file: 'a.md', seo: { noindex: true } }],
     });
-    expect(config.external[0].seo).toEqual({ noindex: true });
+    expect(config.external[0]?.seo).toEqual({ noindex: true });
   });
 });
 

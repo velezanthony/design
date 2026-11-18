@@ -14,30 +14,32 @@ export function convertApiDirective(
   offset: number,
   resolveApi: ((identifier: string) => string | undefined) | undefined,
 ): BlockResult | undefined {
-  const match = API_DIRECTIVE.exec(lines[start]);
-  if (!match) return undefined;
+  const match = API_DIRECTIVE.exec(lines[start] ?? '');
+  const identifier = match?.[2];
+  if (identifier === undefined) return undefined;
   const lineNumber = offset + start + 1;
   let next = start + 1;
   for (let lineIndex = start + 1; lineIndex < lines.length; lineIndex++) {
-    if (lines[lineIndex].trim() === '') continue;
-    if (indentOf(lines[lineIndex]) >= 4) next = lineIndex + 1;
+    const line = lines[lineIndex] ?? '';
+    if (line.trim() === '') continue;
+    if (indentOf(line) >= 4) next = lineIndex + 1;
     else break;
   }
-  const generated = resolveApi?.(match[2]);
+  const generated = resolveApi?.(identifier);
   if (generated === undefined) {
     return {
       output: [
         ':::note[API reference]',
-        `The reference of \`${match[2]}\` is generated from the package docstrings in the original repository.`,
+        `The reference of \`${identifier}\` is generated from the package docstrings in the original repository.`,
         ':::',
       ],
-      log: [{ kind: 'api-unresolved', line: lineNumber, detail: match[2] }],
+      log: [{ kind: 'api-unresolved', line: lineNumber, detail: identifier }],
       next,
     };
   }
   return {
     output: generated.split('\n'),
-    log: [{ kind: 'api', line: lineNumber, detail: match[2] }],
+    log: [{ kind: 'api', line: lineNumber, detail: identifier }],
     next,
   };
 }

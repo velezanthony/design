@@ -67,8 +67,8 @@ describe('resolvePolicies', () => {
       MissingTranslation.OMIT,
     );
     expect(errors).toHaveLength(1);
-    expect(errors[0].message).toContain('install.md');
-    expect(errors[0].message).toContain('install.es.md');
+    expect(errors[0]?.message).toContain('install.md');
+    expect(errors[0]?.message).toContain('install.es.md');
   });
 
   it('un grupo con conflicto no impide resolver los demás', () => {

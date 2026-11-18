@@ -37,7 +37,7 @@ describe('resolveSchemas: cascada sitio -> página', () => {
   it('página con lista: los del sitio y después los de la página', () => {
     const out = resolveSchemas([org], [person]);
     expect(out.map((entry) => entry.source)).toEqual(['site', 'page']);
-    expect(out[1].schema['@type']).toEqual(['Person', 'Thing']);
+    expect(out[1]?.schema['@type']).toEqual(['Person', 'Thing']);
   });
 
   it('página con lista y sitio sin nada: solo los de la página', () => {

@@ -30,9 +30,9 @@ export function resolvePolicies(
   const errors: DocsError[] = [];
   for (const [slug, group] of groupBySlug(pages)) {
     const declared = group.filter((page) => page.translations !== undefined);
-    const conflicting = declared.find((page) => page.translations !== declared[0].translations);
-    if (conflicting) {
-      const first = declared[0];
+    const [first] = declared;
+    const conflicting = declared.find((page) => page.translations !== first?.translations);
+    if (first && conflicting) {
       errors.push(
         new DocsError(
           `«${slug || '(portada)'}» declara políticas de traducción distintas: ${first.sourcePath} (${first.translations}) y ${conflicting.sourcePath} (${conflicting.translations}).`,

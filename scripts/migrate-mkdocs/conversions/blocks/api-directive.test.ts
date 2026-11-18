@@ -22,6 +22,6 @@ describe('convertApiDirective', () => {
   });
 
   it('sin resolvedor tampoco falla', () => {
-    expect(convertApiDirective(['::: a.b'], 0, 0, undefined)?.log[0].kind).toBe('api-unresolved');
+    expect(convertApiDirective(['::: a.b'], 0, 0, undefined)?.log[0]?.kind).toBe('api-unresolved');
   });
 });

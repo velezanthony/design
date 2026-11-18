@@ -18,9 +18,10 @@ export function splitLocale(
   locales: Locale[],
   defaultLocale: Locale,
 ): { stem: string; locale: Locale } {
-  const match = LOCALE_SUFFIX.exec(relativePath);
-  if (!match) return { stem: relativePath.replace(/\.md$/, ''), locale: defaultLocale };
-  const [, stem, locale] = match;
+  const [, stem, locale] = LOCALE_SUFFIX.exec(relativePath) ?? [];
+  if (stem === undefined || locale === undefined) {
+    return { stem: relativePath.replace(/\.md$/, ''), locale: defaultLocale };
+  }
   if (!locales.includes(locale)) {
     throw new DocsError(
       `El sufijo de idioma «${locale}» de «${relativePath}» no está configurado.`,

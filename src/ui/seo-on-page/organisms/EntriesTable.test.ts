@@ -30,15 +30,15 @@ describe('EntriesTable', () => {
   it('dice de dónde sale la descripción y su longitud', async () => {
     const htmlDocument = await render(EntriesTable, { rows: [entry('en')] });
     const cells = htmlDocument.querySelectorAll('tbody td');
-    expect(text(cells[2])).toContain('Heredada del sitio');
-    expect(text(cells[2])).toContain('93');
+    expect(text(cells[2]!)).toContain('Heredada del sitio');
+    expect(text(cells[2]!)).toContain('93');
   });
 
   it('sin descripción no pinta barra', async () => {
     const htmlDocument = await render(EntriesTable, {
       rows: [entry('en', { descriptionSource: 'none', descriptionLength: undefined })],
     });
-    expect(text(htmlDocument.querySelectorAll('tbody td')[2])).toContain('Sin descripción');
+    expect(text(htmlDocument.querySelectorAll('tbody td')[2]!)).toContain('Sin descripción');
     expect(
       htmlDocument.querySelectorAll('tbody td')[2]!.querySelector('[role="meter"], meter'),
     ).toBeNull();

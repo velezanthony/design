@@ -9,7 +9,7 @@ function fakeIo(files: Record<string, string>, git: InPlaceIo['git'] = cleanGit)
   const written = new Map<string, string>();
   const io: InPlaceIo = {
     listMarkdown: () => Object.keys(files).sort(),
-    read: (file) => files[file],
+    read: (file) => files[file] ?? '',
     write: (file, text) => written.set(file, text),
     git,
   };

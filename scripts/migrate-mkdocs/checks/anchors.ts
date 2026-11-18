@@ -30,7 +30,7 @@ function headingIds(markdown: string): Set<string> {
     if (fenced) continue;
     const heading = /^#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
     if (!heading) continue;
-    const text = heading[1]
+    const text = heading[1]!
       .replace(/`/g, '')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
       .replace(/[*_]{1,3}(?=\S)/g, (match) => (match.startsWith('_') ? match : ''));

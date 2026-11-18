@@ -11,7 +11,7 @@ describe('checkImage', () => {
   it('avisa de una proporción lejos de 1,91:1', () => {
     const warnings = checkImage({ width: 1000, height: 1000, bytes: 100 * KB });
     expect(warnings.map((warning) => warning.code)).toEqual(['aspect']);
-    expect(warnings[0].message).toContain('1000×1000');
+    expect(warnings[0]?.message).toContain('1000×1000');
   });
 
   it('tolera ±2 % de proporción', () => {
@@ -24,7 +24,7 @@ describe('checkImage', () => {
   it('avisa de más de 300 KB', () => {
     const warnings = checkImage({ width: 1200, height: 630, bytes: 400 * KB });
     expect(warnings.map((warning) => warning.code)).toEqual(['size']);
-    expect(warnings[0].message).toContain('300 KB');
+    expect(warnings[0]?.message).toContain('300 KB');
   });
 
   it('300 KB exactos pasan y un byte más avisa', () => {

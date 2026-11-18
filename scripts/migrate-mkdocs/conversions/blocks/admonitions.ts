@@ -50,9 +50,9 @@ export function convertAdmonition(
   offset: number,
   recurse: Recurse,
 ): BlockResult | undefined {
-  const match = ADMONITION.exec(lines[start]);
+  const match = ADMONITION.exec(lines[start] ?? '');
   if (!match) return undefined;
-  const [, indentText, marker, rawType, rawTitle] = match;
+  const [, indentText = '', marker, rawType = '', rawTitle] = match;
   const lineNumber = offset + start + 1;
   const [rawBody, next] = takeBody(lines, start + 1, indentText.length);
   const inner = recurse(rawBody, lineNumber);

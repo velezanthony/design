@@ -83,11 +83,14 @@ function codeSpans(line: string): [number, number][] {
   const spans: [number, number][] = [];
   const runs = [...line.matchAll(/`+/g)];
   for (let index = 0; index < runs.length; index++) {
+    const run = runs[index];
+    if (!run) continue;
     const close = runs.findIndex(
-      (run, candidate) => candidate > index && run[0].length === runs[index][0].length,
+      (candidate, position) => position > index && candidate[0].length === run[0].length,
     );
-    if (close === -1) continue;
-    spans.push([runs[index].index, runs[close].index + runs[close][0].length]);
+    const closing = runs[close];
+    if (!closing) continue;
+    spans.push([run.index, closing.index + closing[0].length]);
     index = close;
   }
   return spans;
@@ -133,7 +136,7 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     return undefined;
   }
 
-  const path = rawPath.split('?')[0];
+  const [path = rawPath] = rawPath.split('?');
   let decoded = path;
   try {
     decoded = decodeURI(path);
@@ -191,7 +194,7 @@ export function rewriteLinks(
     if (mask[lineIndex]) return text;
     const spans = codeSpans(text);
     const definition = DEFINITION.exec(text);
-    if (definition) {
+    if (definition?.[2] !== undefined) {
       const replaced = rewriteTarget(definition[2], lineIndex + 1, context);
       return replaced === undefined
         ? text

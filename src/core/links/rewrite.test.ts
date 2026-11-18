@@ -59,9 +59,9 @@ describe('rewriteLinks', () => {
     const result = rewriteLinks(body, from('guide.md'), index);
     expect(result.body).toBe(body);
     expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].file).toBe('guide.md');
-    expect(result.errors[0].line).toBe(3);
-    expect(result.errors[0].message).toContain('./missing.md');
+    expect(result.errors[0]?.file).toBe('guide.md');
+    expect(result.errors[0]?.line).toBe(3);
+    expect(result.errors[0]?.message).toContain('./missing.md');
   });
 
   it('agrega todos los enlaces rotos, no solo el primero', () => {
@@ -168,7 +168,7 @@ describe('rewriteLinks', () => {
     it('un archivo que no es página ni recurso sigue siendo un error', () => {
       const result = rewriteLinks('[x](../../../../NOPE.md)', from('install.es.md'), index);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('../../../../NOPE.md');
+      expect(result.errors[0]?.message).toContain('../../../../NOPE.md');
     });
 
     it('un enlace https, incluso al propio sitio, ni se reescribe ni se valida', () => {

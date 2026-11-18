@@ -80,6 +80,6 @@ describe('API pública: package.json "exports"', () => {
       exports: Record<string, string>;
     };
     expect(packageJson.exports['./content']).toBe('./src/astro/content/index.ts');
-    expect(existsSync(packageJson.exports['./content'])).toBe(true);
+    expect(existsSync(packageJson.exports['./content'] ?? '')).toBe(true);
   });
 });

@@ -47,20 +47,20 @@ function preview(line: string) {
 export function* proseLines(markdown: string): Generator<[number, string]> {
   let fence: { char: string; length: number } | undefined;
   for (const [index, line] of markdown.split('\n').entries()) {
-    const marker = FENCE.exec(line);
+    const marker = FENCE.exec(line)?.[1];
     if (fence) {
       if (
         marker &&
-        marker[1][0] === fence.char &&
-        marker[1].length >= fence.length &&
-        line.trim() === marker[1]
+        marker[0] === fence.char &&
+        marker.length >= fence.length &&
+        line.trim() === marker
       ) {
         fence = undefined;
       }
       continue;
     }
     if (marker) {
-      fence = { char: marker[1][0], length: marker[1].length };
+      fence = { char: marker.charAt(0), length: marker.length };
       continue;
     }
     yield [index + 1, line];
@@ -102,7 +102,7 @@ export function findSnippetStub(file: string, markdown: string): SnippetStub | u
   );
   const first = includes.find((match) => match !== null);
   if (!first || !onlyIncludesAndTitles) return undefined;
-  return { file, include: first[1] };
+  return { file, include: first[1]! };
 }
 
 /** Restos y stubs de un conjunto de ficheros ya convertidos, ordenados por fichero y línea. */

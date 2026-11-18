@@ -19,8 +19,8 @@ function firstHeading(body: string): string | undefined {
   const lines = body.split('\n');
   for (const [index, line] of lines.entries()) {
     if (inCode[index]) continue;
-    const heading = H1.exec(line);
-    if (heading) return stripInline(heading[1]);
+    const text = H1.exec(line)?.[1];
+    if (text) return stripInline(text);
   }
   return undefined;
 }

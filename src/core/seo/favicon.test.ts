@@ -79,9 +79,9 @@ describe('favicon local o remoto', () => {
 describe('faviconErrors', () => {
   it('una local ausente da un error accionable con el campo', () => {
     const [error] = faviconErrors('/falta.svg', false);
-    expect(error.describe()).toContain('favicon');
-    expect(error.describe()).toContain('/falta.svg');
-    expect(error.describe()).toContain('public/');
+    expect(error?.describe()).toContain('favicon');
+    expect(error?.describe()).toContain('/falta.svg');
+    expect(error?.describe()).toContain('public/');
   });
 
   it('presente, remota o sin definir: sin errores', () => {

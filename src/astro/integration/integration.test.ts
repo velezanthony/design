@@ -72,7 +72,7 @@ async function virtualData(userConfig: Parameters<typeof docs>[0], overrides = {
   const partial = updateConfig.mock.calls
     .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
     .find((update) => update.vite);
-  const source = partial?.vite?.plugins?.[0].load.handler() ?? '';
+  const source = partial?.vite?.plugins?.[0]?.load.handler() ?? '';
   return JSON.parse(source.replace(/^export default /, '').replace(/;$/, ''));
 }
 
@@ -248,7 +248,7 @@ describe('astro:config:setup: módulo virtual', () => {
     const injectTypes = vi.fn();
     await integration.hooks['astro:config:done']?.({ injectTypes } as never);
     expect(injectTypes).toHaveBeenCalledTimes(1);
-    const { filename, content } = injectTypes.mock.calls[0][0] as {
+    const { filename, content } = injectTypes.mock.calls[0]?.[0] as {
       filename: string;
       content: string;
     };
@@ -348,8 +348,8 @@ describe('astro:config:setup: rutas inyectadas', () => {
       ([route]) => route as { pattern: string; entrypoint: string | URL; prerender?: boolean },
     );
   }
-  function entry(route: { entrypoint: string | URL }) {
-    return String(route.entrypoint);
+  function entry(route: { entrypoint: string | URL } | undefined) {
+    return String(route?.entrypoint);
   }
 
   it('inyecta la página de docs, el sitemap y su hoja, el favicon y la 404', async () => {

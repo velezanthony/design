@@ -45,7 +45,7 @@ export function colonsFor(body: string[], minimum: number): number {
   let widest = 0;
   for (const line of body) {
     const run = /^(:{3,})(?=[\w[{]|$)/.exec(line);
-    if (run) widest = Math.max(widest, run[1].length);
+    if (run?.[1]) widest = Math.max(widest, run[1].length);
   }
   return Math.max(minimum, widest + 1);
 }
@@ -61,7 +61,7 @@ export function takeBody(lines: string[], start: number, indent: number): [strin
   let end = start;
   let last = start;
   while (end < lines.length) {
-    const line = lines[end];
+    const line = lines[end] ?? '';
     if (line.trim() === '') {
       end++;
       continue;

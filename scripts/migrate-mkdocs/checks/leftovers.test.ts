@@ -99,8 +99,8 @@ describe('findLeftovers', () => {
 
   it('recorta la vista previa de las líneas largas', () => {
     const [item] = find(reportMarkdown(`!!! note "${'x'.repeat(200)}"`));
-    expect(item.preview.length).toBeLessThanOrEqual(80);
-    expect(item.preview.endsWith('…')).toBe(true);
+    expect(item?.preview.length).toBeLessThanOrEqual(80);
+    expect(item?.preview.endsWith('…')).toBe(true);
   });
 
   it('no toma por admonición texto que solo se parece', () => {

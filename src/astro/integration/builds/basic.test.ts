@@ -537,7 +537,7 @@ describe('JSON-LD declarado por el sitio y por el frontmatter', () => {
   async function blocks(page: string) {
     const html = await site.read(page);
     return [...html.matchAll(/<script type="application\/ld\+json">([^<]*)<\/script>/g)].map(
-      (match) => JSON.parse(match[1]),
+      (match) => JSON.parse(match[1] ?? ''),
     );
   }
 

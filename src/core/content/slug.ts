@@ -21,7 +21,7 @@ export function findSlugCollisions(owners: SlugOwner[]): DocsError[] {
     byKey.set(key, [...(byKey.get(key) ?? []), owner]);
   }
   return [...byKey.values()]
-    .filter((group) => group.length > 1)
+    .filter((group): group is [SlugOwner, ...SlugOwner[]] => group.length > 1)
     .map((group) => {
       const files = group.map((owner) => owner.file);
       return new DocsError(

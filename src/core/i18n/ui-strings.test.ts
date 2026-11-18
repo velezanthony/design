@@ -55,12 +55,11 @@ describe('catálogo', () => {
 });
 
 describe('translate', () => {
-  const strings = { ...defaultStrings.en, 'edit.page': 'Edit {title} in {locale}' };
+  const english = defaultStrings.en!;
+  const strings = { ...english, 'edit.page': 'Edit {title} in {locale}' };
 
   it('devuelve el texto de la clave', () => {
-    expect(translate(defaultStrings.en, 'search.placeholder')).toBe(
-      defaultStrings.en['search.placeholder'],
-    );
+    expect(translate(english, 'search.placeholder')).toBe(english['search.placeholder']);
   });
 
   it('interpola las variables', () => {
@@ -83,8 +82,8 @@ describe('mergeUiStrings', () => {
     const merged = mergeUiStrings(defaultStrings, {
       es: { 'search.placeholder': 'Buscar en Design' },
     });
-    expect(merged.es['search.placeholder']).toBe('Buscar en Design');
-    expect(merged.es['edit.page']).toBe(defaultStrings.es['edit.page']);
+    expect(merged.es?.['search.placeholder']).toBe('Buscar en Design');
+    expect(merged.es?.['edit.page']).toBe(defaultStrings.es?.['edit.page']);
     expect(merged.en).toEqual(defaultStrings.en);
   });
 
@@ -101,14 +100,14 @@ describe('mergeUiStrings', () => {
 
   it('un override `undefined` no borra el texto del paquete', () => {
     const merged = mergeUiStrings(defaultStrings, { es: { 'edit.page': undefined } });
-    expect(merged.es['edit.page']).toBe(defaultStrings.es['edit.page']);
+    expect(merged.es?.['edit.page']).toBe(defaultStrings.es?.['edit.page']);
   });
 
   it('el resultado sigue siendo completo', () => {
     const merged: Record<string, UiStrings> = mergeUiStrings(defaultStrings, {
       es: { 'notFound.title': 'Nada por aquí' },
     });
-    expect(Object.keys(merged.es).sort()).toEqual([...uiKeys].sort());
+    expect(Object.keys(merged.es ?? {}).sort()).toEqual([...uiKeys].sort());
   });
 });
 

@@ -52,15 +52,16 @@ describe('imageErrors', () => {
     const errors = imageErrors(refs, new Set(['/base.png']));
     expect(errors).toHaveLength(2);
     expect(errors.map((error) => error.file)).toEqual(['a.md', 'b.md']);
-    expect(errors[0].message).toContain('seo.image.src');
-    expect(errors[0].message).toContain('/a.png');
-    expect(errors[0].hint).toContain('public/');
+    expect(errors[0]?.message).toContain('seo.image.src');
+    expect(errors[0]?.message).toContain('/a.png');
+    expect(errors[0]?.hint).toContain('public/');
   });
 
   it('la imagen de la base sin archivo se nombra con su campo de config', () => {
-    const [error] = imageErrors([refs[0]], new Set());
-    expect(error.file).toBeUndefined();
-    expect(error.message).toContain('seo.image.src');
+    const [error] = imageErrors(refs.slice(0, 1), new Set());
+    expect(error).toBeDefined();
+    expect(error?.file).toBeUndefined();
+    expect(error?.message).toContain('seo.image.src');
   });
 
   it('las remotas no se comprueban', () => {

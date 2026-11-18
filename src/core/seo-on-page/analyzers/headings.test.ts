@@ -36,7 +36,7 @@ describe('analyzeHeadings', () => {
   it('salto de nivel H2 → H4: avisa con el nivel al que se saltó', () => {
     const issues = analyze([heading(1), heading(2), heading(4, 'deep')]);
     expect(issues).toMatchObject([{ kind: 'heading-skip', value: 4 }]);
-    expect(issues[0].message).toContain('deep');
+    expect(issues[0]?.message).toContain('deep');
   });
 
   it('subir de nivel (H4 → H2) no es un salto', () => {
