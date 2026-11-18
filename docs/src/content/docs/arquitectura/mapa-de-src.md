@@ -104,11 +104,12 @@ ui/
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag
 │   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro,
-│   │                OverviewCard, StatRow, CodeSpans
+│   │                OverviewCard, StatRow, CodeSpans, InspectorSection
 │   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewKpis,
 │   │                las tarjetas del Resumen (FixFirstCard, CoverageCard, IndexingCard,
-│   │                SchemasCard, KindsCard, SiteFilesCard, SoonCard), PagesTable, PublishedFacts,
-│   │                Previews, IssuesList, SchemasList, HeadingsOutline, Translations
+│   │                SchemasCard, KindsCard, SiteFilesCard, SoonCard), PagesTable, y las del
+│   │                inspector (InspectorHeader, FixList, PublishedFacts con sus vistas previas,
+│   │                Translations, SchemasList, HeadingsOutline)
 │   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
