@@ -21,6 +21,7 @@ import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
 import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
+import { rememberClientRoutes, watchClientPages } from './client-pages';
 import { assertNoRouteCollision } from './route-collisions';
 
 /** Nombre con el que el loader localiza la integración en `ctx.config.integrations`. */
@@ -212,6 +213,9 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         }
       },
       // `injectTypes` solo existe en `astro:config:done`, no en `config:setup`.
+      // Las páginas que el cliente añade en `src/pages/`, para el panel SEO y el sitemap.
+      'astro:routes:resolved': ({ routes }) => rememberClientRoutes(routes),
+      'astro:server:setup': ({ server }) => watchClientPages(server),
       'astro:config:done': ({ injectTypes }) => {
         injectTypes({ filename: 'virtual.d.ts', content: virtualTypes() });
       },
