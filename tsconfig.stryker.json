@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "dist",
+    "coverage",
+    "reports",
+    ".stryker-tmp",
+    "_local",
+    "playground",
+    "docs",
+    "src/**/fixtures",
+    "src/testing",
+    "**/*.test.ts"
+  ]
+}
