@@ -4,7 +4,7 @@ import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import { routePath, type ClientPage } from '../../../core/seo/client-pages';
 import { clientSitemapEntries } from '../../../core/seo/sitemap';
 import { loadClientPages, type ClientPages } from '../client-pages';
-import { clientRegistry } from '../client-registry';
+import { clientRegistry } from '../../registry';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type {
   HeadingNode,

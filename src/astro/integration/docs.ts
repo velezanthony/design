@@ -7,7 +7,7 @@ import type { DocsUserConfig } from '../../core/config/schema';
 import { sitemapFiles } from '../../core/seo/sitemap';
 import { codeThemes } from '../../ui/styles/code-themes';
 import { resolveConfigOrThrow, urlPolicyOf } from '../config';
-import { clientRegistry } from '../data/client-registry';
+import { clientRegistry } from '../registry';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
 import { mergeLangAlias } from '../markdown/register';

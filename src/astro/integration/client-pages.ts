@@ -1,7 +1,7 @@
 import type { IntegrationResolvedRoute } from 'astro';
 import type { ViteDevServer } from 'vite';
 import { clientRoutes } from '../../core/seo/client-pages';
-import { clientRegistry } from '../data/client-registry';
+import { clientRegistry } from '../registry';
 
 /** `astro:routes:resolved`: guarda las páginas que el cliente tiene en `src/pages/`. */
 export function rememberClientRoutes(routes: IntegrationResolvedRoute[]): void {

@@ -7,7 +7,7 @@ import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHIKI_LANG_ALIAS } from '../markdown/code-languages';
-import { clientRegistry } from '../data/client-registry';
+import { clientRegistry } from '../registry';
 import { docs, INTEGRATION_NAME } from './index';
 import { MissingTranslation } from '../../core/i18n/translation-policy';
 

@@ -1,4 +1,4 @@
-import type { SiteRoute } from '../../core/seo/client-pages';
+import type { SiteRoute } from '../core/seo/client-pages';
 
 /** Rutas, cargador de módulos (solo dev) y contador de cambios que la integración comparte con el panel. */
 export interface ClientRegistry {

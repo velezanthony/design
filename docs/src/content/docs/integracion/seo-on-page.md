@@ -63,7 +63,7 @@ proyectos). De esas la librería no tiene frontmatter que leer, así que el pane
 ve un visitante**:
 
 1. La integración guarda sus rutas (`astro:routes:resolved`) y, en dev, el servidor de Vite
-   (`astro:server:setup`), en un registro compartido (`astro/data/client-registry.ts`).
+   (`astro:server:setup`), en un registro compartido (`astro/registry.ts`).
 2. `loadClientPages` (`astro/data/client-pages.ts`) expande las rutas dinámicas con su
    `getStaticPaths`, pide cada URL al propio servidor de desarrollo y lee su `<head>` con `readHead`
    (`core/seo/html-head.ts`): título, descripción, noindex, canonical, `hreflang`, encabezados, Open

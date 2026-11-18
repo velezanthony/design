@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteRoute } from '../../core/seo/client-pages';
 import { loadClientPages, loadClientSitemapEntries } from './client-pages';
-import type { ClientRegistry } from './client-registry';
+import type { ClientRegistry } from '../registry';
 
 const site = 'https://x.dev';
 const origin = 'http://localhost:4321';

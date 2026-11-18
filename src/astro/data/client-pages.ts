@@ -1,7 +1,7 @@
 import { clientPagePaths, type ClientPage, type RouteParams } from '../../core/seo/client-pages';
 import { readHead } from '../../core/seo/html-head';
 import { clientSitemapEntries, type SitemapEntry } from '../../core/seo/sitemap';
-import { clientRegistry, type ClientRegistry } from './client-registry';
+import { clientRegistry, type ClientRegistry } from '../registry';
 
 export interface ClientPages {
   pages: ClientPage[];

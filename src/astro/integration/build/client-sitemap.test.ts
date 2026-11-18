@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { SiteRoute } from '../../../core/seo/client-pages';
 import { buildSitemap } from '../../../core/seo/sitemap';
-import type { ClientRegistry } from '../../data/client-registry';
+import type { ClientRegistry } from '../../registry';
 import { addClientPagesToSitemap } from './client-sitemap';
 
 const directories: string[] = [];

@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { builtClientPages, type ClientPage } from '../../../core/seo/client-pages';
 import { readHead } from '../../../core/seo/html-head';
 import { appendToSitemap, clientSitemapEntries } from '../../../core/seo/sitemap';
-import { clientRegistry, type ClientRegistry } from '../../data/client-registry';
+import { clientRegistry, type ClientRegistry } from '../../registry';
 import { trimBase } from '../../../core/shared/urls';
 
 interface Built {

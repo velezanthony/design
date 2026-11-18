@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { clientRegistry } from '../data/client-registry';
+import { clientRegistry } from '../registry';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
 
 function resolved(pattern: string, origin = 'project') {
