@@ -1,7 +1,12 @@
 import type { Page } from '../../core/content/discovery';
 import { buildAvailability, type UrlPolicy } from '../../core/i18n/availability';
 import { noindexUrls } from '../../core/seo/indexable';
-import { buildSitemap } from '../../core/seo/sitemap';
+import {
+  buildSitemap,
+  buildSitemapIndex,
+  SITEMAP_PAGES,
+  sitemapIncludes,
+} from '../../core/seo/sitemap';
 import type { Locale } from '../../core/i18n/locale';
 import { privacyAvailability } from '../../core/privacy/pages';
 import { toAstroError } from '../integration/errors';
@@ -70,5 +75,19 @@ export function sitemapXml(
     return buildSitemap(av, new URL(cfg.site), noindexUrls(pages, url));
   } catch (error) {
     throw toAstroError(error, 'No se puede generar sitemap.xml.');
+  }
+}
+
+/**
+ * `sitemap.xml` como índice (con `sitemap.include`): primero el sitemap de las páginas propias, bajo
+ * la base, y después los demás sitemaps del dominio. Un fallo del núcleo sale como `AstroError`.
+ */
+export function sitemapIndexXml(cfg: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
+  const site = new URL(cfg.site);
+  const pages = new URL(`${cfg.base.replace(/\/$/, '')}/${SITEMAP_PAGES}`, site.origin).href;
+  try {
+    return buildSitemapIndex([pages, ...sitemapIncludes(cfg.sitemap.include, site, cfg.base)]);
+  } catch (error) {
+    throw toAstroError(error, 'No se puede generar el índice sitemap.xml.');
   }
 }

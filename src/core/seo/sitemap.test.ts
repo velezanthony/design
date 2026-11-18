@@ -3,7 +3,13 @@ import type { Page } from '../content/discovery';
 import { buildAvailability, type Availability, type UrlPolicy } from '../i18n/availability';
 import { DocsError } from '../errors';
 import { fallbackRoutes } from '../i18n/translation-policy';
-import { buildSitemap, SITEMAP_STYLESHEET_PATH } from './sitemap';
+import {
+  buildSitemap,
+  buildSitemapIndex,
+  SITEMAP_PAGES,
+  SITEMAP_STYLESHEET_PATH,
+  sitemapIncludes,
+} from './sitemap';
 
 const site = new URL('https://x.dev');
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
@@ -82,5 +88,64 @@ describe('buildSitemap', () => {
     expect(xml).not.toContain('/repo/es/changelog/');
     expect(xml).not.toContain('404');
     expect(xml).not.toContain('xhtml:link');
+  });
+});
+
+describe('buildSitemapIndex', () => {
+  const index = buildSitemapIndex([
+    'https://x.dev/sitemap-pages.xml',
+    'https://x.dev/lib/sitemap.xml',
+  ]);
+
+  it('es un sitemapindex con un <sitemap> por URL, en orden', () => {
+    expect(index.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
+    expect(index).toContain('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    expect(locs(index)).toEqual([
+      'https://x.dev/sitemap-pages.xml',
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('enlaza la misma hoja de estilo que el sitemap de páginas', () => {
+    expect(index.split('\n')[1]).toBe(
+      '<?xml-stylesheet type="text/css" href="_design/sitemap.css"?>',
+    );
+  });
+
+  it('escapa los caracteres especiales de XML', () => {
+    expect(buildSitemapIndex(['https://x.dev/a.xml?x=1&y=2'])).toContain('a.xml?x=1&amp;y=2');
+  });
+});
+
+describe('sitemapIncludes', () => {
+  const portfolio = new URL('https://x.dev');
+
+  it('las rutas se resuelven contra el origen del sitio, no contra su base', () => {
+    expect(sitemapIncludes(['/lib/sitemap.xml'], new URL('https://x.dev/repo/'))).toEqual([
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('una ruta sin barra inicial también cuelga del dominio, no de la carpeta del sitio', () => {
+    expect(sitemapIncludes(['lib/sitemap.xml'], new URL('https://x.dev/repo/'))).toEqual([
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('una URL completa del mismo dominio se acepta tal cual', () => {
+    expect(sitemapIncludes(['https://x.dev/lib/sitemap.xml'], portfolio)).toEqual([
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('una URL de otro dominio falla nombrando `sitemap.include[i]`', () => {
+    const run = () => sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+    expect(run).toThrow(DocsError);
+    expect(run).toThrow(/sitemap\.include\[1\].*otro\.dev/);
+  });
+
+  it('el propio índice o el de páginas no se pueden incluir: se apuntarían a sí mismos', () => {
+    expect(() => sitemapIncludes(['/sitemap.xml'], portfolio)).toThrow(/sitemap\.include\[0\]/);
+    expect(() => sitemapIncludes([`/${SITEMAP_PAGES}`], portfolio)).toThrow(DocsError);
   });
 });

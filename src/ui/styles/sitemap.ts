@@ -47,25 +47,25 @@ export function sitemapCss(text: { title: string; note: string }, palette: Palet
 :root { color-scheme: light dark; ${declare(palette.light)} background: var(--canvas); }
 @media (prefers-color-scheme: dark) { :root { ${declare(palette.dark)} } }
 
-urlset {
+urlset, sitemapindex {
   display: block; max-width: 62rem; margin: 0 auto; padding: 2.5rem 1rem 4rem;
   color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
   counter-reset: url;
 }
-urlset::before {
+urlset::before, sitemapindex::before {
   content: ${cssString(text.title)}; display: block; margin-bottom: 1.5rem;
   font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em;
 }
-urlset::after {
+urlset::after, sitemapindex::after {
   content: ${cssString(text.note)}; display: block; margin-top: 2rem;
   color: var(--faint); font-size: 0.875rem; white-space: pre-line;
 }
 
-url {
+url, sitemap {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.5rem;
   padding: 0.75rem 0; border-bottom: 1px solid var(--rule); counter-increment: url;
 }
-url::before { content: counter(url); flex: 0 0 2.5rem; color: var(--faint); font-variant-numeric: tabular-nums; }
+url::before, sitemap::before { content: counter(url); flex: 0 0 2.5rem; color: var(--faint); font-variant-numeric: tabular-nums; }
 loc { flex: 1 1 calc(100% - 3rem); min-width: 0; color: var(--accent); overflow-wrap: anywhere; }
 lastmod, changefreq, priority { display: none; }
 

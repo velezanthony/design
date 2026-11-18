@@ -7,7 +7,7 @@ import type { UrlPolicy } from '../../core/i18n/availability';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
-import { SITEMAP_STYLESHEET_PATH } from '../../core/seo/sitemap';
+import { SITEMAP_PAGES, SITEMAP_STYLESHEET_PATH } from '../../core/seo/sitemap';
 import { codeThemes } from '../../ui/styles/code-themes';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
@@ -121,6 +121,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           resolvedConfig.defaultLocale,
           resolvedConfig.privacy.page,
           command === 'dev',
+          resolvedConfig.sitemap.include.length > 0,
         );
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
@@ -159,6 +160,14 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           entrypoint: route('sitemap.xml.ts'),
           prerender: true,
         });
+        // Con otros sitemaps del dominio, `sitemap.xml` es su índice y las páginas propias van aparte.
+        if (resolvedConfig.sitemap.include.length > 0) {
+          injectRoute({
+            pattern: `/${SITEMAP_PAGES}`,
+            entrypoint: route('sitemap-pages.xml.ts'),
+            prerender: true,
+          });
+        }
         injectRoute({
           pattern: SITEMAP_STYLESHEET_PATH,
           entrypoint: route('sitemap.css.ts'),

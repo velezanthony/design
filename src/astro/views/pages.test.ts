@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { pagesOf, sitemapXml, urlPolicyOf, type DocData } from './pages';
+import { pagesOf, sitemapIndexXml, sitemapXml, urlPolicyOf, type DocData } from './pages';
 
 const cfg = {
   base: '/repo',
@@ -102,5 +102,28 @@ describe('sitemapXml: página de privacidad', () => {
     });
     expect(xml).not.toContain('privacidad');
     expect(xml).not.toContain('privacy');
+  });
+});
+
+describe('sitemapIndexXml', () => {
+  const locs = (xml: string) => [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+
+  it('apunta primero a las páginas propias, bajo la base, y luego a los incluidos', () => {
+    const xml = sitemapIndexXml({ ...cfg, sitemap: { include: ['/lib/sitemap.xml'] } });
+    expect(locs(xml)).toEqual([
+      'https://x.dev/repo/sitemap-pages.xml',
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('en la raíz del dominio, sin base', () => {
+    const xml = sitemapIndexXml({ ...cfg, base: '/', sitemap: { include: ['/lib/sitemap.xml'] } });
+    expect(locs(xml)[0]).toBe('https://x.dev/sitemap-pages.xml');
+  });
+
+  it('un sitemap de otro dominio sale como error de Astro', () => {
+    expect(() =>
+      sitemapIndexXml({ ...cfg, sitemap: { include: ['https://otro.dev/sitemap.xml'] } }),
+    ).toThrow(expect.objectContaining({ hint: expect.stringContaining('otro.dev') }));
   });
 });

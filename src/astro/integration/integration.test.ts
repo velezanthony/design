@@ -378,6 +378,15 @@ describe('astro:config:setup: rutas inyectadas', () => {
     expect(entry(routes[5])).toBe(entry(routes[4]));
   });
 
+  it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
+    const routes = await routesOf({ name: 'x', sitemap: { include: ['/lib/sitemap.xml'] } });
+    const pages = routes.find((r) => r.pattern === '/sitemap-pages.xml');
+    expect(pages && entry(pages)).toMatch(/pages\/sitemap-pages\.xml\.ts$/);
+    expect((await routesOf({ name: 'x' })).map((r) => r.pattern)).not.toContain(
+      '/sitemap-pages.xml',
+    );
+  });
+
   it('todas las rutas se prerenderizan', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
     expect(routes.every((r) => r.prerender === true)).toBe(true);

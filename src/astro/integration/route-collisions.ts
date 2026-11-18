@@ -12,8 +12,9 @@ function injectedRoutes(
   defaultLocale: string,
   privacyPage: boolean,
   seoOnPage: boolean,
+  sitemapIndex: boolean,
 ): string[] {
-  const routes = ['sitemap.xml'];
+  const routes = ['sitemap.xml', ...(sitemapIndex ? ['sitemap-pages.xml'] : [])];
   if (seoOnPage) {
     for (const { pattern } of SEO_ON_PAGE_ROUTES) {
       const route = pattern.slice(1);
@@ -43,12 +44,19 @@ export function assertNoRouteCollision(
   defaultLocale: string,
   privacyPage = false,
   seoOnPage = false,
+  sitemapIndex = false,
 ): void {
   const clashes: string[] = [];
-  for (const route of injectedRoutes(locales, defaultLocale, privacyPage, seoOnPage)) {
-    // `sitemap.xml` ya lleva punto: el endpoint es `sitemap.xml.ts`, pero también vale `sitemap.xml`.
+  for (const route of injectedRoutes(
+    locales,
+    defaultLocale,
+    privacyPage,
+    seoOnPage,
+    sitemapIndex,
+  )) {
+    // Los sitemaps ya llevan punto: el endpoint es `sitemap.xml.ts`, pero también vale `sitemap.xml`.
     for (const extension of ['', ...PAGE_EXTENSIONS.map((ext) => `.${ext}`)]) {
-      if (route !== 'sitemap.xml' && extension === '') continue;
+      if (!route.endsWith('.xml') && extension === '') continue;
       const file = `${route}${extension}`;
       if (existsSync(new URL(file, pagesDir))) clashes.push(`src/pages/${file}`);
     }

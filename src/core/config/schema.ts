@@ -234,6 +234,8 @@ export const DocsConfigSchema = z
       })
       .optional(),
     social: z.strictObject({ github: z.string().optional() }).optional(),
+    /** Otros sitemaps del dominio que el índice `sitemap.xml` declara (rutas o URLs del mismo origen). */
+    sitemap: z.strictObject({ include: z.array(z.string().min(1)).optional() }).optional(),
     layout: z
       .strictObject({
         sidebar: PanelStateSchema.optional(),

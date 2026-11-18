@@ -52,6 +52,14 @@ describe('assertNoRouteCollision', () => {
     expect(() => assertNoRouteCollision(pagesWith(file), locales, 'en')).toThrow(AstroError);
   });
 
+  it('con sitemaps incluidos, también sitemap-pages.xml; sin ellos, esa ruta es libre', () => {
+    const pages = pagesWith('sitemap-pages.xml.ts');
+    expect(() => assertNoRouteCollision(pages, locales, 'en')).not.toThrow();
+    expect(() => assertNoRouteCollision(pages, locales, 'en', false, false, true)).toThrow(
+      /sitemap-pages\.xml/,
+    );
+  });
+
   it('detecta 404 y sitemap.xml propios', () => {
     expect(() => assertNoRouteCollision(pagesWith('404.astro'), locales, 'en')).toThrow(/404/);
     expect(() => assertNoRouteCollision(pagesWith('sitemap.xml.ts'), locales, 'en')).toThrow(
