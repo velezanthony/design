@@ -6,6 +6,8 @@ import type { PanelLinks } from '../links';
 export interface OverviewModel {
   /** Páginas (por idioma): el total y cuántas tienen problemas, solo informativas o nada. */
   totals: Pick<SeoSummary, 'total' | 'withProblems' | 'informativeOnly' | 'clean'>;
+  /** Páginas sin errores ni avisos ÷ total: la UI puede enseñar la cuenta («35 ÷ 38») y el porcentaje. */
+  health: SeoSummary['health'];
   links: {
     /** La tabla de problemas (su vista por defecto: errores y avisos). */
     problems: string;
@@ -34,6 +36,7 @@ export function overviewModel(tree: SeoTree, links: Pick<PanelLinks, 'pages'>): 
       informativeOnly: summary.informativeOnly,
       clean: summary.clean,
     },
+    health: summary.health,
     links: {
       problems: links.pages(),
       all: links.pages({ ...EMPTY_FILTERS, severities: ALL_SEVERITIES }),

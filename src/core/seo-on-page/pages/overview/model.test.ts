@@ -46,6 +46,10 @@ describe('overviewModel', () => {
     });
   });
 
+  it('la salud cuenta las páginas sin errores ni avisos (la informativa cuenta como sana)', () => {
+    expect(overviewModel(tree(), links).health).toEqual({ healthy: 2, total: 4, percent: 50 });
+  });
+
   it('lleva a la tabla de problemas (su vista por defecto) y a la de todo', () => {
     const { links: targets } = overviewModel(tree(), links);
     expect(targets.problems).toBe('/t/');

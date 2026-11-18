@@ -8,6 +8,11 @@ export interface SeoSummary {
   informativeOnly: number;
   /** Sin ninguna incidencia. */
   clean: number;
+  /**
+   * Salud: páginas (no idiomas) sin errores NI avisos sobre el total; las informativas no restan.
+   * Se publican las dos cifras además del porcentaje para que la UI pueda explicar la cuenta.
+   */
+  health: { healthy: number; total: number; percent: number };
   /** Incidencias (no páginas) por tipo; todas las claves presentes aunque valgan 0. */
   byKind: Record<IssueKind, number>;
   bySeverity: Record<IssueSeverity, number>;
@@ -40,6 +45,23 @@ function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
   };
 }
 
+/**
+ * Salud por página, no por idioma: una página está sana si ninguno de sus idiomas tiene un error o un
+ * aviso. Contar entradas daba otra cifra que «Páginas» y no se podía explicar con el total a la vista.
+ */
+function healthOf(tree: SeoTree): SeoSummary['health'] {
+  const slugs = new Set(tree.pages.map((page) => page.slug));
+  const unhealthy = new Set(
+    tree.pages
+      .filter((page) => page.issues.some((issue) => issue.severity !== IssueSeverity.INFO))
+      .map((page) => page.slug),
+  );
+  const healthy = slugs.size - unhealthy.size;
+  // Sin páginas no hay nada roto: 100, no una división entre cero.
+  const percent = slugs.size === 0 ? 100 : Math.round((healthy / slugs.size) * 100);
+  return { healthy, total: slugs.size, percent };
+}
+
 /** Contadores de la vista general. Con todas las claves siempre, la UI no tiene que comprobar nada. */
 export function summarize(tree: SeoTree): SeoSummary {
   const byKind = Object.fromEntries(Object.values(IssueKind).map((kind) => [kind, 0])) as Record<
@@ -64,6 +86,7 @@ export function summarize(tree: SeoTree): SeoSummary {
     withProblems,
     informativeOnly: withAny - withProblems,
     clean: tree.pages.length - withAny,
+    health: healthOf(tree),
     byKind,
     bySeverity,
     schemas: summarizeSchemas(tree),

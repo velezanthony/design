@@ -93,4 +93,55 @@ describe('summarize: JSON-LD', () => {
     const tree: SeoTree = { pages: [page([], ['Thing', 'Thing'])] };
     expect(summarize(tree).schemas.types).toEqual([{ type: 'Thing', pages: 1 }]);
   });
+
+  describe('salud', () => {
+    const entry = (slug: string, issues: Issue[], locale = 'en'): SeoPage =>
+      ({ ...page(issues), slug, locale }) as SeoPage;
+
+    it('cuenta páginas sin errores ni avisos; las informativas no restan', () => {
+      const tree: SeoTree = {
+        pages: [
+          entry('a', [issue('description-inherited', 'info')]),
+          entry('b', [issue('no-h1', 'error'), issue('title-too-long', 'warning')]),
+          entry('c', [issue('title-too-long', 'warning')]),
+          entry('d', []),
+        ],
+      };
+      expect(summarize(tree).health).toEqual({ healthy: 2, total: 4, percent: 50 });
+    });
+
+    it('una página con varias incidencias resta una sola vez', () => {
+      const tree: SeoTree = {
+        pages: [
+          entry('a', [issue('no-h1', 'error'), issue('title-too-long', 'warning')]),
+          entry('b', []),
+        ],
+      };
+      expect(summarize(tree).health).toMatchObject({ healthy: 1, total: 2 });
+    });
+
+    it('cuenta páginas, no idiomas: basta un aviso en un idioma para que la página reste', () => {
+      const tree: SeoTree = {
+        pages: [
+          entry('guia', [], 'en'),
+          entry('guia', [issue('title-too-long', 'warning')], 'es'),
+          entry('api', [issue('description-inherited', 'info')], 'en'),
+          entry('api', [], 'es'),
+        ],
+      };
+      expect(summarize(tree).health).toEqual({ healthy: 1, total: 2, percent: 50 });
+    });
+
+    it('el porcentaje se redondea al entero más cercano', () => {
+      const pages = [
+        ...Array.from({ length: 35 }, (_, i) => entry(`ok-${i}`, [])),
+        ...Array.from({ length: 3 }, (_, i) => entry(`mal-${i}`, [issue('no-h1', 'error')])),
+      ];
+      expect(summarize({ pages }).health).toEqual({ healthy: 35, total: 38, percent: 92 });
+    });
+
+    it('sin páginas no hay nada roto: 100 %', () => {
+      expect(summarize({ pages: [] }).health).toEqual({ healthy: 0, total: 0, percent: 100 });
+    });
+  });
 });
