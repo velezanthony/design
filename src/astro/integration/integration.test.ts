@@ -623,8 +623,8 @@ describe('astro:config:setup: rutas que el sitio sustituye', () => {
       );
       // El panel las enseña: quedan en el registro que comparte con la integración.
       expect(clientRegistry().overrides?.map(({ route }) => route)).toEqual([
-        'sitemap.xml',
         'index',
+        'sitemap.xml',
         '404',
       ]);
     } finally {

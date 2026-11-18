@@ -3,7 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { overrideWarning, routeOverrides, type RouteOptions } from './route-overrides';
+import type { RouteOptions } from '../pages/routes';
+import { overrideWarning, routeOverrides } from './route-overrides';
 
 const directories: string[] = [];
 

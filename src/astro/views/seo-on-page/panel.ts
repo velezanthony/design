@@ -16,7 +16,8 @@ import {
 import type { DocData } from '../../loader/schema';
 import { navContextOf, siteContext } from '../chrome';
 import type { VirtualConfig } from '../../virtual/data';
-import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
+import { SEO_ON_PAGE_DIR } from '../../pages/routes';
+import type { DevHrefs } from './hrefs';
 import { baseUrl } from '../../../core/shared/urls';
 
 type Screen = keyof typeof SCREEN_LABELS;

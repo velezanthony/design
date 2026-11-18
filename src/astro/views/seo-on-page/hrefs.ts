@@ -7,16 +7,7 @@ import {
   type ViewState,
 } from '../../../core/seo-on-page/queries/url-filters';
 import { withBase } from '../../../core/shared/urls';
-
-/** Carpeta común de las rutas del panel: lo que un consumidor no debería usar para sus páginas. */
-export const SEO_ON_PAGE_DIR = 'seo-on-page';
-
-/** Las rutas que la integración inyecta SOLO en desarrollo, y el contenedor de cada una. */
-export const SEO_ON_PAGE_ROUTES = [
-  { pattern: `/${SEO_ON_PAGE_DIR}`, file: 'overview.astro' },
-  { pattern: `/${SEO_ON_PAGE_DIR}/pages`, file: 'pages.astro' },
-  { pattern: `/${SEO_ON_PAGE_DIR}/page`, file: 'page.astro' },
-] as const;
+import { SEO_ON_PAGE_DIR } from '../../pages/routes';
 
 function withQuery(path: string, params: URLSearchParams) {
   const query = params.toString();

@@ -90,7 +90,7 @@ Es donde ocurre casi todo. En orden:
      **solo si el consumidor no eligió temas**.
    - `fonts`: IBM Plex Sans y Mono vía la API de fuentes de Astro (`src/astro/integration/fonts.ts`).
    - `vite.plugins`: el plugin del módulo virtual.
-6. **`injectRoute`.** Todas las rutas del sitio, con `prerender: true`:
+6. **`injectRoute`.** Todas las rutas salen de una tabla, `src/astro/pages/routes.ts` (patrón, contenedor y cuándo: `site`, `dev` o una opción); las del sitio llevan `prerender: true` y las de dev, no:
 
 | Patrón | Contenedor | Cuándo |
 | --- | --- | --- |

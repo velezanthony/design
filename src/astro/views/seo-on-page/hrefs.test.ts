@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
-import { assetHref, devHrefs, SEO_ON_PAGE_ROUTES } from './hrefs';
+import { assetHref, devHrefs } from './hrefs';
 
 const policy = { base: '/repo', trailingSlash: 'always' as const, defaultLocale: 'en' };
 
@@ -73,16 +73,6 @@ describe('devHrefs', () => {
   it('sin filtros no deja un `?` colgando', () => {
     const empty = { kinds: [], severities: [], locales: [], text: '' };
     expect(devHrefs(policy).pages(empty)).toBe('/repo/seo-on-page/pages/');
-  });
-});
-
-describe('SEO_ON_PAGE_ROUTES', () => {
-  it('son tres rutas, todas bajo seo-on-page', () => {
-    expect(SEO_ON_PAGE_ROUTES.map((route) => route.pattern)).toEqual([
-      '/seo-on-page',
-      '/seo-on-page/pages',
-      '/seo-on-page/page',
-    ]);
   });
 });
 

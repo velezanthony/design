@@ -6,13 +6,7 @@ import { applyAnalytics } from '../../core/analytics/resolve';
 import type { UrlPolicy } from '../../core/i18n/availability';
 import { resolveConfig, type ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
-import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
-import {
-  SITEMAP_FILE,
-  SITEMAP_PAGES,
-  SITEMAP_STYLESHEET_PATH,
-  sitemapFiles,
-} from '../../core/seo/sitemap';
+import { sitemapFiles } from '../../core/seo/sitemap';
 import { codeThemes } from '../../ui/styles/code-themes';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
@@ -25,7 +19,7 @@ import { orAstroError } from '../errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
-import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
+import { routesFor } from '../pages/routes';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
 import { clientRegistry } from '../data/client-registry';
 import { addClientPagesToSitemap } from './client-sitemap';
@@ -121,13 +115,14 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         );
         // El sitio puede sustituir páginas de la librería con las suyas: se avisa, y las rutas
         // exactas que ya son suyas no se inyectan (Astro no registra dos para la misma URL).
-        const overrides = routeOverrides(new URL('pages/', config.srcDir), {
+        const routeOptions = {
           locales: resolvedConfig.locales,
           defaultLocale: resolvedConfig.defaultLocale,
           privacyPage: resolvedConfig.privacy.page,
           seoOnPage: command === 'dev',
           sitemapIndex: sitemap.index,
-        });
+        };
+        const overrides = routeOverrides(new URL('pages/', config.srcDir), routeOptions);
         clientRegistry().overrides = overrides;
         const warning = overrideWarning(overrides);
         if (warning) logger.warn(warning);
@@ -167,64 +162,8 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
             ],
           },
         });
-        injectRoute({ pattern: '/[...slug]', entrypoint: route('doc.astro'), prerender: true });
-        if (own(`/${SITEMAP_FILE}`))
-          injectRoute({
-            pattern: `/${SITEMAP_FILE}`,
-            entrypoint: route('sitemap.xml.ts'),
-            prerender: true,
-          });
-        // Con otros sitemaps del dominio, `sitemap.xml` es su índice y las páginas propias van aparte.
-        if (sitemap.index && own(`/${SITEMAP_PAGES}`)) {
-          injectRoute({
-            pattern: `/${SITEMAP_PAGES}`,
-            entrypoint: route('sitemap-pages.xml.ts'),
-            prerender: true,
-          });
-        }
-        if (own(SITEMAP_STYLESHEET_PATH))
-          injectRoute({
-            pattern: SITEMAP_STYLESHEET_PATH,
-            entrypoint: route('sitemap.css.ts'),
-            prerender: true,
-          });
-        if (own(DEFAULT_FAVICON_PATH))
-          injectRoute({
-            pattern: DEFAULT_FAVICON_PATH,
-            entrypoint: route('favicon.png.ts'),
-            prerender: true,
-          });
-        if (own('/404')) {
-          injectRoute({ pattern: '/404', entrypoint: route('not-found.astro'), prerender: true });
-        }
-        // Página de privacidad propia (opcional): la del idioma por defecto sin prefijo y la de cada otro.
-        if (resolvedConfig.privacy.page) {
-          injectRoute({
-            pattern: '/[privacy]',
-            entrypoint: route('privacy.astro'),
-            prerender: true,
-          });
-          if (resolvedConfig.locales.length > 1) {
-            injectRoute({
-              pattern: '/[locale]/[privacy]',
-              entrypoint: route('privacy-locale.astro'),
-              prerender: true,
-            });
-          }
-        }
-        /* Panel SEO on page SOLO en `astro dev` (nada entra en el sitio publicado); `prerender: false` porque lee la query de la URL. */
-        if (command === 'dev') {
-          for (const { pattern, file } of SEO_ON_PAGE_ROUTES) {
-            injectRoute({ pattern, entrypoint: route(`seo-on-page/${file}`), prerender: false });
-          }
-        }
-        // Un idioma por defecto sin prefijo no tiene `/<idioma>/404/`: solo los demás.
-        if (resolvedConfig.locales.length > 1) {
-          injectRoute({
-            pattern: '/[locale]/404',
-            entrypoint: route('not-found.astro'),
-            prerender: true,
-          });
+        for (const { pattern, file, prerender } of routesFor(routeOptions)) {
+          if (own(pattern)) injectRoute({ pattern, entrypoint: route(file), prerender });
         }
       },
       // Las páginas que el cliente añade en `src/pages/`, para el panel SEO y el sitemap.
