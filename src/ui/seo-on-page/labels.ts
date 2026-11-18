@@ -238,6 +238,7 @@ export const tagLabel = (tag: PageTag): string =>
   ({
     home: 'Portada',
     only: `Solo ${tag.kind === 'only' ? tag.locale.toUpperCase() : ''}`,
+    fallback: `Respaldo ${tag.kind === 'fallback' ? tag.locales.map((locale) => locale.toUpperCase()).join(' ') : ''}`,
     external: 'Externa',
     client: 'Astro',
     noindex: 'noindex',
@@ -247,6 +248,7 @@ export const tagLabel = (tag: PageTag): string =>
 export const TAG_HINTS: Partial<Record<PageTag['kind'], string>> = {
   external: 'Generada desde un fichero fuera de las docs',
   client: 'Página del sitio en src/pages/, leída de lo que publica su <head>',
+  fallback: 'En esos idiomas no hay traducción: se sirve el texto del idioma por defecto',
   noindex: 'Los buscadores no deben indexarla',
 };
 

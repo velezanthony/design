@@ -7,7 +7,8 @@ export type PageTag =
   | { kind: 'only'; locale: Locale }
   | { kind: 'external' }
   | { kind: 'client' }
-  | { kind: 'noindex' };
+  | { kind: 'noindex' }
+  | { kind: 'fallback'; locales: Locale[] };
 
 /** El color de la insignia de un idioma: su peor gravedad, «ok» sin incidencias, «missing» si no existe. */
 export type LocaleTone = IssueSeverity | 'ok' | 'missing';
@@ -80,13 +81,25 @@ function withoutMeasure(issue: Issue): Issue {
 
 export function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]): PageTag[] {
   const tags: PageTag[] = [];
+  // Los idiomas que la página no tiene pero se sirven con el texto de otro (política `fallback`).
+  const fallback = [
+    ...new Set(
+      entries.flatMap((entry) =>
+        entry.locales
+          .filter((cell) => cell.status === 'missing' && cell.policy === 'fallback')
+          .map(({ locale }) => locale),
+      ),
+    ),
+  ];
   if (entries[0]?.slug === '') tags.push({ kind: 'home' });
-  if (entries.length === 1 && locales.length > 1 && entries[0]) {
+  // Con respaldo la página sí se sirve en los demás idiomas: no es «Solo EN», es «Respaldo ES».
+  if (entries.length === 1 && locales.length > 1 && entries[0] && fallback.length === 0) {
     tags.push({ kind: 'only', locale: entries[0].locale });
   }
   if (entries.some((entry) => entry.kind === 'external')) tags.push({ kind: 'external' });
   if (entries.some((entry) => entry.kind === 'client')) tags.push({ kind: 'client' });
   if (entries.some((entry) => entry.meta.noindex)) tags.push({ kind: 'noindex' });
+  if (fallback.length > 0) tags.push({ kind: 'fallback', locales: fallback });
   return tags;
 }
 

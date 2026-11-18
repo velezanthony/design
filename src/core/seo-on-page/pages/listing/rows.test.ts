@@ -191,6 +191,26 @@ describe('pageRows', () => {
       expect(tags).toEqual([{ kind: 'external' }, { kind: 'noindex' }]);
     });
 
+    it('«Respaldo ES» cuando un idioma se sirve con el texto de otro, en vez de «Solo EN»', () => {
+      const fallback = entry('a', 'en', {
+        locales: [
+          { locale: 'en', status: 'present', url: '/a/' },
+          { locale: 'es', status: 'missing', policy: 'fallback', declared: false },
+        ],
+      });
+      expect(rows([fallback])[0]?.tags).toEqual([{ kind: 'fallback', locales: ['es'] }]);
+    });
+
+    it('un idioma que falta sin respaldo sigue siendo «Solo»', () => {
+      const missing = entry('a', 'en', {
+        locales: [
+          { locale: 'en', status: 'present', url: '/a/' },
+          { locale: 'es', status: 'missing', policy: 'link', declared: false },
+        ],
+      });
+      expect(rows([missing])[0]?.tags).toEqual([{ kind: 'only', locale: 'en' }]);
+    });
+
     it('una página que el sitio añade en src/pages/ lleva su etiqueta', () => {
       const tags = rows([
         entry('a', 'en', { kind: 'client' }),
