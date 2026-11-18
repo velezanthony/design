@@ -394,6 +394,25 @@ describe('buildSeoTree: páginas del cliente', () => {
     expect(kindsAt(tree, 'guide')).toContain('duplicate-title');
   });
 
+  it('una página del cliente en la URL de una de la documentación la sustituye: se analiza la suya', () => {
+    const tree = buildSeoTree({
+      config,
+      url,
+      pages: [page({ slug: 'guide', locale: 'en' }), page({ slug: 'install', locale: 'en' })],
+      client: [clientPage('/repo/guide/', { title: 'Own guide page with a long enough title' })],
+    });
+    const guides = tree.pages.filter((p) => p.slug === 'guide');
+    expect(guides).toHaveLength(1);
+    expect(guides[0]).toMatchObject({ kind: 'client', replaces: true });
+    expect(guides[0]!.meta.title).toBe('Own guide page with a long enough title');
+    expect(tree.pages.find((p) => p.slug === 'install')).toMatchObject({ kind: 'native' });
+  });
+
+  it('una página del cliente en una URL nueva no sustituye nada', () => {
+    const tree = buildSeoTree({ ...input, client: [clientPage('/repo/about/')] });
+    expect(tree.pages.find((p) => p.slug === 'about')!.replaces).toBeUndefined();
+  });
+
   it('no entran en el grafo de enlaces: ni salen huérfanas ni impiden juzgar a las demás', () => {
     const tree = buildSeoTree({
       config,

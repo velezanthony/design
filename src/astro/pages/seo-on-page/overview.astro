@@ -19,13 +19,14 @@ import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
 import ClientPageFailures from '../../../ui/seo-on-page/organisms/ClientPageFailures.astro';
+import RouteOverridesNotice from '../../../ui/seo-on-page/organisms/RouteOverridesNotice.astro';
 import { loadDocData, loadPanelTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
 import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const { tree, failures } = await loadPanelTree(siteConfig, Astro.url.origin);
+const { tree, failures, overrides } = await loadPanelTree(siteConfig, Astro.url.origin);
 const model = overviewModel(tree, {
   locales: siteConfig.locales,
   defaultLocale: siteConfig.defaultLocale,
@@ -52,6 +53,7 @@ const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteC
     <ReportButton slot="actions" scope="site" />
   </PanelIntro>
   <ClientPageFailures failures={failures} />
+  <RouteOverridesNotice overrides={overrides} />
   <div class="flex flex-col gap-4">
     <OverviewKpis kpis={model.kpis} />
     <div class="grid gap-4 lg:grid-cols-2">

@@ -1,0 +1,30 @@
+---
+import { ROUTE_OVERRIDE_LABELS as L } from '../labels';
+
+interface Props {
+  /** Las rutas de la librería que el sitio sustituye con un fichero de `src/pages/`. */
+  overrides: { file: string; route: string }[];
+}
+
+const { overrides } = Astro.props;
+---
+
+{/* No es un fallo: el sitio es libre de reescribir páginas concretas; se dice para no perderlo de vista. */}
+{overrides.length > 0 && (
+  <aside
+    class="mb-6 border border-dashed border-rule p-3 text-sm text-muted"
+    aria-label={L.region}
+    data-route-overrides
+  >
+    <p>
+      <strong class="font-semibold text-ink">{L.title(overrides.length)}</strong>. {L.why}
+    </p>
+    <ul class="mt-2 list-disc pl-5">
+      {overrides.map(({ file, route }) => (
+        <li>
+          <code>{file}</code> → <code>{L.path(route)}</code>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}

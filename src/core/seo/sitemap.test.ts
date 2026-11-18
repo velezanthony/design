@@ -206,6 +206,13 @@ describe('buildSitemap con páginas del cliente', () => {
     );
   });
 
+  it('una del cliente con la URL de una de la documentación la sustituye: no sale dos veces', () => {
+    const own = { loc: 'https://x.dev/repo/install/', alternates: [] };
+    const xml = buildSitemap(av, site, new Set(), [own]);
+    expect(locs(xml)).toEqual(['https://x.dev/repo/install/']);
+    expect(xml).toContain('<url><loc>https://x.dev/repo/install/</loc></url>');
+  });
+
   it('cuentan para el límite de URLs', () => {
     const many: Availability = new Map(
       Array.from({ length: 50_000 }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]),
@@ -222,6 +229,13 @@ describe('appendToSitemap', () => {
     const merged = appendToSitemap(xml, [entry]);
     expect(locs(merged)).toEqual(['https://x.dev/a/', 'https://x.dev/cv/']);
     expect(merged.endsWith('</urlset>\n')).toBe(true);
+  });
+
+  it('una entrada con la URL de otra ya escrita la sustituye', () => {
+    const xml = buildSitemap(new Map([['a', { en: '/a/', es: '/es/a/' }]]), site);
+    const merged = appendToSitemap(xml, [{ loc: 'https://x.dev/a/', alternates: [] }]);
+    expect(locs(merged)).toEqual(['https://x.dev/es/a/', 'https://x.dev/a/']);
+    expect(merged).toContain('<url><loc>https://x.dev/a/</loc></url>');
   });
 
   it('sin entradas lo deja tal cual', () => {

@@ -7,6 +7,7 @@ import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHIKI_LANG_ALIAS } from '../markdown/code-languages';
+import { clientRegistry } from '../data/client-registry';
 import { docs, INTEGRATION_NAME } from './index';
 import { MissingTranslation } from '../../core/i18n/translation-policy';
 
@@ -616,6 +617,12 @@ describe('astro:config:setup: rutas que el sitio sustituye', () => {
       expect(logger.warn).toHaveBeenCalledWith(
         expect.stringContaining('Tu sitio sustituye 3 rutas de @velezanthony/design'),
       );
+      // El panel las enseña: quedan en el registro que comparte con la integración.
+      expect(clientRegistry().overrides?.map(({ route }) => route)).toEqual([
+        'sitemap.xml',
+        'index',
+        '404',
+      ]);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

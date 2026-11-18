@@ -211,6 +211,11 @@ describe('pageRows', () => {
       expect(rows([missing])[0]?.tags).toEqual([{ kind: 'only', locale: 'en' }]);
     });
 
+    it('una página del sitio que sustituye a una de la librería lo dice', () => {
+      const tags = rows([entry('', 'en', { kind: 'client', replaces: true })])[0]?.tags;
+      expect(tags).toContainEqual({ kind: 'replaces' });
+    });
+
     it('una página que el sitio añade en src/pages/ lleva su etiqueta', () => {
       const tags = rows([
         entry('a', 'en', { kind: 'client' }),

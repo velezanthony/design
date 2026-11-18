@@ -7,6 +7,7 @@ export type PageTag =
   | { kind: 'only'; locale: Locale }
   | { kind: 'external' }
   | { kind: 'client' }
+  | { kind: 'replaces' }
   | { kind: 'noindex' }
   | { kind: 'fallback'; locales: Locale[] };
 
@@ -98,6 +99,7 @@ export function tagsOf(entries: readonly SeoPage[], locales: readonly Locale[]):
   }
   if (entries.some((entry) => entry.kind === 'external')) tags.push({ kind: 'external' });
   if (entries.some((entry) => entry.kind === 'client')) tags.push({ kind: 'client' });
+  if (entries.some((entry) => entry.replaces)) tags.push({ kind: 'replaces' });
   if (entries.some((entry) => entry.meta.noindex)) tags.push({ kind: 'noindex' });
   if (fallback.length > 0) tags.push({ kind: 'fallback', locales: fallback });
   return tags;

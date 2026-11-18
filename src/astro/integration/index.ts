@@ -22,6 +22,7 @@ import { contentFsAllow } from './fs-allow';
 import { buildPagefindIndex } from './pagefind';
 import { SEO_ON_PAGE_ROUTES } from '../views/seo-on-page/hrefs';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
+import { clientRegistry } from '../data/client-registry';
 import { addClientPagesToSitemap } from './client-sitemap';
 import { overrideWarning, routeOverrides } from './route-overrides';
 
@@ -130,6 +131,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           seoOnPage: command === 'dev',
           sitemapIndex: resolvedConfig.sitemap.include.length > 0,
         });
+        clientRegistry().overrides = overrides;
         const warning = overrideWarning(overrides);
         if (warning) logger.warn(warning);
         const theirs = new Set(overrides.map(({ route }) => `/${route}`));

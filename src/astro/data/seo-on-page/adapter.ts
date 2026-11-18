@@ -3,6 +3,7 @@ import { CONTENT_METADATA_KEY } from '../../../core/seo-on-page/nodes/content';
 import { siteFiles, type SiteFile } from '../../../core/seo-on-page/site-files';
 import type { ClientPage } from '../../../core/seo/client-pages';
 import { loadClientPages, type ClientPages } from '../client-pages';
+import { clientRegistry, type ClientRegistry } from '../client-registry';
 import { buildSeoTree } from '../../../core/seo-on-page/tree/build-tree';
 import type {
   HeadingNode,
@@ -103,13 +104,21 @@ export async function loadSeoTree(
 export async function loadPanelTree(
   config: VirtualConfig,
   origin: string,
-): Promise<{ tree: SeoTree; failures: ClientPages['failures'] }> {
+): Promise<{
+  tree: SeoTree;
+  failures: ClientPages['failures'];
+  overrides: NonNullable<ClientRegistry['overrides']>;
+}> {
   const { pages, failures } = await loadClientPages({
     origin,
     site: config.site,
     base: config.base,
   });
-  return { tree: await loadSeoTree(config, pages), failures };
+  return {
+    tree: await loadSeoTree(config, pages),
+    failures,
+    overrides: clientRegistry().overrides ?? [],
+  };
 }
 
 /** Los datos de la colección tal cual, para que la cabecera y el pie del panel se resuelvan como los del sitio. */

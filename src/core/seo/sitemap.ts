@@ -30,16 +30,8 @@ export function buildSitemap(
   extra: readonly SitemapEntry[] = [],
 ): string {
   const indexable = excludeNoindex(av, noindex);
-  const total =
-    [...indexable.values()].reduce((sum, a) => sum + Object.keys(a).length, 0) + extra.length;
-  if (total > SITEMAP_LIMIT) {
-    throw new DocsError(
-      `El sitemap tiene ${total} URLs y un sitemap.xml admite como máximo ${SITEMAP_LIMIT}.`,
-      {
-        hint: 'Reduce las páginas indexables o marca algunas con `seo.noindex`.',
-      },
-    );
-  }
+  // Una página del cliente con la URL de una de la librería la sustituye: Astro publica la suya.
+  const taken = new Set(extra.map(({ loc }) => loc));
   const absolute = (href: string) => escapeXml(new URL(href, site).href);
   const entries: string[] = [];
   for (const available of indexable.values()) {
@@ -56,8 +48,18 @@ export function buildSitemap(
             .join('')
         : '';
     for (const [, href] of languages) {
+      if (taken.has(new URL(href, site).href)) continue;
       entries.push(`<url><loc>${absolute(href)}</loc>${alternates}</url>`);
     }
+  }
+  const total = entries.length + extra.length;
+  if (total > SITEMAP_LIMIT) {
+    throw new DocsError(
+      `El sitemap tiene ${total} URLs y un sitemap.xml admite como máximo ${SITEMAP_LIMIT}.`,
+      {
+        hint: 'Reduce las páginas indexables o marca algunas con `seo.noindex`.',
+      },
+    );
   }
   return xmlDocument(
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
@@ -94,13 +96,20 @@ export function clientSitemapEntries(pages: readonly ClientPage[], site: URL): S
 }
 
 /**
- * Añade entradas a un sitemap ya escrito por `buildSitemap`, antes de su cierre. Es lo que hace el
+ * Añade entradas a un sitemap ya escrito por `buildSitemap`, antes de su cierre; la que ya tenía la
+ * misma URL se sustituye. Es lo que hace el
  * build con las páginas del cliente, que solo existen leídas cuando el sitio ya está generado.
  */
 export function appendToSitemap(xml: string, extra: readonly SitemapEntry[]): string {
   if (extra.length === 0) return xml;
-  const close = xml.lastIndexOf('</urlset>');
-  return `${xml.slice(0, close)}${extra.map(urlElement).join('\n')}\n${xml.slice(close)}`;
+  // La que ya estaba con la misma URL se quita: la del cliente la sustituye (una `<url>` por línea).
+  const taken = new Set(extra.map(({ loc }) => `<url><loc>${escapeXml(loc)}</loc>`));
+  const kept = xml
+    .split('\n')
+    .filter((line) => ![...taken].some((start) => line.startsWith(start)))
+    .join('\n');
+  const close = kept.lastIndexOf('</urlset>');
+  return `${kept.slice(0, close)}${extra.map(urlElement).join('\n')}\n${kept.slice(close)}`;
 }
 
 /** Declaración, hoja de estilo, raíz y entradas: lo común al sitemap de páginas y al índice. */

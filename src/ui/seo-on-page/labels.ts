@@ -241,6 +241,7 @@ export const tagLabel = (tag: PageTag): string =>
     fallback: `Respaldo ${tag.kind === 'fallback' ? tag.locales.map((locale) => locale.toUpperCase()).join(' ') : ''}`,
     external: 'Externa',
     client: 'Astro',
+    replaces: 'Sustituye',
     noindex: 'noindex',
   })[tag.kind];
 
@@ -248,6 +249,7 @@ export const tagLabel = (tag: PageTag): string =>
 export const TAG_HINTS: Partial<Record<PageTag['kind'], string>> = {
   external: 'Generada desde un fichero fuera de las docs',
   client: 'Página del sitio en src/pages/, leída de lo que publica su <head>',
+  replaces: 'Tu página de src/pages/ ocupa esta URL en lugar de la que generaría la librería',
   fallback: 'En esos idiomas no hay traducción: se sirve el texto del idioma por defecto',
   noindex: 'Los buscadores no deben indexarla',
 };
@@ -303,6 +305,15 @@ export const COMMON_ISSUE_LABELS = {
   why: 'así que no se repite en cada fila: así se ven las diferencias entre páginas.',
   fix: 'Cómo arreglarlo',
   overview: 'Ver en la vista general',
+};
+
+export const ROUTE_OVERRIDE_LABELS = {
+  region: 'Rutas de la librería que sustituye el sitio',
+  title: (count: number) =>
+    `Tu sitio sustituye ${count === 1 ? '1 ruta' : `${count} rutas`} de la librería`,
+  why: 'Se publican sus páginas, y el panel analiza esas en lugar de las de la librería.',
+  /** La ruta tal como se visita: `index` es `/`, `es/index` es `/es/`. */
+  path: (route: string) => `/${route.replace(/(^|\/)index$/, '$1')}`,
 };
 
 export const CLIENT_FAILURE_LABELS = {

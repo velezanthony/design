@@ -9,6 +9,8 @@ export interface ClientRegistry {
   routes: SiteRoute[];
   load?: (entrypoint: string) => Promise<Record<string, unknown>>;
   version: number;
+  /** Las rutas de la librería que el sitio sustituye con un fichero suyo (`routeOverrides`). */
+  overrides?: { file: string; route: string }[];
 }
 
 const KEY = Symbol.for('@velezanthony/design/client-pages');

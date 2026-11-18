@@ -118,6 +118,8 @@ export interface SeoPageFacts {
   /** Título de la página (el H1), no el `<title>`. */
   title: string;
   kind: SeoPageKind;
+  /** Una página del cliente que ocupa la URL de una de la librería y la sustituye. */
+  replaces?: true;
   sourcePath: string;
   meta: MetaNode;
   headings: HeadingNode[];

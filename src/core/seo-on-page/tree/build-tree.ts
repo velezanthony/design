@@ -85,7 +85,15 @@ export function buildSeoTree(input: SeoInput): SeoTree {
     missing: config.translations.missing,
     base: url.base,
   });
-  const all = [...facts, ...client].sort(
+  // Una página del cliente en la URL de una de la librería la sustituye: Astro publica la suya, así
+  // que se analiza la suya y la de la librería sale del árbol. `clientFacts` conserva el orden.
+  const libraryUrls = new Set(facts.map(({ meta }) => meta.canonical));
+  const paths = (input.client ?? []).map(({ path }) => path);
+  const library = facts.filter(({ meta }) => !paths.includes(meta.canonical));
+  const own = client.map((page, index) =>
+    libraryUrls.has(paths[index]!) ? { ...page, replaces: true as const } : page,
+  );
+  const all = [...library, ...own].sort(
     (a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale),
   );
 
@@ -99,7 +107,7 @@ export function buildSeoTree(input: SeoInput): SeoTree {
   // El grafo de enlaces es solo de la documentación: de las páginas del cliente no se recogen sus
   // enlaces, y meterlas saldría en falsos «huérfana» (o impediría juzgar a las demás).
   const crossPage = new Map<string, Issue[]>();
-  for (const issue of analyzeLinks(facts, navigationLinks(pages, config, url))) {
+  for (const issue of analyzeLinks(library, navigationLinks(pages, config, url))) {
     crossPage.set(keyOf(issue), [...(crossPage.get(keyOf(issue)) ?? []), issue]);
   }
 
