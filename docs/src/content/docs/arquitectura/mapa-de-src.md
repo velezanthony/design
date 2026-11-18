@@ -102,10 +102,12 @@ ui/
 ├── organisms/   DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, ConsentBanner,
 │                BackToTop, NotFound, PrivacyPolicy
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
-│   ├── atoms/       IssueBadge (sobre Tag)
-│   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro
-│   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewStats,
-│   │                SchemasSummary, IssuesBySeverity, IssuesByKind, PagesTable, PublishedFacts,
+│   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag
+│   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro,
+│   │                OverviewCard, StatRow, CodeSpans
+│   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewKpis,
+│   │                las tarjetas del Resumen (FixFirstCard, CoverageCard, IndexingCard,
+│   │                SchemasCard, KindsCard, SiteFilesCard, SoonCard), PagesTable, PublishedFacts,
 │   │                Previews, IssuesList, SchemasList, HeadingsOutline, Translations
 │   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
 ├── layouts/
