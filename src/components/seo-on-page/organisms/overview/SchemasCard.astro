@@ -1,0 +1,37 @@
+---
+/* «Schemas (JSON-LD)»: qué tipos se declaran, a cuántas páginas llegan y cuántas se quedan sin ninguno. */
+import type { OverviewModel } from '../../../../core/seo-on-page/pages/overview/model';
+import Tag from '../../../atoms/display/Tag.astro';
+import OverviewCard from '../../molecules/OverviewCard.astro';
+import StatRow from '../../molecules/StatRow.astro';
+import { CARD_LABELS } from '../../labels';
+
+interface Props {
+  schemas: OverviewModel['schemas'];
+}
+
+const { schemas } = Astro.props;
+const labels = CARD_LABELS.schemas;
+---
+
+<OverviewCard id="c-sch" title={labels.title} why={labels.why}>
+  <ul>
+    {schemas.types.map(({ type, pages, scope }) => (
+      <StatRow>
+        <Fragment slot="label">
+          <span data-schema-type={type}>{type}</span>
+          {labels.scopes[scope] && (
+            <Tag bordered plain data-scope={scope}>
+              {labels.scopes[scope]}
+            </Tag>
+          )}
+        </Fragment>
+        {pages} <small class="text-muted">{labels.unit}</small>
+      </StatRow>
+    ))}
+    <StatRow muted>
+      <Fragment slot="label">{labels.none}</Fragment>
+      <span data-without>{schemas.withoutSchemas}</span>
+    </StatRow>
+  </ul>
+</OverviewCard>

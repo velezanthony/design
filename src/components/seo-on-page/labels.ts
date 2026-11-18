@@ -1,4 +1,4 @@
-import type { TagTone } from '../atoms/tones';
+import type { TagTone } from '../atoms/display/tones';
 import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare';
 import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
 import { slugLabel } from '../../core/seo-on-page/tree/keys';

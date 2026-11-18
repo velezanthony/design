@@ -1,0 +1,98 @@
+---
+import type { InspectorModel } from '../../../../core/seo-on-page/pages/inspector/model';
+import Link from '../../../atoms/actions/Link.astro';
+import Tag from '../../../atoms/display/Tag.astro';
+import CertaintyTag from '../../atoms/CertaintyTag.astro';
+import SeverityTag from '../../atoms/SeverityTag.astro';
+import { FIX_LABELS as labels, KIND_LABELS, slugLabel } from '../../labels';
+import CodeSpans from '../../molecules/CodeSpans.astro';
+import CopyPromptButton from '../../molecules/CopyPromptButton.astro';
+import InspectorSection from '../../molecules/InspectorSection.astro';
+
+interface Props {
+  fixes: InspectorModel['fixes'];
+  /** El prompt de cada problema, en el mismo orden que `fixes`; sin él no hay botón «Copiar prompt». */
+  prompts?: string[];
+}
+
+const { fixes, prompts = [] } = Astro.props;
+/* El borde izquierdo repite la gravedad: el color solo no basta, ya va también en palabras. */
+const edge = {
+  error: 'border-l-danger',
+  warning: 'border-l-state-wip',
+  info: 'border-l-faint',
+};
+const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
+---
+
+<InspectorSection section="issues">
+  {fixes.length === 0 ? (
+    <p class="text-ink" data-empty>
+      {labels.empty}
+    </p>
+  ) : (
+    <ul class="flex flex-col gap-4">
+      {fixes.map(({ issue, certainty, limit, verify, related }, index) => (
+        <li
+          data-fix-block={issue.kind}
+          class:list={[
+            'flex flex-col gap-3 border border-l-4 border-rule bg-raised p-4',
+            edge[issue.severity],
+          ]}
+        >
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <SeverityTag severity={issue.severity} />
+            <span class="font-semibold text-ink">{KIND_LABELS[issue.kind]}</span>
+            <CertaintyTag certainty={certainty} />
+            {prompts[index] && (
+              <span class="ml-auto">
+                <CopyPromptButton prompt={prompts[index]} />
+              </span>
+            )}
+            <p class="basis-full text-ink">{issue.message}</p>
+          </div>
+          <div class="flex flex-col gap-2 text-sm">
+            {issue.fix && (
+              <p class={row} data-fix>
+                <span class="label text-muted">{labels.fix}</span>
+                <span class="text-ink">
+                  <CodeSpans text={issue.fix} />
+                </span>
+              </p>
+            )}
+            {limit && (
+              <p class={row} data-limit>
+                <span class="label text-muted">{labels.limit}</span>
+                <span class="flex flex-wrap items-baseline gap-2 text-ink">
+                  {labels.range(limit)}
+                  <Tag tone="wip" plain title={labels.recommendationHint}>
+                    {labels.recommendation}
+                  </Tag>
+                </span>
+              </p>
+            )}
+            <p class={row} data-verify>
+              <span class="label text-muted">{labels.verify}</span>
+              <span class="text-ink">
+                <CodeSpans text={verify} />
+              </span>
+            </p>
+          </div>
+          {related.length > 0 && (
+            <p class="flex flex-wrap items-baseline gap-x-2 text-sm text-muted">
+              {labels.with}
+              {related.map((other) => (
+                <span>
+                  <Link data-related href={other.href} class="cursor-pointer font-mono">
+                    {slugLabel(other.slug)}
+                  </Link>
+                  {other.title && <span> — «{other.title}»</span>}
+                </span>
+              ))}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
+</InspectorSection>

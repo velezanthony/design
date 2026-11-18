@@ -1,0 +1,104 @@
+---
+/* Diálogo «Copiar para la IA»: solo pinta los textos ya generados por el servidor (`client/seo-on-page/report.ts` elige) y sin JS no se abre; solo el cuerpo se desplaza. */
+import type { ReportText } from '../../../../core/seo-on-page/report/texts';
+import Button from '../../../atoms/actions/Button.astro';
+import Checkbox from '../../../atoms/form/Checkbox.astro';
+import { REPORT_LABELS as labels } from '../../labels';
+
+interface Props {
+  /** Los alcances que se pueden elegir y qué dice cada uno. */
+  options: { value: string; title: string; sub?: string }[];
+  /** El que sale marcado si el botón no pide otro. */
+  initial: string;
+  /** Idiomas del selector de «Un idioma». */
+  locales: string[];
+  /** El informe de cada alcance (`locale:<idioma>` para los idiomas). */
+  texts: Record<string, ReportText>;
+}
+
+const { options, initial, locales, texts } = Astro.props;
+const card =
+  'grid min-w-38 flex-1 cursor-pointer gap-0.5 border border-rule bg-canvas p-3 has-[:checked]:border-accent-line has-[:checked]:bg-accent-soft has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent';
+---
+
+<dialog
+  data-report-dialog
+  data-copied={labels.copied}
+  data-failed={labels.failed}
+  aria-label={labels.title}
+  class="m-auto max-h-[calc(100dvh-3rem)] w-[min(760px,calc(100vw-2rem))] overflow-hidden border border-rule bg-canvas p-0 text-ink backdrop:bg-ink/55"
+>
+  <div class="grid max-h-[calc(100dvh-3rem-2px)] grid-rows-[auto_minmax(0,1fr)_auto]">
+    <div class="flex items-start justify-between gap-4 border-b border-rule px-5 py-4">
+      <div class="flex flex-col gap-1">
+        <p class="text-lg font-semibold">{labels.title}</p>
+        <p class="text-sm text-muted">{labels.lede}</p>
+      </div>
+      <Button variant="quiet" data-report-close aria-label={labels.close}>
+        ×
+      </Button>
+    </div>
+    <div class="flex flex-col gap-3 overflow-auto bg-raised px-5 py-4">
+      <fieldset class="flex flex-wrap gap-2">
+        <legend class="label mb-1.5 text-muted">{labels.scope}</legend>
+        {options.map((option) => (
+          <label class={card}>
+            <input
+              type="radio"
+              name="report-scope"
+              value={option.value}
+              checked={option.value === initial}
+              data-report-scope
+              class="sr-only"
+            />
+            <span class="text-sm font-medium">{option.title}</span>
+            {option.value === 'locale' ? (
+              <span class="text-xs text-muted">
+                {option.sub}
+                <select
+                  data-report-locale
+                  aria-label={labels.localeSelect}
+                  class="ml-1 cursor-pointer border border-rule bg-canvas text-ink"
+                >
+                  {locales.map((locale) => (
+                    <option value={locale}>{locale}</option>
+                  ))}
+                </select>
+              </span>
+            ) : (
+              option.sub && <span class="text-xs text-muted">{option.sub}</span>
+            )}
+          </label>
+        ))}
+      </fieldset>
+      <Checkbox data-report-json class="text-sm">
+        {labels.json}
+      </Checkbox>
+      <pre
+        data-report-preview
+        aria-label={labels.preview}
+        class="font-mono text-xs break-words whitespace-pre-wrap text-ink"
+      ></pre>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-4 border-t border-rule px-5 py-3">
+      <span class="text-sm text-muted" data-report-meta></span>
+      <span class="flex items-center gap-3">
+        <span class="text-sm text-state-live" role="status" data-report-status></span>
+        <Button data-report-copy>{labels.copy}</Button>
+      </span>
+    </div>
+  </div>
+  {Object.entries(texts).map(([key, text]) => (
+    <>
+      <textarea
+        hidden
+        readonly
+        tabindex="-1"
+        data-report-text={key}
+        data-size-plain={text.size.plain}
+        data-size-json={text.size.withJson}
+      >{text.markdown}</textarea>
+      <textarea hidden readonly tabindex="-1" data-report-json-text={key}>{text.json}</textarea>
+    </>
+  ))}
+</dialog>

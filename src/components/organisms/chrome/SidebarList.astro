@@ -1,0 +1,60 @@
+---
+import { isSidebarGroup, type SidebarNode } from '../../../core/navigation/sidebar';
+import { localeNames, translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import type { Locale } from '../../../core/i18n/locale';
+
+/* Lista recursiva de `Sidebar`. Es interna: se usa solo desde ese organismo. */
+interface Props {
+  nodes: SidebarNode[];
+  current: string;
+  strings: UiStrings;
+  root?: boolean;
+}
+
+const { nodes, current, strings, root = false } = Astro.props;
+
+/* Sin raya a la izquierda: el nivel lo da la sangría y la página actual, su fondo de acento. */
+const itemClass =
+  'block min-h-6 rounded-md px-2.5 py-1 transition-colors hover:bg-accent-soft/60 aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent aria-[current=page]:shadow-[inset_2px_0_0_var(--color-accent-line)]';
+const pageClass = `${itemClass} text-muted hover:text-ink aria-[current=page]:font-medium`;
+/* Título de grupo: tinta y seminegrita, que es lo que lo separa de las páginas. */
+const groupClass = 'label font-semibold tracking-[0.08em] text-ink';
+function badgeName(locale: Locale) {
+  return translate(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
+}
+---
+
+<ul class:list={['space-y-0.5', !root && 'ml-3 border-l border-rule pl-1']}>
+  {nodes.map((node) => {
+    const group = isSidebarGroup(node);
+    const href = node.href;
+    const badge = node.badge;
+    return (
+      <li class:list={[group && 'mt-4 first:mt-0']}>
+        {href ? (
+          <a
+            href={href}
+            aria-current={href === current ? 'page' : undefined}
+            hreflang={badge}
+            lang={badge}
+            class:list={group ? [itemClass, groupClass] : pageClass}
+          >
+            {node.label}
+            {badge && (
+              <span
+                role="img"
+                aria-label={badgeName(badge)}
+                class="label ml-2 border border-rule px-1 text-faint"
+              >
+                {badge}
+              </span>
+            )}
+          </a>
+        ) : (
+          <span class:list={[groupClass, 'block px-2.5 py-1']}>{node.label}</span>
+        )}
+        {group && <Astro.self nodes={node.items} current={current} strings={strings} />}
+      </li>
+    );
+  })}
+</ul>

@@ -96,26 +96,34 @@ textos (`strings: UiStrings`).
 
 ```text
 components/
-├── atoms/       Button, Checkbox, Heading, Icon, Input, Link, Rule, Tag
-├── molecules/   Admonition, EditLink, FallbackNotice, LocaleSwitch, NavList, PanelToggle,
-│                Pagination, PrevNext, TableOfContents, Tabs, ThemeToggle
-├── organisms/   DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, ConsentBanner,
-│                BackToTop, NotFound, PrivacyPolicy
+├── atoms/
+│   ├── form/        Checkbox, Input, Select
+│   ├── actions/     Button, Link
+│   └── display/     Heading, Icon, Tag
+├── molecules/
+│   ├── navigation/  EditLink, LocaleSwitch, NavList, Pagination, PrevNext, TableOfContents
+│   ├── content/     Admonition, FallbackNotice, Tabs
+│   └── controls/    PanelToggle, ThemeToggle
+├── organisms/
+│   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, Head
+│   ├── privacy/     ConsentBanner, PrivacyPolicy
+│   └── not-found/   NotFound, NotFoundBody
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag
 │   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro,
 │   │                OverviewCard, StatRow, CodeSpans, InspectorSection
-│   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewKpis,
-│   │                las tarjetas del Resumen (FixFirstCard, CoverageCard, IndexingCard,
-│   │                SchemasCard, KindsCard, SiteFilesCard), PagesTable, y las del
-│   │                inspector (InspectorHeader, FixList, PublishedFacts con sus vistas previas,
-│   │                Translations, SchemasList, HeadingsOutline)
+│   ├── organisms/   Una sección por componente, agrupadas por pantalla
+│   │   ├── overview/    OverviewKpis y las tarjetas del Resumen (FixFirstCard, CoverageCard,
+│   │   │                IndexingCard, SchemasCard, KindsCard, SiteFilesCard)
+│   │   ├── listing/     PagesListing, PagesTable, EntriesTable, HaveTable, LanguageMatrix
+│   │   ├── inspector/   InspectorHeader, FixList, PublishedFacts, Translations, SchemasList,
+│   │   │                HeadingsOutline
+│   │   └── shared/      ClientPageFailures, ReportDialog (las usan varias pantallas)
 │   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
-│   ├── Head.astro           Pinta las etiquetas que calculó core/seo/head.ts
 │   ├── DocsLayout.astro     Página de docs: cabecera, barra, contenido, índice, pie
-│   ├── NotFoundLayout.astro / NotFoundBody.astro   La 404 con plantillas por idioma
+│   ├── NotFoundLayout.astro La 404 con plantillas por idioma
 │   ├── PrivacyLayout.astro  La página de privacidad propia
 │   └── boot.ts              Arranque del JavaScript de cliente (bootDocs, bootNotFound)
 ├── styles/

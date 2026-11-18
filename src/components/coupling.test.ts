@@ -30,10 +30,15 @@ describe('subpath ./components/*', () => {
     expect(packageJson.exports['./components/*']).toBe('./src/components/*');
   });
 
-  it.each(['Link', 'Icon', 'Heading', 'Tag', 'Button', 'Input', 'Checkbox'])(
-    'el átomo %s es importable',
-    (name) => {
-      expect(sources).toContain(`src/components/atoms/${name}.astro`);
-    },
-  );
+  it.each([
+    ['actions', 'Link'],
+    ['display', 'Icon'],
+    ['display', 'Heading'],
+    ['display', 'Tag'],
+    ['actions', 'Button'],
+    ['form', 'Input'],
+    ['form', 'Checkbox'],
+  ])('el átomo %s/%s es importable', (group, name) => {
+    expect(sources).toContain(`src/components/atoms/${group}/${name}.astro`);
+  });
 });

@@ -1,0 +1,190 @@
+---
+import type { InspectorModel } from '../../../../core/seo-on-page/pages/inspector/model';
+import Link from '../../../atoms/actions/Link.astro';
+import Tag from '../../../atoms/display/Tag.astro';
+import LocaleBadge from '../../atoms/LocaleBadge.astro';
+import {
+  COMPARE_LABELS as labels,
+  DESCRIPTION_SOURCE_LABELS,
+  KIND_LABELS,
+  SEVERITY_TONES,
+} from '../../labels';
+import InspectorSection from '../../molecules/InspectorSection.astro';
+
+interface Props {
+  /** La comparación entre idiomas; sin ella (un solo idioma) la sección no se pinta. */
+  translations: NonNullable<InspectorModel['translations']>;
+}
+
+const { translations } = Astro.props;
+const { columns } = translations;
+
+const cell = 'border-b border-rule px-3 py-2 align-top';
+---
+
+<InspectorSection section="translations">
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse text-left text-sm" data-compare>
+      <caption class="sr-only">{labels.caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col" class={`${cell} label text-muted`}>
+            {labels.field}
+          </th>
+          {columns.map((column) => (
+            <th scope="col" class={cell} data-col={column.locale}>
+              {column.state === 'present' && column.href ? (
+                <Link href={column.href} class="cursor-pointer">
+                  <LocaleBadge locale={column.locale} tone={column.tone} />
+                </Link>
+              ) : (
+                <LocaleBadge locale={column.locale} tone={column.tone} />
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-row="title">
+          <th scope="row" class={`${cell} label text-muted`}>
+            {labels.title}
+          </th>
+          {columns.map((column) => (
+            <td class={`${cell} text-ink`}>
+              {column.state === 'present'
+                ? column.title
+                : column.state === 'missing'
+                  ? labels.missing(column.policy, column.declared)
+                  : labels.unknown}
+            </td>
+          ))}
+        </tr>
+        <tr data-row="titleLength">
+          <th scope="row" class={`${cell} label text-muted`}>
+            {labels.length}
+          </th>
+          {columns.map((column) => (
+            <td
+              class:list={[
+                cell,
+                'font-mono',
+                column.state === 'present' && column.differs.titleLength && 'text-state-wip',
+              ]}
+              data-differs={
+                column.state === 'present' && column.differs.titleLength ? '' : undefined
+              }
+            >
+              {column.state === 'present' ? (
+                <>
+                  {column.titleLength}
+                  {column.differs.titleLength && (
+                    <span class="font-sans">
+                      {' '}
+                      {labels.differs} {labels.lengthNotes[column.titleClass]}
+                    </span>
+                  )}
+                </>
+              ) : (
+                labels.none
+              )}
+            </td>
+          ))}
+        </tr>
+        <tr data-row="description">
+          <th scope="row" class={`${cell} label text-muted`}>
+            {labels.description}
+          </th>
+          {columns.map((column) => (
+            <td class={`${cell} text-ink`}>
+              {column.state === 'present' ? (column.description ?? labels.none) : labels.none}
+            </td>
+          ))}
+        </tr>
+        <tr data-row="descriptionLength">
+          <th scope="row" class={`${cell} label text-muted`}>
+            {labels.descriptionLength}
+          </th>
+          {columns.map((column) => (
+            <td
+              class:list={[
+                cell,
+                'font-mono',
+                column.state === 'present' && column.differs.descriptionLength && 'text-state-wip',
+              ]}
+              data-differs={
+                column.state === 'present' && column.differs.descriptionLength ? '' : undefined
+              }
+            >
+              {column.state === 'present' ? (
+                <>
+                  {column.descriptionLength ?? labels.none}
+                  {column.differs.descriptionLength && (
+                    <span class="font-sans">
+                      {' '}
+                      {labels.differs} {labels.lengthNotes[column.descriptionClass]}
+                    </span>
+                  )}
+                </>
+              ) : (
+                labels.none
+              )}
+            </td>
+          ))}
+        </tr>
+        <tr data-row="descriptionSource">
+          <th scope="row" class={`${cell} label text-muted`}>
+            {labels.descriptionSource}
+          </th>
+          {columns.map((column) => (
+            <td
+              class:list={[
+                cell,
+                column.state === 'present' && column.differs.descriptionSource
+                  ? 'text-state-wip'
+                  : 'text-ink',
+              ]}
+              data-differs={
+                column.state === 'present' && column.differs.descriptionSource ? '' : undefined
+              }
+            >
+              {column.state === 'present' ? (
+                <>
+                  {DESCRIPTION_SOURCE_LABELS[column.descriptionSource]}
+                  {column.differs.descriptionSource && <span> · {labels.differs}</span>}
+                </>
+              ) : (
+                labels.none
+              )}
+            </td>
+          ))}
+        </tr>
+        <tr data-row="issues">
+          <th scope="row" class={`${cell} label text-muted`}>
+            {labels.issues}
+          </th>
+          {columns.map((column) => (
+            <td class={cell}>
+              {column.state === 'present' ? (
+                column.issues.length === 0 ? (
+                  <span class="text-muted">{labels.noIssues}</span>
+                ) : (
+                  <ul class="flex flex-col items-start gap-1">
+                    {column.issues.map((issue) => (
+                      <li>
+                        <Tag tone={SEVERITY_TONES[issue.severity]} bordered plain>
+                          {KIND_LABELS[issue.kind]}
+                        </Tag>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : (
+                labels.none
+              )}
+            </td>
+          ))}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</InspectorSection>

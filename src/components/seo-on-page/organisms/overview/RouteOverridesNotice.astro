@@ -1,0 +1,27 @@
+---
+import { ROUTE_OVERRIDE_LABELS as labels } from '../../labels';
+import PanelNotice from '../../molecules/PanelNotice.astro';
+
+interface Props {
+  /** Las rutas de la librería que el sitio sustituye con un fichero de `src/pages/`. */
+  overrides: { file: string; path: string }[];
+}
+
+const { overrides } = Astro.props;
+---
+
+{/* No es un fallo: el sitio es libre de reescribir páginas concretas; se dice para no perderlo de vista. */}
+{overrides.length > 0 && (
+  <PanelNotice
+    label={labels.region}
+    title={labels.title(overrides.length)}
+    why={labels.why}
+    data-route-overrides
+  >
+    {overrides.map(({ file, path }) => (
+      <li>
+        <code>{file}</code> → <code>{path}</code>
+      </li>
+    ))}
+  </PanelNotice>
+)}

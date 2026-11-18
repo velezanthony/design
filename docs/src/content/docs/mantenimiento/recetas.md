@@ -13,9 +13,9 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
 ## Un componente
 
 1. **Elige el nivel** del diseño atómico:
-   - `components/atoms/`: una pieza indivisible sin estado propio (`Link`, `Tag`, `Icon`).
-   - `components/molecules/`: unas pocas piezas con un propósito (`EditLink`, `PrevNext`, `ThemeToggle`).
-   - `components/organisms/`: una zona de la página (`DocsHeader`, `Sidebar`, `ConsentBanner`).
+   - `components/atoms/<tipo>/`: una pieza indivisible sin estado propio (`Link` en `actions/`, `Tag` e `Icon` en `display/`).
+   - `components/molecules/<tipo>/`: unas pocas piezas con un propósito (`EditLink` y `PrevNext` en `navigation/`, `ThemeToggle` en `controls/`).
+   - `components/organisms/<zona>/`: una zona de la página (`DocsHeader` y `Sidebar` en `chrome/`, `ConsentBanner` en `privacy/`).
 2. **Define sus `Props`** con comentarios. Todo lo que muestra llega por props, **textos incluidos**
    (`strings: UiStrings` y `translate(strings, 'clave')`). El componente no importa `astro:*`, ni
    `virtual:*`, ni nada de `src/astro/`: ESLint lo impide.
@@ -24,7 +24,7 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
 4. **Comportamiento en el navegador**, si lo tiene: una función `init*` en `src/client/` que recibe
    el documento y lo que necesite, su test en `client/`, y su llamada en `bootDocs`
    (`src/components/layouts/boot.ts`). Los textos que necesite el script viajan en atributos `data-*`.
-5. **Test** en `components/<nivel>/<Componente>.test.ts` si tiene lógica de render (qué se pinta según las
+5. **Test** en `components/<nivel>/<tipo>/<Componente>.test.ts` si tiene lógica de render (qué se pinta según las
    props, atributos ARIA, URLs). Usa `render()` de `src/testing/render.ts` y `stringsFor()`. Si es
    puramente visual, no lleva test.
 6. **Úsalo** desde el layout o el organismo que corresponda. Si necesita datos de la config o de las
@@ -32,7 +32,7 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
    layout se los pasa.
 
 Los componentes se exportan solos: `@velezanthony/design/components/*` apunta a `src/components/*`, así que
-un consumidor puede importar `@velezanthony/design/components/atoms/Tag.astro` sin tocar
+un consumidor puede importar `@velezanthony/design/components/atoms/display/Tag.astro` sin tocar
 `package.json`.
 
 ## Una opción de configuración
