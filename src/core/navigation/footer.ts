@@ -1,4 +1,4 @@
-import { isFooterPage, type FooterLink } from '../config/footer';
+import { isFooterPage, type FooterLink, type FooterPage } from '../config/footer';
 import type { ResolvedConfig } from '../config/resolve';
 import type { Label } from '../config/schema';
 import { DocsError, formatPath } from '../errors';
@@ -32,6 +32,20 @@ export interface FooterView {
 /** Lo que el footer necesita de la config. */
 export type FooterSource = Pick<ResolvedConfig, 'footer' | 'social'>;
 
+/** Destino de un enlace del footer a una página en el idioma de `ctx`; `undefined` si no tiene (política `omit`). */
+function footerPageHref(link: FooterPage, ctx: NavContext): string | undefined {
+  const slug = toSidebarSlug(link.slug);
+  return flatten(buildSidebarFor(ctx, (candidate) => candidate === slug))[0]?.href;
+}
+
+/** Los destinos de los enlaces del footer que son páginas del sitio (los https quedan fuera). */
+export function footerPageHrefs(
+  links: readonly FooterLink[] | undefined,
+  ctx: NavContext,
+): string[] {
+  return (links ?? []).filter(isFooterPage).flatMap((link) => footerPageHref(link, ctx) ?? []);
+}
+
 /**
  * Footer de una página en el idioma de `ctx`. Un enlace a una página sin destino en este idioma
  * (no existe y la política es `omit`) se quita en vez de dejar un enlace roto.
@@ -45,9 +59,8 @@ export function buildFooter(source: FooterSource, ctx: NavContext, strings: UiSt
   const custom = (footer?.links ?? []).flatMap((link): FooterEntry[] => {
     const text = label(link.label);
     if (!isFooterPage(link)) return [{ label: text, href: link.href, external: true }];
-    const slug = toSidebarSlug(link.slug);
-    const leaf = flatten(buildSidebarFor(ctx, (candidate) => candidate === slug))[0];
-    return leaf ? [{ label: text, href: leaf.href, external: false }] : [];
+    const href = footerPageHref(link, ctx);
+    return href === undefined ? [] : [{ label: text, href, external: false }];
   });
 
   const repo = social?.github?.replace(/\/+$/, '');
