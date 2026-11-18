@@ -6,13 +6,16 @@ import CertaintyTag from '../atoms/CertaintyTag.astro';
 import SeverityTag from '../atoms/SeverityTag.astro';
 import { FIX_LABELS as L, KIND_LABELS } from '../labels';
 import CodeSpans from '../molecules/CodeSpans.astro';
+import CopyPromptButton from '../molecules/CopyPromptButton.astro';
 import InspectorSection from '../molecules/InspectorSection.astro';
 
 interface Props {
   fixes: InspectorModel['fixes'];
+  /** El prompt de cada problema, en el mismo orden que `fixes`; sin él no hay botón «Copiar prompt». */
+  prompts?: string[];
 }
 
-const { fixes } = Astro.props;
+const { fixes, prompts = [] } = Astro.props;
 /* El borde izquierdo repite la gravedad: el color solo no basta, ya va también en palabras. */
 const edge = {
   error: 'border-l-danger',
@@ -29,7 +32,7 @@ const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
     </p>
   ) : (
     <ul class="flex flex-col gap-4">
-      {fixes.map(({ issue, certainty, limit, verify, related }) => (
+      {fixes.map(({ issue, certainty, limit, verify, related }, index) => (
         <li
           data-fix-block={issue.kind}
           class:list={[
@@ -41,6 +44,11 @@ const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
             <SeverityTag severity={issue.severity} />
             <span class="font-semibold text-ink">{KIND_LABELS[issue.kind]}</span>
             <CertaintyTag certainty={certainty} />
+            {prompts[index] && (
+              <span class="ml-auto">
+                <CopyPromptButton prompt={prompts[index]} />
+              </span>
+            )}
             <p class="basis-full text-ink">{issue.message}</p>
           </div>
           <div class="flex flex-col gap-2 text-sm">

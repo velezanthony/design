@@ -34,6 +34,16 @@ interface HaveInput {
 /** Las columnas, en el orden en que se pintan. */
 export const HAVE_COLUMNS: readonly HaveColumn[] = Object.values(HaveColumn);
 
+/** Lo que falta, dicho tras «sin»: la frase de cada columna de «Qué tiene» (la del recuento y la del informe). */
+export const LACKS_PHRASES: Record<HaveColumn, string> = {
+  desc: 'descripción propia',
+  schema: 'schema propio',
+  og: 'imagen OG propia',
+  h1: 'un H1 único',
+  i18n: 'todas las traducciones',
+  index: 'indexación',
+};
+
 /** Lo que cuenta como «lo tiene»: lo propio y lo que cumple. Lo heredado no: es justo lo que se busca. */
 const GOOD: readonly HaveState[] = ['own', 'ok'];
 
@@ -70,7 +80,10 @@ function translatedOf(entry: SeoPage, locales: readonly Locale[]): HaveCell {
 }
 
 /** La celda de cada columna para UNA entrada; la página junta las de sus idiomas con `worstCell`. */
-const CELLS: Record<HaveColumn, (entry: SeoPage, locales: readonly Locale[]) => HaveCell> = {
+export const HAVE_CELLS: Record<
+  HaveColumn,
+  (entry: SeoPage, locales: readonly Locale[]) => HaveCell
+> = {
   [HaveColumn.DESCRIPTION]: (entry) => fromSource(entry.meta.descriptionSource),
   [HaveColumn.SCHEMA]: schemaOf,
   [HaveColumn.OG_IMAGE]: (entry) => fromSource(entry.meta.ogImageSource),
@@ -96,7 +109,7 @@ function rowOf(slug: string, entries: SeoPage[], input: HaveInput): HaveRow {
   const cells = Object.fromEntries(
     HAVE_COLUMNS.map((column) => [
       column,
-      worstCell(entries.map((entry) => CELLS[column](entry, locales))),
+      worstCell(entries.map((entry) => HAVE_CELLS[column](entry, locales))),
     ]),
   ) as Record<HaveColumn, HaveCell>;
   return {
@@ -133,6 +146,9 @@ export function haveCounts(
     ]),
   ) as Record<HaveColumn, { good: number; total: number }>;
 }
+
+/** Si una celda cuenta como «lo tiene» (propio o cumple); lo heredado no. */
+export const isGood = (cell: HaveCell): boolean => GOOD.includes(cell.state);
 
 /** Las páginas a las que les falta lo propio de esa columna; sin columna, todas. */
 export function lacking(rows: HaveRow[], column: HaveColumn | undefined): HaveRow[] {

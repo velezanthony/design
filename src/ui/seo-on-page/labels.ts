@@ -2,11 +2,20 @@ import type { LengthClass } from '../../core/seo-on-page/pages/inspector/compare
 import type { HeadingProblem } from '../../core/seo-on-page/queries/heading-counts';
 import type { Certainty } from '../../core/seo-on-page/certainty';
 import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
-import type { HaveCell, HaveState } from '../../core/seo-on-page/pages/listing/have';
+import {
+  LACKS_PHRASES,
+  type HaveCell,
+  type HaveState,
+} from '../../core/seo-on-page/pages/listing/have';
 import type { HreflangState, MatrixState } from '../../core/seo-on-page/pages/listing/matrix';
 import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
 import type { LocaleTone, PageTag } from '../../core/seo-on-page/pages/listing/rows';
-import type { HaveColumn, SeoView } from '../../core/seo-on-page/queries/url-filters';
+import type {
+  HaveColumn,
+  SeoFilters,
+  SeoView,
+  ViewState,
+} from '../../core/seo-on-page/queries/url-filters';
 import type {
   DescriptionSource,
   IssueKind,
@@ -330,16 +339,6 @@ export const FILTER_LABELS = {
 
 const pagesOf = (count: number) => `${count} ${count === 1 ? 'página' : 'páginas'}`;
 
-/** Lo que falta, dicho tras «sin»: la frase de cada columna de «Qué tiene». */
-const LACKS_PHRASES: Record<HaveColumn, string> = {
-  desc: 'descripción propia',
-  schema: 'schema propio',
-  og: 'imagen OG propia',
-  h1: 'un H1 único',
-  i18n: 'todas las traducciones',
-  index: 'indexación',
-};
-
 /** El recuento sobre la tabla: cuenta filas de la vista y dice qué son (páginas o entradas). */
 export function headCount(table: ListingTable, total: number): string {
   switch (table.view) {
@@ -657,4 +656,59 @@ export const FILE_LABELS: Record<
     describe: () => 'Índice del buscador. No existe en desarrollo; se crea al hacer `astro build`.',
     tag: 'build',
   },
+};
+
+/**
+ * Lo que dicen los filtros de la tabla, en una frase para el informe: «errores + avisos · idioma es ·
+ * sin descripción propia». Sin ninguno, todas las páginas. Es lo que el informe del «filtro actual»
+ * llama su alcance.
+ */
+export function reportFilterText(filters: SeoFilters, view: ViewState): string {
+  const parts = [
+    filters.severities.length > 0 && filters.severities.length < 3
+      ? filters.severities.map((severity) => SEVERITY_PLURALS[severity].toLowerCase()).join(' + ')
+      : '',
+    filters.kinds.length > 0
+      ? `tipo ${filters.kinds.map((kind) => KIND_LABELS[kind]).join(', ')}`
+      : '',
+    filters.locales.length > 0 ? `idioma ${filters.locales.join(', ')}` : '',
+    filters.text.trim() !== '' ? `búsqueda «${filters.text.trim()}»` : '',
+    view.lacks ? `sin ${LACKS_PHRASES[view.lacks]}` : '',
+  ].filter((part) => part !== '');
+  return parts.length > 0 ? parts.join(' · ') : 'todas las páginas';
+}
+
+/** «Copiar para la IA»: el botón, el diálogo y el botón «Copiar prompt» de cada problema. */
+export const REPORT_LABELS = {
+  open: 'Copiar para la IA',
+  title: 'Copiar para la IA',
+  lede: 'Markdown con qué arreglar, dónde, por qué, cómo comprobarlo y con qué certeza.',
+  scope: 'Alcance',
+  options: {
+    page: 'Esta página',
+    filter: 'Filtro actual',
+    site: 'Todo el sitio',
+    locale: 'Un idioma',
+  },
+  /** La línea bajo cada alcance. */
+  subs: {
+    page: (slug: string, locales: readonly string[]) =>
+      `${slugLabel(slug)} · ${locales.join(' y ')}`,
+    filter: (text: string, pages: number) => `${text} · ${pagesOf(pages)}`,
+    site: (pages: number, locales: readonly string[]) =>
+      `${pagesOf(pages)} · ${locales.join(' y ')}`,
+    locale: 'Todo el sitio en',
+  },
+  localeSelect: 'Idioma del informe',
+  json: 'Añadir bloque JSON (para scripts y agentes)',
+  preview: 'Vista previa del informe',
+  copy: 'Copiar',
+  copied: 'Copiado',
+  failed: 'No se pudo copiar: selecciona el texto',
+  close: 'Cerrar',
+  prompt: 'Copiar prompt',
+  promptCopied: 'Copiado',
+  promptFailed: 'No se pudo copiar',
+  /** El enlace del recuento de «Qué tiene» cuando se filtra por lo que falta. */
+  openLacks: 'copiarlas para la IA',
 };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
-import { haveCellText, headCount } from './labels';
+import { EMPTY_FILTERS } from '../../core/seo-on-page/queries/url-filters';
+import { haveCellText, headCount, reportFilterText } from './labels';
 
 const matrix = (complete: number): ListingTable => ({
   view: 'matrix',
@@ -63,5 +64,36 @@ describe('haveCellText', () => {
     expect(haveCellText('desc', { state: 'site' })).toBe('del sitio');
     expect(haveCellText('og', { state: 'missing' })).toBe('falta');
     expect(haveCellText('index', { state: 'no' })).toBe('noindex');
+  });
+});
+
+describe('reportFilterText', () => {
+  const text = (filters: Partial<typeof EMPTY_FILTERS>, view = { view: 'page' } as const) =>
+    reportFilterText({ ...EMPTY_FILTERS, ...filters }, view);
+
+  it('sin filtros son todas las páginas', () => {
+    expect(text({})).toBe('todas las páginas');
+  });
+
+  it('las gravedades se dicen en plural, unidas con «+»', () => {
+    expect(text({ severities: ['error', 'warning'] })).toBe('errores + avisos');
+  });
+
+  it('las tres gravedades son pedir todo: no se mencionan', () => {
+    expect(text({ severities: ['error', 'warning', 'info'] })).toBe('todas las páginas');
+  });
+
+  it('los tipos se nombran como el panel los llama', () => {
+    expect(text({ kinds: ['duplicate-title', 'no-h1'] })).toBe('tipo Título duplicado, Sin H1');
+  });
+
+  it('el idioma y la búsqueda se dicen, y la búsqueda sin espacios sobrantes', () => {
+    expect(text({ locales: ['es'], text: '  api ' })).toBe('idioma es · búsqueda «api»');
+  });
+
+  it('lo que falta en «Qué tiene» va al final', () => {
+    expect(text({ severities: ['info'] }, { view: 'have', lacks: 'desc' } as never)).toBe(
+      'informativos · sin descripción propia',
+    );
   });
 });

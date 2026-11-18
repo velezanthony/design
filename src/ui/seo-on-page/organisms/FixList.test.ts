@@ -62,4 +62,26 @@ describe('FixList', () => {
     expect(text(doc.querySelector('[data-empty]'))).toBe('Nada que arreglar en este idioma.');
     expect(doc.querySelector('[data-fix-block]')).toBeNull();
   });
+
+  it('cada problema con prompt lleva su botón «Copiar prompt» con ese texto', async () => {
+    const doc = await render(FixList, {
+      fixes: [block(), block({ issue: { ...block().issue, kind: 'no-h1' } })],
+      prompts: ['Prompt uno', 'Prompt dos'],
+    });
+    const buttons = [...doc.querySelectorAll('[data-fix-block] [data-copy-prompt]')];
+    expect(buttons.map((b) => b.getAttribute('data-copy-prompt'))).toEqual([
+      'Prompt uno',
+      'Prompt dos',
+    ]);
+  });
+
+  it('sin prompts no hay botones', async () => {
+    const doc = await render(FixList, { fixes: [block()] });
+    expect(doc.querySelector('[data-copy-prompt]')).toBeNull();
+  });
+
+  it('un problema sin prompt (la lista es más corta) no lleva botón', async () => {
+    const doc = await render(FixList, { fixes: [block(), block()], prompts: ['solo uno'] });
+    expect(doc.querySelectorAll('[data-copy-prompt]')).toHaveLength(1);
+  });
 });

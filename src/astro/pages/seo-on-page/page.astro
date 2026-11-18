@@ -13,10 +13,13 @@ import SchemasList from '../../../ui/seo-on-page/organisms/SchemasList.astro';
 import Translations from '../../../ui/seo-on-page/organisms/Translations.astro';
 import { slugLabel } from '../../../ui/seo-on-page/labels';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
+import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
+import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
 import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
 import { assetHref, devHrefs } from '../../views/seo-on-page/hrefs';
+import { fixPrompts, inspectorReport } from '../../views/seo-on-page/report';
 import { inspectorHeadings, panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
@@ -27,8 +30,9 @@ const docs = await loadDocData();
 /* El enlace de edición, como el de las páginas de docs: `editUrl` de la config más la ruta del archivo
    respecto a la raíz del repo, que solo conoce el loader. */
 const editPath = docs.find((doc) => doc.slug === slug && doc.locale === locale)?.editPath;
+const tree = await loadSeoTree(siteConfig);
 const model = inspectorModel({
-  tree: await loadSeoTree(siteConfig),
+  tree,
   slug,
   locale,
   links: hrefs,
@@ -37,6 +41,18 @@ const model = inspectorModel({
   edit: siteConfig.editUrl && editPath ? { url: siteConfig.editUrl, path: editPath } : undefined,
 });
 if (!model) Astro.response.status = 404;
+/* Los informes y los prompts se generan aquí, una vez: el navegador solo elige entre ellos. */
+const entry = tree.pages.find((page) => page.slug === slug && page.locale === locale);
+const report = model && inspectorReport(tree, slug, siteConfig);
+const prompts =
+  model && entry
+    ? fixPrompts(
+        tree,
+        siteConfig,
+        entry,
+        model.fixes.map((fix) => fix.issue),
+      )
+    : [];
 const title = model ? `${slugLabel(slug)} · ${locale}` : 'Página no encontrada';
 const view = panelView({
   cfg: siteConfig,
@@ -61,12 +77,15 @@ const view = panelView({
   <PanelIntro title={model ? slugLabel(slug) : title} strings={view.strings} />
   {model ? (
     <div class="flex flex-col gap-10">
-      <InspectorHeader header={model.header} links={model.links} />
-      <FixList fixes={model.fixes} />
+      <InspectorHeader header={model.header} links={model.links}>
+        <ReportButton slot="actions" scope="page" />
+      </InspectorHeader>
+      <FixList fixes={model.fixes} prompts={prompts} />
       <PublishedFacts published={model.published} previews={model.previews} />
       {model.translations && <Translations translations={model.translations} />}
       <SchemasList schemas={model.schemas} />
       <HeadingsOutline headings={model.headings} />
+      {report && <ReportDialog {...report} />}
     </div>
   ) : (
     <p class="text-ink">

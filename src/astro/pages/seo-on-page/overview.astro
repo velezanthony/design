@@ -14,15 +14,19 @@ import SchemasCard from '../../../ui/seo-on-page/organisms/SchemasCard.astro';
 import SiteFilesCard from '../../../ui/seo-on-page/organisms/SiteFilesCard.astro';
 import SoonCard from '../../../ui/seo-on-page/organisms/SoonCard.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
+import ReportButton from '../../../ui/seo-on-page/molecules/ReportButton.astro';
+import ReportDialog from '../../../ui/seo-on-page/organisms/ReportDialog.astro';
 import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
 import { loadDocData, loadSeoTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
+import { overviewReport } from '../../views/seo-on-page/report';
 import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const model = overviewModel(await loadSeoTree(siteConfig), {
+const tree = await loadSeoTree(siteConfig);
+const model = overviewModel(tree, {
   locales: siteConfig.locales,
   defaultLocale: siteConfig.defaultLocale,
   links: hrefs,
@@ -35,6 +39,7 @@ const view = panelView({
   screen: 'overview',
   title: 'Resumen',
 });
+const report = overviewReport(tree, siteConfig);
 const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteConfig.locales);
 ---
 
@@ -43,7 +48,9 @@ const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteC
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
-  <PanelIntro title="Resumen" lede={lede} strings={view.strings} />
+  <PanelIntro title="Resumen" lede={lede} strings={view.strings}>
+    <ReportButton slot="actions" scope="site" />
+  </PanelIntro>
   <div class="flex flex-col gap-4">
     <OverviewKpis kpis={model.kpis} />
     <div class="grid gap-4 lg:grid-cols-2">
@@ -56,4 +63,5 @@ const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteC
       <SoonCard />
     </div>
   </div>
+  <ReportDialog {...report} />
 </DocsLayout>

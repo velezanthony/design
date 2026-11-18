@@ -68,15 +68,18 @@ const everywhere = header.presentIn.length === header.total;
         )}
       </div>
     </div>
-    <p class="flex flex-wrap gap-x-5 gap-y-1">
-      <Link href={links.live} external class="cursor-pointer">
-        {L.live} ↗
-      </Link>
-      {links.edit && (
-        <Link href={links.edit} external class="cursor-pointer" data-edit>
-          {L.edit} ↗
+    <div data-inspector-actions class="flex flex-col items-start gap-3 sm:items-end">
+      <slot name="actions" />
+      <p class="flex flex-wrap gap-x-5 gap-y-1">
+        <Link href={links.live} external class="cursor-pointer">
+          {L.live} ↗
         </Link>
-      )}
-    </p>
+        {links.edit && (
+          <Link href={links.edit} external class="cursor-pointer" data-edit>
+            {L.edit} ↗
+          </Link>
+        )}
+      </p>
+    </div>
   </div>
 </header>

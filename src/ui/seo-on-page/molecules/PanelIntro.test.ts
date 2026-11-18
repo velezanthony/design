@@ -25,4 +25,20 @@ describe('PanelIntro', () => {
     expect(withLede.querySelectorAll('p')).toHaveLength(without + 1);
     expect(text(await intro())).not.toContain('Ordenadas.');
   });
+
+  it('la ranura «actions» pone sus botones junto al título', async () => {
+    const doc = await render(
+      PanelIntro,
+      { title: 'Resumen', strings: stringsFor('es') },
+      { actions: '<button data-x>Acción</button>' },
+    );
+    expect(doc.querySelector('[data-x]')).not.toBeNull();
+    expect(doc.querySelector('h1')!.parentElement!.contains(doc.querySelector('[data-x]'))).toBe(
+      true,
+    );
+  });
+
+  it('sin acciones no pinta una zona vacía', async () => {
+    expect((await intro()).querySelector('[data-intro-actions]')).toBeNull();
+  });
 });

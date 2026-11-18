@@ -18,8 +18,15 @@ const { title, lede, strings } = Astro.props;
   <Admonition kind="note" title="Solo en desarrollo" strings={strings}>
     <p>Lee los mismos datos con los que se genera el sitio y no existe en la build publicada.</p>
   </Admonition>
-  <Heading level={1} size="xl">
-    {title}
-  </Heading>
+  <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+    <Heading level={1} size="xl">
+      {title}
+    </Heading>
+    {Astro.slots.has('actions') && (
+      <div data-intro-actions class="flex flex-wrap items-center gap-3">
+        <slot name="actions" />
+      </div>
+    )}
+  </div>
   {lede && <p class="max-w-measure text-muted">{lede}</p>}
 </div>

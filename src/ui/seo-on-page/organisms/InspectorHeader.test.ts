@@ -63,4 +63,16 @@ describe('InspectorHeader', () => {
     const without = await render(InspectorHeader, { header, links: { ...links, edit: undefined } });
     expect(without.querySelector('[data-edit]')).toBeNull();
   });
+
+  it('la ranura «actions» va junto a los enlaces de la página real y del fichero', async () => {
+    const doc = await render(
+      InspectorHeader,
+      { header, links },
+      { actions: '<button data-x>IA</button>' },
+    );
+    const action = doc.querySelector('[data-x]')!;
+    expect(
+      action.closest('[data-inspector-actions]')!.querySelector('a[data-edit]'),
+    ).not.toBeNull();
+  });
 });
