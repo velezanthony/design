@@ -15,7 +15,7 @@ describe('Tabs', () => {
     const group = doc.querySelector('div.docs-tabs')!;
     const items = [...group.querySelectorAll(':scope > div.docs-tab-panel')];
     expect(items).toHaveLength(2);
-    expect(items.map((p) => text(p.querySelector(':scope > .docs-tab-label')))).toEqual([
+    expect(items.map((item) => text(item.querySelector(':scope > .docs-tab-label')))).toEqual([
       'npm',
       'pnpm',
     ]);

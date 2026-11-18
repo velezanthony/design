@@ -30,7 +30,7 @@ export function kindOptions(tree: SeoTree, selected: readonly IssueKind[]): Kind
   const withIssues = Object.values(IssueKind)
     .filter((kind) => slugsByKind.has(kind))
     // `sort` es estable: en los empates queda el orden del catálogo de tipos.
-    .sort((a, b) => (slugsByKind.get(b)?.size ?? 0) - (slugsByKind.get(a)?.size ?? 0))
+    .sort((left, right) => (slugsByKind.get(right)?.size ?? 0) - (slugsByKind.get(left)?.size ?? 0))
     .map((kind) => ({
       kind,
       count: slugsByKind.get(kind)?.size ?? 0,

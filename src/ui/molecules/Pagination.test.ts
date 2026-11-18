@@ -52,7 +52,9 @@ describe('Pagination', () => {
 
   it('con pocas páginas enseña el número de cada una, como enlaces', async () => {
     const doc = await render(Pagination, props());
-    const numbers = [...doc.querySelectorAll('a[data-page]')].map((a) => a.getAttribute('href'));
+    const numbers = [...doc.querySelectorAll('a[data-page]')].map((anchor) =>
+      anchor.getAttribute('href'),
+    );
     expect(numbers).toEqual(['/t/?page=1', '/t/?page=2', '/t/?page=3']);
   });
 

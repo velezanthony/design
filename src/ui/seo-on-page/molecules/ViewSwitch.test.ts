@@ -13,7 +13,7 @@ describe('ViewSwitch', () => {
   it('son enlaces (funciona sin JavaScript) con el nombre de cada vista', async () => {
     const doc = await render(ViewSwitch, { views });
     const links = [...doc.querySelectorAll('a')];
-    expect(links.map((a) => [text(a), a.getAttribute('href')])).toEqual([
+    expect(links.map((link) => [text(link), link.getAttribute('href')])).toEqual([
       ['Por página', '/t/'],
       ['Por idioma', '/t/?view=locale'],
       ['Matriz de idiomas', '/t/?view=matrix'],
@@ -23,7 +23,9 @@ describe('ViewSwitch', () => {
 
   it('solo la vista actual lleva aria-current', async () => {
     const doc = await render(ViewSwitch, { views });
-    const current = [...doc.querySelectorAll('a[aria-current="true"]')].map((a) => text(a));
+    const current = [...doc.querySelectorAll('a[aria-current="true"]')].map((anchor) =>
+      text(anchor),
+    );
     expect(current).toEqual(['Por página']);
   });
 

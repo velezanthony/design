@@ -157,7 +157,7 @@ function rowOf(slug: string, entries: SeoPage[], input: RowsInput): PageRow {
     locales: details,
     issues: [...grouped]
       .map(([kind, seen]) => ({ kind, severity: seen.issue.severity, ...seen }))
-      .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]),
+      .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity]),
     severity: worst(entries.flatMap((entry) => entry.issues.map((issue) => issue.severity))),
   };
 }
@@ -174,5 +174,5 @@ export function pageRows(entries: readonly SeoPage[], input: RowsInput): PageRow
   }
   return [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))
-    .sort((a, b) => rank(a) - rank(b));
+    .sort((left, right) => rank(left) - rank(right));
 }

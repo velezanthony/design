@@ -60,8 +60,8 @@ export function writeConsent(storage: Storage | undefined, choice: Consent): boo
 export function domainsOf(hostname: string): string[] {
   const labels = hostname.split('.');
   const domains: string[] = [];
-  for (let i = 0; i < labels.length - 1; i++) {
-    const domain = labels.slice(i).join('.');
+  for (let index = 0; index < labels.length - 1; index++) {
+    const domain = labels.slice(index).join('.');
     domains.push(domain, `.${domain}`);
   }
   return domains;

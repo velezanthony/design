@@ -52,7 +52,8 @@ function nonJsonPaths(value: unknown, path: (string | number)[] = []): (string |
     return [path];
   }
   if (typeof value === 'number') return Number.isFinite(value) ? [] : [path];
-  if (Array.isArray(value)) return value.flatMap((item, i) => nonJsonPaths(item, [...path, i]));
+  if (Array.isArray(value))
+    return value.flatMap((item, index) => nonJsonPaths(item, [...path, index]));
   if (value !== null && typeof value === 'object') {
     return Object.entries(value).flatMap(([key, item]) => nonJsonPaths(item, [...path, key]));
   }
@@ -359,8 +360,8 @@ function validateNavShape(
 }
 
 /** Dos carpetas se solapan si son la misma o una cuelga de la otra (`users` y `users/guide`). */
-function overlaps(a: string, b: string): boolean {
-  return a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+function overlaps(left: string, right: string): boolean {
+  return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
 }
 
 const HTTPS = 'Debe ser una URL https (https://…).';

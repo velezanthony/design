@@ -30,7 +30,7 @@ core/
 │   ├── locale.ts          Idiomas, sufijos de archivo, idioma de una URL
 │   ├── availability.ts    pageUrl (LA función de URLs) y qué idiomas tiene cada página
 │   ├── translation-policy.ts  MissingTranslation, políticas por grupo, rutas de reserva
-│   └── ui-strings.ts      Catálogo de textos de interfaz en/es, t() e interpolación
+│   └── ui-strings.ts      Catálogo de textos de interfaz en/es, translate() e interpolación
 ├── links/
 │   ├── rewrite.ts         Enlaces .md relativos → URLs del sitio, con referencias para validar
 │   ├── anchors.ts         Índice de encabezados y validación de #anclas

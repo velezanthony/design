@@ -214,7 +214,7 @@ describe('inspectorModel', () => {
 
     it('cada schema con sus @type (una lista o uno), su origen y el JSON formateado', () => {
       const { schemas } = run([seoPage({ schemas: [org, person] })])!;
-      expect(schemas.map((s) => [s.types, s.source])).toEqual([
+      expect(schemas.map((schema) => [schema.types, schema.source])).toEqual([
         [['Organization'], 'site'],
         [['Person', 'Thing'], 'page'],
       ]);
@@ -339,7 +339,7 @@ describe('inspectorModel', () => {
 
     it('una columna por idioma configurado, marcando la actual', () => {
       const columns = run([en, es])!.translations!.columns;
-      expect(columns.map((c) => [c.locale, c.current])).toEqual([
+      expect(columns.map((column) => [column.locale, column.current])).toEqual([
         ['en', true],
         ['es', false],
         ['fr', false],

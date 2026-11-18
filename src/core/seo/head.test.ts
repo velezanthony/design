@@ -25,24 +25,24 @@ const pair: Availability = new Map([
 ]);
 const single: Availability = new Map([['install', { en: '/repo/install/' }]]);
 
-function head(m: ResolvedMeta, page: PageData, av: Availability) {
-  return buildHead(m, page, av, site, cfg, url);
+function head(resolvedMeta: ResolvedMeta, page: PageData, av: Availability) {
+  return buildHead(resolvedMeta, page, av, site, cfg, url);
 }
 
 function metaTag(tags: HeadConfig[], key: 'name' | 'property', value: string) {
-  return tags.filter((t) => t.tag === 'meta' && t.attrs[key] === value);
+  return tags.filter((tag) => tag.tag === 'meta' && tag.attrs[key] === value);
 }
 function value(tags: HeadConfig[], key: 'name' | 'property', name: string) {
   return metaTag(tags, key, name)[0]?.attrs.content;
 }
 function links(tags: HeadConfig[], rel: string) {
-  return tags.filter((t) => t.tag === 'link' && t.attrs.rel === rel);
+  return tags.filter((tag) => tag.tag === 'link' && tag.attrs.rel === rel);
 }
 
 describe('buildHead: página normal', () => {
   it('<title> con sufijo y og:title / twitter:title sin él', () => {
     const tags = head(meta(), enPage, single);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install | Design');
+    expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Install | Design');
     expect(value(tags, 'property', 'og:title')).toBe('Install');
     expect(value(tags, 'name', 'twitter:title')).toBe('Install');
   });
@@ -60,7 +60,7 @@ describe('buildHead: página normal', () => {
     expect(value(tags, 'property', 'og:type')).toBe('article');
     expect(value(tags, 'property', 'og:site_name')).toBe('Design');
     expect(value(tags, 'property', 'og:locale')).toBe('es');
-    expect(tags.find((t) => t.attrs.name === 'description')?.attrs.content).toBe('Desc');
+    expect(tags.find((tag) => tag.attrs.name === 'description')?.attrs.content).toBe('Desc');
     expect(value(tags, 'name', 'twitter:description')).toBe('Desc');
   });
 
@@ -80,25 +80,27 @@ describe('buildHead: página normal', () => {
 describe('buildHead: sin sufijo', () => {
   it('<title> es solo el título si no hay sufijo', () => {
     const tags = head(meta({ titleSuffix: undefined }), enPage, single);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Install');
+    expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Install');
   });
 });
 
 describe('buildHead: traducciones', () => {
   it('hreflang de cada idioma real (incluida ella misma) más x-default', () => {
     const alternates = links(head(meta(), esPage, pair), 'alternate');
-    expect(alternates.map((t) => [t.attrs.hreflang, t.attrs.href])).toEqual([
-      ['en', 'https://x.dev/repo/install/'],
-      ['es', 'https://x.dev/repo/es/install/'],
-      ['x-default', 'https://x.dev/repo/install/'],
-    ]);
+    expect(alternates.map((alternate) => [alternate.attrs.hreflang, alternate.attrs.href])).toEqual(
+      [
+        ['en', 'https://x.dev/repo/install/'],
+        ['es', 'https://x.dev/repo/es/install/'],
+        ['x-default', 'https://x.dev/repo/install/'],
+      ],
+    );
   });
 
   it('og:locale:alternate solo de las traducciones reales', () => {
     const tags = head(meta(), enPage, pair);
-    expect(metaTag(tags, 'property', 'og:locale:alternate').map((t) => t.attrs.content)).toEqual([
-      'es',
-    ]);
+    expect(
+      metaTag(tags, 'property', 'og:locale:alternate').map((tag) => tag.attrs.content),
+    ).toEqual(['es']);
   });
 
   it('una sola página: sin hreflang ni og:locale:alternate', () => {
@@ -149,7 +151,7 @@ describe('buildHead: imagen', () => {
   it('sin imagen no hay og:image* ni twitter:image* y la tarjeta es summary', () => {
     const tags = head(meta(), enPage, single);
     expect(
-      tags.some((t) => /og:image|twitter:image/.test(t.attrs.property ?? t.attrs.name ?? '')),
+      tags.some((tag) => /og:image|twitter:image/.test(tag.attrs.property ?? tag.attrs.name ?? '')),
     ).toBe(false);
     expect(value(tags, 'name', 'twitter:card')).toBe('summary');
   });
@@ -177,7 +179,7 @@ describe('buildHead: noindex, reserva y 404', () => {
     };
     const tags = head(meta(), fallback, new Map([['changelog', { en: '/repo/changelog/' }]]));
     expect(value(tags, 'name', 'robots')).toBe('noindex');
-    expect(links(tags, 'canonical').map((t) => t.attrs.href)).toEqual([
+    expect(links(tags, 'canonical').map((link) => link.attrs.href)).toEqual([
       'https://x.dev/repo/changelog/',
     ]);
     expect(links(tags, 'alternate')).toEqual([]);
@@ -210,7 +212,7 @@ describe('buildHead + resolveMeta', () => {
       'es',
     );
     const tags = head(resolved, esPage, pair);
-    expect(tags.find((t) => t.tag === 'title')?.content).toBe('Instalar Design | Design');
+    expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Instalar Design | Design');
     expect(value(tags, 'property', 'og:description')).toBe('Documentación');
   });
 });
@@ -262,7 +264,7 @@ describe('buildHead: favicon', () => {
 
 describe('buildHead: JSON-LD', () => {
   function scripts(tags: HeadConfig[]) {
-    return tags.filter((t) => t.tag === 'script');
+    return tags.filter((tag) => tag.tag === 'script');
   }
 
   it('sin schemas no hay ningún <script>: la librería no inyecta nada por defecto', () => {
@@ -276,8 +278,8 @@ describe('buildHead: JSON-LD', () => {
     ];
     const found = scripts(head(meta({ schemas }), enPage, single));
     expect(found).toHaveLength(2);
-    expect(found.every((t) => t.attrs.type === 'application/ld+json')).toBe(true);
-    expect(found.map((t) => JSON.parse(t.content ?? ''))).toEqual(schemas);
+    expect(found.every((tag) => tag.attrs.type === 'application/ld+json')).toBe(true);
+    expect(found.map((tag) => JSON.parse(tag.content ?? ''))).toEqual(schemas);
   });
 
   it('un valor hostil no puede cerrar el <script>', () => {

@@ -28,7 +28,7 @@ function issue(severity: IssueSeverity, kind: IssueKind = IssueKind.NO_H1): Issu
 function tree(): SeoTree {
   return {
     pages: [
-      ...Array.from({ length: 30 }, (_, index) =>
+      ...Array.from({ length: 30 }, (_item, index) =>
         seoPage({
           slug: `p${String(index).padStart(2, '0')}`,
           issues: [issue(IssueSeverity.ERROR)],
@@ -176,7 +176,7 @@ describe('listingModel', () => {
     });
 
     it('pagina páginas, no entradas: 12 páginas en 2 idiomas con 10 por fila son 2 páginas', () => {
-      const many = Array.from({ length: 12 }, (_, index) =>
+      const many = Array.from({ length: 12 }, (_item, index) =>
         ['en', 'es'].map((locale) =>
           seoPage({
             slug: `p${index}`,
@@ -201,7 +201,7 @@ describe('listingModel', () => {
   describe('aviso común', () => {
     function everywhere(kind: IssueKind, count: number): SeoTree {
       return {
-        pages: Array.from({ length: count }, (_, index) =>
+        pages: Array.from({ length: count }, (_item, index) =>
           seoPage({ slug: `p${index}`, issues: [issue(IssueSeverity.WARNING, kind)] }),
         ),
       };
@@ -241,7 +241,9 @@ describe('listingModel', () => {
         ),
       };
       const model = common(tree);
-      expect(model.common.issues.map((c) => c.kind)).toEqual([IssueKind.DUPLICATE_TITLE]);
+      expect(model.common.issues.map((commonIssue) => commonIssue.kind)).toEqual([
+        IssueKind.DUPLICATE_TITLE,
+      ]);
       expect(rowsOf(model).flatMap((row) => row.issues)).toEqual([]);
     });
 

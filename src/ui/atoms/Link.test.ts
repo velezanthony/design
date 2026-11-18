@@ -21,41 +21,41 @@ describe('Link', () => {
   });
 
   it('trata http(s) como externo: rel, target e icono', async () => {
-    const a = await link({ href: 'https://example.com' });
-    expect(a.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(a.getAttribute('target')).toBe('_blank');
-    expect(a.querySelector('svg')).not.toBeNull();
+    const anchor = await link({ href: 'https://example.com' });
+    expect(anchor.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(anchor.getAttribute('target')).toBe('_blank');
+    expect(anchor.querySelector('svg')).not.toBeNull();
   });
 
   it('no marca como externo un enlace interno', async () => {
-    const a = await link({});
-    expect(a.hasAttribute('rel')).toBe(false);
-    expect(a.hasAttribute('target')).toBe(false);
-    expect(a.querySelector('svg')).toBeNull();
+    const anchor = await link({});
+    expect(anchor.hasAttribute('rel')).toBe(false);
+    expect(anchor.hasAttribute('target')).toBe(false);
+    expect(anchor.querySelector('svg')).toBeNull();
   });
 
   it('permite forzar el tratamiento externo y propaga aria-label y class', async () => {
-    const a = await link({
+    const anchor = await link({
       href: 'mailto:a@b.c',
       external: true,
       'aria-label': 'Correo',
       class: 'x',
     });
-    expect(a.getAttribute('target')).toBe('_blank');
-    expect(a.getAttribute('aria-label')).toBe('Correo');
-    expect(a.classList.contains('x')).toBe(true);
+    expect(anchor.getAttribute('target')).toBe('_blank');
+    expect(anchor.getAttribute('aria-label')).toBe('Correo');
+    expect(anchor.classList.contains('x')).toBe(true);
   });
 
   it('la variante action lleva flecha y no el icono externo', async () => {
-    const a = await link({ href: 'https://example.com', variant: 'action' });
-    expect(a.querySelectorAll('svg')).toHaveLength(1);
+    const anchor = await link({ href: 'https://example.com', variant: 'action' });
+    expect(anchor.querySelectorAll('svg')).toHaveLength(1);
   });
 
   it('propaga rel, aria-current y data-* sin perder el rel de un enlace externo', async () => {
-    const a = await link({ rel: 'next', 'aria-current': 'page', 'data-page': '' });
-    expect(a.getAttribute('rel')).toBe('next');
-    expect(a.getAttribute('aria-current')).toBe('page');
-    expect(a.hasAttribute('data-page')).toBe(true);
+    const anchor = await link({ rel: 'next', 'aria-current': 'page', 'data-page': '' });
+    expect(anchor.getAttribute('rel')).toBe('next');
+    expect(anchor.getAttribute('aria-current')).toBe('page');
+    expect(anchor.hasAttribute('data-page')).toBe(true);
     const external = await link({ href: 'https://example.com', rel: 'author' });
     expect(external.getAttribute('rel')).toBe('author noopener noreferrer');
   });

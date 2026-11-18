@@ -4,7 +4,7 @@ import Link from '../../atoms/Link.astro';
 import Tag from '../../atoms/Tag.astro';
 import LocaleBadge from '../atoms/LocaleBadge.astro';
 import {
-  COMPARE_LABELS as L,
+  COMPARE_LABELS as labels,
   DESCRIPTION_SOURCE_LABELS,
   KIND_LABELS,
   SEVERITY_TONES,
@@ -25,11 +25,11 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
 <InspectorSection section="translations">
   <div class="overflow-x-auto">
     <table class="w-full border-collapse text-left text-sm" data-compare>
-      <caption class="sr-only">{L.caption}</caption>
+      <caption class="sr-only">{labels.caption}</caption>
       <thead>
         <tr>
           <th scope="col" class={`${cell} label text-muted`}>
-            {L.field}
+            {labels.field}
           </th>
           {columns.map((column) => (
             <th scope="col" class={cell} data-col={column.locale}>
@@ -47,21 +47,21 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
       <tbody>
         <tr data-row="title">
           <th scope="row" class={`${cell} label text-muted`}>
-            {L.title}
+            {labels.title}
           </th>
           {columns.map((column) => (
             <td class={`${cell} text-ink`}>
               {column.state === 'present'
                 ? column.title
                 : column.state === 'missing'
-                  ? L.missing(column.policy, column.declared)
-                  : L.unknown}
+                  ? labels.missing(column.policy, column.declared)
+                  : labels.unknown}
             </td>
           ))}
         </tr>
         <tr data-row="titleLength">
           <th scope="row" class={`${cell} label text-muted`}>
-            {L.length}
+            {labels.length}
           </th>
           {columns.map((column) => (
             <td
@@ -80,29 +80,29 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
                   {column.differs.titleLength && (
                     <span class="font-sans">
                       {' '}
-                      {L.differs} {L.lengthNotes[column.titleClass]}
+                      {labels.differs} {labels.lengthNotes[column.titleClass]}
                     </span>
                   )}
                 </>
               ) : (
-                L.none
+                labels.none
               )}
             </td>
           ))}
         </tr>
         <tr data-row="description">
           <th scope="row" class={`${cell} label text-muted`}>
-            {L.description}
+            {labels.description}
           </th>
           {columns.map((column) => (
             <td class={`${cell} text-ink`}>
-              {column.state === 'present' ? (column.description ?? L.none) : L.none}
+              {column.state === 'present' ? (column.description ?? labels.none) : labels.none}
             </td>
           ))}
         </tr>
         <tr data-row="descriptionLength">
           <th scope="row" class={`${cell} label text-muted`}>
-            {L.descriptionLength}
+            {labels.descriptionLength}
           </th>
           {columns.map((column) => (
             <td
@@ -117,23 +117,23 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
             >
               {column.state === 'present' ? (
                 <>
-                  {column.descriptionLength ?? L.none}
+                  {column.descriptionLength ?? labels.none}
                   {column.differs.descriptionLength && (
                     <span class="font-sans">
                       {' '}
-                      {L.differs} {L.lengthNotes[column.descriptionClass]}
+                      {labels.differs} {labels.lengthNotes[column.descriptionClass]}
                     </span>
                   )}
                 </>
               ) : (
-                L.none
+                labels.none
               )}
             </td>
           ))}
         </tr>
         <tr data-row="descriptionSource">
           <th scope="row" class={`${cell} label text-muted`}>
-            {L.descriptionSource}
+            {labels.descriptionSource}
           </th>
           {columns.map((column) => (
             <td
@@ -150,23 +150,23 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
               {column.state === 'present' ? (
                 <>
                   {DESCRIPTION_SOURCE_LABELS[column.descriptionSource]}
-                  {column.differs.descriptionSource && <span> · {L.differs}</span>}
+                  {column.differs.descriptionSource && <span> · {labels.differs}</span>}
                 </>
               ) : (
-                L.none
+                labels.none
               )}
             </td>
           ))}
         </tr>
         <tr data-row="issues">
           <th scope="row" class={`${cell} label text-muted`}>
-            {L.issues}
+            {labels.issues}
           </th>
           {columns.map((column) => (
             <td class={cell}>
               {column.state === 'present' ? (
                 column.issues.length === 0 ? (
-                  <span class="text-muted">{L.noIssues}</span>
+                  <span class="text-muted">{labels.noIssues}</span>
                 ) : (
                   <ul class="flex flex-col items-start gap-1">
                     {column.issues.map((issue) => (
@@ -179,7 +179,7 @@ const cell = 'border-b border-rule px-3 py-2 align-top';
                   </ul>
                 )
               ) : (
-                L.none
+                labels.none
               )}
             </td>
           ))}

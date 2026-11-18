@@ -82,11 +82,13 @@ function findTarget(
 function codeSpans(line: string): [number, number][] {
   const spans: [number, number][] = [];
   const runs = [...line.matchAll(/`+/g)];
-  for (let i = 0; i < runs.length; i++) {
-    const close = runs.findIndex((run, j) => j > i && run[0].length === runs[i][0].length);
+  for (let index = 0; index < runs.length; index++) {
+    const close = runs.findIndex(
+      (run, candidate) => candidate > index && run[0].length === runs[index][0].length,
+    );
     if (close === -1) continue;
-    spans.push([runs[i].index, runs[close].index + runs[close][0].length]);
-    i = close;
+    spans.push([runs[index].index, runs[close].index + runs[close][0].length]);
+    index = close;
   }
   return spans;
 }
@@ -185,12 +187,12 @@ export function rewriteLinks(
 ): { body: string; refs: LinkRef[]; images: BodyImage[]; errors: DocsError[] } {
   const context: Context = { from, index, refs: [], images: [], errors: [] };
   const mask = fenceMask(body);
-  const lines = body.split('\n').map((text, i) => {
-    if (mask[i]) return text;
+  const lines = body.split('\n').map((text, lineIndex) => {
+    if (mask[lineIndex]) return text;
     const spans = codeSpans(text);
     const definition = DEFINITION.exec(text);
     if (definition) {
-      const replaced = rewriteTarget(definition[2], i + 1, context);
+      const replaced = rewriteTarget(definition[2], lineIndex + 1, context);
       return replaced === undefined
         ? text
         : definition[1] + replaced + text.slice(definition[0].length);
@@ -209,14 +211,14 @@ export function rewriteLinks(
         if (bang) {
           context.images.push({
             file: from.sourcePath,
-            line: i + 1,
+            line: lineIndex + 1,
             src: target.startsWith('<') ? target.slice(1, -1) : target,
             alt: label,
           });
           const dotted = dotImageTarget(target);
           return dotted === target ? match : `![${label}](${dotted}${title})`;
         }
-        const replaced = rewriteTarget(target, i + 1, context);
+        const replaced = rewriteTarget(target, lineIndex + 1, context);
         return replaced === undefined ? match : `[${label}](${replaced}${title})`;
       },
     );

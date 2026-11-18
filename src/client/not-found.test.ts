@@ -13,31 +13,31 @@ function doc(extra = '') {
 
 describe('swapNotFound', () => {
   it('sustituye el cuerpo, lang y título por los de la plantilla del idioma', () => {
-    const d = doc();
-    expect(swapNotFound(d, 'es')).toBe(true);
-    expect(d.documentElement.getAttribute('lang')).toBe('es');
-    expect(d.title).toBe('No encontrada');
-    expect(d.body.querySelector('main')!.textContent).toBe('Español');
-    expect(d.body.querySelector('header')).not.toBeNull();
+    const page = doc();
+    expect(swapNotFound(page, 'es')).toBe(true);
+    expect(page.documentElement.getAttribute('lang')).toBe('es');
+    expect(page.title).toBe('No encontrada');
+    expect(page.body.querySelector('main')!.textContent).toBe('Español');
+    expect(page.body.querySelector('header')).not.toBeNull();
   });
 
   it('retira nf-pending para que se vea la página', () => {
-    const d = doc();
-    swapNotFound(d, 'fr');
-    expect(d.documentElement.classList.contains('nf-pending')).toBe(false);
+    const page = doc();
+    swapNotFound(page, 'fr');
+    expect(page.documentElement.classList.contains('nf-pending')).toBe(false);
   });
 
   it('las plantillas no quedan en el cuerpo sustituido', () => {
-    const d = doc();
-    swapNotFound(d, 'es');
-    expect(d.querySelectorAll('template')).toHaveLength(0);
+    const page = doc();
+    swapNotFound(page, 'es');
+    expect(page.querySelectorAll('template')).toHaveLength(0);
   });
 
   it('sin plantilla para ese idioma deja el idioma por defecto y también retira nf-pending', () => {
-    const d = doc();
-    expect(swapNotFound(d, 'de')).toBe(false);
-    expect(d.documentElement.getAttribute('lang')).toBe('en');
-    expect(d.body.querySelector('main')!.textContent).toBe('English');
-    expect(d.documentElement.classList.contains('nf-pending')).toBe(false);
+    const page = doc();
+    expect(swapNotFound(page, 'de')).toBe(false);
+    expect(page.documentElement.getAttribute('lang')).toBe('en');
+    expect(page.body.querySelector('main')!.textContent).toBe('English');
+    expect(page.documentElement.classList.contains('nf-pending')).toBe(false);
   });
 });

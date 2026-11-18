@@ -4,7 +4,7 @@ import Link from '../../atoms/Link.astro';
 import Tag from '../../atoms/Tag.astro';
 import CertaintyTag from '../atoms/CertaintyTag.astro';
 import SeverityTag from '../atoms/SeverityTag.astro';
-import { FIX_LABELS as L, KIND_LABELS } from '../labels';
+import { FIX_LABELS as labels, KIND_LABELS } from '../labels';
 import CodeSpans from '../molecules/CodeSpans.astro';
 import CopyPromptButton from '../molecules/CopyPromptButton.astro';
 import InspectorSection from '../molecules/InspectorSection.astro';
@@ -28,7 +28,7 @@ const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
 <InspectorSection section="issues">
   {fixes.length === 0 ? (
     <p class="text-ink" data-empty>
-      {L.empty}
+      {labels.empty}
     </p>
   ) : (
     <ul class="flex flex-col gap-4">
@@ -54,7 +54,7 @@ const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
           <div class="flex flex-col gap-2 text-sm">
             {issue.fix && (
               <p class={row} data-fix>
-                <span class="label text-muted">{L.fix}</span>
+                <span class="label text-muted">{labels.fix}</span>
                 <span class="text-ink">
                   <CodeSpans text={issue.fix} />
                 </span>
@@ -62,17 +62,17 @@ const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
             )}
             {limit && (
               <p class={row} data-limit>
-                <span class="label text-muted">{L.limit}</span>
+                <span class="label text-muted">{labels.limit}</span>
                 <span class="flex flex-wrap items-baseline gap-2 text-ink">
-                  {L.range(limit)}
-                  <Tag tone="wip" plain title={L.recommendationHint}>
-                    {L.recommendation}
+                  {labels.range(limit)}
+                  <Tag tone="wip" plain title={labels.recommendationHint}>
+                    {labels.recommendation}
                   </Tag>
                 </span>
               </p>
             )}
             <p class={row} data-verify>
-              <span class="label text-muted">{L.verify}</span>
+              <span class="label text-muted">{labels.verify}</span>
               <span class="text-ink">
                 <CodeSpans text={verify} />
               </span>
@@ -80,7 +80,7 @@ const row = 'grid gap-1 sm:grid-cols-[6rem_1fr] sm:gap-4';
           </div>
           {related.length > 0 && (
             <p class="flex flex-wrap items-baseline gap-x-2 text-sm text-muted">
-              {L.with}
+              {labels.with}
               {related.map((other) => (
                 <span>
                   <Link data-related href={other.href} class="cursor-pointer font-mono">

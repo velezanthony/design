@@ -43,7 +43,9 @@ describe('analyzeLinks: enlaces a páginas noindex', () => {
       [facts('a', { links: [to('secret')] }), facts('secret', { noindex: true })],
       new Map(),
     );
-    const [issue] = forPage(issues, 'a').filter((i) => i.kind === 'link-to-noindex');
+    const [issue] = forPage(issues, 'a').filter(
+      (candidate) => candidate.kind === 'link-to-noindex',
+    );
     expect(issue).toMatchObject({
       severity: 'info',
       value: 1,
@@ -61,7 +63,9 @@ describe('analyzeLinks: enlaces a páginas noindex', () => {
       ],
       new Map(),
     );
-    const [issue] = forPage(issues, 'a').filter((i) => i.kind === 'link-to-noindex');
+    const [issue] = forPage(issues, 'a').filter(
+      (candidate) => candidate.kind === 'link-to-noindex',
+    );
     expect(issue).toMatchObject({ value: 2 });
     expect(issue!.message).toBe('El cuerpo enlaza a 2 páginas noindex.');
   });
@@ -115,7 +119,9 @@ describe('analyzeLinks: páginas huérfanas', () => {
       [facts('home'), facts('a', { links: [to('b')] }), facts('b'), facts('lonely')],
       new Map(),
     );
-    const orphans = issues.filter((issue) => issue.kind === 'orphan-page').map((i) => i.slug);
+    const orphans = issues
+      .filter((issue) => issue.kind === 'orphan-page')
+      .map((issue) => issue.slug);
     expect(orphans.sort()).toEqual(['a', 'home', 'lonely']);
     expect(forPage(issues, 'lonely')[0]).toMatchObject({ severity: 'info' });
   });
@@ -127,7 +133,7 @@ describe('analyzeLinks: páginas huérfanas', () => {
 
   it('enlazarse a sí misma no la saca de huérfana', () => {
     const issues = analyzeLinks([facts('a', { links: [to('a')] }), facts('b')], new Map());
-    expect(forPage(issues, 'a').map((i) => i.kind)).toEqual(['orphan-page']);
+    expect(forPage(issues, 'a').map((issue) => issue.kind)).toEqual(['orphan-page']);
   });
 
   it('un enlace de la navegación cuenta como entrante', () => {
@@ -151,8 +157,8 @@ describe('analyzeLinks: páginas huérfanas', () => {
     );
     expect(
       forPage(issues, 'b')
-        .filter((i) => i.locale === 'es')
-        .map((i) => i.kind),
+        .filter((issue) => issue.locale === 'es')
+        .map((issue) => issue.kind),
     ).toEqual(['orphan-page']);
   });
 

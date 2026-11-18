@@ -1,6 +1,6 @@
 import { AstroError } from 'astro/errors';
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
-import { t, type UiKey } from '../../core/i18n/ui-strings';
+import { translate, type UiKey } from '../../core/i18n/ui-strings';
 import { docsPlugin, type MarkdownEnv } from './env';
 
 /** Tipos de directiva `:::tipo` (design-tokens da un color de estado a cada uno). */
@@ -54,8 +54,8 @@ export function admonitionNode({
 }
 
 /** Título por defecto de un tipo en el idioma de la página. */
-export function kindTitle(strings: Parameters<typeof t>[0], key: `admonition.${string}`) {
-  return t(strings, key as UiKey);
+export function kindTitle(strings: Parameters<typeof translate>[0], key: `admonition.${string}`) {
+  return translate(strings, key as UiKey);
 }
 
 /**

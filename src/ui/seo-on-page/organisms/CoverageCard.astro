@@ -13,35 +13,35 @@ interface Props {
 }
 
 const { coverage } = Astro.props;
-const L = CARD_LABELS.coverage;
+const labels = CARD_LABELS.coverage;
 const completeShare = (coverage.complete / coverage.pages) * 100;
 const cell = 'px-2 py-1.5 align-top';
 const edge = 'border-b border-rule';
 const restCount = coverage.complete;
 ---
 
-<OverviewCard id="c-loc" title={L.title} why={L.why}>
+<OverviewCard id="c-loc" title={labels.title} why={labels.why}>
   <div class="grid grid-cols-2 gap-4">
     <p class="flex flex-col" data-count="complete">
       <b class="text-display font-semibold text-ink">{coverage.complete}</b>
-      <span class="text-sm text-muted">{L.complete(coverage.locales.length)}</span>
+      <span class="text-sm text-muted">{labels.complete(coverage.locales.length)}</span>
     </p>
     <p class="flex flex-col" data-count="partial">
       <b class="text-display font-semibold text-ink">{coverage.partial}</b>
-      <span class="text-sm text-muted">{L.partial(coverage.locales.length)}</span>
+      <span class="text-sm text-muted">{labels.partial(coverage.locales.length)}</span>
     </p>
   </div>
   <div
     class="flex h-2 w-full overflow-hidden bg-state-wip"
     role="img"
-    aria-label={L.bar(coverage.complete, coverage.pages)}
+    aria-label={labels.bar(coverage.complete, coverage.pages)}
   >
     <span class="bg-state-live" style={`width:${completeShare}%`}></span>
   </div>
   {coverage.partial > 0 && (
     <div class="overflow-x-auto">
       <table class="w-full border-collapse text-left text-sm" data-incomplete>
-        <caption class="sr-only">{L.caption}</caption>
+        <caption class="sr-only">{labels.caption}</caption>
         <thead>
           <tr class="label text-muted">
             <th scope="col" class:list={[cell, edge]}>
@@ -83,10 +83,10 @@ const restCount = coverage.complete;
           {restCount > 0 && (
             <tr class={edge} data-rest>
               <th scope="row" class:list={[cell, 'font-normal text-muted']}>
-                {L.more(restCount)}
+                {labels.more(restCount)}
               </th>
               <td class={cell} colspan={coverage.locales.length + 1}>
-                <StateMark {...MATRIX_LABELS.states.exists} text={L.allComplete} />
+                <StateMark {...MATRIX_LABELS.states.exists} text={labels.allComplete} />
               </td>
             </tr>
           )}
@@ -96,16 +96,16 @@ const restCount = coverage.complete;
   )}
   {coverage.moreIncomplete > 0 && (
     <p class="text-sm text-muted" data-more-incomplete>
-      {L.moreIncomplete(coverage.moreIncomplete)}
+      {labels.moreIncomplete(coverage.moreIncomplete)}
     </p>
   )}
   <Note data-note>
-    {L.note}
+    {labels.note}
     {coverage.complete > 0 &&
       coverage.reciprocal === coverage.complete &&
-      L.reciprocal(coverage.complete)}
+      labels.reciprocal(coverage.complete)}
   </Note>
   <p class="text-sm">
-    <Link href={coverage.href}>{L.matrix}</Link>
+    <Link href={coverage.href}>{labels.matrix}</Link>
   </p>
 </OverviewCard>

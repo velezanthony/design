@@ -24,11 +24,11 @@ async function dialog() {
 
 describe('ReportDialog', () => {
   it('es un diálogo con título accesible', async () => {
-    const d = await dialog();
-    expect(d.hasAttribute('data-report-dialog')).toBe(true);
-    expect(d.getAttribute('aria-label')).toBe('Copiar para la IA');
+    const detail = await dialog();
+    expect(detail.hasAttribute('data-report-dialog')).toBe(true);
+    expect(detail.getAttribute('aria-label')).toBe('Copiar para la IA');
     // Sin encabezado propio: el JS de la página añadiría un ancla «#» a cada h2 de <main>.
-    expect(d.querySelector('h1, h2, h3')).toBeNull();
+    expect(detail.querySelector('h1, h2, h3')).toBeNull();
   });
 
   it('un radio por alcance, con el inicial marcado', async () => {
@@ -52,13 +52,15 @@ describe('ReportDialog', () => {
   });
 
   it('un texto oculto por alcance, con su tamaño, y el JSON aparte', async () => {
-    const d = await dialog();
-    const md = d.querySelector('[data-report-text="page"]')!;
+    const detail = await dialog();
+    const md = detail.querySelector('[data-report-text="page"]')!;
     expect(md.hasAttribute('hidden')).toBe(true);
     expect(md.getAttribute('data-size-plain')).toBe('2 líneas');
     expect(md.getAttribute('data-size-json')).toBe('5 líneas');
-    expect(d.querySelector('[data-report-json-text="page"]')!.textContent).toBe('```json\n{}\n```');
-    expect(d.querySelector('[data-report-text="locale:en"]')).not.toBeNull();
+    expect(detail.querySelector('[data-report-json-text="page"]')!.textContent).toBe(
+      '```json\n{}\n```',
+    );
+    expect(detail.querySelector('[data-report-text="locale:en"]')).not.toBeNull();
   });
 
   it('el HTML del informe va escapado: un `<` del Markdown no abre una etiqueta ni cierra el textarea', async () => {
@@ -68,33 +70,33 @@ describe('ReportDialog', () => {
   });
 
   it('trae la casilla del JSON, la vista previa, el tamaño y el botón de copiar', async () => {
-    const d = await dialog();
-    expect(d.querySelector('input[type="checkbox"][data-report-json]')).not.toBeNull();
-    expect(d.querySelector('pre[data-report-preview]')!.getAttribute('aria-label')).toBe(
+    const detail = await dialog();
+    expect(detail.querySelector('input[type="checkbox"][data-report-json]')).not.toBeNull();
+    expect(detail.querySelector('pre[data-report-preview]')!.getAttribute('aria-label')).toBe(
       'Vista previa del informe',
     );
-    expect(d.querySelector('[data-report-meta]')).not.toBeNull();
-    expect(text(d.querySelector('[data-report-copy]'))).toBe('Copiar');
-    expect(d.querySelector('[data-report-status]')!.getAttribute('role')).toBe('status');
+    expect(detail.querySelector('[data-report-meta]')).not.toBeNull();
+    expect(text(detail.querySelector('[data-report-copy]'))).toBe('Copiar');
+    expect(detail.querySelector('[data-report-status]')!.getAttribute('role')).toBe('status');
   });
 
   it('los textos de confirmación viajan en el diálogo, y lo clicable lleva puntero', async () => {
-    const d = await dialog();
-    expect(d.getAttribute('data-copied')).toBe('Copiado');
-    expect(d.getAttribute('data-failed')).toBe('No se pudo copiar: selecciona el texto');
-    expect(d.querySelector('[data-report-copy]')!.className).toContain('cursor-pointer');
-    expect(d.querySelector('[data-report-close]')!.getAttribute('aria-label')).toBe('Cerrar');
-    expect(d.querySelector('label')!.className).toContain('cursor-pointer');
+    const detail = await dialog();
+    expect(detail.getAttribute('data-copied')).toBe('Copiado');
+    expect(detail.getAttribute('data-failed')).toBe('No se pudo copiar: selecciona el texto');
+    expect(detail.querySelector('[data-report-copy]')!.className).toContain('cursor-pointer');
+    expect(detail.querySelector('[data-report-close]')!.getAttribute('aria-label')).toBe('Cerrar');
+    expect(detail.querySelector('label')!.className).toContain('cursor-pointer');
   });
 
   it('solo el cuerpo se desplaza: la cabecera y el pie no', async () => {
-    const d = await dialog();
-    const grid = d.firstElementChild!;
+    const detail = await dialog();
+    const grid = detail.firstElementChild!;
     expect(grid.className).toContain('grid-rows-[auto_minmax(0,1fr)_auto]');
     const [head, body, foot] = [...grid.children];
     expect(body!.className).toContain('overflow-auto');
     expect(head!.className).not.toContain('overflow');
     expect(foot!.className).not.toContain('overflow');
-    expect(d.querySelector('pre')!.className).not.toContain('overflow');
+    expect(detail.querySelector('pre')!.className).not.toContain('overflow');
   });
 });

@@ -82,8 +82,8 @@ export function excerptParts(excerpt: string): { text: string; mark: boolean }[]
       .replace(/&amp;/g, '&');
   }
   const parts: { text: string; mark: boolean }[] = [];
-  for (const [i, chunk] of excerpt.split(/<\/?mark>/).entries()) {
-    if (chunk) parts.push({ text: decode(chunk), mark: i % 2 === 1 });
+  for (const [index, chunk] of excerpt.split(/<\/?mark>/).entries()) {
+    if (chunk) parts.push({ text: decode(chunk), mark: index % 2 === 1 });
   }
   return parts;
 }

@@ -57,7 +57,9 @@ describe('NotFoundLayout: un solo idioma (también /<locale>/404/)', () => {
   it('sin otros idiomas no hay plantillas, ni nf-pending, ni script de sustitución', async () => {
     const doc = await renderDocument(NotFoundLayout, props());
     expect(doc.querySelectorAll('template')).toHaveLength(0);
-    const inline = [...doc.querySelectorAll('head script')].map((s) => s.textContent ?? '');
+    const inline = [...doc.querySelectorAll('head script')].map(
+      (script) => script.textContent ?? '',
+    );
     expect(inline.some((code) => code.includes('nf-pending'))).toBe(false);
   });
 
@@ -84,7 +86,7 @@ describe('NotFoundLayout: /404.html con otros idiomas', () => {
   it('una <template data-locale> por idioma con su título y el cuerpo en ese idioma', async () => {
     const doc = await renderDocument(NotFoundLayout, multi);
     const templates = [...doc.querySelectorAll('template[data-locale]')];
-    expect(templates.map((t) => t.getAttribute('data-locale'))).toEqual(['es']);
+    expect(templates.map((element) => element.getAttribute('data-locale'))).toEqual(['es']);
     const template = templates[0] as unknown as {
       content: DocumentFragment;
       getAttribute(n: string): string;
@@ -105,12 +107,12 @@ describe('NotFoundLayout: /404.html con otros idiomas', () => {
 
   it('un script en línea previo al pintado pone html.nf-pending y el CSS oculta <main>', async () => {
     const doc = await renderDocument(NotFoundLayout, multi);
-    const inline = [...doc.querySelectorAll('head script')].find((s) =>
-      s.textContent?.includes('nf-pending'),
+    const inline = [...doc.querySelectorAll('head script')].find((script) =>
+      script.textContent?.includes('nf-pending'),
     );
     expect(inline).toBeDefined();
     expect(inline!.getAttribute('type')).not.toBe('module');
-    const css = [...doc.querySelectorAll('head style')].map((s) => s.textContent).join('');
+    const css = [...doc.querySelectorAll('head style')].map((style) => style.textContent).join('');
     expect(css).toMatch(/nf-pending[^{]*main[^{]*\{[^}]*visibility:\s*hidden/);
   });
 

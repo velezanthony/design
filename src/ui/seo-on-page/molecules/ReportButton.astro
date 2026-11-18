@@ -3,7 +3,7 @@
    no puede abrir el diálogo, y un botón que no hace nada es peor que ninguno. */
 import type { ComponentProps } from 'astro/types';
 import Button from '../../atoms/Button.astro';
-import { REPORT_LABELS as L } from '../labels';
+import { REPORT_LABELS as labels } from '../labels';
 
 interface Props {
   /** Qué alcance abre: `site`, `filter` o `page`. */
@@ -13,7 +13,7 @@ interface Props {
   label?: string;
 }
 
-const { scope, variant = 'primary', label = L.open } = Astro.props;
+const { scope, variant = 'primary', label = labels.open } = Astro.props;
 ---
 
 <Button variant={variant} hidden data-report-open={scope}>

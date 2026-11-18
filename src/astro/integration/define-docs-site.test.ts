@@ -23,7 +23,10 @@ describe('defineDocsSite: valores por defecto', () => {
   it('añade el plugin de Tailwind de Vite', () => {
     const plugins = (config.vite?.plugins ?? []).flat();
     expect(
-      plugins.some((p) => p && 'name' in p && String(p.name).startsWith('@tailwindcss/vite')),
+      plugins.some(
+        (plugin) =>
+          plugin && 'name' in plugin && String(plugin.name).startsWith('@tailwindcss/vite'),
+      ),
     ).toBe(true);
   });
 
@@ -62,10 +65,9 @@ describe('defineDocsSite: reglas de fusión con `astro`', () => {
       base: '/r',
       astro: { integrations: [extraIntegration] },
     });
-    expect(config.integrations?.map((i) => (i as { name: string }).name)).toEqual([
-      INTEGRATION_NAME,
-      'extra',
-    ]);
+    expect(
+      config.integrations?.map((integration) => (integration as { name: string }).name),
+    ).toEqual([INTEGRATION_NAME, 'extra']);
   });
 
   it('añade plugins de Vite DESPUÉS del de Tailwind y fusiona el resto de claves de vite', () => {

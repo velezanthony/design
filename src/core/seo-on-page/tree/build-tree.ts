@@ -22,12 +22,14 @@ import type { Issue, SeoPage, SeoPageFacts, SeoTree } from './types';
 import { pageKey } from './keys';
 
 /** Comparación por unidades de código: no depende del idioma del sistema, así que es determinista. */
-function compare(a: string, b: string) {
-  return a < b ? -1 : a > b ? 1 : 0;
+function compare(left: string, right: string) {
+  return left < right ? -1 : left > right ? 1 : 0;
 }
 
 function sortPages(pages: SeoPageInput[]) {
-  return [...pages].sort((a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale));
+  return [...pages].sort(
+    (left, right) => compare(left.slug, right.slug) || compare(left.locale, right.locale),
+  );
 }
 
 /**
@@ -94,7 +96,7 @@ export function buildSeoTree(input: SeoInput): SeoTree {
     libraryUrls.has(paths[index]!) ? { ...page, replaces: true as const } : page,
   );
   const all = [...library, ...own].sort(
-    (a, b) => compare(a.slug, b.slug) || compare(a.locale, b.locale),
+    (left, right) => compare(left.slug, right.slug) || compare(left.locale, right.locale),
   );
 
   // Los duplicados se buscan entre TODAS: un título repetido entre una página del cliente y una

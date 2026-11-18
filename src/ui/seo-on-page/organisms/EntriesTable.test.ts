@@ -22,7 +22,7 @@ describe('EntriesTable', () => {
   it('una fila por entrada, cada una enlazada a su inspector, con su idioma', async () => {
     const doc = await render(EntriesTable, { rows: [entry('en'), entry('es')] });
     const rows = [...doc.querySelectorAll('tbody tr')];
-    expect(rows.map((r) => r.getAttribute('data-entry'))).toEqual(['guide/en', 'guide/es']);
+    expect(rows.map((row) => row.getAttribute('data-entry'))).toEqual(['guide/en', 'guide/es']);
     expect(rows[1]!.querySelector('th a')!.getAttribute('href')).toBe('/i/?slug=guide&locale=es');
     expect(rows[1]!.querySelector('[data-locale]')!.getAttribute('data-locale')).toBe('es');
   });

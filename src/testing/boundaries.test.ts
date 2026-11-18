@@ -57,7 +57,7 @@ const allowed: [string, string, string][] = [
     CLIENT,
     `import { type Locale } from '../core/i18n/locale';`,
   ],
-  ['ui/ sí importa core/', UI, `import { t } from '../../core/i18n/ui-strings';`],
+  ['ui/ sí importa core/', UI, `import { translate } from '../../core/i18n/ui-strings';`],
   ['ui/ sí importa client/', UI, `import { x } from '../../client/theme';`],
   ['astro/ sí importa astro:content', ASTRO, `import { getCollection } from 'astro:content';`],
   ['astro/ sí importa astro', ASTRO, `import { defineConfig } from 'astro';`],

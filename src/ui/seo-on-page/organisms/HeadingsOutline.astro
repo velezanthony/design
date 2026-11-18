@@ -1,6 +1,6 @@
 ---
 import type { InspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
-import { HEADINGS_LABELS as L } from '../labels';
+import { HEADINGS_LABELS as labels } from '../labels';
 import InspectorSection from '../molecules/InspectorSection.astro';
 
 interface Props {
@@ -15,31 +15,35 @@ const indent = ['ml-0', 'ml-0', 'ml-4', 'ml-8', 'ml-12', 'ml-16', 'ml-20'];
 <InspectorSection section="outline">
   {counts.problems.length === 0 ? (
     <p class="text-state-live" data-headings-status="ok">
-      {L.ok}
+      {labels.ok}
     </p>
   ) : (
     <ul class="flex flex-col gap-1 text-state-wip" data-headings-status="problems">
       {counts.problems.map((problem) => (
-        <li>▲ {L.problem(problem)}</li>
+        <li>▲ {labels.problem(problem)}</li>
       ))}
     </ul>
   )}
-  <ul class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-sm" aria-label={L.counts} data-counts>
+  <ul
+    class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-sm"
+    aria-label={labels.counts}
+    data-counts
+  >
     {counts.levels.map(({ depth, count }) => (
       <li class={count === 0 ? 'text-faint' : 'text-ink'} data-zero={count === 0 ? '' : undefined}>
         H{depth} <strong>{count}</strong>
       </li>
     ))}
     <li class="text-ink">
-      {L.total} <strong>{counts.total}</strong>
+      {labels.total} <strong>{counts.total}</strong>
     </li>
   </ul>
   {outline.length === 0 ? (
     <p class="text-muted" data-outline-empty>
-      {L.empty}
+      {labels.empty}
     </p>
   ) : (
-    <ol data-outline aria-label={L.outline} class="flex flex-col">
+    <ol data-outline aria-label={labels.outline} class="flex flex-col">
       {outline.map((item) => (
         <li
           data-skip={item.skipFrom !== undefined ? '' : undefined}

@@ -32,9 +32,9 @@ describe('Select', () => {
 
   it('pinta las opciones en el orden dado, con su valor y su texto', async () => {
     const doc = await render(Select, props());
-    const rendered = [...doc.querySelectorAll('option')].map((o) => [
-      o.getAttribute('value'),
-      text(o),
+    const rendered = [...doc.querySelectorAll('option')].map((option) => [
+      option.getAttribute('value'),
+      text(option),
     ]);
     expect(rendered).toEqual([
       ['10', 'Diez'],
@@ -45,8 +45,8 @@ describe('Select', () => {
 
   it('marca como seleccionada solo la opción que coincide con value', async () => {
     const doc = await render(Select, props({ value: '25' }));
-    const selected = [...doc.querySelectorAll('option[selected]')].map((o) =>
-      o.getAttribute('value'),
+    const selected = [...doc.querySelectorAll('option[selected]')].map((option) =>
+      option.getAttribute('value'),
     );
     expect(selected).toEqual(['25']);
   });

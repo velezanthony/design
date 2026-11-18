@@ -20,15 +20,15 @@ function inferLanguage(body: string[]): string | undefined {
 
 /** Índice de la línea que cierra el fence abierto en `start`, o `undefined` si no se cierra. */
 function closingIndex(lines: string[], start: number, char: string, length: number) {
-  for (let j = start + 1; j < lines.length; j++) {
-    const close = FENCE.exec(lines[j]);
+  for (let lineIndex = start + 1; lineIndex < lines.length; lineIndex++) {
+    const close = FENCE.exec(lines[lineIndex]);
     if (
       close &&
       close[1][0] === char &&
       close[1].length >= length &&
-      lines[j].trim() === close[1]
+      lines[lineIndex].trim() === close[1]
     ) {
-      return j;
+      return lineIndex;
     }
   }
   return undefined;

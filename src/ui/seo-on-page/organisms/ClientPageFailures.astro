@@ -1,5 +1,5 @@
 ---
-import { CLIENT_FAILURE_LABELS as L } from '../labels';
+import { CLIENT_FAILURE_LABELS as labels } from '../labels';
 import PanelNotice from '../molecules/PanelNotice.astro';
 
 interface Props {
@@ -14,9 +14,9 @@ const { failures } = Astro.props;
 {failures.length > 0 && (
   <PanelNotice
     tone="danger"
-    label={L.region}
-    title={L.title(failures.length)}
-    why={L.why}
+    label={labels.region}
+    title={labels.title(failures.length)}
+    why={labels.why}
     data-client-failures
   >
     {failures.map(({ entrypoint, message }) => (

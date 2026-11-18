@@ -144,7 +144,9 @@ describe('inspectorHeadings', () => {
   });
 
   it('con un solo idioma no hay sección de traducciones', () => {
-    const slugs = inspectorHeadings({ fixes: 0, translations: false }).map((h) => h.slug);
+    const slugs = inspectorHeadings({ fixes: 0, translations: false }).map(
+      (inspectorHeading) => inspectorHeading.slug,
+    );
     expect(slugs).not.toContain('translations');
   });
 });

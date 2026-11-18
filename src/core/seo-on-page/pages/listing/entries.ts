@@ -49,5 +49,5 @@ export function entryRows(entries: readonly SeoPage[], input: EntriesInput): Ent
       issues: ownIssues(entry, common, severities),
       tone: localeTone(entry),
     }))
-    .sort((a, b) => rank(a) - rank(b));
+    .sort((left, right) => rank(left) - rank(right));
 }

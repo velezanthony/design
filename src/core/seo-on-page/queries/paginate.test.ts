@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PAGE_SIZE, PAGE_SIZES, paginate } from './paginate';
 
 function rows(count: number) {
-  return Array.from({ length: count }, (_, index) => index + 1);
+  return Array.from({ length: count }, (_item, index) => index + 1);
 }
 
 describe('paginate', () => {

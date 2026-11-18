@@ -4,7 +4,7 @@ import {
   localeNames,
   mergeUiStrings,
   siteStrings,
-  t,
+  translate,
   uiKeys,
   type UiStrings,
 } from './ui-strings';
@@ -54,21 +54,23 @@ describe('catálogo', () => {
   });
 });
 
-describe('t', () => {
+describe('translate', () => {
   const strings = { ...defaultStrings.en, 'edit.page': 'Edit {title} in {locale}' };
 
   it('devuelve el texto de la clave', () => {
-    expect(t(defaultStrings.en, 'search.placeholder')).toBe(
+    expect(translate(defaultStrings.en, 'search.placeholder')).toBe(
       defaultStrings.en['search.placeholder'],
     );
   });
 
   it('interpola las variables', () => {
-    expect(t(strings, 'edit.page', { title: 'Install', locale: 'es' })).toBe('Edit Install in es');
+    expect(translate(strings, 'edit.page', { title: 'Install', locale: 'es' })).toBe(
+      'Edit Install in es',
+    );
   });
 
   it('una variable no pasada se deja tal cual', () => {
-    expect(t(strings, 'edit.page', { title: 'Install' })).toBe('Edit Install in {locale}');
+    expect(translate(strings, 'edit.page', { title: 'Install' })).toBe('Edit Install in {locale}');
   });
 });
 

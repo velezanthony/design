@@ -19,7 +19,10 @@ function toc(props: Record<string, unknown>) {
 describe('TableOfContents', () => {
   it('lista los encabezados h2 y h3, no h1 ni h4', async () => {
     const doc = await toc({});
-    const links = [...doc.querySelectorAll('nav a')].map((a) => [text(a), a.getAttribute('href')]);
+    const links = [...doc.querySelectorAll('nav a')].map((anchor) => [
+      text(anchor),
+      anchor.getAttribute('href'),
+    ]);
     expect(links).toEqual([
       ['El problema', '#el-problema'],
       ['Un detalle', '#detalle'],
@@ -46,7 +49,8 @@ describe('TableOfContents', () => {
   it('lleva la clase toc y solo enlaces de ancla', async () => {
     const doc = await toc({});
     expect(doc.querySelector('nav')!.classList.contains('toc')).toBe(true);
-    for (const a of doc.querySelectorAll('nav a')) expect(a.getAttribute('href')).toMatch(/^#/);
+    for (const anchor of doc.querySelectorAll('nav a'))
+      expect(anchor.getAttribute('href')).toMatch(/^#/);
   });
 
   it('se pega junto al contenido solo donde hay columna lateral', async () => {

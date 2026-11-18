@@ -17,12 +17,12 @@ function fakeApi(
 ): PagefindApi & { options: ReturnType<typeof vi.fn>; search: ReturnType<typeof vi.fn> } {
   return {
     options: vi.fn(() => Promise.resolve()),
-    search: vi.fn((q: string) =>
+    search: vi.fn((query: string) =>
       Promise.resolve({
-        results: q
-          ? docs.map((d) => ({
+        results: query
+          ? docs.map((doc) => ({
               data: () =>
-                Promise.resolve({ url: d.url, meta: { title: d.title }, excerpt: d.excerpt }),
+                Promise.resolve({ url: doc.url, meta: { title: doc.title }, excerpt: doc.excerpt }),
             }))
           : [],
       }),
@@ -218,11 +218,14 @@ describe('initSearch', () => {
     const slow = new Promise<void>((resolve) => (release = resolve));
     const api: PagefindApi = {
       options: () => Promise.resolve(),
-      search: async (q: string) => {
-        if (q === 'lenta') await slow;
+      search: async (query: string) => {
+        if (query === 'lenta') await slow;
         return {
           results: [
-            { data: () => Promise.resolve({ url: `/${q}/`, meta: { title: q }, excerpt: q }) },
+            {
+              data: () =>
+                Promise.resolve({ url: `/${query}/`, meta: { title: query }, excerpt: query }),
+            },
           ],
         };
       },
@@ -245,7 +248,7 @@ describe('initSearch', () => {
     function links() {
       return [...document.querySelectorAll<HTMLElement>('[data-search-results] a')];
     }
-    links().forEach((a) => (a.focus = vi.fn()));
+    links().forEach((link) => (link.focus = vi.fn()));
     input.dispatchEvent(event('keydown', { key: 'ArrowDown' }));
     expect(links()[0]!.focus).toHaveBeenCalled();
     links()[0]!.dispatchEvent(event('keydown', { key: 'ArrowDown' }));

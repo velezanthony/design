@@ -14,9 +14,9 @@ function block(source: string, opener: RegExp): string {
   if (!match) throw new Error(`bloque no encontrado: ${opener}`);
   const start = match.index + match[0].length;
   let depth = 1;
-  for (let i = start; i < source.length; i++) {
-    if (source[i] === '{') depth++;
-    if (source[i] === '}' && --depth === 0) return source.slice(start, i);
+  for (let index = start; index < source.length; index++) {
+    if (source[index] === '{') depth++;
+    if (source[index] === '}' && --depth === 0) return source.slice(start, index);
   }
   throw new Error(`bloque sin cerrar: ${opener}`);
 }
@@ -24,7 +24,10 @@ function block(source: string, opener: RegExp): string {
 /** `--color-x: #abc;` de un bloque a mapa. */
 function palette(body: string): Record<string, string> {
   return Object.fromEntries(
-    [...body.matchAll(/--color-([\w-]+):\s*(#[0-9a-fA-F]{3,8})\s*;/g)].map((m) => [m[1]!, m[2]!]),
+    [...body.matchAll(/--color-([\w-]+):\s*(#[0-9a-fA-F]{3,8})\s*;/g)].map((match) => [
+      match[1]!,
+      match[2]!,
+    ]),
   );
 }
 
@@ -138,7 +141,7 @@ const pairs: [string, string, number][] = [
 describe.each([
   ['claro', light],
   ['oscuro', palette(darkChosen)],
-])('contraste (%s)', (_, colors) => {
+])('contraste (%s)', (_label, colors) => {
   it.each(pairs)('%s sobre %s ≥ %d:1', (fg, bg, min) => {
     expect(colors[fg], `falta --color-${fg}`).toBeDefined();
     expect(colors[bg], `falta --color-${bg}`).toBeDefined();

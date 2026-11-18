@@ -12,9 +12,9 @@ function switcher(props: Record<string, unknown>) {
 describe('LocaleSwitch', () => {
   it('con gemela enlaza cada idioma con hreflang', async () => {
     const doc = await switcher({ lang: 'en', hrefs });
-    const links = [...doc.querySelectorAll('a')].map((a) => [
-      a.getAttribute('hreflang'),
-      a.getAttribute('href'),
+    const links = [...doc.querySelectorAll('a')].map((anchor) => [
+      anchor.getAttribute('hreflang'),
+      anchor.getAttribute('href'),
     ]);
     expect(links).toEqual([
       ['es', '/es/install/'],
@@ -24,9 +24,9 @@ describe('LocaleSwitch', () => {
 
   it('marca solo el idioma actual con aria-current', async () => {
     const doc = await switcher({ lang: 'en', hrefs });
-    expect([...doc.querySelectorAll('[aria-current]')].map((n) => n.getAttribute('lang'))).toEqual([
-      'en',
-    ]);
+    expect(
+      [...doc.querySelectorAll('[aria-current]')].map((node) => node.getAttribute('lang')),
+    ).toEqual(['en']);
   });
 
   it('sin gemela no hay enlace roto ni a otro idioma', async () => {
@@ -45,10 +45,9 @@ describe('LocaleSwitch', () => {
 
   it('respeta el orden de locales que le da el contenedor', async () => {
     const doc = await switcher({ lang: 'en', hrefs, locales: ['en', 'es'] });
-    expect([...doc.querySelectorAll('a')].map((a) => a.getAttribute('hreflang'))).toEqual([
-      'en',
-      'es',
-    ]);
+    expect([...doc.querySelectorAll('a')].map((anchor) => anchor.getAttribute('hreflang'))).toEqual(
+      ['en', 'es'],
+    );
   });
 
   it('el nombre accesible de la navegación sale de strings', async () => {
@@ -66,7 +65,8 @@ describe('LocaleSwitch', () => {
   /* WCAG 2.5.8: cada enlace de idioma de al menos 24px. */
   it('da a cada idioma un objetivo de 24px', async () => {
     const doc = await switcher({ lang: 'en', hrefs });
-    for (const a of doc.querySelectorAll('a')) expect(a.classList.contains('min-h-6')).toBe(true);
+    for (const anchor of doc.querySelectorAll('a'))
+      expect(anchor.classList.contains('min-h-6')).toBe(true);
   });
 
   /* Ruta de reserva (7.6): el idioma actual no tiene página propia → marcado y sin enlace; el

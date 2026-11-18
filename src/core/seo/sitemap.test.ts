@@ -19,7 +19,7 @@ import {
 const site = new URL('https://x.dev');
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
 function locs(xml: string) {
-  return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+  return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]);
 }
 
 describe('buildSitemap', () => {
@@ -60,7 +60,9 @@ describe('buildSitemap', () => {
 
   it('exactamente 50 000 URLs pasan y 50 001 lanzan con el número y el límite', () => {
     function many(count: number): Availability {
-      return new Map(Array.from({ length: count }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]));
+      return new Map(
+        Array.from({ length: count }, (_item, index) => [`p${index}`, { en: `/repo/p${index}/` }]),
+      );
     }
     expect(locs(buildSitemap(many(50_000), site))).toHaveLength(50_000);
     function attempt() {
@@ -225,7 +227,7 @@ describe('buildSitemap con páginas del cliente', () => {
 
   it('cuentan para el límite de URLs', () => {
     const many: Availability = new Map(
-      Array.from({ length: 50_000 }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]),
+      Array.from({ length: 50_000 }, (_item, index) => [`p${index}`, { en: `/repo/p${index}/` }]),
     );
     expect(() => buildSitemap(many, site, new Set(), [cv])).toThrow(/50001/);
   });

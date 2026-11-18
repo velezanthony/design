@@ -79,26 +79,26 @@ function convertLines(lines: string[], options: TransformOptions, offset: number
     return convertLines(body, options, bodyOffset);
   }
 
-  for (let i = 0; i < lines.length; i++) {
+  for (let index = 0; index < lines.length; index++) {
     const block =
-      convertFence(lines, i, offset) ??
-      convertAdmonition(lines, i, offset, recurse) ??
-      convertTabs(lines, i, offset, recurse) ??
-      convertApiDirective(lines, i, offset, options.resolveApi);
+      convertFence(lines, index, offset) ??
+      convertAdmonition(lines, index, offset, recurse) ??
+      convertTabs(lines, index, offset, recurse) ??
+      convertApiDirective(lines, index, offset, options.resolveApi);
     if (block) {
       output.push(...block.output);
       log.push(...block.log);
-      i = block.next - 1;
+      index = block.next - 1;
       continue;
     }
 
-    const lineNumber = offset + i + 1;
-    const wrapper = stepHtmlWrapper(lines[i], wrapperDepth, lineNumber);
+    const lineNumber = offset + index + 1;
+    const wrapper = stepHtmlWrapper(lines[index], wrapperDepth, lineNumber);
     wrapperDepth = wrapper.depth;
     log.push(...wrapper.log);
     if (wrapper.skip) continue;
 
-    const inline = convertInline(lines[i], options, lineNumber);
+    const inline = convertInline(lines[index], options, lineNumber);
     output.push(...inline.output);
     log.push(...inline.log);
   }

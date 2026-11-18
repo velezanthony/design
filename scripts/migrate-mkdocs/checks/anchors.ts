@@ -33,7 +33,7 @@ function headingIds(markdown: string): Set<string> {
     const text = heading[1]
       .replace(/`/g, '')
       .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/[*_]{1,3}(?=\S)/g, (m) => (m.startsWith('_') ? m : ''));
+      .replace(/[*_]{1,3}(?=\S)/g, (match) => (match.startsWith('_') ? match : ''));
     const base = text
       .toLowerCase()
       .replace(/[^\p{L}\p{N}\p{M} _-]/gu, '')

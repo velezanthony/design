@@ -93,7 +93,7 @@ async function load(config: DocsUserConfig, made = makeCtx()) {
 async function failure(config: DocsUserConfig, made = makeCtx()) {
   const error = await load(config, made).then(
     () => undefined,
-    (e: unknown) => e,
+    (caught: unknown) => caught,
   );
   expect(error).toBeInstanceOf(AstroError);
   return `${(error as AstroError).message}\n${(error as AstroError).hint ?? ''}`;

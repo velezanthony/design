@@ -1,6 +1,6 @@
 ---
 import type { NavEntry } from '../../core/navigation/nav-entries';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import Icon from '../atoms/Icon.astro';
 
 /* Items de la cabecera. Los pinta en fila (`bar`, en la cabecera) o apilados (`menu`, dentro del
@@ -22,7 +22,7 @@ const linkClass = bar
 ---
 
 {entries.length > 0 && (
-  <nav aria-label={t(strings, 'nav.label')} class={className}>
+  <nav aria-label={translate(strings, 'nav.label')} class={className}>
     <ul class:list={['flex', bar ? 'items-center gap-x-5' : 'flex-col']}>
       {entries.map((entry) => {
         const iconOnly = bar && entry.icon !== undefined;
@@ -39,7 +39,7 @@ const linkClass = bar
               {entry.external && (
                 <span data-external-marker class="inline-flex">
                   {!entry.icon && <Icon name="external" size={12} class="opacity-60" />}
-                  <span class="sr-only">{t(strings, 'nav.external')}</span>
+                  <span class="sr-only">{translate(strings, 'nav.external')}</span>
                 </span>
               )}
             </a>

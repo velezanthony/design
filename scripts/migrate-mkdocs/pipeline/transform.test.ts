@@ -150,7 +150,7 @@ describe('icons and attributes', () => {
       md('- :material-key:{ .lg .middle } **Typed**', '[:octicons-arrow-right-24: Go](a.md)'),
     );
     expect(out.markdown).toBe(md('- **Typed**', '[Go](a.md)'));
-    expect(out.log.filter((e) => e.kind === 'icon')).toHaveLength(2);
+    expect(out.log.filter((entry) => entry.kind === 'icon')).toHaveLength(2);
   });
 
   it('quita los atributos de clase `{ .md-button }` tras un enlace', () => {
@@ -167,7 +167,7 @@ describe('icons and attributes', () => {
   it('quita `{ #id }` de los encabezados y lo registra', () => {
     const out = run(md('## Title { #custom-id }', '### Other {#x}'));
     expect(out.markdown).toBe(md('## Title', '### Other'));
-    expect(out.log.filter((e) => e.kind === 'heading-id')).toHaveLength(2);
+    expect(out.log.filter((entry) => entry.kind === 'heading-id')).toHaveLength(2);
   });
 });
 

@@ -39,15 +39,15 @@ function setup() {
     el.dispatchEvent(event);
     return event;
   }
-  function key(k: string, extra: Record<string, unknown> = {}) {
-    return fire(stage, 'keydown', { key: k, ...extra });
+  function key(name: string, extra: Record<string, unknown> = {}) {
+    return fire(stage, 'keydown', { key: name, ...extra });
   }
   /** `translate(x px, y px) scale(s)` del lienzo, ya como números. */
   function view() {
-    const m = /translate\((-?[\d.]+)px, (-?[\d.]+)px\) scale\(([\d.]+)\)/.exec(
+    const match = /translate\((-?[\d.]+)px, (-?[\d.]+)px\) scale\(([\d.]+)\)/.exec(
       canvas.style.transform,
     )!;
-    return { x: Number(m[1]), y: Number(m[2]), scale: Number(m[3]) };
+    return { x: Number(match[1]), y: Number(match[2]), scale: Number(match[3]) };
   }
   function button(label: string) {
     return dialog.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!;
@@ -104,19 +104,22 @@ describe('createDiagramViewer', () => {
 
   describe('cerrar', () => {
     it.each([
-      ['el botón de cerrar', (c: ReturnType<typeof setup>) => c.fire(c.button('Close'), 'click')],
+      [
+        'el botón de cerrar',
+        (viewer: ReturnType<typeof setup>) => viewer.fire(viewer.button('Close'), 'click'),
+      ],
       [
         'Escape (el navegador lanza cancel y cierra)',
-        (c: ReturnType<typeof setup>) => {
-          c.fire(c.dialog, 'cancel');
-          c.dialog.close();
+        (viewer: ReturnType<typeof setup>) => {
+          viewer.fire(viewer.dialog, 'cancel');
+          viewer.dialog.close();
         },
       ],
       [
         'un clic en el fondo, fuera del diagrama',
-        (c: ReturnType<typeof setup>) => c.fire(c.stage, 'click'),
+        (viewer: ReturnType<typeof setup>) => viewer.fire(viewer.stage, 'click'),
       ],
-    ])('con %s cierra, devuelve el foco al botón y vacía el visor', (_, act) => {
+    ])('con %s cierra, devuelve el foco al botón y vacía el visor', (_label, act) => {
       const ctx = setup();
       ctx.viewer.open(ctx.svg, 'x', ctx.trigger);
       act(ctx);
@@ -148,10 +151,10 @@ describe('createDiagramViewer', () => {
       fire(button('Zoom in'), 'click');
       expect(view().scale).toBeGreaterThan(start.scale);
       /* El centro del visor sigue apuntando al mismo punto del diagrama. */
-      function contentAtCentre(v: typeof start) {
+      function contentAtCentre(snapshot: typeof start) {
         return {
-          x: (400 - v.x) / v.scale,
-          y: (300 - v.y) / v.scale,
+          x: (400 - snapshot.x) / snapshot.scale,
+          y: (300 - snapshot.y) / snapshot.scale,
         };
       }
       expect(contentAtCentre(view()).x).toBeCloseTo(contentAtCentre(start).x);
@@ -180,9 +183,9 @@ describe('createDiagramViewer', () => {
     it('el zoom nunca sale de 0.25× a 8×', () => {
       const { viewer, view, key, svg, trigger } = setup();
       viewer.open(svg, 'x', trigger);
-      for (let i = 0; i < 40; i++) key('+');
+      for (let index = 0; index < 40; index++) key('+');
       expect(view().scale).toBe(8);
-      for (let i = 0; i < 80; i++) key('-');
+      for (let index = 0; index < 80; index++) key('-');
       expect(view().scale).toBe(0.25);
     });
 

@@ -172,10 +172,10 @@ export function createDiagramViewer(doc: Document, labels: DiagramViewerLabels):
   let moved = false;
 
   function pair() {
-    const [a, b] = [...pointers.values()];
+    const [first, second] = [...pointers.values()];
     return {
-      distance: Math.hypot(b!.x - a!.x, b!.y - a!.y),
-      mid: { x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 },
+      distance: Math.hypot(second!.x - first!.x, second!.y - first!.y),
+      mid: { x: (first!.x + second!.x) / 2, y: (first!.y + second!.y) / 2 },
     };
   }
 

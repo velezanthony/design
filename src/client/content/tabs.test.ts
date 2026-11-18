@@ -48,9 +48,9 @@ describe('initTabs', () => {
       return Object.assign(new document.defaultView!.Event(type, { cancelable: true }), props);
     }
     function press(index: number, key: string) {
-      const e = event('keydown', { key });
-      tabs()[index]!.dispatchEvent(e);
-      return e;
+      const keydown = event('keydown', { key });
+      tabs()[index]!.dispatchEvent(keydown);
+      return keydown;
     }
     return { document, root, tabs, panels, event, press };
   }
@@ -60,46 +60,54 @@ describe('initTabs', () => {
     const list = root.querySelector('[role="tablist"]')!;
     expect(list.classList.contains('docs-tablist')).toBe(true);
     expect(root.firstElementChild).toBe(list);
-    expect(tabs().map((t) => t.textContent)).toEqual(['npm', 'pnpm', 'yarn']);
+    expect(tabs().map((tab) => tab.textContent)).toEqual(['npm', 'pnpm', 'yarn']);
     expect(panels()).toHaveLength(3);
-    tabs().forEach((tab, i) => {
+    tabs().forEach((tab, index) => {
       expect(tab.classList.contains('docs-tab')).toBe(true);
       expect(tab.getAttribute('type')).toBe('button');
-      expect(tab.getAttribute('aria-controls')).toBe(panels()[i]!.id);
-      expect(panels()[i]!.getAttribute('aria-labelledby')).toBe(tab.id);
+      expect(tab.getAttribute('aria-controls')).toBe(panels()[index]!.id);
+      expect(panels()[index]!.getAttribute('aria-labelledby')).toBe(tab.id);
     });
   });
 
   it('marca el grupo como mejorado y muestra solo la primera pestaña', () => {
     const { root, tabs, panels } = setup();
     expect(root.hasAttribute('data-enhanced')).toBe(true);
-    expect(tabs().map((t) => t.getAttribute('aria-selected'))).toEqual(['true', 'false', 'false']);
-    expect(tabs().map((t) => t.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
-    expect(panels().map((p) => p.hasAttribute('hidden'))).toEqual([false, true, true]);
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'true',
+      'false',
+      'false',
+    ]);
+    expect(tabs().map((tab) => tab.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
+    expect(panels().map((panel) => panel.hasAttribute('hidden'))).toEqual([false, true, true]);
   });
 
   it('seleccionar con clic muestra su panel', () => {
     const { tabs, panels, event } = setup();
     tabs()[1]!.dispatchEvent(event('click'));
-    expect(tabs().map((t) => t.getAttribute('aria-selected'))).toEqual(['false', 'true', 'false']);
-    expect(tabs().map((t) => t.getAttribute('tabindex'))).toEqual(['-1', '0', '-1']);
-    expect(panels().map((p) => p.hasAttribute('hidden'))).toEqual([true, false, true]);
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([
+      'false',
+      'true',
+      'false',
+    ]);
+    expect(tabs().map((tab) => tab.getAttribute('tabindex'))).toEqual(['-1', '0', '-1']);
+    expect(panels().map((panel) => panel.hasAttribute('hidden'))).toEqual([true, false, true]);
   });
 
   it('ArrowRight selecciona la siguiente pestaña, enfoca y muestra su panel', () => {
     const { tabs, panels, press } = setup();
-    const focus = tabs().map((t) => (t.focus = vi.fn()));
-    const e = press(0, 'ArrowRight');
+    const focus = tabs().map((tab) => (tab.focus = vi.fn()));
+    const keydown = press(0, 'ArrowRight');
     expect(tabs()[1]!.getAttribute('aria-selected')).toBe('true');
     expect(panels()[1]!.hasAttribute('hidden')).toBe(false);
     expect(panels()[0]!.hasAttribute('hidden')).toBe(true);
     expect(focus[1]).toHaveBeenCalled();
-    expect(e.defaultPrevented).toBe(true);
+    expect(keydown.defaultPrevented).toBe(true);
   });
 
   it('las flechas dan la vuelta y Home/End van a los extremos', () => {
     const { tabs, press } = setup();
-    tabs().forEach((t) => (t.focus = vi.fn()));
+    tabs().forEach((tab) => (tab.focus = vi.fn()));
     press(0, 'ArrowLeft');
     expect(tabs()[2]!.getAttribute('aria-selected')).toBe('true');
     press(2, 'ArrowRight');
@@ -112,9 +120,9 @@ describe('initTabs', () => {
 
   it('una tecla ajena no cambia la selección ni se cancela', () => {
     const { tabs, press } = setup();
-    const e = press(0, 'a');
+    const keydown = press(0, 'a');
     expect(tabs()[0]!.getAttribute('aria-selected')).toBe('true');
-    expect(e.defaultPrevented).toBe(false);
+    expect(keydown.defaultPrevented).toBe(false);
   });
 
   it('los grupos son independientes y sus ids no chocan', () => {
@@ -122,7 +130,7 @@ describe('initTabs', () => {
     const ids = [...document.querySelectorAll('[id]')].map((el) => el.id);
     expect(new Set(ids).size).toBe(ids.length);
     tabs()[1]!.dispatchEvent(event('click'));
-    expect(tabs().map((t) => t.getAttribute('aria-selected'))).toEqual([
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual([
       'false',
       'true',
       'true',
@@ -163,8 +171,8 @@ describe('initTabs', () => {
       if (api) Object.assign(document, { startViewTransition: start });
       initTabs(document, { matches: reduced });
       const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
-      function click(i: number) {
-        return tabs[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+      function click(index: number) {
+        return tabs[index]!.dispatchEvent(new document.defaultView!.Event('click'));
       }
       return { root, tabs, click, start, seen };
     }

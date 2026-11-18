@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '../../core/i18n/locale';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import type { NavEntry } from '../../core/navigation/nav-entries';
 import LocaleSwitch from '../molecules/LocaleSwitch.astro';
 import NavList from '../molecules/NavList.astro';
@@ -38,13 +38,13 @@ const {
 const widths = [
   {
     value: 'reading',
-    label: t(strings, 'layout.reading'),
+    label: translate(strings, 'layout.reading'),
     /* Líneas de texto en una columna estrecha, con margen a los lados. */
     lines: 'M6 6h4M6 8h4M6 10h2.5',
   },
   {
     value: 'full',
-    label: t(strings, 'layout.full'),
+    label: translate(strings, 'layout.full'),
     /* Las mismas líneas de borde a borde. */
     lines: 'M4 6h8M4 8h8M4 10h5',
   },
@@ -56,7 +56,7 @@ const widths = [
   href={`#${mainId}`}
   class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-canvas focus:px-4 focus:py-2 focus:text-ink focus:outline focus:outline-2 focus:outline-accent"
 >
-  {t(strings, 'skipToContent')}
+  {translate(strings, 'skipToContent')}
 </a>
 
 {/* `view-transition-name` hace de la cabecera un contexto de apilamiento: el `z-30` del panel del
@@ -89,7 +89,7 @@ const widths = [
       {layoutToggles && (
         <div
           role="group"
-          aria-label={t(strings, 'layout.width')}
+          aria-label={translate(strings, 'layout.width')}
           class="docs-width-switch mr-2 hidden md:inline-flex"
         >
           {widths.map((width) => (

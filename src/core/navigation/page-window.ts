@@ -15,10 +15,10 @@ const SHOW_ALL_UP_TO = 7;
 export function pageWindow(page: number, pages: number): PageWindowItem[] {
   const numbers =
     pages <= SHOW_ALL_UP_TO
-      ? Array.from({ length: Math.max(pages, 0) }, (_, index) => index + 1)
+      ? Array.from({ length: Math.max(pages, 0) }, (_item, index) => index + 1)
       : [...new Set([1, page - 1, page, page + 1, pages])]
           .filter((number) => number >= 1 && number <= pages)
-          .sort((a, b) => a - b);
+          .sort((left, right) => left - right);
   return numbers.flatMap((number, index): PageWindowItem[] =>
     index > 0 && number - numbers[index - 1]! > 1 ? [GAP, number] : [number],
   );

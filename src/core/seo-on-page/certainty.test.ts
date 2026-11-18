@@ -26,7 +26,7 @@ describe('certaintyOf', () => {
       'description-too-short',
       'og-image-size',
     ]);
-    for (const kind of Object.values(IssueKind).filter((k) => !heuristics.has(k))) {
+    for (const kind of Object.values(IssueKind).filter((issueKind) => !heuristics.has(issueKind))) {
       expect(certaintyOf(kind)).toBe('rule');
     }
   });

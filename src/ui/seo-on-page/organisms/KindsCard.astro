@@ -13,30 +13,30 @@ interface Props {
 }
 
 const { kinds } = Astro.props;
-const L = CARD_LABELS.kinds;
+const labels = CARD_LABELS.kinds;
 const cell = 'px-2 py-1.5 align-top';
 const edge = 'border-b border-rule';
 ---
 
-<OverviewCard id="c-kinds" title={L.title} why={L.why}>
+<OverviewCard id="c-kinds" title={labels.title} why={labels.why}>
   {kinds.rows.length === 0 ? (
     <p class="text-muted" data-empty>
-      {L.empty}
+      {labels.empty}
     </p>
   ) : (
     <div class="overflow-x-auto">
       <table class="w-full border-collapse text-left text-sm" data-kinds>
-        <caption class="sr-only">{L.caption}</caption>
+        <caption class="sr-only">{labels.caption}</caption>
         <thead>
           <tr class="label text-muted">
             <th scope="col" class:list={[cell, edge]}>
-              {L.type}
+              {labels.type}
             </th>
             <th scope="col" class:list={[cell, edge]}>
-              {L.severity}
+              {labels.severity}
             </th>
             <th scope="col" class:list={[cell, edge, 'text-right']}>
-              {L.pages}
+              {labels.pages}
             </th>
           </tr>
         </thead>
@@ -59,10 +59,10 @@ const edge = 'border-b border-rule';
       </table>
     </div>
   )}
-  <Note>{L.note}</Note>
+  <Note>{labels.note}</Note>
   {kinds.clean.length > 0 && (
     <details data-clean class="text-sm">
-      <summary class="cursor-pointer text-muted">{L.clean(kinds.clean.length)}</summary>
+      <summary class="cursor-pointer text-muted">{labels.clean(kinds.clean.length)}</summary>
       <ul class="mt-2 flex flex-col gap-1 pl-4">
         {kinds.clean.map((kind) => (
           <li data-kind={kind} class="text-muted">

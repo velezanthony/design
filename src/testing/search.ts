@@ -34,6 +34,6 @@ export async function searchBuilt(
   await pagefind.init();
   const { results } = await pagefind.search(term);
   return (
-    await Promise.all(results.map((r: { data(): Promise<{ url: string }> }) => r.data()))
-  ).map((d) => d.url);
+    await Promise.all(results.map((result: { data(): Promise<{ url: string }> }) => result.data()))
+  ).map((detail) => detail.url);
 }

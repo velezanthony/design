@@ -314,7 +314,7 @@ export function inspectorModel({
     },
     // `sort` es estable: a igual gravedad, se conserva el orden del análisis.
     fixes: [...page.issues]
-      .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])
+      .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity])
       .map((issue): FixBlock => {
         const related = issue.related ?? [];
         return {

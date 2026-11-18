@@ -182,15 +182,18 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
     });
   }
 
-  function compare(a: Sortable, b: Sortable) {
-    if (a.order !== undefined && b.order !== undefined && a.order !== b.order)
-      return a.order - b.order;
-    if ((a.order === undefined) !== (b.order === undefined)) return a.order === undefined ? 1 : -1;
-    return collator.compare(a.key, b.key);
+  function compare(left: Sortable, right: Sortable) {
+    if (left.order !== undefined && right.order !== undefined && left.order !== right.order)
+      return left.order - right.order;
+    if ((left.order === undefined) !== (right.order === undefined))
+      return left.order === undefined ? 1 : -1;
+    return collator.compare(left.key, right.key);
   }
 
   // Las secciones más profundas primero para colgarlas de su padre ya completo.
-  const paths = [...sections].sort((a, b) => b.split('/').length - a.split('/').length);
+  const paths = [...sections].sort(
+    (left, right) => right.split('/').length - left.split('/').length,
+  );
   for (const path of paths) {
     const found = groupFor(path);
     found.group.items = found.sort.sort(compare).map(({ node }) => node);

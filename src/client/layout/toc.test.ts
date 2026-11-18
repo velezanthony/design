@@ -5,7 +5,7 @@ import { currentHeading, trackSections } from './toc';
 
 /* Posiciones de las secciones mientras se lee, relativas al viewport. */
 function at(...tops: number[]) {
-  return tops.map((top, i) => ({ id: `s${i + 1}`, top }));
+  return tops.map((top, index) => ({ id: `s${index + 1}`, top }));
 }
 
 describe('currentHeading', () => {
@@ -59,15 +59,15 @@ describe('trackSections', () => {
     const host = {
       scrollY: atBottom ? 1000 : 0,
       innerHeight: 500,
-      addEventListener: (_: 'scroll', cb: () => void) => void scrolls.push(cb),
+      addEventListener: (_type: 'scroll', cb: () => void) => void scrolls.push(cb),
       requestAnimationFrame: (cb: () => void) => void frames.push(cb),
     };
     Object.defineProperty(document.documentElement, 'scrollHeight', { value: 1500 });
     trackSections(document.querySelector('nav')!, { doc: document, host });
     function current() {
       return [...document.querySelectorAll('nav a')]
-        .filter((a) => a.getAttribute('aria-current') === 'location')
-        .map((a) => a.getAttribute('href'));
+        .filter((anchor) => anchor.getAttribute('aria-current') === 'location')
+        .map((anchor) => anchor.getAttribute('href'));
     }
     function scroll() {
       for (const cb of scrolls) cb();

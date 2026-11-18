@@ -71,7 +71,7 @@ describe('FixList', () => {
       prompts: ['Prompt uno', 'Prompt dos'],
     });
     const buttons = [...doc.querySelectorAll('[data-fix-block] [data-copy-prompt]')];
-    expect(buttons.map((b) => b.getAttribute('data-copy-prompt'))).toEqual([
+    expect(buttons.map((button) => button.getAttribute('data-copy-prompt'))).toEqual([
       'Prompt uno',
       'Prompt dos',
     ]);

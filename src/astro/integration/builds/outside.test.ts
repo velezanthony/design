@@ -15,7 +15,7 @@ beforeAll(async () => {
 }, 180_000);
 
 function hrefs(html: string) {
-  return [...html.matchAll(/<a [^>]*href="([^"]+)"/g)].map((m) => m[1]);
+  return [...html.matchAll(/<a [^>]*href="([^"]+)"/g)].map((match) => match[1]);
 }
 
 describe('páginas de ../docs', () => {
@@ -59,7 +59,7 @@ describe('enlaces y anclas', () => {
 describe('imágenes', () => {
   it('relativas (`img/x.png` y `../assets/x.png`) se emiten con tamaño y alt, listas para el zoom', async () => {
     const html = await site.read('users/guia/index.html');
-    const images = [...html.matchAll(/<img [^>]*>/g)].map((m) => m[0]);
+    const images = [...html.matchAll(/<img [^>]*>/g)].map((match) => match[0]);
     const sources = images.map((img) => /src="([^"]+)"/.exec(img)?.[1]);
     expect(sources).toHaveLength(2);
     for (const src of sources) expect(src).toMatch(/^\/repo\/_astro\/.+\.(png|webp)$/);

@@ -147,7 +147,7 @@ describe('initLayout', () => {
     const listeners: (() => void)[] = [];
     const rail = {
       matches: false,
-      addEventListener: (_: 'change', fn: () => void) => listeners.push(fn),
+      addEventListener: (_type: 'change', fn: () => void) => listeners.push(fn),
     };
     initLayout({ doc, storage: memory(), rail });
     // En móvil el lateral es el «Menú»: sus enlaces tienen que poder pulsarse.

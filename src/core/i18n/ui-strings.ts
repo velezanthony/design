@@ -193,7 +193,11 @@ export function siteStrings(
 }
 
 /** Texto de una clave con `{variable}` interpoladas; una variable no pasada se deja tal cual. */
-export function t(strings: UiStrings, key: UiKey, vars: Record<string, string> = {}): string {
+export function translate(
+  strings: UiStrings,
+  key: UiKey,
+  vars: Record<string, string> = {},
+): string {
   return strings[key].replace(
     /\{(\w+)\}/g,
     (placeholder, name: string) => vars[name] ?? placeholder,

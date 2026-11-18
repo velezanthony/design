@@ -47,8 +47,8 @@ describe('resolveTitle', () => {
     const error = (() => {
       try {
         resolveTitle('texto', undefined, 'sin-titulo.md');
-      } catch (e) {
-        return e as DocsError;
+      } catch (caught) {
+        return caught as DocsError;
       }
     })();
     expect(error).toBeInstanceOf(DocsError);

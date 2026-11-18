@@ -17,10 +17,9 @@ describe('initCurrentYear', () => {
   it('actualiza todos los elementos marcados', () => {
     const doc = page('<span data-current-year>2020</span><i data-current-year>2021</i>');
     initCurrentYear(doc, new Date('2031-06-15T12:00:00'));
-    expect([...doc.querySelectorAll('[data-current-year]')].map((n) => n.textContent)).toEqual([
-      '2031',
-      '2031',
-    ]);
+    expect(
+      [...doc.querySelectorAll('[data-current-year]')].map((node) => node.textContent),
+    ).toEqual(['2031', '2031']);
   });
 
   it('sin elementos marcados no hace nada', () => {

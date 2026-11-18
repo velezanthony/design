@@ -65,7 +65,7 @@ describe('PagesTable', () => {
     });
     const tr = doc.querySelector('tbody tr')!;
     expect(
-      [...tr.querySelectorAll('[data-locale]')].map((b) => b.getAttribute('data-tone')),
+      [...tr.querySelectorAll('[data-locale]')].map((badge) => badge.getAttribute('data-tone')),
     ).toEqual(['ok', 'missing']);
   });
 
@@ -82,9 +82,11 @@ describe('PagesTable', () => {
     });
     const first = doc.querySelector('tbody tr')!;
     expect(
-      [...first.querySelectorAll('[data-severity]')].map((b) => b.getAttribute('data-severity')),
+      [...first.querySelectorAll('[data-severity]')].map((badge) =>
+        badge.getAttribute('data-severity'),
+      ),
     ).toEqual(['error', 'warning']);
-    expect([...first.querySelectorAll('[data-where]')].map((w) => text(w))).toEqual([
+    expect([...first.querySelectorAll('[data-where]')].map((warning) => text(warning))).toEqual([
       'EN ES',
       'EN ES',
     ]);
@@ -113,8 +115,8 @@ describe('PagesTable', () => {
     const details = doc.querySelector('tbody details')!;
     expect(details.hasAttribute('open')).toBe(false);
     expect(
-      [...details.querySelectorAll('[data-detail-locale]')].map((c) =>
-        c.getAttribute('data-detail-locale'),
+      [...details.querySelectorAll('[data-detail-locale]')].map((cell) =>
+        cell.getAttribute('data-detail-locale'),
       ),
     ).toEqual(['en', 'es']);
     expect(details.querySelector('summary')!.classList.contains('cursor-pointer')).toBe(true);

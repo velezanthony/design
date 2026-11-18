@@ -54,7 +54,7 @@ describe('validateAnchors', () => {
 
   it('agrega todos los fallos', () => {
     const refs = [ref({ anchor: 'a' }), ref({ anchor: 'usage' }), ref({ anchor: 'b', line: 9 })];
-    expect(validateAnchors(refs, headings).map((e) => e.line)).toEqual([4, 9]);
+    expect(validateAnchors(refs, headings).map((problem) => problem.line)).toEqual([4, 9]);
   });
 });
 

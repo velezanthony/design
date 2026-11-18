@@ -1,6 +1,6 @@
 ---
 import Link from '../atoms/Link.astro';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 
 interface Props {
   /** Contenedor de Tag Manager que se carga si la persona acepta. Lo lee el script. */
@@ -25,21 +25,22 @@ const button =
 <section
   data-consent-banner
   data-gtm-id={gtmId}
-  aria-label={t(strings, 'consent.label')}
+  aria-label={translate(strings, 'consent.label')}
   hidden
   class="consent-banner border-t border-rule bg-canvas"
 >
   <div class="mx-auto flex max-w-(--container-page) flex-wrap items-center justify-between gap-x-8 gap-y-4 px-6 py-4 lg:px-10">
     <p class="max-w-measure text-sm text-muted">
-      {t(strings, 'consent.message')} <Link href={privacyUrl}>{t(strings, 'consent.privacy')}</Link>
+      {translate(strings, 'consent.message')}{' '}
+      <Link href={privacyUrl}>{translate(strings, 'consent.privacy')}</Link>
     </p>
 
     <div class="flex gap-3">
       <button type="button" data-consent-accept class={button}>
-        {t(strings, 'consent.accept')}
+        {translate(strings, 'consent.accept')}
       </button>
       <button type="button" data-consent-reject class={button}>
-        {t(strings, 'consent.reject')}
+        {translate(strings, 'consent.reject')}
       </button>
     </div>
   </div>

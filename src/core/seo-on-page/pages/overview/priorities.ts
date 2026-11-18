@@ -76,11 +76,11 @@ export function fixPriorities(tree: SeoTree, { locales, inspector }: Input): Fix
     return total > 1 && group.slugs.size === total;
   }
   return [...groups]
-    .sort(([kindA, a], [kindB, b]) => {
+    .sort(([kindA, left], [kindB, right]) => {
       return (
-        SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
-        Number(bulk(a)) - Number(bulk(b)) ||
-        b.slugs.size - a.slugs.size ||
+        SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity] ||
+        Number(bulk(left)) - Number(bulk(right)) ||
+        right.slugs.size - left.slugs.size ||
         CATALOG.indexOf(kindA) - CATALOG.indexOf(kindB)
       );
     })

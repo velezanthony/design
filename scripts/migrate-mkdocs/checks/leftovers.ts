@@ -112,7 +112,7 @@ export function checkOutput(files: ReadonlyMap<string, string>): {
 } {
   const leftovers: Leftover[] = [];
   const stubs: SnippetStub[] = [];
-  for (const [file, markdown] of [...files].sort(([a], [b]) => a.localeCompare(b))) {
+  for (const [file, markdown] of [...files].sort(([left], [right]) => left.localeCompare(right))) {
     const stub = findSnippetStub(file, markdown);
     if (stub) {
       stubs.push(stub);

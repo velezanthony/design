@@ -96,7 +96,7 @@ describe('`favicon` en la config', () => {
     try {
       resolveConfig({ name: 'X', favicon } as never);
     } catch (error) {
-      if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+      if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
       throw error;
     }
     return [];

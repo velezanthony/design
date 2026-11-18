@@ -29,9 +29,13 @@ describe('Translations', () => {
       translations: { columns: [present('en'), present('es')] },
     });
     expect(
-      [...doc.querySelectorAll('thead [data-col]')].map((c) => c.getAttribute('data-col')),
+      [...doc.querySelectorAll('thead [data-col]')].map((column) =>
+        column.getAttribute('data-col'),
+      ),
     ).toEqual(['en', 'es']);
-    expect([...doc.querySelectorAll('tbody tr')].map((r) => r.getAttribute('data-row'))).toEqual([
+    expect(
+      [...doc.querySelectorAll('tbody tr')].map((row) => row.getAttribute('data-row')),
+    ).toEqual([
       'title',
       'titleLength',
       'description',

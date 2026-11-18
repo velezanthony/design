@@ -163,7 +163,8 @@ export const INSPECTOR_HEADER_LABELS = {
   indexable: 'Indexable',
   noindex: 'noindex',
   inAll: (total: number) => `En los ${total} idiomas`,
-  only: (locales: readonly string[]) => `Solo ${locales.map((l) => l.toUpperCase()).join(', ')}`,
+  only: (locales: readonly string[]) =>
+    `Solo ${locales.map((locale) => locale.toUpperCase()).join(', ')}`,
   live: 'Abrir la página real',
   edit: 'Editar el fichero',
 };

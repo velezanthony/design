@@ -24,7 +24,7 @@ describe('isZoomable', () => {
     ['diminuta por su ancho', 'alt="Icono" width="24" height="24"'],
     ['diminuta por su alto', 'alt="Línea" width="800" height="10"'],
     ['con exclusión explícita', 'alt="Logo" data-no-zoom'],
-  ])('descarta una imagen %s', (_, attrs) => {
+  ])('descarta una imagen %s', (_label, attrs) => {
     expect(isZoomable(img(attrs))).toBe(false);
   });
 
@@ -80,9 +80,9 @@ describe('initZoom', () => {
     if (trigger) trigger.focus = vi.fn();
     const Event = document.defaultView!.Event;
     function fire(el: Element, type: string, init: EventInit = { bubbles: true }) {
-      const e = new Event(type, { cancelable: true, ...init });
-      el.dispatchEvent(e);
-      return e;
+      const event = new Event(type, { cancelable: true, ...init });
+      el.dispatchEvent(event);
+      return event;
     }
     function settle() {
       return new Promise((resolve) => setTimeout(resolve));
@@ -140,10 +140,18 @@ describe('initZoom', () => {
   });
 
   describe.each([
-    ['el botón de cerrar', (d: HTMLElement) => d.querySelector('.docs-zoom-close')!, 'click'],
-    ['un clic en el fondo', (d: HTMLElement) => d, 'click'],
-    ['un clic en la imagen', (d: HTMLElement) => d.querySelector('.docs-zoom-img')!, 'click'],
-  ])('se cierra con %s', (_, target, type) => {
+    [
+      'el botón de cerrar',
+      (dialog: HTMLElement) => dialog.querySelector('.docs-zoom-close')!,
+      'click',
+    ],
+    ['un clic en el fondo', (dialog: HTMLElement) => dialog, 'click'],
+    [
+      'un clic en la imagen',
+      (dialog: HTMLElement) => dialog.querySelector('.docs-zoom-img')!,
+      'click',
+    ],
+  ])('se cierra con %s', (_label, target, type) => {
     it('y devuelve el foco al botón que lo abrió', async () => {
       const { dialog, trigger, fire, settle } = setup();
       fire(trigger, 'click');
@@ -158,9 +166,9 @@ describe('initZoom', () => {
   it('Escape (el evento cancel) cierra con nuestra animación en vez de la nativa', async () => {
     const { dialog, trigger, fire, settle } = setup();
     fire(trigger, 'click');
-    const e = fire(dialog, 'cancel', {});
+    const event = fire(dialog, 'cancel', {});
     await settle();
-    expect(e.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(true);
     expect(dialog.close).toHaveBeenCalledOnce();
     expect(trigger.focus).toHaveBeenCalledOnce();
   });

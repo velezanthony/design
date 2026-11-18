@@ -17,11 +17,11 @@ describe('FallbackNotice', () => {
   });
 
   it('enlaza al original con hreflang y lang, nombrado en su idioma', async () => {
-    const a = (await notice()).querySelector('a')!;
-    expect(a.getAttribute('href')).toBe('/changelog/');
-    expect(a.getAttribute('hreflang')).toBe('en');
-    expect(a.getAttribute('lang')).toBe('en');
-    expect(text(a)).toBe('English');
+    const anchor = (await notice()).querySelector('a')!;
+    expect(anchor.getAttribute('href')).toBe('/changelog/');
+    expect(anchor.getAttribute('hreflang')).toBe('en');
+    expect(anchor.getAttribute('lang')).toBe('en');
+    expect(text(anchor)).toBe('English');
   });
 
   it('es una nota accesible, en el idioma de la página', async () => {

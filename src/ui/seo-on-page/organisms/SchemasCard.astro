@@ -11,26 +11,26 @@ interface Props {
 }
 
 const { schemas } = Astro.props;
-const L = CARD_LABELS.schemas;
+const labels = CARD_LABELS.schemas;
 ---
 
-<OverviewCard id="c-sch" title={L.title} why={L.why}>
+<OverviewCard id="c-sch" title={labels.title} why={labels.why}>
   <ul>
     {schemas.types.map(({ type, pages, scope }) => (
       <StatRow>
         <Fragment slot="label">
           <span data-schema-type={type}>{type}</span>
-          {L.scopes[scope] && (
+          {labels.scopes[scope] && (
             <Tag bordered plain data-scope={scope}>
-              {L.scopes[scope]}
+              {labels.scopes[scope]}
             </Tag>
           )}
         </Fragment>
-        {pages} <small class="text-muted">{L.unit}</small>
+        {pages} <small class="text-muted">{labels.unit}</small>
       </StatRow>
     ))}
     <StatRow muted>
-      <Fragment slot="label">{L.none}</Fragment>
+      <Fragment slot="label">{labels.none}</Fragment>
       <span data-without>{schemas.withoutSchemas}</span>
     </StatRow>
   </ul>

@@ -1,6 +1,6 @@
 ---
 import Link from '../atoms/Link.astro';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import type { FooterView } from '../../core/navigation/footer';
 
 interface Props {
@@ -22,7 +22,7 @@ const hasLinks = links.length > 0;
 /* La config da solo el nombre ('MIT', 'Apache-2.0'); la frase («MIT License», «Licencia MIT»)
    depende del idioma. */
 const hasLegal = Boolean(license) || Boolean(privacyUrl) || cookieControl;
-const licenseText = license && t(strings, 'footer.license', { name: license.label });
+const licenseText = license && translate(strings, 'footer.license', { name: license.label });
 
 /* Una sola cadena para todo lo que se pinta como enlace del pie. */
 const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
@@ -42,7 +42,7 @@ const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
         {author && (
           <>
             {' '}
-            {t(strings, 'footer.by')}{' '}
+            {translate(strings, 'footer.by')}{' '}
             <Link href={author.href} variant="quiet">
               {author.name}
             </Link>
@@ -51,7 +51,7 @@ const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
       </p>
 
       {hasLinks && (
-        <nav aria-label={t(strings, 'footer.label')}>
+        <nav aria-label={translate(strings, 'footer.label')}>
           <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
             {links.map((link) => (
               <li>
@@ -91,7 +91,7 @@ const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
               </span>
             )}
             <Link href={privacyUrl} variant="quiet">
-              {t(strings, 'consent.privacy')}
+              {translate(strings, 'consent.privacy')}
             </Link>
           </li>
         )}
@@ -109,7 +109,7 @@ const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
               data-consent-open
               class:list={['inline-flex cursor-pointer items-center', quiet]}
             >
-              {t(strings, 'consent.preferences')}
+              {translate(strings, 'consent.preferences')}
             </button>
           </li>
         )}

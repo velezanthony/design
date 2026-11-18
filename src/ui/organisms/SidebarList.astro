@@ -1,6 +1,6 @@
 ---
 import { isSidebarGroup, type SidebarNode } from '../../core/navigation/sidebar';
-import { localeNames, t, type UiStrings } from '../../core/i18n/ui-strings';
+import { localeNames, translate, type UiStrings } from '../../core/i18n/ui-strings';
 import type { Locale } from '../../core/i18n/locale';
 
 /* Lista recursiva de `Sidebar`. Es interna: se usa solo desde ese organismo. */
@@ -20,7 +20,7 @@ const pageClass = `${itemClass} text-muted hover:text-ink aria-[current=page]:fo
 /* Título de grupo: tinta y seminegrita, que es lo que lo separa de las páginas. */
 const groupClass = 'label font-semibold tracking-[0.08em] text-ink';
 function badgeName(locale: Locale) {
-  return t(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
+  return translate(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
 }
 ---
 

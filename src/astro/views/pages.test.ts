@@ -69,7 +69,7 @@ describe('sitemapXml', () => {
   });
 
   it('un error del núcleo llega como AstroError con contexto', () => {
-    const many = Array.from({ length: 50_001 }, (_, i) => data(`p${i}`, 'en'));
+    const many = Array.from({ length: 50_001 }, (_item, index) => data(`p${index}`, 'en'));
     expect(() => sitemapXml(many, cfg)).toThrow(/50000|50 000|sitemap/i);
   });
 });
@@ -79,7 +79,7 @@ describe('sitemapXml: páginas del cliente', () => {
     const xml = sitemapXml([data('guide', 'en')], cfg, [
       { loc: 'https://x.dev/repo/cv/', alternates: [] },
     ]);
-    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1])).toEqual([
+    expect([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1])).toEqual([
       'https://x.dev/repo/guide/',
       'https://x.dev/repo/cv/',
     ]);
@@ -114,7 +114,7 @@ describe('sitemapXml: página de privacidad', () => {
 
 describe('sitemapIndexXml', () => {
   function locs(xml: string) {
-    return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+    return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((match) => match[1]);
   }
 
   it('apunta primero a las páginas propias, bajo la base, y luego a los incluidos', () => {

@@ -40,9 +40,9 @@ function checked(doc: Document, name: string) {
 
 describe('FiltersForm', () => {
   it('es un GET a la tabla: los filtros viajan en la URL, sin JavaScript', async () => {
-    const f = (await form()).querySelector('form')!;
-    expect(f.getAttribute('method')?.toLowerCase()).toBe('get');
-    expect(f.getAttribute('action')).toBe('/repo/seo-on-page/pages/');
+    const formElement = (await form()).querySelector('form')!;
+    expect(formElement.getAttribute('method')?.toLowerCase()).toBe('get');
+    expect(formElement.getAttribute('action')).toBe('/repo/seo-on-page/pages/');
   });
 
   it('ofrece cada gravedad, cada idioma de la config y cada tipo de problema', async () => {
@@ -90,8 +90,8 @@ describe('FiltersForm', () => {
       const group = await kinds();
       expect(group.querySelector('[data-kinds-all]')!.hasAttribute('checked')).toBe(true);
       expect(
-        [...group.querySelectorAll('input[name="kind"]:not([disabled])')].every((i) =>
-          i.hasAttribute('checked'),
+        [...group.querySelectorAll('input[name="kind"]:not([disabled])')].every((input) =>
+          input.hasAttribute('checked'),
         ),
       ).toBe(true);
     });
@@ -172,7 +172,9 @@ describe('FiltersForm', () => {
     const hidden = (await form(none, 25, { view: 'have', lacks: 'og' })).querySelectorAll(
       'input[type="hidden"]',
     );
-    expect([...hidden].map((i) => [i.getAttribute('name'), i.getAttribute('value')])).toEqual([
+    expect(
+      [...hidden].map((field) => [field.getAttribute('name'), field.getAttribute('value')]),
+    ).toEqual([
       ['view', 'have'],
       ['lacks', 'og'],
     ]);

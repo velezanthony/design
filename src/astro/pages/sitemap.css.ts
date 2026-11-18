@@ -1,6 +1,6 @@
 // `?raw` trae el tema como texto al bundle: la ruta se prerenderiza y no puede leer del disco del paquete.
 import theme from '../../ui/styles/theme.css?raw';
-import { t } from '../../core/i18n/ui-strings';
+import { translate } from '../../core/i18n/ui-strings';
 import { SITEMAP_TOKENS, sitemapCss, themePalette } from '../../ui/styles/sitemap';
 import { siteConfig } from '../data/site-config';
 
@@ -8,7 +8,7 @@ import { siteConfig } from '../data/site-config';
 export function GET() {
   const strings = siteConfig.strings[siteConfig.defaultLocale]!;
   const css = sitemapCss(
-    { title: t(strings, 'sitemap.title'), note: t(strings, 'sitemap.note') },
+    { title: translate(strings, 'sitemap.title'), note: translate(strings, 'sitemap.note') },
     themePalette(theme, SITEMAP_TOKENS),
   );
   return new Response(css, { headers: { 'Content-Type': 'text/css; charset=utf-8' } });

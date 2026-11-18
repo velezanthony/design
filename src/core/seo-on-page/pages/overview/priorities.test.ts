@@ -24,7 +24,7 @@ const input = {
 };
 
 function rank(pages: SeoPage[]) {
-  return fixPriorities({ pages }, input).map((p) => p.kind);
+  return fixPriorities({ pages }, input).map((priority) => priority.kind);
 }
 
 describe('fixPriorities', () => {
@@ -97,7 +97,9 @@ describe('fixPriorities', () => {
   });
 
   it('con demasiadas páginas no las lista: el recuento y el enlace a la tabla bastan', () => {
-    const pages = Array.from({ length: 6 }, (_, n) => entry(`p${n}`, [issue('no-h1', 'error')]));
+    const pages = Array.from({ length: 6 }, (_item, index) =>
+      entry(`p${index}`, [issue('no-h1', 'error')]),
+    );
     expect(fixPriorities({ pages }, input)[0]!.affected).toEqual([]);
   });
 
@@ -112,7 +114,7 @@ describe('fixPriorities', () => {
   it('el porcentaje de algo que afecta a muy pocas páginas no se queda en 0', () => {
     const pages = [
       entry('a', [issue('no-h1', 'error')]),
-      ...Array.from({ length: 300 }, (_, n) => entry(`p${n}`, [])),
+      ...Array.from({ length: 300 }, (_item, index) => entry(`p${index}`, [])),
     ];
     expect(fixPriorities({ pages }, input)[0]!.percent).toBe(1);
   });

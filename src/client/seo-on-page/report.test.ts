@@ -47,7 +47,7 @@ function setup({
     clipboard: clipboard ?? undefined,
     schedule: (callback) => void scheduled.push(callback),
   });
-  function $<T extends Element = HTMLElement>(selector: string) {
+  function query<T extends Element = HTMLElement>(selector: string) {
     return document.querySelector<T>(selector)!;
   }
   function click(el: Element) {
@@ -61,10 +61,10 @@ function setup({
     for (const radio of document.querySelectorAll<HTMLInputElement>('[data-report-scope]')) {
       radio.checked = radio.value === value;
     }
-    change($('[data-report-scope][value="' + value + '"]'));
+    change(query('[data-report-scope][value="' + value + '"]'));
   }
   function pick(locale: string) {
-    const select = $<HTMLSelectElement>('[data-report-locale]');
+    const select = query<HTMLSelectElement>('[data-report-locale]');
     for (const option of select.querySelectorAll('option')) {
       if (option.value === locale) option.setAttribute('selected', '');
       else option.removeAttribute('selected');
@@ -74,7 +74,7 @@ function setup({
   function flush() {
     return new Promise((resolve) => setTimeout(resolve, 0));
   }
-  return { document, dialog, modal, scheduled, $, click, change, choose, pick, flush };
+  return { document, dialog, modal, scheduled, $: query, click, change, choose, pick, flush };
 }
 
 describe('initReport: sin portapapeles', () => {

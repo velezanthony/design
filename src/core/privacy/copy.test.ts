@@ -45,7 +45,9 @@ describe('privacyCopy: completitud', () => {
   it('es y en tienen la misma forma: bloques, columnas y filas', () => {
     const es = privacyCopy('es', DEFAULT_CONTROLLER);
     const en = privacyCopy('en', DEFAULT_CONTROLLER);
-    expect(es.map((s) => shape(s.blocks))).toEqual(en.map((s) => shape(s.blocks)));
+    expect(es.map((section) => shape(section.blocks))).toEqual(
+      en.map((section) => shape(section.blocks)),
+    );
   });
 
   it.each(PRIVACY_LOCALES)('%s: cada fila de tabla tiene una celda por columna', (locale) => {
@@ -60,14 +62,16 @@ describe('privacyCopy: completitud', () => {
   it.each(PRIVACY_LOCALES)('%s: sin textos vacíos y enlaces solo https o mailto', (locale) => {
     const sections = privacyCopy(locale, DEFAULT_CONTROLLER);
     expect(JSON.stringify(sections)).not.toContain('""');
-    for (const block of sections.flatMap((s) => s.blocks)) {
+    for (const block of sections.flatMap((section) => section.blocks)) {
       if (block.kind !== 'links') continue;
       for (const { href } of block.items) expect(href).toMatch(/^(https:\/\/|mailto:)/);
     }
   });
 
   it('lista las cookies que borra el código de consentimiento', () => {
-    const cookies = privacyCopy('es', DEFAULT_CONTROLLER).find((s) => s.id === 'cookies');
+    const cookies = privacyCopy('es', DEFAULT_CONTROLLER).find(
+      (section) => section.id === 'cookies',
+    );
     const table = cookies?.blocks.find((block) => block.kind === 'table');
     expect(table?.kind === 'table' && table.rows.map((row) => row[0])).toEqual(['_ga', '_ga_<ID>']);
   });
@@ -83,7 +87,7 @@ describe('privacyCopy: contenido', () => {
   });
 
   it.each(PRIVACY_LOCALES)('%s: declara que cubre las webs de documentación', (locale) => {
-    const scope = privacyCopy(locale, DEFAULT_CONTROLLER).find((s) => s.id === 'scope');
+    const scope = privacyCopy(locale, DEFAULT_CONTROLLER).find((section) => section.id === 'scope');
     const prose = JSON.stringify(scope);
     expect(prose).toContain('velezanthony.github.io/<repo>/');
   });
@@ -96,7 +100,9 @@ describe('privacyCopy: contenido', () => {
       expect(json).toContain('GitHub Pages');
       expect(json).toMatch(/art\. 6\.1\.a/);
       expect(json).toMatch(locale === 'es' ? /Preferencias de cookies/ : /Cookie preferences/);
-      const retention = privacyCopy(locale, DEFAULT_CONTROLLER).find((s) => s.id === 'retention');
+      const retention = privacyCopy(locale, DEFAULT_CONTROLLER).find(
+        (section) => section.id === 'retention',
+      );
       expect(retention?.blocks.length).toBeGreaterThan(0);
     },
   );

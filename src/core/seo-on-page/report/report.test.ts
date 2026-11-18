@@ -99,11 +99,11 @@ const tree: SeoTree = {
   ],
 };
 
-function report(scope = siteScope(tree), t = tree) {
-  return buildReport(scope, ctxOf(t));
+function report(scope = siteScope(tree), seoTree = tree) {
+  return buildReport(scope, ctxOf(seoTree));
 }
-function md(scope = siteScope(tree), t = tree) {
-  return report(scope, t).markdown;
+function md(scope = siteScope(tree), seoTree = tree) {
+  return report(scope, seoTree).markdown;
 }
 function sections(text: string) {
   return text.split('\n').filter((line) => line.startsWith('## '));
@@ -385,10 +385,10 @@ describe('buildReport: alcances', () => {
 });
 
 describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
-  function have(query: string, t = tree) {
+  function have(query: string, seoTree = tree) {
     return buildReport(
-      filterScope(selectListing(t, new URLSearchParams(query)), 'sin descripción propia'),
-      ctxOf(t),
+      filterScope(selectListing(seoTree, new URLSearchParams(query)), 'sin descripción propia'),
+      ctxOf(seoTree),
     );
   }
 

@@ -26,7 +26,7 @@ const pages = [
 ];
 const index: PageIndex = { pages, url };
 function from(sourcePath: string) {
-  return pages.find((p) => p.sourcePath === sourcePath)!;
+  return pages.find((candidate) => candidate.sourcePath === sourcePath)!;
 }
 
 describe('rewriteLinks', () => {
@@ -66,7 +66,7 @@ describe('rewriteLinks', () => {
 
   it('agrega todos los enlaces rotos, no solo el primero', () => {
     const result = rewriteLinks('[a](./a.md)\n[b](./b.md)', from('guide.md'), index);
-    expect(result.errors.map((e) => e.line)).toEqual([1, 2]);
+    expect(result.errors.map((problem) => problem.line)).toEqual([1, 2]);
   });
 
   it('ignora un enlace roto dentro de un bloque de código', () => {
@@ -195,7 +195,7 @@ describe('rewriteLinks con `contentDir` fuera del proyecto', () => {
   ];
   const outsideIndex: PageIndex = { pages: outside, url, contentDir };
   function at(sourcePath: string) {
-    return outside.find((p) => p.sourcePath === sourcePath)!;
+    return outside.find((candidate) => candidate.sourcePath === sourcePath)!;
   }
 
   it('un enlace relativo entre nativas sigue resolviendo contra la carpeta de contenido', () => {

@@ -1,6 +1,6 @@
 ---
 import Icon from '../atoms/Icon.astro';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 
 interface Props {
   strings: UiStrings;
@@ -13,7 +13,7 @@ const { strings } = Astro.props;
   `href="#top"` no necesita elemento destino ni script: la especificación de HTML manda al inicio
   del documento para ese fragmento.
 */}
-<a href="#top" class="back-to-top" aria-label={t(strings, 'backToTop')}>
+<a href="#top" class="back-to-top" aria-label={translate(strings, 'backToTop')}>
   <Icon name="arrow" size={16} />
 </a>
 

@@ -70,8 +70,8 @@ async function runSetup(
 async function virtualData(userConfig: Parameters<typeof docs>[0], overrides = {}) {
   const { updateConfig } = await runSetup(satteri(), {}, userConfig, overrides);
   const partial = updateConfig.mock.calls
-    .map(([p]) => p as { vite?: { plugins?: { load: { handler: () => string } }[] } })
-    .find((p) => p.vite);
+    .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+    .find((update) => update.vite);
   const source = partial?.vite?.plugins?.[0].load.handler() ?? '';
   return JSON.parse(source.replace(/^export default /, '').replace(/;$/, ''));
 }
@@ -95,7 +95,7 @@ describe('astro:config:setup: processor de Markdown', () => {
     const options = processor.options;
     await runSetup(processor);
     expect(options.features.directive).toBe(true);
-    const names = options.mdastPlugins.map((p) => (p as { name: string }).name);
+    const names = options.mdastPlugins.map((mdastPlugin) => (mdastPlugin as { name: string }).name);
     expect(names[0]).toBe('del-consumidor');
     expect(names.at(-1)).toBe('restore-directives');
   });
@@ -110,7 +110,7 @@ describe('astro:config:setup: processor de Markdown', () => {
   });
 
   it('un processor que no es Sätteri falla con un AstroError accionable', async () => {
-    const error = await runSetup({ name: 'remark' }).catch((e: unknown) => e);
+    const error = await runSetup({ name: 'remark' }).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(error).toMatchObject({
       message: expect.stringContaining('Sätteri'),
@@ -123,17 +123,17 @@ describe('astro:config:setup: fuentes y módulo virtual', () => {
   it('añade IBM Plex Sans y Mono con updateConfig({ fonts })', async () => {
     const { updateConfig } = await runSetup(satteri());
     const partial = updateConfig.mock.calls
-      .map(([p]) => p as { fonts?: { name: string }[] })
-      .find((p) => p.fonts);
-    expect(partial?.fonts?.map((f) => f.name)).toEqual(['IBM Plex Sans', 'IBM Plex Mono']);
+      .map(([update]) => update as { fonts?: { name: string }[] })
+      .find((update) => update.fonts);
+    expect(partial?.fonts?.map((font) => font.name)).toEqual(['IBM Plex Sans', 'IBM Plex Mono']);
   });
 
   it('registra un plugin de Vite con el módulo virtual', async () => {
     const { updateConfig } = await runSetup(satteri());
     const partial = updateConfig.mock.calls
-      .map(([p]) => p as { vite?: { plugins?: { name: string }[] } })
-      .find((p) => p.vite);
-    expect(partial?.vite?.plugins?.map((p) => p.name)).toContain(
+      .map(([update]) => update as { vite?: { plugins?: { name: string }[] } })
+      .find((update) => update.vite);
+    expect(partial?.vite?.plugins?.map((plugin) => plugin.name)).toContain(
       'velezanthony-design-virtual-config',
     );
   });
@@ -143,8 +143,8 @@ describe('astro:config:setup: Shiki', () => {
   async function shikiOf(processorShiki: object) {
     const { updateConfig } = await runSetup(satteri(), processorShiki);
     return updateConfig.mock.calls
-      .map(([p]) => p as { markdown?: { shikiConfig?: Record<string, unknown> } })
-      .find((p) => p.markdown?.shikiConfig)?.markdown?.shikiConfig;
+      .map(([update]) => update as { markdown?: { shikiConfig?: Record<string, unknown> } })
+      .find((update) => update.markdown?.shikiConfig)?.markdown?.shikiConfig;
   }
 
   it('añade los alias de lenguajes de la librería', async () => {
@@ -172,7 +172,7 @@ describe('astro:config:setup: Shiki', () => {
 describe('astro:config:setup: validación', () => {
   it('sin `site` en la config de Astro falla con un AstroError que lo nombra', async () => {
     const error = await runSetup(satteri(), {}, { name: 'x' }, { site: undefined }).catch(
-      (e: unknown) => e,
+      (caught: unknown) => caught,
     );
     expect(error).toBeInstanceOf(AstroError);
     expect(error).toMatchObject({
@@ -265,7 +265,7 @@ describe('astro:config:setup: fusión de config', () => {
       {},
       { name: 'x' },
       { fonts: [{ name: 'Mine', cssVariable: '--font-plex-sans' }] },
-    ).catch((e: unknown) => e);
+    ).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(error).toMatchObject({
       message: expect.stringContaining('--font-plex-sans'),
@@ -354,7 +354,7 @@ describe('astro:config:setup: rutas inyectadas', () => {
 
   it('inyecta la página de docs, el sitemap y su hoja, el favicon y la 404', async () => {
     const routes = await routesOf({ name: 'x' });
-    expect(routes.map((r) => r.pattern)).toEqual([
+    expect(routes.map((route) => route.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
@@ -370,7 +370,7 @@ describe('astro:config:setup: rutas inyectadas', () => {
 
   it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
-    expect(routes.map((r) => r.pattern)).toEqual([
+    expect(routes.map((route) => route.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
@@ -383,16 +383,16 @@ describe('astro:config:setup: rutas inyectadas', () => {
 
   it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
     const routes = await routesOf({ name: 'x', sitemap: { include: ['/lib/sitemap.xml'] } });
-    const pages = routes.find((r) => r.pattern === '/sitemap-pages.xml');
+    const pages = routes.find((route) => route.pattern === '/sitemap-pages.xml');
     expect(pages && entry(pages)).toMatch(/pages\/sitemap-pages\.xml\.ts$/);
-    expect((await routesOf({ name: 'x' })).map((r) => r.pattern)).not.toContain(
+    expect((await routesOf({ name: 'x' })).map((route) => route.pattern)).not.toContain(
       '/sitemap-pages.xml',
     );
   });
 
   it('todas las rutas se prerenderizan', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
-    expect(routes.every((r) => r.prerender === true)).toBe(true);
+    expect(routes.every((route) => route.prerender === true)).toBe(true);
   });
 });
 
@@ -445,7 +445,7 @@ describe('astro:config:setup: página de privacidad', () => {
     return injectRoute.mock.calls.map(([route]) => route as { pattern: string; entrypoint: URL });
   }
   async function patterns(userConfig: Parameters<typeof docs>[0]) {
-    return (await routesOf(userConfig)).map((r) => r.pattern);
+    return (await routesOf(userConfig)).map((route) => route.pattern);
   }
 
   it('por defecto no se inyecta ninguna ruta de privacidad', async () => {
@@ -454,18 +454,20 @@ describe('astro:config:setup: página de privacidad', () => {
 
   it('`page: false` tampoco', async () => {
     const all = await patterns({ name: 'x', locales: ['es', 'en'], privacy: { page: false } });
-    expect(all.some((p) => p.includes('[privacy]'))).toBe(false);
+    expect(all.some((pattern) => pattern.includes('[privacy]'))).toBe(false);
   });
 
   it('`page: true` inyecta la página por defecto y la de cada otro idioma, prerenderizadas', async () => {
     const routes = await routesOf({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
-    const privacy = routes.filter((r) => r.pattern.includes('[privacy]'));
-    expect(privacy.map((r) => r.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
-    expect(privacy.map((r) => String(r.entrypoint).split('/').at(-1))).toEqual([
+    const privacy = routes.filter((route) => route.pattern.includes('[privacy]'));
+    expect(privacy.map((route) => route.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
+    expect(privacy.map((route) => String(route.entrypoint).split('/').at(-1))).toEqual([
       'privacy.astro',
       'privacy-locale.astro',
     ]);
-    expect(privacy.every((r) => (r as { prerender?: boolean }).prerender === true)).toBe(true);
+    expect(privacy.every((route) => (route as { prerender?: boolean }).prerender === true)).toBe(
+      true,
+    );
   });
 
   it('monolingüe: solo la ruta del idioma por defecto', async () => {
@@ -521,7 +523,7 @@ describe('astro:config:setup: analítica desde el entorno', () => {
 
   it('un ID con formato inválido rompe la construcción con un AstroError', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
-    const error = await virtualData(two).catch((e: unknown) => e);
+    const error = await virtualData(two).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(String((error as AstroError).hint)).toContain('GTM-XXXXXXX');
   });
@@ -531,7 +533,7 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     const error = await virtualData({
       ...two,
       privacyUrl: { es: '/privacidad/' },
-    }).catch((e: unknown) => e);
+    }).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(String((error as AstroError).hint)).toContain('en');
   });

@@ -41,16 +41,16 @@ export function initTabs(doc: Document, motion: MotionPreference = { matches: fa
     list.className = 'docs-tablist';
     list.setAttribute('role', 'tablist');
 
-    const tabs = panels.map((panel, i) => {
+    const tabs = panels.map((panel, index) => {
       const label = panel.querySelector('.docs-tab-label')?.textContent?.trim();
       const tab = doc.createElement('button');
       tab.type = 'button';
       tab.className = 'docs-tab';
-      tab.id = `docs-tabs-${group}-tab-${i}`;
+      tab.id = `docs-tabs-${group}-tab-${index}`;
       tab.setAttribute('role', 'tab');
-      tab.setAttribute('aria-controls', `docs-tabs-${group}-panel-${i}`);
-      tab.textContent = label || String(i + 1);
-      panel.id = `docs-tabs-${group}-panel-${i}`;
+      tab.setAttribute('aria-controls', `docs-tabs-${group}-panel-${index}`);
+      tab.textContent = label || String(index + 1);
+      panel.id = `docs-tabs-${group}-panel-${index}`;
       panel.setAttribute('role', 'tabpanel');
       panel.setAttribute('aria-labelledby', tab.id);
       list.append(tab);
@@ -58,12 +58,12 @@ export function initTabs(doc: Document, motion: MotionPreference = { matches: fa
     });
 
     function select(index: number) {
-      tabs.forEach((tab, i) => {
-        const on = i === index;
+      tabs.forEach((tab, position) => {
+        const on = position === index;
         tab.setAttribute('aria-selected', String(on));
         tab.setAttribute('tabindex', on ? '0' : '-1');
-        if (on) panels[i]!.removeAttribute('hidden');
-        else panels[i]!.setAttribute('hidden', '');
+        if (on) panels[position]!.removeAttribute('hidden');
+        else panels[position]!.setAttribute('hidden', '');
       });
     }
 
@@ -76,10 +76,10 @@ export function initTabs(doc: Document, motion: MotionPreference = { matches: fa
       );
     }
 
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => show(i));
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => show(index));
       tab.addEventListener('keydown', (event) => {
-        const target = nextTabIndex((event as KeyboardEvent).key, i, tabs.length);
+        const target = nextTabIndex((event as KeyboardEvent).key, index, tabs.length);
         if (target === undefined) return;
         event.preventDefault();
         show(target);

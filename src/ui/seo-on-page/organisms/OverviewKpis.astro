@@ -9,21 +9,21 @@ interface Props {
 }
 
 const { kpis } = Astro.props;
-const L = OVERVIEW_LABELS.kpis;
+const labels = OVERVIEW_LABELS.kpis;
 const totalPages = kpis.pages.pages;
 ---
 
-<ul aria-label={L.region} class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-  <Kpi id="health" label={L.health.label} value={percentText(kpis.health.percent)}>
+<ul aria-label={labels.region} class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+  <Kpi id="health" label={labels.health.label} value={percentText(kpis.health.percent)}>
     <p class="font-mono text-sm text-ink">
-      {L.health.formula(kpis.health.healthy, kpis.health.total)}
+      {labels.health.formula(kpis.health.healthy, kpis.health.total)}
     </p>
-    <p class="text-sm text-muted">{L.health.note}</p>
+    <p class="text-sm text-muted">{labels.health.note}</p>
   </Kpi>
-  <Kpi id="pages" label={L.pages.label} value={totalPages}>
-    <p class="text-sm text-muted">{L.pages.sub(kpis.pages.entries)}</p>
+  <Kpi id="pages" label={labels.pages.label} value={totalPages}>
+    <p class="text-sm text-muted">{labels.pages.sub(kpis.pages.entries)}</p>
   </Kpi>
-  <Kpi id="locales" label={L.locales.label} value={kpis.locales.length}>
+  <Kpi id="locales" label={labels.locales.label} value={kpis.locales.length}>
     <p class="text-sm text-muted">
       {kpis.locales.map(({ locale, entries }, index) => (
         <>
@@ -33,12 +33,17 @@ const totalPages = kpis.pages.pages;
       ))}
     </p>
   </Kpi>
-  <Kpi id="problems" label={L.problems.label} value={kpis.problems.pages} href={kpis.problems.href}>
+  <Kpi
+    id="problems"
+    label={labels.problems.label}
+    value={kpis.problems.pages}
+    href={kpis.problems.href}
+  >
     <p class="text-sm text-muted">
-      {L.problems.sub(kpis.problems.errors, kpis.problems.warnings, kpis.problems.entries)}
+      {labels.problems.sub(kpis.problems.errors, kpis.problems.warnings, kpis.problems.entries)}
     </p>
   </Kpi>
-  <Kpi id="info" label={L.info.label} value={kpis.info.pages} href={kpis.info.href}>
-    <p class="text-sm text-muted">{L.info.sub(kpis.info, totalPages)}</p>
+  <Kpi id="info" label={labels.info.label} value={kpis.info.pages} href={kpis.info.href}>
+    <p class="text-sm text-muted">{labels.info.sub(kpis.info, totalPages)}</p>
   </Kpi>
 </ul>

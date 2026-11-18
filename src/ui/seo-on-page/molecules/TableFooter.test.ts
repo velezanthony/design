@@ -27,12 +27,9 @@ describe('TableFooter', () => {
     expect(form.getAttribute('method')?.toLowerCase()).toBe('get');
     expect(form.getAttribute('action')).toBe('/repo/seo-on-page/pages/');
     const select = form.querySelector('select[name="per"]')!;
-    expect([...select.querySelectorAll('option')].map((o) => o.getAttribute('value'))).toEqual([
-      '10',
-      '25',
-      '50',
-      '100',
-    ]);
+    expect(
+      [...select.querySelectorAll('option')].map((option) => option.getAttribute('value')),
+    ).toEqual(['10', '25', '50', '100']);
     expect(select.querySelector('option[selected]')!.getAttribute('value')).toBe('50');
     expect(doc.querySelector(`label[for="${select.id}"]`)!.textContent).toContain(
       'Filas por página',

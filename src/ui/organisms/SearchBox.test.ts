@@ -42,9 +42,9 @@ describe('SearchBox', () => {
   });
 
   it('dos cajas en la misma página no comparten id', async () => {
-    const a = (await box({ id: 'a' })).querySelector('input')!.id;
-    const b = (await box({ id: 'b' })).querySelector('input')!.id;
-    expect(a).not.toBe(b);
+    const firstId = (await box({ id: 'a' })).querySelector('input')!.id;
+    const secondId = (await box({ id: 'b' })).querySelector('input')!.id;
+    expect(firstId).not.toBe(secondId);
   });
 
   it('la lista de resultados está vacía y el estado no se anuncia sin JS', async () => {

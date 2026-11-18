@@ -17,7 +17,7 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
    - `ui/molecules/`: unas pocas piezas con un propósito (`EditLink`, `PrevNext`, `ThemeToggle`).
    - `ui/organisms/`: una zona de la página (`DocsHeader`, `Sidebar`, `ConsentBanner`).
 2. **Define sus `Props`** con comentarios. Todo lo que muestra llega por props, **textos incluidos**
-   (`strings: UiStrings` y `t(strings, 'clave')`). El componente no importa `astro:*`, ni
+   (`strings: UiStrings` y `translate(strings, 'clave')`). El componente no importa `astro:*`, ni
    `virtual:*`, ni nada de `src/astro/`: ESLint lo impide.
 3. **Estilos** con utilidades de Tailwind y tokens (`text-muted`, `bg-raised`). Si la regla es larga
    o compartida, va en `theme.css` con `@apply`. Nunca colores literales.
@@ -71,8 +71,8 @@ flowchart LR
    sobrescribe.
 2. Añade la misma clave al catálogo `es`. `ui-strings.test.ts` comprueba que toda clave existe en
    todos los idiomas y que ninguna está vacía: si te olvidas, falla.
-3. Si lleva variables, escríbelas como `{nombre}` y pásalas con `t(strings, 'clave', { nombre })`.
-4. Úsala en el componente con `t(strings, 'clave')`.
+3. Si lleva variables, escríbelas como `{nombre}` y pásalas con `translate(strings, 'clave', { nombre })`.
+4. Úsala en el componente con `translate(strings, 'clave')`.
 
 No hace falta tocar nada más: `UiKey` y `uiKeys` salen del catálogo `en`, y el esquema estricto de
 `ui` en la config se genera desde `uiKeys`, así que los consumidores ya pueden sobrescribir la clave

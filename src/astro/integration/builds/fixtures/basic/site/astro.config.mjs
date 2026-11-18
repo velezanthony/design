@@ -39,9 +39,11 @@ export default defineConfig({
           writeFileSync(
             new URL('./probe.json', import.meta.url),
             JSON.stringify({
-              integrations: config.integrations.map((i) => i.name),
+              integrations: config.integrations.map((integration) => integration.name),
               ownKeys: Object.keys(
-                config.integrations.find((i) => i.name === '@velezanthony/design') ?? {},
+                config.integrations.find(
+                  (integration) => integration.name === '@velezanthony/design',
+                ) ?? {},
               ),
               astro: {
                 fromConsumer: resolveAstro(import.meta.url),
@@ -51,10 +53,12 @@ export default defineConfig({
               },
               base: config.base,
               trailingSlash: config.trailingSlash,
-              vitePlugins: (config.vite.plugins ?? []).flat().map((p) => p?.name),
-              fonts: (config.fonts ?? []).map((f) => f.name),
+              vitePlugins: (config.vite.plugins ?? []).flat().map((plugin) => plugin?.name),
+              fonts: (config.fonts ?? []).map((font) => font.name),
               directive: processor.options.features.directive,
-              plugins: processor.options.mdastPlugins.map((p) => p.name ?? '(factoría)'),
+              plugins: processor.options.mdastPlugins.map(
+                (mdastPlugin) => mdastPlugin.name ?? '(factoría)',
+              ),
             }),
           );
         },

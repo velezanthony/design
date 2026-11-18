@@ -123,6 +123,12 @@ export default defineConfig(
     rules: { 'func-style': ['error', 'declaration', { allowArrowFunctions: false }] },
   },
 
+  /* Los nombres de una letra no dicen qué son. */
+  {
+    files: ['**/*.{ts,mjs,astro}'],
+    rules: { 'id-length': ['error', { min: 2, properties: 'never' }] },
+  },
+
   /* El último, para que el formato sea cosa solo de Prettier. */
   prettier,
 );

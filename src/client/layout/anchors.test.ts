@@ -12,7 +12,7 @@ describe('initHeadingAnchors', () => {
     const doc = page('<main><h2 id="a">Uno</h2><h3 id="b">Dos</h3><h4 id="c">Tres</h4></main>');
     initHeadingAnchors(doc, 'Enlace a «{title}»');
     const anchors = [...doc.querySelectorAll('a.heading-anchor')];
-    expect(anchors.map((a) => a.getAttribute('href'))).toEqual(['#a', '#b', '#c']);
+    expect(anchors.map((anchor) => anchor.getAttribute('href'))).toEqual(['#a', '#b', '#c']);
     expect(anchors[0]!.getAttribute('aria-label')).toBe('Enlace a «Uno»');
   });
 

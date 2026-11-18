@@ -26,7 +26,7 @@ const ctx = {
   site: 'S',
   locales: ['en'],
   tree,
-  kindLabels: Object.fromEntries(Object.values(IssueKind).map((k) => [k, k])) as Record<
+  kindLabels: Object.fromEntries(Object.values(IssueKind).map((kind) => [kind, kind])) as Record<
     IssueKind,
     string
   >,

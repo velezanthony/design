@@ -11,9 +11,9 @@ async function link(props: Record<string, unknown>) {
 
 describe('EditLink', () => {
   it('apunta al enlace que le dan y lo dice con el texto de strings', async () => {
-    const a = (await link({ href: `${BASE}/docs/install.es.md` }))!;
-    expect(a.getAttribute('href')).toBe(`${BASE}/docs/install.es.md`);
-    expect(text(a)).toBe('Editar esta página');
+    const anchor = (await link({ href: `${BASE}/docs/install.es.md` }))!;
+    expect(anchor.getAttribute('href')).toBe(`${BASE}/docs/install.es.md`);
+    expect(text(anchor)).toBe('Editar esta página');
   });
 
   it('sin enlace no se renderiza', async () => {
@@ -21,8 +21,8 @@ describe('EditLink', () => {
   });
 
   it('el texto sale de strings', async () => {
-    const a = (await link({ href: BASE, strings: stringsFor('en') }))!;
-    expect(text(a)).toBe('Edit this page');
+    const anchor = (await link({ href: BASE, strings: stringsFor('en') }))!;
+    expect(text(anchor)).toBe('Edit this page');
     const custom = (await link({
       href: BASE,
       strings: stringsFor('en', { 'edit.page': 'Improve' }),

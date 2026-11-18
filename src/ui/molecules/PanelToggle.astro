@@ -1,5 +1,5 @@
 ---
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 
 interface Props {
   /** `left` es la barra de navegación; `right`, el índice. */
@@ -15,9 +15,9 @@ interface Props {
 
 const { side, controls, open, strings, title } = Astro.props;
 const nav = side === 'left';
-const collapse = t(strings, nav ? 'layout.collapseNav' : 'layout.collapseToc');
-const expand = t(strings, nav ? 'layout.expandNav' : 'layout.expandToc');
-const rail = t(strings, nav ? 'layout.navRail' : 'layout.tocRail');
+const collapse = translate(strings, nav ? 'layout.collapseNav' : 'layout.collapseToc');
+const expand = translate(strings, nav ? 'layout.expandNav' : 'layout.expandToc');
+const rail = translate(strings, nav ? 'layout.navRail' : 'layout.tocRail');
 ---
 
 {/*

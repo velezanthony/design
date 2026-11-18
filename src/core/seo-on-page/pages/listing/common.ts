@@ -69,5 +69,5 @@ export function commonIssues(
         ...(fix !== undefined && others.length === 0 && { fix }),
       };
     })
-    .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);
+    .sort((left, right) => SEVERITY_RANK[left.severity] - SEVERITY_RANK[right.severity]);
 }

@@ -1,5 +1,5 @@
 ---
-import { t, type UiKey, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiKey, type UiStrings } from '../../core/i18n/ui-strings';
 
 export type AdmonitionKind = 'note' | 'info' | 'tip' | 'warning' | 'danger' | 'question';
 
@@ -13,7 +13,7 @@ interface Props {
 }
 
 const { kind, title, collapsed = false, strings } = Astro.props;
-const heading = title ?? t(strings, `admonition.${kind}` satisfies UiKey);
+const heading = title ?? translate(strings, `admonition.${kind}` satisfies UiKey);
 ---
 
 {/*

@@ -3,7 +3,7 @@ import { navOpenScript } from '../../client/layout/nav-open';
 import { sidebarScrollScript } from '../../client/layout/sidebar-scroll';
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
 import type { Locale } from '../../core/i18n/locale';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import { editHref } from '../../core/navigation/edit-href';
 import type { FooterView } from '../../core/navigation/footer';
 import type { NavEntry } from '../../core/navigation/nav-entries';
@@ -135,7 +135,9 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
           abierta (sin JS se ve como siempre) y el script la cierra por debajo de lg antes de pintar;
           desde lg el botón no existe y queda abierta. */}
           <details class="docs-nav" open data-docs-nav>
-            <summary class="docs-nav-toggle lg:hidden">{t(strings, 'sidebar.toggle')}</summary>
+            <summary class="docs-nav-toggle lg:hidden">
+              {translate(strings, 'sidebar.toggle')}
+            </summary>
             <NavList
               entries={nav}
               strings={strings}
@@ -156,17 +158,17 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       id="main-content"
       class="min-w-0 lg:py-8"
       {...pagefind}
-      data-copy-label={t(strings, 'copy.label')}
-      data-copied-label={t(strings, 'copy.copied')}
-      data-copy-failed-label={t(strings, 'copy.failed')}
+      data-copy-label={translate(strings, 'copy.label')}
+      data-copied-label={translate(strings, 'copy.copied')}
+      data-copy-failed-label={translate(strings, 'copy.failed')}
       data-anchor-label={strings['heading.anchor']}
       data-zoom-label={strings['zoom.open']}
-      data-zoom-close-label={t(strings, 'zoom.close')}
-      data-diagram-label={t(strings, 'diagram.label')}
-      data-diagram-expand-label={t(strings, 'diagram.expand')}
-      data-diagram-zoom-in-label={t(strings, 'diagram.zoomIn')}
-      data-diagram-zoom-out-label={t(strings, 'diagram.zoomOut')}
-      data-diagram-fit-label={t(strings, 'diagram.fit')}
+      data-zoom-close-label={translate(strings, 'zoom.close')}
+      data-diagram-label={translate(strings, 'diagram.label')}
+      data-diagram-expand-label={translate(strings, 'diagram.expand')}
+      data-diagram-zoom-in-label={translate(strings, 'diagram.zoomIn')}
+      data-diagram-zoom-out-label={translate(strings, 'diagram.zoomOut')}
+      data-diagram-fit-label={translate(strings, 'diagram.fit')}
     >
       {fallback && (
         <FallbackNotice

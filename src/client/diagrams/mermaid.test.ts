@@ -108,7 +108,7 @@ describe('initMermaid', () => {
     const listeners: (() => void)[] = [];
     const system = {
       matches: false,
-      addEventListener: (_: 'change', cb: () => void) => listeners.push(cb),
+      addEventListener: (_type: 'change', cb: () => void) => listeners.push(cb),
     };
     const warn = vi.fn();
     const ready = initMermaid(document, {

@@ -6,7 +6,7 @@
 import type { ReportText } from '../../../core/seo-on-page/report/texts';
 import Button from '../../atoms/Button.astro';
 import Checkbox from '../../atoms/Checkbox.astro';
-import { REPORT_LABELS as L } from '../labels';
+import { REPORT_LABELS as labels } from '../labels';
 
 interface Props {
   /** Los alcances que se pueden elegir y qué dice cada uno. */
@@ -26,24 +26,24 @@ const card =
 
 <dialog
   data-report-dialog
-  data-copied={L.copied}
-  data-failed={L.failed}
-  aria-label={L.title}
+  data-copied={labels.copied}
+  data-failed={labels.failed}
+  aria-label={labels.title}
   class="m-auto max-h-[calc(100dvh-3rem)] w-[min(760px,calc(100vw-2rem))] overflow-hidden border border-rule bg-canvas p-0 text-ink backdrop:bg-ink/55"
 >
   <div class="grid max-h-[calc(100dvh-3rem-2px)] grid-rows-[auto_minmax(0,1fr)_auto]">
     <div class="flex items-start justify-between gap-4 border-b border-rule px-5 py-4">
       <div class="flex flex-col gap-1">
-        <p class="text-lg font-semibold">{L.title}</p>
-        <p class="text-sm text-muted">{L.lede}</p>
+        <p class="text-lg font-semibold">{labels.title}</p>
+        <p class="text-sm text-muted">{labels.lede}</p>
       </div>
-      <Button variant="quiet" data-report-close aria-label={L.close}>
+      <Button variant="quiet" data-report-close aria-label={labels.close}>
         ×
       </Button>
     </div>
     <div class="flex flex-col gap-3 overflow-auto bg-raised px-5 py-4">
       <fieldset class="flex flex-wrap gap-2">
-        <legend class="label mb-1.5 text-muted">{L.scope}</legend>
+        <legend class="label mb-1.5 text-muted">{labels.scope}</legend>
         {options.map((option) => (
           <label class={card}>
             <input
@@ -60,7 +60,7 @@ const card =
                 {option.sub}
                 <select
                   data-report-locale
-                  aria-label={L.localeSelect}
+                  aria-label={labels.localeSelect}
                   class="ml-1 cursor-pointer border border-rule bg-canvas text-ink"
                 >
                   {locales.map((locale) => (
@@ -75,11 +75,11 @@ const card =
         ))}
       </fieldset>
       <Checkbox data-report-json class="text-sm">
-        {L.json}
+        {labels.json}
       </Checkbox>
       <pre
         data-report-preview
-        aria-label={L.preview}
+        aria-label={labels.preview}
         class="font-mono text-xs break-words whitespace-pre-wrap text-ink"
       ></pre>
     </div>
@@ -87,7 +87,7 @@ const card =
       <span class="text-sm text-muted" data-report-meta></span>
       <span class="flex items-center gap-3">
         <span class="text-sm text-state-live" role="status" data-report-status></span>
-        <Button data-report-copy>{L.copy}</Button>
+        <Button data-report-copy>{labels.copy}</Button>
       </span>
     </div>
   </div>

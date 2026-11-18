@@ -46,7 +46,7 @@ function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
     withoutSchemas: slugs.size - withSchemas.size,
     types: [...byType]
       .map(([type, pages]) => ({ type, pages: pages.size, scope: scopeOf(pages) }))
-      .sort((a, b) => b.pages - a.pages || (a.type < b.type ? -1 : 1)),
+      .sort((left, right) => right.pages - left.pages || (left.type < right.type ? -1 : 1)),
   };
 }
 

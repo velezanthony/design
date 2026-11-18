@@ -17,7 +17,7 @@ function route(pattern: string, params: string[] = []): SiteRoute {
       `${pattern
         .split('/')
         .map((segment) =>
-          segment.replace(/^\[(?:\.\.\.)?(\w+)\]$/, (_, name: string) => data[name] ?? ''),
+          segment.replace(/^\[(?:\.\.\.)?(\w+)\]$/, (_match, name: string) => data[name] ?? ''),
         )
         .filter(Boolean)
         .map((segment) => `/${segment}`)
@@ -84,8 +84,8 @@ describe('clientPagePaths', () => {
     const asked: string[] = [];
     await clientPagePaths(
       [route('/cv')],
-      async (r) => {
-        asked.push(r.pattern);
+      async (requested) => {
+        asked.push(requested.pattern);
         return [];
       },
       '/',

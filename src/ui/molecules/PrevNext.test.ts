@@ -13,13 +13,13 @@ function nav(props: Record<string, unknown>) {
 describe('PrevNext', () => {
   it('página intermedia: anterior y siguiente con rel y texto del catálogo', async () => {
     const doc = await nav({ prev, next });
-    const a = doc.querySelector('a[rel="prev"]')!;
-    const b = doc.querySelector('a[rel="next"]')!;
-    expect(a.getAttribute('href')).toBe('/install/');
-    expect(text(a)).toContain('Anterior');
-    expect(text(a)).toContain('Instalación');
-    expect(b.getAttribute('href')).toBe('/usage/');
-    expect(text(b)).toContain('Siguiente');
+    const previousLink = doc.querySelector('a[rel="prev"]')!;
+    const nextLink = doc.querySelector('a[rel="next"]')!;
+    expect(previousLink.getAttribute('href')).toBe('/install/');
+    expect(text(previousLink)).toContain('Anterior');
+    expect(text(previousLink)).toContain('Instalación');
+    expect(nextLink.getAttribute('href')).toBe('/usage/');
+    expect(text(nextLink)).toContain('Siguiente');
   });
 
   it('primera página: solo siguiente', async () => {

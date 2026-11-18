@@ -14,10 +14,10 @@ interface Props {
 }
 
 const { files, locales } = Astro.props;
-const L = CARD_LABELS.files;
+const cardLabels = CARD_LABELS.files;
 ---
 
-<OverviewCard id="c-files" title={L.title} why={L.why} wide>
+<OverviewCard id="c-files" title={cardLabels.title} why={cardLabels.why} wide>
   <ul class="flex flex-col">
     {files.map((file) => {
       const state = FILE_STATE_LABELS[file.state];
@@ -38,7 +38,7 @@ const L = CARD_LABELS.files;
           </span>
           {file.href ? (
             <Link href={file.href} external class="text-sm">
-              {L.open}
+              {cardLabels.open}
             </Link>
           ) : (
             labels.tag && (

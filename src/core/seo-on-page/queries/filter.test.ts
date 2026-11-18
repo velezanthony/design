@@ -27,7 +27,9 @@ const tree: SeoTree = {
   ],
 };
 function ids(filters = {}) {
-  return filterPages(tree, { ...EMPTY_FILTERS, ...filters }).map((p) => `${p.slug}:${p.locale}`);
+  return filterPages(tree, { ...EMPTY_FILTERS, ...filters }).map(
+    (treePage) => `${treePage.slug}:${treePage.locale}`,
+  );
 }
 
 describe('filterPages', () => {

@@ -12,7 +12,7 @@ describe('codeThemes', () => {
 
   it.each(Object.entries(codeThemes))(
     '%s: cada token se lee a 4.5:1 sobre el bloque',
-    async (_, name) => {
+    async (_label, name) => {
       const theme = (await bundledThemes[name]()).default;
       const background = theme.colors?.['editor.background'];
       expect(background).toBeDefined();

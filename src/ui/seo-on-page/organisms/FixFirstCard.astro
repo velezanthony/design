@@ -14,13 +14,13 @@ interface Props {
 }
 
 const { priorities, footer } = Astro.props;
-const L = CARD_LABELS.fix;
+const labels = CARD_LABELS.fix;
 ---
 
-<OverviewCard id="c-fix" title={L.title} why={L.why} wide>
+<OverviewCard id="c-fix" title={labels.title} why={labels.why} wide>
   {priorities.length === 0 ? (
     <p class="text-muted" data-empty>
-      {L.empty}
+      {labels.empty}
     </p>
   ) : (
     <ol class="flex flex-col">
@@ -35,7 +35,7 @@ const L = CARD_LABELS.fix;
             </Link>
             <SeverityTag severity={priority.severity} />
             <span class="text-sm text-muted">
-              {L.affects(priority.pages, priority.percent, priority.locales)}
+              {labels.affects(priority.pages, priority.percent, priority.locales)}
             </span>
             <CertaintyTag certainty={priority.certainty} />
           </div>
@@ -61,8 +61,8 @@ const L = CARD_LABELS.fix;
   )}
   <p class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
     {footer.problems && (
-      <Link href={footer.problems.href}>{L.problems(footer.problems.pages)}</Link>
+      <Link href={footer.problems.href}>{labels.problems(footer.problems.pages)}</Link>
     )}
-    <Link href={footer.all}>{L.all}</Link>
+    <Link href={footer.all}>{labels.all}</Link>
   </p>
 </OverviewCard>

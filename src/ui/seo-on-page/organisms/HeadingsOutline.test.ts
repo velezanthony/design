@@ -4,10 +4,10 @@ import { outline as outlineOf } from '../../../core/seo-on-page/queries/outline'
 import { render, text } from '../../../testing/render';
 import HeadingsOutline from './HeadingsOutline.astro';
 
-function h(depth: number, label = `T${depth}`) {
+function heading(depth: number, label = `T${depth}`) {
   return { depth, slug: label, text: label };
 }
-function props(headings: ReturnType<typeof h>[]) {
+function props(headings: ReturnType<typeof heading>[]) {
   return {
     headings: { counts: headingCounts(headings), outline: outlineOf(headings) },
   };
@@ -15,14 +15,14 @@ function props(headings: ReturnType<typeof h>[]) {
 
 describe('HeadingsOutline', () => {
   it('una estructura buena dice «Un H1 · sin saltos de nivel»', async () => {
-    const doc = await render(HeadingsOutline, props([h(1), h(2), h(3)]));
+    const doc = await render(HeadingsOutline, props([heading(1), heading(2), heading(3)]));
     expect(text(doc.querySelector('[data-headings-status="ok"]'))).toBe(
       '✓ Un H1 · sin saltos de nivel',
     );
   });
 
   it('una mala lista cada problema en lugar del visto bueno', async () => {
-    const doc = await render(HeadingsOutline, props([h(2), h(4)]));
+    const doc = await render(HeadingsOutline, props([heading(2), heading(4)]));
     expect(doc.querySelector('[data-headings-status="ok"]')).toBeNull();
     const status = text(doc.querySelector('[data-headings-status="problems"]'));
     expect(status).toContain('Sin H1');
@@ -30,7 +30,7 @@ describe('HeadingsOutline', () => {
   });
 
   it('el contador enseña los seis niveles y el total, y apaga los que valen cero', async () => {
-    const doc = await render(HeadingsOutline, props([h(1), h(2), h(2)]));
+    const doc = await render(HeadingsOutline, props([heading(1), heading(2), heading(2)]));
     const items = [...doc.querySelectorAll('[data-counts] li')];
     expect(items.map((item) => text(item))).toEqual([
       'H1 1',
@@ -45,7 +45,10 @@ describe('HeadingsOutline', () => {
   });
 
   it('el esquema sangra por nivel y marca el salto', async () => {
-    const doc = await render(HeadingsOutline, props([h(1, 'Uno'), h(2, 'Dos'), h(4, 'Cuatro')]));
+    const doc = await render(
+      HeadingsOutline,
+      props([heading(1, 'Uno'), heading(2, 'Dos'), heading(4, 'Cuatro')]),
+    );
     const items = [...doc.querySelectorAll('[data-outline] li')];
     expect(items.map((item) => item.hasAttribute('data-skip'))).toEqual([false, false, true]);
     expect(text(items[2]!)).toContain('Salto H2 → H4');

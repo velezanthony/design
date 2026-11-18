@@ -1,5 +1,5 @@
 ---
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 
 interface Props {
   strings: UiStrings;
@@ -21,13 +21,13 @@ const inputId = `${id}-input`;
 <div
   data-search
   data-base-url={baseUrl}
-  data-requires-build={t(strings, 'search.requiresBuild')}
+  data-requires-build={translate(strings, 'search.requiresBuild')}
   data-no-results={strings['search.noResults']}
   class:list={['docs-search relative', className]}
 >
   {/* La etiqueta solo la leen los lectores de pantalla: el placeholder y el atajo bastan a la vista. */}
   <label for={inputId} class="sr-only">
-    {t(strings, 'search.label')}
+    {translate(strings, 'search.label')}
   </label>
   <div class="relative">
     <input
@@ -36,7 +36,7 @@ const inputId = `${id}-input`;
       data-search-input
       autocomplete="off"
       aria-keyshortcuts="/"
-      placeholder={t(strings, 'search.placeholder')}
+      placeholder={translate(strings, 'search.placeholder')}
       class="docs-search-input min-h-10 w-full rounded-md border border-rule bg-canvas px-3 text-sm text-ink placeholder:text-faint focus-visible:border-accent"
     />
     {/* Pista del atajo: cuándo se ve (y el hueco que reserva) lo decide el CSS de abajo. */}

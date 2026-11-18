@@ -18,9 +18,9 @@ export function convertApiDirective(
   if (!match) return undefined;
   const lineNumber = offset + start + 1;
   let next = start + 1;
-  for (let j = start + 1; j < lines.length; j++) {
-    if (lines[j].trim() === '') continue;
-    if (indentOf(lines[j]) >= 4) next = j + 1;
+  for (let lineIndex = start + 1; lineIndex < lines.length; lineIndex++) {
+    if (lines[lineIndex].trim() === '') continue;
+    if (indentOf(lines[lineIndex]) >= 4) next = lineIndex + 1;
     else break;
   }
   const generated = resolveApi?.(match[2]);

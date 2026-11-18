@@ -85,7 +85,7 @@ export function matrixRows(entries: readonly SeoPage[], input: MatrixInput): Mat
   const bySlug = groupBySlug(entries);
   const rows = [...bySlug]
     .map(([slug, group]) => rowOf(slug, group, input))
-    .sort((a, b) => Number(a.complete) - Number(b.complete));
+    .sort((left, right) => Number(left.complete) - Number(right.complete));
   return {
     rows,
     hreflang: input.locales.length > 1,

@@ -42,7 +42,9 @@ describe('módulo virtual de la config', { timeout: VITE_STARTUP_TIMEOUT }, () =
       command: 'serve',
       mode: 'test',
     });
-    const names = (config.plugins ?? []).flat().map((p) => (p as { name?: string } | null)?.name);
+    const names = (config.plugins ?? [])
+      .flat()
+      .map((plugin) => (plugin as { name?: string } | null)?.name);
     expect(names).toContain('velezanthony-design-virtual-config');
   });
 });

@@ -26,7 +26,7 @@ describe('summarize', () => {
     const summary = summarize({ pages: [] });
     expect(summary.total).toBe(0);
     expect(Object.keys(summary.byKind).sort()).toEqual(Object.values(IssueKind).sort());
-    expect(Object.values(summary.byKind).every((n) => n === 0)).toBe(true);
+    expect(Object.values(summary.byKind).every((count) => count === 0)).toBe(true);
   });
 
   it('cuenta incidencias por tipo', () => {
@@ -172,8 +172,10 @@ describe('summarize: JSON-LD', () => {
 
     it('el porcentaje se redondea al entero más cercano', () => {
       const pages = [
-        ...Array.from({ length: 35 }, (_, i) => entry(`ok-${i}`, [])),
-        ...Array.from({ length: 3 }, (_, i) => entry(`mal-${i}`, [issue('no-h1', 'error')])),
+        ...Array.from({ length: 35 }, (_item, index) => entry(`ok-${index}`, [])),
+        ...Array.from({ length: 3 }, (_item, index) =>
+          entry(`mal-${index}`, [issue('no-h1', 'error')]),
+        ),
       ];
       expect(summarize({ pages }).health).toEqual({ healthy: 35, total: 38, percent: 92 });
     });

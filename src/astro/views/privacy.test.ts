@@ -64,13 +64,15 @@ describe('privacyView', () => {
 
   it('es indexable: canonical y hreflang, sin noindex', () => {
     const { head } = privacyView({ locale: 'en', cfg: site() });
-    expect(head.some((h) => h.attrs['name'] === 'robots')).toBe(false);
+    expect(head.some((tag) => tag.attrs['name'] === 'robots')).toBe(false);
     expect(head).toContainEqual({
       tag: 'link',
       attrs: { rel: 'canonical', href: 'https://x.dev/repo/en/privacy/' },
     });
-    const alternates = head.filter((h) => h.attrs['rel'] === 'alternate');
-    expect(alternates.map((h) => [h.attrs['hreflang'], h.attrs['href']])).toEqual([
+    const alternates = head.filter((tag) => tag.attrs['rel'] === 'alternate');
+    expect(
+      alternates.map((alternate) => [alternate.attrs['hreflang'], alternate.attrs['href']]),
+    ).toEqual([
       ['es', 'https://x.dev/repo/privacidad/'],
       ['en', 'https://x.dev/repo/en/privacy/'],
       ['x-default', 'https://x.dev/repo/privacidad/'],

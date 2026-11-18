@@ -17,7 +17,7 @@ function errorsOf(run: () => unknown): string[] {
   try {
     run();
   } catch (error) {
-    if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+    if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
     throw error;
   }
   return [];
@@ -38,7 +38,7 @@ describe('discoverPages: nativas', () => {
 
   it('el sufijo de idioma da otra página del mismo grupo', () => {
     const pages = discoverPages([native('guide/install.md'), native('guide/install.es.md')], cfg());
-    expect(pages.map((p) => [p.slug, p.locale])).toEqual([
+    expect(pages.map((page) => [page.slug, page.locale])).toEqual([
       ['guide/install', 'en'],
       ['guide/install', 'es'],
     ]);
@@ -46,7 +46,7 @@ describe('discoverPages: nativas', () => {
 
   it('index colapsa a su directorio y el de la raíz es el slug vacío', () => {
     const pages = discoverPages([native('guide/index.md'), native('index.md')], cfg());
-    expect(pages.map((p) => p.slug)).toEqual(['guide', '']);
+    expect(pages.map((page) => page.slug)).toEqual(['guide', '']);
   });
 
   it('el frontmatter se respeta: título, orden, seo y política de traducción', () => {
@@ -106,19 +106,19 @@ describe('discoverPages: nativas', () => {
   });
 
   it('el idioma por defecto no ocupa prefijo: `en.md` es una página normal', () => {
-    expect(discoverPages([native('en.md')], cfg()).map((p) => p.slug)).toEqual(['en']);
+    expect(discoverPages([native('en.md')], cfg()).map((page) => page.slug)).toEqual(['en']);
   });
 
   it('un slug parecido (`esperanza.md`, `espanol/x.md`) no colisiona', () => {
     const slugs = discoverPages([native('esperanza.md'), native('espanol/x.md')], cfg()).map(
-      (p) => p.slug,
+      (page) => page.slug,
     );
     expect(slugs).toEqual(['esperanza', 'espanol/x']);
   });
 
   it('un sitio monolingüe no tiene prefijos que reservar', () => {
     const mono = resolveConfig({ name: 'X' });
-    expect(discoverPages([native('es.md')], mono).map((p) => p.slug)).toEqual(['es']);
+    expect(discoverPages([native('es.md')], mono).map((page) => page.slug)).toEqual(['es']);
   });
 
   it('sin H1 ni título: falla nombrando el archivo', () => {
@@ -161,12 +161,12 @@ describe('discoverPages: externas', () => {
       [external('../CHANGELOG.md'), external('../CHANGELOG.es.md')],
       cfg({ external: [entry] }),
     );
-    expect(pages.map((p) => p.locale)).toEqual(['en', 'es']);
+    expect(pages.map((page) => page.locale)).toEqual(['en', 'es']);
   });
 
   it('sin hermano, queda solo el idioma por defecto', () => {
     const pages = discoverPages([external('../CHANGELOG.md')], cfg({ external: [entry] }));
-    expect(pages.map((p) => p.locale)).toEqual(['en']);
+    expect(pages.map((page) => page.locale)).toEqual(['en']);
   });
 
   it('mandan los idiomas declarados: el hermano no declarado se ignora', () => {
@@ -174,7 +174,7 @@ describe('discoverPages: externas', () => {
       [external('../CHANGELOG.md'), external('../CHANGELOG.es.md')],
       cfg({ external: [{ ...entry, locales: ['en'] }] }),
     );
-    expect(pages.map((p) => p.locale)).toEqual(['en']);
+    expect(pages.map((page) => page.locale)).toEqual(['en']);
   });
 
   it('archivo ausente (el base): falla nombrando slug y ruta', () => {
@@ -231,7 +231,7 @@ describe('discoverPages: externas', () => {
       [native('changelog.es.md'), external('../CHANGELOG.md')],
       cfg({ external: [entry] }),
     );
-    expect(pages.map((p) => [p.slug, p.locale])).toEqual([
+    expect(pages.map((page) => [page.slug, page.locale])).toEqual([
       ['changelog', 'es'],
       ['changelog', 'en'],
     ]);

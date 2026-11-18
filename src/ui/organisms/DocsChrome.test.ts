@@ -39,7 +39,9 @@ describe('DocsHeader: nav', () => {
     const doc = await header({ nav: navEntries });
     const nav = doc.querySelector('header nav[aria-label="Secciones"]')!;
     expect(
-      [...nav.querySelectorAll('a')].map((a) => text(a).replace(/\s*Enlace externo$/, '')),
+      [...nav.querySelectorAll('a')].map((anchor) =>
+        text(anchor).replace(/\s*Enlace externo$/, ''),
+      ),
     ).toEqual(['Guía', 'Changelog', 'Contribuir', 'GitHub', 'Blog']);
     const home = doc.querySelector('header a[href="/repo/es/"]')!;
     expect(home.compareDocumentPosition(nav) & 4).toBeTruthy();
@@ -170,7 +172,9 @@ describe('DocsFooter', () => {
     const link = doc.querySelector('a[href="https://github.com/x/y"]')!;
     expect(text(link)).toBe('Código');
     expect(link.getAttribute('rel')).toContain('noopener');
-    const order = [...doc.querySelectorAll('footer nav a, footer nav button')].map((n) => text(n));
+    const order = [...doc.querySelectorAll('footer nav a, footer nav button')].map((button) =>
+      text(button),
+    );
     expect(order).toEqual(['Código']);
   });
 
@@ -181,7 +185,7 @@ describe('DocsFooter', () => {
       footer: { license: { label: 'MIT', href: 'https://x.dev/LICENSE' }, links: [] },
     });
     const legal = doc.querySelector('[data-footer-legal]')!;
-    expect([...legal.querySelectorAll('li')].map((n) => text(n).replace(/^·/, ''))).toEqual([
+    expect([...legal.querySelectorAll('li')].map((item) => text(item).replace(/^·/, ''))).toEqual([
       'Licencia MIT',
       'Política de privacidad',
       'Preferencias de cookies',
@@ -189,7 +193,7 @@ describe('DocsFooter', () => {
     expect(legal.querySelector('a[href="https://x.dev/LICENSE"]')).not.toBeNull();
     expect(text(legal.querySelector('a[href="/privacidad/"]'))).toBe('Política de privacidad');
     const dots = [...legal.querySelectorAll('span[aria-hidden="true"]')];
-    expect(dots.map((n) => text(n))).toEqual(['·', '·']);
+    expect(dots.map((dot) => text(dot))).toEqual(['·', '·']);
     expect(legal.querySelector('nav')).toBeNull();
     expect(doc.querySelectorAll('footer nav')).toHaveLength(0);
   });
@@ -280,12 +284,18 @@ describe('DocsHeader: ancho de lectura', () => {
     const doc = await header({ layoutToggles: true, layoutWidth: 'full' });
     const group = doc.querySelector('header [role="group"][aria-label="Ancho de la página"]')!;
     const buttons = [...group.querySelectorAll('button[data-layout-width]')];
-    expect(buttons.map((b) => b.getAttribute('data-layout-width'))).toEqual(['reading', 'full']);
-    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
+    expect(buttons.map((button) => button.getAttribute('data-layout-width'))).toEqual([
+      'reading',
+      'full',
+    ]);
+    expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
     // Solo icono: el nombre va en `aria-label` y el mismo texto en `title`, como pista al pasar.
-    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual(['Lectura', 'Ancho']);
-    expect(buttons.map((b) => b.getAttribute('title'))).toEqual(['Lectura', 'Ancho']);
-    expect(buttons.map((b) => text(b))).toEqual(['', '']);
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Lectura',
+      'Ancho',
+    ]);
+    expect(buttons.map((button) => button.getAttribute('title'))).toEqual(['Lectura', 'Ancho']);
+    expect(buttons.map((button) => text(button))).toEqual(['', '']);
     for (const button of buttons) expect(button.getAttribute('type')).toBe('button');
   });
 

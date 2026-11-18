@@ -36,28 +36,36 @@ const all = [
 ];
 
 function route(routes: DocRoute[], slug: string, locale: string) {
-  return routes.find((r) => r.slug === slug && r.locale === locale)!;
+  return routes.find((docRoute) => docRoute.slug === slug && docRoute.locale === locale)!;
 }
 
 describe('docRoutes', () => {
   it('una ruta por página real; el idioma por defecto va sin prefijo y la portada es undefined', () => {
     const routes = docRoutes(all, site());
-    expect(routes.map((r) => r.param)).toEqual([undefined, 'es', 'guide', 'es/guide', 'only-en']);
-    expect(routes.every((r) => r.kind === 'page')).toBe(true);
+    expect(routes.map((docRoute) => docRoute.param)).toEqual([
+      undefined,
+      'es',
+      'guide',
+      'es/guide',
+      'only-en',
+    ]);
+    expect(routes.every((docRoute) => docRoute.kind === 'page')).toBe(true);
   });
 
   it('con política link u omit no hay rutas de reserva', () => {
-    expect(docRoutes(all, site()).filter((r) => r.kind === 'fallback')).toHaveLength(0);
+    expect(docRoutes(all, site()).filter((docRoute) => docRoute.kind === 'fallback')).toHaveLength(
+      0,
+    );
     expect(
       docRoutes(all, site({ translations: { missing: 'omit' } })).filter(
-        (r) => r.kind === 'fallback',
+        (docRoute) => docRoute.kind === 'fallback',
       ),
     ).toHaveLength(0);
   });
 
   it('con política fallback: una ruta de reserva por idioma ausente, del contenido original', () => {
     const routes = docRoutes(all, site({ translations: { missing: 'fallback' } }));
-    const fallback = routes.filter((r) => r.kind === 'fallback');
+    const fallback = routes.filter((docRoute) => docRoute.kind === 'fallback');
     expect(fallback).toHaveLength(1);
     expect(fallback[0]).toMatchObject({
       param: 'es/only-en',
@@ -70,7 +78,9 @@ describe('docRoutes', () => {
 
   it('sitio monolingüe: sin prefijos ni reservas', () => {
     const mono = site({ locales: ['en'] });
-    expect(docRoutes([doc('guide', 'en')], mono).map((r) => r.param)).toEqual(['guide']);
+    expect(docRoutes([doc('guide', 'en')], mono).map((docRoute) => docRoute.param)).toEqual([
+      'guide',
+    ]);
   });
 });
 
@@ -96,7 +106,7 @@ describe('docView: página real', () => {
 
   it('head: título, canonical absoluto, hreflang y og:locale', () => {
     function find(tag: string, key: string, value: string) {
-      return view.head.find((h) => h.tag === tag && h.attrs[key] === value);
+      return view.head.find((headTag) => headTag.tag === tag && headTag.attrs[key] === value);
     }
     expect(view.head[0]).toMatchObject({ tag: 'title' });
     expect(find('link', 'rel', 'canonical')!.attrs['href']).toBe('https://x.dev/repo/es/guide/');
@@ -113,9 +123,9 @@ describe('docView: edición', () => {
   it('editFile es el editPath de la entrada; sin editUrl no hay enlace', () => {
     const cfg = site({ editUrl: 'https://github.com/o/r/edit/main' });
     const data = [doc('guide', 'en', { editPath: 'docs/guide.md' })];
-    const v = docView({ route: docRoutes(data, cfg)[0]!, data, cfg });
-    expect(v.editUrl).toBe('https://github.com/o/r/edit/main');
-    expect(v.editFile).toBe('docs/guide.md');
+    const pageView = docView({ route: docRoutes(data, cfg)[0]!, data, cfg });
+    expect(pageView.editUrl).toBe('https://github.com/o/r/edit/main');
+    expect(pageView.editFile).toBe('docs/guide.md');
     const none = site();
     expect(docView({ route: docRoutes(data, none)[0]!, data, cfg: none }).editUrl).toBeUndefined();
   });
@@ -134,8 +144,8 @@ describe('docView: noindex', () => {
 
   it('robots noindex, no indexable, y sin hreflang entre las gemelas', () => {
     expect(view.indexable).toBe(false);
-    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
-    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
+    expect(view.head.some((headTag) => headTag.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((headTag) => headTag.attrs['hreflang'])).toBe(false);
   });
 
   it('sigue siendo alcanzable desde el selector de idioma', () => {
@@ -159,11 +169,11 @@ describe('docView: ruta de reserva', () => {
   });
 
   it('head: noindex y canonical al ORIGINAL, sin alternates', () => {
-    expect(view.head.find((h) => h.attrs['rel'] === 'canonical')!.attrs['href']).toBe(
+    expect(view.head.find((headTag) => headTag.attrs['rel'] === 'canonical')!.attrs['href']).toBe(
       'https://x.dev/repo/only-en/',
     );
-    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
-    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
+    expect(view.head.some((headTag) => headTag.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((headTag) => headTag.attrs['hreflang'])).toBe(false);
   });
 
   it('selector de idioma sin gemela en es; edición apunta al archivo original', () => {
@@ -183,7 +193,7 @@ describe('docView: dimensiones de la imagen', () => {
       .head;
   }
   function content(tags: ReturnType<typeof head>, property: string) {
-    return tags.find((h) => h.attrs['property'] === property)?.attrs['content'];
+    return tags.find((headTag) => headTag.attrs['property'] === property)?.attrs['content'];
   }
 
   it('og:image:width/height salen de los tamaños leídos', () => {
@@ -249,13 +259,13 @@ describe('docView: nav con secciones', () => {
 
   it('sin `nav` la lista es vacía y la barra lateral es la entera', () => {
     const plain = site({ locales: ['en'] });
-    const v = docView({
+    const pageView = docView({
       route: route(docRoutes(pages, plain), 'users/b', 'en'),
       data: pages,
       cfg: plain,
     });
-    expect(v.nav).toEqual([]);
-    expect(v.sidebar.length).toBeGreaterThan(1);
+    expect(pageView.nav).toEqual([]);
+    expect(pageView.sidebar.length).toBeGreaterThan(1);
   });
 });
 
@@ -285,8 +295,12 @@ describe('docView: footer', () => {
 
   it('sin config del footer solo queda el autor', () => {
     const plain = site();
-    const v = docView({ route: route(docRoutes(pages, plain), '', 'en'), data: pages, cfg: plain });
-    expect(v.footer).toEqual({
+    const pageView = docView({
+      route: route(docRoutes(pages, plain), '', 'en'),
+      data: pages,
+      cfg: plain,
+    });
+    expect(pageView.footer).toEqual({
       author: { name: 'Anthony Velez', href: 'https://velezanthony.github.io/' },
       links: [],
     });

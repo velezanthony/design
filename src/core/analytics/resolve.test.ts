@@ -12,7 +12,7 @@ function fails(run: () => unknown): string[] {
   try {
     run();
   } catch (error) {
-    if (error instanceof DocsErrors) return error.errors.map((e) => e.describe());
+    if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
     if (error instanceof DocsError) return [error.describe()];
     throw error;
   }

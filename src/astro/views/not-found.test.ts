@@ -55,10 +55,10 @@ describe('notFoundView', () => {
       tag: 'title',
       content: expect.stringContaining('Page not found'),
     });
-    expect(view.head.some((h) => h.attrs['name'] === 'robots')).toBe(true);
-    expect(view.head.some((h) => h.attrs['rel'] === 'canonical')).toBe(false);
-    expect(view.head.some((h) => h.attrs['hreflang'])).toBe(false);
-    expect(view.others.map((o) => o.lang)).toEqual(['es']);
+    expect(view.head.some((tag) => tag.attrs['name'] === 'robots')).toBe(true);
+    expect(view.head.some((tag) => tag.attrs['rel'] === 'canonical')).toBe(false);
+    expect(view.head.some((tag) => tag.attrs['hreflang'])).toBe(false);
+    expect(view.others.map((other) => other.lang)).toEqual(['es']);
     expect(view.others[0]).toMatchObject({
       title: 'Perdido | Anthony Velez Tapia',
       homeHref: '/repo/es/',

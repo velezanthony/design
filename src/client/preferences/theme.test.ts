@@ -67,9 +67,9 @@ describe('syncToggle', () => {
   }
 
   it.each([true, false])('con modo oscuro %s', (dark) => {
-    const b = button();
-    syncToggle(b, dark);
-    expect(b.getAttribute('aria-pressed')).toBe(String(dark));
+    const toggle = button();
+    syncToggle(toggle, dark);
+    expect(toggle.getAttribute('aria-pressed')).toBe(String(dark));
   });
 });
 
@@ -106,8 +106,8 @@ describe('themeBootstrapScript', () => {
   it('aplica el tema guardado y el color de la barra', () => {
     const document = run(memory({ theme: 'dark' }));
     expect(document.documentElement.dataset.theme).toBe('dark');
-    const contents = [...document.querySelectorAll('meta[name="theme-color"]')].map((m) =>
-      m.getAttribute('content'),
+    const contents = [...document.querySelectorAll('meta[name="theme-color"]')].map((meta) =>
+      meta.getAttribute('content'),
     );
     expect(contents).toEqual(['#0e1111', '#0e1111']);
   });
@@ -163,20 +163,20 @@ describe('initTheme', () => {
     const listeners: (() => void)[] = [];
     const system = {
       matches: opts.systemDark ?? false,
-      addEventListener: (_: string, cb: () => void) => void listeners.push(cb),
+      addEventListener: (_type: string, cb: () => void) => void listeners.push(cb),
     };
     const storage = opts.storage ?? memory();
     initTheme({ doc: document, storage, system, colors, motion: { matches: !!opts.reduced } });
     const buttons = [...document.querySelectorAll('[data-theme-toggle]')];
-    function click(i = 0) {
-      return buttons[i]!.dispatchEvent(new document.defaultView!.Event('click'));
+    function click(index = 0) {
+      return buttons[index]!.dispatchEvent(new document.defaultView!.Event('click'));
     }
     return { document, storage, buttons, click, system, listeners, seen };
   }
 
   it('refleja el tema del sistema en aria-pressed al arrancar', () => {
     const { buttons } = setup({ systemDark: true });
-    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
+    expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
   });
 
   it('al pulsar cambia el tema, la barra, lo guarda y sincroniza todos los botones', () => {
@@ -187,7 +187,7 @@ describe('initTheme', () => {
     expect(document.querySelector('meta[name="theme-color"]')!.getAttribute('content')).toBe(
       colors.dark,
     );
-    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
+    expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['true', 'true']);
     click(1);
     expect(document.documentElement.dataset.theme).toBe('light');
     expect(storage.getItem('theme')).toBe('light');

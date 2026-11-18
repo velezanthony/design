@@ -14,15 +14,15 @@ describe('mockedAstroContent', () => {
   it('getCollection devuelve las entradas con su id y datos', async () => {
     const { getCollection } = mockedAstroContent({ docs: [...docs] });
     const entries = await getCollection('docs');
-    expect(entries.map((e) => e.id)).toEqual(['en/index', 'es/guide']);
+    expect(entries.map((entry) => entry.id)).toEqual(['en/index', 'es/guide']);
     expect(entries[1]?.data.title).toBe('Guía');
     expect(entries[1]?.body).toBe('# Guía');
   });
 
   it('getCollection acepta un filtro', async () => {
     const { getCollection } = mockedAstroContent({ docs: [...docs] });
-    const entries = await getCollection('docs', (e) => e.data.locale === 'en');
-    expect(entries.map((e) => e.id)).toEqual(['en/index']);
+    const entries = await getCollection('docs', (entry) => entry.data.locale === 'en');
+    expect(entries.map((entry) => entry.id)).toEqual(['en/index']);
   });
 
   it('getEntry encuentra por id y devuelve undefined si no existe', async () => {

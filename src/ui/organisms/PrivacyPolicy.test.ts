@@ -18,8 +18,8 @@ describe('PrivacyPolicy', () => {
   it('un h1 y un h2 con ancla por sección', async () => {
     const doc = await render(PrivacyPolicy, props('es'));
     expect(doc.querySelectorAll('h1')).toHaveLength(1);
-    expect([...doc.querySelectorAll('h2')].map((h) => h.id)).toEqual(
-      privacyCopy('es', controller).map((s) => s.id),
+    expect([...doc.querySelectorAll('h2')].map((heading) => heading.id)).toEqual(
+      privacyCopy('es', controller).map((section) => section.id),
     );
   });
 

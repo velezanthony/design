@@ -1,6 +1,6 @@
 ---
 import Link from '../atoms/Link.astro';
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import SearchBox from './SearchBox.astro';
 
 interface Props {
@@ -16,12 +16,12 @@ const { strings, homeHref, baseUrl } = Astro.props;
 
 {/* Los textos `notFound.*` vienen del catálogo (con los overrides del consumidor ya fusionados). */}
 <section class="mx-auto max-w-measure py-16">
-  <h1 class="text-3xl font-semibold text-ink">{t(strings, 'notFound.title')}</h1>
-  <p class="mt-4 text-muted">{t(strings, 'notFound.body')}</p>
+  <h1 class="text-3xl font-semibold text-ink">{translate(strings, 'notFound.title')}</h1>
+  <p class="mt-4 text-muted">{translate(strings, 'notFound.body')}</p>
   <SearchBox strings={strings} baseUrl={baseUrl} class="mt-8" />
   <p class="mt-8">
     <Link href={homeHref} variant="action">
-      {t(strings, 'notFound.home')}
+      {translate(strings, 'notFound.home')}
     </Link>
   </p>
 </section>

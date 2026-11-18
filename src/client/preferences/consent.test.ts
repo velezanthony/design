@@ -143,7 +143,9 @@ describe('domainsOf', () => {
 describe('analyticsCookiesToDelete', () => {
   it('encuentra _ga y _ga_<contenedor>, y nada más', () => {
     const jar = 'theme=dark; _ga=GA1.1.1; _ga_ABC123=GS2.1; _gat=1; other_ga=2; _gid=3';
-    const names = analyticsCookiesToDelete(jar, 'example.com').map((c) => c.split('=')[0]);
+    const names = analyticsCookiesToDelete(jar, 'example.com').map(
+      (cookie) => cookie.split('=')[0],
+    );
     expect([...new Set(names)]).toEqual(['_ga', '_ga_ABC123']);
   });
 
@@ -154,8 +156,8 @@ describe('analyticsCookiesToDelete', () => {
       expect(cookie).toContain('expires=Thu, 01 Jan 1970 00:00:00 GMT');
       expect(cookie).toContain('path=/');
     }
-    expect(cookies.some((c) => !c.includes('domain='))).toBe(true);
-    expect(cookies.some((c) => c.includes('domain=.example.com'))).toBe(true);
+    expect(cookies.some((cookie) => !cookie.includes('domain='))).toBe(true);
+    expect(cookies.some((cookie) => cookie.includes('domain=.example.com'))).toBe(true);
   });
 
   it('es vacío si el tarro no tiene ninguna', () => {
@@ -273,7 +275,7 @@ describe('initConsent', () => {
     click('[data-consent-reject]');
     expect(readConsent(storage)).toBe('denied');
     expect(written.length).toBeGreaterThan(0);
-    expect(written.every((c) => c.includes('1970'))).toBe(true);
+    expect(written.every((cookie) => cookie.includes('1970'))).toBe(true);
     expect(reload).toHaveBeenCalledOnce();
   });
 

@@ -55,13 +55,13 @@ describe('DocsLayout: documento', () => {
 
   it('script previo al pintado con el tema guardado y theme-color por esquema', async () => {
     const doc = await page();
-    const inline = [...doc.querySelectorAll('head script')].find((s) =>
-      s.textContent?.includes('localStorage'),
+    const inline = [...doc.querySelectorAll('head script')].find((script) =>
+      script.textContent?.includes('localStorage'),
     );
     expect(inline).toBeDefined();
     expect(inline!.getAttribute('type')).not.toBe('module');
     const metas = [...doc.querySelectorAll('head meta[name="theme-color"]')];
-    expect(metas.map((m) => m.getAttribute('media'))).toEqual([
+    expect(metas.map((meta) => meta.getAttribute('media'))).toEqual([
       '(prefers-color-scheme: light)',
       '(prefers-color-scheme: dark)',
     ]);
@@ -240,8 +240,8 @@ describe('DocsLayout: columnas plegables y ancho', () => {
   });
 
   it('el script previo al pintado restaura el estado guardado', async () => {
-    const inline = [...(await page()).querySelectorAll('head script')].find((s) =>
-      s.textContent?.includes('docs:layout'),
+    const inline = [...(await page()).querySelectorAll('head script')].find((script) =>
+      script.textContent?.includes('docs:layout'),
     );
     expect(inline).toBeDefined();
   });
@@ -256,8 +256,8 @@ describe('DocsLayout: columnas plegables y ancho', () => {
 
     it('no emite el script de restauración: el estado guardado se ignora', async () => {
       const doc = await page({ layout: layout({ toggles: false }) });
-      const inline = [...doc.querySelectorAll('head script')].find((s) =>
-        s.textContent?.includes('docs:layout'),
+      const inline = [...doc.querySelectorAll('head script')].find((script) =>
+        script.textContent?.includes('docs:layout'),
       );
       expect(inline).toBeUndefined();
     });

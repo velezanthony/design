@@ -75,10 +75,17 @@ export interface ThemeEnv {
  */
 export function revealVars(button: Element, win: Pick<Window, 'innerWidth' | 'innerHeight'>) {
   const rect = button.getBoundingClientRect();
-  const x = rect.left + rect.width / 2;
-  const y = rect.top + rect.height / 2;
-  const radius = Math.hypot(Math.max(x, win.innerWidth - x), Math.max(y, win.innerHeight - y));
-  return { '--reveal-x': `${x}px`, '--reveal-y': `${y}px`, '--reveal-r': `${radius}px` };
+  const centreX = rect.left + rect.width / 2;
+  const centreY = rect.top + rect.height / 2;
+  const radius = Math.hypot(
+    Math.max(centreX, win.innerWidth - centreX),
+    Math.max(centreY, win.innerHeight - centreY),
+  );
+  return {
+    '--reveal-x': `${centreX}px`,
+    '--reveal-y': `${centreY}px`,
+    '--reveal-r': `${radius}px`,
+  };
 }
 
 /** Cablea los botones `[data-theme-toggle]`: cambian el tema, la barra y lo recuerdan. */

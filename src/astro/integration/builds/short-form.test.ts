@@ -24,7 +24,7 @@ describe('sitio monolingüe', () => {
 
   it('no se inyecta ninguna ruta /<locale>/404', async () => {
     const entries = await readdir(site.dist, { withFileTypes: true });
-    for (const entry of entries.filter((e) => e.isDirectory())) {
+    for (const entry of entries.filter((dirent) => dirent.isDirectory())) {
       const inner = await readdir(resolve(site.dist, entry.name));
       expect(inner, `dist/${entry.name}/`).not.toContain('404');
     }

@@ -1,5 +1,5 @@
 ---
-import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 
 interface Props {
   strings: UiStrings;
@@ -7,7 +7,7 @@ interface Props {
 }
 
 const { strings, class: className } = Astro.props;
-const label = t(strings, 'theme.toggle');
+const label = translate(strings, 'theme.toggle');
 ---
 
 {/*

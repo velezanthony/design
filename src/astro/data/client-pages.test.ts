@@ -12,7 +12,7 @@ function route(pattern: string, params: string[] = []): SiteRoute {
     entrypoint: `src/pages${pattern}.astro`,
     params,
     generate: (data: Record<string, string | undefined> = {}) =>
-      `${pattern.replace(/\[(\w+)\]/g, (_, name: string) => data[name] ?? '')}/`,
+      `${pattern.replace(/\[(\w+)\]/g, (_match, name: string) => data[name] ?? '')}/`,
   };
 }
 

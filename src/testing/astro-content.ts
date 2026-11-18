@@ -24,6 +24,6 @@ export function mockedAstroContent({ docs }: { docs: DocsInput[] }) {
   return {
     getCollection: async (_collection: 'docs', filter?: (entry: MockEntry) => boolean) =>
       filter ? entries.filter(filter) : [...entries],
-    getEntry: async (_collection: 'docs', id: string) => entries.find((e) => e.id === id),
+    getEntry: async (_collection: 'docs', id: string) => entries.find((entry) => entry.id === id),
   };
 }

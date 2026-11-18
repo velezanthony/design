@@ -57,7 +57,9 @@ describe('coverage', () => {
   });
 
   it('con muchas incompletas recorta la tabla y dice cuántas quedan fuera', () => {
-    const pages = Array.from({ length: MAX_INCOMPLETE_ROWS + 3 }, (_, n) => onlyEn(`p${n}`));
+    const pages = Array.from({ length: MAX_INCOMPLETE_ROWS + 3 }, (_item, index) =>
+      onlyEn(`p${index}`),
+    );
     const result = covered(pages);
     expect(result.incomplete).toHaveLength(MAX_INCOMPLETE_ROWS);
     expect(result.moreIncomplete).toBe(3);
