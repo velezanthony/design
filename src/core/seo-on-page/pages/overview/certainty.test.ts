@@ -1,0 +1,28 @@
+import { describe, expect, it } from 'vitest';
+import { IssueKind } from '../../tree/types';
+import { certaintyOf } from './certainty';
+
+describe('certaintyOf', () => {
+  it('las comprobaciones de longitud son heurística: Google no da un límite de caracteres', () => {
+    for (const kind of [
+      IssueKind.TITLE_TOO_LONG,
+      IssueKind.TITLE_TOO_SHORT,
+      IssueKind.DESCRIPTION_TOO_LONG,
+      IssueKind.DESCRIPTION_TOO_SHORT,
+    ]) {
+      expect(certaintyOf(kind)).toBe('heuristic');
+    }
+  });
+
+  it('el resto son reglas: un hecho comprobable (duplicado, ausente, sin H1)', () => {
+    const heuristics = new Set([
+      'title-too-long',
+      'title-too-short',
+      'description-too-long',
+      'description-too-short',
+    ]);
+    for (const kind of Object.values(IssueKind).filter((k) => !heuristics.has(k))) {
+      expect(certaintyOf(kind)).toBe('rule');
+    }
+  });
+});

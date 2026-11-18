@@ -1,3 +1,5 @@
+import type { Certainty } from '../../core/seo-on-page/pages/overview/certainty';
+import type { SiteFile, SiteFileId, SiteFileState } from '../../core/seo-on-page/site-files';
 import type { HaveCell, HaveState } from '../../core/seo-on-page/pages/listing/have';
 import type { HreflangState, MatrixState } from '../../core/seo-on-page/pages/listing/matrix';
 import type { ListingTable } from '../../core/seo-on-page/pages/listing/model';
@@ -319,3 +321,212 @@ export function haveCellText(column: HaveColumn, cell: HaveCell): string {
   const word = HAVE_LABELS.states[state].text;
   return detail ? `${word} ${detail}` : word;
 }
+
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+/** «en», «en y es», «en, es y fr». */
+const listOf = (items: readonly string[]) =>
+  new Intl.ListFormat('es', { style: 'long', type: 'conjunction' }).format(items);
+
+/** Un porcentaje con espacio duro: nunca queda el «%» solo en la línea siguiente. */
+export const percentText = (percent: number) => `${percent}\u00a0%`;
+
+/** La pantalla de Resumen: su frase de apertura, los indicadores y los títulos de cada tarjeta. */
+export const OVERVIEW_LABELS = {
+  lede: (siteName: string, pages: number, locales: readonly string[]) =>
+    `${siteName} · ${plural(pages, 'página', 'páginas')} en ${listOf(locales)}. Comprobado al guardar.`,
+  kpis: {
+    region: 'Indicadores',
+    health: {
+      label: 'Salud',
+      formula: (healthy: number, total: number) =>
+        `${healthy} sin errores ni avisos ÷ ${plural(total, 'página', 'páginas')}`,
+      note: 'Los informativos no la bajan: son mejoras, no fallos.',
+    },
+    pages: {
+      label: 'Páginas',
+      sub: (entries: number) => `${plural(entries, 'entrada', 'entradas')} página + idioma`,
+    },
+    locales: { label: 'Idiomas' },
+    problems: {
+      label: 'Con problemas',
+      sub: (errors: number, warnings: number, entries: number) =>
+        `${plural(errors, 'error', 'errores')} · ${warnings} con avisos (${plural(entries, 'entrada', 'entradas')})`,
+    },
+    info: {
+      label: 'Informativas',
+      none: 'ninguna',
+      sub: (info: { pages: number; entries: number; kinds: IssueKind[] }, total: number) => {
+        const [only] = info.kinds;
+        const what =
+          info.kinds.length === 1 && only
+            ? KIND_LABELS[only].toLowerCase()
+            : `${info.kinds.length} tipos`;
+        const scope = info.pages === total ? 'todas' : `${info.pages} de ${total}`;
+        return `${scope}: ${what} (${plural(info.entries, 'entrada', 'entradas')})`;
+      },
+    },
+  },
+};
+
+/** Cada tarjeta: título y la línea de «por qué importa». */
+export const CARD_LABELS = {
+  fix: {
+    title: 'Qué arreglar primero',
+    why: 'Ordenado por gravedad y por cuántas páginas toca. Los avisos cambian cómo te ve Google; lo informativo es deuda.',
+    empty: 'Nada que arreglar.',
+    affects: (pages: number, percent: number, locales: readonly string[]) =>
+      `${plural(pages, 'página', 'páginas')} (${percentText(percent)}) · ${listOf(locales)}`,
+    problems: (pages: number) =>
+      `Ver ${pages === 1 ? 'la página' : `las ${pages} páginas`} con problemas`,
+    all: 'Ver todas las páginas',
+  },
+  coverage: {
+    title: 'Cobertura de idiomas',
+    why: 'Una página sin traducir manda al lector de ese idioma a otro idioma o a un 404.',
+    complete: (locales: number) => (locales === 2 ? 'en los dos idiomas' : 'en todos los idiomas'),
+    partial: (locales: number) => (locales === 2 ? 'en uno solo' : 'sin algún idioma'),
+    bar: (complete: number, pages: number) =>
+      `${complete} de ${plural(pages, 'página', 'páginas')} en todos los idiomas`,
+    caption: 'Matriz de traducciones: solo las páginas incompletas',
+    more: (count: number) => `${plural(count, 'página más', 'páginas más')}`,
+    moreIncomplete: (count: number) => `y ${plural(count, 'incompleta más', 'incompletas más')}`,
+    allComplete: 'completas',
+    note: 'Google ignora el hreflang que no tiene enlace de vuelta: si EN apunta a ES, ES tiene que apuntar a EN.',
+    reciprocal: (complete: number) =>
+      complete === 1
+        ? ' Hoy la página completa es recíproca.'
+        : ` Hoy las ${complete} páginas completas son recíprocas.`,
+    matrix: 'Ver la matriz completa',
+  },
+  indexing: {
+    title: 'Indexación',
+    why: 'Lo que lleva `noindex` no sale en Google; el sitemap le dice qué rastrear.',
+    indexable: 'indexables',
+    noindex: 'con noindex',
+    sitemap: 'URLs en el sitemap',
+    ofEntries: (entries: number) => `/ ${plural(entries, 'entrada', 'entradas')}`,
+    canonical: 'Canonical propio',
+    reasons: 'Por qué no se indexa',
+    reasonsUnit: 'entradas página + idioma',
+    reasonLabels: {
+      noindex: '`noindex` declarado',
+      fallback: 'Respaldo de traducción',
+      outOfSitemap: 'Fuera del sitemap',
+    },
+    note: '«No indexada» no siempre es un fallo: un borrador o un respaldo pueden estarlo a propósito. Solo hay que arreglarla si debería salir en Google.',
+  },
+  schemas: {
+    title: 'Schemas (JSON-LD)',
+    why: 'Los datos estructurados dicen a los buscadores qué es la página, no solo qué pone.',
+    scopes: { site: 'Todo el sitio', home: 'Portada', pages: undefined },
+    unit: 'pág.',
+    none: 'Sin schema',
+  },
+  kinds: {
+    title: 'Tipos de problema',
+    why: 'Gravedad (cuánto importa) y alcance (a cuántas páginas toca) son cosas distintas: se ven por separado.',
+    caption: 'Tipos de problema con gravedad, certeza y páginas afectadas',
+    type: 'Tipo',
+    severity: 'Gravedad',
+    pages: 'Páginas',
+    empty: 'Ningún tipo de problema.',
+    note: 'Las longitudes son una recomendación (heurística): Google no da un límite, recorta según el ancho de la pantalla.',
+    clean: (count: number) =>
+      `${plural(count, 'comprobación sin problemas', 'comprobaciones sin problemas')}`,
+  },
+  files: {
+    title: 'Ficheros del sitio',
+    why: 'Lo que leen los buscadores y los agentes además de las páginas. Que falte uno opcional no es un fallo: aquí solo se dice si está y quién lo pone.',
+    open: 'Abrir',
+  },
+  soon: {
+    title: 'Próximamente',
+    why: 'Comprobaciones que aún no se hacen. Están aquí para que nadie dé por hecho que pasan.',
+    pending: 'pendiente',
+    items: [
+      'Canonical coherente entre idiomas',
+      'Enlaces internos a páginas noindex',
+      'Páginas huérfanas (sin enlaces entrantes)',
+      'Texto alternativo de las imágenes',
+      'Imagen OG de 1200×630',
+    ],
+  },
+};
+
+/** Regla (un hecho) o heurística (una recomendación): lo que dice la etiqueta y su ayuda. */
+export const CERTAINTY_LABELS: Record<Certainty, { text: string; hint: string }> = {
+  rule: { text: 'regla', hint: 'Un hecho comprobable: o se cumple o no' },
+  heuristic: {
+    text: 'heurística',
+    hint: 'Una recomendación: Google no fija este límite, recorta según el ancho',
+  },
+};
+
+/** Cómo se dice quién pone cada fichero del sitio. */
+export const FILE_STATE_LABELS: Record<
+  SiteFileState,
+  { glyph: string; text: string; tone: 'live' | 'faint' | 'neutral' }
+> = {
+  generated: { glyph: '✓', text: 'Lo genera la librería', tone: 'live' },
+  present: { glyph: '✓', text: 'Lo pone el sitio', tone: 'live' },
+  absent: { glyph: '—', text: 'No hay', tone: 'faint' },
+  'not-applicable': { glyph: '', text: 'No aplica', tone: 'neutral' },
+  'build-only': { glyph: '', text: 'Solo en la build', tone: 'neutral' },
+};
+
+/**
+ * Cada fichero: cómo se llama y qué es (con `código` entre comillas inversas). Los textos son de la
+ * interfaz y no de los datos: ausente un robots.txt o un llms.txt no es un problema, y aquí se dice.
+ */
+export const FILE_LABELS: Record<
+  SiteFileId,
+  { name: string; describe: (file: SiteFile, locales: readonly string[]) => string; tag?: string }
+> = {
+  sitemap: {
+    name: 'sitemap.xml',
+    describe: (file, locales) =>
+      `${file.urls ?? 0} URLs (${locales.join(' + ')}), sin las noindex ni las 404. Le dice a Google qué rastrear.`,
+  },
+  robots: {
+    name: 'robots.txt',
+    describe: (file) =>
+      file.state === 'present'
+        ? 'Lo pone el sitio en `public/robots.txt`. Conviene que apunte al sitemap con `Sitemap:`.'
+        : 'Opcional. Sin él los buscadores rastrean todo. Si lo añades en `public/robots.txt`, que apunte al sitemap con `Sitemap:`.',
+    tag: 'opcional',
+  },
+  llms: {
+    name: 'llms.txt',
+    describe: (file) =>
+      file.state === 'present'
+        ? 'Lo pone el sitio en `public/llms.txt`. Formato propuesto para agentes de IA; Google no lo usa.'
+        : 'Opcional. Formato propuesto para agentes de IA; Google no lo usa. Iría en `public/llms.txt`.',
+    tag: 'opcional',
+  },
+  'not-found': {
+    name: '404',
+    describe: (file) =>
+      `Una por idioma (${(file.links ?? []).map((link) => `\`${link.href}\``).join(', ')}), con \`noindex\` y sin schema.`,
+  },
+  favicon: {
+    name: 'favicon',
+    describe: (file) =>
+      file.state === 'present'
+        ? `El del sitio, en \`${file.path}\`.`
+        : `En \`${file.path}\`, salvo que el sitio ponga el suyo.`,
+  },
+  privacy: {
+    name: 'Privacidad',
+    describe: (file) =>
+      file.state === 'generated'
+        ? `Una por idioma (${(file.links ?? []).map((link) => `\`${link.href}\``).join(', ')}): la config pide la página propia.`
+        : 'Solo se genera con la página de privacidad propia (`privacy.page`). Este sitio no la pide.',
+    tag: 'sin página propia',
+  },
+  pagefind: {
+    name: 'pagefind/',
+    describe: () => 'Índice del buscador. No existe en desarrollo; se crea al hacer `astro build`.',
+    tag: 'build',
+  },
+};

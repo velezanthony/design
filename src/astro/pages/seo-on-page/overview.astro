@@ -1,24 +1,33 @@
 ---
 /* Contenedor de la vista general del panel SEO on page. Solo existe con `astro dev` (la
-   integración no inyecta la ruta en la build). Lee la colección por el adaptador y pasa a la UI
-   los datos ya calculados. */
+   integración no inyecta la ruta en la build). Lee la colección y el disco por el adaptador y pasa
+   a la UI los datos ya calculados. */
 import { Font } from 'astro:assets';
 import { overviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
-import Link from '../../../ui/atoms/Link.astro';
-import IssuesByKind from '../../../ui/seo-on-page/organisms/IssuesByKind.astro';
-import IssuesBySeverity from '../../../ui/seo-on-page/organisms/IssuesBySeverity.astro';
-import OverviewStats from '../../../ui/seo-on-page/organisms/OverviewStats.astro';
-import SchemasSummary from '../../../ui/seo-on-page/organisms/SchemasSummary.astro';
+import CoverageCard from '../../../ui/seo-on-page/organisms/CoverageCard.astro';
+import FixFirstCard from '../../../ui/seo-on-page/organisms/FixFirstCard.astro';
+import IndexingCard from '../../../ui/seo-on-page/organisms/IndexingCard.astro';
+import KindsCard from '../../../ui/seo-on-page/organisms/KindsCard.astro';
+import OverviewKpis from '../../../ui/seo-on-page/organisms/OverviewKpis.astro';
+import SchemasCard from '../../../ui/seo-on-page/organisms/SchemasCard.astro';
+import SiteFilesCard from '../../../ui/seo-on-page/organisms/SiteFilesCard.astro';
+import SoonCard from '../../../ui/seo-on-page/organisms/SoonCard.astro';
 import PanelIntro from '../../../ui/seo-on-page/molecules/PanelIntro.astro';
+import { OVERVIEW_LABELS } from '../../../ui/seo-on-page/labels';
 import { urlPolicyOf } from '../../views/pages';
 import { siteConfig } from '../../data/site-config';
-import { loadDocData, loadSeoTree } from '../../data/seo-on-page/adapter';
+import { loadDocData, loadSeoTree, loadSiteFiles } from '../../data/seo-on-page/adapter';
 import { devHrefs } from '../../views/seo-on-page/hrefs';
 import { panelView } from '../../views/seo-on-page/panel';
 
 const hrefs = devHrefs(urlPolicyOf(siteConfig));
-const model = overviewModel(await loadSeoTree(siteConfig), hrefs);
+const model = overviewModel(await loadSeoTree(siteConfig), {
+  locales: siteConfig.locales,
+  defaultLocale: siteConfig.defaultLocale,
+  links: hrefs,
+  siteFiles: await loadSiteFiles(siteConfig),
+});
 const view = panelView({
   cfg: siteConfig,
   data: await loadDocData(),
@@ -26,6 +35,7 @@ const view = panelView({
   screen: 'overview',
   title: 'Resumen',
 });
+const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteConfig.locales);
 ---
 
 <DocsLayout {...view} year={new Date().getFullYear()}>
@@ -33,15 +43,17 @@ const view = panelView({
     <Font cssVariable="--font-plex-sans" preload />
     <Font cssVariable="--font-plex-mono" />
   </Fragment>
-  <PanelIntro title="Resumen" strings={view.strings} />
-  <div class="flex flex-col gap-8">
-    <OverviewStats totals={model.totals} />
-    <p class="flex flex-wrap gap-x-6 gap-y-1">
-      <Link href={model.links.problems}>Ver las páginas con problemas</Link>
-      <Link href={model.links.all}>Ver todas las páginas</Link>
-    </p>
-    <SchemasSummary schemas={model.schemas} />
-    <IssuesBySeverity rows={model.bySeverity} />
-    <IssuesByKind rows={model.byKind} />
+  <PanelIntro title="Resumen" lede={lede} strings={view.strings} />
+  <div class="flex flex-col gap-4">
+    <OverviewKpis kpis={model.kpis} />
+    <div class="grid gap-4 lg:grid-cols-2">
+      <FixFirstCard priorities={model.priorities} footer={model.footer} />
+      {model.coverage && <CoverageCard coverage={model.coverage} />}
+      <IndexingCard indexing={model.indexing} />
+      <SchemasCard schemas={model.schemas} />
+      <KindsCard kinds={model.kinds} />
+      <SiteFilesCard files={model.files} locales={siteConfig.locales} />
+      <SoonCard />
+    </div>
   </div>
 </DocsLayout>

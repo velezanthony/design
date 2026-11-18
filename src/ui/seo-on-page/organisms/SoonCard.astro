@@ -1,0 +1,21 @@
+---
+/* «Próximamente»: las comprobaciones que el panel aún no hace, para que nadie las dé por hechas. */
+import Tag from '../../atoms/Tag.astro';
+import OverviewCard from '../molecules/OverviewCard.astro';
+import { CARD_LABELS } from '../labels';
+
+const L = CARD_LABELS.soon;
+---
+
+<OverviewCard id="c-soon" title={L.title} why={L.why} dashed>
+  <ul>
+    {L.items.map((item) => (
+      <li class="flex items-baseline justify-between gap-4 border-b border-rule py-1.5 text-muted">
+        <span>{item}</span>
+        <Tag bordered plain>
+          {L.pending}
+        </Tag>
+      </li>
+    ))}
+  </ul>
+</OverviewCard>

@@ -1,0 +1,39 @@
+---
+import Heading from '../../atoms/Heading.astro';
+import CodeSpans from './CodeSpans.astro';
+
+interface Props {
+  id: string;
+  title: string;
+  /** Una línea de «por qué importa» bajo el título. */
+  why?: string;
+  /** Ocupa dos columnas en escritorio; en móvil todas ocupan una. */
+  wide?: boolean;
+  /** Borde discontinuo: lo que aún no existe. */
+  dashed?: boolean;
+}
+
+const { id, title, why, wide = false, dashed = false } = Astro.props;
+---
+
+<article
+  aria-labelledby={id}
+  data-card={id}
+  class:list={[
+    'flex min-w-0 flex-col gap-3 border bg-raised p-4 sm:p-5',
+    dashed ? 'border-dashed border-faint' : 'border-rule',
+    wide && 'lg:col-span-2',
+  ]}
+>
+  <div class="flex flex-col gap-1">
+    <Heading level={2} size="md" id={id}>
+      {title}
+    </Heading>
+    {why && (
+      <p class="text-sm text-muted">
+        <CodeSpans text={why} />
+      </p>
+    )}
+  </div>
+  <slot />
+</article>

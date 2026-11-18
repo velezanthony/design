@@ -1,0 +1,22 @@
+---
+interface Props {
+  /** Apaga la fila: lo que vale cero y no interesa. */
+  muted?: boolean;
+}
+
+const { muted = false } = Astro.props;
+---
+
+<li
+  class:list={[
+    'flex min-h-8 items-baseline justify-between gap-4 border-b border-rule py-1',
+    muted ? 'text-muted' : 'text-ink',
+  ]}
+>
+  <span class="flex min-w-0 flex-wrap items-baseline gap-x-2">
+    <slot name="label" />
+  </span>
+  <span class="shrink-0 font-mono">
+    <slot />
+  </span>
+</li>

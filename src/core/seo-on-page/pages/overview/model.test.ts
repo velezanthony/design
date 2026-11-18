@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { seoPage } from '../../../../testing/seo-page';
-import { IssueKind, IssueSeverity, type Issue, type SeoTree } from '../../tree/types';
+import { IssueKind, IssueSeverity, type Issue, type SeoPage, type SeoTree } from '../../tree/types';
 import { EMPTY_FILTERS, serializeFilters } from '../../queries/url-filters';
 import type { PanelLinks } from '../links';
+import type { SiteFile } from '../../site-files';
 import { overviewModel } from './model';
 
 const links: PanelLinks = {
-  pages: (filters = EMPTY_FILTERS, page, perPage) => {
-    const query = serializeFilters(filters, page, perPage).toString();
+  pages: (filters = EMPTY_FILTERS, page, perPage, view) => {
+    const query = serializeFilters(filters, page, perPage, view).toString();
     return query === '' ? '/t/' : `/t/?${query}`;
   },
   inspector: ({ slug, locale }) => `/i/?slug=${slug}&locale=${locale}`,
@@ -37,60 +38,177 @@ const tree = (): SeoTree => ({
   ],
 });
 
+const sitemap = (urls: number): SiteFile => ({
+  id: 'sitemap',
+  path: '/sitemap.xml',
+  state: 'generated',
+  href: '/sitemap.xml',
+  urls,
+});
+const privacy: SiteFile = {
+  id: 'privacy',
+  path: '/privacy',
+  state: 'generated',
+  links: [
+    { locale: 'en', href: '/privacy/' },
+    { locale: 'es', href: '/es/privacy/' },
+  ],
+};
+
+const build = (pages = tree().pages, files: SiteFile[] = [sitemap(pages.length)]) =>
+  overviewModel({ pages }, { locales: ['en', 'es'], defaultLocale: 'en', links, siteFiles: files });
+
 describe('overviewModel', () => {
-  it('separa páginas con problemas, solo informativas y sin nada', () => {
-    expect(overviewModel(tree(), links).totals).toEqual({
-      total: 4,
-      withProblems: 2,
-      informativeOnly: 1,
-      clean: 1,
+  it('la salud cuenta las páginas sin errores ni avisos (la informativa cuenta como sana)', () => {
+    expect(build().kpis.health).toEqual({ healthy: 2, total: 4, percent: 50 });
+  });
+
+  it('cuenta páginas (slugs) y entradas (página + idioma) por separado', () => {
+    const pages = [
+      seoPage({ slug: 'a' }),
+      seoPage({ slug: 'a', locale: 'es' }),
+      seoPage({ slug: 'b' }),
+    ];
+    expect(build(pages).kpis.pages).toEqual({ pages: 2, entries: 3 });
+  });
+
+  it('una entrada por idioma de la config, también el que no tiene ninguna', () => {
+    const pages = [seoPage({ slug: 'a' }), seoPage({ slug: 'b' })];
+    expect(build(pages).kpis.locales).toEqual([
+      { locale: 'en', entries: 2 },
+      { locale: 'es', entries: 0 },
+    ]);
+  });
+
+  describe('con problemas', () => {
+    it('cuenta páginas con error, páginas con aviso y las entradas con error o aviso', () => {
+      const pages = [
+        seoPage({ slug: 'a', issues: [issue(IssueKind.NO_H1, IssueSeverity.ERROR)] }),
+        seoPage({ slug: 'b', issues: [issue(IssueKind.TITLE_TOO_LONG, IssueSeverity.WARNING)] }),
+        seoPage({
+          slug: 'b',
+          locale: 'es',
+          issues: [issue(IssueKind.TITLE_TOO_LONG, IssueSeverity.WARNING)],
+        }),
+        seoPage({
+          slug: 'c',
+          issues: [issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)],
+        }),
+      ];
+      expect(build(pages).kpis.problems).toMatchObject({
+        pages: 2,
+        errors: 1,
+        warnings: 1,
+        entries: 3,
+      });
+    });
+
+    it('enlaza a la tabla de problemas; sin problemas no hay enlace', () => {
+      expect(build().kpis.problems.href).toBe('/t/');
+      expect(build([seoPage()]).kpis.problems.href).toBeUndefined();
     });
   });
 
-  it('la salud cuenta las páginas sin errores ni avisos (la informativa cuenta como sana)', () => {
-    expect(overviewModel(tree(), links).health).toEqual({ healthy: 2, total: 4, percent: 50 });
+  describe('informativas', () => {
+    it('cuenta páginas y entradas con incidencias informativas y los tipos que son', () => {
+      const pages = [
+        seoPage({
+          slug: 'a',
+          issues: [issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)],
+        }),
+        seoPage({
+          slug: 'a',
+          locale: 'es',
+          issues: [issue(IssueKind.DESCRIPTION_INHERITED, IssueSeverity.INFO)],
+        }),
+        seoPage({ slug: 'b' }),
+      ];
+      expect(build(pages).kpis.info).toMatchObject({
+        pages: 1,
+        entries: 2,
+        kinds: ['description-inherited'],
+        href: '/t/?severity=info',
+      });
+    });
+
+    it('sin informativas no hay enlace', () => {
+      expect(build([seoPage()]).kpis.info.href).toBeUndefined();
+    });
   });
 
-  it('lleva a la tabla de problemas (su vista por defecto) y a la de todo', () => {
-    const { links: targets } = overviewModel(tree(), links);
-    expect(targets.problems).toBe('/t/');
-    expect(targets.all).toBe('/t/?severity=error&severity=warning&severity=info');
+  it('«qué arreglar» enlaza cada tipo a la tabla filtrada por él', () => {
+    const [first] = build().priorities;
+    expect(first).toMatchObject({ kind: 'no-h1', href: '/t/?kind=no-h1' });
   });
 
-  it('una fila por gravedad, en orden, con su recuento; solo enlaza la que tiene incidencias', () => {
-    const { bySeverity } = overviewModel(tree(), links);
-    expect(bySeverity.map((row) => [row.severity, row.count])).toEqual([
-      ['error', 2],
-      ['warning', 1],
-      ['info', 1],
-    ]);
-    expect(bySeverity[0]!.href).toBe('/t/?severity=error');
-    expect(overviewModel({ pages: [seoPage()] }, links).bySeverity.map((r) => r.href)).toEqual([
-      undefined,
-      undefined,
-      undefined,
-    ]);
+  it('los enlaces de pie: las páginas con problemas y todas (informativas incluidas)', () => {
+    const { footer } = build();
+    expect(footer).toEqual({
+      problems: { pages: 2, href: '/t/' },
+      all: '/t/?severity=error&severity=warning&severity=info',
+    });
+    expect(build([seoPage()]).footer.problems).toBeUndefined();
   });
 
-  it('una fila por tipo de problema, también los de cero (sin enlace)', () => {
-    const { byKind } = overviewModel(tree(), links);
-    expect(byKind.map((row) => row.kind)).toEqual(Object.values(IssueKind));
-    const noH1 = byKind.find((row) => row.kind === 'no-h1')!;
-    expect(noH1).toEqual({ kind: 'no-h1', count: 2, href: '/t/?kind=no-h1' });
-    const none = byKind.find((row) => row.kind === 'title-too-short')!;
-    expect(none).toEqual({ kind: 'title-too-short', count: 0, href: undefined });
+  describe('tipos de problema', () => {
+    it('lista los que tienen incidencias, con su certeza y enlace, y aparte los que no', () => {
+      const { kinds } = build();
+      expect(kinds.rows.map((row) => [row.kind, row.pages, row.certainty])).toEqual([
+        ['no-h1', 2, 'rule'],
+        ['title-too-long', 1, 'heuristic'],
+        ['description-inherited', 1, 'rule'],
+      ]);
+      expect(kinds.rows[0]!.href).toBe('/t/?kind=no-h1');
+      expect(kinds.clean).toHaveLength(Object.values(IssueKind).length - 3);
+      expect(kinds.clean).not.toContain('no-h1');
+    });
   });
 
-  it('resume los schemas: con, sin y los @type usados', () => {
+  it('la cobertura enlaza a la vista matriz', () => {
+    expect(build().coverage?.href).toBe('/t/?view=matrix');
+  });
+
+  it('con un solo idioma no hay tarjeta de cobertura', () => {
+    const model = overviewModel(
+      { pages: [seoPage()] },
+      { locales: ['en'], defaultLocale: 'en', links, siteFiles: [sitemap(1)] },
+    );
+    expect(model.coverage).toBeUndefined();
+  });
+
+  describe('indexación', () => {
+    it('las URLs del sitemap son las de contenido: no cuentan las de privacidad', () => {
+      const pages = [seoPage({ slug: 'a' }), seoPage({ slug: 'b' })];
+      expect(build(pages, [sitemap(4), privacy]).indexing.sitemapUrls).toBe(2);
+    });
+
+    it('cuenta los idiomas servidos de respaldo desde la matriz', () => {
+      const fallback: SeoPage = seoPage({
+        slug: 'a',
+        locales: [
+          { locale: 'en', status: 'present', url: '/a/' },
+          { locale: 'es', status: 'missing', policy: 'fallback', declared: false },
+        ],
+      });
+      expect(build([fallback]).indexing.reasons.fallback).toBe(1);
+    });
+  });
+
+  it('pasa los archivos del sitio tal cual', () => {
+    const files = [sitemap(2)];
+    expect(build(undefined, files).files).toBe(files);
+  });
+
+  it('resume los schemas por página con su alcance', () => {
     const withSchema = seoPage({
       slug: 'e',
       schemas: [{ schema: { '@type': 'Organization' }, source: 'site' }],
     });
-    const { schemas } = overviewModel({ pages: [...tree().pages, withSchema] }, links);
+    const { schemas } = build([...tree().pages, withSchema]);
     expect(schemas).toEqual({
       withSchemas: 1,
       withoutSchemas: 4,
-      types: [{ type: 'Organization', pages: 1 }],
+      types: [{ type: 'Organization', pages: 1, scope: 'pages' }],
     });
   });
 });

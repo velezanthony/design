@@ -1,5 +1,8 @@
 import { IssueKind, IssueSeverity, type SeoPage, type SeoTree } from '../tree/types';
 
+/** Hasta dónde llega un `@type`: a todas las páginas, solo a la portada o a algunas. */
+export type SchemaScope = 'site' | 'home' | 'pages';
+
 export interface SeoSummary {
   total: number;
   /** Con algún error o aviso: lo que hay que arreglar. */
@@ -16,12 +19,12 @@ export interface SeoSummary {
   /** Incidencias (no páginas) por tipo; todas las claves presentes aunque valgan 0. */
   byKind: Record<IssueKind, number>;
   bySeverity: Record<IssueSeverity, number>;
-  /** JSON-LD: solo visibilidad, no hay incidencias (el sitio decide qué declara). */
+  /** JSON-LD: solo visibilidad, no hay incidencias (el sitio decide qué declara). Se cuenta por PÁGINA, no por idioma. */
   schemas: {
     withSchemas: number;
     withoutSchemas: number;
     /** Cada `@type` usado y en cuántas páginas aparece (una vez por página), de más a menos. */
-    types: { type: string; pages: number }[];
+    types: { type: string; pages: number; scope: SchemaScope }[];
   };
 }
 
@@ -31,16 +34,23 @@ const typesOf = (page: SeoPage) => [
 ];
 
 function summarizeSchemas(tree: SeoTree): SeoSummary['schemas'] {
-  const counts = new Map<string, number>();
+  // Por página (slug): la misma página en dos idiomas declara lo mismo y no es otro trabajo.
+  const slugs = new Set(tree.pages.map((page) => page.slug));
+  const byType = new Map<string, Set<string>>();
+  const withSchemas = new Set<string>();
   for (const page of tree.pages) {
-    for (const type of typesOf(page)) counts.set(type, (counts.get(type) ?? 0) + 1);
+    if (page.schemas.length > 0) withSchemas.add(page.slug);
+    for (const type of typesOf(page)) {
+      byType.set(type, (byType.get(type) ?? new Set()).add(page.slug));
+    }
   }
-  const withSchemas = tree.pages.filter((page) => page.schemas.length > 0).length;
+  const scopeOf = (pages: Set<string>): SchemaScope =>
+    pages.size === slugs.size ? 'site' : pages.size === 1 && pages.has('') ? 'home' : 'pages';
   return {
-    withSchemas,
-    withoutSchemas: tree.pages.length - withSchemas,
-    types: [...counts]
-      .map(([type, pages]) => ({ type, pages }))
+    withSchemas: withSchemas.size,
+    withoutSchemas: slugs.size - withSchemas.size,
+    types: [...byType]
+      .map(([type, pages]) => ({ type, pages: pages.size, scope: scopeOf(pages) }))
       .sort((a, b) => b.pages - a.pages || (a.type < b.type ? -1 : 1)),
   };
 }

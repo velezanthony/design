@@ -62,6 +62,10 @@ describe('summarize', () => {
 });
 
 describe('summarize: JSON-LD', () => {
+  /** Una entrada con su slug e idioma: los schemas se cuentan por página, no por idioma. */
+  const withSchemas = (slug: string, types: (string | string[])[], locale = 'en'): SeoPage =>
+    ({ ...page([], types), slug, locale }) as SeoPage;
+
   it('árbol vacío: ninguna página con ni sin schemas', () => {
     expect(summarize({ pages: [] }).schemas).toEqual({
       withSchemas: 0,
@@ -73,12 +77,12 @@ describe('summarize: JSON-LD', () => {
   it('cuenta páginas con y sin schemas y los @type usados, con las páginas de cada uno', () => {
     const tree: SeoTree = {
       pages: [
-        page([], ['Organization', ['Person', 'Thing']]),
-        page([], ['Organization']),
-        page([]),
+        withSchemas('a', ['Organization', ['Person', 'Thing']]),
+        withSchemas('b', ['Organization']),
+        withSchemas('c', []),
       ],
     };
-    expect(summarize(tree).schemas).toEqual({
+    expect(summarize(tree).schemas).toMatchObject({
       withSchemas: 2,
       withoutSchemas: 1,
       types: [
@@ -90,8 +94,54 @@ describe('summarize: JSON-LD', () => {
   });
 
   it('una página con dos schemas del mismo @type cuenta una vez ese tipo', () => {
-    const tree: SeoTree = { pages: [page([], ['Thing', 'Thing'])] };
-    expect(summarize(tree).schemas.types).toEqual([{ type: 'Thing', pages: 1 }]);
+    const tree: SeoTree = { pages: [withSchemas('a', ['Thing', 'Thing'])] };
+    expect(summarize(tree).schemas.types).toMatchObject([{ type: 'Thing', pages: 1 }]);
+  });
+
+  it('cuenta páginas, no idiomas: la misma página en dos idiomas es una', () => {
+    const tree: SeoTree = {
+      pages: [
+        withSchemas('a', ['Article'], 'en'),
+        withSchemas('a', ['Article'], 'es'),
+        withSchemas('b', [], 'en'),
+        withSchemas('b', [], 'es'),
+      ],
+    };
+    expect(summarize(tree).schemas).toEqual({
+      withSchemas: 1,
+      withoutSchemas: 1,
+      types: [{ type: 'Article', pages: 1, scope: 'pages' }],
+    });
+  });
+
+  describe('alcance', () => {
+    const scopes = (tree: SeoTree) =>
+      Object.fromEntries(summarize(tree).schemas.types.map(({ type, scope }) => [type, scope]));
+
+    it('en todas las páginas: todo el sitio', () => {
+      const tree: SeoTree = {
+        pages: [withSchemas('', ['Code']), withSchemas('a', ['Code']), withSchemas('b', ['Code'])],
+      };
+      expect(scopes(tree)).toEqual({ Code: 'site' });
+    });
+
+    it('solo en la portada (slug vacío): portada', () => {
+      const tree: SeoTree = {
+        pages: [withSchemas('', ['WebSite']), withSchemas('a', []), withSchemas('b', [])],
+      };
+      expect(scopes(tree)).toEqual({ WebSite: 'home' });
+    });
+
+    it('en algunas páginas: ni sitio ni portada', () => {
+      const tree: SeoTree = {
+        pages: [withSchemas('a', ['Article']), withSchemas('b', ['Article']), withSchemas('c', [])],
+      };
+      expect(scopes(tree)).toEqual({ Article: 'pages' });
+    });
+
+    it('una sola página en un solo sitio con una sola página: todo el sitio', () => {
+      expect(scopes({ pages: [withSchemas('', ['WebSite'])] })).toEqual({ WebSite: 'site' });
+    });
   });
 
   describe('salud', () => {

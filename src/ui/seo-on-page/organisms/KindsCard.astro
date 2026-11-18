@@ -1,0 +1,74 @@
+---
+/* «Tipos de problema»: gravedad y alcance por separado, y las comprobaciones que salieron limpias. */
+import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
+import Link from '../../atoms/Link.astro';
+import CertaintyTag from '../atoms/CertaintyTag.astro';
+import SeverityTag from '../atoms/SeverityTag.astro';
+import OverviewCard from '../molecules/OverviewCard.astro';
+import { CARD_LABELS, KIND_LABELS, percentText } from '../labels';
+
+interface Props {
+  kinds: OverviewModel['kinds'];
+}
+
+const { kinds } = Astro.props;
+const L = CARD_LABELS.kinds;
+const cell = 'px-2 py-1.5 align-top';
+const edge = 'border-b border-rule';
+---
+
+<OverviewCard id="c-kinds" title={L.title} why={L.why}>
+  {kinds.rows.length === 0 ? (
+    <p class="text-muted" data-empty>
+      {L.empty}
+    </p>
+  ) : (
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse text-left text-sm" data-kinds>
+        <caption class="sr-only">{L.caption}</caption>
+        <thead>
+          <tr class="label text-muted">
+            <th scope="col" class:list={[cell, edge]}>
+              {L.type}
+            </th>
+            <th scope="col" class:list={[cell, edge]}>
+              {L.severity}
+            </th>
+            <th scope="col" class:list={[cell, edge, 'text-right']}>
+              {L.pages}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {kinds.rows.map((row) => (
+            <tr class={edge} data-kind={row.kind}>
+              <td class={cell}>
+                <Link href={row.href}>{KIND_LABELS[row.kind]}</Link>{' '}
+                <CertaintyTag certainty={row.certainty} />
+              </td>
+              <td class={cell}>
+                <SeverityTag severity={row.severity} />
+              </td>
+              <td class:list={[cell, 'text-right font-mono']}>
+                {row.pages} <small class="text-muted">({percentText(row.percent)})</small>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+  <p class="border-l-2 border-rule pl-3 text-sm text-muted">{L.note}</p>
+  {kinds.clean.length > 0 && (
+    <details data-clean class="text-sm">
+      <summary class="cursor-pointer text-muted">{L.clean(kinds.clean.length)}</summary>
+      <ul class="mt-2 flex flex-col gap-1 pl-4">
+        {kinds.clean.map((kind) => (
+          <li data-kind={kind} class="text-muted">
+            {KIND_LABELS[kind]}
+          </li>
+        ))}
+      </ul>
+    </details>
+  )}
+</OverviewCard>
