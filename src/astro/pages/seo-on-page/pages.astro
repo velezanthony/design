@@ -1,7 +1,7 @@
 ---
 /* Contenedor de la tabla de páginas. Los filtros viven en la query de la URL (`parseFilters`),
    así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
-import { Font } from 'astro:assets';
+import Fonts from '../Fonts.astro';
 import { listingModel } from '../../../core/seo-on-page/pages/listing/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import FiltersForm from '../../../ui/seo-on-page/molecules/FiltersForm.astro';
@@ -40,10 +40,7 @@ const report = listingReport(tree, Astro.url.searchParams, siteConfig);
 ---
 
 <DocsLayout {...view} year={new Date().getFullYear()}>
-  <Fragment slot="head">
-    <Font cssVariable="--font-plex-sans" preload />
-    <Font cssVariable="--font-plex-mono" />
-  </Fragment>
+  <Fonts slot="head" />
   <PanelIntro title="Páginas" lede={VIEW_LABELS[model.view.view].lede} strings={view.strings}>
     <ReportButton slot="actions" scope="filter" />
   </PanelIntro>

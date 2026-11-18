@@ -2,7 +2,7 @@
 /* Contenedor de una página de docs. Lee el módulo virtual y `astro:content`, llama al núcleo y
    pasa a `DocsLayout` (presentacional) los datos ya calculados. `render(entry)` va AQUÍ, no en el
    layout: renderizar en un layout rompe el `<head>` en dev (astro#13724). */
-import { Font } from 'astro:assets';
+import Fonts from './Fonts.astro';
 import DocsLayout from '../../ui/layouts/DocsLayout.astro';
 import { docRoutes, docView, type DocRoute } from '../views/doc';
 import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
@@ -35,9 +35,6 @@ const view = docView({
 ---
 
 <DocsLayout {...view} headings={headings} year={new Date().getFullYear()}>
-  <Fragment slot="head">
-    <Font cssVariable="--font-plex-sans" preload />
-    <Font cssVariable="--font-plex-mono" />
-  </Fragment>
+  <Fonts slot="head" />
   <Content />
 </DocsLayout>

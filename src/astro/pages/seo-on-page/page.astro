@@ -1,7 +1,7 @@
 ---
 /* Contenedor del inspector: una página e idioma elegidos por la query (`?slug=…&locale=…`; la
    portada tiene slug vacío). Ruta bajo demanda por lo mismo que la tabla. */
-import { Font } from 'astro:assets';
+import Fonts from '../Fonts.astro';
 import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import Link from '../../../ui/atoms/Link.astro';
@@ -68,10 +68,7 @@ const view = panelView({
 ---
 
 <DocsLayout {...view} year={new Date().getFullYear()}>
-  <Fragment slot="head">
-    <Font cssVariable="--font-plex-sans" preload />
-    <Font cssVariable="--font-plex-mono" />
-  </Fragment>
+  <Fonts slot="head" />
   <PanelIntro title={model ? slugLabel(slug) : title} strings={view.strings} />
   <ClientPageFailures failures={failures} />
   {model ? (

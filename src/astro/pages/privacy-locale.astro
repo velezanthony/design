@@ -1,6 +1,6 @@
 ---
 /* `/[locale]/[privacy]`: la página de privacidad de cada idioma que no es el de defecto. */
-import { Font } from 'astro:assets';
+import Fonts from './Fonts.astro';
 import PrivacyLayout from '../../ui/layouts/PrivacyLayout.astro';
 import { loadPrivacyView } from '../data/privacy';
 import { siteConfig } from '../data/site-config';
@@ -17,8 +17,5 @@ const view = await loadPrivacyView(Astro.props.locale);
 ---
 
 <PrivacyLayout {...view} year={new Date().getFullYear()}>
-  <Fragment slot="head">
-    <Font cssVariable="--font-plex-sans" preload />
-    <Font cssVariable="--font-plex-mono" />
-  </Fragment>
+  <Fonts slot="head" />
 </PrivacyLayout>

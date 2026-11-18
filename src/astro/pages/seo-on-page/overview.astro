@@ -2,7 +2,7 @@
 /* Contenedor de la vista general del panel SEO on page. Solo existe con `astro dev` (la
    integración no inyecta la ruta en la build). Lee la colección y el disco por el adaptador y pasa
    a la UI los datos ya calculados. */
-import { Font } from 'astro:assets';
+import Fonts from '../Fonts.astro';
 import { overviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import CoverageCard from '../../../ui/seo-on-page/organisms/CoverageCard.astro';
@@ -45,10 +45,7 @@ const lede = OVERVIEW_LABELS.lede(siteConfig.name, model.kpis.pages.pages, siteC
 ---
 
 <DocsLayout {...view} year={new Date().getFullYear()}>
-  <Fragment slot="head">
-    <Font cssVariable="--font-plex-sans" preload />
-    <Font cssVariable="--font-plex-mono" />
-  </Fragment>
+  <Fonts slot="head" />
   <PanelIntro title="Resumen" lede={lede} strings={view.strings}>
     <ReportButton slot="actions" scope="site" />
   </PanelIntro>
