@@ -6,7 +6,7 @@ import type { DocsUserConfig } from '../../../core/config/schema';
 import { renderDocument, text } from '../../../testing/render';
 import DocsLayout from '../../../ui/layouts/DocsLayout.astro';
 import { createVirtualData } from '../../virtual/data';
-import type { DocData } from '../pages';
+import type { DocData } from '../../loader/schema';
 import { devHrefs } from './hrefs';
 import { inspectorHeadings, panelView } from './panel';
 

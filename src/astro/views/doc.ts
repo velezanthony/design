@@ -12,7 +12,8 @@ import { prevNext } from '../../core/navigation/prev-next';
 import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
 import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
-import { pagesOf, urlPolicyOf, type DocData } from './pages';
+import type { DocData } from '../loader/schema';
+import { pagesOf, urlPolicyOf } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 

@@ -13,8 +13,8 @@ import type {
   SeoTree,
 } from '../../../core/seo-on-page/tree/types';
 import { readImageSizes, readPublic } from '../../loader/images';
-import { sitemapXml, urlPolicyOf } from '../../views/pages';
-import type { DocData } from '../../views/pages';
+import { pageOf, sitemapXml, urlPolicyOf } from '../../views/pages';
+import type { DocData } from '../../loader/schema';
 import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
 import type { VirtualConfig } from '../../virtual/data';
 
@@ -39,18 +39,11 @@ export function seoInputOf(
 ): SeoInput {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { strings, ...seoConfig } = config;
-  const pages = entries.map(({ data, headings, links, images }): SeoPageInput => ({
-    slug: data.slug,
-    locale: data.locale,
-    title: data.title,
-    kind: data.kind ?? 'native',
-    sourcePath: data.sourcePath,
-    ...(data.seo && { seo: data.seo }),
-    ...(data.translations && { translations: data.translations }),
-    headings,
-    ...(links && { links }),
-    ...(images && { images }),
-  }));
+  const pages = entries.map(({ data, headings, links, images }): SeoPageInput => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { body, order, ...page } = pageOf(data);
+    return { ...page, headings, ...(links && { links }), ...(images && { images }) };
+  });
   return { config: seoConfig, url: urlPolicyOf(config), pages, ...(imageSizes && { imageSizes }) };
 }
 

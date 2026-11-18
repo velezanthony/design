@@ -11,23 +11,9 @@ import {
 import type { Locale } from '../../core/i18n/locale';
 import { privacyAvailability } from '../../core/privacy/pages';
 import { orAstroError } from '../errors';
+import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { withBase } from '../../core/shared/urls';
-
-/** Lo que el loader guarda de cada página (`docsSchema`); es lo que ven los contenedores. */
-export interface DocData {
-  slug: string;
-  locale: string;
-  title: string;
-  sourcePath: string;
-  /** Nativa o `external[]`; sin dato, nativa. */
-  kind?: Page['kind'];
-  order?: number;
-  seo?: Page['seo'];
-  translations?: Page['translations'];
-  /** Ruta del archivo relativa a la raíz del repo; solo con `editUrl`. */
-  editPath?: string;
-}
 
 /** Cómo se forman las URLs: lo que hace falta de la config del módulo virtual. */
 export const urlPolicyOf = (
@@ -38,12 +24,9 @@ export const urlPolicyOf = (
   defaultLocale: cfg.defaultLocale,
 });
 
-/**
- * `Page` del núcleo a partir de los datos de la colección. El cuerpo no interviene en la
- * navegación, el head ni el sitemap, así que no se arrastra.
- */
-export const pagesOf = (data: DocData[]): Page[] =>
-  data.map((item) => ({
+/** `Page` del núcleo a partir de los datos de la colección; el cuerpo no se arrastra. */
+export function pageOf(item: DocData): Page {
+  return {
     slug: item.slug,
     locale: item.locale,
     title: item.title,
@@ -53,7 +36,12 @@ export const pagesOf = (data: DocData[]): Page[] =>
     ...(item.order !== undefined && { order: item.order }),
     ...(item.seo && { seo: item.seo }),
     ...(item.translations && { translations: item.translations }),
-  }));
+  };
+}
+
+export function pagesOf(data: DocData[]): Page[] {
+  return data.map(pageOf);
+}
 
 /**
  * El único `sitemap.xml` del sitio: solo páginas REALES e indexables (ni rutas de reserva ni 404)

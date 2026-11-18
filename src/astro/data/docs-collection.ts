@@ -1,11 +1,10 @@
 import { getCollection, render } from 'astro:content';
-import type { z } from 'astro/zod';
-import type { docsSchema } from '../loader/schema';
+import type { DocEntryData } from '../loader/schema';
 
 /** Una entrada de la colección `docs` tal como la deja el loader. */
 export interface DocsEntry {
   id: string;
-  data: z.infer<ReturnType<typeof docsSchema>>;
+  data: DocEntryData;
 }
 
 /**

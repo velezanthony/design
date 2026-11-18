@@ -14,7 +14,8 @@ import {
   inspectorTocText,
   type InspectorSection,
 } from '../../../ui/seo-on-page/labels';
-import { pagesOf, urlPolicyOf, type DocData } from '../pages';
+import type { DocData } from '../../loader/schema';
+import { pagesOf, urlPolicyOf } from '../pages';
 import type { VirtualConfig } from '../../virtual/data';
 import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
 import { baseUrl } from '../../../core/shared/urls';

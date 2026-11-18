@@ -1,12 +1,10 @@
-import { docsSchema } from '../astro/loader/schema';
-
-type DocData = ReturnType<typeof docsSchema> extends { _output: infer T } ? T : never;
+import { docsSchema, type DocEntryData } from '../astro/loader/schema';
 type DocsInput = readonly [id: string, data: unknown, body?: string];
 
 export interface MockEntry {
   id: string;
   collection: 'docs';
-  data: DocData;
+  data: DocEntryData;
   body: string | undefined;
 }
 
@@ -20,7 +18,7 @@ export function mockedAstroContent({ docs }: { docs: DocsInput[] }) {
   const entries: MockEntry[] = docs.map(([id, data, body]) => ({
     id,
     collection: 'docs',
-    data: schema.parse(data) as DocData,
+    data: schema.parse(data) as DocEntryData,
     body,
   }));
   return {

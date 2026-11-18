@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { pagesOf, sitemapIndexXml, sitemapXml, urlPolicyOf, type DocData } from './pages';
+import type { DocData } from '../loader/schema';
+import { pagesOf, sitemapIndexXml, sitemapXml, urlPolicyOf } from './pages';
 
 const cfg = {
   base: '/repo',

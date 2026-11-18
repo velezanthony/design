@@ -9,7 +9,8 @@ import type { NavContext } from '../../core/navigation/nav-entries';
 import { buildHead, type HeadConfig } from '../../core/seo/head';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import { composeTitle, resolveTitleSuffix } from '../../core/seo/title';
-import { pagesOf, urlPolicyOf, type DocData } from './pages';
+import type { DocData } from '../loader/schema';
+import { pagesOf, urlPolicyOf } from './pages';
 import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 

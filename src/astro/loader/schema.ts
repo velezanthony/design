@@ -21,3 +21,9 @@ export function docsSchema() {
     editPath: z.string().optional(),
   });
 }
+
+/** Los datos de una página como los reciben las vistas: `kind` es opcional por su `default`. */
+export type DocData = z.input<ReturnType<typeof docsSchema>>;
+
+/** Los datos de una página como los guarda la colección, con los valores por defecto. */
+export type DocEntryData = z.output<ReturnType<typeof docsSchema>>;

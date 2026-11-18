@@ -5,7 +5,7 @@ import { resolveConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
 import { docRoutes, docView, type DocRoute } from './doc';
-import type { DocData } from './pages';
+import type { DocData } from '../loader/schema';
 
 const site = (user: Partial<DocsUserConfig> = {}) =>
   createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
