@@ -297,10 +297,10 @@ export function inspectorModel({
           ? `${edit.url.replace(/\/+$/, '')}/${edit.path.replace(/^\/+/, '')}`
           : undefined,
     },
-    fixes: page.issues
-      .map((issue, index) => ({ issue, index }))
-      .sort((a, b) => RANK[a.issue.severity] - RANK[b.issue.severity] || a.index - b.index)
-      .map(({ issue }): FixBlock => {
+    // `sort` es estable: a igual gravedad, se conserva el orden del análisis.
+    fixes: [...page.issues]
+      .sort((a, b) => RANK[a.severity] - RANK[b.severity])
+      .map((issue): FixBlock => {
         const related = issue.related ?? [];
         return {
           issue,

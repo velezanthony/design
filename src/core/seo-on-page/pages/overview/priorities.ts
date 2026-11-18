@@ -23,7 +23,7 @@ export interface FixPriority {
 }
 
 /** Más páginas que esto no se listan una a una: el recuento y el enlace a la tabla lo dicen mejor. */
-export const MAX_LISTED_PAGES = 5;
+const MAX_LISTED_PAGES = 5;
 
 const RANK: Record<IssueSeverity, number> = { error: 0, warning: 1, info: 2 };
 const CATALOG = Object.values(IssueKind);

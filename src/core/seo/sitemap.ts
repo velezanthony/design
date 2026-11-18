@@ -13,7 +13,7 @@ export const SITEMAP_STYLESHEET_PATH = '/_design/sitemap.css';
 export const SITEMAP_PAGES = 'sitemap-pages.xml';
 
 /** Un único `sitemap.xml` admite hasta 50 000 URLs (protocolo sitemaps.org). */
-export const SITEMAP_LIMIT = 50_000;
+const SITEMAP_LIMIT = 50_000;
 
 const escapeXml = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
