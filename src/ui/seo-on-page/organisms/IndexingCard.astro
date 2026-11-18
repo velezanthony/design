@@ -1,5 +1,6 @@
 ---
 /* «Indexación»: qué se indexa, qué dice el sitemap y por qué una URL se queda fuera. */
+import Note from '../atoms/Note.astro';
 import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import CodeSpans from '../molecules/CodeSpans.astro';
 import OverviewCard from '../molecules/OverviewCard.astro';
@@ -56,5 +57,5 @@ const reasons = (['noindex', 'fallback', 'outOfSitemap'] as const).map((key) => 
       </StatRow>
     ))}
   </ul>
-  <p class="border-l-2 border-rule pl-3 text-sm text-muted">{L.note}</p>
+  <Note>{L.note}</Note>
 </OverviewCard>

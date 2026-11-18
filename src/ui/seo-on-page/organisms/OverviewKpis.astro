@@ -2,6 +2,7 @@
 /* La fila de indicadores del Resumen: salud, páginas, idiomas y lo que hay que mirar. */
 import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import { OVERVIEW_LABELS, percentText } from '../labels';
+import Kpi from '../molecules/Kpi.astro';
 
 interface Props {
   kpis: OverviewModel['kpis'];
@@ -13,22 +14,16 @@ const totalPages = kpis.pages.pages;
 ---
 
 <ul aria-label={L.region} class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-  <li class="flex min-w-0 flex-col gap-1 border border-rule bg-raised p-4" data-kpi="health">
-    <p class="label text-muted">{L.health.label}</p>
-    <p class="text-display font-semibold text-ink">{percentText(kpis.health.percent)}</p>
+  <Kpi id="health" label={L.health.label} value={percentText(kpis.health.percent)}>
     <p class="font-mono text-sm text-ink">
       {L.health.formula(kpis.health.healthy, kpis.health.total)}
     </p>
     <p class="text-sm text-muted">{L.health.note}</p>
-  </li>
-  <li class="flex min-w-0 flex-col gap-1 border border-rule bg-raised p-4" data-kpi="pages">
-    <p class="label text-muted">{L.pages.label}</p>
-    <p class="text-display font-semibold text-ink">{totalPages}</p>
+  </Kpi>
+  <Kpi id="pages" label={L.pages.label} value={totalPages}>
     <p class="text-sm text-muted">{L.pages.sub(kpis.pages.entries)}</p>
-  </li>
-  <li class="flex min-w-0 flex-col gap-1 border border-rule bg-raised p-4" data-kpi="locales">
-    <p class="label text-muted">{L.locales.label}</p>
-    <p class="text-display font-semibold text-ink">{kpis.locales.length}</p>
+  </Kpi>
+  <Kpi id="locales" label={L.locales.label} value={kpis.locales.length}>
     <p class="text-sm text-muted">
       {kpis.locales.map(({ locale, entries }, index) => (
         <>
@@ -37,40 +32,13 @@ const totalPages = kpis.pages.pages;
         </>
       ))}
     </p>
-  </li>
-  {[
-    {
-      id: 'problems',
-      label: L.problems.label,
-      value: kpis.problems.pages,
-      sub: L.problems.sub(kpis.problems.errors, kpis.problems.warnings, kpis.problems.entries),
-      href: kpis.problems.href,
-    },
-    {
-      id: 'info',
-      label: L.info.label,
-      value: kpis.info.pages,
-      sub: kpis.info.pages === 0 ? L.info.none : L.info.sub(kpis.info, totalPages),
-      href: kpis.info.href,
-    },
-  ].map(({ id, label, value, sub, href }) => (
-    <li class="border border-rule bg-raised" data-kpi={id}>
-      {href ? (
-        <a
-          href={href}
-          class="flex h-full min-w-0 flex-col gap-1 p-4 transition-colors hover:bg-accent-soft"
-        >
-          <p class="label text-muted">{label}</p>
-          <p class="text-display font-semibold text-ink">{value}</p>
-          <p class="text-sm text-muted">{sub}</p>
-        </a>
-      ) : (
-        <div class="flex h-full min-w-0 flex-col gap-1 p-4">
-          <p class="label text-muted">{label}</p>
-          <p class="text-display font-semibold text-ink">{value}</p>
-          <p class="text-sm text-muted">{sub}</p>
-        </div>
-      )}
-    </li>
-  ))}
+  </Kpi>
+  <Kpi id="problems" label={L.problems.label} value={kpis.problems.pages} href={kpis.problems.href}>
+    <p class="text-sm text-muted">
+      {L.problems.sub(kpis.problems.errors, kpis.problems.warnings, kpis.problems.entries)}
+    </p>
+  </Kpi>
+  <Kpi id="info" label={L.info.label} value={kpis.info.pages} href={kpis.info.href}>
+    <p class="text-sm text-muted">{L.info.sub(kpis.info, totalPages)}</p>
+  </Kpi>
 </ul>

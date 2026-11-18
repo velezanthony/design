@@ -2,6 +2,7 @@
 /* La vista «Matriz de idiomas»: una fila por página, una columna por idioma de la config, y lo que
    el `<head>` anuncia a los buscadores (hreflang, x-default). */
 /* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
+import Note from '../atoms/Note.astro';
 import type { MatrixRow } from '../../../core/seo-on-page/pages/listing/matrix';
 import Link from '../../atoms/Link.astro';
 import Tag from '../../atoms/Tag.astro';
@@ -104,6 +105,6 @@ const edge = 'border-b border-rule';
         </li>
       ))}
     </ul>
-    <p class="border-l-2 border-rule pl-3 text-sm text-muted">{LABELS.note}</p>
+    <Note>{LABELS.note}</Note>
   </div>
 )}

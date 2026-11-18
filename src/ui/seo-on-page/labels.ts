@@ -563,7 +563,11 @@ export const OVERVIEW_LABELS = {
     info: {
       label: 'Informativas',
       none: 'ninguna',
-      sub: (info: { pages: number; entries: number; kinds: IssueKind[] }, total: number) => {
+      sub: (
+        info: { pages: number; entries: number; kinds: IssueKind[] },
+        total: number,
+      ): string => {
+        if (info.pages === 0) return OVERVIEW_LABELS.kpis.info.none;
         const [only] = info.kinds;
         const what =
           info.kinds.length === 1 && only

@@ -1,5 +1,6 @@
 ---
 /* «Cobertura de idiomas»: cuántas páginas están en todos los idiomas y cuáles no. */
+import Note from '../atoms/Note.astro';
 import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import Link from '../../atoms/Link.astro';
 import Tag from '../../atoms/Tag.astro';
@@ -98,12 +99,12 @@ const restCount = coverage.complete;
       {L.moreIncomplete(coverage.moreIncomplete)}
     </p>
   )}
-  <p class="border-l-2 border-rule pl-3 text-sm text-muted" data-note>
+  <Note data-note>
     {L.note}
     {coverage.complete > 0 &&
       coverage.reciprocal === coverage.complete &&
       L.reciprocal(coverage.complete)}
-  </p>
+  </Note>
   <p class="text-sm">
     <Link href={coverage.href}>{L.matrix}</Link>
   </p>

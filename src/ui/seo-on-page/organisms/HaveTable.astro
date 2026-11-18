@@ -3,6 +3,7 @@
    cabecera es un enlace que alterna `lacks` en la URL: se queda solo con las páginas a las que les
    falta eso propio. */
 /* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
+import Note from '../atoms/Note.astro';
 import type { ListingTable } from '../../../core/seo-on-page/pages/listing/model';
 import Link from '../../atoms/Link.astro';
 import Tag from '../../atoms/Tag.astro';
@@ -104,5 +105,5 @@ const edge = 'border-b border-rule';
       </li>
     ))}
   </ul>
-  <p class="border-l-2 border-rule pl-3 text-sm text-muted">{LABELS.note}</p>
+  <Note>{LABELS.note}</Note>
 </div>

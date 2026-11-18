@@ -1,5 +1,6 @@
 ---
 /* «Tipos de problema»: gravedad y alcance por separado, y las comprobaciones que salieron limpias. */
+import Note from '../atoms/Note.astro';
 import type { OverviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import Link from '../../atoms/Link.astro';
 import CertaintyTag from '../atoms/CertaintyTag.astro';
@@ -58,7 +59,7 @@ const edge = 'border-b border-rule';
       </table>
     </div>
   )}
-  <p class="border-l-2 border-rule pl-3 text-sm text-muted">{L.note}</p>
+  <Note>{L.note}</Note>
   {kinds.clean.length > 0 && (
     <details data-clean class="text-sm">
       <summary class="cursor-pointer text-muted">{L.clean(kinds.clean.length)}</summary>

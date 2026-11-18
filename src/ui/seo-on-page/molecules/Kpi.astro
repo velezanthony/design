@@ -1,0 +1,27 @@
+---
+interface Props {
+  /** Va en `data-kpi`: es el ancla de los tests y del panel. */
+  id: string;
+  label: string;
+  value: string | number;
+  /** Con destino, todo el indicador es un enlace a la tabla filtrada. */
+  href?: string;
+}
+
+const { id, label, value, href } = Astro.props;
+const Body = href ? 'a' : 'div';
+---
+
+<li class="border border-rule bg-raised" data-kpi={id}>
+  <Body
+    href={href}
+    class:list={[
+      'flex h-full min-w-0 flex-col gap-1 p-4',
+      href && 'transition-colors hover:bg-accent-soft',
+    ]}
+  >
+    <p class="label text-muted">{label}</p>
+    <p class="text-display font-semibold text-ink">{value}</p>
+    <slot />
+  </Body>
+</li>
