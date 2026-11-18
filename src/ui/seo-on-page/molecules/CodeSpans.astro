@@ -1,0 +1,14 @@
+---
+import { codeSpans } from '../../../core/seo-on-page/queries/code-spans';
+
+interface Props {
+  /** Un mensaje con nombres de código entre comillas inversas. */
+  text: string;
+}
+
+const { text } = Astro.props;
+---
+
+{codeSpans(text).map((span) =>
+  span.code ? <code class="font-mono text-ink">{span.text}</code> : span.text,
+)}

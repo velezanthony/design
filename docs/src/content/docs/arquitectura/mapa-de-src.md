@@ -42,6 +42,7 @@ core/
 │   ├── nav-sidebar.ts     La barra lateral de la sección actual
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
+│   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── footer.ts          Vista del pie y validación de sus enlaces
 │   └── label.ts           Etiqueta por idioma con recurso al idioma por defecto
 ├── seo/
@@ -95,11 +96,21 @@ textos (`strings: UiStrings`).
 
 ```text
 ui/
-├── atoms/       Heading, Icon, Link, Rule, Tag
+├── atoms/       Button, Checkbox, Heading, Icon, Input, Link, Rule, Tag
 ├── molecules/   Admonition, EditLink, FallbackNotice, LocaleSwitch, NavList, PanelToggle,
-│                PrevNext, TableOfContents, Tabs, ThemeToggle
+│                Pagination, PrevNext, TableOfContents, Tabs, ThemeToggle
 ├── organisms/   DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, ConsentBanner,
 │                BackToTop, NotFound, PrivacyPolicy
+├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
+│   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag
+│   ├── molecules/   SerpPreview, OgPreview, ResultsCount, InfoHiddenNote, FiltersForm, PanelIntro,
+│   │                OverviewCard, StatRow, CodeSpans, InspectorSection
+│   ├── organisms/   Una sección por componente, con su porción del modelo: OverviewKpis,
+│   │                las tarjetas del Resumen (FixFirstCard, CoverageCard, IndexingCard,
+│   │                SchemasCard, KindsCard, SiteFilesCard), PagesTable, y las del
+│   │                inspector (InspectorHeader, FixList, PublishedFacts con sus vistas previas,
+│   │                Translations, SchemasList, HeadingsOutline)
+│   └── labels.ts    Textos y tonos del panel: datos de presentación, no un componente
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
 │   ├── Head.astro           Pinta las etiquetas que calculó core/seo/head.ts
@@ -121,7 +132,7 @@ astro/
 ├── integration/
 │   ├── index.ts             docs(), defineDocsConfig, hooks, exports públicos
 │   ├── analytics-env.ts     Lee PUBLIC_GTM_ID con loadEnv
-│   ├── route-collisions.ts  Falla si src/pages/ pisa una ruta de la librería
+│   ├── route-overrides.ts   Avisa de las rutas de la librería que src/pages/ sustituye
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
 │   ├── companions.ts        Integraciones auxiliares (hoy ninguna)
 │   ├── pagefind.ts          Índice de búsqueda tras el build
@@ -136,16 +147,26 @@ astro/
 ├── content/
 │   └── index.ts             `collections`: la colección docs con la config del módulo virtual
 ├── markdown/                Plugins mdast y su registro (ver Integración → Markdown)
-├── routes/
-│   ├── doc.astro            Contenedor de /[...slug]
-│   ├── doc-view.ts          docRoutes y docView: todo lo que necesita una página
+├── pages/                   SOLO lo que Astro sirve: rutas y endpoints (las inyecta la integración)
+│   ├── doc.astro            /[...slug]
+│   ├── not-found.astro      /404 (y /<idioma>/404)
+│   ├── privacy.astro, privacy-locale.astro   Página de privacidad propia
+│   ├── sitemap.xml.ts, favicon.png.ts        Endpoints
+│   └── seo-on-page/         Panel SOLO de dev (ver Integración → SEO on page)
+│       └── overview.astro, pages.astro, page.astro
+├── views/                   Lógica pura que prepara los datos de cada página (con sus tests)
+│   ├── doc.ts               docRoutes y docView: todo lo que necesita una página
+│   ├── not-found.ts, privacy.ts
+│   ├── pages.ts             DocData → Page y sitemap
+│   └── seo-on-page/
+│       ├── hrefs.ts         Rutas del panel y enlaces entre pantallas
+│       └── panel.ts         Lo que DocsLayout recibe en cada pantalla (como docView)
+├── data/                    El ÚNICO sitio que lee Astro: la colección y el módulo virtual
 │   ├── docs-collection.ts   getDocs / renderDoc tipados para la colección docs
 │   ├── site-config.ts       La config del módulo virtual con su tipo completo
-│   ├── pages.ts             DocData → Page y sitemap
-│   ├── not-found.astro, not-found-view.ts
-│   ├── privacy.astro, privacy-locale.astro, PrivacyPage.astro, privacy-view.ts
-│   ├── sitemap.xml.ts
-│   └── favicon.png.ts
+│   ├── privacy.ts           Lee lo necesario y llama a views/privacy (lo usan las dos páginas)
+│   └── seo-on-page/
+│       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
 └── virtual/
     ├── plugin.ts            Plugin de Vite de virtual:@velezanthony/design/config
     ├── data.ts              Qué viaja en el módulo virtual
@@ -177,7 +198,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/client/*` | `src/client/*.ts` (con su carpeta: `client/preferences/theme`) |
 | `@velezanthony/design/components/*` | `src/ui/*` |
 | `@velezanthony/design/layouts/*` | `src/ui/layouts/*` |
-| `@velezanthony/design/routes/*` | `src/astro/routes/*` |
+| `@velezanthony/design/pages/*` | `src/astro/pages/*` |
 | `@velezanthony/design/theme.css` | `src/ui/styles/theme.css` |
 | `@velezanthony/design/theme-colors` | `src/ui/styles/theme-colors.ts` |
 

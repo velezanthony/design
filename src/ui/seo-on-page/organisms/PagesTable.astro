@@ -1,0 +1,116 @@
+---
+/* El contenedor con scroll horizontal lleva `tabindex="0"` a propósito: sin él, el teclado no podría
+   desplazar la tabla (igual que `table-scroll` en la prosa). */
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
+import type { PageRow } from '../../../core/seo-on-page/pages/listing/rows';
+import { THRESHOLDS } from '../../../core/seo-on-page/thresholds';
+import Link from '../../atoms/Link.astro';
+import Tag from '../../atoms/Tag.astro';
+import IssueBadge from '../atoms/IssueBadge.astro';
+import LengthMeter from '../atoms/LengthMeter.astro';
+import LocaleBadge from '../atoms/LocaleBadge.astro';
+import LocaleDetailCard from '../molecules/LocaleDetailCard.astro';
+import { PAGES_TABLE_LABELS, slugLabel, TAG_HINTS, tagLabel } from '../labels';
+
+interface Props {
+  /** Una fila por página (slug), ya agrupada y ordenada por gravedad. */
+  rows: PageRow[];
+}
+
+const { rows } = Astro.props;
+const cell = 'px-3 py-2 align-top';
+const edge = 'border-b border-rule';
+---
+
+{rows.length === 0 ? (
+  <p class="border border-rule bg-raised p-4 text-muted">{PAGES_TABLE_LABELS.empty}</p>
+) : (
+  <div class="overflow-x-auto" tabindex="0">
+    <table class="table-cards w-full border-collapse text-left text-sm">
+      <caption class="sr-only">{PAGES_TABLE_LABELS.caption}</caption>
+      <thead>
+        <tr class="label text-muted">
+          <th scope="col" class:list={[cell, edge]}>
+            Página
+          </th>
+          <th scope="col" class:list={[cell, edge]}>
+            Idiomas
+          </th>
+          <th scope="col" class:list={[cell, edge]}>
+            &lt;title&gt;
+          </th>
+          <th scope="col" class:list={[cell, edge]}>
+            {PAGES_TABLE_LABELS.issues}
+          </th>
+        </tr>
+      </thead>
+      {rows.map((row) => (
+        /* Un `<tbody>` por página: la fila y su detalle quedan juntos y el borde las separa de la siguiente. */
+        <tbody class={edge} data-page={row.slug} data-card>
+          <tr>
+            <th scope="row" class:list={[cell, 'font-normal']}>
+              <Link href={row.href} class="font-mono">
+                {slugLabel(row.slug)}
+              </Link>
+              <p class="text-ink">{row.title}</p>
+              {row.tags.length > 0 && (
+                <p class="mt-1 flex flex-wrap gap-1.5">
+                  {row.tags.map((tag) => (
+                    <Tag bordered plain title={TAG_HINTS[tag.kind]} data-tag={tag.kind}>
+                      {tagLabel(tag)}
+                    </Tag>
+                  ))}
+                </p>
+              )}
+            </th>
+            <td class={cell} data-cell="Idiomas">
+              <div class="flex flex-wrap gap-1.5">
+                {row.locales.map(({ locale, tone }) => (
+                  <LocaleBadge locale={locale} tone={tone} />
+                ))}
+              </div>
+            </td>
+            <td class={cell} data-cell={'<title>'}>
+              <LengthMeter
+                value={row.titleLength}
+                max={THRESHOLDS.titleMax}
+                min={THRESHOLDS.titleMin}
+              />
+            </td>
+            <td class={cell} data-cell={PAGES_TABLE_LABELS.issues}>
+              {row.issues.length === 0 ? (
+                <span class="text-muted">{PAGES_TABLE_LABELS.noOwnIssues}</span>
+              ) : (
+                <ul class="flex flex-col gap-1.5">
+                  {row.issues.map(({ issue, locales }) => (
+                    <li class="flex flex-wrap items-baseline gap-x-2">
+                      <IssueBadge issue={issue} />
+                      <span class="font-mono text-xs tracking-wide text-faint" data-where>
+                        {locales.map((locale) => locale.toUpperCase()).join(' ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </td>
+          </tr>
+          <tr>
+            <td colspan="4" class="px-3 pb-2">
+              <details>
+                <summary class="label min-h-6 cursor-pointer text-muted">
+                  {PAGES_TABLE_LABELS.detail}
+                  <span class="sr-only"> de {slugLabel(row.slug)}</span>
+                </summary>
+                <div class="mt-2 grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))]">
+                  {row.locales.map((detail) => (
+                    <LocaleDetailCard detail={detail} />
+                  ))}
+                </div>
+              </details>
+            </td>
+          </tr>
+        </tbody>
+      ))}
+    </table>
+  </div>
+)}

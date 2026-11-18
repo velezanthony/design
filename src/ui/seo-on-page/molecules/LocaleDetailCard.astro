@@ -1,0 +1,59 @@
+---
+import { THRESHOLDS } from '../../../core/seo-on-page/thresholds';
+import type { LocaleDetail } from '../../../core/seo-on-page/pages/listing/rows';
+import Link from '../../atoms/Link.astro';
+import IssueBadge from '../atoms/IssueBadge.astro';
+import LengthMeter from '../atoms/LengthMeter.astro';
+import LocaleBadge from '../atoms/LocaleBadge.astro';
+import { DESCRIPTION_SOURCE_LABELS, PAGES_TABLE_LABELS } from '../labels';
+
+interface Props {
+  detail: LocaleDetail;
+}
+
+const { detail } = Astro.props;
+const label = 'label text-muted';
+---
+
+<section class="border border-rule bg-canvas p-3" data-detail-locale={detail.locale}>
+  <header class="mb-2 flex items-center justify-between gap-2">
+    <LocaleBadge locale={detail.locale} tone={detail.tone} />
+    {detail.present && <Link href={detail.href}>{PAGES_TABLE_LABELS.inspect}</Link>}
+  </header>
+  {detail.present ? (
+    <dl class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
+      <dt class={label}>{PAGES_TABLE_LABELS.title}</dt>
+      <dd class="flex flex-col gap-1">
+        <span class="text-ink">{detail.title}</span>
+        <LengthMeter
+          value={detail.titleLength}
+          max={THRESHOLDS.titleMax}
+          min={THRESHOLDS.titleMin}
+        />
+      </dd>
+      <dt class={label}>{PAGES_TABLE_LABELS.description}</dt>
+      <dd class="flex flex-col gap-1">
+        <span class="text-ink">{DESCRIPTION_SOURCE_LABELS[detail.descriptionSource]}</span>
+        {detail.descriptionLength !== undefined && (
+          <LengthMeter
+            value={detail.descriptionLength}
+            max={THRESHOLDS.descriptionMax}
+            min={THRESHOLDS.descriptionMin}
+          />
+        )}
+      </dd>
+      {detail.issues.length > 0 && (
+        <>
+          <dt class={label}>{PAGES_TABLE_LABELS.issues}</dt>
+          <dd class="flex flex-wrap gap-1.5">
+            {detail.issues.map((issue) => (
+              <IssueBadge issue={issue} />
+            ))}
+          </dd>
+        </>
+      )}
+    </dl>
+  ) : (
+    <p class="text-sm text-muted">{PAGES_TABLE_LABELS.missingLocale(detail.locale)}</p>
+  )}
+</section>

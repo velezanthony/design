@@ -70,6 +70,9 @@ const en = {
   'notFound.body': 'The page you are looking for does not exist or has moved.',
   'notFound.home': 'Go to the home page',
   'notFound.description': 'The page you are looking for does not exist.',
+  'sitemap.title': 'Sitemap',
+  'sitemap.note':
+    'This file is for search engines, which read the XML. Each page lists the languages it is available in.',
 } as const;
 
 export type UiKey = keyof typeof en;
@@ -143,6 +146,9 @@ const es: UiStrings = {
   'notFound.body': 'La página que buscas no existe o se ha movido.',
   'notFound.home': 'Ir a la portada',
   'notFound.description': 'La página que buscas no existe.',
+  'sitemap.title': 'Mapa del sitio',
+  'sitemap.note':
+    'Este archivo es para los buscadores, que leen el XML. Cada página indica los idiomas en los que está.',
 };
 
 /** Todas las claves de UI: de aquí sale el esquema estricto de `ui`. */

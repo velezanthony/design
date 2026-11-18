@@ -37,16 +37,16 @@ sequenceDiagram
   participant Vite as Vite + módulo virtual
   participant Ldr as collections · content/index.ts + loader/index.ts
   participant MD as Sätteri + plugins mdast
-  participant Rt as Rutas inyectadas · astro/routes/
+  participant Rt as Rutas inyectadas · astro/pages/
   participant PF as Pagefind
 
   CLI->>Int: docs(docsConfig) → resolveConfig (zod)
   CLI->>Int: astro:config:setup
   Int->>Int: exige site, lee PUBLIC_GTM_ID (applyAnalytics)
-  Int->>Int: assertNoRouteCollision, assertNoFontConflict
+  Int->>Int: routeOverrides (aviso), assertNoFontConflict
   Int->>MD: extendMarkdownProcessor (directivas + plugins)
   Int->>Vite: updateConfig (shikiConfig, fonts, plugin virtual)
-  Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml, favicon, privacidad
+  Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml y su hoja, favicon, privacidad
   CLI->>Int: astro:config:done → injectTypes(virtual.d.ts)
   CLI->>Ldr: sincroniza la colección docs (config del módulo virtual)
   Ldr->>Ldr: lee <content>/**.md + external[]
@@ -76,8 +76,10 @@ Es donde ocurre casi todo. En orden:
 2. **Analítica.** `readAnalyticsEnv` lee `PUBLIC_GTM_ID` con `loadEnv` de Vite (en este hook los
    `.env` aún no están en `process.env`) y `applyAnalytics` decide si se activa. Detalle en
    [Analítica y privacidad](./analitica-y-privacidad.md).
-3. **Colisiones.** `assertNoRouteCollision` falla si `src/pages/` del consumidor ocupa una ruta de la
-   librería; `assertNoFontConflict`, si el consumidor declara una fuente con `--font-plex-sans` o
+3. **Sustituciones y conflictos.** `routeOverrides` lista las rutas de la librería que el
+   consumidor sustituye con un fichero de `src/pages/` (la portada, la 404, el sitemap, `/_design/`…):
+   no es un error, se avisa al arrancar y las rutas exactas que ya son suyas no se inyectan.
+   `assertNoFontConflict` falla si el consumidor declara una fuente con `--font-plex-sans` o
    `--font-plex-mono`.
 4. **Compañeras.** `addCompanions` inserta integraciones auxiliares tras la nuestra. Hoy la lista
    (`COMPANIONS`) está vacía: sitemap, búsqueda y 404 son propios. El mecanismo queda listo para
@@ -96,7 +98,9 @@ Es donde ocurre casi todo. En orden:
 | Patrón | Contenedor | Cuándo |
 | --- | --- | --- |
 | `/[...slug]` | `doc.astro` | Siempre: todas las páginas de docs, en todos los idiomas. |
-| `/sitemap.xml` | `sitemap.xml.ts` | Siempre. |
+| `/sitemap.xml` | `sitemap.xml.ts` | Siempre: las páginas o, con `sitemap.include`, el índice. |
+| `/sitemap-pages.xml` | `sitemap-pages.xml.ts` | Con `sitemap.include`: las páginas propias. |
+| `/_design/sitemap.css` | `sitemap.css.ts` | Siempre (la hoja con la que el navegador pinta el sitemap). |
 | `/_design/favicon.png` | `favicon.png.ts` | Siempre (el favicon por defecto, con espacio de nombres propio). |
 | `/404` | `not-found.astro` | Siempre. |
 | `/[locale]/404` | `not-found.astro` | Con más de un idioma. |
@@ -115,7 +119,7 @@ Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-
 
 ## El módulo virtual
 
-Los contenedores de `src/astro/routes/` necesitan la config resuelta, pero se ejecutan dentro de
+Las páginas de `src/astro/pages/` necesitan la config resuelta, pero se ejecutan dentro de
 Vite, lejos del hook que la conoce. El puente es un **módulo virtual** (el mismo patrón que usa
 Starlight):
 
@@ -124,7 +128,7 @@ Starlight):
   interfaz por idioma en `strings`.
 - `createVirtualConfigPlugin` (`src/astro/virtual/plugin.ts`) sirve ese objeto con
   `JSON.stringify` bajo el id `virtual:@velezanthony/design/config`. Solo datos: nada de funciones.
-- `src/astro/routes/site-config.ts` importa el módulo y le pone su tipo completo.
+- `src/astro/data/site-config.ts` importa el módulo y le pone su tipo completo.
 - `src/astro/content/index.ts` también lo importa: de ahí saca el loader la config. Sin la
   integración registrada, ese import no resuelve y la build falla con un `AstroError` que pide añadir `docs(config)`.
 
@@ -135,7 +139,7 @@ flowchart LR
   astro["astro.config<br/>base · site · trailingSlash"] --> vd
   aa --> vd["createVirtualData<br/>astro/virtual/data.ts"]
   vd --> vp["plugin de Vite<br/>virtual:@velezanthony/design/config"]
-  vp --> sc["routes/site-config.ts"]
+  vp --> sc["data/site-config.ts"]
   vp --> ct["content/index.ts<br/>colección docs"]
   sc --> doc["doc.astro · not-found.astro<br/>sitemap.xml.ts · privacy.astro"]
 ```

@@ -401,6 +401,121 @@ svg[id^='docs-mermaid-'] .label {
   text-transform: none;
 }
 
+/* Avisos (`Admonition`) y anclas de los títulos: componentes de la librería, así que se ven igual
+   dentro y fuera de `.prose` (el panel SEO on page los usa sin ella). Antes vivían dentro de
+   `.prose` y fuera de ella salían sin recuadro y con la «#» siempre a la vista. */
+@layer components {
+  /* Admoniciones: `<aside class="admonition" data-kind>` o, si se pliega, `<details>` con
+     `<summary class="admonition-title">`. El color del tipo sale de los tokens de la paleta. */
+  .admonition {
+    --admonition-color: var(--color-accent);
+    border: 1px solid var(--color-rule);
+    border-left: 3px solid var(--admonition-color);
+    border-radius: 4px;
+    background-color: var(--color-raised);
+    padding: 0.75rem 1rem;
+    font-size: var(--text-row);
+    line-height: var(--text-row--line-height);
+  }
+
+  .admonition[data-kind='note'] {
+    --admonition-color: var(--color-accent);
+  }
+
+  .admonition[data-kind='info'] {
+    --admonition-color: var(--color-ink);
+  }
+
+  .admonition[data-kind='tip'] {
+    --admonition-color: var(--color-state-live);
+  }
+
+  .admonition[data-kind='warning'] {
+    --admonition-color: var(--color-state-wip);
+  }
+
+  .admonition[data-kind='danger'] {
+    --admonition-color: var(--color-danger);
+  }
+
+  .admonition[data-kind='question'] {
+    --admonition-color: var(--color-muted);
+  }
+
+  .admonition > * + * {
+    margin-top: 0.5em;
+  }
+
+  .admonition-title {
+    color: var(--admonition-color);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: var(--text-label--letter-spacing);
+    line-height: var(--text-label--line-height);
+    text-transform: uppercase;
+  }
+
+  /* Plegable: el título es el `<summary>`, clicable y con foco visible; el cuerpo, lo que queda
+     tras él. */
+  details.admonition > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  details.admonition > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.admonition > summary::before {
+    content: '+';
+    display: inline-block;
+    width: 1.25em;
+  }
+
+  details.admonition[open] > summary::before {
+    content: '−';
+  }
+
+  /* Ancla permanente de `client/layout/anchors.ts`: aparece al señalar o enfocar el encabezado. */
+  .heading-anchor {
+    margin-left: 0.4em;
+    color: var(--color-faint);
+    text-decoration: none;
+    opacity: 0;
+  }
+
+  :is(h2, h3, h4):hover > .heading-anchor,
+  .heading-anchor:focus-visible {
+    color: var(--color-accent);
+    opacity: 1;
+  }
+}
+
+/* Tabla que en pantallas estrechas pasa a una tarjeta por elemento `[data-card]` (una fila o un
+   `<tbody>`): sin desplazamiento horizontal, cada celda dice su columna con `data-cell`. */
+@utility table-cards {
+  @variant max-md {
+    & thead {
+      @apply sr-only;
+    }
+    &,
+    & tbody,
+    & tr,
+    & th,
+    & td {
+      @apply block w-full;
+    }
+    & [data-card] {
+      @apply mt-3 border border-rule;
+    }
+    & [data-cell]::before {
+      content: attr(data-cell);
+      @apply mb-1 block label text-faint;
+    }
+  }
+}
+
 @utility prose {
   /* El texto conserva su medida; lo ancho (código, tablas, pestañas, capturas) la desborda hasta
      `--wide-max`. La caja de `prose` ocupa toda la columna: la medida va en los hijos. */
@@ -704,78 +819,6 @@ svg[id^='docs-mermaid-'] .label {
     @apply rounded-t-none;
   }
 
-  /* Admoniciones: `<aside class="admonition" data-kind>` o, si se pliega, `<details>` con
-     `<summary class="admonition-title">`. El color del tipo sale de los tokens de la paleta. */
-  & .admonition {
-    --admonition-color: var(--color-accent);
-    border: 1px solid var(--color-rule);
-    border-left: 3px solid var(--admonition-color);
-    border-radius: 4px;
-    background-color: var(--color-raised);
-    padding: 0.75rem 1rem;
-    font-size: var(--text-row);
-    line-height: var(--text-row--line-height);
-  }
-
-  & .admonition[data-kind='note'] {
-    --admonition-color: var(--color-accent);
-  }
-
-  & .admonition[data-kind='info'] {
-    --admonition-color: var(--color-ink);
-  }
-
-  & .admonition[data-kind='tip'] {
-    --admonition-color: var(--color-state-live);
-  }
-
-  & .admonition[data-kind='warning'] {
-    --admonition-color: var(--color-state-wip);
-  }
-
-  & .admonition[data-kind='danger'] {
-    --admonition-color: var(--color-danger);
-  }
-
-  & .admonition[data-kind='question'] {
-    --admonition-color: var(--color-muted);
-  }
-
-  & .admonition > * + * {
-    margin-top: 0.5em;
-  }
-
-  & .admonition-title {
-    color: var(--admonition-color);
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    font-weight: 600;
-    letter-spacing: var(--text-label--letter-spacing);
-    line-height: var(--text-label--line-height);
-    text-transform: uppercase;
-  }
-
-  /* Plegable: el título es el `<summary>`, clicable y con foco visible; el cuerpo, lo que queda
-     tras él. */
-  & details.admonition > summary {
-    cursor: pointer;
-    list-style: none;
-  }
-
-  & details.admonition > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  & details.admonition > summary::before {
-    content: '+';
-    display: inline-block;
-    width: 1.25em;
-  }
-
-  & details.admonition[open] > summary::before {
-    content: '−';
-  }
-
   /* Pestañas. Sin JavaScript los paneles se apilan, cada uno con su etiqueta visible. Con
      JavaScript el grupo recibe `data-enhanced`: aparece la `tablist`, la etiqueta se oculta y solo
      se ve el panel activo (los demás llevan `hidden`). */
@@ -937,20 +980,6 @@ svg[id^='docs-mermaid-'] .label {
     & .docs-copy[data-state] {
       opacity: 1;
     }
-  }
-
-  /* Ancla permanente de `client/layout/anchors.ts`: aparece al señalar o enfocar el encabezado. */
-  & .heading-anchor {
-    margin-left: 0.4em;
-    color: var(--color-faint);
-    text-decoration: none;
-    opacity: 0;
-  }
-
-  & :is(h2, h3, h4):hover > .heading-anchor,
-  & .heading-anchor:focus-visible {
-    color: var(--color-accent);
-    opacity: 1;
   }
 
   & :is(.docs-copy, .docs-expand):hover,

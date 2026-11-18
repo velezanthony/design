@@ -28,7 +28,7 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
    props, atributos ARIA, URLs). Usa `render()` de `src/testing/render.ts` y `stringsFor()`. Si es
    puramente visual, no lleva test.
 6. **Úsalo** desde el layout o el organismo que corresponda. Si necesita datos de la config o de las
-   páginas, los calcula `docView` (`src/astro/routes/doc-view.ts`) con funciones de `core/`, y el
+   páginas, los calcula `docView` (`src/astro/views/doc.ts`) con funciones de `core/`, y el
    layout se los pasa.
 
 Los componentes se exportan solos: `@velezanthony/design/components/*` apunta a `src/ui/*`, así que
@@ -41,7 +41,7 @@ un consumidor puede importar `@velezanthony/design/components/atoms/Tag.astro` s
 flowchart LR
   s["1. schema.ts<br/>DocsConfigSchema"] --> r["2. resolve.ts<br/>ResolvedConfig + defecto"]
   r --> v["3. virtual.d.ts<br/>(si la usan las rutas)"]
-  v --> dv["4. doc-view.ts / loader<br/>usa el valor"]
+  v --> dv["4. views/doc.ts / loader<br/>usa el valor"]
   dv --> ui["5. Props del<br/>componente"]
   ui --> doc["6. README + este sitio"]
 ```

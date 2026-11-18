@@ -1,0 +1,37 @@
+---
+import { plainText } from '../../../core/seo-on-page/queries/code-spans';
+import type { Issue } from '../../../core/seo-on-page/tree/types';
+import Tag from '../../atoms/Tag.astro';
+import { KIND_LABELS, SEVERITY_LABELS, SEVERITY_TONES } from '../labels';
+
+interface Props {
+  issue: Pick<Issue, 'kind' | 'severity' | 'message' | 'fix' | 'value' | 'limit'>;
+}
+
+const { issue } = Astro.props;
+/* «72 / 60»: lo medido contra su límite, solo cuando el análisis aporta ambos. */
+const measure =
+  issue.value !== undefined && issue.limit !== undefined
+    ? `${issue.value} / ${issue.limit}`
+    : undefined;
+/* En la tabla no hay sitio para el arreglo entero sin romper el escaneo: va en la ayuda del ratón. */
+/* Un `title` no admite HTML: el arreglo va sin las comillas de código. */
+const help = issue.fix
+  ? `${issue.message}\nCómo arreglarlo: ${plainText(issue.fix)}`
+  : issue.message;
+---
+
+{/* La gravedad va también como texto (oculto) y en `data-severity`: el color solo no basta. */}
+<Tag
+  tone={SEVERITY_TONES[issue.severity]}
+  bordered
+  plain
+  title={help}
+  data-severity={issue.severity}
+  data-kind={issue.kind}
+  class="items-baseline"
+>
+  <span class="sr-only">{SEVERITY_LABELS[issue.severity]}: </span>
+  {KIND_LABELS[issue.kind]}
+  {measure && <span class="font-mono">{measure}</span>}
+</Tag>

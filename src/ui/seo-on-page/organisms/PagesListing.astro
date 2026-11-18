@@ -1,0 +1,21 @@
+---
+/* Elige la tabla de la vista pedida: cada una pinta las filas que el modelo ya preparó. */
+import type { ListingTable } from '../../../core/seo-on-page/pages/listing/model';
+import EntriesTable from './EntriesTable.astro';
+import HaveTable from './HaveTable.astro';
+import LanguageMatrix from './LanguageMatrix.astro';
+import PagesTable from './PagesTable.astro';
+
+interface Props {
+  table: ListingTable;
+}
+
+const { table } = Astro.props;
+---
+
+{table.view === 'page' && <PagesTable rows={table.rows} />}
+{table.view === 'locale' && <EntriesTable rows={table.rows} />}
+{table.view === 'matrix' && (
+  <LanguageMatrix rows={table.rows} locales={table.locales} hreflang={table.hreflang} />
+)}
+{table.view === 'have' && <HaveTable rows={table.rows} columns={table.columns} />}

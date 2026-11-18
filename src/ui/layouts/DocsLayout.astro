@@ -13,6 +13,7 @@ import NavList from '../molecules/NavList.astro';
 import PanelToggle from '../molecules/PanelToggle.astro';
 import PrevNext from '../molecules/PrevNext.astro';
 import TableOfContents from '../molecules/TableOfContents.astro';
+import { tocEntries } from '../../core/navigation/toc-entries';
 import BackToTop from '../organisms/BackToTop.astro';
 import ConsentBanner from '../organisms/ConsentBanner.astro';
 import DocsFooter from '../organisms/DocsFooter.astro';
@@ -51,6 +52,8 @@ interface Props {
   fallback?: { originalLocale: Locale; href: string };
   /** Columnas plegables y ancho; sin él, todo abierto, en lectura y con los controles. */
   layout?: ResolvedLayout;
+  /** `false` para una página con su propio marcado (herramientas, tablas): sin el estilo de `.prose`. */
+  prose?: boolean;
 }
 
 const {
@@ -76,7 +79,10 @@ const {
   year,
   fallback,
   layout = DEFAULT_LAYOUT,
+  prose = true,
 } = Astro.props;
+/* Con índice, tres columnas; sin él, el contenido ocupa también la de la derecha. */
+const hasToc = tocEntries(headings).length > 0;
 
 if (gtmId && !privacyUrl) {
   throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
@@ -101,7 +107,12 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     <SearchBox strings={strings} baseUrl={baseUrl} />
   </DocsHeader>
 
-  <div class="docs-container docs-page mx-auto grid w-full max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:gap-y-0 lg:px-10 lg:py-0 xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]">
+  <div
+    class:list={[
+      'docs-container docs-page mx-auto grid w-full max-w-(--page-max) gap-x-10 gap-y-8 px-6 py-8 lg:grid-cols-[var(--col-left)_minmax(0,1fr)] lg:gap-y-0 lg:px-10 lg:py-0',
+      hasToc && 'xl:grid-cols-[var(--col-left)_minmax(0,1fr)_var(--col-right)]',
+    ]}
+  >
     {/* `aside` es el plano (fondo y bordes, de la altura de la columna); lo que se desplaza, con su
         propia barra, es el contenedor pegajoso de dentro. */}
     <aside class="docs-sidebar">
@@ -174,7 +185,7 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       )}
       {/* `.prose` es la utilidad que da estilo al Markdown renderizado (encabezados, código, anclas,
           admoniciones, pestañas). Va solo en el contenido: el cromo de debajo no la hereda. */}
-      <div class="prose" lang={fallback?.originalLocale}>
+      <div class:list={[prose && 'prose']} lang={fallback?.originalLocale}>
         <slot />
       </div>
       <div data-pagefind-ignore>
@@ -183,14 +194,17 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       </div>
     </main>
 
-    <div class="hidden xl:block xl:py-8">
-      <TableOfContents
-        headings={headings}
-        strings={strings}
-        toggles={layout.toggles}
-        open={layout.toc === 'open'}
-      />
-    </div>
+    {/* Sin índice no se reserva su columna: el contenido (tablas, herramientas) usa ese ancho. */}
+    {hasToc && (
+      <div data-toc-column class="hidden xl:block xl:py-8">
+        <TableOfContents
+          headings={headings}
+          strings={strings}
+          toggles={layout.toggles}
+          open={layout.toc === 'open'}
+        />
+      </div>
+    )}
   </div>
 
   <DocsFooter

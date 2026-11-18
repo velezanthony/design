@@ -42,6 +42,12 @@ describe('resolveConfig: valores por defecto', () => {
     expect(cfg.translations.missing).toBe(MissingTranslation.LINK);
     expect(cfg.external).toEqual([]);
     expect(cfg.seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
+    expect(cfg.sitemap).toEqual({ include: [] });
+  });
+
+  it('conserva los sitemaps que se incluyen en el índice', () => {
+    const cfg = resolveConfig({ name: 'X', sitemap: { include: ['/lib/sitemap.xml'] } });
+    expect(cfg.sitemap.include).toEqual(['/lib/sitemap.xml']);
   });
 
   it('el idioma por defecto es el primero de `locales`', () => {

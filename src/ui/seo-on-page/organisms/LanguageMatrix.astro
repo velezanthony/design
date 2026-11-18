@@ -1,0 +1,109 @@
+---
+/* La vista «Matriz de idiomas»: una fila por página, una columna por idioma de la config, y lo que
+   el `<head>` anuncia a los buscadores (hreflang, x-default). */
+/* eslint-disable astro/jsx-a11y/no-noninteractive-tabindex */
+import type { MatrixRow } from '../../../core/seo-on-page/pages/listing/matrix';
+import Link from '../../atoms/Link.astro';
+import Tag from '../../atoms/Tag.astro';
+import StateMark from '../molecules/StateMark.astro';
+import {
+  MATRIX_LABELS as LABELS,
+  PAGES_TABLE_LABELS,
+  slugLabel,
+  TAG_HINTS,
+  tagLabel,
+} from '../labels';
+
+interface Props {
+  rows: MatrixRow[];
+  /** Los idiomas de la config, una columna cada uno. */
+  locales: string[];
+  /** Con un solo idioma no hay hreflang: se quitan sus dos columnas. */
+  hreflang: boolean;
+}
+
+const { rows, locales, hreflang } = Astro.props;
+const cell = 'px-3 py-2 align-top';
+const edge = 'border-b border-rule';
+---
+
+{rows.length === 0 ? (
+  <p class="border border-rule bg-raised p-4 text-muted">{PAGES_TABLE_LABELS.empty}</p>
+) : (
+  <div class="flex flex-col gap-3">
+    <div class="overflow-x-auto" tabindex="0">
+      <table class="w-full border-collapse text-left text-sm">
+        <caption class="sr-only">{LABELS.caption}</caption>
+        <thead>
+          <tr class="label text-muted">
+            <th scope="col" class:list={[cell, edge]}>
+              {LABELS.page}
+            </th>
+            {locales.map((locale) => (
+              <th scope="col" class:list={[cell, edge]}>
+                {locale.toUpperCase()}
+              </th>
+            ))}
+            {hreflang && (
+              <>
+                <th scope="col" class:list={[cell, edge]}>
+                  {LABELS.hreflang}
+                </th>
+                <th scope="col" class:list={[cell, edge]}>
+                  {LABELS.xDefault}
+                </th>
+              </>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr class={edge} data-page={row.slug}>
+              <th scope="row" class:list={[cell, 'font-normal']}>
+                <Link href={row.href} class="font-mono">
+                  {slugLabel(row.slug)}
+                </Link>
+                {row.tags.length > 0 && (
+                  <span class="ml-1.5 inline-flex flex-wrap gap-1.5">
+                    {row.tags.map((tag) => (
+                      <Tag bordered plain title={TAG_HINTS[tag.kind]} data-tag={tag.kind}>
+                        {tagLabel(tag)}
+                      </Tag>
+                    ))}
+                  </span>
+                )}
+              </th>
+              {row.cells.map(({ locale, state }) => (
+                <td class={cell} data-locale={locale} data-state={state}>
+                  <StateMark {...LABELS.states[state]} />
+                </td>
+              ))}
+              {hreflang && (
+                <>
+                  <td class={cell} data-hreflang={row.hreflang}>
+                    <StateMark {...LABELS.hreflangStates[row.hreflang]} />
+                  </td>
+                  <td class={cell} data-x-default>
+                    {row.xDefault ? (
+                      <StateMark glyph="✓" tone="live" text={row.xDefault} />
+                    ) : (
+                      <span class="text-faint">{LABELS.none}</span>
+                    )}
+                  </td>
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label={LABELS.legendLabel}>
+      {LABELS.legend.map(({ state, text }) => (
+        <li>
+          <StateMark {...LABELS.states[state]} text={text} />
+        </li>
+      ))}
+    </ul>
+    <p class="border-l-2 border-rule pl-3 text-sm text-muted">{LABELS.note}</p>
+  </div>
+)}

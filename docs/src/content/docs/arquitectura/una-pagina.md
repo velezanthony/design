@@ -20,7 +20,7 @@ flowchart TD
     md --> store["Entrada de la colección docs<br/>(data + HTML + headings)"]
     store --> doc["doc.astro<br/>getStaticPaths → docRoutes"]
     vm["virtual:@velezanthony/design/config"] --> doc
-    doc --> view["docView · astro/routes/doc-view.ts<br/>(llama a core/navigation, core/seo, core/i18n)"]
+    doc --> view["docView · astro/views/doc.ts<br/>(llama a core/navigation, core/seo, core/i18n)"]
     view --> lay["DocsLayout + Shell<br/>ui/layouts"]
     lay --> html["dist/guia/instalar/index.html"]
   end
@@ -120,6 +120,6 @@ llama a `bootDocs`, para que los `init*` vean el DOM definitivo.
 | Algo raro en el HTML del Markdown | `astro/markdown/` (el plugin concreto) |
 | Barra lateral, cabecera o anterior/siguiente | `core/navigation/` |
 | Etiquetas del head | `core/seo/meta.ts`, `core/seo/head.ts` |
-| Un dato de la config no llega a la página | `astro/virtual/data.ts`, `astro/routes/doc-view.ts` |
+| Un dato de la config no llega a la página | `astro/virtual/data.ts`, `astro/views/doc.ts` |
 | Un comportamiento en el navegador | `client/` y su llamada en `ui/layouts/boot.ts` |
 | Aspecto visual | `ui/styles/theme.css` y el componente en `ui/` |

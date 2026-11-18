@@ -15,9 +15,9 @@ calculen la misma URL de formas distintas.
 ## Rutas
 
 Todo lo sirve la integración con `injectRoute` (ver [Cómo funciona por dentro](./por-dentro.md#los-hooks-de-la-integración)).
-La pieza central es `/[...slug]` → `src/astro/routes/doc.astro`:
+La pieza central es `/[...slug]` → `src/astro/pages/doc.astro`:
 
-- `getStaticPaths` llama a `docRoutes` (`src/astro/routes/doc-view.ts`), que devuelve una ruta por
+- `getStaticPaths` llama a `docRoutes` (`src/astro/views/doc.ts`), que devuelve una ruta por
   cada página real y, con la política `fallback`, una **ruta de reserva** por cada traducción
   ausente.
 - El idioma por defecto va **sin prefijo** (`/guia/`); los demás, con él (`/en/guia/`). La portada
@@ -35,10 +35,45 @@ redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
 
 ### `sitemap.xml`
 
-`src/astro/routes/sitemap.xml.ts` → `sitemapXml` (`routes/pages.ts`) → `buildSitemap`
+`src/astro/pages/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
 (`core/seo/sitemap.ts`). Solo entran páginas **reales e indexables**, con sus alternativas
 `hreflang`; ni rutas de reserva ni la 404. La página de privacidad propia entra si existe. No hay
 `robots.txt`: es del portfolio, que vive en la raíz del dominio.
+
+Las páginas que el sitio añade en `src/pages/` también entran, leídas de lo que publica su `<head>`
+(`clientSitemapEntries`): solo las indexables y canónicas de sí mismas, con los idiomas que
+declaran sus `hreflang`. En `astro dev` los endpoints las piden al propio servidor
+(`loadClientSitemapEntries`); en el build no hay servidor, así que `astro:build:done`
+(`addClientPagesToSitemap`) reconoce cuáles de las páginas generadas son del cliente por el patrón
+de su ruta, lee su HTML de `dist/` con el mismo `readHead` y las añade al sitemap ya escrito. Una
+página del sitio se saca del sitemap con `<meta name="robots" content="noindex">` en su `<head>`.
+
+Abierto en el navegador, el sitemap se ve con estilo: enlaza `_design/sitemap.css` (ruta relativa,
+vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`ui/styles/sitemap.ts`).
+La paleta se lee de `theme.css` al generar el sitio, sin copiar valores, y el título y la nota salen
+de `sitemap.title` y `sitemap.note` del idioma por defecto. Es CSS y no XSLT porque Chrome retira
+XSLT. Los buscadores ignoran la hoja: leen el XML. Un XML no puede llevar `<meta viewport>`, así que
+en el móvil se ve con el ancho de escritorio.
+
+#### Índice con otros sitemaps del dominio
+
+En GitHub Pages cada proyecto es una carpeta del mismo dominio y genera su propio sitemap
+(`/snake-orm/sitemap.xml`) sin tocar la raíz. El sitio de la raíz, el principal, puede declarar los
+demás con `sitemap.include`:
+
+```js
+// docs.config.mjs del sitio principal
+sitemap: { include: ['/snake-orm/sitemap.xml', '/cotton-props/sitemap.xml'] },
+```
+
+Con `include`, `sitemap.xml` pasa a ser un índice (`sitemapIndexXml` → `buildSitemapIndex`): primero
+`sitemap-pages.xml`, con las páginas propias de siempre, y luego cada sitemap declarado. Así Search
+Console y `robots.txt` siguen con una sola URL; es lo que hace Yoast con su `sitemap_index.xml`. Sin
+`include` no cambia nada y `sitemap-pages.xml` no existe.
+
+Las rutas se resuelven contra el **origen** de `site`, no contra `base`. El build falla
+(`sitemapIncludes`) si una es de otro dominio, porque el protocolo solo admite sitemaps del mismo
+sitio, o si es el propio índice o el de páginas.
 
 ## SEO
 
@@ -77,10 +112,46 @@ flowchart LR
   `alt`, el `alt` es el título de esa página. Se leen sus dimensiones para `og:image:width/height`,
   y se avisa si pesa más de 300 KB o no se acerca a 1,91:1 (`core/seo/image-checks.ts`).
 - **`noindex`.** Saca la página del sitemap y del índice de búsqueda.
+- **JSON-LD (`seo.schema`).** La librería no inyecta ninguno por defecto: es un puente. El sitio
+  declara los suyos y se pintan en el `<head>`, un `<script type="application/ld+json">` por schema.
+  La cascada es la de los títulos: sin nada en ningún nivel no sale nada; los del sitio salen en
+  todas las páginas; `seo.schema: [...]` en una página se **suma** a los del sitio (primero los del
+  sitio); `seo.schema: false` deja esa página sin ninguno.
+
+  ```js
+  // docs.config.mjs
+  seo: { schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }] }
+  ```
+
+  ```yaml
+  ---
+  seo:
+    schema:
+      - '@type': TechArticle
+        headline: Instalar en cualquier sistema
+  ---
+  ```
+
+  Cada schema es un objeto con `@type` (un string o una lista no vacía de strings) y las demás
+  claves libres. Si falta `@context` se añade `https://schema.org`; si lo declaras, se respeta. Un
+  fallo se nombra con su ruta (`seo.schema[1]['@type']`).
+
+  La config viaja al sitio como JSON, así que no admite funciones. Como `docs.config.mjs` es
+  JavaScript, calcula los objetos al construir y pásalos ya hechos:
+
+  ```js
+  import { author } from './src/data/author.mjs';
+
+  const person = { '@type': 'Person', name: author.name, url: author.url, sameAs: author.profiles };
+  export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
+  ```
+
+  El JSON sale escapando `<`, `>`, `&`, U+2028 y U+2029 (`\u003c`…): un valor con
+  `</script><script>alert(1)</script>` no puede cerrar el `<script>` ni abrir otro.
 
 `buildHead` emite: `<title>`, favicon, `canonical`, los `hreflang` (con `x-default`), Open Graph
 (`og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale` y alternativas,
-`og:image*`) y las etiquetas `twitter:*`. Una ruta de reserva lleva `noindex` y su canonical apunta
+`og:image*`), las etiquetas `twitter:*` y el JSON-LD declarado. Una ruta de reserva lleva `noindex` y su canonical apunta
 al original.
 
 Ejemplo de frontmatter de una página:

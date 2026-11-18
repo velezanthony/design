@@ -2,6 +2,7 @@
 seo:
   noindex: true
   titleSuffix: false
+  schema: false
 ---
 
 # Hidden

@@ -27,6 +27,14 @@ export interface LinkRef {
   anchor?: string;
 }
 
+/** Imagen del cuerpo (`![alt](src)`): la ruta tal como se escribió y su texto alternativo (vacío si no hay). */
+export interface BodyImage {
+  file: string;
+  line: number;
+  src: string;
+  alt: string;
+}
+
 const INLINE_LINK = /(!?)\[([^\]]*)\]\(\s*(<[^>]*>|[^)\s]+)((?:\s+"[^"]*"|\s+'[^']*')?)\s*\)/g;
 const DEFINITION = /^( {0,3}\[[^\]]+\]:\s*)(<[^>]*>|\S+)/;
 const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/)/i;
@@ -94,6 +102,7 @@ interface Context {
   from: Page;
   index: PageIndex;
   refs: LinkRef[];
+  images: BodyImage[];
   errors: DocsError[];
 }
 
@@ -168,15 +177,16 @@ function brokenLink(target: string, from: Page, line: number, reason: string): D
 
 /**
  * Reescribe los enlaces relativos del cuerpo hacia la URL de la página publicada de destino y
- * devuelve los enlaces internos (para validar sus anclas) y los rotos (archivo, línea y destino).
+ * devuelve los enlaces internos (para validar sus anclas), las imágenes y los enlaces rotos
+ * (archivo, línea y destino).
  * Ignora bloques de código, código en línea, URLs externas, rutas absolutas del sitio e imágenes.
  */
 export function rewriteLinks(
   body: string,
   from: Page,
   index: PageIndex,
-): { body: string; refs: LinkRef[]; errors: DocsError[] } {
-  const context: Context = { from, index, refs: [], errors: [] };
+): { body: string; refs: LinkRef[]; images: BodyImage[]; errors: DocsError[] } {
+  const context: Context = { from, index, refs: [], images: [], errors: [] };
   const mask = fenceMask(body);
   const lines = body.split('\n').map((text, i) => {
     if (mask[i]) return text;
@@ -200,6 +210,12 @@ export function rewriteLinks(
       ) => {
         if (inside(spans, offset)) return match;
         if (bang) {
+          context.images.push({
+            file: from.sourcePath,
+            line: i + 1,
+            src: target.startsWith('<') ? target.slice(1, -1) : target,
+            alt: label,
+          });
           const dotted = dotImageTarget(target);
           return dotted === target ? match : `![${label}](${dotted}${title})`;
         }
@@ -208,5 +224,10 @@ export function rewriteLinks(
       },
     );
   });
-  return { body: lines.join('\n'), refs: context.refs, errors: context.errors };
+  return {
+    body: lines.join('\n'),
+    refs: context.refs,
+    images: context.images,
+    errors: context.errors,
+  };
 }

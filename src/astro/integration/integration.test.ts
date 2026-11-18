@@ -7,6 +7,7 @@ import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHIKI_LANG_ALIAS } from '../markdown/code-languages';
+import { clientRegistry } from '../data/client-registry';
 import { docs, INTEGRATION_NAME } from './index';
 import { MissingTranslation } from '../../core/i18n/translation-policy';
 
@@ -285,25 +286,57 @@ describe('astro:config:setup: fusión de config', () => {
 });
 
 describe('astro:config:setup: páginas del consumidor', () => {
-  it('una `src/pages/index.astro` que pisa la home falla con un mensaje accionable', async () => {
+  it('una `src/pages/index.astro` sustituye la portada: no falla, avisa con el fichero', async () => {
     const root = mkdtempSync(join(tmpdir(), 'design-setup-'));
     try {
       mkdirSync(join(root, 'src/pages'), { recursive: true });
       writeFileSync(join(root, 'src/pages/index.astro'), '');
-      const error = await runSetup(
+      vi.mocked(logger.warn).mockClear();
+      await runSetup(
         satteri(),
         {},
         { name: 'x' },
         { srcDir: pathToFileURL(join(root, 'src') + '/') },
-      ).catch((e: unknown) => e);
-      expect(error).toBeInstanceOf(AstroError);
-      expect(error).toMatchObject({
-        message: expect.stringContaining('src/pages/index.astro'),
-        hint: expect.any(String),
-      });
+      );
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('src/pages/index.astro'));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe('astro:config:setup: el panel SEO on page y las páginas del consumidor', () => {
+  /* El panel solo existe en dev, así que solo ahí puede sustituirlo una página del repo. Las
+     sustituciones tienen sus tests; estos aseguran que la integración les pasa el modo. */
+  async function setupWithPage(command: 'dev' | 'build') {
+    const root = mkdtempSync(join(tmpdir(), 'design-seo-'));
+    try {
+      mkdirSync(join(root, 'src/pages/seo-on-page'), { recursive: true });
+      writeFileSync(join(root, 'src/pages/seo-on-page/index.astro'), '');
+      const setup = setupContext(satteri(), {}, { srcDir: pathToFileURL(join(root, 'src') + '/') });
+      const run = async () =>
+        docs({ name: 'x' }).hooks['astro:config:setup']?.({
+          ...(setup.context as object),
+          command,
+          addWatchFile: vi.fn(),
+        } as never);
+      vi.mocked(logger.warn).mockClear();
+      await run();
+      return vi
+        .mocked(logger.warn)
+        .mock.calls.map(([message]) => String(message))
+        .join('\n');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  it('en dev, una página del repo en /seo-on-page/ sustituye al panel y lo avisa', async () => {
+    expect(await setupWithPage('dev')).toContain('src/pages/seo-on-page/index.astro');
+  });
+
+  it('en build no hay panel, así que esa página no sustituye nada', async () => {
+    expect(await setupWithPage('build')).not.toContain('seo-on-page');
   });
 });
 
@@ -316,18 +349,20 @@ describe('astro:config:setup: rutas inyectadas', () => {
   };
   const entry = (route: { entrypoint: string | URL }) => String(route.entrypoint);
 
-  it('inyecta la página de docs, el sitemap, el favicon y la 404', async () => {
+  it('inyecta la página de docs, el sitemap y su hoja, el favicon y la 404', async () => {
     const routes = await routesOf({ name: 'x' });
     expect(routes.map((r) => r.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
+      '/_design/sitemap.css',
       '/_design/favicon.png',
       '/404',
     ]);
-    expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
-    expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
-    expect(entry(routes[2])).toMatch(/routes\/favicon\.png\.ts$/);
-    expect(entry(routes[3])).toMatch(/routes\/not-found\.astro$/);
+    expect(entry(routes[0])).toMatch(/pages\/doc\.astro$/);
+    expect(entry(routes[1])).toMatch(/pages\/sitemap\.xml\.ts$/);
+    expect(entry(routes[2])).toMatch(/pages\/sitemap\.css\.ts$/);
+    expect(entry(routes[3])).toMatch(/pages\/favicon\.png\.ts$/);
+    expect(entry(routes[4])).toMatch(/pages\/not-found\.astro$/);
   });
 
   it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
@@ -335,16 +370,68 @@ describe('astro:config:setup: rutas inyectadas', () => {
     expect(routes.map((r) => r.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
+      '/_design/sitemap.css',
       '/_design/favicon.png',
       '/404',
       '/[locale]/404',
     ]);
-    expect(entry(routes[4])).toBe(entry(routes[3]));
+    expect(entry(routes[5])).toBe(entry(routes[4]));
+  });
+
+  it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
+    const routes = await routesOf({ name: 'x', sitemap: { include: ['/lib/sitemap.xml'] } });
+    const pages = routes.find((r) => r.pattern === '/sitemap-pages.xml');
+    expect(pages && entry(pages)).toMatch(/pages\/sitemap-pages\.xml\.ts$/);
+    expect((await routesOf({ name: 'x' })).map((r) => r.pattern)).not.toContain(
+      '/sitemap-pages.xml',
+    );
   });
 
   it('todas las rutas se prerenderizan', async () => {
     const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
     expect(routes.every((r) => r.prerender === true)).toBe(true);
+  });
+});
+
+describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
+  /** Rutas inyectadas con el comando de Astro dado. */
+  const routesFor = async (command: 'dev' | 'build') => {
+    const integration = docs({ name: 'x', locales: ['en', 'es'] });
+    const { context, injectRoute } = setupContext(satteri());
+    await integration.hooks['astro:config:setup']?.({ ...(context as object), command } as never);
+    return injectRoute.mock.calls.map(
+      ([route]) => route as { pattern: string; entrypoint: string | URL; prerender?: boolean },
+    );
+  };
+
+  it('con `astro build` no inyecta ninguna ruta del panel', async () => {
+    const routes = await routesFor('build');
+    expect(routes.filter((route) => route.pattern.includes('seo-on-page'))).toEqual([]);
+    expect(routes.filter((route) => String(route.entrypoint).includes('seo-on-page'))).toEqual([]);
+  });
+
+  it('con `astro dev` inyecta resumen, tabla e inspector, sin prerenderizar (leen la query)', async () => {
+    const routes = (await routesFor('dev')).filter((route) =>
+      route.pattern.includes('seo-on-page'),
+    );
+    expect(routes.map((route) => route.pattern)).toEqual([
+      '/seo-on-page',
+      '/seo-on-page/pages',
+      '/seo-on-page/page',
+    ]);
+    expect(routes.map((route) => String(route.entrypoint).split('/').at(-1))).toEqual([
+      'overview.astro',
+      'pages.astro',
+      'page.astro',
+    ]);
+    expect(routes.every((route) => route.prerender === false)).toBe(true);
+  });
+
+  it('en dev el resto de rutas siguen siendo las mismas', async () => {
+    const dev = (await routesFor('dev')).filter((route) => !route.pattern.includes('seo-on-page'));
+    expect(dev.map((route) => route.pattern)).toEqual(
+      (await routesFor('build')).map((route) => route.pattern),
+    );
   });
 });
 
@@ -496,5 +583,48 @@ describe('astro:config:setup: contenido fuera del proyecto', () => {
   it('con content dentro del proyecto, no toca server.fs.allow', async () => {
     const { updateConfig } = await runSetup(satteri(), {}, { name: 'x' });
     expect(viteAllow(updateConfig)).toBeUndefined();
+  });
+});
+
+describe('astro:config:setup: rutas que el sitio sustituye', () => {
+  const site = () => {
+    const root = mkdtempSync(join(tmpdir(), 'design-site-'));
+    for (const file of ['index.astro', '404.astro', 'sitemap.xml.ts']) {
+      mkdirSync(join(root, 'src', 'pages'), { recursive: true });
+      writeFileSync(join(root, 'src', 'pages', file), '');
+    }
+    return root;
+  };
+
+  it('no falla: avisa de cuáles sustituye y no inyecta las rutas exactas que ya son suyas', async () => {
+    const root = site();
+    try {
+      vi.mocked(logger.warn).mockClear();
+      const { injectRoute } = await runSetup(
+        satteri(),
+        {},
+        { name: 'x' },
+        {
+          srcDir: pathToFileURL(`${root}/src/`),
+        },
+      );
+      const patterns = injectRoute.mock.calls.map(
+        ([route]) => (route as { pattern: string }).pattern,
+      );
+      expect(patterns).toContain('/[...slug]');
+      expect(patterns).not.toContain('/sitemap.xml');
+      expect(patterns).not.toContain('/404');
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Tu sitio sustituye 3 rutas de @velezanthony/design'),
+      );
+      // El panel las enseña: quedan en el registro que comparte con la integración.
+      expect(clientRegistry().overrides?.map(({ route }) => route)).toEqual([
+        'sitemap.xml',
+        'index',
+        '404',
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

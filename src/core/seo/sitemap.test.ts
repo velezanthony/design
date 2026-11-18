@@ -3,7 +3,17 @@ import type { Page } from '../content/discovery';
 import { buildAvailability, type Availability, type UrlPolicy } from '../i18n/availability';
 import { DocsError } from '../errors';
 import { fallbackRoutes } from '../i18n/translation-policy';
-import { buildSitemap } from './sitemap';
+import type { ClientPage } from './client-pages';
+import type { HeadFacts } from './html-head';
+import {
+  appendToSitemap,
+  buildSitemap,
+  clientSitemapEntries,
+  buildSitemapIndex,
+  SITEMAP_PAGES,
+  SITEMAP_STYLESHEET_PATH,
+  sitemapIncludes,
+} from './sitemap';
 
 const site = new URL('https://x.dev');
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
@@ -25,6 +35,12 @@ describe('buildSitemap', () => {
       'https://x.dev/repo/es/install/',
       'https://x.dev/repo/changelog/',
     ]);
+  });
+
+  it('enlaza su hoja de estilo con una ruta relativa, para que funcione bajo cualquier base', () => {
+    const [, stylesheet] = buildSitemap(av, site).split('\n');
+    expect(stylesheet).toBe('<?xml-stylesheet type="text/css" href="_design/sitemap.css"?>');
+    expect(SITEMAP_STYLESHEET_PATH).toBe('/_design/sitemap.css');
   });
 
   it('una pareja lista ambos alternates en cada URL', () => {
@@ -76,5 +92,161 @@ describe('buildSitemap', () => {
     expect(xml).not.toContain('/repo/es/changelog/');
     expect(xml).not.toContain('404');
     expect(xml).not.toContain('xhtml:link');
+  });
+});
+
+describe('buildSitemapIndex', () => {
+  const index = buildSitemapIndex([
+    'https://x.dev/sitemap-pages.xml',
+    'https://x.dev/lib/sitemap.xml',
+  ]);
+
+  it('es un sitemapindex con un <sitemap> por URL, en orden', () => {
+    expect(index.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
+    expect(index).toContain('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    expect(locs(index)).toEqual([
+      'https://x.dev/sitemap-pages.xml',
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('enlaza la misma hoja de estilo que el sitemap de páginas', () => {
+    expect(index.split('\n')[1]).toBe(
+      '<?xml-stylesheet type="text/css" href="_design/sitemap.css"?>',
+    );
+  });
+
+  it('escapa los caracteres especiales de XML', () => {
+    expect(buildSitemapIndex(['https://x.dev/a.xml?x=1&y=2'])).toContain('a.xml?x=1&amp;y=2');
+  });
+});
+
+describe('sitemapIncludes', () => {
+  const portfolio = new URL('https://x.dev');
+
+  it('las rutas se resuelven contra el origen del sitio, no contra su base', () => {
+    expect(sitemapIncludes(['/lib/sitemap.xml'], new URL('https://x.dev/repo/'))).toEqual([
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('una ruta sin barra inicial también cuelga del dominio, no de la carpeta del sitio', () => {
+    expect(sitemapIncludes(['lib/sitemap.xml'], new URL('https://x.dev/repo/'))).toEqual([
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('una URL completa del mismo dominio se acepta tal cual', () => {
+    expect(sitemapIncludes(['https://x.dev/lib/sitemap.xml'], portfolio)).toEqual([
+      'https://x.dev/lib/sitemap.xml',
+    ]);
+  });
+
+  it('una URL de otro dominio falla nombrando `sitemap.include[i]`', () => {
+    const run = () => sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+    expect(run).toThrow(DocsError);
+    expect(run).toThrow(/sitemap\.include\[1\].*otro\.dev/);
+  });
+
+  it('el propio índice o el de páginas no se pueden incluir: se apuntarían a sí mismos', () => {
+    expect(() => sitemapIncludes(['/sitemap.xml'], portfolio)).toThrow(/sitemap\.include\[0\]/);
+    expect(() => sitemapIncludes([`/${SITEMAP_PAGES}`], portfolio)).toThrow(DocsError);
+  });
+});
+
+describe('clientSitemapEntries', () => {
+  const portfolio = new URL('https://x.dev');
+  const client = (path: string, head: Partial<HeadFacts> = {}): ClientPage => ({
+    path,
+    pattern: path,
+    entrypoint: 'src/pages/x.astro',
+    head: { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [], ...head },
+  });
+
+  it('cada página indexable con su URL publicada y sus idiomas tal como los declara', () => {
+    const alternates = [
+      { hreflang: 'es', href: 'https://x.dev/cv/' },
+      { hreflang: 'en', href: 'https://x.dev/en/resume/' },
+    ];
+    expect(clientSitemapEntries([client('/cv/', { alternates })], portfolio)).toEqual([
+      { loc: 'https://x.dev/cv/', alternates },
+    ]);
+  });
+
+  it('las noindex se quedan fuera', () => {
+    expect(clientSitemapEntries([client('/privacy/', { noindex: true })], portfolio)).toEqual([]);
+  });
+
+  it('las que declaran como canónica otra URL también: el sitemap solo lleva canónicas', () => {
+    const copies = [
+      client('/a/', { canonical: 'https://x.dev/a/' }),
+      client('/b/', { canonical: 'https://x.dev/a/' }),
+    ];
+    expect(clientSitemapEntries(copies, portfolio).map(({ loc }) => loc)).toEqual([
+      'https://x.dev/a/',
+    ]);
+  });
+});
+
+describe('buildSitemap con páginas del cliente', () => {
+  const av: Availability = new Map([['install', { en: '/repo/install/' }]]);
+  const cv = {
+    loc: 'https://x.dev/repo/cv/',
+    alternates: [
+      { hreflang: 'es', href: 'https://x.dev/repo/cv/' },
+      { hreflang: 'en', href: 'https://x.dev/repo/en/cv/' },
+    ],
+  };
+
+  it('van después de las de la documentación, con sus alternates', () => {
+    const xml = buildSitemap(av, site, new Set(), [cv]);
+    expect(locs(xml)).toEqual(['https://x.dev/repo/install/', 'https://x.dev/repo/cv/']);
+    expect(xml).toContain(
+      '<url><loc>https://x.dev/repo/cv/</loc><xhtml:link rel="alternate" hreflang="es" href="https://x.dev/repo/cv/"/><xhtml:link rel="alternate" hreflang="en" href="https://x.dev/repo/en/cv/"/></url>',
+    );
+  });
+
+  it('una del cliente con la URL de una de la documentación la sustituye: no sale dos veces', () => {
+    const own = { loc: 'https://x.dev/repo/install/', alternates: [] };
+    const xml = buildSitemap(av, site, new Set(), [own]);
+    expect(locs(xml)).toEqual(['https://x.dev/repo/install/']);
+    expect(xml).toContain('<url><loc>https://x.dev/repo/install/</loc></url>');
+  });
+
+  it('cuentan para el límite de URLs', () => {
+    const many: Availability = new Map(
+      Array.from({ length: 50_000 }, (_, i) => [`p${i}`, { en: `/repo/p${i}/` }]),
+    );
+    expect(() => buildSitemap(many, site, new Set(), [cv])).toThrow(/50001/);
+  });
+});
+
+describe('appendToSitemap', () => {
+  const entry = { loc: 'https://x.dev/cv/', alternates: [] };
+
+  it('añade las entradas al final de un sitemap ya escrito', () => {
+    const xml = buildSitemap(new Map([['a', { en: '/a/' }]]), site);
+    const merged = appendToSitemap(xml, [entry]);
+    expect(locs(merged)).toEqual(['https://x.dev/a/', 'https://x.dev/cv/']);
+    expect(merged.endsWith('</urlset>\n')).toBe(true);
+  });
+
+  it('una entrada con la URL de otra ya escrita la sustituye', () => {
+    const xml = buildSitemap(new Map([['a', { en: '/a/', es: '/es/a/' }]]), site);
+    const merged = appendToSitemap(xml, [{ loc: 'https://x.dev/a/', alternates: [] }]);
+    expect(locs(merged)).toEqual(['https://x.dev/es/a/', 'https://x.dev/a/']);
+    expect(merged).toContain('<url><loc>https://x.dev/a/</loc></url>');
+  });
+
+  it('sin entradas lo deja tal cual', () => {
+    const xml = buildSitemap(new Map([['a', { en: '/a/' }]]), site);
+    expect(appendToSitemap(xml, [])).toBe(xml);
+  });
+
+  it('escapa los caracteres especiales de XML', () => {
+    const xml = buildSitemap(new Map(), site);
+    expect(appendToSitemap(xml, [{ loc: 'https://x.dev/?a=1&b=2', alternates: [] }])).toContain(
+      '?a=1&amp;b=2',
+    );
   });
 });

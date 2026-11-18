@@ -3,6 +3,9 @@ seo:
   title: Guide for the head
   titleSuffix: Guides
   description: Guide description
+  schema:
+    - '@type': TechArticle
+      headline: Guide for the head
 ---
 
 # Guide

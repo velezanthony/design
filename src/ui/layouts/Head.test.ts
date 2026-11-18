@@ -38,4 +38,14 @@ describe('Head', () => {
     const doc = await renderDocument(Head, { head: [] });
     expect(doc.querySelectorAll('title, meta, link')).toHaveLength(0);
   });
+
+  it('un <script> JSON-LD lleva su contenido tal cual, sin escapar a HTML ni dejarlo crudo', async () => {
+    const content = String.raw`{"name":"\u003c/script\u003e & \u0026"}`;
+    const doc = await renderDocument(Head, {
+      head: [{ tag: 'script', attrs: { type: 'application/ld+json' }, content }],
+    });
+    const script = doc.querySelector('script[type="application/ld+json"]')!;
+    expect(script.textContent).toBe(content);
+    expect(doc.querySelectorAll('script')).toHaveLength(1);
+  });
 });

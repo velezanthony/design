@@ -1,0 +1,154 @@
+---
+import type { KindOptions } from '../../../core/seo-on-page/pages/listing/kinds';
+import type { SeverityCounts } from '../../../core/seo-on-page/pages/listing/severities';
+import { IssueSeverity } from '../../../core/seo-on-page/tree/types';
+import {
+  EMPTY_FILTERS,
+  filterFields,
+  type SeoFilters,
+  type ViewState,
+} from '../../../core/seo-on-page/queries/url-filters';
+import Button from '../../atoms/Button.astro';
+import Checkbox from '../../atoms/Checkbox.astro';
+import Input from '../../atoms/Input.astro';
+import Link from '../../atoms/Link.astro';
+import { PAGE_SIZE } from '../../../core/seo-on-page/queries/paginate';
+import { FILTER_LABELS, KIND_LABELS, KINDS_LABELS, SEVERITY_PLURALS } from '../labels';
+
+interface Props {
+  filters: SeoFilters;
+  /** Filas por página en vigor: se reenvía oculto para que filtrar no deshaga la elección (el selector vive en el pie de la tabla). */
+  perPage: number;
+  /** La vista en vigor: también viaja oculta, filtrar no cambia de vista. */
+  view: ViewState;
+  /** Idiomas de la config del sitio. */
+  locales: string[];
+  /** Lo que cuenta cada ficha de gravedad. */
+  severityCounts: Record<keyof SeverityCounts, number>;
+  /** Las casillas del desplegable de tipos: «Todos», los que tienen incidencias y los que no. */
+  kinds: KindOptions;
+  /** Ruta de la tabla: el formulario es un GET a ella, así los filtros viven en la URL. */
+  action: string;
+  /** La tabla sin filtros, en la misma vista y con el mismo tamaño. */
+  clear: string;
+}
+
+const { filters, perPage, view, locales, severityCounts, kinds, action, clear } = Astro.props;
+const group = 'flex flex-wrap items-center gap-2';
+const separator = 'hidden w-px self-stretch bg-rule sm:block';
+---
+
+{/* Sin JavaScript: un GET con la query de `parseFilters`. Atrás/adelante y compartir la URL funcionan.
+    Con él, las fichas y la búsqueda envían al cambiar (`client/forms/auto-submit.ts`); el desplegable
+    de tipos tiene su botón, porque marcar varios tipos no debe recargar la página tras cada uno. */}
+<form
+  method="get"
+  action={action}
+  role="search"
+  aria-label={FILTER_LABELS.form}
+  class="flex flex-wrap items-center gap-x-4 gap-y-3 border border-rule bg-raised p-3"
+>
+  <Input
+    id="seo-filter-text"
+    type="search"
+    name="q"
+    label={FILTER_LABELS.search}
+    hideLabel
+    value={filters.text}
+    placeholder={FILTER_LABELS.placeholder}
+    data-auto-submit
+    class="min-w-48 flex-1 sm:max-w-xs"
+  />
+  <fieldset class={group} data-auto-submit>
+    <legend class="sr-only">{FILTER_LABELS.severity}</legend>
+    {Object.values(IssueSeverity).map((severity) => (
+      <Checkbox
+        variant="chip"
+        name="severity"
+        value={severity}
+        checked={filters.severities.includes(severity)}
+      >
+        {SEVERITY_PLURALS[severity]}
+        <span class="font-mono text-xs">{severityCounts[severity]}</span>
+      </Checkbox>
+    ))}
+  </fieldset>
+  <span class={separator} aria-hidden="true"></span>
+  <fieldset class={group} data-auto-submit>
+    <legend class="sr-only">{FILTER_LABELS.locale}</legend>
+    {locales.map((locale) => (
+      <Checkbox
+        variant="chip"
+        name="locale"
+        value={locale}
+        checked={filters.locales.includes(locale)}
+      >
+        <span class="font-mono">{locale.toUpperCase()}</span>
+      </Checkbox>
+    ))}
+  </fieldset>
+  <span class={separator} aria-hidden="true"></span>
+  {/* «Todos» marcado equivale a no filtrar por tipo. `client/forms/kinds-all.ts` lo sincroniza con las casillas; sin JavaScript cada una es un campo normal y el servidor lee «todas marcadas» como «sin filtro». */}
+  <details class="relative" data-popover>
+    <summary class="inline-flex min-h-8 cursor-pointer list-none items-center gap-1.5 border border-rule bg-canvas px-3 text-sm text-ink after:text-xs after:text-faint after:content-['▾'] hover:border-accent-line open:border-accent-line [&::-webkit-details-marker]:hidden">
+      {KINDS_LABELS.summary}
+      <span
+        data-kinds-count
+        data-label-all={KINDS_LABELS.countAll}
+        data-label-some={KINDS_LABELS.countSome}
+        class="font-mono text-xs text-muted"
+      >
+        {kinds.all.checked
+          ? KINDS_LABELS.countAll
+          : KINDS_LABELS.countSome
+              .replace('{on}', String(kinds.withIssues.filter(({ checked }) => checked).length))
+              .replace('{total}', String(kinds.all.count))}
+      </span>
+    </summary>
+    <div
+      data-kinds
+      class="absolute top-[calc(100%+6px)] left-0 z-20 grid w-80 max-w-[calc(100vw-2rem)] gap-y-0.5 border border-rule bg-canvas p-2 shadow-lg"
+    >
+      <Checkbox
+        data-kinds-all
+        checked={kinds.all.checked}
+        class="w-full border-b border-rule pb-1.5 font-semibold"
+      >
+        {KINDS_LABELS.all}
+        <span class="ml-auto font-mono text-xs text-faint">{kinds.all.count}</span>
+      </Checkbox>
+      <p class="label px-1 pt-1.5 text-muted">{KINDS_LABELS.withIssues}</p>
+      {kinds.withIssues.map(({ kind, count, checked }) => (
+        <Checkbox name="kind" value={kind} checked={checked} data-kind class="w-full">
+          {KIND_LABELS[kind]}
+          <span class="ml-auto font-mono text-xs text-faint">{count}</span>
+        </Checkbox>
+      ))}
+      {kinds.without.length > 0 && (
+        <>
+          <p class="label px-1 pt-1.5 text-muted">{KINDS_LABELS.without(kinds.without.length)}</p>
+          {kinds.without.map((kind) => (
+            <Checkbox name="kind" value={kind} disabled data-kind class="w-full">
+              {KIND_LABELS[kind]}
+              <span class="ml-auto font-mono text-xs text-faint">0</span>
+            </Checkbox>
+          ))}
+        </>
+      )}
+      <Button type="submit" class="mt-2 w-full">
+        {FILTER_LABELS.apply}
+      </Button>
+    </div>
+  </details>
+  {perPage !== PAGE_SIZE && <input type="hidden" name="per" value={perPage} />}
+  {filterFields(EMPTY_FILTERS, view).map((field) => (
+    <input type="hidden" name={field.name} value={field.value} />
+  ))}
+  {/* Con JavaScript las fichas ya envían solas; sin él, este botón. */}
+  <noscript>
+    <Button type="submit">{FILTER_LABELS.apply}</Button>
+  </noscript>
+  <Link data-clear href={clear}>
+    {FILTER_LABELS.clear}
+  </Link>
+</form>

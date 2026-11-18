@@ -46,6 +46,55 @@ export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 /** Sufijo del `<title>`: texto (o uno por idioma), o `false` para no llevar ninguno. */
 const TitleSuffixSchema = z.union([LabelSchema, z.literal(false)]);
 
+/** Rutas (dentro del valor) de lo que `JSON.stringify` perdería o rompería: funciones, símbolos, bigint, NaN/Infinity. */
+function nonJsonPaths(value: unknown, path: (string | number)[] = []): (string | number)[][] {
+  if (typeof value === 'function' || typeof value === 'symbol' || typeof value === 'bigint') {
+    return [path];
+  }
+  if (typeof value === 'number') return Number.isFinite(value) ? [] : [path];
+  if (Array.isArray(value)) return value.flatMap((item, i) => nonJsonPaths(item, [...path, i]));
+  if (value !== null && typeof value === 'object') {
+    return Object.entries(value).flatMap(([key, item]) => nonJsonPaths(item, [...path, key]));
+  }
+  return [];
+}
+
+/* Un nodo JSON-LD: objeto con `@type` y el resto abierto (schema.org no tiene lista cerrada de
+   propiedades). La config viaja al sitio como JSON, así que los valores deben serlo; el error de
+   `@type` lleva su ruta (`seo.schema[1]['@type']`) en vez de un «Invalid input» genérico. */
+const JsonLdSchema = z
+  .looseObject({
+    '@type': z.union([z.string().min(1), z.array(z.string().min(1)).min(1)], {
+      error: 'Debe ser un string o una lista no vacía de strings (por ejemplo "Person").',
+    }),
+  })
+  .superRefine((node, ctx) => {
+    for (const path of nonJsonPaths(node)) {
+      ctx.addIssue({
+        code: 'custom',
+        path,
+        message:
+          'Debe ser un valor JSON (texto, número, booleano, null, lista u objeto): la config viaja al sitio como JSON.',
+      });
+    }
+  });
+export type JsonLd = z.infer<typeof JsonLdSchema>;
+
+/* `lista | false` sin `z.union`: con una unión zod colapsa los fallos de cada rama en un «Invalid
+   input» sin ruta, y justo ahí (`seo.schema[1]['@type']`) está lo que el usuario necesita leer. */
+const PageSchemasSchema = z.any().superRefine((value, ctx) => {
+  if (value === false) return;
+  if (!Array.isArray(value)) {
+    ctx.addIssue({ code: 'custom', message: 'Debe ser una lista de schemas o `false`.' });
+    return;
+  }
+  const parsed = z.array(JsonLdSchema).safeParse(value);
+  if (parsed.success) return;
+  for (const { path, message } of parsed.error.issues) {
+    ctx.addIssue({ code: 'custom', path, message });
+  }
+}) as unknown as z.ZodType<JsonLd[] | false, JsonLd[] | false>;
+
 /** Override de SEO de una página: frontmatter `seo` (nativas) o `external[].seo` (externas). */
 export const PageSeoOverrideSchema = z.strictObject({
   title: z.string().optional(),
@@ -53,6 +102,8 @@ export const PageSeoOverrideSchema = z.strictObject({
   description: LabelSchema.optional(),
   image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema.optional() }).optional(),
   noindex: z.boolean().optional(),
+  /** Lista que se SUMA a la del sitio, o `false` para que la página no lleve ninguno. */
+  schema: PageSchemasSchema.optional(),
 });
 export type PageSeoOverride = z.infer<typeof PageSeoOverrideSchema>;
 
@@ -146,6 +197,7 @@ export const DocsConfigSchema = z
         titleSuffix: TitleSuffixSchema.optional(),
         description: LabelSchema.optional(),
         image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema }).optional(),
+        schema: z.array(JsonLdSchema).optional(),
       })
       .optional(),
     favicon: FaviconSchema.optional(),
@@ -182,6 +234,8 @@ export const DocsConfigSchema = z
       })
       .optional(),
     social: z.strictObject({ github: z.string().optional() }).optional(),
+    /** Otros sitemaps del dominio que el índice `sitemap.xml` declara (rutas o URLs del mismo origen). */
+    sitemap: z.strictObject({ include: z.array(z.string().min(1)).optional() }).optional(),
     layout: z
       .strictObject({
         sidebar: PanelStateSchema.optional(),

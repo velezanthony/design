@@ -1,0 +1,16 @@
+---
+import type { IssueSeverity } from '../../../core/seo-on-page/tree/types';
+import Tag from '../../atoms/Tag.astro';
+import { SEVERITY_LABELS, SEVERITY_TONES } from '../labels';
+
+interface Props {
+  severity: IssueSeverity;
+}
+
+const { severity } = Astro.props;
+---
+
+{/* La gravedad va en palabras: el color solo no basta. */}
+<Tag tone={SEVERITY_TONES[severity]} bordered data-severity={severity}>
+  {SEVERITY_LABELS[severity]}
+</Tag>

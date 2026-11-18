@@ -134,6 +134,7 @@ describe('withImageSize', () => {
     title: 'T',
     image: { src: '/og.png', alt: 'A' },
     noindex: false,
+    schemas: [],
   };
 
   it('añade width y height cuando se conoce el tamaño de la imagen', () => {
@@ -148,5 +149,26 @@ describe('withImageSize', () => {
   it('sin imagen devuelve la misma meta', () => {
     const bare = { ...meta, image: undefined };
     expect(withImageSize(bare, new Map([['/og.png', { width: 1, height: 1 }]]))).toBe(bare);
+  });
+});
+
+describe('resolveMeta: schemas', () => {
+  const org = { '@type': 'Organization', name: 'Acme' };
+  const person = { '@type': 'Person', name: 'Ada' };
+
+  it('sin schemas en la base ni en la página no hay ninguno', () => {
+    expect(resolveMeta(base, undefined, page, 'en').schemas).toEqual([]);
+  });
+
+  it('los del sitio y los de la página, en ese orden, con @context', () => {
+    const meta = resolveMeta({ ...base, schema: [org] }, { schema: [person] }, page, 'en');
+    expect(meta.schemas.map((schema) => schema['@type'])).toEqual(['Organization', 'Person']);
+    expect(meta.schemas.every((schema) => schema['@context'] === 'https://schema.org')).toBe(true);
+  });
+
+  it('`schema: false` en la página quita también los del sitio', () => {
+    expect(resolveMeta({ ...base, schema: [org] }, { schema: false }, page, 'en').schemas).toEqual(
+      [],
+    );
   });
 });

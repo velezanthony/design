@@ -1,3 +1,11 @@
+---
+seo:
+  schema:
+    - '@type': WebSite
+      name: SnakeORM
+      description: A dataclass-first, type-first Python ORM.
+---
+
 # SnakeORM
 
 **Fully typed deep relationship navigation in Python. No codegen. No type-checker plugin.**

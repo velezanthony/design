@@ -1,5 +1,6 @@
 ---
 import { t, type UiStrings } from '../../core/i18n/ui-strings';
+import { tocEntries } from '../../core/navigation/toc-entries';
 import PanelToggle from './PanelToggle.astro';
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
 }
 
 const { headings, strings, toggles = false, open = true } = Astro.props;
-const entries = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const entries = tocEntries(headings);
 const title = t(strings, 'toc.title');
 ---
 
@@ -22,7 +23,7 @@ const title = t(strings, 'toc.title');
   en móvil, donde no la hay. Con menos de tres entradas es una página, no un documento que
   merezca índice. Solo marcado: `trackSections` (client/layout/toc.ts) engancha `nav.toc` desde el layout.
 */}
-{entries.length >= 3 && (
+{entries.length > 0 && (
   <nav aria-label={title} class="toc hidden md:sticky md:top-8 md:block">
     {toggles ? (
       <PanelToggle

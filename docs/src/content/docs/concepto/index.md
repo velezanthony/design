@@ -66,8 +66,9 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 | Banner de consentimiento y carga diferida de Google Tag Manager | |
 
 Lo que el consumidor **no** escribe nunca: un layout, un `import` de CSS, un `@source` de Tailwind o
-una página en `src/pages/`. De hecho, una página propia en `/`, `/404` o `/sitemap.xml` rompe el
-build (`src/astro/integration/route-collisions.ts`), porque Astro la serviría en lugar de los docs.
+una página en `src/pages/`. Puede hacerlo: una página propia en `/`, `/404` o `/sitemap.xml`
+sustituye a la de la librería, y al arrancar se avisa de cuáles
+(`src/astro/integration/route-overrides.ts`) para que nunca pase sin saberlo.
 
 ## Por qué se distribuye como fuente
 

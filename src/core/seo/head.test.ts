@@ -13,6 +13,7 @@ const meta = (extra: Partial<ResolvedMeta> = {}): ResolvedMeta => ({
   title: 'Install',
   noindex: false,
   titleSuffix: 'Design',
+  schemas: [],
   ...extra,
 });
 const enPage: PageData = { kind: 'page', slug: 'install', locale: 'en', url: '/repo/install/' };
@@ -248,5 +249,38 @@ describe('buildHead: favicon', () => {
       rel: 'icon',
       href: '/repo/i.webp',
     });
+  });
+});
+
+describe('buildHead: JSON-LD', () => {
+  const scripts = (tags: HeadConfig[]) => tags.filter((t) => t.tag === 'script');
+
+  it('sin schemas no hay ningún <script>: la librería no inyecta nada por defecto', () => {
+    expect(scripts(head(meta(), enPage, single))).toEqual([]);
+  });
+
+  it('un <script type="application/ld+json"> por schema, con JSON válido', () => {
+    const schemas = [
+      { '@context': 'https://schema.org', '@type': 'Organization', name: 'Acme' },
+      { '@context': 'https://schema.org', '@type': 'Person', name: 'Ada' },
+    ];
+    const found = scripts(head(meta({ schemas }), enPage, single));
+    expect(found).toHaveLength(2);
+    expect(found.every((t) => t.attrs.type === 'application/ld+json')).toBe(true);
+    expect(found.map((t) => JSON.parse(t.content ?? ''))).toEqual(schemas);
+  });
+
+  it('un valor hostil no puede cerrar el <script>', () => {
+    const schemas = [{ '@type': 'Thing', name: '</script><script>alert(1)</script>' }];
+    const [tag] = scripts(head(meta({ schemas }), enPage, single));
+    expect(tag.content).not.toContain('<');
+  });
+
+  it('también salen en las páginas de reserva y en la 404', () => {
+    const schemas = [{ '@type': 'Thing' }];
+    const fallback: PageData = { ...esPage, kind: 'fallback', canonical: '/repo/install/' };
+    const notFound: PageData = { ...esPage, kind: 'notFound' };
+    expect(scripts(head(meta({ schemas }), fallback, pair))).toHaveLength(1);
+    expect(scripts(head(meta({ schemas }), notFound, pair))).toHaveLength(1);
   });
 });

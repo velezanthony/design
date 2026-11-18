@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from '../config/resolve';
-import type { Label, PageSeoOverride } from '../config/schema';
+import type { JsonLd, Label, PageSeoOverride } from '../config/schema';
 import type { Locale } from '../i18n/locale';
+import { resolveSchemas } from './json-ld';
 import { resolveTitleSuffix } from './title';
 
 /** Base SEO del sitio: la de la config ya con los valores por defecto. */
@@ -14,6 +15,8 @@ export interface ResolvedMeta {
   noindex: boolean;
   /** Sufijo ya resuelto para el idioma de la página; sin él, el `<title>` es solo el título. */
   titleSuffix?: string;
+  /** JSON-LD final (sitio + página, con `@context`); vacío si nadie declara ninguno. */
+  schemas: JsonLd[];
 }
 
 /** Valor de un `Label` en un idioma; `undefined` si el `Label` por idioma no lo trae. */
@@ -44,6 +47,7 @@ export function resolveMeta(
     ...(description !== undefined && { description }),
     ...(image && { image }),
     noindex: override?.noindex ?? false,
+    schemas: resolveSchemas(base.schema, override?.schema).map(({ schema }) => schema),
     ...(titleSuffix !== undefined && { titleSuffix }),
   };
 }

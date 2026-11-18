@@ -1,0 +1,57 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'input'>, 'type' | 'class'> {
+  /** Sin `name` el campo no viaja en el formulario: es un mando de la interfaz (como «Todos»). */
+  name?: string;
+  value?: string;
+  checked?: boolean;
+  disabled?: boolean;
+  /**
+   * `chip`: una ficha en vez de una casilla, para filtros (gravedad, idioma). La casilla sigue
+   * siendo el campo (se envía, se tabula, la lee un lector de pantalla); solo se ve la ficha, que
+   * al marcarse se tiñe y gana un ✓.
+   */
+  variant?: 'default' | 'chip';
+  /** Va a la etiqueta, que es lo que se coloca; el campo va dentro. */
+  class?: string;
+}
+
+const {
+  checked = false,
+  disabled = false,
+  variant = 'default',
+  class: className,
+  ...rest
+} = Astro.props;
+const chip = variant === 'chip';
+
+/* El campo va DENTRO de su etiqueta: así asocia sin `id` y pulsar el texto lo marca. Los dos son
+   clicables, los dos llevan el puntero (y, deshabilitados, los dos lo quitan). */
+const pointer = disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer';
+---
+
+<label
+  class:list={[
+    'inline-flex min-h-6 items-center gap-1.5',
+    /* La ficha: el foco de la casilla (invisible) se pinta en la etiqueta. */
+    chip &&
+      'min-h-8 rounded-full border border-rule bg-canvas px-3 text-sm text-muted has-[:checked]:border-accent-line has-[:checked]:bg-accent-soft has-[:checked]:text-accent has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent',
+    pointer,
+    className,
+  ]}
+>
+  <input
+    type="checkbox"
+    checked={checked}
+    disabled={disabled}
+    class:list={[chip ? 'peer sr-only' : 'size-4 accent-accent', pointer]}
+    {...rest}
+  />
+  {chip && (
+    <span aria-hidden="true" class="hidden text-xs peer-checked:inline">
+      ✓
+    </span>
+  )}
+  <slot />
+</label>

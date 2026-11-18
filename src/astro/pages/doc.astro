@@ -1,0 +1,44 @@
+---
+/* Contenedor de una página de docs. Lee el módulo virtual y `astro:content`, llama al núcleo y
+   pasa a `DocsLayout` (presentacional) los datos ya calculados. `render(entry)` va AQUÍ, no en el
+   layout: renderizar en un layout rompe el `<head>` en dev (astro#13724). */
+import { Font } from 'astro:assets';
+import DocsLayout from '../../ui/layouts/DocsLayout.astro';
+import { readImageSizes } from '../loader/images';
+import { docRoutes, docView, type DocRoute } from '../views/doc';
+import { getDocs, renderDoc } from '../data/docs-collection';
+import { siteConfig } from '../data/site-config';
+
+export async function getStaticPaths() {
+  const data = (await getDocs()).map((entry) => entry.data);
+  return docRoutes(data, siteConfig).map((route) => ({
+    params: { slug: route.param },
+    props: { route },
+  }));
+}
+
+const route = Astro.props.route as DocRoute;
+const entries = await getDocs();
+const entry = entries.find(
+  ({ data }) => data.slug === route.slug && data.locale === route.contentLocale,
+);
+if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slug}.`);
+
+const { Content, headings } = await renderDoc(entry);
+const data = entries.map((item) => item.data);
+const sizes = await readImageSizes(
+  [siteConfig.seo.image?.src, ...data.map((item) => item.seo?.image?.src)].filter(
+    (src) => src !== undefined,
+  ),
+  new URL(siteConfig.publicDir ?? 'file:///'),
+);
+const view = docView(route, data, siteConfig, sizes);
+---
+
+<DocsLayout {...view} headings={headings} year={new Date().getFullYear()}>
+  <Fragment slot="head">
+    <Font cssVariable="--font-plex-sans" preload />
+    <Font cssVariable="--font-plex-mono" />
+  </Fragment>
+  <Content />
+</DocsLayout>

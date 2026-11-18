@@ -174,7 +174,7 @@ seo: {
 ```
 
 Una página sobrescribe la base campo a campo: `seo` en el frontmatter en las páginas nativas,
-`external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex? }`.
+`external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex?, schema? }`.
 
 El `<title>` tiene dos partes, título y sufijo, y se forma `título | sufijo` (separador fijo). Cada
 parte se resuelve por separado: página > sitio > librería. `seo.title` cambia el título solo en el
@@ -198,6 +198,51 @@ Sin `titleSuffix` en el sitio ni en la página, el sufijo es el de la librería 
 `titleTemplate` ya no existe: dejarlo en la config falla el build.
 La imagen OG debería medir unos 1,91:1 y pesar menos de 300 KB (si no, avisa). Las páginas
 `noindex` salen de `sitemap.xml` y de la búsqueda.
+
+### JSON-LD (`seo.schema`)
+
+La librería **no inyecta ningún JSON-LD por su cuenta**: es un puente. Cada sitio declara sus
+schemas y la librería los valida y los pinta en el `<head>`, un
+`<script type="application/ld+json">` por schema. La cascada es la de los títulos:
+
+```js
+// docs.config.mjs: schemas de TODAS las páginas
+seo: {
+  schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }],
+}
+```
+
+```yaml
+---
+seo:
+  schema: # se SUMA a los del sitio (primero los del sitio)
+    - '@type': TechArticle
+      headline: Instalar en cualquier sistema
+---
+---
+seo:
+  schema: false # esta página no lleva ninguno, ni siquiera los del sitio
+---
+```
+
+- Un schema es un objeto con `@type` (un string o una lista no vacía de strings); el resto de
+  claves son libres (schema.org es abierto). Si falta `@context`, se añade `https://schema.org`; si
+  lo declaras tú, se respeta. Un error se nombra con su ruta: `seo.schema[1]['@type']`.
+- La config viaja al sitio como JSON: nada de funciones. Pero `docs.config.mjs` es JavaScript, así
+  que **calcula los objetos al construir** y pásalos ya hechos:
+
+```js
+import { author } from './src/data/author.mjs';
+
+const person = { '@type': 'Person', name: author.name, url: author.url, sameAs: author.profiles };
+export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
+```
+
+- El JSON se serializa escapando `<`, `>`, `&`, U+2028 y U+2029 (`\u003c`…): un valor como
+  `</script><script>alert(1)</script>` no puede cerrar el `<script>`. Se inserta sin escapado
+  HTML (el contenido de un `<script>` no es HTML).
+- Con `astro dev`, el panel [SEO on page](#seo-on-page-solo-en-desarrollo) enseña los schemas de
+  cada página y su origen (sitio o página).
 
 ### `favicon`
 
@@ -551,6 +596,25 @@ export default defineDocsConfig({
   un error claro.
 - Si ya tienes un fichero en `src/pages/` que ocupa `/privacidad/` o `/en/privacy/`, la integración
   falla y te dice cuál.
+
+## SEO on page (solo en desarrollo)
+
+Con `astro dev` el sitio sirve un panel para revisar el SEO de cada página mientras escribes, sin
+configurar nada:
+
+- `/<base>/seo-on-page/`: resumen que separa las páginas con problemas (error o aviso), las solo
+  informativas y las sin nada, y las incidencias por gravedad y por tipo.
+- `/<base>/seo-on-page/pages`: tabla filtrable (gravedad, idioma, tipo, texto) de las páginas e
+  idiomas, con el `<title>` final y su longitud contra el límite, el origen de la descripción y los
+  problemas. Sin filtros enseña solo errores y avisos (un enlace muestra también lo informativo).
+  Los filtros y la página (25 filas por página) van en la URL.
+- `/<base>/seo-on-page/page?slug=…&locale=…`: inspector de una página, con vista previa de buscador y
+  Open Graph, canonical, esquema de encabezados y traducciones lado a lado.
+
+No hay rastreo ni lectura de HTML: lee la colección con la que se genera el sitio y reutiliza la
+misma cascada de metadatos. Con `astro build` no se inyecta ninguna de estas rutas (un test de build
+comprueba que `dist/` no las menciona). Si tienes una página propia en esa ruta, en dev el build
+falla como con cualquier otra colisión. Más en la documentación: «SEO on page».
 
 ## Reglas estrictas de build
 

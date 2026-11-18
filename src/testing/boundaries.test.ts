@@ -41,7 +41,7 @@ const forbidden: [string, string, string][] = [
   ['ui/ no importa virtual:*', UI, `import cfg from 'virtual:@velezanthony/design/config';`],
   ['ui/ no importa astro:content', UI, `import { getCollection } from 'astro:content';`],
   ['ui/ no importa astro', UI, `import { defineConfig } from 'astro';`],
-  ['ui/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/routes/doc';`],
+  ['ui/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/pages/doc';`],
 ];
 
 const allowed: [string, string, string][] = [
