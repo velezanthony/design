@@ -1,7 +1,6 @@
 import { LayoutWidth, type ResolvedLayout } from '../../../core/config/layout';
-import { buildAvailability, pageUrl } from '../../../core/i18n/availability';
+import { pageUrl } from '../../../core/i18n/availability';
 import type { Locale } from '../../../core/i18n/locale';
-import { resolvePolicies } from '../../../core/i18n/translation-policy';
 import { defaultStrings, type UiStrings } from '../../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../../core/navigation/footer';
 import { buildNav, type NavEntry } from '../../../core/navigation/nav-entries';
@@ -15,7 +14,7 @@ import {
   type InspectorSection,
 } from '../../../ui/seo-on-page/labels';
 import type { DocData } from '../../loader/schema';
-import { pagesOf, urlPolicyOf } from '../pages';
+import { navContextOf, siteContext } from '../chrome';
 import type { VirtualConfig } from '../../virtual/data';
 import { SEO_ON_PAGE_DIR, type DevHrefs } from './hrefs';
 import { baseUrl } from '../../../core/shared/urls';
@@ -86,9 +85,8 @@ export function panelView({
   title,
   headings = [],
 }: PanelViewInput): PanelView {
-  const url = urlPolicyOf(cfg);
-  const pages = pagesOf(data);
-  const { policies } = resolvePolicies(pages, cfg.translations.missing);
+  const site = siteContext(cfg, data);
+  const { url } = site;
   /* El panel solo existe en español, así que su interfaz va en español SIEMPRE, sin depender del
      idioma por defecto del sitio: con el catálogo del sitio si tiene español (respeta sus
      sobrescrituras de `ui`) y, si no, con el de la librería. Los enlaces de la cabecera y el pie
@@ -97,15 +95,7 @@ export function panelView({
   const strings = (cfg.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna
      sección de `nav`, así que la cabecera no marca nada como actual. */
-  const context = {
-    pages,
-    av: buildAvailability(pages, url),
-    locale: siteLang,
-    cfg,
-    policies,
-    url,
-    slug: SEO_ON_PAGE_DIR,
-  };
+  const context = navContextOf(site, siteLang, SEO_ON_PAGE_DIR);
   const screens = {
     overview: { slug: SEO_ON_PAGE_DIR, href: hrefs.overview() },
     pages: { slug: `${SEO_ON_PAGE_DIR}/pages`, href: hrefs.pages() },

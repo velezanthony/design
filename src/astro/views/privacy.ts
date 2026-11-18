@@ -1,9 +1,7 @@
-import { buildAvailability, pageUrl } from '../../core/i18n/availability';
+import { pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
-import { resolvePolicies } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../core/navigation/footer';
-import { resolveLabel } from '../../core/navigation/label';
 import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
 import { PRIVACY_UPDATED, privacyCopy, type PrivacySection } from '../../core/privacy/copy';
 import {
@@ -15,7 +13,7 @@ import {
 import { buildHead, type HeadConfig } from '../../core/seo/head';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import type { DocData } from '../loader/schema';
-import { pagesOf, urlPolicyOf } from './pages';
+import { consentOf, navContextOf, siteContext } from './chrome';
 import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 
@@ -57,10 +55,10 @@ export function privacyView({
   sizes = new Map(),
 }: PrivacyViewInput): PrivacyView {
   const lang = locale ?? cfg.defaultLocale;
-  const url = urlPolicyOf(cfg);
+  const site = siteContext(cfg, data);
+  const { url } = site;
   const strings = cfg.strings[lang] as UiStrings;
   const av = privacyAvailability(cfg.locales, url);
-  const pages = pagesOf(data);
   const title = strings['consent.privacy'];
   const meta = withImageSize(
     resolveMeta(cfg.seo, { description: strings['privacy.description'] }, { title }, lang),
@@ -80,15 +78,7 @@ export function privacyView({
     cfg,
     url,
   );
-  const navContext = {
-    pages,
-    av: buildAvailability(pages, url),
-    locale: lang,
-    cfg,
-    policies: resolvePolicies(pages, cfg.translations.missing).policies,
-    url,
-    slug: '',
-  };
+  const navContext = navContextOf(site, lang, '');
   return {
     lang,
     head,
@@ -99,10 +89,7 @@ export function privacyView({
     nav: buildNav(cfg.nav, navContext),
     footer: buildFooter(cfg, navContext, strings),
     baseUrl: baseUrl(cfg.base),
-    ...(cfg.privacyUrl !== undefined && {
-      privacyUrl: resolveLabel(cfg.privacyUrl, lang, cfg.defaultLocale),
-    }),
-    ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
+    ...consentOf(cfg, lang),
     title,
     sections: privacyCopy(lang, cfg.privacy.controller),
     updated: { iso: PRIVACY_UPDATED, text: formatPrivacyDate(lang, PRIVACY_UPDATED) },

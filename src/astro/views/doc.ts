@@ -1,10 +1,9 @@
 import type { ResolvedLayout } from '../../core/config/layout';
-import { buildAvailability, pageUrl } from '../../core/i18n/availability';
+import { pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
-import { fallbackRoutes, resolvePolicies } from '../../core/i18n/translation-policy';
+import { fallbackRoutes } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../core/navigation/footer';
-import { resolveLabel } from '../../core/navigation/label';
 import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
 import { buildScopedSidebar } from '../../core/navigation/nav-sidebar';
 import { flatten, type SidebarNode } from '../../core/navigation/sidebar';
@@ -13,7 +12,7 @@ import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
 import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import type { DocData } from '../loader/schema';
-import { pagesOf, urlPolicyOf } from './pages';
+import { consentOf, navContextOf, siteContext } from './chrome';
 import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 
@@ -36,9 +35,7 @@ const paramOf = (slug: string, locale: Locale, defaultLocale: Locale) =>
 
 /** Todas las rutas del sitio: las páginas reales y, con política `fallback`, las de reserva. */
 export function docRoutes(data: DocData[], cfg: VirtualConfig): DocRoute[] {
-  const pages = pagesOf(data);
-  const url = urlPolicyOf(cfg);
-  const { policies } = resolvePolicies(pages, cfg.translations.missing);
+  const { pages, url, av, policies } = siteContext(cfg, data);
   const real = pages.map((page): DocRoute => ({
     param: paramOf(page.slug, page.locale, cfg.defaultLocale),
     kind: 'page',
@@ -46,16 +43,14 @@ export function docRoutes(data: DocData[], cfg: VirtualConfig): DocRoute[] {
     locale: page.locale,
     contentLocale: page.locale,
   }));
-  const fallback = fallbackRoutes(buildAvailability(pages, url), policies, cfg, url).map(
-    (spec): DocRoute => ({
-      param: paramOf(spec.slug, spec.locale, cfg.defaultLocale),
-      kind: 'fallback',
-      slug: spec.slug,
-      locale: spec.locale,
-      contentLocale: spec.entryMeta.locale,
-      canonical: spec.canonical,
-    }),
-  );
+  const fallback = fallbackRoutes(av, policies, cfg, url).map((spec): DocRoute => ({
+    param: paramOf(spec.slug, spec.locale, cfg.defaultLocale),
+    kind: 'fallback',
+    slug: spec.slug,
+    locale: spec.locale,
+    contentLocale: spec.entryMeta.locale,
+    canonical: spec.canonical,
+  }));
   return [...real, ...fallback];
 }
 
@@ -94,10 +89,8 @@ interface DocViewInput {
 
 /** Datos de la página que se renderiza, para el layout. */
 export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): DocView {
-  const pages = pagesOf(data);
-  const url = urlPolicyOf(cfg);
-  const av = buildAvailability(pages, url);
-  const { policies } = resolvePolicies(pages, cfg.translations.missing);
+  const site = siteContext(cfg, data);
+  const { pages, url, av } = site;
   const original = data.find(
     (item) => item.slug === route.slug && item.locale === route.contentLocale,
   );
@@ -125,7 +118,7 @@ export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): 
     url,
   );
 
-  const navContext = { pages, av, locale: route.locale, cfg, policies, url, slug: route.slug };
+  const navContext = navContextOf(site, route.locale, route.slug);
   const sidebar = buildScopedSidebar(navContext);
   const neighbours = prevNext(flatten(sidebar), route.slug);
   const link = (leaf?: { label: string; href: string }) =>
@@ -147,10 +140,7 @@ export function docView({ route, cfg, data, sizes = new Map() }: DocViewInput): 
     ...(prev && { prev }),
     ...(next && { next }),
     ...(editable && { editUrl: cfg.editUrl, editFile: original.editPath }),
-    ...(cfg.privacyUrl !== undefined && {
-      privacyUrl: resolveLabel(cfg.privacyUrl, route.locale, cfg.defaultLocale),
-    }),
-    ...(cfg.gtmId !== undefined && { gtmId: cfg.gtmId }),
+    ...consentOf(cfg, route.locale),
     indexable: !isFallback && !meta.noindex,
     baseUrl: baseUrl(cfg.base),
     layout: cfg.layout,
