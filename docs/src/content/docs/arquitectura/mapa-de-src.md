@@ -134,7 +134,6 @@ astro/
 │   ├── analytics-env.ts     Lee PUBLIC_GTM_ID con loadEnv
 │   ├── route-overrides.ts   Avisa de las rutas de la librería que src/pages/ sustituye
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
-│   ├── companions.ts        Integraciones auxiliares (hoy ninguna)
 │   ├── pagefind.ts          Índice de búsqueda tras el build
 │   └── errors.ts            DocsError → AstroError
 ├── loader/

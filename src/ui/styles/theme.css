@@ -50,12 +50,6 @@
   --text-row: 0.9375rem; /* 15px */
   --text-row--line-height: 1.6;
 
-  /* Listas mono de nombres (tecnologías, rutas), como valores junto a texto sans de 14px. Plex Mono
-     comparte métricas con Plex Sans, pero cada glifo ocupa un avance completo, así que una tirada
-     lleva más tinta. Un paso menos iguala el peso; el código en línea toma 0.9em por lo mismo. */
-  --text-mono-list: 0.8125rem; /* 13px */
-  --text-mono-list--line-height: 1.7;
-
   --text-label: 0.75rem;
   --text-label--line-height: 1.2;
   --text-label--letter-spacing: 0.14em;
@@ -63,13 +57,6 @@
   /* ~78 caracteres reales: pasa del clásico 75, a cambio de menos scroll en textos largos. No `ch`:
      mide el glifo `0`, así que 65ch se verían ~86. */
   --container-measure: 42rem;
-
-  /* ~75 caracteres de texto de fila de 15px, para anchos de una sola columna. */
-  --container-measure-row: 36rem;
-
-  /* La columna derecha de cada diseño de dos columnas, desde md: barra lateral, metadatos. El
-     contenido a su lado toma el resto de la página. Desde lg son 18rem, más abajo. */
-  --container-aside: 14rem;
 
   --container-text: 42rem;
 
@@ -129,14 +116,6 @@
     --wide-max: 100%;
     --img-bleed: 0rem;
     --img-max: 100%;
-  }
-}
-
-/* La columna lateral se estrecha entre md y lg, donde empiezan las dos columnas: 14rem deja al
-   contenido ~425px a 768. Desde lg son 18rem. */
-@media (min-width: 64rem) {
-  :root {
-    --container-aside: 18rem;
   }
 }
 
@@ -365,17 +344,6 @@
   li {
     text-wrap: pretty;
   }
-}
-
-/* Superficie a sangre sin elemento envoltorio: la sombra extendida la pinta y `clip-path` evita
-   que ensanche el documento. */
-@utility band {
-  background-color: var(--color-raised);
-  box-shadow:
-    0 0 0 100vmax var(--color-raised),
-    inset 0 1px 0 var(--color-rule),
-    inset 0 -1px 0 var(--color-rule);
-  clip-path: inset(0 -100vmax);
 }
 
 @utility label {

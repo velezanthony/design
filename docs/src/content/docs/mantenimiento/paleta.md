@@ -114,7 +114,7 @@ arriba.
 - **Estados**: `state-live` (mantenido), `state-wip` (experimental), `danger` (error). Son los
   colores de las admoniciones `tip`, `warning` y `danger`.
 - **Tipografía**: `--font-sans` y `--font-mono` apuntan a las variables de IBM Plex que declara
-  `fonts.ts`; `--text-display`, `--text-row`, `--text-label`, `--text-mono-list`.
+  `fonts.ts`; `--text-display`, `--text-row`, `--text-label`.
 - **Medidas**: `--container-measure` (42rem, unos 78 caracteres), `--container-measure-full`
   (52rem, en ancho completo), `--container-page` (80rem). La disposición usa variables propias
   (`--col-left`, `--rail`, `--wide-max`…) que cambian con los atributos de `<html>` (ver

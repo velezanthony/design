@@ -58,7 +58,7 @@ describe('tokens', () => {
     },
   );
 
-  it.each(['measure', 'text', 'page', 'aside'])('define el ancho --container-%s', (name) => {
+  it.each(['measure', 'text', 'page'])('define el ancho --container-%s', (name) => {
     expect(css).toContain(`--container-${name}:`);
   });
 

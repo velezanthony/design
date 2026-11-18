@@ -18,7 +18,6 @@ const kindOptions = (selected: IssueKind[] = []): KindOptions => {
       checked: all || selected.includes(kind),
     })),
     without: Object.values(IssueKind).filter((kind) => !WITH.includes(kind)),
-    summary: all ? 'todos' : `${selected.length} de ${WITH.length}`,
   };
 };
 const form = (filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) =>

@@ -81,19 +81,16 @@ Es donde ocurre casi todo. En orden:
    no es un error, se avisa al arrancar y las rutas exactas que ya son suyas no se inyectan.
    `assertNoFontConflict` falla si el consumidor declara una fuente con `--font-plex-sans` o
    `--font-plex-mono`.
-4. **Compañeras.** `addCompanions` inserta integraciones auxiliares tras la nuestra. Hoy la lista
-   (`COMPANIONS`) está vacía: sitemap, búsqueda y 404 son propios. El mecanismo queda listo para
-   cuando haga falta.
-5. **Markdown.** `extendMarkdownProcessor` modifica **en sitio** el procesador Sätteri de la config de
+4. **Markdown.** `extendMarkdownProcessor` modifica **en sitio** el procesador Sätteri de la config de
    Astro: activa las directivas y añade nuestros plugins. Si el procesador no es Sätteri, falla (ver
    [Markdown](./markdown.md)).
-6. **`updateConfig`.** Fusiona en la config de Astro:
+5. **`updateConfig`.** Fusiona en la config de Astro:
    - `markdown.shikiConfig.langAlias`: nuestros alias más los del consumidor (mandan los suyos).
    - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/ui/styles/code-themes.ts`),
      **solo si el consumidor no eligió temas**.
    - `fonts`: IBM Plex Sans y Mono vía la API de fuentes de Astro (`src/astro/integration/fonts.ts`).
    - `vite.plugins`: el plugin del módulo virtual.
-7. **`injectRoute`.** Todas las rutas del sitio, con `prerender: true`:
+6. **`injectRoute`.** Todas las rutas del sitio, con `prerender: true`:
 
 | Patrón | Contenedor | Cuándo |
 | --- | --- | --- |

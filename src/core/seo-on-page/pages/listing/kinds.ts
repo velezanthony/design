@@ -7,8 +7,6 @@ export interface KindOptions {
   withIssues: { kind: IssueKind; count: number; checked: boolean }[];
   /** Tipos que el análisis sabe detectar y hoy no tienen ninguna: se enseñan deshabilitados. */
   without: IssueKind[];
-  /** Lo que acompaña al título del desplegable: «todos» o «3 de 4». */
-  summary: string;
 }
 
 /** Los tipos que aparecen en alguna entrada del árbol (sin filtrar): los que tiene sentido elegir. */
@@ -38,11 +36,9 @@ export function kindOptions(tree: SeoTree, selected: readonly IssueKind[]): Kind
       count: slugsByKind.get(kind)?.size ?? 0,
       checked: all || selected.includes(kind),
     }));
-  const chosen = withIssues.filter(({ checked }) => checked).length;
   return {
     all: { checked: all, count: withIssues.length },
     withIssues,
     without: Object.values(IssueKind).filter((kind) => !slugsByKind.has(kind)),
-    summary: all ? 'todos' : `${chosen} de ${withIssues.length}`,
   };
 }

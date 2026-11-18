@@ -15,7 +15,6 @@ import { mergeLangAlias } from '../markdown/register';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
 import { readAnalyticsEnv } from './analytics-env';
-import { addCompanions, COMPANIONS } from './companions';
 import { toAstroError } from './errors';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
@@ -142,7 +141,6 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         published = { site: config.site ?? '', base: config.base };
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
-        addCompanions(config.integrations, INTEGRATION_NAME, COMPANIONS);
         const env = createMarkdownEnv(resolvedConfig, config.root, (message) =>
           logger.warn(message),
         );

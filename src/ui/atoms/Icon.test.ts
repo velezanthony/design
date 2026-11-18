@@ -8,7 +8,7 @@ const svg = async (props: Record<string, unknown>) =>
 
 describe('Icon', () => {
   it('es decorativo: oculto a la accesibilidad y sin foco', async () => {
-    const el = await svg({ name: 'mail' });
+    const el = await svg({ name: 'arrow' });
     expect(el.getAttribute('aria-hidden')).toBe('true');
     expect(el.getAttribute('focusable')).toBe('false');
   });
@@ -23,7 +23,7 @@ describe('Icon', () => {
     expect((await svg({ name: 'external' })).getAttribute('stroke')).toBe('currentColor');
   });
 
-  it.each(['mail', 'github', 'linkedin', 'external', 'arrow'])('dibuja %s', async (name) => {
+  it.each(['github', 'external', 'arrow'])('dibuja %s', async (name) => {
     expect((await svg({ name })).querySelector('path')?.getAttribute('d')).toBeTruthy();
   });
 });

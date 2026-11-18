@@ -55,7 +55,6 @@ describe('kindOptions', () => {
     const options = kindOptions(tree, []);
     expect(options.all).toEqual({ checked: true, count: 3 });
     expect(options.withIssues.every(({ checked }) => checked)).toBe(true);
-    expect(options.summary).toBe('todos');
   });
 
   it('con un filtro solo se marcan los elegidos y «Todos» no', () => {
@@ -64,10 +63,5 @@ describe('kindOptions', () => {
     expect(options.withIssues.filter(({ checked }) => checked).map(({ kind }) => kind)).toEqual([
       NO_H1,
     ]);
-    expect(options.summary).toBe('1 de 3');
-  });
-
-  it('un tipo elegido a mano que no tiene incidencias no cuenta en el resumen', () => {
-    expect(kindOptions(tree, [NO_H1, IssueKind.HEADING_SKIP]).summary).toBe('1 de 3');
   });
 });

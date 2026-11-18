@@ -5,12 +5,6 @@ export type SchemaScope = 'site' | 'home' | 'pages';
 
 export interface SeoSummary {
   total: number;
-  /** Con algún error o aviso: lo que hay que arreglar. */
-  withProblems: number;
-  /** Solo con incidencias informativas (p. ej. descripción heredada): nada que arreglar con urgencia. */
-  informativeOnly: number;
-  /** Sin ninguna incidencia. */
-  clean: number;
   /**
    * Salud: páginas (no idiomas) sin errores NI avisos sobre el total; las informativas no restan.
    * Se publican las dos cifras además del porcentaje para que la UI pueda explicar la cuenta.
@@ -18,7 +12,6 @@ export interface SeoSummary {
   health: { healthy: number; total: number; percent: number };
   /** Incidencias (no páginas) por tipo; todas las claves presentes aunque valgan 0. */
   byKind: Record<IssueKind, number>;
-  bySeverity: Record<IssueSeverity, number>;
   /** JSON-LD: solo visibilidad, no hay incidencias (el sitio decide qué declara). Se cuenta por PÁGINA, no por idioma. */
   schemas: {
     withSchemas: number;
@@ -78,27 +71,11 @@ export function summarize(tree: SeoTree): SeoSummary {
     IssueKind,
     number
   >;
-  const bySeverity = Object.fromEntries(
-    Object.values(IssueSeverity).map((severity) => [severity, 0]),
-  ) as Record<IssueSeverity, number>;
-  for (const issue of tree.pages.flatMap((page) => page.issues)) {
-    byKind[issue.kind]++;
-    bySeverity[issue.severity]++;
-  }
-  // Una página «con problemas» lo es por un error o un aviso; las informativas son datos, no tareas,
-  // y contarlas como problema ahogaba los avisos reales entre decenas de «descripción heredada».
-  const withProblems = tree.pages.filter((page) =>
-    page.issues.some((issue) => issue.severity !== IssueSeverity.INFO),
-  ).length;
-  const withAny = tree.pages.filter((page) => page.issues.length > 0).length;
+  for (const issue of tree.pages.flatMap((page) => page.issues)) byKind[issue.kind]++;
   return {
     total: tree.pages.length,
-    withProblems,
-    informativeOnly: withAny - withProblems,
-    clean: tree.pages.length - withAny,
     health: healthOf(tree),
     byKind,
-    bySeverity,
     schemas: summarizeSchemas(tree),
   };
 }

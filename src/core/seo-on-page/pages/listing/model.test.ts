@@ -100,7 +100,7 @@ describe('listingModel', () => {
       perPage: 25,
       locales: ['en', 'fr'],
       action: '/t/',
-      kinds: expect.objectContaining({ summary: 'todos' }),
+      kinds: expect.objectContaining({ all: expect.objectContaining({ checked: true }) }),
       view: { view: 'page' },
       clear: '/t/',
       severityCounts: { error: 30, warning: 0, info: 1 },
@@ -301,7 +301,6 @@ describe('listingModel', () => {
     it('con un subconjunto sigue filtrando', () => {
       const model = kinds('kind=no-h1');
       expect(model.form.kinds.all.checked).toBe(false);
-      expect(model.form.kinds.summary).toBe('1 de 2');
       expect(rowsOf(model).map(({ slug }) => slug)).toEqual(['a']);
     });
 
