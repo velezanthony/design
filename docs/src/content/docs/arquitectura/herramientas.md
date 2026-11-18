@@ -58,7 +58,8 @@ comprobaciones.
 ## `docs/`: este sitio
 
 El segundo consumidor: la documentación de la propia librería, con un solo idioma (`es`), cuatro
-secciones de `nav` y sin analítica. Se configura en `docs/docs.config.mjs` y su contenido vive en
+secciones de `nav` y analítica solo en el despliegue (el workflow pasa `PUBLIC_GTM_ID` desde el
+secreto del repo). Se configura en `docs/docs.config.mjs` y su contenido vive en
 `docs/src/content/docs/`. Como el playground, depende de `file:..`.
 
 ```sh
