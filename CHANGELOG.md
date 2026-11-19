@@ -45,6 +45,8 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Documentado `translations.missing: 'fallback'` para quien viene de MkDocs.** Equivale a su
+  `fallback_to_default: true`; el valor por defecto no cambia (`link`).
 - **`static`: publicar una carpeta tal cual.** `static: [{ from: '../htmlcov', to: 'coverage' }]`
   copia la carpeta a `dist/coverage/` sin procesarla (ni Markdown, ni optimización, ni búsqueda, ni
   sitemap) y `astro dev` la sirve en esa ruta. Un `from` que no existe, un `to` que pisa `_astro`,

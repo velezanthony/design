@@ -415,6 +415,11 @@ canonical al original). Una página sobrescribe la base: `translations: omit` en
 páginas nativas, `external[].translations` en las externas. Los archivos de una misma página que no
 coinciden rompen el build; una gemela ausente sin política declarada solo avisa.
 
+**Si vienes de MkDocs**, su `fallback_to_default: true` (servir la página sin traducir en el idioma por
+defecto bajo la URL del otro) es `translations: { missing: MissingTranslation.FALLBACK }`. El valor por
+defecto sigue siendo `link`, que no duplica contenido; con `fallback_to_default: false` lo más cercano
+es `omit`.
+
 ### Archivos externos
 
 `external[].file` es relativo al proyecto de Astro (`../CHANGELOG.md`). `CHANGELOG.es.md` es su

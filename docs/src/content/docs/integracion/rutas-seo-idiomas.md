@@ -210,6 +210,19 @@ La política se decide por **grupo de traducción** (todas las versiones de un s
 (frontmatter o `external[].translations`) o, si no, la base. Dos archivos del mismo grupo con valores
 distintos rompen el build. Una gemela ausente **sin** política declarada solo avisa.
 
+#### Si vienes de MkDocs
+
+El `fallback_to_default: true` del plugin `i18n` de MkDocs (la página sin traducir se sirve en el
+idioma por defecto bajo la URL del otro idioma) equivale a `fallback`. El valor por defecto de la
+librería es `link`, a propósito: `fallback` duplica el contenido bajo otra URL (con `noindex` y canonical
+al original, para que no compita). Para conservar el comportamiento de MkDocs:
+
+```js
+translations: { missing: MissingTranslation.FALLBACK },
+```
+
+Con `fallback_to_default: false`, `omit` es lo más cercano (la página no existe en ese idioma).
+
 ### Textos de interfaz
 
 Las etiquetas de la interfaz («Editar esta página», «En esta página»…) salen de un catálogo con
