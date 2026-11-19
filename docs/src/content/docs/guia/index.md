@@ -38,7 +38,7 @@ flowchart TD
 5. `astro build` genera `docs/dist/`, totalmente estático.
 6. Un workflow publica `docs/dist/` en GitHub Pages, bajo `https://velezanthony.github.io/<repo>/`.
 
-El paso a paso con el código exacto está en [Integración](../integracion/index.md).
+El paso a paso con el código exacto está en [Primeros pasos](./primeros-pasos.md).
 
 > [!NOTE]
 > ¿Por qué la configuración va en un archivo aparte y no directamente en `astro.config.mjs`? Porque
@@ -71,7 +71,7 @@ una página en `src/pages/`. Puede hacerlo: una página propia en `/` o `/sitema
 sustituye a la de la librería, y al arrancar se avisa de cuáles
 (`src/astro/integration/route-overrides.ts`) para que nunca pase sin saberlo. Si esa página
 necesita cabecera y pie propios, se monta sobre `BaseLayout` (ver
-[Cabecera y pie propios](../integracion/layout-propio.md)).
+[Cabecera y pie propios](../guia/layout-propio.md)).
 
 ## Por qué se distribuye como fuente
 
@@ -85,7 +85,7 @@ compila es el Astro del consumidor. Ventajas:
 El precio es doble: el consumidor necesita las _peer dependencies_ (`astro`,
 `@astrojs/markdown-satteri`), y el código no puede usar sintaxis de TypeScript
 que no sea borrable. Por eso ESLint prohíbe los `enum` (ver
-[Arquitectura](../arquitectura/index.md#el-resto-de-reglas-de-eslint)).
+[Arquitectura](../desarrollo/index.md#el-resto-de-reglas-de-eslint)).
 
 ## Siguiente lectura
 

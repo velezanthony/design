@@ -28,7 +28,7 @@ sequenceDiagram
 
 1. **Comprueba que todo está verde** en `main`: `npm test`, `npm run lint`, `npm run format:check`,
    `npm run check` y `npm run docs:build` sin avisos. Mira también `npm pack --dry-run` si has
-   tocado algo de la estructura (ver [Por qué no entra en el paquete](../concepto/fuera-del-paquete.md)).
+   tocado algo de la estructura (ver [Por qué no entra en el paquete](../guia/fuera-del-paquete.md)).
 2. **Sube `version`** en el `package.json` de la raíz siguiendo semver:
    - _patch_ (`0.1.1`): arreglos sin cambios visibles en la config.
    - _minor_ (`0.2.0`): opciones o componentes nuevos, compatibles.

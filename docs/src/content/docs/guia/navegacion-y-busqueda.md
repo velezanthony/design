@@ -34,7 +34,7 @@ Tres tipos de elemento, distinguidos por su forma:
   `dir/`, y también las que nombra su `sidebar`, vivan donde vivan (páginas sueltas, `external`).
   Sin `dir`, la forman solo las del `sidebar`. Dentro de una sección la barra lateral muestra
   **solo** su árbol, y anterior/siguiente nunca salen de ella. El elemento enlaza al `index.md` de la carpeta si existe y, si no, a su
-  primera página. Es lo que usa este sitio: Concepto, Integración, Arquitectura y Mantenimiento.
+  primera página. Es lo que usa este sitio: dos secciones, Guía (`guia/`) y Desarrollo (`desarrollo/`).
 
   ```js
   // El README de la raíz y un REFERENCE.md suelto son «Para usuarios» sin vivir en `users/`.
@@ -59,7 +59,8 @@ aparecen en el menú móvil.
 
 - Entradas: slugs (`'guia/instalar'`) o grupos `{ label, slug?, items }`. La portada es `'index'`.
 - Lo que no declaras va **después**, ordenado por `order` del frontmatter y luego por slug. Este
-  sitio no declara ninguna `sidebar`: cada página lleva `order` y basta.
+  sitio declara la `sidebar` de cada sección: los grupos (`{ label, slug?, items }`) y el orden no son los de las
+  carpetas, y un grupo con `slug` enlaza a su propia página (la del `index.md` o la que lo abre).
 - Un slug desconocido rompe el build con un único error que nombra todos (`sidebar[2].items[0]`).
 - Las páginas fuera de toda sección (como la portada de este sitio) usan la `sidebar` de primer
   nivel o, sin ella, una lista automática de solo esas páginas.

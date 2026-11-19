@@ -62,7 +62,7 @@ flowchart LR
    con una función de `core/` que devuelva errores, como `validateFooter`. Si afecta a la vista,
    calcúlalo en `docView` y pásalo como prop.
 5. **Documentación.** Añade la fila a la tabla «Referencia de configuración» del `README.md` y, si
-   cambia cómo se integra, a [Integración](../integracion/index.md).
+   cambia cómo se integra, a [Integración](../guia/primeros-pasos.md).
 6. **Pruébala de verdad** en `playground/docs.config.mjs` o en este sitio.
 
 ## Un texto de interfaz

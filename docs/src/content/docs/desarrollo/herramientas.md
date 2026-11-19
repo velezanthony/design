@@ -35,7 +35,7 @@ integración, que solo sirve para comprobar que el paquete compila (`npm run che
 ## `playground/`: un consumidor con contenido real
 
 Un consumidor de verdad, creado con el scaffold oficial de Astro y configurado exactamente como
-indica la [Integración](../integracion/index.md), con una diferencia: depende de
+indica la [Integración](../guia/primeros-pasos.md), con una diferencia: depende de
 `"@velezanthony/design": "file:.."` en lugar de una etiqueta de GitHub. Como es un workspace, npm
 enlaza el paquete con un symlink a la raíz del repo, y **editar `src/` recarga el playground en
 caliente**.
@@ -69,7 +69,7 @@ npm run docs:check   # astro check del sitio
 ```
 
 Se publica en `https://velezanthony.github.io/design/` con `.github/workflows/docs.yml` (ver
-[Publicar una versión](../mantenimiento/versiones.md#el-sitio-de-documentación)).
+[Publicar una versión](./versiones.md#el-sitio-de-documentación)).
 
 > [!TIP]
 > Este sitio es también el mejor test de humo: si un cambio en `src/` rompe algo de lo que se usa

@@ -8,7 +8,8 @@ seo:
 # Integrar un repo nuevo
 
 Esta página es la receta para dar documentación a un repo que todavía no la tiene. Las demás
-páginas de la sección explican qué pasa por dentro cuando sigues estos pasos.
+páginas de la guía profundizan en cada pieza, y [Cómo funciona por dentro](../desarrollo/por-dentro.md)
+explica qué pasa por dentro cuando sigues estos pasos.
 
 ```mermaid
 flowchart LR
@@ -45,7 +46,7 @@ npm install --prefix docs -D @astrojs/check typescript
 
 La etiqueta (`#v0.1.0`) fija la versión: el `package-lock.json` guarda el commit exacto. Para
 actualizar se cambia la etiqueta y se vuelve a instalar (ver
-[Publicar una versión](../mantenimiento/versiones.md)).
+[Publicar una versión](../desarrollo/versiones.md)).
 
 Las dos _peers_ son obligatorias porque el paquete se distribuye como fuente: es el Astro del
 consumidor quien compila los `.ts` y `.astro` de la librería, con su procesador de Markdown. Tailwind
@@ -353,4 +354,4 @@ Material, esa página es la de la sección: `dir: 'carpeta'` enlaza a ella.
 | El `<head>` SEO de una página que no es Markdown | [El `<head>` de una página propia](./piezas-sueltas.md#el-head-de-una-página-propia) |
 | Analítica con consentimiento (`gtmId` exige `privacyUrl`) | [Analítica y privacidad](./analitica-y-privacidad.md) |
 | Ancho, columnas plegables, índice y tema | [Disposición](./disposicion.md) |
-| Migrar un MkDocs | [Playground, este sitio y la migración](../arquitectura/herramientas.md#scriptsmigrate-mkdocs-de-mkdocs-a-la-librería) |
+| Migrar un MkDocs | [Playground, este sitio y la migración](../desarrollo/herramientas.md#scriptsmigrate-mkdocs-de-mkdocs-a-la-librería) |

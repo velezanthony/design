@@ -50,7 +50,7 @@ y pull request a `main`. No construye este sitio: eso lo hace `docs.yml`, solo e
 - **Commits convencionales**: `feat(nav): …`, `fix(theme): …`, `docs(readme): …`,
   `chore(playground): …`. El ámbito es la zona tocada. El asunto describe el comportamiento que
   cambia, no el archivo.
-- **Sin `enum`.** Objetos `as const` con su tipo derivado (ver [Capas](../arquitectura/index.md#el-resto-de-reglas-de-eslint)).
+- **Sin `enum`.** Objetos `as const` con su tipo derivado (ver [Capas](./index.md#el-resto-de-reglas-de-eslint)).
 - **Valores cerrados exportados** desde `@velezanthony/design/integration` (`MissingTranslation`,
   `PanelState`, `LayoutWidth`, `NavIcon`), para que la config se lea `MissingTranslation.LINK` en vez
   de cadenas sueltas.

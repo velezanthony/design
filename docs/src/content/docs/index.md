@@ -45,14 +45,12 @@ y la consume exactamente igual que `playground/`, enlazada como workspace de npm
 
 ## Mapa del sitio
 
-| Sección | Qué encontrarás |
+| Menú | Qué encontrarás |
 | --- | --- |
-| [Concepto](./concepto/index.md) | Dónde se monta la librería en un repo consumidor, qué pone ella y qué pone el consumidor, y por qué `playground/` y `docs/` nunca llegan a los consumidores. |
-| [Integración](./integracion/index.md) | Paso a paso para un repo nuevo y, después, cómo funciona por dentro: hooks, loader, Markdown, rutas, SEO, idiomas, navegación, búsqueda, analítica y disposición. |
-| [Arquitectura](./arquitectura/index.md) | Las capas de `src/`, qué puede importar cada una y cómo lo hace cumplir ESLint, el mapa de carpetas y el recorrido de una página de principio a fin. |
-| [Mantenimiento](./mantenimiento/index.md) | Comandos, política de tests, paleta y tokens, recetas para añadir piezas y cómo publicar una versión. |
+| [Guía](./guia/index.md) | Para quien usa la librería en otro repo: dónde se monta y qué se queda fuera del paquete, el paso a paso para un repo nuevo, Markdown, navegación y búsqueda, rutas, SEO e idiomas, analítica, disposición, páginas propias y el panel SEO. |
+| [Desarrollo](./desarrollo/index.md) | Para quien trabaja en la librería: las capas de `src/` y cómo las hace cumplir ESLint, el recorrido de una página, el mapa de carpetas, cómo funciona la integración por dentro, comandos, tests, paleta, recetas y cómo publicar una versión. |
 
 > [!TIP]
 > Si vuelves aquí tras meses sin tocar la librería, empieza por
-> [Arquitectura](./arquitectura/index.md) y después lee [Mantenimiento](./mantenimiento/index.md).
+> [Arquitectura](./desarrollo/index.md) y después lee [Mantenimiento](./desarrollo/mantenimiento.md), las dos dentro de Desarrollo.
 > Cada página dice en qué archivo vive cada cosa para que puedas ir directo al código.

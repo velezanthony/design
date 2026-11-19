@@ -188,7 +188,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `static`        | Carpetas que se publican tal cual: `[{ from, to }]`. Ver [Carpetas estáticas](#carpetas-estáticas-static). |
 | `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
 | `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
-| `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/integracion/index.md#css-propio-del-sitio-theme). |
+| `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/guia/primeros-pasos.md#css-propio-del-sitio-theme). |
 | `privacyUrl`    | URL de tu política de privacidad: una URL o una por idioma. Obligatoria con analítica (el banner enlaza a ella); sin analítica, es solo el enlace del pie. Ver [Analítica](#analítica). |
 | `layout`        | Barras laterales plegables, ancho de lectura / completo y el índice: `{ sidebar?, toc?, width?, toggles?, tocDepth?, tocMaxHeight? }`. Ver abajo.       |
 | `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |
@@ -593,8 +593,8 @@ Además de la documentación, un sitio puede tener páginas suyas en `src/pages/
 con el tema y el consentimiento de la librería: se montan sobre `BaseLayout`, con las ranuras `head`,
 la de por defecto y `scripts`, y `pageHead` para el `<head>` SEO. `Article` pinta Markdown con su índice
 fuera de docs. Es un tema aparte de la configuración, y está documentado en el sitio de la librería:
-[Cabecera y pie propios](docs/src/content/docs/integracion/layout-propio.md) y
-[Piezas sueltas](docs/src/content/docs/integracion/piezas-sueltas.md).
+[Cabecera y pie propios](docs/src/content/docs/guia/layout-propio.md) y
+[Piezas sueltas](docs/src/content/docs/guia/piezas-sueltas.md).
 
 ## Transiciones y zoom de imágenes
 

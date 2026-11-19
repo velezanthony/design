@@ -75,7 +75,7 @@ Es donde ocurre casi todo. En orden:
 1. **Exige `site`.** Sin origen absoluto no hay sitemap ni canonical.
 2. **Analítica.** `readAnalyticsEnv` lee `PUBLIC_GTM_ID` con `loadEnv` de Vite (en este hook los
    `.env` aún no están en `process.env`) y `applyAnalyticsForCommand` decide si se activa (exige `privacyUrl`). Detalle en
-   [Analítica y privacidad](./analitica-y-privacidad.md).
+   [Analítica y privacidad](../guia/analitica-y-privacidad.md).
 3. **Sustituciones y conflictos.** `routeOverrides` lista las rutas de la librería que el
    consumidor sustituye con un fichero de `src/pages/` (la portada, el sitemap, `/_design/`…):
    no es un error, se avisa al arrancar y las rutas exactas que ya son suyas no se inyectan.
@@ -83,7 +83,7 @@ Es donde ocurre casi todo. En orden:
    `--font-plex-mono`.
 4. **Markdown.** `extendMarkdownProcessor` modifica **en sitio** el procesador Sätteri de la config de
    Astro: activa las directivas y añade nuestros plugins. Si el procesador no es Sätteri, falla (ver
-   [Markdown](./markdown.md)).
+   [Markdown](../guia/markdown.md)).
 5. **`updateConfig`.** Fusiona en la config de Astro:
    - `markdown.shikiConfig.langAlias`: nuestros alias más los del consumidor (mandan los suyos).
    - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/components/styles/code-themes.ts`),
@@ -131,7 +131,7 @@ sitio configure nada:
    ni `.json` del build nombra. Una imagen usada desde un `<Image>` y desde un cuerpo Markdown deja su
    original copiado junto a las derivadas; así no se publica.
 3. `buildPagefindIndex` (`pagefind.ts`) indexa `dist/` con la API de Node de Pagefind y escribe
-   `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-y-busqueda.md). Va después de 1 y 2 para
+   `dist/pagefind/`. Ver [Navegación y búsqueda](../guia/navegacion-y-busqueda.md). Va después de 1 y 2 para
    no leer recursos que se van a borrar.
 4. `addClientPagesToSitemap` suma al sitemap las páginas de `src/pages/`, salvo que el sitio sustituya
    el sitemap.
@@ -194,4 +194,4 @@ completa al cambiar cualquier archivo (un fallo se muestra en el log sin tirar e
 `doc.astro` es un **contenedor**: lee el módulo virtual y la colección, llama a funciones puras del
 núcleo y pasa a `DocsLayout` (presentacional) los datos ya calculados. El recorrido completo, con el
 arranque del JavaScript de cliente, está en
-[Una página de principio a fin](../arquitectura/una-pagina.md).
+[Una página de principio a fin](./una-pagina.md).

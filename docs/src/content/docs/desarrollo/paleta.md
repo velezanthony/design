@@ -119,7 +119,7 @@ arriba.
 - **Medidas**: `--container-measure` (42rem, unos 78 caracteres), `--container-measure-full`
   (52rem, en ancho completo), `--container-page` (80rem). La disposición usa variables propias
   (`--col-left`, `--rail`, `--wide-max`…) que cambian con los atributos de `<html>` (ver
-  [Disposición](../integracion/disposicion.md)).
+  [Disposición](../guia/disposicion.md)).
 - **Código**: los temas de Shiki son `github-light-default` y `github-dark-default`
   (`code-themes.ts`); en oscuro el fondo de los bloques es `--code-dark-bg`, porque el de GitHub es
   azulado.

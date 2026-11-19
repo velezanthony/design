@@ -14,7 +14,7 @@ calculen la misma URL de formas distintas.
 
 ## Rutas
 
-Todo lo sirve la integración con `injectRoute` (ver [Cómo funciona por dentro](./por-dentro.md#los-hooks-de-la-integración)).
+Todo lo sirve la integración con `injectRoute` (ver [Cómo funciona por dentro](../desarrollo/por-dentro.md#los-hooks-de-la-integración)).
 La pieza central es `/[...slug]` → `src/astro/routes/doc.astro`:
 
 - `getStaticPaths` llama a `docRoutes` (`src/astro/views/doc.ts`), que devuelve una ruta por
@@ -242,4 +242,4 @@ ui: { es: { 'search.placeholder': 'Buscar en la guía' } },
 ```
 
 El esquema de `ui` se genera desde las claves del catálogo, así que una clave mal escrita rompe el
-build. Cómo añadir una clave nueva: [Recetas](../mantenimiento/recetas.md#un-texto-de-interfaz).
+build. Cómo añadir una clave nueva: [Recetas](../desarrollo/recetas.md#un-texto-de-interfaz).

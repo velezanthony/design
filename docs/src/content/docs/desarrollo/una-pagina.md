@@ -33,7 +33,7 @@ flowchart TD
 
 ## 1. Del archivo a la colección
 
-El loader (ver [Cómo funciona por dentro](../integracion/por-dentro.md#el-loader)) lee el archivo, separa
+El loader (ver [Cómo funciona por dentro](./por-dentro.md#el-loader)) lee el archivo, separa
 el frontmatter, deduce:
 
 - **slug** `guia/instalar` (por la ruta, `core/content/slug.ts`);
