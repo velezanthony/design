@@ -311,6 +311,7 @@ astro/
 ├── data/                    El ÚNICO sitio que lee Astro: la colección y el módulo virtual
 │   ├── docs-collection.ts   getDocs / renderDoc tipados para la colección docs
 │   ├── site-config.ts       La config del módulo virtual con su tipo completo
+│   ├── site.ts              `designStrings` y `gtmId`: la subruta pública `site`
 │   ├── image-sizes.ts       Lee los tamaños de las imágenes sociales
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
 │   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
@@ -361,6 +362,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/last-modified` | `src/astro/data/file-last-modified.ts` |
 | `@velezanthony/design/head` | `src/core/seo/head.ts` |
 | `@velezanthony/design/ui-strings` | `src/core/i18n/ui-strings.ts` |
+| `@velezanthony/design/site` | `src/astro/data/site.ts` |
 
 Mover un archivo a los que apunta una de estas subrutas es un cambio incompatible para los
 consumidores. `src/astro/integration/public-api.test.ts` sujeta lo que exporta la integración.

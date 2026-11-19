@@ -16,6 +16,7 @@ const PUBLISHED_ENTRIES = [
   './client/toc',
   './head',
   './ui-strings',
+  './site',
   './code-themes',
 ];
 

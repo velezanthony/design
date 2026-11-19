@@ -53,6 +53,9 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Subruta `@velezanthony/design/site`.** Da `designStrings(locale)` (los textos de interfaz ya
+  fusionados con los del sitio) y `gtmId` (resuelto desde `PUBLIC_GTM_ID` o la config), para que un
+  sitio con su propio layout no importe `virtual:` por su cuenta.
 - **Guía de migración desde MkDocs más completa.** El proyecto de Astro ya no se llama `site/` en los
   ejemplos (es la carpeta de salida de MkDocs: choca con su `.gitignore` y con `mkdocs build`), se
   explica que una sección sin `sidebar` se ordena alfabéticamente por slug y cómo fijar el orden, y
