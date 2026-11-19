@@ -1,9 +1,11 @@
 /** Modo carpeta (`--out`): convierte `docs/` + `mkdocs.yml` a otra carpeta sin tocar nunca el origen. */
 import path from 'node:path';
-import { parse } from 'yaml';
-import { cleanGeneratedApi } from '../api/api-postprocess.ts';
+import { createApiResolver } from './api-resolver.ts';
+import { formatConfigModule, suggestConfig } from './config-suggestion.ts';
+import { ignoredByMigrator } from './ignored.ts';
 import { checkOutput } from '../checks/leftovers.ts';
-import { navToSidebar, type NavEntry } from './nav.ts';
+import { navToSidebar } from './nav.ts';
+import { parseMkdocs } from './mkdocs.ts';
 import { runPipeline } from '../pipeline/pipeline.ts';
 import { createLinkRewriter } from './rewrite-links.ts';
 import { formatLeftovers, formatStubs } from '../io/report.ts';
@@ -21,6 +23,10 @@ export interface ToFolderOptions {
   externalOut?: string;
   sidebarOut?: string;
   report?: string;
+  /** Dónde escribir la config sugerida desde `mkdocs.yml`. */
+  configOut?: string;
+  /** No toca nada (ni `--out`, ni los demás ficheros): enseña el plan. */
+  dryRun?: boolean;
 }
 
 /** Lo que el modo necesita del mundo exterior: inyectado para probarlo sin disco (como `InPlaceIo`). */
@@ -35,32 +41,6 @@ export interface ToFolderIo {
   removeDirectory: (directory: string) => void;
   print: (line: string) => void;
   printError: (line: string) => void;
-}
-
-export interface Mkdocs {
-  nav: NavEntry[];
-  excludePatterns: string[];
-  plugins: Array<Record<string, unknown> | string>;
-}
-
-/** Lee `mkdocs.yml`; sus etiquetas `!!python/name:` no las conoce `yaml` y aquí no aportan nada. */
-export function parseMkdocs(text: string): Mkdocs {
-  const parsed = parse(text.replace(/!!python\/name:\S+/g, ''), {
-    strict: false,
-    uniqueKeys: false,
-  }) as {
-    nav: NavEntry[];
-    exclude_docs?: string;
-    plugins?: Array<Record<string, unknown> | string>;
-  };
-  return {
-    nav: parsed.nav,
-    excludePatterns: (parsed.exclude_docs ?? '')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean),
-    plugins: parsed.plugins ?? [],
-  };
 }
 
 /** Una barra final excluye la carpeta; sin ella, solo ese fichero. */
@@ -116,23 +96,28 @@ export function runToFolder(io: ToFolderIo, options: ToFolderOptions): number {
     externals,
   });
 
-  const api: Record<string, string> = options.api ? JSON.parse(io.readText(options.api)) : {};
-  let strippedApiLinks = 0;
-  function resolveApi(id: string) {
-    const generated = api[id];
-    if (generated === undefined) return undefined;
-    const cleaned = cleanGeneratedApi(generated);
-    strippedApiLinks += cleaned.stripped;
-    return cleaned.markdown;
-  }
+  const api = createApiResolver(options.api ? io.readText(options.api) : undefined);
 
-  io.removeDirectory(out);
+  /* Con `--dry-run` se hace todo el cálculo y nada de lo que escribe. */
+  const dryRun = options.dryRun ?? false;
+  function write(file: string, text: string) {
+    if (!dryRun) io.writeText(file, text);
+  }
+  if (dryRun)
+    io.print('DRY-RUN: no se escribe nada (ni --out, ni la barra lateral, ni el informe).');
+  else io.removeDirectory(out);
   const sources = new Map(markdown.map((file) => [file, io.readText(path.join(docs, file))]));
-  const result = runPipeline(sources, { resolveApi, rewriteHref: rewriter });
+  const result = runPipeline(sources, {
+    resolveApi: api.resolveApi,
+    rewriteHref: rewriter,
+    slugStyle: mkdocs.slugStyle,
+  });
   const report: Record<string, LogEntry[]> = { ...result.log };
 
-  for (const [file, text] of result.files) io.writeText(path.join(out, file), text);
-  for (const file of images) io.copyFile(path.join(docs, file), path.join(out, file));
+  for (const [file, text] of result.files) write(path.join(out, file), text);
+  if (!dryRun) {
+    for (const file of images) io.copyFile(path.join(docs, file), path.join(out, file));
+  }
 
   /* Los ficheros externos: sus enlaces relativos salen de `docs/`, así que van al repositorio. */
   const externalOutputs = new Map<string, string>();
@@ -145,24 +130,15 @@ export function runToFolder(io: ToFolderIo, options: ToFolderOptions): number {
         externals: new Map(),
       })('x'),
     });
-    io.writeText(path.join(externalOut!, path.basename(file)), converted.markdown);
+    write(path.join(externalOut!, path.basename(file)), converted.markdown);
     externalOutputs.set(file, converted.markdown);
     if (converted.log.length > 0) report[`(external) ${file}`] = converted.log;
   }
 
   if (options.sidebarOut) {
-    const i18n = mkdocs.plugins.find(
-      (
-        plugin,
-      ): plugin is Record<
-        string,
-        { languages?: Array<{ locale: string; nav_translations?: Record<string, string> }> }
-      > => typeof plugin === 'object' && 'i18n' in plugin,
-    );
-    const es =
-      i18n?.i18n?.languages?.find((language) => language.locale === 'es')?.nav_translations ?? {};
+    const es = mkdocs.languages.find((language) => language.locale === 'es')?.navTranslations ?? {};
     const sidebar = navToSidebar(mkdocs.nav, es);
-    io.writeText(
+    write(
       path.resolve(options.sidebarOut),
       `// Generado por scripts/migrate-mkdocs desde el nav de mkdocs.yml.\nexport default ${JSON.stringify(sidebar, null, 2)};\n`,
     );
@@ -172,7 +148,7 @@ export function runToFolder(io: ToFolderIo, options: ToFolderOptions): number {
   for (const entries of Object.values(report)) {
     for (const entry of entries) counts[entry.kind] = (counts[entry.kind] ?? 0) + 1;
   }
-  if (options.report) io.writeText(path.resolve(options.report), JSON.stringify(report, null, 1));
+  if (options.report) write(path.resolve(options.report), JSON.stringify(report, null, 1));
 
   const externalCheck = checkOutput(
     new Map([...externalOutputs].map(([file, text]) => [`(external) ${file}`, text])),
@@ -185,7 +161,7 @@ export function runToFolder(io: ToFolderIo, options: ToFolderOptions): number {
         images: images.length,
         skipped: skipped.length,
         excluded,
-        strippedApiLinks,
+        strippedApiLinks: api.strippedLinks(),
         counts,
         stubs: result.stubs.length,
         leftovers: leftovers.length,
@@ -198,6 +174,15 @@ export function runToFolder(io: ToFolderIo, options: ToFolderOptions): number {
   if (leftovers.length > 0) {
     io.printError('Restos de sintaxis MkDocs sin convertir:');
     for (const line of formatLeftovers(leftovers)) io.printError(`  ${line}`);
+  }
+  const suggestion = suggestConfig(mkdocs);
+  const configModule = formatConfigModule(suggestion);
+  if (options.configOut) write(path.resolve(options.configOut), configModule);
+  if (dryRun) io.print(`Config sugerida desde mkdocs.yml:\n${configModule}`);
+  const ignored = ignoredByMigrator(mkdocs);
+  if (ignored.length > 0) {
+    io.print('Lo que mkdocs.yml declara y el migrador no traduce:');
+    for (const line of ignored) io.print(`  - ${line}`);
   }
   return leftovers.length > 0 ? 1 : 0;
 }

@@ -11,10 +11,12 @@ export interface CliOptions {
   report?: string;
   'in-place'?: boolean;
   force?: boolean;
+  'dry-run'?: boolean;
+  'config-out'?: string;
 }
 
 /** Opciones del modo carpeta que `--in-place` no usa: rechazarlas evita ignorarlas en silencio. */
-const FOLDER_ONLY = ['repo-url', 'api', 'external', 'external-out', 'sidebar-out'] as const;
+const FOLDER_ONLY = ['repo-url', 'external', 'external-out', 'sidebar-out'] as const;
 
 export function checkOptions(values: CliOptions): string | undefined {
   if (!values.repo) return 'Falta --repo <raíz del repo>.';

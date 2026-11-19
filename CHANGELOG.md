@@ -45,6 +45,18 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Migrador de MkDocs (`scripts/migrate-mkdocs`).**
+  - `--in-place` lee también `mkdocs.yml`: imprime una config sugerida (idiomas, `fallback`,
+    `exclude` y `nav` con una sección por grupo y los ficheros de fuera de `docs/` como `external`) y
+    `--config-out <fichero>` la escribe.
+  - `--api <api.json>` ya funciona con `--in-place`.
+  - Las anclas se reescriben a los ids que genera la librería: MkDocs junta los separadores, numera
+    los repetidos con `_1` y respeta `{ #id }`, y github-slugger no. Antes solo se reponían los
+    acentos.
+  - Al final lista lo que `mkdocs.yml` declara y no se traduce (tema, plugins, extensiones,
+    `docs_dir`…).
+  - `--dry-run`, en los dos modos, no escribe nada e imprime el plan.
+  - Los comentarios de `exclude_docs` ya no cuentan como patrones.
 - **Documentado `translations.missing: 'fallback'` para quien viene de MkDocs.** Equivale a su
   `fallback_to_default: true`; el valor por defecto no cambia (`link`).
 - **`static`: publicar una carpeta tal cual.** `static: [{ from: '../htmlcov', to: 'coverage' }]`

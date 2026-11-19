@@ -20,7 +20,7 @@ describe('checkOptions', () => {
     expect(message).toMatch(/--out/);
   });
 
-  it.each(['repo-url', 'api', 'external', 'external-out', 'sidebar-out'])(
+  it.each(['repo-url', 'external', 'external-out', 'sidebar-out'])(
     '--in-place rechaza --%s, que no usa',
     (name) => {
       const value = name === 'external' ? ['x'] : 'x';
@@ -29,6 +29,24 @@ describe('checkOptions', () => {
       );
     },
   );
+
+  it('--in-place admite --api, --dry-run y --config-out', () => {
+    expect(
+      checkOptions({
+        repo: 'r',
+        'in-place': true,
+        api: 'api.json',
+        'dry-run': true,
+        'config-out': 'c.mjs',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('el modo carpeta admite --dry-run y --config-out', () => {
+    expect(
+      checkOptions({ repo: 'r', out: 'o', 'repo-url': 'u', 'dry-run': true, 'config-out': 'c' }),
+    ).toBeUndefined();
+  });
 
   it('--in-place admite --force y --report', () => {
     expect(

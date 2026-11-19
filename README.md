@@ -686,10 +686,14 @@ orden `$ ` y `sql` si empieza por `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREAT
 cada cambio queda en el registro como `code-language`. Nunca adivina Python ni otros lenguajes.
 
 Para migrar un repo MkDocs **sin mover sus `.md`**: `node scripts/migrate-mkdocs/cli.ts --repo <repo> --in-place`
-convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), se niega a correr si el
-repo no es git o `docs/` tiene cambios sin confirmar (`--force` lo salta; se desaconseja) y termina
-con un resumen, los restos de sintaxis que no ha entendido y las páginas `--8<--` que conviene
-publicar con `external[]`. Luego: `git diff docs/` y commit, o `git checkout docs/` para descartarlo.
+convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), reescribe las anclas a los
+ids de la librería, se niega a correr si el repo no es git o `docs/` tiene cambios sin confirmar
+(`--force` lo salta; se desaconseja) y termina con un resumen, los restos de sintaxis que no ha
+entendido, las páginas `--8<--` que conviene publicar con `external[]`, una **config sugerida** leída
+de `mkdocs.yml` (idiomas, `fallback`, `exclude` y `nav`; `--config-out <fichero>` la escribe) y la
+lista de lo que ignora. `--api <api.json>` resuelve las directivas de mkdocstrings y `--dry-run` no
+escribe nada y solo imprime el plan. Luego: `git diff docs/` y commit, o `git checkout docs/` para
+descartarlo.
 
 CI ejecuta lint, format, check y test en cada push y pull request a `main`.
 
