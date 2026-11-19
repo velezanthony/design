@@ -71,7 +71,7 @@ export function bootBase(env: BootEnv = browserEnv()): void {
   initConsent({ htmlDocument, storage: env.storage, hostname: env.hostname, reload: env.reload });
 }
 
-/** Cablea el cliente de una página de docs (el tema y el consentimiento ya los cablea `bootBase`); cada `init*` ignora lo que la página no tenga y los textos vienen de `data-*` de `<main>`. */
+/** Cablea el cliente propio de una página de docs: columnas, barra, búsqueda y año. El tema y el consentimiento los cablea `bootBase`; el contenido, `bootArticle`. */
 export function bootDocs(env: BootEnv = browserEnv()): void {
   const { htmlDocument } = env;
   initLayout({ htmlDocument, storage: env.storage, rail: env.rail });
@@ -87,9 +87,15 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
     initSearch(search);
   initSearchShortcut(htmlDocument);
   initCurrentYear(htmlDocument);
+}
+
+/** Cablea el contenido de un `Article` (docs o no): pestañas, copiar, anclas, zoom, diagramas e índice; los textos vienen de `data-*` del contenedor. */
+export function bootArticle(env: BootEnv = browserEnv()): void {
+  const { htmlDocument } = env;
   initTabs(htmlDocument, env.motion);
 
-  const main = htmlDocument.querySelector<HTMLElement>('main');
+  /* Con los textos en `data-copy-label` se localiza el contenedor: es un `<main>` en docs y puede ser un `<div>` fuera de ellas. */
+  const main = htmlDocument.querySelector<HTMLElement>('[data-copy-label]');
   if (main) {
     const {
       copyLabel,

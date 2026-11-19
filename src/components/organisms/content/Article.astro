@@ -1,0 +1,108 @@
+---
+import type { Locale } from '../../../core/i18n/locale';
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import { tocEntries } from '../../../core/navigation/toc-entries';
+import TableOfContents from '../../molecules/navigation/TableOfContents.astro';
+
+interface Props {
+  strings: UiStrings;
+  /** Encabezados tal como los devuelve `render(entry)`; alimentan el índice. */
+  headings?: { depth: number; slug: string; text: string }[];
+  /** `false` para no reservar el índice (aunque haya encabezados). */
+  toc?: boolean;
+  /** Último nivel de encabezado que lista el índice (2 a 6). */
+  depth?: number;
+  /** Longitud CSS (`60vh`): el índice no pasa de ahí y hace scroll por dentro. */
+  maxHeight?: string;
+  /** Con el botón que pliega el índice a un raíl. */
+  toggles?: boolean;
+  /** Estado con el que nace ese botón. */
+  open?: boolean;
+  /** Idioma del contenido cuando difiere del de la página (una ruta de reserva). */
+  contentLang?: Locale;
+  /** `false` para un contenido con su propio marcado: sin el estilo de `.prose`. */
+  prose?: boolean;
+  /** Contenedor del contenido: `main` salvo que la página ya tenga el suyo. */
+  as?: 'main' | 'div';
+  id?: string;
+  /** Clases del contenedor del contenido. */
+  class?: string;
+  /** Clases de la columna lateral; es la página la que decide desde qué ancho se ve. */
+  columnClass?: string;
+  /** Con valor, marca el contenido para Pagefind (`true` indexa, `false` ignora). */
+  indexable?: boolean;
+}
+
+const {
+  strings,
+  headings = [],
+  toc = true,
+  depth,
+  maxHeight,
+  toggles = false,
+  open = true,
+  contentLang,
+  prose = true,
+  as: Container = 'main',
+  id,
+  class: className,
+  columnClass,
+  indexable,
+} = Astro.props;
+
+const hasToc = toc && tocEntries(headings, depth).length > 0;
+/* Sin índice ni aside no se reserva columna: el contenido usa ese ancho. */
+const hasColumn = hasToc || Astro.slots.has('aside');
+const pagefind =
+  indexable === undefined
+    ? {}
+    : indexable
+      ? { 'data-pagefind-body': '' }
+      : { 'data-pagefind-ignore': '' };
+const containerAttrs = { id, class: ['min-w-0', className].filter(Boolean).join(' '), ...pagefind };
+---
+
+{/* Contenedor y columna son hermanos a propósito: la rejilla es de la página, que decide dónde cae cada uno. */}
+<Container
+  {...containerAttrs}
+  data-copy-label={translate(strings, 'copy.label')}
+  data-copied-label={translate(strings, 'copy.copied')}
+  data-copy-failed-label={translate(strings, 'copy.failed')}
+  data-anchor-label={strings['heading.anchor']}
+  data-zoom-label={strings['zoom.open']}
+  data-zoom-close-label={translate(strings, 'zoom.close')}
+  data-diagram-label={translate(strings, 'diagram.label')}
+  data-diagram-expand-label={translate(strings, 'diagram.expand')}
+  data-diagram-zoom-in-label={translate(strings, 'diagram.zoomIn')}
+  data-diagram-zoom-out-label={translate(strings, 'diagram.zoomOut')}
+  data-diagram-fit-label={translate(strings, 'diagram.fit')}
+>
+  <slot name="before" />
+  {/* `.prose` da estilo al Markdown renderizado (encabezados, código, anclas, admoniciones, pestañas). Va solo en el contenido: lo que cuelga de `after` no la hereda. */}
+  <div class:list={[prose && 'prose']} lang={contentLang}>
+    <slot />
+  </div>
+  <slot name="after" />
+</Container>
+
+{hasColumn && (
+  <div data-toc-column class={columnClass}>
+    <slot name="aside" />
+    {hasToc && (
+      <TableOfContents
+        headings={headings}
+        strings={strings}
+        toggles={toggles}
+        open={open}
+        depth={depth}
+        maxHeight={maxHeight}
+      />
+    )}
+  </div>
+)}
+
+<script>
+  import { bootArticle } from '../../layouts/boot';
+
+  bootArticle();
+</script>

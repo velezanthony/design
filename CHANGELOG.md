@@ -53,6 +53,14 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Organismo `Article` (`components/organisms/content/Article.astro`) y `bootArticle`.** Es el
+  contenido de una página de docs sacado de `DocsLayout`: el contenedor con los textos del cliente
+  (copiar, anclas, zoom, visor de diagramas), el `.prose` con su `lang` y la columna del índice
+  (`headings`, `toc`, `depth`, `maxHeight`, `toggles`, `open`). Una ranura `aside` mete contenido
+  propio en esa columna, encima del índice; `before` y `after` van dentro del contenedor. Sirve fuera
+  de docs (`as="div"` si la página ya tiene su `<main>`) y arranca su propio cliente. `bootDocs` ya
+  no cablea el contenido: lo hace `bootArticle`, que `Article` carga por sí mismo. `DocsLayout` lo
+  usa y su HTML no cambia.
 - **Subruta `@velezanthony/design/site`.** Da `designStrings(locale)` (los textos de interfaz ya
   fusionados con los del sitio) y `gtmId` (resuelto desde `PUBLIC_GTM_ID` o la config), para que un
   sitio con su propio layout no importe `virtual:` por su cuenta.

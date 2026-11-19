@@ -26,7 +26,7 @@ flowchart TD
   end
   subgraph browser["En el navegador"]
     html --> pre["Scripts inline del head:<br/>tema y disposición antes de pintar"]
-    pre --> boot["bootDocs · components/layouts/boot.ts"]
+    pre --> boot["bootBase, bootDocs, bootArticle · components/layouts/boot.ts"]
     boot --> inits["initTheme, initLayout, initConsent,<br/>initSearch, initTabs, initCopyCode,<br/>initZoom, trackSections…"]
   end
 ```
@@ -73,8 +73,10 @@ reescribe sus enlaces, lo renderiza con el pipeline de Markdown y guarda la entr
 
 ## 4. El arranque del cliente
 
-Hay dos `<script>` de módulo, uno por nivel. `BaseLayout.astro` arranca lo de todo documento (el
-tema y el consentimiento) con `bootBase`; `DocsLayout.astro` arranca lo propio de una página de docs:
+Hay tres `<script>` de módulo, uno por nivel. `BaseLayout.astro` arranca lo de todo documento (el
+tema y el consentimiento) con `bootBase`; `Article.astro` arranca el contenido (pestañas, copiar,
+anclas, zoom, diagramas e índice) con `bootArticle`, así que sirve también fuera de docs;
+`DocsLayout.astro` arranca lo propio de una página de docs:
 
 ```astro
 <script>
@@ -84,18 +86,19 @@ tema y el consentimiento) con `bootBase`; `DocsLayout.astro` arranca lo propio d
 </script>
 ```
 
-`bootBase` y `bootDocs` (`src/components/layouts/boot.ts`) cablean el cliente en un orden fijo:
+`bootBase`, `bootDocs` y `bootArticle` (`src/components/layouts/boot.ts`) cablean el cliente en un orden fijo:
 
 ```mermaid
 sequenceDiagram
   participant P as Página cargada
-  participant B as bootBase(env) → bootDocs(env)
+  participant B as bootBase(env) · bootDocs(env) · bootArticle(env)
   participant C as client/*
   P->>B: browserEnv(): document, localStorage, sessionStorage, matchMedia…
   B->>C: bootBase: initTheme (colores de theme-colors.ts) · initConsent (solo si hay banner)
   B->>C: bootDocs: initLayout · initSidebarScroll
   B->>C: initSearch por cada [data-search] · initSearchShortcut
-  B->>C: initCurrentYear · initTabs
+  B->>C: initCurrentYear
+  B->>C: bootArticle: initTabs
   B->>C: initCopyCode · initHeadingAnchors · initZoom (con los data-* de main)
   B->>C: trackSections (si hay nav.toc)
 ```

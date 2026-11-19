@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { parseHTML } from 'linkedom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { bootBase, bootDocs, type BootEnv } from './boot';
+import { bootArticle, bootBase, bootDocs, type BootEnv } from './boot';
 
 function env(html: string, extra: Partial<BootEnv> = {}): BootEnv {
   const { document } = parseHTML(
@@ -50,10 +50,10 @@ describe('bootBase', () => {
   });
 });
 
-describe('bootDocs', () => {
+describe('bootArticle', () => {
   it('cablea pestañas, botón de copiar y anclas de encabezado', () => {
     const bootEnv = env(content);
-    bootDocs(bootEnv);
+    bootArticle(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('.docs-tabs[data-enhanced]')).not.toBeNull();
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')!.textContent).toBe('Copiar');
     expect(bootEnv.htmlDocument.querySelector('a.heading-anchor')!.getAttribute('aria-label')).toBe(
@@ -61,17 +61,9 @@ describe('bootDocs', () => {
     );
   });
 
-  it('pone el año del visitante donde está marcado', () => {
-    const bootEnv = env('<span data-current-year>1999</span>');
-    bootDocs(bootEnv);
-    expect(bootEnv.htmlDocument.querySelector('[data-current-year]')!.textContent).toBe(
-      String(new Date().getFullYear()),
-    );
-  });
-
   it('hace ampliables las imágenes del contenido, con los textos de <main>', () => {
     const bootEnv = env(content);
-    bootDocs(bootEnv);
+    bootArticle(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('button.docs-zoom')!.getAttribute('aria-label')).toBe(
       'Ampliar: Esquema',
     );
@@ -82,7 +74,7 @@ describe('bootDocs', () => {
 
   it('sin los textos del zoom no toca las imágenes', () => {
     const bootEnv = env(content.replace(/ data-zoom-label="[^"]*"/, ''));
-    bootDocs(bootEnv);
+    bootArticle(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('button.docs-zoom')).toBeNull();
   });
 
@@ -100,7 +92,7 @@ describe('bootDocs', () => {
     it('los dibuja con la etiqueta de <main>', async () => {
       const fakeMermaid = mermaid();
       const bootEnv = env(diagram, { mermaid: fakeMermaid });
-      bootDocs(bootEnv);
+      bootArticle(bootEnv);
       await vi.waitFor(() =>
         expect(
           bootEnv.htmlDocument.querySelector('.docs-mermaid-figure')!.getAttribute('aria-label'),
@@ -110,7 +102,7 @@ describe('bootDocs', () => {
 
     it('cada diagrama lleva copiar y pantalla completa, con los textos de <main>', async () => {
       const bootEnv = env(diagram, { mermaid: mermaid() });
-      bootDocs(bootEnv);
+      bootArticle(bootEnv);
       await vi.waitFor(() =>
         expect(bootEnv.htmlDocument.querySelector('.docs-expand')).not.toBeNull(),
       );
@@ -129,7 +121,7 @@ describe('bootDocs', () => {
       const bootEnv = env(diagram.replace(/ data-diagram-expand-label="[^"]*"/, ''), {
         mermaid: mermaid(),
       });
-      bootDocs(bootEnv);
+      bootArticle(bootEnv);
       await vi.waitFor(() =>
         expect(bootEnv.htmlDocument.querySelector('.docs-mermaid-figure')).not.toBeNull(),
       );
@@ -145,9 +137,39 @@ describe('bootDocs', () => {
 
     it('en una página sin diagramas no descarga mermaid', () => {
       const fakeMermaid = mermaid();
-      bootDocs(env(content, { mermaid: fakeMermaid }));
+      bootArticle(env(content, { mermaid: fakeMermaid }));
       expect(fakeMermaid.importer).not.toHaveBeenCalled();
     });
+  });
+
+  it('sin <main> no hace nada (ni falla)', () => {
+    expect(() => bootArticle(env('<p>x</p>'))).not.toThrow();
+  });
+
+  it('no cablea lo propio de docs: ni el año ni los plegables', () => {
+    const bootEnv = env(
+      `<span data-current-year>1999</span><button data-layout-toggle="left" aria-controls="nav" data-collapse-label="P" data-expand-label="D"></button><div id="nav"></div>`,
+    );
+    bootArticle(bootEnv);
+    (bootEnv.htmlDocument.querySelector('[data-layout-toggle]') as HTMLElement).click();
+    expect(bootEnv.htmlDocument.querySelector('[data-current-year]')!.textContent).toBe('1999');
+    expect(bootEnv.htmlDocument.documentElement.dataset.left).toBeUndefined();
+  });
+
+  it('sin portapapeles no añade el botón de copiar', () => {
+    const bootEnv = env(content, { clipboard: undefined });
+    bootArticle(bootEnv);
+    expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
+  });
+});
+
+describe('bootDocs', () => {
+  it('pone el año del visitante donde está marcado', () => {
+    const bootEnv = env('<span data-current-year>1999</span>');
+    bootDocs(bootEnv);
+    expect(bootEnv.htmlDocument.querySelector('[data-current-year]')!.textContent).toBe(
+      String(new Date().getFullYear()),
+    );
   });
 
   it('cablea los botones de plegado y de ancho', () => {
@@ -162,10 +184,6 @@ describe('bootDocs', () => {
     expect(bootEnv.htmlDocument.documentElement.dataset.width).toBe('full');
   });
 
-  it('sin <main> ni controles no hace nada (ni falla)', () => {
-    expect(() => bootDocs(env('<p>x</p>'))).not.toThrow();
-  });
-
   it('no arranca el panel SEO: su JS solo va en las pantallas del panel', () => {
     const bootEnv = env('<button data-report-open="site" hidden>IA</button>');
     bootDocs(bootEnv);
@@ -174,10 +192,15 @@ describe('bootDocs', () => {
     );
   });
 
-  it('sin portapapeles no añade el botón de copiar', () => {
-    const bootEnv = env(content, { clipboard: undefined });
+  it('sin controles no hace nada (ni falla)', () => {
+    expect(() => bootDocs(env('<p>x</p>'))).not.toThrow();
+  });
+
+  it('no cablea el contenido: de eso se encarga bootArticle desde el propio Article', () => {
+    const bootEnv = env(content);
     bootDocs(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
+    expect(bootEnv.htmlDocument.querySelector('a.heading-anchor')).toBeNull();
   });
 });
 

@@ -197,7 +197,8 @@ components/
 │   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
-│   └── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
+│   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
+│   └── content/     Article (contenido con diagramas y anclas, y la columna del índice y un aside)
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag, LengthMeter, LocaleBadge,
 │   │                Note, StateMark
@@ -219,7 +220,7 @@ components/
 ├── layouts/
 │   ├── BaseLayout.astro     <html>, <head>, tema, CSS y consentimiento; sin cabecera ni pie
 │   ├── DocsLayout.astro     Página de docs sobre BaseLayout: cabecera, barra, contenido, índice, pie
-│   └── boot.ts              Arranque del JavaScript de cliente (bootBase, bootDocs)
+│   └── boot.ts              Arranque del JavaScript de cliente (bootBase, bootDocs, bootArticle)
 ├── styles/
 │   ├── theme.css            El punto de entrada: Tailwind y el resto de hojas, en orden
 │   ├── site-theme.css       Vacío: lo que `theme.css` importa si el sitio no define `theme`

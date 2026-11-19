@@ -2,7 +2,7 @@
 order: 10
 seo:
   title: "Piezas sueltas: iconos, listas, textos y cabeceras de sección"
-  description: "Componentes de la librería pensados para páginas propias de un sitio: Icon, InlineList, Text y SectionHead, con sus props y su ruta de importación."
+  description: "Componentes de la librería pensados para páginas propias de un sitio: Icon, InlineList, Text, SectionHead y Article, con sus props y su ruta de importación."
 ---
 
 # Piezas sueltas para páginas propias
@@ -36,6 +36,55 @@ propios (lo que muestran llega por props o por la ranura) y usan los tokens de `
 <SectionHead eyebrow="Proyectos" title="Lo último" action={{ href: '/proyectos/', label: 'Ver todos' }} />
 ```
 
+## Organisms
+
+### `Article`: el contenido de una página, con el índice al lado
+
+`Article` es la pieza que `DocsLayout` usa para el contenido de cada página de docs, y se puede usar
+tal cual en una página propia que pinte Markdown (un caso de estudio, un artículo). Da el
+contenedor con los textos del cliente (copiar código, visor de diagramas, anclas de encabezado,
+ampliar imágenes), el `.prose` con el idioma del contenido y, si lo pides, la columna con el índice.
+Importación: `@velezanthony/design/components/organisms/content/Article.astro`.
+
+| Prop | Qué hace |
+| --- | --- |
+| `strings` | El catálogo de interfaz (`designStrings(locale)` de `@velezanthony/design/site`). Obligatoria. |
+| `headings` | Los encabezados que devuelve `render(entry)`. Alimentan el índice. |
+| `toc` | `false` no reserva índice aunque haya encabezados. Por defecto, `true`. |
+| `depth`, `maxHeight` | Último nivel que lista el índice (2 a 6, por defecto 3) y su altura máxima CSS. |
+| `toggles`, `open` | El botón que pliega el índice a un raíl y el estado con el que nace. |
+| `as` | `main` (por defecto) o `div`, si la página ya tiene su propio `<main>`. |
+| `id`, `class` | Atributos del contenedor; `class` se suma a `min-w-0`. |
+| `columnClass` | Clases de la columna lateral. La página decide desde qué ancho se ve (`hidden xl:block`). |
+| `contentLang` | Idioma del contenido si difiere del de la página (una ruta de reserva). |
+| `prose` | `false` para un contenido con su propio marcado, sin el estilo de `.prose`. |
+| `indexable` | Marca el contenido para Pagefind (`true`) o lo excluye (`false`); sin él, no marca nada. |
+
+Ranuras: la por defecto es el contenido; `before` y `after` van dentro del contenedor, antes y
+después del `.prose` (el aviso de idioma de reserva y el anterior/siguiente en docs); `aside` va en
+la columna lateral, **encima** del índice, para meter ahí una barra propia (estado, descargas, stack).
+
+El contenedor y la columna se emiten como **hermanos**, sin envoltorio: la rejilla es de la página.
+La columna solo existe si hay índice (tres o más entradas, y `toc` activo) o contenido en `aside`.
+`Article` arranca su propio JavaScript (`bootArticle`), así que no hace falta `bootDocs` ni nada más:
+lo propio de docs (barra, búsqueda, año) queda fuera.
+
+```astro
+---
+import Article from '@velezanthony/design/components/organisms/content/Article.astro';
+import { designStrings } from '@velezanthony/design/site';
+
+const { Content, headings } = await render(entry);
+---
+
+<div class="grid gap-x-16 md:grid-cols-[minmax(0,1fr)_16rem]">
+  <Article as="div" strings={designStrings('es')} headings={headings} depth={2} columnClass="space-y-8">
+    <Content />
+    <aside slot="aside">Estado, descargas, stack…</aside>
+  </Article>
+</div>
+```
+
 ## Scripts, `<head>` y textos para quien tiene su propio layout
 
 Un sitio con su propio layout no tiene que reimplementar lo que la librería ya hace. Estas subrutas
@@ -53,7 +102,7 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | `@velezanthony/design/last-modified` | `fileLastModified(file, root?)`: fecha ISO de la última modificación de un archivo (su último commit o, sin él, la del archivo; nada en un clon superficial), la misma que el `<lastmod>` del sitemap. Asíncrona; sirve para el `dateModified` de un JSON-LD. |
 | `@velezanthony/design/code-themes` | `codeThemes`: los temas de Shiki que usa la librería, para que el sitio resalte igual. |
 
-`bootBase` y `bootDocs` siguen saliendo de `@velezanthony/design/components/layouts/boot.ts`.
+`bootBase`, `bootDocs` y `bootArticle` siguen saliendo de `@velezanthony/design/components/layouts/boot.ts`.
 
 ## Textos de `ThemeToggle` y `ConsentBanner` por props
 
