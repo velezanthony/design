@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { mergeReports, summarize, summaryMarkdown, type IncrementalReport } from './merge.ts';
+import {
+  mergeReports,
+  sliceReport,
+  summarize,
+  summaryMarkdown,
+  type IncrementalReport,
+} from './merge.ts';
 
 function location(line: number) {
   return { start: { line, column: 3 }, end: { line: line + 1, column: 3 } };
@@ -128,6 +134,37 @@ describe('mergeReports', () => {
 
   it('falla sin informes', () => {
     expect(() => mergeReports([])).toThrow(/ningún informe/);
+  });
+});
+
+describe('sliceReport', () => {
+  const full = report({
+    files: { 'src/a.ts': [{ status: 'Killed' }], 'src/b.ts': [], 'src/c.ts': [] },
+    tests: { 'src/a.test.ts': [{ id: '0', name: 'a', line: 1 }] },
+  });
+
+  it('se queda solo con los ficheros pedidos, para que los trozos sigan siendo disjuntos', () => {
+    const sliced = sliceReport(full, ['src/a.ts', 'src/c.ts']);
+    expect(Object.keys(sliced.files)).toEqual(['src/a.ts', 'src/c.ts']);
+    expect(sliced.files['src/a.ts']?.mutants).toEqual([{ status: 'Killed' }]);
+  });
+
+  it('conserva los tests y el resto de campos, que los mutantes necesitan', () => {
+    const sliced = sliceReport(full, ['src/a.ts']);
+    expect(sliced.testFiles).toEqual(full.testFiles);
+    expect(sliced.config).toEqual(full.config);
+  });
+
+  it('ignora un fichero pedido que el informe no trae (aún sin medir)', () => {
+    expect(Object.keys(sliceReport(full, ['src/new.ts', 'src/b.ts']).files)).toEqual(['src/b.ts']);
+  });
+
+  it('los trozos de un mismo informe se unen sin chocar y reconstruyen los ficheros', () => {
+    const merged = mergeReports([
+      sliceReport(full, ['src/a.ts']),
+      sliceReport(full, ['src/b.ts', 'src/c.ts']),
+    ]);
+    expect(Object.keys(merged.files)).toEqual(['src/a.ts', 'src/b.ts', 'src/c.ts']);
   });
 });
 

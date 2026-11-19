@@ -114,6 +114,18 @@ export function mergeReports(reports: IncrementalReport[]): IncrementalReport {
   return { ...first, files, testFiles };
 }
 
+/** Con una base completa como `--incrementalFile`, Stryker la reescribe entera: cada trozo devuelve solo los suyos para que `mergeReports` los vea disjuntos. */
+export function sliceReport(
+  report: IncrementalReport,
+  files: readonly string[],
+): IncrementalReport {
+  const wanted = new Set(files);
+  return {
+    ...report,
+    files: Object.fromEntries(Object.entries(report.files).filter(([file]) => wanted.has(file))),
+  };
+}
+
 export interface MutationSummary {
   total: number;
   byStatus: Record<string, number>;
