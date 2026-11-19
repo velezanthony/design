@@ -17,6 +17,8 @@ const PUBLISHED_ENTRIES = [
   './head',
   './ui-strings',
   './site',
+  './seo',
+  './seo-schema',
   './code-themes',
   './fonts',
 ];

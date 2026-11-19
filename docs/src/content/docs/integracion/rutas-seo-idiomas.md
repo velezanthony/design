@@ -189,6 +189,10 @@ sufijo ni prefijo. Solo `es` y `en` tienen textos de interfaz en el paquete
 (`src/core/i18n/ui-strings.ts`); otro idioma rompe la validación de la config hasta que se añadan
 sus textos.
 
+`ogLocales` (opcional) da el `og:locale` con territorio de cada idioma: `ogLocales: { es: 'es_ES', en:
+'en_GB' }`. Sin él, `og:locale` lleva el propio idioma (`es`, `pt_BR` para `pt-BR`). Cada clave tiene
+que estar en `locales` y cada valor tiene la forma `idioma_TERRITORIO`.
+
 ### Archivos y gemelos
 
 `guia.md` es la página en el idioma por defecto; `guia.en.md` es su gemela en inglés. Para un

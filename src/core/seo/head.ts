@@ -17,6 +17,9 @@ export interface HeadConfig {
 
 export type PageKind = 'page' | 'fallback';
 
+/** Valores de `og:type` que usa la librería. */
+export type OgType = 'article' | 'website';
+
 /** Lo que el head necesita saber de la página que se renderiza. */
 export interface PageData {
   kind: PageKind;
@@ -27,6 +30,8 @@ export interface PageData {
   url: string;
   /** Solo en `fallback`: URL (con base) del original, hacia la que apunta el `canonical`. */
   canonical?: string;
+  /** `og:type`; por defecto `article`, que es lo que es una página de docs. */
+  ogType?: OgType;
 }
 
 function meta(key: 'name' | 'property', name: string, content: string): HeadConfig {
@@ -36,9 +41,9 @@ function meta(key: 'name' | 'property', name: string, content: string): HeadConf
   };
 }
 
-/** `pt-BR` → `pt_BR`, el formato de `og:locale`. */
-function ogLocale(locale: Locale) {
-  return locale.replace('-', '_');
+/** `og:locale` del mapa de la config; sin él, `pt-BR` → `pt_BR`. */
+function ogLocale(locale: Locale, map: Record<Locale, string> | undefined) {
+  return map?.[locale] ?? locale.replace('-', '_');
 }
 
 /** Etiquetas del `<head>` como datos puros; canonical y alternates salen de las páginas reales, y `og:image` es absoluta salvo que ya sea https. */
@@ -47,7 +52,7 @@ export function buildHead(
   page: PageData,
   availability: Availability,
   site: URL,
-  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon'>,
+  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon' | 'ogLocales'>,
   url: Pick<UrlPolicy, 'base'>,
 ): HeadConfig[] {
   function absolute(path: string) {
@@ -92,13 +97,13 @@ export function buildHead(
   if (resolved.description) tags.push(meta('property', 'og:description', resolved.description));
   if (canonical) tags.push(meta('property', 'og:url', canonical));
   tags.push(
-    meta('property', 'og:type', 'article'),
+    meta('property', 'og:type', page.ogType ?? 'article'),
     meta('property', 'og:site_name', config.name),
-    meta('property', 'og:locale', ogLocale(page.locale)),
+    meta('property', 'og:locale', ogLocale(page.locale, config.ogLocales)),
   );
   if (languages.length > 1) {
     for (const locale of languages.filter((candidate) => candidate !== page.locale)) {
-      tags.push(meta('property', 'og:locale:alternate', ogLocale(locale)));
+      tags.push(meta('property', 'og:locale:alternate', ogLocale(locale, config.ogLocales)));
     }
   }
 

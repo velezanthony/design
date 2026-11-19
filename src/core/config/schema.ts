@@ -197,6 +197,13 @@ export const DocsConfigSchema = z
       })
       .optional(),
     favicon: FaviconSchema.optional(),
+    /** `og:locale` de cada idioma con territorio (`es_ES`); sin él, el propio idioma (`es`). */
+    ogLocales: z
+      .record(
+        z.string(),
+        z.string().regex(/^[a-z]{2,3}_[A-Z]{2}$/, 'Debe ser idioma_TERRITORIO: es_ES, en_GB.'),
+      )
+      .optional(),
     content: z
       .string()
       .superRefine((directory, context) => {
@@ -264,6 +271,11 @@ export const DocsConfigSchema = z
         ['defaultLocale'],
         `«${config.defaultLocale}» no está en \`locales\` (${locales.join(', ')}).`,
       );
+    }
+    for (const locale of Object.keys(config.ogLocales ?? {})) {
+      if (!locales.includes(locale)) {
+        issue(['ogLocales', locale], `«${locale}» no está en \`locales\` (${locales.join(', ')}).`);
+      }
     }
     for (const locale of Object.keys(config.ui ?? {})) {
       if (!locales.includes(locale)) {

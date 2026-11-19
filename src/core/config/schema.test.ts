@@ -15,6 +15,33 @@ function messages(input: unknown): string[] {
   return [];
 }
 
+describe('ogLocales de la config', () => {
+  it('da a cada idioma su og:locale con territorio', () => {
+    const config = resolveConfig({
+      name: 'X',
+      locales: ['es', 'en'],
+      ogLocales: { es: 'es_ES', en: 'en_GB' },
+    });
+    expect(config.ogLocales).toEqual({ es: 'es_ES', en: 'en_GB' });
+  });
+
+  it('sin definir, no hay mapa', () => {
+    expect(resolveConfig({ name: 'X' }).ogLocales).toBeUndefined();
+  });
+
+  it('un idioma que no está en `locales` falla con su ruta', () => {
+    expect(messages({ name: 'X', locales: ['en'], ogLocales: { fr: 'fr_FR' } })[0]).toContain(
+      'ogLocales.fr',
+    );
+  });
+
+  it('un valor que no es idioma_TERRITORIO falla con su ruta', () => {
+    expect(messages({ name: 'X', locales: ['en'], ogLocales: { en: 'english' } })[0]).toContain(
+      'ogLocales.en',
+    );
+  });
+});
+
 describe('seo de la config', () => {
   it('sufijo por defecto: el de la librería', () => {
     expect(resolveConfig({ name: 'Design' }).seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);

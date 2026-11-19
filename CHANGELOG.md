@@ -59,6 +59,15 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **El `<head>` de una página propia: subrutas `@velezanthony/design/seo` y `@velezanthony/design/seo-schema`.**
+  `seoSchema` es el bloque `seo` del frontmatter como fragmento zod (`seo: seoSchema.optional()` en
+  cualquier colección). `pageHead({ title, seo, locale, url, alternates, ogType, schema })` devuelve las
+  entradas de `head` de `BaseLayout` con la config del sitio (sufijo, imagen social, JSON-LD del sitio,
+  favicon): `canonical`, `hreflang`, Open Graph, Twitter y el JSON-LD propio de la página. Una página
+  `noindex` no lleva `canonical` ni `hreflang`.
+- **`ogLocales` en la config y `ogType` en el `<head>`.** `ogLocales: { es: 'es_ES', en: 'en_GB' }` da a
+  `og:locale` el territorio que Open Graph espera (sin él, el idioma tal cual, como hasta ahora); las
+  páginas de docs siguen con `og:type: article`.
 - **Subruta `@velezanthony/design/fonts`: el componente `Fonts`.** Pinta las fuentes que registra `docs()` (Plex Sans con `preload` y Plex Mono). Un layout propio ya no repite los dos `<Font cssVariable=… />` de `astro:assets`: pone `<Fonts slot="head" />` dentro de `BaseLayout`. Vive en `astro/routes/` porque `components/` no puede importar `astro:*`.
 - **Organismo `Article` (`components/organisms/content/Article.astro`) y `bootArticle`.** Es el
   contenido de una página de docs sacado de `DocsLayout`: el contenedor con los textos del cliente

@@ -35,6 +35,8 @@
     "./head": "./src/core/seo/head.ts",
     "./ui-strings": "./src/core/i18n/ui-strings.ts",
     "./site": "./src/astro/data/site.ts",
+    "./seo": "./src/astro/data/page-head.ts",
+    "./seo-schema": "./src/core/seo/seo-schema.ts",
     "./fonts": "./src/astro/routes/Fonts.astro"
   },
   "scripts": {

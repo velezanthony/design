@@ -56,6 +56,8 @@ core/
 │   ├── meta.ts            Cascada página > base > derivado; plantilla de título
 │   ├── title.ts           Sufijo del título (el autor, o ninguno)
 │   ├── head.ts            Etiquetas del head: title, canonical, hreflang, OG, twitter
+│   ├── page-head.ts       El head de una página del sitio que no es de docs: meta, alternates y JSON-LD extra
+│   ├── seo-schema.ts      El bloque `seo` del frontmatter como fragmento zod reutilizable
 │   ├── json-ld.ts         Schemas JSON-LD del sitio y de cada página
 │   ├── sitemap.ts         XML con alternates y lastmod; límite de 50 000 URLs
 │   ├── lastmod.ts         Salida de git log → fecha por archivo; fecha de cada URL del sitemap
@@ -317,6 +319,7 @@ astro/
 │   ├── site-config.ts       La config del módulo virtual con su tipo completo
 │   ├── site.ts              `designStrings` y `gtmId`: la subruta pública `site`
 │   ├── image-sizes.ts       Lee los tamaños de las imágenes sociales
+│   ├── page-head.ts         `pageHead`: el head de una página del sitio con la config del módulo virtual (subruta `seo`)
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
 │   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
 │   ├── file-last-modified.ts  `fileLastModified`: la de un solo archivo, la subruta pública `last-modified`
@@ -367,6 +370,8 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/head` | `src/core/seo/head.ts` |
 | `@velezanthony/design/ui-strings` | `src/core/i18n/ui-strings.ts` |
 | `@velezanthony/design/site` | `src/astro/data/site.ts` |
+| `@velezanthony/design/seo` | `src/astro/data/page-head.ts` |
+| `@velezanthony/design/seo-schema` | `src/core/seo/seo-schema.ts` |
 | `@velezanthony/design/fonts` | `src/astro/routes/Fonts.astro` |
 
 Mover un archivo a los que apunta una de estas subrutas es un cambio incompatible para los

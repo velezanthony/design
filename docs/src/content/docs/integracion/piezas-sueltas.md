@@ -100,10 +100,67 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | `@velezanthony/design/ui-strings` | El tipo `UiStrings`, `defaultStrings`, `englishStrings`, `mergeUiStrings` y `translate`. |
 | `@velezanthony/design/site` | `designStrings(locale)`: los textos de interfaz ya fusionados con los del sitio, y `gtmId`: el ID resuelto desde `PUBLIC_GTM_ID` o la config. Evita importar `virtual:` desde el sitio. |
 | `@velezanthony/design/last-modified` | `fileLastModified(file, root?)`: fecha ISO de la última modificación de un archivo (su último commit o, sin él, la del archivo; nada en un clon superficial), la misma que el `<lastmod>` del sitemap. Asíncrona; sirve para el `dateModified` de un JSON-LD. |
+| `@velezanthony/design/seo` | `pageHead(…)`: el `<head>` de una página del sitio con la config de la librería (ver [El `<head>` de una página propia](#el-head-de-una-página-propia)). |
+| `@velezanthony/design/seo-schema` | `seoSchema`: el bloque `seo` del frontmatter como fragmento zod, y el tipo `PageSeo`. |
 | `@velezanthony/design/fonts` | `<Fonts />`: las fuentes que registra `docs()` (IBM Plex Sans con `preload` y Plex Mono), para el `<head>` de un layout propio: `<Fonts slot="head" />` dentro de `BaseLayout`. Necesita la integración `docs()`: sin ella no hay fuentes que pintar. |
 | `@velezanthony/design/code-themes` | `codeThemes`: los temas de Shiki que usa la librería, para que el sitio resalte igual. |
 
 `bootBase` y `bootDocs` salen de `@velezanthony/design/components/layouts/boot.ts`; `bootArticle`, de `@velezanthony/design/components/boot/article.ts` (un organismo no importa del nivel de los layouts, así que vive aparte).
+
+## El `<head>` de una página propia
+
+Una página del sitio (la portada, un caso de estudio, la 404) necesita el mismo `<head>` que una de
+docs: título con sufijo, descripción, `canonical`, `hreflang`, Open Graph, Twitter y JSON-LD.
+`pageHead` lo calcula con la config del sitio (sufijo del título, imagen social por defecto, JSON-LD
+del sitio, favicon, `ogLocales`) y devuelve exactamente lo que acepta la prop `head` de `BaseLayout`:
+el sitio no interpreta nada.
+
+```astro
+---
+import LibraryBaseLayout from '@velezanthony/design/components/layouts/BaseLayout.astro';
+import { pageHead } from '@velezanthony/design/seo';
+
+const head = await pageHead({
+  title: 'SnakeORM · ORM en Python tipado',   // lo que lleva el <title> (y og:title)
+  seo: entry.data.seo,                       // el bloque del frontmatter, o valores sueltos
+  locale: 'es',
+  url: Astro.url.pathname,                   // con la base, como la sirve Astro
+  alternates: { es: '/proyectos/snake-orm/', en: '/en/projects/snake-orm/' },
+  schema: [softwareSourceCode, breadcrumb],  // JSON-LD propio de la página
+});
+---
+
+<LibraryBaseLayout lang="es" head={head}>…</LibraryBaseLayout>
+```
+
+| Campo | Qué hace |
+| --- | --- |
+| `title` | El título de la página. `seo.title` lo cambia solo para el `<head>`. |
+| `seo` | El bloque `seo` del frontmatter (`title`, `titleSuffix`, `description`, `image`, `noindex`, `schema`) o los valores sueltos de una página que no es Markdown: `{ description: '…' }`. Manda sobre la config del sitio campo a campo. |
+| `locale` | Idioma de la página: `og:locale` y la cascada de textos por idioma. |
+| `url` | Ruta de la página con la base: de ella salen `canonical` y `og:url`. |
+| `alternates` | La misma página en cada idioma (ruta con base): de ahí salen los `hreflang` (con `x-default` del idioma por defecto) y `og:locale:alternate`. Sin ella, ninguno. |
+| `ogType` | `og:type`: `article` por defecto; `website` para una portada. |
+| `schema` | JSON-LD propio de la página: va tras el del sitio y el de `seo.schema`, y no lo quita `seo.schema: false` (ese `false` es del frontmatter, esto lo pone el código). |
+
+Una página con `seo.noindex` lleva `robots: noindex` y **ni `canonical` ni `hreflang`**: no se nombra a
+sí misma. Las imágenes de `seo.image` y la de la config se leen de `public/` para dar `og:image:width`
+y `og:image:height`.
+
+Para que una colección propia admita el mismo bloque en su frontmatter, añade el fragmento a su
+esquema:
+
+```ts
+import { seoSchema } from '@velezanthony/design/seo-schema';
+
+const projects = defineCollection({
+  loader,
+  schema: z.object({ name: z.string(), seo: seoSchema.optional() }),
+});
+```
+
+`og:locale` lleva el idioma tal cual (`es`) salvo que la config diga el territorio con
+`ogLocales: { es: 'es_ES', en: 'en_GB' }`, que es lo que Open Graph espera.
 
 ## Textos de `ThemeToggle` y `ConsentBanner` por props
 

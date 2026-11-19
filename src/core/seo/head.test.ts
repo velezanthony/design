@@ -122,6 +122,30 @@ describe('buildHead: traducciones', () => {
   });
 });
 
+describe('buildHead: og:type y og:locale', () => {
+  it('og:type es article salvo que la página diga otra cosa', () => {
+    expect(value(head(meta(), enPage, single), 'property', 'og:type')).toBe('article');
+    const website: PageData = { ...enPage, ogType: 'website' };
+    expect(value(head(meta(), website, single), 'property', 'og:type')).toBe('website');
+  });
+
+  it('og:locale sale del mapa `ogLocales` y, sin él, del idioma', () => {
+    const withMap = { ...config, ogLocales: { en: 'en_GB', es: 'es_ES' } };
+    const tags = buildHead(meta(), enPage, pair, site, withMap, url);
+    expect(value(tags, 'property', 'og:locale')).toBe('en_GB');
+    expect(
+      metaTag(tags, 'property', 'og:locale:alternate').map((tag) => tag.attrs.content),
+    ).toEqual(['es_ES']);
+    expect(value(head(meta(), enPage, single), 'property', 'og:locale')).toBe('en');
+  });
+
+  it('un idioma ausente del mapa cae al formato del idioma', () => {
+    const partial = { ...config, ogLocales: { en: 'en_GB' } };
+    const tags = buildHead(meta(), esPage, pair, site, partial, url);
+    expect(value(tags, 'property', 'og:locale')).toBe('es');
+  });
+});
+
 describe('buildHead: imagen', () => {
   const image = { src: '/og.png', alt: 'Logo', width: 1200, height: 630 };
 
