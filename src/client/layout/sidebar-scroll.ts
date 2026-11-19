@@ -40,6 +40,7 @@ export function targetScroll({
   return Math.max(0, current.top - (container.height - current.height) / 2);
 }
 
+// Fuera de Stryker (`stryker.config.json`): copia funciones con `toString()` y la instrumentación las rompe.
 /** Script en línea que restaura el scroll de la barra; va en una función porque `top` es de solo lectura en `window` y un `var` suelto no lo asignaría. */
 export function sidebarScrollScript(): string {
   return `(function () {
