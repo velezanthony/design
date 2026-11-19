@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DocsErrors } from '../errors';
 import { MissingTranslation } from '../i18n/translation-policy';
-import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 import { resolveConfig } from './resolve';
 
 /** Mensajes de error de una config inválida. */
@@ -41,7 +40,7 @@ describe('resolveConfig: valores por defecto', () => {
     expect(config.defaultLocale).toBe('en');
     expect(config.translations.missing).toBe(MissingTranslation.LINK);
     expect(config.external).toEqual([]);
-    expect(config.seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
+    expect(config.seo.titleSuffix).toBe('Design');
     expect(config.sitemap).toEqual({ include: [] });
   });
 

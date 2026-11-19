@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { composeTitle, DEFAULT_TITLE_SUFFIX, resolveTitleSuffix, TITLE_SEPARATOR } from './title';
+import { composeTitle, resolveTitleSuffix, TITLE_SEPARATOR } from './title';
 
 describe('composeTitle', () => {
   it('une título y sufijo con el separador de la librería', () => {
@@ -21,13 +21,8 @@ describe('composeTitle', () => {
   });
 });
 
-describe('resolveTitleSuffix: cascada página > sitio > librería', () => {
-  it('sin nada en la página ni en el sitio, el de la librería', () => {
-    expect(resolveTitleSuffix(undefined, undefined, 'en')).toBe(DEFAULT_TITLE_SUFFIX);
-    expect(DEFAULT_TITLE_SUFFIX).toBe('Anthony Velez Tapia');
-  });
-
-  it('el del sitio gana al de la librería', () => {
+describe('resolveTitleSuffix: cascada página > sitio', () => {
+  it('sin sufijo en la página, el del sitio', () => {
     expect(resolveTitleSuffix(undefined, 'Docs', 'en')).toBe('Docs');
   });
 
@@ -35,7 +30,7 @@ describe('resolveTitleSuffix: cascada página > sitio > librería', () => {
     expect(resolveTitleSuffix('Página', 'Docs', 'en')).toBe('Página');
   });
 
-  it('`false` en el sitio quita el sufijo de la librería', () => {
+  it('`false` en el sitio quita el sufijo', () => {
     expect(resolveTitleSuffix(undefined, false, 'en')).toBeUndefined();
   });
 

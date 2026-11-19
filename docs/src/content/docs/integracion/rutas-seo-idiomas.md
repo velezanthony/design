@@ -101,10 +101,10 @@ flowchart LR
 ```
 
 - **Título.** El `<title>` tiene dos partes, título y sufijo, y sale como `título | sufijo` (el
-  separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > librería.
+  separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > `name`.
   `seo.title` en el frontmatter cambia solo el título del head, no el `h1`. `seo.titleSuffix`
   (en `docs.config.mjs` o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
-  ninguno de los dos, el sufijo es el de la librería, `Anthony Velez Tapia`. Con `false` en la
+  ninguno de los dos, el sufijo es el `name` de la config. Con `false` en la
   página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
   sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` llevan
   el mismo título completo que el `<title>`, sufijo incluido.
@@ -112,7 +112,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   p["seo.titleSuffix<br/>de la página"] -->|si no lo define| s["seo.titleSuffix<br/>del sitio"]
-  s -->|si no lo define| l["sufijo de la librería<br/>Anthony Velez Tapia"]
+  s -->|si no lo define| l["name<br/>de la config"]
   p --> r["sufijo resuelto"]
   s --> r
   l --> r

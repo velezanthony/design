@@ -45,6 +45,11 @@ todo vive en «Sin publicar».
 
 ### Cambiado
 
+- **El sufijo del `<title>` por defecto es el `name` de la config, no el nombre del autor.** Un sitio
+  sin `seo.titleSuffix` ya no acaba en `| Anthony Velez Tapia`, sino en su propio nombre
+  (`Install | SnakeORM`). La cascada es `seo.titleSuffix` de la página > del sitio > `name`, y `false`
+  en cualquier nivel sigue quitándolo. `DEFAULT_TITLE_SUFFIX` desaparece: `resolveConfig` rellena el
+  sufijo del sitio con `name`, así que `core` no depende de `AUTHOR` para esto.
 - **`og:title` y `twitter:title` llevan el título completo, sufijo incluido.** Antes salían sin él
   (`Install`) y ahora igualan al `<title>` (`Install | SnakeORM`): es lo que se ve al compartir el
   enlace. El panel de SEO enseña también el título completo en `og:title`.

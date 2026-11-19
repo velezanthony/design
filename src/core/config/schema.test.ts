@@ -3,7 +3,6 @@ import { resolveConfig } from './resolve';
 import { DocsConfigSchema, PageSeoOverrideSchema } from './schema';
 import { DocsErrors } from '../errors';
 import { NavIcon } from './nav';
-import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 
 function messages(input: unknown): string[] {
   try {
@@ -43,8 +42,8 @@ describe('ogLocales de la config', () => {
 });
 
 describe('seo de la config', () => {
-  it('sufijo por defecto: el de la librería', () => {
-    expect(resolveConfig({ name: 'Design' }).seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
+  it('sufijo por defecto: el `name` del sitio', () => {
+    expect(resolveConfig({ name: 'Design' }).seo.titleSuffix).toBe('Design');
   });
 
   it('el sufijo acepta texto, un Label por idioma o `false`', () => {

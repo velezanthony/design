@@ -195,7 +195,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 
 ```js
 seo: {
-  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto 'Anthony Velez Tapia'
+  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto, el `name` del sitio
   description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string o por idioma
   image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // bajo public/ o https absoluta
 }
@@ -205,7 +205,7 @@ Una página sobrescribe la base campo a campo: `seo` en el frontmatter en las p�
 `external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex?, schema? }`.
 
 El `<title>` tiene dos partes, título y sufijo, y se forma `título | sufijo` (separador fijo). Cada
-parte se resuelve por separado: página > sitio > librería. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
+parte se resuelve por separado: página > sitio > `name`. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
 head (el H1 no se toca; sin el idioma de la página, vale el título de la página) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
 también a un sufijo del sitio). Si el título es igual al sufijo no se repite, y `og:title` /
 `twitter:title` llevan el mismo título completo que el `<title>`, sufijo incluido.
@@ -222,7 +222,7 @@ seo:
 ---
 ```
 
-Sin `titleSuffix` en el sitio ni en la página, el sufijo es el de la librería (`Anthony Velez Tapia`).
+Sin `titleSuffix` en el sitio ni en la página, el sufijo es el `name` del sitio.
 `titleTemplate` ya no existe: dejarlo en la config falla el build.
 La imagen OG debería medir unos 1,91:1 y pesar menos de 300 KB (si no, avisa). Las páginas
 `noindex` salen de `sitemap.xml` y de la búsqueda.
