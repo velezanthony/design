@@ -32,3 +32,9 @@ export function filterPages(tree: SeoTree, filters: SeoFilters): SeoPage[] {
       (!filtersIssues || page.issues.some((issue) => matchesIssue(issue, filters))),
   );
 }
+
+/** El árbol que se ve: sin las páginas noindex si el filtro las oculta (el mismo árbol si no). */
+export function withoutNoindex(tree: SeoTree, filters: SeoFilters): SeoTree {
+  if (!filters.hideNoindex) return tree;
+  return { ...tree, pages: tree.pages.filter((page) => !page.meta.noindex) };
+}

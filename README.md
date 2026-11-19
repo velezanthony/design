@@ -609,7 +609,8 @@ configurar nada:
 - `/<base>/seo-on-page/pages`: tabla filtrable (gravedad, idioma, tipo, texto) de las páginas e
   idiomas, con el `<title>` final y su longitud contra el límite, el origen de la descripción y los
   problemas. Sin filtros enseña solo errores y avisos (un enlace muestra también lo informativo).
-  Los filtros y la página (25 filas por página) van en la URL.
+  Los filtros y la página (25 filas por página) van en la URL. Una casilla oculta las páginas `noindex`
+  de la tabla y de los problemas (`?noindex=hide`).
 - `/<base>/seo-on-page/page?slug=…&locale=…`: inspector de una página, con vista previa de buscador y
   Open Graph, canonical, esquema de encabezados y traducciones lado a lado.
 

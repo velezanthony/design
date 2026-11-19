@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { SeoFilters, ViewState } from '../../../../core/seo-on-page/queries/url-filters';
+import {
+  EMPTY_FILTERS,
+  type SeoFilters,
+  type ViewState,
+} from '../../../../core/seo-on-page/queries/url-filters';
 import { render, text } from '../../../../testing/render';
 import TableFooter from './TableFooter.astro';
 
-const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
+const none: SeoFilters = { ...EMPTY_FILTERS };
 function footer(filters: SeoFilters = none, perPage = 25, view: ViewState = { view: 'page' }) {
   return render(TableFooter, {
     filters,
@@ -47,6 +51,7 @@ describe('TableFooter', () => {
       severities: ['error', 'warning'],
       locales: ['es'],
       text: 'orm',
+      hideNoindex: false,
     });
     const hidden = [...htmlDocument.querySelectorAll('form input[type="hidden"]')].map(
       (input) => `${input.getAttribute('name')}=${input.getAttribute('value')}`,

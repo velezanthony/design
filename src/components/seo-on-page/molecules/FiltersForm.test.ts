@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { SeoFilters, ViewState } from '../../../core/seo-on-page/queries/url-filters';
+import {
+  EMPTY_FILTERS,
+  type SeoFilters,
+  type ViewState,
+} from '../../../core/seo-on-page/queries/url-filters';
 import type { KindOptions } from '../../../core/seo-on-page/pages/listing/kinds';
 import { IssueKind } from '../../../core/seo-on-page/tree/types';
 import { render, text } from '../../../testing/render';
 import FiltersForm from './FiltersForm.astro';
 
-const none: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
+const none: SeoFilters = { ...EMPTY_FILTERS };
 /** Tres tipos con incidencias y el resto sin, como un árbol real; `selected` vacío = «Todos». */
 const WITH: IssueKind[] = [IssueKind.NO_H1, IssueKind.DUPLICATE_TITLE, IssueKind.TITLE_TOO_SHORT];
 function kindOptions(selected: IssueKind[] = []): KindOptions {
@@ -28,6 +32,7 @@ function form(filters: SeoFilters = none, perPage = 25, view: ViewState = { view
     severityCounts: { error: 0, warning: 3, info: 38 },
     clear: '/repo/seo-on-page/pages/',
     kinds: kindOptions(filters.kinds),
+    noindex: { hidden: filters.hideNoindex, count: 2 },
     locales: ['en', 'es'],
     action: '/repo/seo-on-page/pages/',
   });
@@ -37,6 +42,26 @@ function checked(htmlDocument: Document, name: string) {
     .filter((input) => input.hasAttribute('checked'))
     .map((input) => input.getAttribute('value'));
 }
+
+describe('FiltersForm: noindex', () => {
+  it('trae una casilla «Ocultar noindex» con su recuento, desmarcada por defecto', async () => {
+    const htmlDocument = await form();
+    const box = htmlDocument.querySelector('input[name="noindex"]')!;
+    expect(box.getAttribute('value')).toBe('hide');
+    expect(box.hasAttribute('checked')).toBe(false);
+    expect(text(htmlDocument)).toContain('noindex');
+  });
+
+  it('refleja que se ocultan', async () => {
+    const htmlDocument = await form({ ...none, hideNoindex: true });
+    expect(checked(htmlDocument, 'noindex')).toEqual(['hide']);
+  });
+
+  it('no repite el campo como oculto', async () => {
+    const htmlDocument = await form({ ...none, hideNoindex: true });
+    expect(htmlDocument.querySelectorAll('input[type="hidden"][name="noindex"]')).toHaveLength(0);
+  });
+});
 
 describe('FiltersForm', () => {
   it('es un GET a la tabla: los filtros viajan en la URL, sin JavaScript', async () => {
@@ -58,6 +83,7 @@ describe('FiltersForm', () => {
       severities: ['error', 'warning'],
       locales: ['es'],
       text: 'orm',
+      hideNoindex: false,
     });
     expect(checked(htmlDocument, 'kind')).toEqual(['no-h1']);
     expect(checked(htmlDocument, 'severity')).toEqual(['error', 'warning']);

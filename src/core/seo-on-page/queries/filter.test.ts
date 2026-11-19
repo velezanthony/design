@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Issue, SeoPage, SeoTree } from '../tree/types';
-import { filterPages } from './filter';
+import { filterPages, withoutNoindex } from './filter';
 import { EMPTY_FILTERS } from './url-filters';
 
 function issue(kind: Issue['kind'], severity: Issue['severity']): Issue {
@@ -74,5 +74,20 @@ describe('filterPages', () => {
 
   it('los filtros se combinan con Y', () => {
     expect(ids({ locales: ['en'], text: 'install' })).toEqual(['install:en']);
+  });
+});
+
+describe('withoutNoindex', () => {
+  const noindexed = { ...page('draft', 'en', 'Draft'), meta: { title: 'Draft', noindex: true } };
+  const mixed: SeoTree = { pages: [...tree.pages, noindexed as SeoPage] };
+
+  it('con `hideNoindex` quita las páginas noindex del árbol', () => {
+    const visible = withoutNoindex(mixed, { ...EMPTY_FILTERS, hideNoindex: true });
+    expect(visible.pages.map((entry) => entry.slug)).not.toContain('draft');
+    expect(visible.pages).toHaveLength(3);
+  });
+
+  it('sin él devuelve el mismo árbol', () => {
+    expect(withoutNoindex(mixed, EMPTY_FILTERS)).toBe(mixed);
   });
 });

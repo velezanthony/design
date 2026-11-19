@@ -27,7 +27,14 @@ describe('parseFilters', () => {
       severities: ['error'],
       locales: ['es'],
       text: 'guide',
+      hideNoindex: false,
     });
+  });
+
+  it('`noindex=hide` oculta las noindex; cualquier otro valor las deja ver', () => {
+    expect(parse('noindex=hide').hideNoindex).toBe(true);
+    expect(parse('noindex=show').hideNoindex).toBe(false);
+    expect(parse('noindex=').hideNoindex).toBe(false);
   });
 
   it('ignora valores desconocidos y duplicados sin fallar', () => {
@@ -49,9 +56,19 @@ describe('serializeFilters', () => {
       severities: ['warning', 'error'] as const,
       locales: ['es', 'pt-BR'],
       text: 'a & b=c ñ',
+      hideNoindex: true,
     };
     const copy = { ...filters, kinds: [...filters.kinds], severities: [...filters.severities] };
     expect(parseFilters(serializeFilters(copy))).toEqual(copy);
+  });
+});
+
+describe('serializeFilters: noindex', () => {
+  it('solo se escribe cuando se ocultan, y no cuenta como gravedad ni tipo', () => {
+    expect(serializeFilters({ ...EMPTY_FILTERS, hideNoindex: true }).toString()).toBe(
+      'noindex=hide',
+    );
+    expect(filtersFromUrl(new URLSearchParams('noindex=hide')).defaulted).toBe(true);
   });
 });
 
@@ -181,6 +198,7 @@ describe('filterFields', () => {
       severities: ['error' as const],
       locales: ['es'],
       text: 'a b',
+      hideNoindex: false,
     };
     const fields = filterFields(filters);
     expect(fields).toEqual([

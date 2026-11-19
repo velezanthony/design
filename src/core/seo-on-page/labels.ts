@@ -394,6 +394,8 @@ export const FILTER_LABELS = {
   locale: 'Idioma',
   apply: 'Filtrar',
   clear: 'Limpiar',
+  /** La casilla que esconde las páginas con `noindex`: no son un problema, solo ruido en la lista. */
+  noindex: 'Ocultar noindex',
 };
 
 /** El recuento sobre la tabla: cuenta filas de la vista y dice qué son (páginas o entradas). */
@@ -711,6 +713,7 @@ export function reportFilterText(filters: SeoFilters, view: ViewState): string {
       : '',
     filters.locales.length > 0 ? `idioma ${filters.locales.join(', ')}` : '',
     filters.text.trim() !== '' ? `búsqueda «${filters.text.trim()}»` : '',
+    filters.hideNoindex ? 'sin las noindex' : '',
     view.lacks ? `sin ${LACKS_PHRASES[view.lacks]}` : '',
   ].filter((part) => part !== '');
   return parts.length > 0 ? parts.join(' · ') : 'todas las páginas';

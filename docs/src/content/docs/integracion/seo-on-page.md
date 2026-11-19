@@ -146,6 +146,14 @@ informativo. La regla es una sola y no depende del estado:
   gravedad, así que solo ahí aparecen también las páginas sin ninguna incidencia.
 - Las casillas del formulario reflejan los filtros efectivos, de modo que enviarlo reenvía lo que se ve.
 
+### Ocultar las páginas noindex
+
+La casilla «Ocultar noindex» (`?noindex=hide`) quita las páginas con `noindex` de la tabla, del aviso de
+problemas comunes, de los recuentos de gravedad y tipo, del total y del informe «Copiar para la IA» (que dice
+«sin las noindex» en su alcance). Por defecto se ven. Es solo un filtro de la vista: no cambia qué es un
+problema. Una página noindex sin traducción no es un fallo por sí misma, y la casilla no altera el análisis; solo
+decide si esas páginas estorban en la lista. Se conserva al paginar y «Limpiar» la desmarca.
+
 ### Vistas de la tabla
 
 El parámetro `view` cambia cómo se ve la misma selección de páginas; un valor desconocido es

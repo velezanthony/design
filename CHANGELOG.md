@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Panel SEO on page: filtro para ocultar las páginas `noindex`.** La casilla «Ocultar noindex»
+  (`?noindex=hide`) las quita de la tabla, del aviso de problemas comunes, de los recuentos y del informe
+  «Copiar para la IA». Por defecto se ven. Solo filtra la vista: una página noindex sin traducción no pasa
+  a ser un problema ni deja de serlo.
 - **`exclude` en la config.** Patrones (estilo `.gitignore`, relativos a la carpeta de contenido) de los
   `.md` que no se publican, como `exclude_docs` de MkDocs. Lo excluido no se lee, no se publica y no cuenta
   para los enlaces; un enlace a un archivo excluido falla nombrando `exclude`. Los `external` no se ven

@@ -88,6 +88,10 @@ describe('reportFilterText', () => {
     expect(text({})).toBe('todas las páginas');
   });
 
+  it('ocultar las noindex se dice, para que el informe no parezca completo', () => {
+    expect(text({ hideNoindex: true })).toBe('sin las noindex');
+  });
+
   it('las gravedades se dicen en plural, unidas con «+»', () => {
     expect(text({ severities: ['error', 'warning'] })).toBe('errores + avisos');
   });

@@ -111,6 +111,7 @@ describe('listingModel', () => {
       perPage: 25,
       locales: ['en', 'fr'],
       action: '/t/',
+      noindex: { hidden: false, count: 0 },
       kinds: expect.objectContaining({ all: expect.objectContaining({ checked: true }) }),
       view: { view: 'page' },
       clear: '/t/',
@@ -538,6 +539,70 @@ describe('listingModel: vistas', () => {
       expect(model('view=page').common.issues).toHaveLength(1);
       expect(model('view=have').common.issues).toEqual([]);
       expect(model('view=matrix').common.issues).toEqual([]);
+    });
+  });
+
+  describe('ocultar noindex', () => {
+    const hidden = seoPage({ slug: 'draft', issues: [issue(IssueSeverity.ERROR)] });
+    const noindexed = { ...hidden, meta: { ...hidden.meta, noindex: true } };
+    const visible = seoPage({ slug: 'public', issues: [issue(IssueSeverity.ERROR)] });
+    const tree: SeoTree = { pages: [noindexed, visible] };
+    function model(query = '') {
+      return listingModel({
+        tree,
+        params: new URLSearchParams(query),
+        locales: ['en'],
+        defaultLocale: 'en',
+        links,
+      });
+    }
+
+    it('por defecto las noindex salen en la tabla', () => {
+      expect(rowsOf(model()).map((row) => row.slug)).toEqual(['draft', 'public']);
+    });
+
+    it('con `noindex=hide` no salen en la tabla', () => {
+      expect(rowsOf(model('noindex=hide')).map((row) => row.slug)).toEqual(['public']);
+    });
+
+    it('tampoco cuentan en las fichas de gravedad ni en el recuento', () => {
+      const shown = model('noindex=hide');
+      expect(shown.form.severityCounts.error).toBe(1);
+      expect(shown.footer.count.overall).toBe(1);
+      expect(model().form.severityCounts.error).toBe(2);
+    });
+
+    it('el aviso común se calcula sin ellas', () => {
+      const everywhere: SeoTree = {
+        pages: [noindexed, visible].map((entry) => ({
+          ...entry,
+          issues: [issue(IssueSeverity.WARNING, IssueKind.HEADING_SKIP)],
+        })),
+      };
+      const withBoth = listingModel({
+        tree: everywhere,
+        params: new URLSearchParams(),
+        locales: ['en'],
+        defaultLocale: 'en',
+        links,
+      });
+      const withoutIt = listingModel({
+        tree: everywhere,
+        params: new URLSearchParams('noindex=hide'),
+        locales: ['en'],
+        defaultLocale: 'en',
+        links,
+      });
+      expect(withBoth.common.issues).toHaveLength(1);
+      expect(withoutIt.common.issues).toEqual([]);
+    });
+
+    it('el formulario sabe cuántas hay y si se ocultan, y paginar conserva la elección', () => {
+      const shown = model('noindex=hide');
+      expect(shown.form.noindex).toEqual({ hidden: true, count: 1 });
+      expect(model().form.noindex).toEqual({ hidden: false, count: 1 });
+      expect(shown.footer.filters.hideNoindex).toBe(true);
+      expect(shown.form.clear).not.toContain('noindex');
     });
   });
 });

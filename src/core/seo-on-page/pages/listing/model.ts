@@ -67,6 +67,8 @@ export interface ListingModel {
     perPage: number;
     locales: Locale[];
     action: string;
+    /** La casilla «Ocultar noindex»: si está marcada y cuántas páginas (slugs) noindex hay en el sitio. */
+    noindex: { hidden: boolean; count: number };
     /** Las casillas del desplegable «Tipo de problema», con «Todos». */
     kinds: KindOptions;
     /** La vista en vigor: viaja oculta para que filtrar no la deshaga. */
@@ -111,7 +113,7 @@ export function listingModel({
   defaultLocale,
   links,
 }: ListingInput): ListingModel {
-  const { view, filters, defaulted, written, matching, selected, byEntry, severities } =
+  const { view, filters, defaulted, written, visible, matching, selected, byEntry, severities } =
     selectListing(tree, params);
   const perPage = parsePerPage(params);
   const inventory = isInventoryView(view.view);
@@ -192,7 +194,7 @@ export function listingModel({
   }
   const { table, paging } = tableOf();
 
-  const counts = severityCounts(tree.pages);
+  const counts = severityCounts(visible.pages);
   const unit = byEntry ? 'entries' : 'pages';
   const action = links.pages();
   return {
@@ -213,7 +215,11 @@ export function listingModel({
       perPage,
       locales,
       action,
-      kinds: kindOptions(tree, filters.kinds),
+      noindex: {
+        hidden: filters.hideNoindex,
+        count: slugsOf(tree.pages.filter((entry) => entry.meta.noindex)).size,
+      },
+      kinds: kindOptions(visible, filters.kinds),
       view,
       clear: links.pages(EMPTY_FILTERS, 1, perPage, view),
       severityCounts: {
@@ -233,7 +239,7 @@ export function listingModel({
         from: paging.from,
         to: paging.to,
         total: paging.total,
-        overall: byEntry ? tree.pages.length : slugsOf(tree.pages).size,
+        overall: byEntry ? visible.pages.length : slugsOf(visible.pages).size,
       },
       pagination: {
         page: paging.page,

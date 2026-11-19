@@ -1,6 +1,7 @@
-import { filterPages } from '../../queries/filter';
+import { filterPages, withoutNoindex } from '../../queries/filter';
 import {
   filtersFromUrl,
+  parseFilters,
   parseView,
   SeoView,
   type SeoFilters,
@@ -29,6 +30,8 @@ export interface ListingSelection {
   defaulted: boolean;
   /** Filtros escritos en la URL: sin gravedad si no la nombra, para no volver explícito lo implícito. */
   written: SeoFilters;
+  /** El árbol que se ve: sin las noindex si se ocultan. Recuentos, tipos y total salen de él. */
+  visible: SeoTree;
   /** Las entradas (página + idioma) que cumplen los filtros. */
   matching: SeoPage[];
   /** Esas páginas con TODOS sus idiomas: lo que enseñan las vistas por página, matriz y «Qué tiene». */
@@ -47,21 +50,24 @@ export function isInventoryView(view: SeoView): boolean {
 
 export function selectListing(tree: SeoTree, params: URLSearchParams): ListingSelection {
   const view = parseView(params);
-  const parsed = filtersFromUrl(withoutAllKinds(params, tree));
+  // Los tipos disponibles son los del árbol que se ve: ocultar las noindex puede quitar alguno.
+  const visible = withoutNoindex(tree, parseFilters(params));
+  const parsed = filtersFromUrl(withoutAllKinds(params, visible));
   const inventory = isInventoryView(view.view);
   const { filters, defaulted } =
     inventory && parsed.defaulted
       ? { filters: { ...parsed.filters, severities: [...ALL_SEVERITIES] }, defaulted: false }
       : parsed;
-  const matching = filterPages(tree, filters);
+  const matching = filterPages(visible, filters);
   const slugs = slugsOf(matching);
   return {
     view,
     filters,
     defaulted,
     written: parsed.defaulted ? { ...filters, severities: [] } : filters,
+    visible,
     matching,
-    selected: tree.pages.filter((entry) => slugs.has(entry.slug)),
+    selected: visible.pages.filter((entry) => slugs.has(entry.slug)),
     byEntry: view.view === SeoView.LOCALE,
     severities: filters.severities.length > 0 ? filters.severities : undefined,
   };
