@@ -259,7 +259,9 @@ astro/
 │   └── build/
 │       ├── build-done.ts    Lo que corre en astro:build:done
 │       ├── client-sitemap.ts  Suma las páginas del consumidor al sitemap
-│       └── pagefind.ts      Índice de búsqueda tras el build
+│       ├── pagefind.ts      Índice de búsqueda tras el build
+│       ├── prune-orphan-assets.ts   Borra de `_astro/` los recursos que ningún texto del build enlaza
+│       └── bound-animation-loops.ts   Limita a una pasada los WebP animados infinitos
 ├── loader/
 │   ├── index.ts             docsLoader / docsLoaderFromResolved: descubrir, renderizar, validar
 │   ├── schema.ts            docsSchema: los datos de cada entrada

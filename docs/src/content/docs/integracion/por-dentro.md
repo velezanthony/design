@@ -113,6 +113,15 @@ en `config:setup`.
 `buildPagefindIndex` (`src/astro/integration/build/pagefind.ts`, que llama `build/build-done.ts`) indexa `dist/` con la API de Node de
 Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-y-busqueda.md).
 
+Antes de indexar, `build-done.ts` pasa por los recursos de `dist/` sin que el sitio configure nada:
+
+- `boundAnimationLoops` reescribe los WebP animados infinitos (Sharp pierde las vueltas del GIF y los
+  recodifica así) para que se reproduzcan una vez: una demo que no para es movimiento que el visitante
+  no puede detener (WCAG 2.2.2).
+- `pruneOrphanAssets` borra de `_astro/` las imágenes que ningún `.html`, `.css`, `.js`, `.xml`, `.txt`
+  ni `.json` del build nombra. Una imagen usada desde un `<Image>` y desde un cuerpo Markdown deja su
+  original copiado junto a las derivadas; así no se publica.
+
 ## El módulo virtual
 
 Las páginas de `src/astro/routes/` necesitan la config resuelta, pero se ejecutan dentro de

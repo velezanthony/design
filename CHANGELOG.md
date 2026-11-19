@@ -45,6 +45,11 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`docs()` limita a una pasada los WebP animados infinitos y borra los recursos sin enlaces.** En
+  `astro:build:done`, antes de indexar: Sharp recodifica todo WebP animado como infinito (WCAG 2.2.2) y
+  una imagen referenciada desde un `<Image>` y desde un cuerpo Markdown deja su original suelto en
+  `_astro/`. Sin opciones: un sitio que los hacía con integraciones propias puede quitarlas. Se queda en
+  `docs()` y no como integraciones sueltas porque ya posee el hook y no hay motivo para configurarlas.
 - **Subruta `last-modified`: `fileLastModified(file, root?)`.** La fecha de última modificación de un
   archivo, la misma que el `<lastmod>` del sitemap (su último commit; sin él, la fecha del archivo;
   nada en un clon superficial). Comparte el único `git log` del proceso, así que pedir la fecha de
