@@ -216,11 +216,14 @@ components/
 │   │   └── shared/      ClientPageFailures, ReportDialog (las usan varias pantallas)
 │   ├── pages/       OverviewPage, PagesPage, InspectorPage: las pantallas del panel, presentacionales
 │   └── tables.ts    Clases de la celda y del filete de las tablas del listado
+├── boot/        Arranque del JavaScript de cliente que comparten layouts y organismos, sin subir de nivel
+│   ├── env.ts       BootEnv y browserEnv(): el navegador inyectable que reciben los `init*`
+│   └── article.ts   bootArticle: pestañas, copiar, anclas, zoom, diagramas e índice de un `Article`
 ├── pages/       Páginas presentacionales: reciben el modelo por props y solo pintan (DocPage)
 ├── layouts/
 │   ├── BaseLayout.astro     <html>, <head>, tema, CSS y consentimiento; sin cabecera ni pie
 │   ├── DocsLayout.astro     Página de docs sobre BaseLayout: cabecera, barra, contenido, índice, pie
-│   └── boot.ts              Arranque del JavaScript de cliente (bootBase, bootDocs, bootArticle)
+│   └── boot.ts              Arranque del JavaScript de las páginas (bootBase, bootDocs)
 ├── styles/
 │   ├── theme.css            El punto de entrada: Tailwind y el resto de hojas, en orden
 │   ├── site-theme.css       Vacío: lo que `theme.css` importa si el sitio no define `theme`

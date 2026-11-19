@@ -45,6 +45,12 @@ todo vive en «Sin publicar».
 
 ### Cambiado
 
+- **`bootArticle` sale de `components/layouts/boot.ts`.** Pasa a `components/boot/article.ts`, y
+  `BootEnv` y `browserEnv` a `components/boot/env.ts`: `Article` (un organismo) importaba de `layouts/`,
+  una dependencia hacia arriba en Atomic Design. `bootBase` y `bootDocs` se quedan donde estaban. Quien
+  importaba `bootArticle` desde `@velezanthony/design/components/layouts/boot.ts` lo hace ahora desde
+  `@velezanthony/design/components/boot/article.ts`. ESLint (y `boundaries.test.ts`) prohíbe que
+  átomos, moléculas y organismos importen de `layouts/` o de `pages/`.
 - **Los bloques ```` ```django ```` y ```` ```htmldjango ```` ahora se resaltan.** Shiki no trae esos
   lenguajes, así que antes salían sin resaltado y con un aviso de «lenguaje desconocido»; la librería
   los trata como alias de `jinja` (como `pycon` → `python`, `env` → `dotenv` o `terminal` →

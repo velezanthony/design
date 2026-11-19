@@ -102,7 +102,7 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | `@velezanthony/design/last-modified` | `fileLastModified(file, root?)`: fecha ISO de la última modificación de un archivo (su último commit o, sin él, la del archivo; nada en un clon superficial), la misma que el `<lastmod>` del sitemap. Asíncrona; sirve para el `dateModified` de un JSON-LD. |
 | `@velezanthony/design/code-themes` | `codeThemes`: los temas de Shiki que usa la librería, para que el sitio resalte igual. |
 
-`bootBase`, `bootDocs` y `bootArticle` siguen saliendo de `@velezanthony/design/components/layouts/boot.ts`.
+`bootBase` y `bootDocs` salen de `@velezanthony/design/components/layouts/boot.ts`; `bootArticle`, de `@velezanthony/design/components/boot/article.ts` (un organismo no importa del nivel de los layouts, así que vive aparte).
 
 ## Textos de `ThemeToggle` y `ConsentBanner` por props
 

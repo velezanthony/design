@@ -27,6 +27,7 @@ const PANEL_ROUTES = 'src/astro/routes/seo-on-page/overview.ts';
 const PANEL_COMPONENTS = 'src/components/seo-on-page/molecules/Kpi.ts';
 const PANEL_CLIENT = 'src/client/seo-on-page/boot.ts';
 const LAYOUT = 'src/components/layouts/DocsLayout.ts';
+const ORGANISM = 'src/components/organisms/content/Article.ts';
 
 const forbidden: [string, string, string][] = [
   ['core/ no importa astro:content', CORE, `import { getCollection } from 'astro:content';`],
@@ -75,6 +76,19 @@ const forbidden: [string, string, string][] = [
     DATA,
     `import { x } from '../../components/atoms/actions/Link';`,
   ],
+  /* Atomic Design: ningún nivel importa uno superior. */
+  ['organisms/ no importa layouts/', ORGANISM, `import { x } from '../../layouts/boot';`],
+  [
+    'molecules/ no importa layouts/',
+    'src/components/molecules/navigation/Toc.ts',
+    `import { x } from '../../layouts/boot';`,
+  ],
+  [
+    'atoms/ no importa layouts/',
+    'src/components/atoms/display/Tag.ts',
+    `import { x } from '../../layouts/BaseLayout';`,
+  ],
+  ['organisms/ no importa pages/', ORGANISM, `import { x } from '../../pages/DocPage';`],
   /* Valla de dev: lo publicado no toca el panel. */
   [
     'components/ no importa components/seo-on-page',
@@ -114,6 +128,11 @@ const allowed: [string, string, string][] = [
     `import { type Locale } from '../core/i18n/locale';`,
   ],
   ['components/ sí importa core/', UI, `import { translate } from '../../core/i18n/ui-strings';`],
+  [
+    'organisms/ sí importa el arranque neutral',
+    ORGANISM,
+    `import { x } from '../../boot/article';`,
+  ],
   ['components/ sí importa client/', UI, `import { x } from '../../client/theme';`],
   ['astro/ sí importa astro:content', ASTRO, `import { getCollection } from 'astro:content';`],
   ['astro/ sí importa astro', ASTRO, `import { defineConfig } from 'astro';`],
