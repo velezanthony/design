@@ -33,5 +33,6 @@
     "!/astro.config.mjs",
     "/docs/dist",
     "/docs/.astro"
-  ]
+  ],
+  "ignoreStatic": true
 }
