@@ -137,6 +137,15 @@ Páginas nativas: `index.md` es la home, `guide.md` es `/guide/`, `guide.es.md` 
 español (el idioma por defecto no lleva sufijo). El título es el primer `h1` (o el `title` del
 frontmatter); una página sin ninguno de los dos rompe el build.
 
+La home y la carpeta de contenido son **opcionales**. Sin `index.md` (ni `README.md`, ver abajo) no se genera
+portada y el sitio pone la suya en `src/pages/index.astro`. Si la carpeta de contenido por defecto
+(`src/content/docs/`) no existe, no hay páginas nativas y no falla (un sitio solo con `external`, o solo con
+páginas propias); una carpeta elegida con `content` que no existe sí falla, para cazar la errata.
+
+Un `README.md` hace de `index.md` de su carpeta (el de la raíz de `content` es la home) cuando esa carpeta no tiene
+`index.md` en el mismo idioma, como en MkDocs. Un archivo de fuera (el `README.md` de la raíz del repo) también
+puede ser la home con `external: [{ slug: 'index', file: '../README.md' }]`; `slug: 'guia/index'` es `guia`.
+
 ## Referencia de configuración
 
 Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.search.placeholdr`).

@@ -67,6 +67,10 @@ external: [{ slug: 'changelog', file: '../CHANGELOG.md', translations: MissingTr
 real, así que siguen funcionando en GitHub. El enlace «Editar esta página» apunta a ese archivo
 (`editPath` se calcula contra la raíz del repo: `repoRoot` o el `.git` más cercano).
 
+Con `slug: 'index'` el archivo es la **portada** (el `README.md` de la raíz, por ejemplo), y `slug: 'guia/index'`
+es `guia`, igual que un `index.md` nativo; si además hay un `index.md` en ese idioma, la build falla nombrando
+los dos archivos.
+
 ### Pie
 
 Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al repositorio y a

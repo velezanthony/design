@@ -10,6 +10,7 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
+import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
 import { validateFooter } from '../../core/navigation/footer';
 import { validateNav } from '../../core/navigation/nav-sections';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
@@ -36,10 +37,11 @@ function contentDir(root: string, config: Pick<LoaderConfig, 'content'>) {
   return path.resolve(root, config.content);
 }
 
-/** Falla con la ruta ya resuelta si la carpeta de contenido no existe o no es una carpeta. */
-async function assertContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
+/** Si la carpeta de contenido existe y es carpeta; la de por defecto puede faltar (el sitio solo con `external` o con su propia portada), la que se eligió no. */
+async function hasContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
   const info = await stat(directory).catch(() => undefined);
-  if (info?.isDirectory()) return;
+  if (info?.isDirectory()) return true;
+  if (config.content === DEFAULT_CONTENT_DIR && info === undefined) return false;
   throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${directory}.`, {
     hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
   });
@@ -61,10 +63,10 @@ async function readSources(
   config: LoaderConfig,
 ): Promise<{ files: SourceFile[]; errors: DocsError[] }> {
   const nativeDir = contentDir(root, config);
-  await assertContentDir(nativeDir, config);
   const errors: DocsError[] = [];
+  const nativeFiles = (await hasContentDir(nativeDir, config)) ? await walk(nativeDir) : [];
   const native = await Promise.all(
-    (await walk(nativeDir)).map(async (file): Promise<SourceFile> => {
+    nativeFiles.map(async (file): Promise<SourceFile> => {
       const raw = await readFile(path.join(nativeDir, file), 'utf8');
       const parsed = readFrontmatter(raw, file);
       errors.push(...parsed.errors);

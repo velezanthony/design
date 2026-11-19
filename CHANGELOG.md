@@ -45,6 +45,13 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **La portada y la carpeta de contenido son opcionales.** Sin `index.md` no se genera portada y el sitio
+  pone la suya en `src/pages/`. Si falta `src/content/docs/` (la carpeta por defecto), la carga no falla y
+  no hay páginas nativas; el portfolio ya no necesita un `.gitkeep`. Una carpeta elegida con `content` que
+  no existe sigue fallando.
+- **Un `README.md` puede hacer de portada.** Dentro del contenido hace de `index.md` de su carpeta si esta no
+  tiene el suyo en ese idioma (como MkDocs), y un `external` con `slug: 'index'` (`slug: 'guia/index'` es
+  `guia`) publica como portada un archivo de fuera, como el `README.md` de la raíz.
 - **`docs()` limita a una pasada los WebP animados infinitos y borra los recursos sin enlaces.** En
   `astro:build:done`, antes de indexar: Sharp recodifica todo WebP animado como infinito (WCAG 2.2.2) y
   una imagen referenciada desde un `<Image>` y desde un cuerpo Markdown deja su original suelto en

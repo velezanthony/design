@@ -30,7 +30,7 @@ npm create astro@latest docs -- --template minimal --no-git
 
 Borra después lo que el scaffold trae y la librería ya resuelve:
 
-- `docs/src/pages/index.astro`: la portada es el `index.md` de la carpeta de contenido (`src/content/docs/index.md` por defecto). Si dejas una página en
+- `docs/src/pages/index.astro`: la portada es el `index.md` de la carpeta de contenido (`src/content/docs/index.md` por defecto) y es opcional: sin `index.md` ni `README.md` no hay portada y el sitio pone la suya. Si dejas una página en
   `/` o `/sitemap.xml`, sustituye a la de la librería y al arrancar se avisa con el fichero
   (`route-overrides.ts`): bórrala si no es a propósito.
 - `docs/public/favicon.svg` y `favicon.ico`, salvo que quieras usarlos con la opción `favicon`.
@@ -216,7 +216,10 @@ docs/src/content/docs/
 - Los enlaces entre páginas son rutas `.md` relativas (`./instalar.md#requisitos`): funcionan en
   GitHub y la librería los convierte en URLs del sitio, validando el archivo y el ancla.
 
-Esa carpeta es la opción `content` (`'src/content/docs'` por defecto). Si el repo ya tiene sus docs
+Esa carpeta es la opción `content` (`'src/content/docs'` por defecto) y, si es la de por defecto, también es
+opcional: sin ella no hay páginas nativas y no falla (un sitio solo con `external`). Una carpeta elegida con
+`content` que no existe sí falla. Un `README.md` hace de `index.md` de su carpeta si esta no tiene el suyo en ese
+idioma. Si el repo ya tiene sus docs
 como `.md` sueltos en `docs/` (los de un MkDocs, por ejemplo), no los muevas: ver
 [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro).
 
