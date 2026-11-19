@@ -9,7 +9,6 @@ const config = {
   trailingSlash: 'always' as const,
   defaultLocale: 'en',
   locales: ['en', 'es'],
-  privacy: { page: false },
 };
 
 function data(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {

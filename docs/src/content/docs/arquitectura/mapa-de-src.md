@@ -62,10 +62,7 @@ core/
 │   ├── image-refs.ts      Qué imágenes SEO hay que comprobar
 │   ├── image-checks.ts    Peso y proporción de la imagen OG (avisos)
 │   └── favicon.ts         Favicon por defecto (/_design/favicon.png) o el del consumidor
-├── analytics/resolve.ts   PUBLIC_GTM_ID / gtmId → id validado y URLs de privacidad
-├── privacy/
-│   ├── copy.ts            Texto de la página de privacidad en es/en
-│   └── pages.ts           URLs de la página de privacidad propia
+├── analytics/resolve.ts   PUBLIC_GTM_ID / gtmId → id validado y enlace de privacidad por idioma
 ├── shared/
 │   ├── text.ts            Plurales y listas legibles
 │   ├── urls.ts            Quita las barras finales de la base

@@ -60,7 +60,6 @@ const config = {
   translations: { missing: 'link' as const },
   external: [],
   layout: { sidebar: 'open', toc: 'open', width: 'reading', toggles: true },
-  privacy: { page: false },
   base: '/repo',
   site: 'https://x.dev',
   trailingSlash: 'always' as const,

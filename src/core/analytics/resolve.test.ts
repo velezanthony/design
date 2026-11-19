@@ -3,7 +3,7 @@ import { DocsError, DocsErrors } from '../errors';
 import { resolveConfig } from '../config/resolve';
 import {
   applyAnalytics,
-  DEFAULT_PRIVACY_URLS,
+  missingPrivacyUrlError,
   resolveAnalytics,
   resolvePrivacyUrls,
 } from './resolve';
@@ -57,116 +57,102 @@ describe('resolveAnalytics', () => {
 describe('resolvePrivacyUrls', () => {
   const locales = ['en', 'es'];
 
-  it('sin analítica y sin URL no hay enlace', () => {
-    expect(resolvePrivacyUrls(undefined, false, locales, 'en')).toBeUndefined();
+  it('sin URL no hay enlace', () => {
+    expect(resolvePrivacyUrls(undefined, locales, 'en')).toBeUndefined();
   });
 
   it('una cadena sirve para todos los idiomas', () => {
-    expect(resolvePrivacyUrls('https://x.dev/p', false, locales, 'en')).toEqual({
+    expect(resolvePrivacyUrls('https://x.dev/p', locales, 'en')).toEqual({
       en: 'https://x.dev/p',
       es: 'https://x.dev/p',
     });
   });
 
   it('una etiqueta por idioma, con caída al idioma por defecto', () => {
-    expect(
-      resolvePrivacyUrls({ es: '/privacidad/', en: '/privacy/' }, true, locales, 'en'),
-    ).toEqual({ en: '/privacy/', es: '/privacidad/' });
-    expect(resolvePrivacyUrls({ en: '/privacy/' }, true, locales, 'en')).toEqual({
+    expect(resolvePrivacyUrls({ es: '/privacidad/', en: '/privacy/' }, locales, 'en')).toEqual({
+      en: '/privacy/',
+      es: '/privacidad/',
+    });
+    expect(resolvePrivacyUrls({ en: '/privacy/' }, locales, 'en')).toEqual({
       en: '/privacy/',
       es: '/privacy/',
     });
   });
 
-  it('con analítica y sin URL usa la del portfolio de cada idioma', () => {
-    expect(resolvePrivacyUrls(undefined, true, locales, 'en')).toEqual({
-      en: 'https://velezanthony.github.io/en/privacy/',
-      es: 'https://velezanthony.github.io/privacidad/',
-    });
-    expect(DEFAULT_PRIVACY_URLS.es).toBe('https://velezanthony.github.io/privacidad/');
-  });
-
-  it('con analítica y un idioma sin URL posible falla nombrándolo', () => {
-    const [message] = fails(() => resolvePrivacyUrls(undefined, true, ['en', 'fr'], 'en'));
+  it('una etiqueta incompleta sin idioma por defecto ni respaldo falla nombrando el idioma', () => {
+    const [message] = fails(() => resolvePrivacyUrls({ es: '/p/' }, ['en', 'es'], 'en'));
     expect(message).toContain('privacyUrl');
-    expect(message).toContain('fr');
-  });
-
-  it('una etiqueta incompleta sin idioma por defecto ni respaldo falla', () => {
-    const [message] = fails(() => resolvePrivacyUrls({ es: '/p/' }, true, ['en', 'es'], 'en'));
     expect(message).toContain('en');
   });
 });
 
+describe('missingPrivacyUrlError', () => {
+  it('nombra `privacyUrl` y la analítica, y dice cómo arreglarlo', () => {
+    const message = missingPrivacyUrlError().describe();
+    expect(message).toContain('`privacyUrl`');
+    expect(message).toContain('gtmId');
+    expect(message).toContain('PUBLIC_GTM_ID');
+  });
+});
+
 describe('applyAnalytics', () => {
-  it('sin ID en entorno ni config: nada de analítica y sin enlace de privacidad', () => {
-    const config = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), undefined);
+  const site = { name: 'X', locales: ['en', 'es'] };
+
+  it('sin ID ni privacyUrl: nada', () => {
+    const config = applyAnalytics(resolveConfig(site), undefined);
     expect(config.gtmId).toBeUndefined();
     expect(config.privacyUrl).toBeUndefined();
   });
 
-  it('con ID en el entorno: gtmId y privacidad por defecto del portfolio', () => {
-    const config = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), 'GTM-ENV1');
+  it('ID del entorno y privacyUrl: analítica y enlace', () => {
+    const config = applyAnalytics(resolveConfig({ ...site, privacyUrl: '/privacy/' }), 'GTM-ENV1');
     expect(config.gtmId).toBe('GTM-ENV1');
-    expect(config.privacyUrl).toEqual({
-      en: 'https://velezanthony.github.io/en/privacy/',
-      es: 'https://velezanthony.github.io/privacidad/',
-    });
+    expect(config.privacyUrl).toEqual({ en: '/privacy/', es: '/privacy/' });
   });
 
-  it('privacyUrl explícita sin analítica se mantiene (enlace de footer)', () => {
+  it('ID de la config y privacyUrl por idioma: analítica y enlace de cada idioma', () => {
+    const config = applyAnalytics(
+      resolveConfig({
+        ...site,
+        gtmId: 'GTM-CONF1',
+        privacyUrl: { en: '/privacy/', es: '/privacidad/' },
+      }),
+      undefined,
+    );
+    expect(config.gtmId).toBe('GTM-CONF1');
+    expect(config.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+  });
+
+  it('solo privacyUrl: el enlace del pie, sin analítica', () => {
     const config = applyAnalytics(resolveConfig({ name: 'X', privacyUrl: '/privacy/' }), undefined);
     expect(config.gtmId).toBeUndefined();
     expect(config.privacyUrl).toEqual({ en: '/privacy/' });
   });
 
+  it('solo ID (de la config o del entorno): falla nombrando `privacyUrl`', () => {
+    const [fromConfig] = fails(() =>
+      applyAnalytics(resolveConfig({ ...site, gtmId: 'GTM-CONF1' }), undefined),
+    );
+    expect(fromConfig).toContain('privacyUrl');
+    const [fromEnv] = fails(() => applyAnalytics(resolveConfig(site), 'GTM-ENV1'));
+    expect(fromEnv).toContain('privacyUrl');
+  });
+
   it('gtmId de la config gana al entorno', () => {
-    const config = applyAnalytics(resolveConfig({ name: 'X', gtmId: 'GTM-CONF1' }), 'GTM-ENV1');
+    const config = applyAnalytics(
+      resolveConfig({ name: 'X', gtmId: 'GTM-CONF1', privacyUrl: '/p/' }),
+      'GTM-ENV1',
+    );
     expect(config.gtmId).toBe('GTM-CONF1');
   });
-});
 
-describe('applyAnalytics: página de privacidad propia', () => {
-  const url = { base: '/repo', trailingSlash: 'always' as const, defaultLocale: 'es' };
-  function page(extra = {}) {
-    return resolveConfig({
-      name: 'X',
-      locales: ['es', 'en'],
-      privacy: { page: true },
-      ...extra,
-    });
-  }
-
-  it('con `page: true` el enlace apunta a la página local, también sin analítica', () => {
-    const config = applyAnalytics(page(), undefined, url);
-    expect(config.gtmId).toBeUndefined();
-    expect(config.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
-  });
-
-  it('con `page: true` y analítica gana la local al portfolio', () => {
-    const config = applyAnalytics(page(), 'GTM-ENV1', url);
-    expect(config.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
-  });
-
-  it('una `privacyUrl` explícita gana a la página local', () => {
-    const config = applyAnalytics(page({ privacyUrl: 'https://x.dev/p/' }), 'GTM-ENV1', url);
-    expect(config.privacyUrl).toEqual({ es: 'https://x.dev/p/', en: 'https://x.dev/p/' });
-  });
-
-  it('con `page: false` sigue enlazando al portfolio (comportamiento actual)', () => {
+  it('con la analítica apagada quita el ID, pero conserva el enlace del pie', () => {
     const config = applyAnalytics(
-      resolveConfig({ name: 'X', locales: ['es', 'en'], privacy: { page: false } }),
+      resolveConfig({ name: 'X', gtmId: 'GTM-CONF1', privacyUrl: '/p/' }),
       'GTM-ENV1',
-      url,
+      false,
     );
-    expect(config.privacyUrl).toEqual({
-      es: 'https://velezanthony.github.io/privacidad/',
-      en: 'https://velezanthony.github.io/en/privacy/',
-    });
-  });
-
-  it('sin política de URLs usa base `/` y barra final', () => {
-    const config = applyAnalytics(page(), undefined);
-    expect(config.privacyUrl).toEqual({ es: '/privacidad/', en: '/en/privacy/' });
+    expect(config.gtmId).toBeUndefined();
+    expect(config.privacyUrl).toEqual({ en: '/p/' });
   });
 });

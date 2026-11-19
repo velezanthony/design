@@ -4,7 +4,6 @@ import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
-import { DEFAULT_CONTROLLER, type Controller } from '../privacy/copy';
 import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
@@ -44,12 +43,10 @@ export interface ResolvedConfig {
   footer?: FooterConfig;
   editUrl?: string;
   repoRoot?: string;
-  /** Enlace de privacidad: una URL o una por idioma. La integración lo completa según la analítica. */
+  /** Enlace de privacidad del pie: una URL o una por idioma. Con `gtmId` es obligatoria (el aviso de cookies enlaza a ella). */
   privacyUrl?: Label;
   /** ID del contenedor de GTM de la config (anula al del entorno); la integración fija el efectivo. */
   gtmId?: string;
-  /** Página de privacidad propia: desactivada por defecto; el responsable sale en el texto. */
-  privacy: { page: boolean; controller: Controller };
   social?: { github?: string };
   /** Con `include`, `sitemap.xml` es un índice: las páginas propias y estos sitemaps del dominio. */
   sitemap: { include: string[] };
@@ -88,9 +85,5 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     external: config.external ?? [],
     layout: resolveLayout(config.layout),
     sitemap: { include: config.sitemap?.include ?? [] },
-    privacy: {
-      page: config.privacy?.page ?? false,
-      controller: config.privacy?.controller ?? { ...DEFAULT_CONTROLLER },
-    },
   };
 }

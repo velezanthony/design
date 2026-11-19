@@ -432,33 +432,33 @@ describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
 describe('astro:config:setup: analítica desde el entorno', () => {
   afterEach(() => vi.unstubAllEnvs());
   const two = { name: 'x', locales: ['en', 'es'] };
+  const withPrivacy = { ...two, privacyUrl: { en: '/privacy/', es: '/privacidad/' } };
 
-  it('sin PUBLIC_GTM_ID no hay gtmId ni enlace de privacidad', async () => {
+  it('sin PUBLIC_GTM_ID ni privacyUrl no hay gtmId ni enlace de privacidad', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', '');
     const data = await virtualData(two);
     expect(data.gtmId).toBeUndefined();
     expect(data.privacyUrl).toBeUndefined();
   });
 
-  it('con PUBLIC_GTM_ID activa la analítica y la privacidad del portfolio por idioma', async () => {
+  it('con PUBLIC_GTM_ID y privacyUrl activa la analítica y el enlace de cada idioma', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', ' GTM-ENV0001 ');
-    const data = await virtualData(two);
+    const data = await virtualData(withPrivacy);
     expect(data.gtmId).toBe('GTM-ENV0001');
-    expect(data.privacyUrl).toEqual({
-      en: 'https://velezanthony.github.io/en/privacy/',
-      es: 'https://velezanthony.github.io/privacidad/',
-    });
+    expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
   });
 
-  it('el gtmId de la config gana al entorno y su privacyUrl por idioma se respeta', async () => {
-    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
-    const data = await virtualData({
-      ...two,
-      gtmId: 'GTM-CONF001',
-      privacyUrl: { en: '/privacy/', es: '/privacidad/' },
-    });
-    expect(data.gtmId).toBe('GTM-CONF001');
+  it('solo privacyUrl: el enlace del pie, sin analítica', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', '');
+    const data = await virtualData(withPrivacy);
+    expect(data.gtmId).toBeUndefined();
     expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+  });
+
+  it('el gtmId de la config gana al entorno', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+    const data = await virtualData({ ...withPrivacy, gtmId: 'GTM-CONF001' });
+    expect(data.gtmId).toBe('GTM-CONF001');
   });
 
   it('un ID con formato inválido rompe la construcción con un AstroError', async () => {
@@ -466,6 +466,63 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     const error = await virtualData(two).catch((caught: unknown) => caught);
     expect(error).toBeInstanceOf(AstroError);
     expect(String((error as AstroError).hint)).toContain('GTM-XXXXXXX');
+  });
+
+  describe('un ID sin privacyUrl', () => {
+    async function setupFor(command: 'dev' | 'build', userConfig: Parameters<typeof docs>[0]) {
+      const setup = setupContext(satteri());
+      vi.mocked(logger.warn).mockClear();
+      await docs(userConfig).hooks['astro:config:setup']?.({
+        ...(setup.context as object),
+        command,
+      } as never);
+      return setup;
+    }
+    function source(setup: ReturnType<typeof setupContext>) {
+      return setup.updateConfig.mock.calls
+        .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+        .find((update) => update.vite)
+        ?.vite?.plugins?.[0]?.load.handler();
+    }
+
+    it('en build falla nombrando `privacyUrl`, venga el ID de la config o del entorno', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', '');
+      const fromConfig = await setupFor('build', { ...two, gtmId: 'GTM-CONF001' }).catch(
+        (caught: unknown) => caught,
+      );
+      expect(fromConfig).toBeInstanceOf(AstroError);
+      expect(String((fromConfig as AstroError).hint)).toContain('privacyUrl');
+      vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+      const fromEnv = await setupFor('build', two).catch((caught: unknown) => caught);
+      expect(fromEnv).toBeInstanceOf(AstroError);
+      expect(String((fromEnv as AstroError).hint)).toContain('privacyUrl');
+    });
+
+    it('en dev avisa nombrando `privacyUrl` y arranca sin analítica', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', '');
+      const setup = await setupFor('dev', { ...two, gtmId: 'GTM-CONF001' });
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('privacyUrl'));
+      expect(source(setup)).not.toContain('gtmId');
+    });
+
+    it('en dev con el ID en el entorno también avisa y no carga analítica', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+      const setup = await setupFor('dev', two);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('privacyUrl'));
+      expect(source(setup)).not.toContain('gtmId');
+    });
+
+    it('en dev, con privacyUrl no avisa y la analítica sigue activa', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+      const setup = await setupFor('dev', withPrivacy);
+      expect(logger.warn).not.toHaveBeenCalled();
+      expect(source(setup)).toContain('GTM-ENV0001');
+    });
+
+    it('en dev, un gtmId mal formado sigue siendo un error aunque falte privacyUrl', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', '');
+      await expect(setupFor('dev', { ...two, gtmId: 'nope' })).rejects.toBeInstanceOf(AstroError);
+    });
   });
 
   describe('con un PUBLIC_GTM_ID inválido en dev', () => {
@@ -501,7 +558,7 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     });
   });
 
-  it('con analítica y un idioma sin política posible falla', async () => {
+  it('con un idioma sin política posible falla nombrando el idioma', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
     const error = await virtualData({
       ...two,

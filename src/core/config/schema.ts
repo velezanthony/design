@@ -1,5 +1,3 @@
-import { PRIVACY_LOCALES } from '../privacy/copy';
-import { missingPrivacyLocales } from '../privacy/pages';
 import { z } from 'astro/zod';
 import { contentDirProblem } from '../content/content-dir';
 import { MissingTranslation } from '../i18n/translation-policy';
@@ -213,19 +211,6 @@ export const DocsConfigSchema = z
     repoRoot: z.string().optional(),
     privacyUrl: z.union([PrivacyUrlSchema, z.record(z.string(), PrivacyUrlSchema)]).optional(),
     gtmId: z.string().min(1).optional(),
-    privacy: z
-      .strictObject({
-        page: z.boolean().optional(),
-        controller: z
-          .strictObject({
-            name: z.string().min(1),
-            email: z
-              .string()
-              .refine((email) => /^[^\s@]+@[^\s@]+$/.test(email), 'Debe ser un correo.'),
-          })
-          .optional(),
-      })
-      .optional(),
     social: z.strictObject({ github: z.string().optional() }).optional(),
     /** Otros sitemaps del dominio que el índice `sitemap.xml` declara (rutas o URLs del mismo origen). */
     sitemap: z.strictObject({ include: z.array(z.string().min(1)).optional() }).optional(),
@@ -275,15 +260,6 @@ export const DocsConfigSchema = z
     });
     validateNavShape(config.nav ?? [], issue);
     validateFooterShape(config.footer, issue);
-    if (config.privacy?.page) {
-      const missing = missingPrivacyLocales(locales);
-      if (missing.length > 0) {
-        issue(
-          ['privacy', 'page'],
-          `La página de privacidad solo tiene texto en ${PRIVACY_LOCALES.join(', ')}; falta para ${missing.join(', ')}. Desactiva \`privacy.page\` o quita esos idiomas.`,
-        );
-      }
-    }
     if (typeof config.privacyUrl === 'object') {
       for (const locale of Object.keys(config.privacyUrl)) {
         if (!locales.includes(locale)) {

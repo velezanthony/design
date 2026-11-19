@@ -6,7 +6,7 @@ import type { ResolvedConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { sitemapFiles } from '../../core/seo/sitemap';
 import { codeThemes } from '../../components/styles/code-themes';
-import { resolveConfigOrThrow, urlPolicyOf } from '../config';
+import { resolveConfigOrThrow } from '../config';
 import { clientRegistry } from '../registry';
 import { createMarkdownEnv } from '../markdown/env';
 import { extendMarkdownProcessor } from '../markdown/processor';
@@ -14,7 +14,7 @@ import { mergeLangAlias } from '../markdown/register';
 import { routesFor } from '../routes/routes';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
-import { applyAnalyticsOrThrow, envValueForCommand, readAnalyticsEnv } from './analytics-env';
+import { applyAnalyticsForCommand, readAnalyticsEnv } from './analytics-env';
 import { runBuildDone } from './build/build-done';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
 import { CONFIG_FILES } from './config';
@@ -70,16 +70,12 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
             'Defínelo en astro.config.mjs (`site: "https://tu-dominio.dev"`): lo necesitan el sitemap y las URLs canónicas.',
           );
         }
-        // Analítica: el ID sale de la config o de PUBLIC_GTM_ID; sin ninguno no hay nada de nada.
-        const siteConfig = applyAnalyticsOrThrow(
+        // Analítica: el ID sale de la config o de PUBLIC_GTM_ID y exige `privacyUrl`; sin ID, `privacyUrl` es solo el enlace del pie.
+        const siteConfig = applyAnalyticsForCommand(
+          command,
           resolvedConfig,
-          envValueForCommand(
-            command,
-            readAnalyticsEnv(command, config.root),
-            resolvedConfig.gtmId,
-            (message) => logger.warn(message),
-          ),
-          urlPolicyOf(config, resolvedConfig.defaultLocale),
+          readAnalyticsEnv(command, config.root),
+          (message) => logger.warn(message),
         );
         // El sitio puede sustituir páginas de la librería con las suyas: se avisa, y las rutas
         // exactas que ya son suyas no se inyectan (Astro no registra dos para la misma URL).
