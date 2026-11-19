@@ -177,8 +177,7 @@ client/
 ├── clipboard.ts        Copiar con confirmación o fallo
 ├── text.ts             Rellena las {variables} de una plantilla (el cliente no importa translate())
 ├── search.ts           Pagefind: carga bajo la base, resultados, atajo «/»
-├── transition.ts       Envoltorio de la View Transitions API con movimiento reducido
-└── not-found.ts        Cambia la 404 al idioma de la URL
+└── transition.ts       Envoltorio de la View Transitions API con movimiento reducido
 ```
 
 ## `components/`: lo que se ve
@@ -198,9 +197,7 @@ components/
 │   ├── content/     Admonition, FallbackNotice, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
-│   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, Head
-│   ├── privacy/     ConsentBanner, PrivacyPolicy
-│   └── not-found/   NotFound, NotFoundBody
+│   └── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag, LengthMeter, LocaleBadge,
 │   │                Note, StateMark
@@ -218,13 +215,11 @@ components/
 │   │   └── shared/      ClientPageFailures, ReportDialog (las usan varias pantallas)
 │   ├── pages/       OverviewPage, PagesPage, InspectorPage: las pantallas del panel, presentacionales
 │   └── tables.ts    Clases de la celda y del filete de las tablas del listado
-├── pages/       Páginas presentacionales: reciben el modelo por props y solo pintan (DocPage, NotFoundPage, PrivacyPage)
+├── pages/       Páginas presentacionales: reciben el modelo por props y solo pintan (DocPage)
 ├── layouts/
 │   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
 │   ├── DocsLayout.astro     Página de docs: cabecera, barra, contenido, índice, pie
-│   ├── NotFoundLayout.astro La 404 con plantillas por idioma
-│   ├── PrivacyLayout.astro  La página de privacidad propia
-│   └── boot.ts              Arranque del JavaScript de cliente (bootDocs, bootNotFound)
+│   └── boot.ts              Arranque del JavaScript de cliente (bootDocs)
 ├── styles/
 │   ├── theme.css            El punto de entrada: Tailwind y el resto de hojas, en orden
 │   ├── tokens.css           Tokens y paletas de color (claro y oscuro con light-dark())
@@ -301,7 +296,6 @@ astro/
 ├── views/                   Lógica pura que prepara los datos de cada página (con sus tests)
 │   ├── doc.ts               docRoutes y docView: todo lo que necesita una página
 │   ├── chrome.ts            Lo que cabecera y pie necesitan del sitio
-│   ├── not-found.ts, privacy.ts
 │   ├── pages.ts             DocData → Page y sitemap
 │   └── seo-on-page/
 │       ├── hrefs.ts         Rutas del panel y enlaces entre pantallas
@@ -312,7 +306,6 @@ astro/
 │   ├── site-config.ts       La config del módulo virtual con su tipo completo
 │   ├── image-sizes.ts       Lee los tamaños de las imágenes sociales
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
-│   ├── privacy.ts           Lee lo necesario y llama a views/privacy (lo usan las dos páginas)
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
 └── virtual/

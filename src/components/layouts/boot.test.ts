@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { parseHTML } from 'linkedom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { bootDocs, bootNotFound, type BootEnv } from './boot';
+import { bootDocs, type BootEnv } from './boot';
 
 function env(html: string, extra: Partial<BootEnv> = {}): BootEnv {
   const { document } = parseHTML(
@@ -15,7 +15,6 @@ function env(html: string, extra: Partial<BootEnv> = {}): BootEnv {
     clipboard: { writeText: vi.fn(async () => {}) },
     hostname: 'x.dev',
     reload: vi.fn(),
-    pathname: '/repo/guide/',
     ...extra,
   };
 }
@@ -160,59 +159,6 @@ describe('bootDocs', () => {
     const bootEnv = env(content, { clipboard: undefined });
     bootDocs(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
-  });
-});
-
-describe('bootNotFound', () => {
-  function page(pathname: string) {
-    return env(
-      `<main>EN</main>
-       <template data-locale="es" data-title="Perdida"><main>ES</main></template>`,
-      { pathname },
-    );
-  }
-  function prepare(bootEnv: BootEnv) {
-    const root = bootEnv.htmlDocument.documentElement;
-    root.setAttribute('data-nf-base', '/repo/');
-    root.setAttribute('data-nf-locales', 'en,es');
-    root.setAttribute('data-nf-default', 'en');
-    root.classList.add('nf-pending');
-    return bootEnv;
-  }
-
-  it('sustituye el cuerpo según la URL pedida (localeFromPath con base)', () => {
-    const bootEnv = prepare(page('/repo/es/no-existe/'));
-    bootNotFound(bootEnv);
-    expect(bootEnv.htmlDocument.documentElement.getAttribute('lang')).toBe('es');
-    expect(bootEnv.htmlDocument.body.querySelector('main')!.textContent).toBe('ES');
-    expect(bootEnv.htmlDocument.title).toBe('Perdida');
-  });
-
-  it('una ruta del idioma por defecto deja el cuerpo y retira nf-pending', () => {
-    const bootEnv = prepare(page('/repo/otra/'));
-    bootNotFound(bootEnv);
-    expect(bootEnv.htmlDocument.documentElement.getAttribute('lang')).toBe('en');
-    expect(bootEnv.htmlDocument.body.querySelector('main')!.textContent).toBe('EN');
-    expect(bootEnv.htmlDocument.documentElement.classList.contains('nf-pending')).toBe(false);
-  });
-
-  it('segmento completo: /repo/esx/ no es es', () => {
-    const bootEnv = prepare(page('/repo/esx/a'));
-    bootNotFound(bootEnv);
-    expect(bootEnv.htmlDocument.documentElement.getAttribute('lang')).toBe('en');
-  });
-
-  it('tras sustituir, los controles del cuerpo nuevo quedan cableados', () => {
-    const bootEnv = prepare(
-      env(
-        `<main>EN</main><template data-locale="es" data-title="P"><button data-theme-toggle aria-pressed="x"></button><main>ES</main></template>`,
-        { pathname: '/repo/es/x' },
-      ),
-    );
-    bootNotFound(bootEnv);
-    expect(
-      bootEnv.htmlDocument.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed'),
-    ).toBe('false');
   });
 });
 

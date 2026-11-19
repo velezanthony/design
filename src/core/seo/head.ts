@@ -15,7 +15,7 @@ export interface HeadConfig {
   content?: string;
 }
 
-export type PageKind = 'page' | 'fallback' | 'notFound';
+export type PageKind = 'page' | 'fallback';
 
 /** Lo que el head necesita saber de la página que se renderiza. */
 export interface PageData {

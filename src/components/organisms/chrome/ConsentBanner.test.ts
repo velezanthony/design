@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
-import BackToTop from '../chrome/BackToTop.astro';
+import BackToTop from './BackToTop.astro';
 import ConsentBanner from './ConsentBanner.astro';
 
 const props = { gtmId: 'GTM-TEST', privacyUrl: '/privacidad/', strings: stringsFor('es') };

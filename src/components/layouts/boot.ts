@@ -6,7 +6,6 @@ import { RAIL_QUERY } from '../../client/layout/rail';
 import type { MermaidImporter } from '../../client/diagrams/mermaid';
 import { DIAGRAM_SELECTOR } from '../../client/diagrams/selector';
 import { readToken } from '../../client/diagrams/token';
-import { swapNotFound } from '../../client/not-found';
 import { initSearch, initSearchShortcut } from '../../client/search';
 import { initSidebarScroll } from '../../client/layout/sidebar-scroll';
 import { storageOf } from '../../client/preferences/storage';
@@ -16,7 +15,6 @@ import type { MotionPreference } from '../../client/transition';
 import { initCurrentYear } from '../../client/layout/year';
 import { initZoom } from '../../client/content/zoom';
 import { trackSections } from '../../client/layout/toc';
-import { localeFromPath } from '../../core/i18n/locale';
 import { themeColors } from '../styles/theme-colors';
 
 /** El navegador que necesitan los `init*`; inyectable para probarlos sin globales. */
@@ -37,7 +35,6 @@ export interface BootEnv {
   clipboard: Pick<Clipboard, 'writeText'> | undefined;
   hostname: string;
   reload: () => void;
-  pathname: string;
 }
 
 /** El entorno real. Se lee al ejecutar el script, nunca al importar el módulo. */
@@ -58,7 +55,6 @@ function browserEnv(): BootEnv {
     clipboard: navigator.clipboard,
     hostname: location.hostname,
     reload: () => location.reload(),
-    pathname: location.pathname,
   };
 }
 
@@ -148,17 +144,4 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
 
   const toc = htmlDocument.querySelector('nav.toc');
   if (toc) trackSections(toc, { htmlDocument });
-}
-
-/** La 404 de GitHub Pages es una sola: sustituye el cuerpo por el del idioma pedido y SOLO DESPUÉS cablea el cliente (datos en `data-nf-*` de `<html>`). */
-export function bootNotFound(env: BootEnv = browserEnv()): void {
-  const { htmlDocument } = env;
-  const { nfBase, nfLocales, nfDefault } = htmlDocument.documentElement.dataset;
-  if (nfBase !== undefined && nfLocales !== undefined && nfDefault !== undefined) {
-    swapNotFound(
-      htmlDocument,
-      localeFromPath(env.pathname, nfBase, nfLocales.split(','), nfDefault),
-    );
-  }
-  bootDocs(env);
 }

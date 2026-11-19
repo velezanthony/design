@@ -1,5 +1,4 @@
 import { DocsError } from '../errors';
-import { trimBase } from '../shared/urls';
 
 /** Código de idioma del sitio (`en`, `es`, `pt-BR`…). Es configurable, por eso es una cadena. */
 export type Locale = string;
@@ -40,17 +39,4 @@ export function stripLocale(path: string, locale: Locale, defaultLocale: Locale)
   const suffix = `.${locale}.md`;
   if (locale === defaultLocale || !path.endsWith(suffix)) return path;
   return `${path.slice(0, -suffix.length)}.md`;
-}
-
-/** Idioma de una ruta servida: el primer segmento tras `base` si está configurado; lo usa la 404 en el navegador. */
-export function localeFromPath(
-  pathname: string,
-  base: string,
-  locales: Locale[],
-  defaultLocale: Locale,
-): Locale {
-  const prefix = trimBase(base);
-  if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) return defaultLocale;
-  const [segment] = pathname.slice(prefix.length).split('/').filter(Boolean);
-  return segment !== undefined && locales.includes(segment) ? segment : defaultLocale;
 }

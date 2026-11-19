@@ -186,21 +186,6 @@ describe('buildHead: noindex, reserva y 404', () => {
     expect(metaTag(tags, 'property', 'og:locale:alternate')).toEqual([]);
     expect(value(tags, 'property', 'og:locale')).toBe('es');
   });
-
-  it('notFound: noindex, sin canonical ni alternates', () => {
-    const notFound: PageData = {
-      kind: 'notFound',
-      slug: '404',
-      locale: 'en',
-      url: '/repo/404.html',
-    };
-    const tags = head(meta(), notFound, pair);
-    expect(value(tags, 'name', 'robots')).toBe('noindex');
-    expect(links(tags, 'canonical')).toEqual([]);
-    expect(links(tags, 'alternate')).toEqual([]);
-    expect(metaTag(tags, 'property', 'og:locale:alternate')).toEqual([]);
-    expect(metaTag(tags, 'property', 'og:url')).toEqual([]);
-  });
 });
 
 describe('buildHead + resolveMeta', () => {
@@ -232,11 +217,9 @@ describe('buildHead: favicon', () => {
     });
   });
 
-  it('también en rutas de reserva y 404', () => {
+  it('también en rutas de reserva', () => {
     const fallback: PageData = { ...enPage, kind: 'fallback', canonical: '/repo/install/' };
-    const notFound: PageData = { ...enPage, kind: 'notFound', slug: '' };
     expect(icons(head(meta(), fallback, single))).toHaveLength(1);
-    expect(icons(head(meta(), notFound, new Map()))).toHaveLength(1);
   });
 
   it('el favicon de la config manda: ruta con base o https tal cual', () => {
@@ -288,11 +271,9 @@ describe('buildHead: JSON-LD', () => {
     expect(tag?.content).not.toContain('<');
   });
 
-  it('también salen en las páginas de reserva y en la 404', () => {
+  it('también salen en las páginas de reserva', () => {
     const schemas = [{ '@type': 'Thing' }];
     const fallback: PageData = { ...esPage, kind: 'fallback', canonical: '/repo/install/' };
-    const notFound: PageData = { ...esPage, kind: 'notFound' };
     expect(scripts(head(meta({ schemas }), fallback, pair))).toHaveLength(1);
-    expect(scripts(head(meta({ schemas }), notFound, pair))).toHaveLength(1);
   });
 });

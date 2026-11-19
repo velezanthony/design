@@ -13,10 +13,6 @@ const en = {
   'consent.privacy': 'Privacy policy',
   'consent.label': 'Cookie notice',
   'consent.preferences': 'Cookie preferences',
-  'privacy.eyebrow': 'Privacy',
-  'privacy.updated': 'Last updated',
-  'privacy.description':
-    'How this site and the documentation sites of the projects handle your data.',
   'footer.label': 'Site links',
   'footer.repository': 'Repository',
   'footer.report': 'Report a bug',
@@ -64,10 +60,6 @@ const en = {
   'admonition.caution': 'Caution',
   'translation.badgeLabel': 'Available in {locale}',
   'translation.fallbackNotice': 'This page is not translated yet. You are reading the original.',
-  'notFound.title': 'Page not found',
-  'notFound.body': 'The page you are looking for does not exist or has moved.',
-  'notFound.home': 'Go to the home page',
-  'notFound.description': 'The page you are looking for does not exist.',
   'sitemap.title': 'Sitemap',
   'sitemap.note':
     'This file is for search engines, which read the XML. Each page lists the languages it is available in.',
@@ -89,10 +81,6 @@ const es: UiStrings = {
   'consent.privacy': 'Política de privacidad',
   'consent.label': 'Aviso de cookies',
   'consent.preferences': 'Preferencias de cookies',
-  'privacy.eyebrow': 'Privacidad',
-  'privacy.updated': 'Última actualización',
-  'privacy.description':
-    'Cómo tratan tus datos esta web y las webs de documentación de los proyectos.',
   'footer.label': 'Enlaces del sitio',
   'footer.repository': 'Repositorio',
   'footer.report': 'Informar de un error',
@@ -140,10 +128,6 @@ const es: UiStrings = {
   'admonition.caution': 'Precaución',
   'translation.badgeLabel': 'Disponible en {locale}',
   'translation.fallbackNotice': 'Esta página aún no está traducida. Estás leyendo el original.',
-  'notFound.title': 'Página no encontrada',
-  'notFound.body': 'La página que buscas no existe o se ha movido.',
-  'notFound.home': 'Ir a la portada',
-  'notFound.description': 'La página que buscas no existe.',
   'sitemap.title': 'Mapa del sitio',
   'sitemap.note':
     'Este archivo es para los buscadores, que leen el XML. Cada página indica los idiomas en los que está.',
