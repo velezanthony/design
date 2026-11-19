@@ -1,9 +1,12 @@
 # Changelog
 
-El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Sin versiones todavía:
-todo vive en «Sin publicar».
+El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Lo que aún no se ha
+publicado vive en «Sin publicar»; al subir `version`, esa sección pasa a llamarse como la versión y
+sus notas son las de la Release.
 
 ## Sin publicar
+
+## 0.1.0
 
 ### Cambios que rompen
 
