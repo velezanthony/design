@@ -15,8 +15,10 @@ sequenceDiagram
   participant GH as GitHub
   participant C as Repo consumidor
   Y->>Y: npm test · lint · format:check · check · docs:build
-  Y->>Y: sube "version" en package.json (0.2.0)
-  Y->>GH: commit en main + git tag v0.2.0 + push de la etiqueta
+  Y->>Y: sube "version" (0.2.0) y renombra "Sin publicar" a "## 0.2.0" en CHANGELOG.md
+  Y->>GH: PR y merge a main
+  Y->>GH: git tag v0.2.0 sobre main + push de la etiqueta
+  Y->>GH: GitHub Release v0.2.0 con la sección del CHANGELOG como notas
   C->>C: npm install github:velezanthony/design#v0.2.0
   C->>C: npm run build (y revisa avisos)
   C->>GH: commit del package.json y package-lock.json
@@ -28,22 +30,27 @@ sequenceDiagram
 1. **Comprueba que todo está verde** en `main`: `npm test`, `npm run lint`, `npm run format:check`,
    `npm run check` y `npm run docs:build` sin avisos. Mira también `npm pack --dry-run` si has
    tocado algo de la estructura (ver [Por qué no entra en el paquete](../guia/fuera-del-paquete.md)).
-2. **Sube `version`** en el `package.json` de la raíz siguiendo semver:
+2. **Sube `version`** en el PR con `npm version <número> --no-git-tag-version` (actualiza
+   `package.json` y `package-lock.json` sin etiquetar), siguiendo semver:
    - _patch_ (`0.1.1`): arreglos sin cambios visibles en la config.
    - _minor_ (`0.2.0`): opciones o componentes nuevos, compatibles.
    - _major_ (`1.0.0`): algo que obliga a los consumidores a cambiar su config, su contenido o sus
      imports (una opción renombrada, una regla estricta nueva que puede romper builds, un archivo
      movido de una subruta de `"exports"`).
 
-   Mientras la versión sea `0.x`, un cambio incompatible sube el _minor_.
-3. **Commit, etiqueta y push**:
+   Mientras la versión sea `0.x`, un cambio incompatible sube el _minor_. En el mismo PR, renombra
+   «Sin publicar» de `CHANGELOG.md` a `## 0.2.0` (sin fecha) y deja encima una «Sin publicar» vacía.
+3. **Etiqueta y publica la Release** una vez hecho el merge a `main`, sobre el commit del merge:
 
    ```sh
-   git commit -am "chore: release v0.2.0"
+   git checkout main && git pull
    git tag v0.2.0
-   git push origin main
    git push origin v0.2.0
    ```
+
+   Luego crea la Release en GitHub (Releases → _Draft a new release_ sobre esa etiqueta, o
+   `gh release create v0.2.0 --verify-tag --title v0.2.0`) y pega como notas la sección `## 0.2.0` del
+   `CHANGELOG.md`.
 
 4. **Actualiza cada consumidor** cambiando la etiqueta:
 
