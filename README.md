@@ -312,12 +312,15 @@ nav: [
 ],
 ```
 
-- **Sección** `{ label, dir, sidebar? }`: pertenece a ella toda página (nativa o externa) cuyo slug
-  sea `dir` o empiece por `dir/`. Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y
-  anterior / siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer
-  nivel, los slugs deben estar dentro de `dir`); el resto sigue por `order` y luego por slug,
-  agrupado bajo `dir` (la carpeta en sí no es un nivel). El elemento enlaza a la página índice de
-  `dir` si existe y, si no, a la primera página de la sección.
+- **Sección** `{ label, dir?, sidebar? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
+  página (nativa o externa) cuyo slug sea `dir` o empiece por `dir/`, y también las que nombra su
+  `sidebar`, vivan donde vivan: así una sección admite páginas sueltas y ficheros de fuera de `docs/`
+  (`external`). Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y anterior /
+  siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer nivel); lo
+  de `dir` que no nombra sigue por `order` y luego por slug, agrupado bajo `dir` (la carpeta en sí no
+  es un nivel), y **sin `sidebar` el orden es alfabético por slug**. Sin `dir`, la sección la forma
+  solo su `sidebar`. El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
+  página de la sección. Una página no puede ser de dos secciones.
 - **Página** `{ label, slug }`: un enlace a una sola página. Esa página no pertenece a ninguna
   sección.
 - **Enlace** `{ label, href, icon? }`: externo, solo `https://`, con `rel="noopener"` y un marcador
@@ -331,9 +334,9 @@ nav: [
   idioma por defecto, como cualquier otro label. Un elemento de página cuya página no está traducida
   sigue `translations.missing` (`link`/`fallback` apuntan al original, `omit` oculta el elemento).
 - Rompe el build, de forma agregada y con la ruta de configuración (`nav[1].dir`): un `dir` sin
-  páginas, `dir` solapados (iguales, o uno dentro de otro), un slug de `sidebar` de sección que es
-  desconocido o está fuera de su `dir`, un `slug` de página que no es una página o que vive dentro
-  de una sección, y un `href` que no es https.
+  páginas, `dir` solapados (iguales, o uno dentro de otro), un slug de `sidebar` de sección que no es
+  una página o que ya es de otra sección, un `slug` de página que no es una página o que es de una
+  sección, y un `href` que no es https.
 - Textos de UI: `nav.label` (el landmark de navegación) y `nav.external` (el marcador para lectores
   de pantalla).
 

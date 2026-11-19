@@ -45,6 +45,11 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Secciones de `nav` con páginas sueltas y ficheros de fuera de `docs/`.** Una sección es de `dir`
+  y de todo lo que nombra su `sidebar`, aunque viva en otra carpeta o sea un `external`; y `dir` es
+  opcional si hay `sidebar`. Antes cada página de la sección tenía que colgar de su carpeta y el
+  `sidebar` fuera de ella fallaba. Sigue habiendo un solo dueño por página: nombrarla en dos secciones,
+  o en una sección y como `slug` suelto del `nav`, falla en el build con la ruta.
 - **Impresión: «volver arriba» y el banner de cookies se ocultan.** Con `@media print` ya no se
   repiten encima del texto en cada hoja, y el hueco que el banner reserva al pie también desaparece.
 - **Índice «En esta página»: profundidad y altura máxima.** `layout.tocDepth` (2 a 6, por defecto 3,

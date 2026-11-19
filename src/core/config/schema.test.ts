@@ -201,7 +201,11 @@ describe('nav', () => {
     );
   });
 
-  it('`sidebar` solo va con `dir` e `icon` solo con `href`', () => {
+  it('una sección puede ser solo `sidebar`, sin `dir`', () => {
+    expect(messages({ ...base, nav: [{ label: 'G', sidebar: ['a', 'b'] }] })).toEqual([]);
+  });
+
+  it('`sidebar` solo va con una sección e `icon` solo con `href`', () => {
     expect(messages({ ...base, nav: [{ label: 'G', slug: 'a', sidebar: ['a'] }] })[0]).toContain(
       'nav[0].sidebar',
     );

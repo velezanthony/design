@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { NavItem } from '../config/nav';
-import { sectionIndexOf, slugInDir, validateNav } from './nav-sections';
+import { sectionIndexOf, sectionOwns, slugInDir, validateNav } from './nav-sections';
 
 const nav: NavItem[] = [
   { label: 'Guide', dir: 'users' },
@@ -43,6 +43,38 @@ describe('sectionIndexOf', () => {
 
   it('sin `nav` nada pertenece a una sección', () => {
     expect(sectionIndexOf(undefined, 'users/install')).toBe(-1);
+  });
+});
+
+describe('sectionOwns', () => {
+  it('una sección con dir se queda con su carpeta', () => {
+    expect(sectionOwns({ label: 'G', dir: 'users' }, 'users/install')).toBe(true);
+    expect(sectionOwns({ label: 'G', dir: 'users' }, 'changelog')).toBe(false);
+  });
+
+  it('lo que nombra su sidebar es suyo aunque viva fuera del dir', () => {
+    const section = {
+      label: 'G',
+      dir: 'users',
+      sidebar: ['users/install', { label: 'Más', items: ['changelog'] }, 'index'],
+    };
+    expect(sectionOwns(section, 'changelog')).toBe(true);
+    expect(sectionOwns(section, '')).toBe(true);
+    expect(sectionOwns(section, 'showcase')).toBe(false);
+  });
+
+  it('sin dir solo cuenta el sidebar', () => {
+    expect(sectionOwns({ label: 'G', sidebar: ['changelog'] }, 'changelog')).toBe(true);
+    expect(sectionOwns({ label: 'G', sidebar: ['changelog'] }, 'users/install')).toBe(false);
+  });
+});
+
+describe('sectionIndexOf: páginas sueltas en una sección', () => {
+  it('una página de fuera del dir pertenece a la sección que la nombra', () => {
+    const items: NavItem[] = [
+      { label: 'G', dir: 'users', sidebar: ['users/install', 'changelog'] },
+    ];
+    expect(sectionIndexOf(items, 'changelog')).toBe(0);
   });
 });
 
@@ -93,21 +125,41 @@ describe('validateNav', () => {
     expect(out[0]).toContain('users/ghost');
   });
 
-  it('el sidebar de una sección con slugs de fuera del dir falla', () => {
+  it('el sidebar de una sección admite páginas de fuera del dir', () => {
+    expect(
+      messages([{ label: 'G', dir: 'users', sidebar: ['users/install', 'changelog', 'index'] }]),
+    ).toEqual([]);
+  });
+
+  it('una sección solo con sidebar es válida si sus páginas existen', () => {
+    expect(messages([{ label: 'G', sidebar: ['changelog', 'showcase'] }])).toEqual([]);
+    expect(messages([{ label: 'G', sidebar: ['ghost'] }])[0]).toContain('nav[0].sidebar[0]');
+  });
+
+  it('una página en el sidebar de dos secciones falla en la segunda', () => {
     const out = messages([
-      { label: 'G', dir: 'users', sidebar: ['users/install', 'changelog', 'index'] },
+      { label: 'A', dir: 'users', sidebar: ['changelog'] },
+      { label: 'B', dir: 'contributors', sidebar: ['changelog'] },
     ]);
-    expect(out).toHaveLength(2);
-    expect(out[0]).toContain('nav[0].sidebar[1]');
-    expect(out[0]).toContain('users');
-    expect(out[1]).toContain('nav[0].sidebar[2]');
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('nav[1].sidebar[0]');
+    expect(out[0]).toContain('nav[0]');
+  });
+
+  it('una página en el sidebar de una sección ya no puede ir suelta en el nav', () => {
+    const out = messages([
+      { label: 'A', dir: 'users', sidebar: ['changelog'] },
+      { label: 'P', slug: 'changelog' },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('nav[1].slug');
   });
 
   it('agrega todos los fallos en una sola pasada', () => {
     const out = messages([
       { label: 'A', dir: 'nope' },
       { label: 'B', slug: 'ghost' },
-      { label: 'C', dir: 'users', sidebar: ['changelog'] },
+      { label: 'C', dir: 'users', sidebar: ['users/ghost'] },
     ]);
     expect(out).toHaveLength(3);
   });

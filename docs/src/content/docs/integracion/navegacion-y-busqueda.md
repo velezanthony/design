@@ -30,10 +30,22 @@ lo que reciben.
 
 Tres tipos de elemento, distinguidos por su forma:
 
-- **Sección** `{ label, dir, sidebar? }`: le pertenece toda página cuyo slug es `dir` o empieza por
-  `dir/`. Dentro de una sección la barra lateral muestra **solo** su árbol, y anterior/siguiente
-  nunca salen de ella. El elemento enlaza al `index.md` de la carpeta si existe y, si no, a su
+- **Sección** `{ label, dir?, sidebar? }`: le pertenece toda página cuyo slug es `dir` o empieza por
+  `dir/`, y también las que nombra su `sidebar`, vivan donde vivan (páginas sueltas, `external`).
+  Sin `dir`, la forman solo las del `sidebar`. Dentro de una sección la barra lateral muestra
+  **solo** su árbol, y anterior/siguiente nunca salen de ella. El elemento enlaza al `index.md` de la carpeta si existe y, si no, a su
   primera página. Es lo que usa este sitio: Concepto, Integración, Arquitectura y Mantenimiento.
+
+  ```js
+  // El README de la raíz y un REFERENCE.md suelto son «Para usuarios» sin vivir en `users/`.
+  { label: 'Para usuarios', dir: 'users', sidebar: ['readme', 'users/instalar', 'REFERENCE'] },
+  // Sin carpeta común: la sección es solo su sidebar.
+  { label: 'Referencia', sidebar: ['REFERENCE', 'changelog'] },
+  ```
+
+  Sin `sidebar`, las páginas de la sección van ordenadas por `order` y luego **alfabéticamente por
+  slug**; para otro orden, decláralo. Una página no puede ser de dos secciones (ni ir suelta en el
+  `nav` si una sección la nombra): falla en el build con la ruta.
 - **Página** `{ label, slug }`: un enlace a una sola página, que no pertenece a ninguna sección.
 - **Enlace** `{ label, href, icon? }`: externo, solo `https://`. Con `icon: NavIcon.GITHUB` solo se
   ve el icono y el `label` queda para lectores de pantalla.

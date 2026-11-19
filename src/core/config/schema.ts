@@ -306,15 +306,17 @@ function validateNavShape(
       icon?: unknown;
     };
     const kinds = (['dir', 'slug', 'href'] as const).filter((key) => item[key] !== undefined);
+    // Una sección puede ser solo `sidebar`: sus páginas no tienen por qué compartir carpeta.
+    if (kinds.length === 0 && item.sidebar !== undefined) return;
     if (kinds.length !== 1) {
       issue(
         ['nav', index],
-        'Debe ser una sección (`dir`), una página (`slug`) o un enlace (`href`), solo una de las tres.',
+        'Debe ser una sección (`dir` o `sidebar`), una página (`slug`) o un enlace (`href`), solo una de las tres.',
       );
       return;
     }
     if (item.sidebar !== undefined && item.dir === undefined) {
-      issue(['nav', index, 'sidebar'], 'Solo una sección (`dir`) tiene `sidebar`.');
+      issue(['nav', index, 'sidebar'], 'Solo una sección tiene `sidebar`.');
     }
     if (item.icon !== undefined && item.href === undefined) {
       issue(['nav', index, 'icon'], 'Solo un enlace (`href`) tiene `icon`.');
