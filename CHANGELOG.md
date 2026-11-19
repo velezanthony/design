@@ -50,6 +50,9 @@ todo vive en «Sin publicar».
 - **`ThemeToggle` y `ConsentBanner` aceptan sus textos por props** (`label`; `label`, `message`,
   `acceptLabel`, `rejectLabel` y `privacyLabel`), y `strings` pasa a ser opcional (por defecto, el
   catálogo en inglés).
+- **`BaseLayout` reenvía los textos del aviso** (`label`, `message`, `acceptLabel`, `rejectLabel` y
+  `privacyLabel`) y `strings` pasa a ser opcional aunque haya `gtmId`: quien tiene su propio i18n ya no
+  necesita un `UiStrings` completo.
 - **`<lastmod>` en el sitemap**: la fecha del último commit del archivo de cada página (los `.md` y los
   `.astro` de `src/pages/`), con la fecha del archivo como reserva y sin `<lastmod>` si no hay ninguna.
   Un solo `git log` para todo el repositorio. En un clon superficial no se emite ninguna fecha. El

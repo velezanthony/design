@@ -46,7 +46,9 @@ import BaseLayout from '@velezanthony/design/components/layouts/BaseLayout.astro
 | `head` | Las etiquetas del `<head>` como datos: `{ tag: 'title' \| 'meta' \| 'link' \| 'script', attrs, content? }[]`. |
 | `bodyClass` | Clases de `<body>`. `BaseLayout` no impone ningún diseño: lo pones tú. |
 | `htmlAttrs` | Atributos extra de `<html>`. |
-| `gtmId`, `privacyUrl`, `strings` | Con `gtmId` se pinta el aviso de consentimiento, que exige `privacyUrl` y los textos de interfaz (`strings`); sin alguna de las dos, falla con un error que la nombra. |
+| `gtmId`, `privacyUrl` | Con `gtmId` se pinta el aviso de consentimiento, que exige `privacyUrl`; sin ella, falla con un error que la nombra. |
+| `strings` | Opcional. Catálogo de interfaz del aviso; sin él, los textos por defecto en inglés. |
+| `label`, `message`, `acceptLabel`, `rejectLabel`, `privacyLabel` | Textos sueltos del aviso para quien tiene su propio i18n: cada uno manda sobre `strings`. |
 
 ## Ranuras
 
@@ -104,7 +106,7 @@ Los textos (`strings`) salen del módulo virtual de la integración, `virtual:@v
 ## Lo que ya viene resuelto
 
 - El tema claro/oscuro: el script previo al pintado y el arranque de cliente (`bootBase`).
-- El aviso de consentimiento, con `gtmId`, `privacyUrl` y `strings`. Si quieres además el botón
+- El aviso de consentimiento, con `gtmId` y `privacyUrl` (los textos, con `strings` o sueltos). Si quieres además el botón
   «Preferencias de cookies» en tu pie, usa `DocsFooter` con `cookieControl`, o el tuyo con el
   atributo `data-consent-open`.
 - `theme.css`: la paleta, los tokens y los estilos base, sin que el consumidor importe CSS.

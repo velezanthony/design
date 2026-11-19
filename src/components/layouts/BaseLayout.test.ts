@@ -94,9 +94,33 @@ describe('BaseLayout: consentimiento', () => {
     );
   });
 
-  it('con gtmId y sin textos falla nombrándolos', async () => {
-    await expect(
-      renderDocument(BaseLayout, props({ gtmId: 'GTM-ABC', privacyUrl: '/p/' })),
-    ).rejects.toThrow(/strings/);
+  it('con gtmId y sin `strings` pinta el banner con los textos por defecto', async () => {
+    const htmlDocument = await renderDocument(
+      BaseLayout,
+      props({ gtmId: 'GTM-ABC', privacyUrl: '/p/' }),
+    );
+    expect(htmlDocument.querySelector('[data-consent-accept]')!.textContent!.trim()).toBe('Accept');
+  });
+
+  it('los textos sueltos llegan al banner y mandan sobre `strings`', async () => {
+    const htmlDocument = await renderDocument(
+      BaseLayout,
+      props({
+        strings,
+        gtmId: 'GTM-ABC',
+        privacyUrl: '/p/',
+        label: 'Cookies',
+        message: 'Usamos analitica.',
+        acceptLabel: 'Si',
+        rejectLabel: 'No',
+        privacyLabel: 'Privacidad',
+      }),
+    );
+    const banner = htmlDocument.querySelector('[data-consent-banner]')!;
+    expect(banner.getAttribute('aria-label')).toBe('Cookies');
+    expect(banner.textContent).toContain('Usamos analitica.');
+    expect(htmlDocument.querySelector('[data-consent-accept]')!.textContent!.trim()).toBe('Si');
+    expect(htmlDocument.querySelector('[data-consent-reject]')!.textContent!.trim()).toBe('No');
+    expect(banner.querySelector('a[href="/p/"]')!.textContent!.trim()).toBe('Privacidad');
   });
 });

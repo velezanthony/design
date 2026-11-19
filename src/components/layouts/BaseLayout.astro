@@ -17,19 +17,32 @@ interface Props {
   bodyClass?: string;
   /** Atributos extra de `<html>`. */
   htmlAttrs?: Record<string, string>;
-  /** Con `gtmId` hay aviso de consentimiento: exige `privacyUrl` y `strings`. */
+  /** Con `gtmId` hay aviso de consentimiento: exige `privacyUrl`. */
   gtmId?: string;
   privacyUrl?: string;
+  /** Catálogo de interfaz del aviso; sin él, los textos por defecto en inglés. */
   strings?: UiStrings;
+  /** Textos sueltos del aviso para quien tiene su propio i18n: cada uno manda sobre `strings`. */
+  label?: string;
+  message?: string;
+  acceptLabel?: string;
+  rejectLabel?: string;
+  privacyLabel?: string;
 }
 
-const { lang, head, bodyClass, htmlAttrs = {}, gtmId, privacyUrl, strings } = Astro.props;
+const {
+  lang,
+  head,
+  bodyClass,
+  htmlAttrs = {},
+  gtmId,
+  privacyUrl,
+  strings,
+  ...consentTexts
+} = Astro.props;
 
 if (gtmId && !privacyUrl) {
   throw new Error('BaseLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
-}
-if (gtmId && !strings) {
-  throw new Error('BaseLayout: `strings` es obligatoria cuando se define `gtmId`.');
 }
 ---
 
@@ -45,8 +58,8 @@ if (gtmId && !strings) {
   </head>
   <body class={bodyClass}>
     <slot />
-    {gtmId && privacyUrl && strings && (
-      <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />
+    {gtmId && privacyUrl && (
+      <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} {...consentTexts} />
     )}
     <script>
       import { bootBase } from './boot';
