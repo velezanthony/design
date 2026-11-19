@@ -44,8 +44,8 @@ Las rutas de abajo están escritas para una carpeta `docs/` dentro del repo; en 
 `npm create astro` el proyecto de Astro es la raíz del repo, así que quita el prefijo `docs/` y
 ajusta las rutas relativas (`../CHANGELOG.md` pasa a ser `./CHANGELOG.md`). Empieza borrando la
 página del scaffold `src/pages/index.astro`: la home es `src/content/docs/index.md`, y una página
-propia en `/` o `/sitemap.xml` (o `/es/` para otros idiomas) rompe el build,
-porque Astro la renderizaría en lugar de los docs.
+propia en `/` o `/sitemap.xml` (o `/es/` para otros idiomas) no rompe el build: sustituye a la de la
+librería, y Astro renderiza la tuya en lugar de los docs (al arrancar se avisa con el fichero).
 
 Declara la configuración una sola vez en `docs.config.mjs` y pásala a `docs()` en
 `astro.config.mjs`. El `content.config.ts` es una línea que no la importa: la colección toma la
