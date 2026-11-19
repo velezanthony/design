@@ -15,7 +15,7 @@ sequenceDiagram
   participant GH as GitHub
   participant C as Repo consumidor
   Y->>Y: npm test · lint · format:check · check · docs:build
-  Y->>Y: sube "version" (0.2.0) y renombra "Sin publicar" a "## 0.2.0" en CHANGELOG.md
+  Y->>Y: sube "version" (0.2.0) y escribe la sección "## 0.2.0" en CHANGELOG.md
   Y->>GH: PR y merge a main
   Y->>GH: git tag v0.2.0 sobre main + push de la etiqueta
   Y->>GH: GitHub Release v0.2.0 con la sección del CHANGELOG como notas
@@ -38,8 +38,9 @@ sequenceDiagram
      imports (una opción renombrada, una regla estricta nueva que puede romper builds, un archivo
      movido de una subruta de `"exports"`).
 
-   Mientras la versión sea `0.x`, un cambio incompatible sube el _minor_. En el mismo PR, renombra
-   «Sin publicar» de `CHANGELOG.md` a `## 0.2.0` (sin fecha) y deja encima una «Sin publicar» vacía.
+   Mientras la versión sea `0.x`, un cambio incompatible sube el _minor_. En el mismo PR,
+   añade encima de la anterior la sección `## 0.2.0` (sin fecha) del `CHANGELOG.md` con los cambios
+   de la versión.
 3. **Etiqueta y publica la Release** una vez hecho el merge a `main`, sobre el commit del merge:
 
    ```sh

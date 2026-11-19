@@ -745,7 +745,7 @@ CI ejecuta lint, format, check y test en cada push y pull request a `main`.
 
 ## Publicación de versiones
 
-En el PR, sube `version` en `package.json` y renombra «Sin publicar» en `CHANGELOG.md` a la versión
+En el PR, sube `version` en `package.json` y escribe en `CHANGELOG.md` la sección de la versión
 (`## 0.1.0`). Tras el merge a `main`, etiqueta el commit del merge, sube la etiqueta y crea la
 Release en GitHub con esa sección del CHANGELOG como notas:
 
