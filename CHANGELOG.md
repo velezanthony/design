@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Subruta `last-modified`: `fileLastModified(file, root?)`.** La fecha de última modificación de un
+  archivo, la misma que el `<lastmod>` del sitemap (su último commit; sin él, la fecha del archivo;
+  nada en un clon superficial). Comparte el único `git log` del proceso, así que pedir la fecha de
+  muchos archivos no lanza git por cada uno. Sirve, por ejemplo, para el `dateModified` de un JSON-LD.
 - **`tailwindcss` y `@tailwindcss/vite` pasan de peer dependencies a `dependencies`.** `docs()` ya
   registra el plugin y `theme.css` importa `tailwindcss`, así que el consumidor deja de instalarlos
   (`npm install astro @astrojs/markdown-satteri` basta). Si el sitio ya los tiene, no pasa nada: el

@@ -308,6 +308,7 @@ astro/
 │   ├── image-sizes.ts       Lee los tamaños de las imágenes sociales
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
 │   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
+│   ├── file-last-modified.ts  `fileLastModified`: la de un solo archivo, la subruta pública `last-modified`
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
 └── virtual/
@@ -351,6 +352,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/client/consent` | `src/client/preferences/consent.ts` |
 | `@velezanthony/design/client/storage` | `src/client/preferences/storage.ts` |
 | `@velezanthony/design/client/toc` | `src/client/layout/toc.ts` |
+| `@velezanthony/design/last-modified` | `src/astro/data/file-last-modified.ts` |
 | `@velezanthony/design/head` | `src/core/seo/head.ts` |
 | `@velezanthony/design/ui-strings` | `src/core/i18n/ui-strings.ts` |
 

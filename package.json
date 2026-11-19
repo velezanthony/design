@@ -31,6 +31,7 @@
     "./client/consent": "./src/client/preferences/consent.ts",
     "./client/storage": "./src/client/preferences/storage.ts",
     "./client/toc": "./src/client/layout/toc.ts",
+    "./last-modified": "./src/astro/data/file-last-modified.ts",
     "./head": "./src/core/seo/head.ts",
     "./ui-strings": "./src/core/i18n/ui-strings.ts"
   },
