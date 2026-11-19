@@ -94,7 +94,7 @@ const PageSchemasSchema = z.any().superRefine((value, context) => {
 
 /** Override de SEO de una página: frontmatter `seo` (nativas) o `external[].seo` (externas). */
 export const PageSeoOverrideSchema = z.strictObject({
-  title: z.string().optional(),
+  title: LabelSchema.optional(),
   titleSuffix: TitleSuffixSchema.optional(),
   description: LabelSchema.optional(),
   image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema.optional() }).optional(),

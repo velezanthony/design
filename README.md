@@ -205,8 +205,8 @@ Una página sobrescribe la base campo a campo: `seo` en el frontmatter en las p�
 `external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex?, schema? }`.
 
 El `<title>` tiene dos partes, título y sufijo, y se forma `título | sufijo` (separador fijo). Cada
-parte se resuelve por separado: página > sitio > librería. `seo.title` cambia el título solo en el
-head (el H1 no se toca) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
+parte se resuelve por separado: página > sitio > librería. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
+head (el H1 no se toca; sin el idioma de la página, vale el título de la página) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
 también a un sufijo del sitio). Si el título es igual al sufijo no se repite, y `og:title` /
 `twitter:title` nunca llevan sufijo.
 

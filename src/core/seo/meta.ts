@@ -39,7 +39,7 @@ export function resolveMeta(
   };
   const titleSuffix = resolveTitleSuffix(override?.titleSuffix, base.titleSuffix, locale);
   return {
-    title: override?.title ?? page.title,
+    title: labelFor(override?.title, locale) ?? page.title,
     ...(description !== undefined && { description }),
     ...(image && { image }),
     noindex: override?.noindex ?? false,

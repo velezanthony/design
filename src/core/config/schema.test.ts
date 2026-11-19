@@ -103,6 +103,12 @@ describe('external[].seo', () => {
     });
     expect(config.external[0]?.seo).toEqual({ noindex: true });
   });
+
+  it('el título SEO de un externo puede ir por idioma', () => {
+    const seo = { title: { en: 'Readme', es: 'Léeme' } };
+    const config = resolveConfig({ name: 'X', external: [{ slug: 'a', file: 'a.md', seo }] });
+    expect(config.external[0]?.seo).toEqual(seo);
+  });
 });
 
 describe('DocsConfigSchema', () => {

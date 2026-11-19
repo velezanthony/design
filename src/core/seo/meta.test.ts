@@ -15,6 +15,12 @@ describe('resolveMeta: título', () => {
     expect(page.title).toBe('Install guide');
   });
 
+  it('`seo.title` por idioma: el del idioma de la página, y sin él el título de la página', () => {
+    const override = { title: { en: 'Install on any OS', es: 'Instalar en cualquier SO' } };
+    expect(resolveMeta(base, override, page, 'es').title).toBe('Instalar en cualquier SO');
+    expect(resolveMeta(base, override, page, 'fr').title).toBe('Install guide');
+  });
+
   it('lleva el sufijo ya resuelto para el idioma, para que el head forme el <title>', () => {
     expect(resolveMeta(base, undefined, page, 'en').titleSuffix).toBe('Design');
     expect(resolveMeta({ titleSuffix: { es: 'Diseño' } }, undefined, page, 'es').titleSuffix).toBe(

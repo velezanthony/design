@@ -45,6 +45,9 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`seo.title` por idioma.** En `external[].seo` (y en el frontmatter) el título SEO acepta, además de
+  un texto, uno por idioma (`{ en: 'Readme', es: 'Léeme' }`); un externo ya no sale con el mismo
+  título en todos los idiomas. Si falta el del idioma de la página, vale el título de la página.
 - **Secciones de `nav` con páginas sueltas y ficheros de fuera de `docs/`.** Una sección es de `dir`
   y de todo lo que nombra su `sidebar`, aunque viva en otra carpeta o sea un `external`; y `dir` es
   opcional si hay `sidebar`. Antes cada página de la sección tenía que colgar de su carpeta y el
