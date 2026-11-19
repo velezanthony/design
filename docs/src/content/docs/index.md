@@ -14,7 +14,7 @@ uno:
    componentes genéricos (átomos, moléculas, organismos).
 2. **Un motor de documentación**: una integración de Astro que, a partir de una carpeta de Markdown y
    un único archivo de configuración, genera el sitio entero: rutas, barra lateral, índice,
-   búsqueda, SEO, idiomas, `sitemap.xml`, `404.html` y aviso de cookies.
+   búsqueda, SEO, idiomas, `sitemap.xml` y aviso de cookies.
 
 ## El problema que resuelve
 

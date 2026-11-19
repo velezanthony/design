@@ -15,7 +15,7 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
 1. **Elige el nivel** del diseño atómico:
    - `components/atoms/<tipo>/`: una pieza indivisible sin estado propio (`Link` en `actions/`, `Tag` e `Icon` en `display/`).
    - `components/molecules/<tipo>/`: unas pocas piezas con un propósito (`EditLink` y `PrevNext` en `navigation/`, `ThemeToggle` en `controls/`).
-   - `components/organisms/<zona>/`: una zona de la página (`DocsHeader` y `Sidebar` en `chrome/`, `ConsentBanner` en `privacy/`).
+   - `components/organisms/<zona>/`: una zona de la página (`DocsHeader`, `Sidebar` y `ConsentBanner` en `chrome/`).
 2. **Define sus `Props`** con comentarios. Todo lo que muestra llega por props, **textos incluidos**
    (`strings: UiStrings` y `translate(strings, 'clave')`). El componente no importa `astro:*`, ni
    `virtual:*`, ni nada de `src/astro/`: ESLint lo impide.
@@ -50,7 +50,7 @@ flowchart LR
    `strictObject`: hasta que no lo añadas, la clave rompe el build como desconocida. Si tiene valores
    cerrados, crea un objeto `as const` (como `PanelState` en `core/config/layout.ts`) y expórtalo en
    `src/astro/integration/index.ts`. Las validaciones que cruzan campos van en el `superRefine`, con
-   su ruta (`issue(['privacy', 'page'], …)`). Test en `schema.test.ts`.
+   su ruta (`issue(['privacyUrl', locale], …)`). Test en `schema.test.ts`.
 2. **Resolución** (`src/core/config/resolve.ts`). Añádelo a `ResolvedConfig` y pon el valor por
    defecto en `resolveConfig`: los valores por defecto viven aquí, **no** en el esquema. Test en
    `resolve.test.ts`.
@@ -81,6 +81,4 @@ nueva (`ui: { es: { 'footer.report': '…' } }`) y una errata en el nombre sigue
 ## Un idioma nuevo
 
 Añade su catálogo completo a `ui-strings.ts` (y a `defaultStrings` y `localeNames`). El test de
-completitud te dirá qué falta. Si el idioma debe soportar la página de privacidad propia, añade
-también su texto a `src/core/privacy/copy.ts`; sin él, `privacy.page: true` con ese idioma rompe la
-validación a propósito.
+completitud te dirá qué falta. 

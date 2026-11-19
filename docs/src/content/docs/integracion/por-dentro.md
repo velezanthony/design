@@ -42,11 +42,11 @@ sequenceDiagram
 
   CLI->>Int: docs(docsConfig) → resolveConfig (zod)
   CLI->>Int: astro:config:setup
-  Int->>Int: exige site, lee PUBLIC_GTM_ID (applyAnalytics)
+  Int->>Int: exige site, lee PUBLIC_GTM_ID (applyAnalyticsForCommand)
   Int->>Int: routeOverrides (aviso), assertNoFontConflict
   Int->>MD: extendMarkdownProcessor (directivas + plugins)
   Int->>Vite: updateConfig (shikiConfig, fonts, plugin virtual)
-  Int->>Rt: injectRoute /[...slug], /404, /sitemap.xml y su hoja, favicon, privacidad
+  Int->>Rt: injectRoute /[...slug], /sitemap.xml y su hoja, favicon
   CLI->>Int: astro:config:done → injectTypes(virtual.d.ts)
   CLI->>Ldr: sincroniza la colección docs (config del módulo virtual)
   Ldr->>Ldr: lee <content>/**.md + external[]
@@ -74,10 +74,10 @@ Es donde ocurre casi todo. En orden:
 
 1. **Exige `site`.** Sin origen absoluto no hay sitemap ni canonical.
 2. **Analítica.** `readAnalyticsEnv` lee `PUBLIC_GTM_ID` con `loadEnv` de Vite (en este hook los
-   `.env` aún no están en `process.env`) y `applyAnalytics` decide si se activa. Detalle en
+   `.env` aún no están en `process.env`) y `applyAnalyticsForCommand` decide si se activa (exige `privacyUrl`). Detalle en
    [Analítica y privacidad](./analitica-y-privacidad.md).
 3. **Sustituciones y conflictos.** `routeOverrides` lista las rutas de la librería que el
-   consumidor sustituye con un fichero de `src/pages/` (la portada, la 404, el sitemap, `/_design/`…):
+   consumidor sustituye con un fichero de `src/pages/` (la portada, el sitemap, `/_design/`…):
    no es un error, se avisa al arrancar y las rutas exactas que ya son suyas no se inyectan.
    `assertNoFontConflict` falla si el consumidor declara una fuente con `--font-plex-sans` o
    `--font-plex-mono`.
@@ -99,9 +99,8 @@ Es donde ocurre casi todo. En orden:
 | `/sitemap-pages.xml` | `sitemap-pages.xml.ts` | Con `sitemap.include`: las páginas propias. |
 | `/_design/sitemap.css` | `sitemap.css.ts` | Siempre (la hoja con la que el navegador pinta el sitemap). |
 | `/_design/favicon.png` | `favicon.png.ts` | Siempre (el favicon por defecto, con espacio de nombres propio). |
-| `/404` | `not-found.astro` | Siempre. |
-| `/[locale]/404` | `not-found.astro` | Con más de un idioma. |
-| `/[privacy]` y `/[locale]/[privacy]` | `privacy.astro`, `privacy-locale.astro` | Con `privacy.page: true`. |
+
+La 404 y la página de privacidad no están en la tabla: la librería no las inyecta, las pone el sitio.
 
 ### `astro:config:done`
 
@@ -138,7 +137,7 @@ flowchart LR
   vd --> vp["plugin de Vite<br/>virtual:@velezanthony/design/config"]
   vp --> sc["data/site-config.ts"]
   vp --> ct["content/index.ts<br/>colección docs"]
-  sc --> doc["doc.astro · not-found.astro<br/>sitemap.xml.ts · privacy.astro"]
+  sc --> doc["doc.astro<br/>sitemap.xml.ts"]
 ```
 
 ## El loader

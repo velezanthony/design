@@ -24,6 +24,8 @@ export default defineDocsConfig({
   editUrl: 'https://github.com/velezanthony/design/edit/main',
   repoRoot: '..',
   social: { github: 'https://github.com/velezanthony/design' },
+  /* La política es la del portfolio, una para todo el dominio: la analítica exige `privacyUrl`. */
+  privacyUrl: 'https://velezanthony.github.io/privacidad/',
   /* Sin licencia en el pie hasta decidirla. La analítica no se declara aquí: el workflow pasa
      `PUBLIC_GTM_ID` desde el secreto del repo, así un build local o un fork sale sin rastreo. */
 });

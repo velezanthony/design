@@ -8,7 +8,7 @@ se comporten igual.
 A un repo consumidor le da, desde un único archivo de configuración: páginas localizadas
 (`en`/`es`), el layout, la barra lateral, la tabla de contenidos, la búsqueda (Pagefind, por
 idioma; la tecla `/` enfoca el buscador), el tema claro/oscuro, un banner de consentimiento de analítica, etiquetas SEO en el head,
-`sitemap.xml` y un `404.html` que responde en el idioma del visitante. También puede publicar
+y `sitemap.xml`. También puede publicar
 archivos de la raíz como `README.md` o `CHANGELOG.md` como páginas, así que GitHub y el sitio de
 docs leen la misma fuente.
 
@@ -44,7 +44,7 @@ Las rutas de abajo están escritas para una carpeta `docs/` dentro del repo; en 
 `npm create astro` el proyecto de Astro es la raíz del repo, así que quita el prefijo `docs/` y
 ajusta las rutas relativas (`../CHANGELOG.md` pasa a ser `./CHANGELOG.md`). Empieza borrando la
 página del scaffold `src/pages/index.astro`: la home es `src/content/docs/index.md`, y una página
-propia en `/`, `/404` o `/sitemap.xml` (o `/es/`, `/es/404` para otros idiomas) rompe el build,
+propia en `/` o `/sitemap.xml` (o `/es/` para otros idiomas) rompe el build,
 porque Astro la renderizaría en lugar de los docs.
 
 Declara la configuración una sola vez en `docs.config.mjs` y pásala a `docs()` en
@@ -130,8 +130,8 @@ export const collections = {
 ```
 
 Pon las páginas nativas en `docs/src/content/docs/` (o en otra carpeta con la opción `content`, ver
-[Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro)). La librería inyecta todas las rutas (páginas,
-`404`, `sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
+[Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro)). La librería inyecta todas las rutas (páginas y
+`sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
 escribe ningún layout, ningún import de CSS ni ningún `@source`.
 
 Páginas nativas: `index.md` es la home, `guide.md` es `/guide/`, `guide.es.md` es su gemela en
@@ -159,7 +159,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
 | `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
 | `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
-| `privacyUrl`    | Sobrescritura opcional del enlace a la política de privacidad: una URL o una por idioma. Por defecto: la página del portfolio. Ver [Analítica](#analítica). |
+| `privacyUrl`    | URL de tu política de privacidad: una URL o una por idioma. Obligatoria con analítica (el banner enlaza a ella); sin analítica, es solo el enlace del pie. Ver [Analítica](#analítica). |
 | `layout`        | Barras laterales plegables y ancho de lectura / completo: `{ sidebar?, toc?, width?, toggles? }`. Ver abajo.                                             |
 | `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |
 
@@ -246,7 +246,7 @@ export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
 
 ### `favicon`
 
-Todas las páginas (docs, rutas de respaldo y 404) emiten `<link rel="icon" href type>`. Por defecto
+Todas las páginas (docs y rutas de respaldo) emiten `<link rel="icon" href type>`. Por defecto
 el paquete sirve su propio icono en `<base>/_design/favicon.png`, una ruta con espacio de nombres que
 nunca choca con tu `public/`. Define `favicon` para usar el tuyo:
 
@@ -311,7 +311,7 @@ nav: [
 
 ### `footer`
 
-Dos filas, iguales en todas las páginas (la 404 incluida). Todo es opcional.
+Dos filas, iguales en todas las páginas. Todo es opcional.
 
 ```js
 footer: {
@@ -541,11 +541,10 @@ el valor). Un valor vacío o en blanco cuenta como no definido.
   los archivos.
 - `gtmId` en la configuración es una sobrescritura explícita y gana al entorno. Úsalo solo si un repo
   debe fijar un contenedor; déjalo fuera en caso contrario.
-- Política de privacidad: existe una, la del portfolio. Por defecto el banner y el pie enlazan a
-  `https://velezanthony.github.io/privacidad/` (`es`) y `https://velezanthony.github.io/en/privacy/`
-  (`en`), según el idioma. Define `privacyUrl` (un string, o `{ en: '...', es: '...' }`) solo para
-  sobrescribirla; también se enlaza desde el pie sin analítica. Con la analítica activada, un idioma
-  sin URL resoluble rompe el build.
+- Política de privacidad: la analítica exige `privacyUrl` (un string, o `{ en: '...', es: '...' }`);
+  el banner y el pie enlazan a ella y no hay ninguna por defecto. Sin ella, `astro build` falla
+  nombrando `privacyUrl` y `astro dev` avisa y arranca sin analítica. Sin analítica, `privacyUrl` solo
+  pone el enlace en el pie. Un idioma sin URL resoluble rompe el build.
 
 En GitHub Actions pasa la variable al paso de build (el portfolio la guarda como secret; una variable
 de repositorio también sirve, el id es público en la página de todos modos):
@@ -558,44 +557,19 @@ de repositorio también sirve, el id es público en la página de todos modos):
 
 Sin ella, los builds locales y de forks quedan sin rastreo y sin ningún camino de código propio.
 
-### Página de privacidad propia (`privacy`)
+### La política de privacidad y la 404 no son de la librería
 
-Por defecto no se genera ninguna página: si la analítica está activa (o defines `privacyUrl`), el
-footer y el aviso de consentimiento enlazan a la política del portfolio, una por idioma
-(`https://velezanthony.github.io/privacidad/` en `es` y `https://velezanthony.github.io/en/privacy/`
-en `en`).
+La librería no genera ninguna página de privacidad ni ninguna 404: las da el portfolio, una vez para
+todo el dominio (GitHub Pages sirve un único `/404.html` y la política es la misma para todos los
+sitios). `privacy.page` y `privacy.controller` ya no existen; dejarlas en la config falla con «opción
+desconocida».
 
-Para que el sitio publique la suya, actívala:
-
-```js
-export default defineDocsConfig({
-  name: 'Portfolio',
-  locales: ['es', 'en'],
-  privacy: {
-    page: true,
-    // Opcional. Por defecto, el responsable del portfolio.
-    controller: { name: 'Tu Nombre', email: 'tu@correo.dev' },
-  },
-});
-```
-
-| Opción               | Descripción                                                                                                                                                           |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `privacy.page`       | `true` inyecta la página de privacidad en cada idioma (`es` → `/privacidad/`, `en` → `/privacy/`, con el prefijo de idioma y la `base` que corresponda). Por defecto `false`. |
-| `privacy.controller` | `{ name, email }` del responsable que aparece en el texto. Por defecto, el del portfolio.                                                                              |
-
-- La página lleva la cabecera, el pie y el aviso de consentimiento de la documentación, pero sin barra
-  lateral. Es indexable: entra en `sitemap.xml` y lleva `hreflang` entre idiomas.
-- El enlace de privacidad del footer y del aviso apunta entonces a esta página (relativo a la `base`),
-  salvo que definas `privacyUrl`, que siempre gana.
-- El texto cubre este sitio y las webs de documentación de `velezanthony.github.io/<repo>/` (mismo
-  responsable, misma analítica, mismo consentimiento). Describe qué se guarda (tema, disposición y
-  elección de cookies en `localStorage`; cookies de GTM/GA solo tras aceptar), la base legal, la
-  conservación, los derechos y cómo retirar el consentimiento con «Preferencias de cookies».
-- Solo hay texto en `es` y `en`: con `page: true` y otro idioma en `locales`, la construcción falla con
-  un error claro.
-- Si ya tienes un fichero en `src/pages/` que ocupa `/privacidad/` o `/en/privacy/`, la integración
-  falla y te dice cuál.
+| Config                                 | Resultado                                         |
+| -------------------------------------- | ------------------------------------------------- |
+| `gtmId` (o `PUBLIC_GTM_ID`) + `privacyUrl` | Analítica, banner de cookies y enlace en el pie |
+| Solo `privacyUrl`                      | Solo el enlace en el pie                          |
+| Solo `gtmId`                           | `astro build` falla nombrando `privacyUrl`; `astro dev` avisa y arranca sin analítica |
+| Ninguno                                | Nada                                              |
 
 ## SEO on page (solo en desarrollo)
 
@@ -631,8 +605,7 @@ mal proporcionada, un lenguaje de Shiki desconocido y un bloque de código con f
 - `site` debe ser el origen del usuario y `base` la ruta del repo; el build es totalmente estático.
 - `sitemap.xml` (con alternativas `hreflang`) se emite en `<base>/sitemap.xml`; no hay `robots.txt`
   (el portfolio en el origen del usuario es el dueño).
-- GitHub Pages sirve un único `<base>/404.html`. Está en el idioma por defecto y se cambia solo al
-  idioma de la URL fallida (`/repo/es/nope/` muestra español, la URL no cambia).
+- La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el portfolio.
 - El índice de búsqueda se construye tras `astro build` en `dist/pagefind/`; la búsqueda necesita un
   build de producción.
 - El tema y el consentimiento se guardan en `localStorage` bajo `theme` y `consent`, así que se

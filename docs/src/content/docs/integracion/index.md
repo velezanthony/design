@@ -31,7 +31,7 @@ npm create astro@latest docs -- --template minimal --no-git
 Borra después lo que el scaffold trae y la librería ya resuelve:
 
 - `docs/src/pages/index.astro`: la portada es el `index.md` de la carpeta de contenido (`src/content/docs/index.md` por defecto). Si dejas una página en
-  `/`, `/404` o `/sitemap.xml`, sustituye a la de la librería y al arrancar se avisa con el fichero
+  `/` o `/sitemap.xml`, sustituye a la de la librería y al arrancar se avisa con el fichero
   (`route-overrides.ts`): bórrala si no es a propósito.
 - `docs/public/favicon.svg` y `favicon.ico`, salvo que quieras usarlos con la opción `favicon`.
 
@@ -126,7 +126,7 @@ export default defineConfig({
 - `site` es **obligatorio**: sin él, la integración falla en `astro:config:setup` porque el sitemap y
   las URLs canónicas necesitan un origen absoluto.
 - `base` es el nombre del repo: GitHub Pages sirve las páginas de proyecto bajo
-  `https://<usuario>.github.io/<repo>/`. Todos los enlaces internos, la búsqueda y la 404 lo
+  `https://<usuario>.github.io/<repo>/`. Todos los enlaces internos, y la búsqueda lo
   respetan.
 - `trailingSlash: 'always'` coincide con cómo GitHub Pages sirve los directorios (`/guia/`).
 - El plugin de Tailwind sale del _peer_ `@tailwindcss/vite`, que instala el consumidor; la librería pone el CSS.

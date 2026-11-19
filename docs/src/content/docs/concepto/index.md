@@ -25,7 +25,7 @@ flowchart TD
   nm --> cc
   astrocfg --> build["astro build"]
   cc --> build
-  build --> dist["docs/dist/<br/>HTML estático + pagefind/ + sitemap.xml + 404.html"]
+  build --> dist["docs/dist/<br/>HTML estático + pagefind/ + sitemap.xml"]
   dist -->|"workflow de GitHub Actions"| pages["GitHub Pages<br/>https://velezanthony.github.io/&lt;repo&gt;/"]
 ```
 
@@ -58,15 +58,15 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 | Tema claro/oscuro y su selector | `docs.config.mjs`: nombre, idiomas, `nav`, `sidebar`, SEO base |
 | Fuentes (IBM Plex vía la API de fuentes de Astro) | `site` y `base` en `astro.config.mjs` |
 | Componentes genéricos: cabecera, barra lateral, índice, pie, pestañas, admoniciones | Imágenes de `public/` (imagen OG, favicon propio si quiere) |
-| Todas las rutas: páginas, `404`, `sitemap.xml`, favicon por defecto, privacidad | El workflow de despliegue y, si quiere analítica, `PUBLIC_GTM_ID` |
+| Todas las rutas: páginas, `sitemap.xml`, favicon por defecto | La 404 y la política de privacidad, una vez para todo el dominio |
 | SEO: plantilla de título, descripción, Open Graph, canonical, `hreflang` | Componentes propios, solo si algo es específico de su proyecto |
 | Búsqueda (índice de Pagefind generado al terminar el build) | |
 | Idiomas: URLs por idioma, textos de interfaz, política de traducciones ausentes | |
 | Validación estricta: enlaces, anclas, títulos, lenguajes de código | |
-| Banner de consentimiento y carga diferida de Google Tag Manager | |
+| Banner de consentimiento y carga diferida de Google Tag Manager | El workflow de despliegue y, si quiere analítica, `PUBLIC_GTM_ID` y `privacyUrl` |
 
 Lo que el consumidor **no** escribe nunca: un layout, un `import` de CSS, un `@source` de Tailwind o
-una página en `src/pages/`. Puede hacerlo: una página propia en `/`, `/404` o `/sitemap.xml`
+una página en `src/pages/`. Puede hacerlo: una página propia en `/` o `/sitemap.xml`
 sustituye a la de la librería, y al arrancar se avisa de cuáles
 (`src/astro/integration/route-overrides.ts`) para que nunca pase sin saberlo.
 

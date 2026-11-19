@@ -14,7 +14,7 @@ navegador, y por eso se puede probar con tests unitarios rápidos y sin montar n
 
 | Capa | Qué contiene | Puede importar |
 | --- | --- | --- |
-| `core/` | Lógica pura: config, contenido, enlaces, navegación, i18n, SEO, analítica, privacidad. | Solo `core/` y `astro/zod`. |
+| `core/` | Lógica pura: config, contenido, enlaces, navegación, i18n, SEO, analítica. | Solo `core/` y `astro/zod`. |
 | `client/` | JavaScript del navegador: tema, búsqueda, consentimiento, pestañas, zoom… | Solo **tipos** de `core/` (`import type`). |
 | `components/` | Componentes `.astro` presentacionales y estilos. Reciben props, no buscan datos. | `core/` y `client/`. Nada de `astro`, `astro:*`, `virtual:*` ni la carpeta `astro/`. |
 | `astro/` | El adaptador: integración, loader, plugins de Markdown, rutas, módulo virtual. | Todo, con las reglas de subcapa de más abajo. Es la única capa que conoce Astro. |

@@ -2,7 +2,7 @@
 order: 4
 seo:
   title: "Rutas, SEO e idiomas de un sitio de docs"
-  description: "La política de URLs, la 404 de GitHub Pages y el sitemap; cómo se eligen título, descripción e imagen de cada página y qué pasa si falta una traducción."
+  description: "La política de URLs y el sitemap; cómo se eligen título, descripción e imagen de cada página y qué pasa si falta una traducción."
 ---
 
 # Rutas, SEO e idiomas
@@ -25,19 +25,17 @@ La pieza central es `/[...slug]` → `src/astro/routes/doc.astro`:
 - `docView` calcula todo lo que la página necesita (barra lateral, anterior/siguiente, head, pie,
   textos) con funciones puras de `src/core/`, y se lo pasa a `DocsLayout`.
 
-### La 404 de GitHub Pages
+### La 404
 
-GitHub Pages sirve **un único** `<base>/404.html` para cualquier URL que no existe. La librería lo
-genera en el idioma por defecto e incluye, en `<template data-locale>`, el cuerpo de cada otro idioma.
-Al cargar, `bootNotFound` (`src/components/layouts/boot.ts`) deduce el idioma de la URL pedida y
-`swapNotFound` (`src/client/not-found.ts`) cambia el cuerpo, el `lang` y el título **sin
-redirigir**: `/repo/en/no-existe/` muestra la 404 en inglés y la URL no cambia.
+La librería **no genera ninguna 404**. GitHub Pages sirve un único `<base>/404.html` para todo el
+dominio, así que la pone el portfolio, una vez, en la raíz; un sitio de docs que cuelga de una
+subcarpeta no puede tener la suya. Si el sitio quiere una propia, es una página más de su `src/pages/`.
 
 ### `sitemap.xml`
 
 `src/astro/routes/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
 (`core/seo/sitemap.ts`). Solo entran páginas **reales e indexables**, con sus alternativas
-`hreflang`; ni rutas de reserva ni la 404. La página de privacidad propia entra si existe. No hay
+`hreflang`; ni rutas de reserva. No hay
 `robots.txt`: es del portfolio, que vive en la raíz del dominio.
 
 Las páginas que el sitio añade en `src/pages/` también entran, leídas de lo que publica su `<head>`
@@ -94,7 +92,7 @@ flowchart LR
   ninguno de los dos, el sufijo es el de la librería, `Anthony Velez Tapia`. Con `false` en la
   página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
   sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` van
-  siempre sin sufijo. La 404 compone su título igual.
+  siempre sin sufijo.
 
 ```mermaid
 flowchart LR

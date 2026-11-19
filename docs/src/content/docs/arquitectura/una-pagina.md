@@ -108,9 +108,6 @@ Tres decisiones que conviene conocer antes de tocarlo:
 - **Los textos llegan por `data-*`.** `client/` no puede importar valores de `core/`, así que el
   catálogo ya resuelto viaja en el HTML.
 
-La 404 usa `bootNotFound`: primero sustituye el cuerpo por el del idioma de la URL y **solo después**
-llama a `bootDocs`, para que los `init*` vean el DOM definitivo.
-
 ## Dónde mirar cuando algo falla
 
 | Síntoma | Empieza por |
