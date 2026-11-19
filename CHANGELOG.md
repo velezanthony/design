@@ -45,6 +45,8 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Impresión: «volver arriba» y el banner de cookies se ocultan.** Con `@media print` ya no se
+  repiten encima del texto en cada hoja, y el hueco que el banner reserva al pie también desaparece.
 - **Índice «En esta página»: profundidad y altura máxima.** `layout.tocDepth` (2 a 6, por defecto 3,
   como hasta ahora) elige el último nivel de encabezado que se lista y `layout.tocMaxHeight` (una
   longitud CSS como `60vh`) limita la lista, que entonces hace scroll por dentro. `TableOfContents`

@@ -73,6 +73,11 @@ defecto salen de `core/config/layout.ts`; los desconocidos fallan la validación
 - `<meta name="theme-color">` no puede leer variables CSS, así que `src/components/styles/theme-colors.ts`
   repite el `--color-canvas` de cada tema; otro test los sujeta a `theme.css`.
 
+## Impresión
+
+Con `@media print` se ocultan los elementos que solo sirven en pantalla y flotan sobre el texto: el
+botón «volver arriba» y el banner de cookies (con el hueco que reserva al pie).
+
 ## Transiciones
 
 Todas usan la View Transitions API y van tras `prefers-reduced-motion: no-preference`: con movimiento
