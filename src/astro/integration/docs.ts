@@ -22,6 +22,7 @@ import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { overrideWarning, routeOverrides } from './route-overrides';
 import { siteThemeAlias } from './site-theme';
+import { tailwindPlugins } from './tailwind';
 
 /** Nombre de la integración en `astro.config` (lo que Astro enseña en sus avisos). */
 export const INTEGRATION_NAME = '@velezanthony/design';
@@ -126,6 +127,8 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
                   root: config.root.href,
                 }),
               ),
+              // La librería es la dueña del CSS: el sitio no registra Tailwind.
+              ...tailwindPlugins(config.vite?.plugins),
             ],
           },
         });

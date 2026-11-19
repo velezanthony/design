@@ -96,7 +96,6 @@ export default defineDocsSite(docsConfig, { base: '/mi-repo' });
 Equivale a la forma larga, que sigue valiendo si necesitas control total:
 
 ```js
-import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import { docs } from '@velezanthony/design/integration';
 import docsConfig from './docs.config.mjs';
@@ -105,8 +104,7 @@ export default defineConfig({
   site: 'https://velezanthony.github.io',
   base: '/mi-repo',
   trailingSlash: 'always',
-  vite: { plugins: [tailwindcss()] },
-  integrations: [docs(docsConfig)],
+  integrations: [docs(docsConfig)], // registra también el plugin de Tailwind
 });
 ```
 
@@ -118,7 +116,7 @@ export default defineConfig({
   (`options.site` lo cambia). En la larga es **obligatorio**: sin él, la integración falla en
   `astro:config:setup` porque el sitemap y las URLs canónicas necesitan un origen absoluto.
 - Más config de Astro, en `options.astro`, se fusiona: `integrations` y `vite.plugins` se añaden
-  después de `docs()` y de Tailwind, el resto de claves de `vite` se fusionan en superficial y las
+  después de `docs()`, el resto de claves de `vite` se fusionan en superficial y las
   demás claves de primer nivel pisan los valores por defecto. `site` y `base` van en `options`.
   `markdown.processor` debe seguir siendo Sätteri: si no, `docs()` falla con un error claro.
 - `docs(docsConfig)` recibe la config. Editar `docs.config.mjs` reinicia `astro dev`: la integración
@@ -129,7 +127,9 @@ export default defineConfig({
   `https://<usuario>.github.io/<repo>/`. Todos los enlaces internos, y la búsqueda lo
   respetan.
 - `trailingSlash: 'always'` coincide con cómo GitHub Pages sirve los directorios (`/guia/`).
-- El plugin de Tailwind sale del _peer_ `@tailwindcss/vite`, que instala el consumidor; la librería pone el CSS.
+- El plugin de Tailwind sale del _peer_ `@tailwindcss/vite`, que instala el consumidor, pero lo registra
+  `docs()`: el sitio no lo declara en su `vite.plugins` (si ya lo hace, la integración no lo repite).
+  La librería pone el CSS y la pasada de Tailwind.
 
 ## CSS propio del sitio (`theme`)
 

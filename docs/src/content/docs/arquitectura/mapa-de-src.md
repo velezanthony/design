@@ -254,6 +254,7 @@ astro/
 │   ├── client-pages.ts      Guarda las páginas del consumidor al resolver las rutas
 │   ├── fs-allow.ts          Carpetas que Vite debe servir si el contenido está fuera del proyecto
 │   ├── site-theme.ts        Alias de Vite al CSS propio del sitio (opción `theme`)
+│   ├── tailwind.ts          El plugin de Tailwind, salvo que el sitio ya lo registrase
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
 │   └── build/
 │       ├── build-done.ts    Lo que corre en astro:build:done

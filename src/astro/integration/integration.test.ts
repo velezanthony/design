@@ -139,6 +139,35 @@ describe('astro:config:setup: fuentes y módulo virtual', () => {
   });
 });
 
+describe('astro:config:setup: Tailwind', () => {
+  function pluginNames(update: { vite?: { plugins?: unknown[] } }): string[] {
+    return (update.vite?.plugins ?? []).flat().map((plugin) => (plugin as { name: string }).name);
+  }
+
+  it('registra el plugin de Tailwind: la librería es la dueña del CSS', async () => {
+    const { updateConfig } = await runSetup(satteri());
+    const partial = updateConfig.mock.calls
+      .map(([update]) => update as { vite?: { plugins?: unknown[] } })
+      .find((update) => update.vite);
+    expect(pluginNames(partial!).some((name) => name.startsWith('@tailwindcss/vite'))).toBe(true);
+  });
+
+  it('no lo repite si el sitio ya lo registró', async () => {
+    const { updateConfig } = await runSetup(
+      satteri(),
+      {},
+      { name: 'x' },
+      {
+        vite: { plugins: [{ name: '@tailwindcss/vite:scan' }] },
+      },
+    );
+    const partial = updateConfig.mock.calls
+      .map(([update]) => update as { vite?: { plugins?: unknown[] } })
+      .find((update) => update.vite);
+    expect(pluginNames(partial!).some((name) => name.startsWith('@tailwindcss/vite'))).toBe(false);
+  });
+});
+
 describe('astro:config:setup: Shiki', () => {
   async function shikiOf(processorShiki: object) {
     const { updateConfig } = await runSetup(satteri(), processorShiki);

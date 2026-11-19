@@ -40,6 +40,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`docs()` registra el plugin de Tailwind (`@tailwindcss/vite`)**: la librería es la dueña de la
+  compilación del CSS, así que el sitio no lo declara en su `vite.plugins`. Si ya lo declara, la
+  integración no lo repite (dos pasadas duplicarían el CSS). `defineDocsSite` deja de añadirlo por su
+  cuenta, porque ya lo hace `docs()`; el resultado es el mismo.
 - **Opción `theme` en `docs.config.mjs`**: ruta (desde la raíz del proyecto) a un CSS con los tokens
   `@theme` y los estilos propios del sitio. Entra en la MISMA compilación de Tailwind que `theme.css`
   (que lo importa el último, vía el alias `@velezanthony/design/site-theme`), así que los tokens generan
