@@ -290,8 +290,6 @@ astro/
 ├── routes/                  SOLO lo que Astro sirve: rutas y endpoints (las inyecta la integración)
 │   ├── routes.ts            La tabla de rutas: patrón, fichero y cuándo se inyecta
 │   ├── doc.astro            /[...slug]
-│   ├── not-found.astro      /404 (y /<idioma>/404)
-│   ├── privacy.astro, privacy-locale.astro   Página de privacidad propia
 │   ├── Fonts.astro          Las fuentes de designFonts() (components/ no importa astro:*)
 │   ├── sitemap.xml.ts       Endpoint del sitemap (o el índice, con sitemap.include)
 │   ├── sitemap-pages.xml.ts Endpoint con las páginas propias cuando sitemap.xml es un índice

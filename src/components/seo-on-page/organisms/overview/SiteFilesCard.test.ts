@@ -5,7 +5,6 @@ import SiteFilesCard from './SiteFilesCard.astro';
 const files = [
   { id: 'sitemap', path: '/sitemap.xml', state: 'generated', href: '/sitemap.xml', urls: 75 },
   { id: 'robots', path: '/robots.txt', state: 'absent' },
-  { id: 'privacy', path: '/privacy', state: 'not-applicable' },
   { id: 'pagefind', path: '/pagefind/', state: 'build-only' },
 ];
 
@@ -33,9 +32,8 @@ describe('SiteFilesCard', () => {
     );
   });
 
-  it('lo que no aplica o solo existe en la build se dice con esas palabras', async () => {
+  it('lo que solo existe en la build se dice con esas palabras', async () => {
     const htmlDocument = await render(SiteFilesCard, { files, locales: ['en', 'es'] });
-    expect(text(htmlDocument.querySelector('[data-file="privacy"]'))).toContain('No aplica');
     expect(text(htmlDocument.querySelector('[data-file="pagefind"]'))).toContain(
       'Solo en la build',
     );

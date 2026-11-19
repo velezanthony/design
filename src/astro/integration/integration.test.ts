@@ -352,33 +352,24 @@ describe('astro:config:setup: rutas inyectadas', () => {
     return String(route?.entrypoint);
   }
 
-  it('inyecta la página de docs, el sitemap y su hoja, el favicon y la 404', async () => {
+  it('inyecta la página de docs, el sitemap y su hoja, y el favicon', async () => {
     const routes = await routesOf({ name: 'x' });
     expect(routes.map((route) => route.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
       '/_design/favicon.png',
-      '/404',
     ]);
     expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
     expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
     expect(entry(routes[2])).toMatch(/routes\/sitemap\.css\.ts$/);
     expect(entry(routes[3])).toMatch(/routes\/favicon\.png\.ts$/);
-    expect(entry(routes[4])).toMatch(/routes\/not-found\.astro$/);
   });
 
-  it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
-    const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
-    expect(routes.map((route) => route.pattern)).toEqual([
-      '/[...slug]',
-      '/sitemap.xml',
-      '/_design/sitemap.css',
-      '/_design/favicon.png',
-      '/404',
-      '/[locale]/404',
-    ]);
-    expect(entry(routes[5])).toBe(entry(routes[4]));
+  it('con varios idiomas las rutas son las mismas: la 404 y la privacidad son del sitio', async () => {
+    const single = await routesOf({ name: 'x' });
+    const multiple = await routesOf({ name: 'x', locales: ['en', 'es'] });
+    expect(multiple.map((route) => route.pattern)).toEqual(single.map((route) => route.pattern));
   });
 
   it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
@@ -435,57 +426,6 @@ describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
     expect(dev.map((route) => route.pattern)).toEqual(
       (await routesFor('build')).map((route) => route.pattern),
     );
-  });
-});
-
-describe('astro:config:setup: página de privacidad', () => {
-  afterEach(() => vi.unstubAllEnvs());
-  async function routesOf(userConfig: Parameters<typeof docs>[0]) {
-    const { injectRoute } = await runSetup(satteri(), {}, userConfig);
-    return injectRoute.mock.calls.map(([route]) => route as { pattern: string; entrypoint: URL });
-  }
-  async function patterns(userConfig: Parameters<typeof docs>[0]) {
-    return (await routesOf(userConfig)).map((route) => route.pattern);
-  }
-
-  it('por defecto no se inyecta ninguna ruta de privacidad', async () => {
-    expect(await patterns({ name: 'x', locales: ['es', 'en'] })).not.toContain('/[privacy]');
-  });
-
-  it('`page: false` tampoco', async () => {
-    const all = await patterns({ name: 'x', locales: ['es', 'en'], privacy: { page: false } });
-    expect(all.some((pattern) => pattern.includes('[privacy]'))).toBe(false);
-  });
-
-  it('`page: true` inyecta la página por defecto y la de cada otro idioma, prerenderizadas', async () => {
-    const routes = await routesOf({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
-    const privacy = routes.filter((route) => route.pattern.includes('[privacy]'));
-    expect(privacy.map((route) => route.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
-    expect(privacy.map((route) => String(route.entrypoint).split('/').at(-1))).toEqual([
-      'privacy.astro',
-      'privacy-locale.astro',
-    ]);
-    expect(privacy.every((route) => (route as { prerender?: boolean }).prerender === true)).toBe(
-      true,
-    );
-  });
-
-  it('monolingüe: solo la ruta del idioma por defecto', async () => {
-    const all = await patterns({ name: 'x', privacy: { page: true } });
-    expect(all).toContain('/[privacy]');
-    expect(all).not.toContain('/[locale]/[privacy]');
-  });
-
-  it('el enlace de privacidad del módulo virtual apunta a la página local, con la base', async () => {
-    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
-    const data = await virtualData({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
-    expect(data.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
-  });
-
-  it('sin `page` el enlace sigue siendo el del portfolio', async () => {
-    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
-    const data = await virtualData({ name: 'x', locales: ['es', 'en'] });
-    expect(data.privacyUrl.es).toBe('https://velezanthony.github.io/privacidad/');
   });
 });
 
@@ -626,7 +566,7 @@ describe('astro:config:setup: contenido fuera del proyecto', () => {
 describe('astro:config:setup: rutas que el sitio sustituye', () => {
   function site() {
     const root = mkdtempSync(join(tmpdir(), 'design-site-'));
-    for (const file of ['index.astro', '404.astro', 'sitemap.xml.ts']) {
+    for (const file of ['index.astro', 'sitemap.xml.ts']) {
       mkdirSync(join(root, 'src', 'pages'), { recursive: true });
       writeFileSync(join(root, 'src', 'pages', file), '');
     }
@@ -650,15 +590,13 @@ describe('astro:config:setup: rutas que el sitio sustituye', () => {
       );
       expect(patterns).toContain('/[...slug]');
       expect(patterns).not.toContain('/sitemap.xml');
-      expect(patterns).not.toContain('/404');
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Tu sitio sustituye 3 rutas de @velezanthony/design'),
+        expect.stringContaining('Tu sitio sustituye 2 rutas de @velezanthony/design'),
       );
       // El panel las enseña: quedan en el registro que comparte con la integración.
       expect(clientRegistry().overrides?.map(({ route }) => route)).toEqual([
         'index',
         'sitemap.xml',
-        '404',
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });

@@ -1,4 +1,3 @@
-import { privacySlug } from '../../core/privacy/pages';
 import { DEFAULT_FAVICON_PATH } from '../../core/seo/favicon';
 import { SITEMAP_FILE, SITEMAP_PAGES, SITEMAP_STYLESHEET_PATH } from '../../core/seo/sitemap';
 
@@ -6,7 +5,7 @@ import { SITEMAP_FILE, SITEMAP_PAGES, SITEMAP_STYLESHEET_PATH } from '../../core
 export const SEO_ON_PAGE_DIR = 'seo-on-page';
 
 /** Cuándo existe una ruta: siempre, solo en `astro dev` o según una opción de la config. */
-type RouteWhen = 'site' | 'dev' | 'sitemapIndex' | 'multiLocale' | 'privacyPage' | 'privacyLocales';
+type RouteWhen = 'site' | 'dev' | 'sitemapIndex';
 
 interface Route {
   pattern: string;
@@ -25,14 +24,6 @@ export const ROUTES: readonly Route[] = [
   { pattern: `/${SITEMAP_PAGES}`, file: 'sitemap-pages.xml.ts', when: 'sitemapIndex' },
   { pattern: SITEMAP_STYLESHEET_PATH, file: 'sitemap.css.ts', when: 'site' },
   { pattern: DEFAULT_FAVICON_PATH, file: 'favicon.png.ts', when: 'site' },
-  { pattern: '/404', file: 'not-found.astro', when: 'site' },
-  { pattern: '/[privacy]', file: 'privacy.astro', when: 'privacyPage', folder: true },
-  {
-    pattern: '/[locale]/[privacy]',
-    file: 'privacy-locale.astro',
-    when: 'privacyLocales',
-    folder: true,
-  },
   // El panel lee la query de la URL: no se prerenderiza, y solo existe en dev.
   {
     pattern: `/${SEO_ON_PAGE_DIR}`,
@@ -52,16 +43,12 @@ export const ROUTES: readonly Route[] = [
     when: 'dev',
     folder: true,
   },
-  // El idioma por defecto sin prefijo no tiene `/<idioma>/404/`: solo los demás.
-  { pattern: '/[locale]/404', file: 'not-found.astro', when: 'multiLocale' },
 ];
 
 /** Lo que decide qué rutas inyecta la librería. */
 export interface RouteOptions {
   locales: readonly string[];
   defaultLocale: string;
-  /** `privacy.page`: la librería genera la página de privacidad. */
-  privacyPage?: boolean;
   /** Solo en `astro dev`: las pantallas del panel SEO on page. */
   seoOnPage?: boolean;
   /** `sitemap.include`: `sitemap.xml` es un índice y las páginas van en `sitemap-pages.xml`. */
@@ -69,14 +56,10 @@ export interface RouteOptions {
 }
 
 function isEnabled(when: RouteWhen, options: RouteOptions) {
-  const multiLocale = options.locales.length > 1;
   const conditions: Record<RouteWhen, boolean> = {
     site: true,
     dev: options.seoOnPage === true,
     sitemapIndex: options.sitemapIndex === true,
-    multiLocale,
-    privacyPage: options.privacyPage === true,
-    privacyLocales: options.privacyPage === true && multiLocale,
   };
   return conditions[when];
 }
@@ -89,7 +72,7 @@ export function routesFor(options: RouteOptions) {
   }));
 }
 
-/** El patrón de una ruta como rutas de fichero sin extensión (`/[locale]/404` → `es/404`). */
+/** El patrón de una ruta como rutas de fichero sin extensión (`/[...slug]` → `index`, `es/index`). */
 function filePaths(pattern: string, options: RouteOptions) {
   const others = options.locales.filter((locale) => locale !== options.defaultLocale);
   switch (pattern) {
@@ -97,12 +80,6 @@ function filePaths(pattern: string, options: RouteOptions) {
       return [options.defaultLocale, ...others].map((locale) =>
         locale === options.defaultLocale ? 'index' : `${locale}/index`,
       );
-    case '/[privacy]':
-      return [privacySlug(options.defaultLocale)];
-    case '/[locale]/[privacy]':
-      return others.map((locale) => `${locale}/${privacySlug(locale)}`);
-    case '/[locale]/404':
-      return others.map((locale) => `${locale}/404`);
     default:
       return [pattern.slice(1)];
   }

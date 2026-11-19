@@ -86,7 +86,6 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         const routeOptions = {
           locales: resolvedConfig.locales,
           defaultLocale: resolvedConfig.defaultLocale,
-          privacyPage: resolvedConfig.privacy.page,
           seoOnPage: command === 'dev',
           sitemapIndex: sitemap.index,
         };

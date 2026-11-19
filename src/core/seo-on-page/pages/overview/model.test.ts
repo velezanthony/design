@@ -51,16 +51,6 @@ function sitemap(urls: number): SiteFile {
     urls,
   };
 }
-const privacy: SiteFile = {
-  id: 'privacy',
-  path: '/privacy',
-  state: 'generated',
-  links: [
-    { locale: 'en', href: '/privacy/' },
-    { locale: 'es', href: '/es/privacy/' },
-  ],
-};
-
 function build(pages = tree().pages, files: SiteFile[] = [sitemap(pages.length)]) {
   return overviewModel(
     { pages },
@@ -187,9 +177,9 @@ describe('overviewModel', () => {
   });
 
   describe('indexación', () => {
-    it('las URLs del sitemap son las de contenido: no cuentan las de privacidad', () => {
+    it('las URLs del sitemap son las que informa el archivo', () => {
       const pages = [seoPage({ slug: 'a' }), seoPage({ slug: 'b' })];
-      expect(build(pages, [sitemap(4), privacy]).indexing.sitemapUrls).toBe(2);
+      expect(build(pages, [sitemap(2)]).indexing.sitemapUrls).toBe(2);
     });
 
     it('cuenta los idiomas servidos de respaldo desde la matriz', () => {

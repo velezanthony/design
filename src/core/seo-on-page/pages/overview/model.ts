@@ -87,9 +87,7 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
   }
 
   const cover = coverage(tree, { locales, defaultLocale, inspector: links.inspector });
-  // El sitemap de la ruta suma las páginas de privacidad, que no son del árbol: se restan.
   const sitemap = siteFiles.find((file) => file.id === 'sitemap');
-  const privacyUrls = siteFiles.find((file) => file.id === 'privacy')?.links?.length ?? 0;
   const matrix = cover?.rows ?? [];
   const fallbacks = matrix
     .flatMap((row) => row.cells)
@@ -136,7 +134,7 @@ export function overviewModel(tree: SeoTree, input: OverviewInput): OverviewMode
       href: links.pages(undefined, undefined, undefined, { view: 'matrix' }),
     },
     indexing: indexing(tree, {
-      sitemapUrls: Math.max(0, (sitemap?.urls ?? 0) - privacyUrls),
+      sitemapUrls: sitemap?.urls ?? 0,
       fallbacks,
     }),
     schemas: summary.schemas,
