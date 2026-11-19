@@ -26,3 +26,26 @@ describe('tocEntries', () => {
     expect(tocEntries([heading(2, 'a'), heading(2, 'b'), heading(3, 'c')])).toHaveLength(3);
   });
 });
+
+describe('tocEntries: profundidad máxima', () => {
+  const headings = [
+    heading(2, 'a'),
+    heading(3, 'b'),
+    heading(4, 'c'),
+    heading(5, 'd'),
+    heading(2, 'e'),
+    heading(2, 'f'),
+  ];
+
+  it('con 2 solo quedan los H2', () => {
+    expect(tocEntries(headings, 2).map((entry) => entry.slug)).toEqual(['a', 'e', 'f']);
+  });
+
+  it('con 4 entran también los H4', () => {
+    expect(tocEntries(headings, 4).map((entry) => entry.slug)).toEqual(['a', 'b', 'c', 'e', 'f']);
+  });
+
+  it('el mínimo de tres se cuenta sobre lo que queda tras filtrar', () => {
+    expect(tocEntries(headings.slice(0, 3), 3)).toEqual([]);
+  });
+});

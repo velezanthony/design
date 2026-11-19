@@ -17,6 +17,8 @@ layout: {
   toc: PanelState.OPEN, // igual para «En esta página» (desde xl)
   width: LayoutWidth.READING, // o FULL
   toggles: true, // false quita los controles e ignora lo que guardó el visitante
+  tocDepth: 3, // último nivel que lista «En esta página»: 2 (solo h2) a 6; por defecto 3
+  tocMaxHeight: '60vh', // opcional: longitud CSS; pasada, la lista hace scroll por dentro
 },
 ```
 
@@ -29,6 +31,9 @@ layout: {
   panel plegado es `inert`.
 - Con un lado plegado o en `full`, el código, las tablas, las pestañas y las capturas ocupan toda la
   columna (`--wide-max`, `--img-max`).
+- **`tocDepth`** y **`tocMaxHeight`** ajustan el índice: con `tocDepth: 4` entran también los `h4`
+  (sangrados un nivel más) y con `tocMaxHeight` una página con muchos encabezados no desborda la
+  ventana. Quien monta `TableOfContents` a mano los recibe como props `depth` y `maxHeight`.
 - Por debajo de `lg` no cambia nada: la navegación está tras el botón «Menú».
 
 ### Dónde vive el estado

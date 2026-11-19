@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Índice «En esta página»: profundidad y altura máxima.** `layout.tocDepth` (2 a 6, por defecto 3,
+  como hasta ahora) elige el último nivel de encabezado que se lista y `layout.tocMaxHeight` (una
+  longitud CSS como `60vh`) limita la lista, que entonces hace scroll por dentro. `TableOfContents`
+  los recibe como `depth` y `maxHeight`.
 - **Panel SEO on page: filtro para ocultar las páginas `noindex`.** La casilla «Ocultar noindex»
   (`?noindex=hide`) las quita de la tabla, del aviso de problemas comunes, de los recuentos y del informe
   «Copiar para la IA». Por defecto se ven. Solo filtra la vista: una página noindex sin traducción no pasa

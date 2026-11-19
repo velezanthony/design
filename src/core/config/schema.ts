@@ -230,6 +230,11 @@ export const DocsConfigSchema = z
         toc: PanelStateSchema.optional(),
         width: LayoutWidthSchema.optional(),
         toggles: z.boolean().optional(),
+        tocDepth: z.number().int().min(2).max(6).optional(),
+        tocMaxHeight: z
+          .string()
+          .regex(/^\d+(\.\d+)?(px|rem|em|vh|dvh|svh)$/, 'Debe ser una longitud CSS: 60vh, 24rem.')
+          .optional(),
       })
       .optional(),
   })

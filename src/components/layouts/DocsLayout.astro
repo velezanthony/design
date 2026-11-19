@@ -84,7 +84,7 @@ const {
   prose = true,
 } = Astro.props;
 /* Con índice, tres columnas; sin él, el contenido ocupa también la de la derecha. */
-const hasToc = tocEntries(headings).length > 0;
+const hasToc = tocEntries(headings, layout.tocDepth).length > 0;
 
 if (gtmId && !privacyUrl) {
   throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
@@ -214,6 +214,8 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
           strings={strings}
           toggles={layout.toggles}
           open={layout.toc === 'open'}
+          depth={layout.tocDepth}
+          maxHeight={layout.tocMaxHeight}
         />
       </div>
     )}

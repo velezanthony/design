@@ -118,16 +118,31 @@ describe('layout de la config', () => {
       toc: 'open',
       width: 'reading',
       toggles: true,
+      tocDepth: 3,
     });
   });
 
   it('acepta cada campo y completa el resto con los valores por defecto', () => {
     expect(
       resolveConfig({ name: 'X', layout: { sidebar: 'collapsed', width: 'full' } }).layout,
-    ).toEqual({ sidebar: 'collapsed', toc: 'open', width: 'full', toggles: true });
+    ).toEqual({ sidebar: 'collapsed', toc: 'open', width: 'full', toggles: true, tocDepth: 3 });
     expect(
       resolveConfig({ name: 'X', layout: { toc: 'collapsed', toggles: false } }).layout,
-    ).toEqual({ sidebar: 'open', toc: 'collapsed', width: 'reading', toggles: false });
+    ).toEqual({ sidebar: 'open', toc: 'collapsed', width: 'reading', toggles: false, tocDepth: 3 });
+  });
+
+  it('`tocDepth` y `tocMaxHeight` ajustan el índice', () => {
+    expect(
+      resolveConfig({ name: 'X', layout: { tocDepth: 4, tocMaxHeight: '60vh' } }).layout,
+    ).toMatchObject({ tocDepth: 4, tocMaxHeight: '60vh' });
+  });
+
+  it('`tocDepth` fuera de 2 a 6 y `tocMaxHeight` sin unidad fallan con su ruta', () => {
+    expect(messages({ name: 'X', layout: { tocDepth: 1 } })[0]).toContain('layout.tocDepth');
+    expect(messages({ name: 'X', layout: { tocDepth: 7 } })[0]).toContain('layout.tocDepth');
+    expect(messages({ name: 'X', layout: { tocMaxHeight: '60' } })[0]).toContain(
+      'layout.tocMaxHeight',
+    );
   });
 
   it('un valor desconocido falla con la ruta del campo', () => {
