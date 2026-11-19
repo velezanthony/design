@@ -1,0 +1,187 @@
+name: Mutation incremental
+
+# Informativo: no falla por la puntuación. Parte de la base de la ejecución manual en main.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'package-lock.json'
+      - 'stryker.config.json'
+      - 'tsconfig*.json'
+      - 'vitest.config.ts'
+      - '.github/workflows/mutation-incremental.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'package-lock.json'
+      - 'stryker.config.json'
+      - 'tsconfig*.json'
+      - 'vitest.config.ts'
+      - '.github/workflows/mutation-incremental.yml'
+
+permissions:
+  contents: read
+
+# Un push nuevo a un PR hace inútil la ejecución anterior; en main cada commit termina la suya.
+concurrency:
+  group: mutation-incremental-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # El reparto solo usa módulos de Node: no hace falta instalar dependencias.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - id: plan
+        name: Repartir todos los ficheros en dos trozos de peso parecido
+        run: echo "matrix=$(node scripts/mutation/cli.ts plan --shards 2)" >> "$GITHUB_OUTPUT"
+
+  mutation:
+    name: mutation (${{ matrix.shard.index }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      # Un trozo caído no debe tirar al otro: lo medido sigue valiendo.
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.matrix).include }}
+    env:
+      FILES: ${{ matrix.shard.files }}
+      # La misma ruta con la que se guarda la base: la caché se identifica también por ella.
+      BASELINE_FILE: .stryker-cache/incremental.json
+      SHARD_FILE: .stryker-cache/shard-${{ matrix.shard.index }}.json
+      REUSE_FILE: .stryker-cache/reuse-${{ matrix.shard.index }}.txt
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # El checker de tipos de Stryker usa `tsc`, que necesita los tipos que Astro genera en `.astro/`.
+      - run: npx astro sync
+
+      # La más reciente que haya: Stryker repite solo los mutantes cuyo código o tests han cambiado.
+      - name: Restaurar la base incremental
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.BASELINE_FILE }}
+          key: stryker-incremental-${{ github.sha }}
+          restore-keys: stryker-incremental-
+
+      - name: Mutar el trozo
+        run: |
+          set -o pipefail
+          npx stryker run --mutate "${FILES}" --incrementalFile "${BASELINE_FILE}" --reporters clear-text | tee stryker.log
+
+      # Se hace aunque Stryker falle: lo ya medido entra en la base unida.
+      - name: Quedarse con los ficheros del trozo
+        if: always() && hashFiles('.stryker-cache/incremental.json') != ''
+        run: node scripts/mutation/cli.ts slice --files "${FILES}" --out "${SHARD_FILE}" "${BASELINE_FILE}"
+
+      # Stryker reescribe la base entera y solo el resumen del log dice cuánto reutilizó.
+      - name: Anotar cuánto se ha reutilizado
+        if: always()
+        run: grep -ohE '[0-9]+ of [0-9]+ mutant result\(s\) are reused' stryker.log > "${REUSE_FILE}" || true
+
+      - name: Subir los resultados del trozo
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: incremental-${{ matrix.shard.index }}
+          path: ${{ env.SHARD_FILE }}
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Subir lo reutilizado del trozo
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reuse-${{ matrix.shard.index }}
+          path: ${{ env.REUSE_FILE }}
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
+
+  merge:
+    name: merge
+    needs: [plan, mutation]
+    # Aunque un trozo falle se une lo que haya y se resume.
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MERGED_FILE: .stryker-cache/incremental.json
+      MUTATION_RESULT: ${{ needs.mutation.result }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # Si ningún trozo llegó a subir su fichero no hay artefactos y el paso no debe romper el job.
+      - name: Bajar los resultados de los trozos
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          pattern: incremental-*
+          path: .stryker-cache/shards
+          merge-multiple: true
+
+      - name: Bajar lo reutilizado de los trozos
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          pattern: reuse-*
+          path: .stryker-cache/reuse
+          merge-multiple: true
+
+      - name: Unir los resultados
+        if: hashFiles('.stryker-cache/shards/*.json') != ''
+        run: node scripts/mutation/cli.ts merge --out "${MERGED_FILE}" .stryker-cache/shards/*.json
+
+      - name: Resumir
+        if: hashFiles('.stryker-cache/incremental.json') != ''
+        run: |
+          node scripts/mutation/cli.ts summary "${MERGED_FILE}" >> "$GITHUB_STEP_SUMMARY"
+          cat .stryker-cache/reuse/*.txt 2>/dev/null | awk '
+            { reused += $1; total += $3 }
+            END { if (total > 0) printf "Reutilizados: **%d** de %d resultados; repetidos: **%d**.\n", reused, total, total - reused }
+          ' >> "$GITHUB_STEP_SUMMARY" || true
+
+      # En un PR no se guarda: su caché no la ve ningún otro PR. Con un trozo caído la base quedaría coja.
+      - name: Guardar la base unida en la caché
+        if: github.event_name == 'push' && env.MUTATION_RESULT == 'success' && hashFiles('.stryker-cache/incremental.json') != ''
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.MERGED_FILE }}
+          key: stryker-incremental-${{ github.sha }}
+
+      - name: Subir la base unida
+        if: hashFiles('.stryker-cache/incremental.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: merged-incremental
+          path: ${{ env.MERGED_FILE }}
+          include-hidden-files: true
+          retention-days: 7
