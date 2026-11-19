@@ -65,13 +65,9 @@ export function buildHead(
   const available = isPage && !noindex ? (availability.get(page.slug) ?? {}) : {};
   const languages = config.locales.filter((locale) => available[locale] !== undefined);
 
-  const tags: HeadConfig[] = [
-    {
-      tag: 'title',
-      attrs: {},
-      content: composeTitle(resolved.title, resolved.titleSuffix),
-    },
-  ];
+  // El mismo título completo en `<title>`, `og:title` y `twitter:title`.
+  const fullTitle = composeTitle(resolved.title, resolved.titleSuffix);
+  const tags: HeadConfig[] = [{ tag: 'title', attrs: {}, content: fullTitle }];
   tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(config.favicon, url.base) } });
   if (resolved.description) tags.push(meta('name', 'description', resolved.description));
   if (canonical) tags.push({ tag: 'link', attrs: { rel: 'canonical', href: canonical } });
@@ -93,7 +89,7 @@ export function buildHead(
     }
   }
 
-  tags.push(meta('property', 'og:title', resolved.title));
+  tags.push(meta('property', 'og:title', fullTitle));
   if (resolved.description) tags.push(meta('property', 'og:description', resolved.description));
   if (canonical) tags.push(meta('property', 'og:url', canonical));
   tags.push(
@@ -122,7 +118,7 @@ export function buildHead(
 
   tags.push(
     meta('name', 'twitter:card', image ? 'summary_large_image' : 'summary'),
-    meta('name', 'twitter:title', resolved.title),
+    meta('name', 'twitter:title', fullTitle),
   );
   if (resolved.description) tags.push(meta('name', 'twitter:description', resolved.description));
   if (image && imageUrl) {

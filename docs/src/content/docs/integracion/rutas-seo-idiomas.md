@@ -106,8 +106,8 @@ flowchart LR
   (en `docs.config.mjs` o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
   ninguno de los dos, el sufijo es el de la librería, `Anthony Velez Tapia`. Con `false` en la
   página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
-  sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` van
-  siempre sin sufijo.
+  sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` llevan
+  el mismo título completo que el `<title>`, sufijo incluido.
 
 ```mermaid
 flowchart LR

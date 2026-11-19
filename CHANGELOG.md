@@ -45,6 +45,9 @@ todo vive en «Sin publicar».
 
 ### Cambiado
 
+- **`og:title` y `twitter:title` llevan el título completo, sufijo incluido.** Antes salían sin él
+  (`Install`) y ahora igualan al `<title>` (`Install | SnakeORM`): es lo que se ve al compartir el
+  enlace. El panel de SEO enseña también el título completo en `og:title`.
 - **`bootArticle` sale de `components/layouts/boot.ts`.** Pasa a `components/boot/article.ts`, y
   `BootEnv` y `browserEnv` a `components/boot/env.ts`: `Article` (un organismo) importaba de `layouts/`,
   una dependencia hacia arriba en Atomic Design. `bootBase` y `bootDocs` se quedan donde estaban. Quien

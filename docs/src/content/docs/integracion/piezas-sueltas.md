@@ -121,7 +121,7 @@ import LibraryBaseLayout from '@velezanthony/design/components/layouts/BaseLayou
 import { pageHead } from '@velezanthony/design/seo';
 
 const head = await pageHead({
-  title: 'SnakeORM · ORM en Python tipado',   // lo que lleva el <title> (y og:title)
+  title: 'SnakeORM · ORM en Python tipado',   // lo que lleva el <title> (y og:title, con sufijo)
   seo: entry.data.seo,                       // el bloque del frontmatter, o valores sueltos
   locale: 'es',
   url: Astro.url.pathname,                   // con la base, como la sirve Astro

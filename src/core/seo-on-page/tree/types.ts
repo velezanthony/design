@@ -61,7 +61,7 @@ export interface MetaNode {
   description?: string;
   descriptionSource: DescriptionSource;
   descriptionLength?: number;
-  /** Sin sufijo, como en `og:title`. */
+  /** Título completo con sufijo, como en `og:title`. */
   ogTitle: string;
   ogDescription?: string;
   ogImage?: { src: string; alt: string; width?: number; height?: number };

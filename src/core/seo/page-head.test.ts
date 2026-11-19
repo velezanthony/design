@@ -43,10 +43,10 @@ function jsonLd(tags: HeadConfig[]) {
 }
 
 describe('buildPageHead: valores del sitio', () => {
-  it('el título lleva el sufijo del sitio y og:title no', () => {
+  it('el título y og:title llevan el sufijo del sitio', () => {
     const tags = head();
     expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Proyectos | Anthony');
-    expect(meta(tags, 'property', 'og:title')).toBe('Proyectos');
+    expect(meta(tags, 'property', 'og:title')).toBe('Proyectos | Anthony');
   });
 
   it('un título igual al sufijo no se repite', () => {

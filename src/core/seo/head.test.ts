@@ -40,11 +40,11 @@ function links(tags: HeadConfig[], rel: string) {
 }
 
 describe('buildHead: página normal', () => {
-  it('<title> con sufijo y og:title / twitter:title sin él', () => {
+  it('<title>, og:title y twitter:title llevan el título completo con sufijo', () => {
     const tags = head(meta(), enPage, single);
     expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Install | Design');
-    expect(value(tags, 'property', 'og:title')).toBe('Install');
-    expect(value(tags, 'name', 'twitter:title')).toBe('Install');
+    expect(value(tags, 'property', 'og:title')).toBe('Install | Design');
+    expect(value(tags, 'name', 'twitter:title')).toBe('Install | Design');
   });
 
   it('un único canonical absoluto a su propia URL', () => {

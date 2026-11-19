@@ -208,7 +208,7 @@ El `<title>` tiene dos partes, título y sufijo, y se forma `título | sufijo` (
 parte se resuelve por separado: página > sitio > librería. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
 head (el H1 no se toca; sin el idioma de la página, vale el título de la página) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
 también a un sufijo del sitio). Si el título es igual al sufijo no se repite, y `og:title` /
-`twitter:title` nunca llevan sufijo.
+`twitter:title` llevan el mismo título completo que el `<title>`, sufijo incluido.
 
 ```md
 <!-- docs.config.mjs: seo: { titleSuffix: 'My repo' } -->

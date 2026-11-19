@@ -326,7 +326,7 @@ describe('#15 etiquetas SEO y cascada', () => {
   it('twitter:*, og:locale y og:locale:alternate solo de traducciones reales', async () => {
     const html = await site.read('es/card/index.html');
     expect(metaContent(html, 'twitter:card')).toBe('summary_large_image');
-    expect(metaContent(html, 'twitter:title')).toBe('Tarjeta');
+    expect(metaContent(html, 'twitter:title')).toBe('Tarjeta | Fixture docs');
     expect(metaContent(html, 'og:locale')).toBe('es');
     expect(metaAll(html, 'og:locale:alternate')).toEqual(['en']);
     expect(titleOf(html)).toBe('Tarjeta | Fixture docs');
