@@ -71,6 +71,16 @@ describe('resolvePolicies', () => {
     expect(errors[0]?.message).toContain('install.es.md');
   });
 
+  it('el conflicto de la portada la nombra como «(portada)» y lleva pista y archivo', () => {
+    const { errors } = resolvePolicies(
+      [page('', 'en', 'link'), page('', 'es', 'omit')],
+      MissingTranslation.OMIT,
+    );
+    expect(errors[0]?.message).toContain('«(portada)»');
+    expect(errors[0]?.file).toBe('.md');
+    expect(errors[0]?.hint).toBeTruthy();
+  });
+
   it('un grupo con conflicto no impide resolver los demás', () => {
     const { policies, errors } = resolvePolicies(
       [page('a', 'en', 'link'), page('a', 'es', 'omit'), page('b', 'en', 'fallback')],
