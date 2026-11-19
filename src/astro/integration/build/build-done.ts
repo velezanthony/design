@@ -9,6 +9,8 @@ interface BuildDone {
   logger: AstroIntegrationLogger;
   site: string;
   base: string;
+  /** La raíz del proyecto (ruta de disco). */
+  root: string;
   /** El fichero con las páginas propias (`sitemapFiles`). */
   pagesFile: string;
   /** Si el sitio sustituye ese sitemap, ya no es nuestro y no se le añade nada. */

@@ -14,6 +14,7 @@ function site(user: Partial<DocsUserConfig> = {}) {
     trailingSlash: 'always',
     buildFormat: 'directory',
     publicDir: 'file:///site/public/',
+    root: 'file:///site/',
   });
 }
 
@@ -324,6 +325,7 @@ describe('docView: analítica y privacidad', () => {
         trailingSlash: 'always',
         buildFormat: 'directory',
         publicDir: 'file:///site/public/',
+        root: 'file:///site/',
       },
     );
   }

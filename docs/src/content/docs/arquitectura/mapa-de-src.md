@@ -55,7 +55,8 @@ core/
 │   ├── title.ts           Sufijo del título (el autor, o ninguno)
 │   ├── head.ts            Etiquetas del head: title, canonical, hreflang, OG, twitter
 │   ├── json-ld.ts         Schemas JSON-LD del sitio y de cada página
-│   ├── sitemap.ts         XML con alternates; límite de 50 000 URLs
+│   ├── sitemap.ts         XML con alternates y lastmod; límite de 50 000 URLs
+│   ├── lastmod.ts         Salida de git log → fecha por archivo; fecha de cada URL del sitemap
 │   ├── indexable.ts       Qué URLs son noindex
 │   ├── client-pages.ts    Las páginas que el consumidor tiene en src/pages/ y sus rutas dinámicas
 │   ├── html-head.ts       Lee del HTML construido lo que una página dice de sí misma
@@ -303,6 +304,7 @@ astro/
 │   ├── site-config.ts       La config del módulo virtual con su tipo completo
 │   ├── image-sizes.ts       Lee los tamaños de las imágenes sociales
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
+│   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
 └── virtual/

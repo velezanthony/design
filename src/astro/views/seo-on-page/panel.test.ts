@@ -15,6 +15,7 @@ function site(user: Partial<DocsUserConfig> = {}) {
     trailingSlash: 'always',
     buildFormat: 'directory',
     publicDir: 'file:///site/public/',
+    root: 'file:///site/',
   });
 }
 
@@ -83,6 +84,7 @@ describe('panelView', () => {
         trailingSlash: 'always',
         buildFormat: 'directory',
         publicDir: 'file:///site/public/',
+        root: 'file:///site/',
       },
     );
     const built = view({ config });

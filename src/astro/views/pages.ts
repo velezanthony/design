@@ -1,6 +1,7 @@
 import type { Page } from '../../core/content/discovery';
 import { buildAvailability } from '../../core/i18n/availability';
 import { noindexUrls } from '../../core/seo/indexable';
+import { pageLastmods } from '../../core/seo/lastmod';
 import {
   buildSitemap,
   buildSitemapIndex,
@@ -39,12 +40,20 @@ export function sitemapXml(
   config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site'>,
   /** Las páginas del cliente (`src/pages/`), ya decididas, que van después de las de la documentación. */
   extra: readonly SitemapEntry[] = [],
+  /** Fecha de cada archivo de página por su `sourcePath`, para el `lastmod`. */
+  dates: ReadonlyMap<string, string> = new Map(),
 ): string {
   const pages = pagesOf(data);
   const url = urlPolicyOf(config, config.defaultLocale);
   const availability = buildAvailability(pages, url);
   return orAstroError('No se puede generar sitemap.xml.', () =>
-    buildSitemap(availability, new URL(config.site), noindexUrls(pages, url), extra),
+    buildSitemap(
+      availability,
+      new URL(config.site),
+      noindexUrls(pages, url),
+      extra,
+      pageLastmods(pages, url, dates),
+    ),
   );
 }
 

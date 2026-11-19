@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { SiteRoute } from '../../../core/seo/client-pages';
 import { buildSitemap } from '../../../core/seo/sitemap';
 import type { ClientRegistry } from '../../registry';
@@ -41,7 +41,7 @@ function html(head = '') {
   return `<html><head><title>x</title>${head}</head><body></body></html>`;
 }
 const docsSitemap = buildSitemap(new Map([['guide', { en: '/guide/' }]]), new URL('https://x.dev'));
-const where = { site: 'https://x.dev', base: '/', pagesFile: 'sitemap.xml' };
+const where = { site: 'https://x.dev', base: '/', pagesFile: 'sitemap.xml', root: '/site' };
 
 describe('addClientPagesToSitemap', () => {
   it('añade al sitemap las páginas del cliente indexables, leídas de lo que se generó', async () => {
@@ -96,6 +96,29 @@ describe('addClientPagesToSitemap', () => {
       registry([route('/cv', /^\/cv$/)]),
     );
     expect(added).toBe(1);
+  });
+
+  it('cada página lleva el lastmod del archivo del que sale, pedido todo de una vez', async () => {
+    const directory = dist({
+      'sitemap.xml': docsSitemap,
+      'cv/index.html': html(),
+      'about/index.html': html(),
+    });
+    const datesOf = vi.fn(
+      async () => new Map([['src/pages/cv.astro', '2026-09-07T00:06:43+02:00']]),
+    );
+    await addClientPagesToSitemap(
+      { dir: directory, pages: [{ pathname: 'cv/' }, { pathname: 'about/' }], ...where },
+      registry([route('/cv', /^\/cv\/$/), route('/about', /^\/about\/$/)]),
+      datesOf,
+    );
+    const xml = readFileSync(new URL('sitemap.xml', directory), 'utf8');
+    expect(datesOf).toHaveBeenCalledTimes(1);
+    expect(datesOf).toHaveBeenCalledWith('/site', ['src/pages/cv.astro', 'src/pages/about.astro']);
+    expect(xml).toContain(
+      '<loc>https://x.dev/cv/</loc><lastmod>2026-09-07T00:06:43+02:00</lastmod>',
+    );
+    expect(xml).toContain('<url><loc>https://x.dev/about/</loc></url>');
   });
 
   it('sin páginas del cliente no toca el sitemap', async () => {

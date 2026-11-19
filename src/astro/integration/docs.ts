@@ -44,7 +44,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
   const resolvedConfig = resolveConfigOrThrow(userConfig);
   const sitemap = sitemapFiles(resolvedConfig.sitemap.include);
   // Dónde se publica, para el sitemap del build; lo fija `astro:config:setup`.
-  let published = { site: '', base: '/' };
+  let published = { site: '', base: '/', root: '' };
   // Si el sitio sustituye el sitemap, el build no le añade nada: ese fichero ya no es nuestro.
   let ownSitemap = true;
   return {
@@ -94,7 +94,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           return !theirs.has(pattern);
         }
         ownSitemap = own(`/${sitemap.pages}`);
-        published = { site: config.site, base: config.base };
+        published = { site: config.site, base: config.base, root: fileURLToPath(config.root) };
         const fonts = designFonts();
         assertNoFontConflict(config.fonts, fonts);
         const env = createMarkdownEnv(resolvedConfig, config.root, (message) =>
@@ -120,6 +120,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
                   trailingSlash: config.trailingSlash,
                   buildFormat: config.build.format,
                   publicDir: config.publicDir.href,
+                  root: config.root.href,
                 }),
               ),
             ],

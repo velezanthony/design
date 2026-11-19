@@ -218,6 +218,7 @@ describe('astro:config:setup: módulo virtual', () => {
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
+      root: 'file:///site/',
     });
     expect(data.translations).toEqual({ missing: MissingTranslation.LINK });
   });

@@ -46,6 +46,21 @@ declaran sus `hreflang`. En `astro dev` los endpoints las piden al propio servid
 de su ruta, lee su HTML de `dist/` con el mismo `readHead` y las añade al sitemap ya escrito. Una
 página del sitio se saca del sitemap con `<meta name="robots" content="noindex">` en su `<head>`.
 
+#### `<lastmod>`
+
+Cada URL lleva `<lastmod>` con la fecha de **la última modificación del archivo del que sale**: el
+`.md` de la página (también los `external`, aunque estén fuera de `docs/`) o el `.astro` de
+`src/pages/` (en una ruta dinámica, la plantilla). La fecha es, por este orden:
+
+1. **El último commit que tocó el archivo** (`git log`). Se lee con una sola llamada a `git log` para
+   todo el repositorio, no una por archivo.
+2. **La fecha de modificación del archivo**, si no tiene commits (uno nuevo) o no hay repositorio.
+3. **Ninguna**: sin `<lastmod>` si tampoco hay archivo.
+
+Un clon superficial (`git clone --depth 1`, lo habitual en CI) **no da ninguna fecha**: su único
+commit pondría la de hoy a todas las páginas, y un `<lastmod>` falso es peor que ninguno. Para tenerlas
+en CI, clona con historial completo (`fetch-depth: 0` en `actions/checkout`).
+
 Abierto en el navegador, el sitemap se ve con estilo: enlaza `_design/sitemap.css` (ruta relativa,
 vale con cualquier `base`), que sirve `sitemap.css.ts` con `sitemapCss` (`components/styles/sitemap.ts`).
 La paleta se lee de `theme.css` al generar el sitio, sin copiar valores, y el título y la nota salen

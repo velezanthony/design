@@ -272,3 +272,44 @@ describe('sitemapFiles', () => {
     expect(sitemapFiles(['/lib/sitemap.xml'])).toEqual({ index: true, pages: SITEMAP_PAGES });
   });
 });
+
+describe('lastmod', () => {
+  const availability: Availability = new Map([
+    ['install', { en: '/repo/install/', es: '/repo/es/install/' }],
+  ]);
+
+  it('cada URL con fecha lleva su lastmod antes de los alternates; la que no la tiene, ninguno', () => {
+    const lastmods = new Map([['/repo/install/', '2026-09-07T00:06:43+02:00']]);
+    const xml = buildSitemap(availability, site, new Set(), [], lastmods);
+    expect(xml).toContain(
+      '<url><loc>https://x.dev/repo/install/</loc><lastmod>2026-09-07T00:06:43+02:00</lastmod><xhtml:link',
+    );
+    expect(xml).toContain('<url><loc>https://x.dev/repo/es/install/</loc><xhtml:link');
+  });
+
+  it('una página del cliente con fecha la lleva, también al añadirla a un sitemap escrito', () => {
+    const entry = {
+      loc: 'https://x.dev/cv/',
+      alternates: [],
+      lastmod: '2026-09-07T00:06:43+02:00',
+    };
+    expect(buildSitemap(new Map(), site, new Set(), [entry])).toContain(
+      '<url><loc>https://x.dev/cv/</loc><lastmod>2026-09-07T00:06:43+02:00</lastmod></url>',
+    );
+    expect(appendToSitemap(buildSitemap(new Map(), site), [entry])).toContain(
+      '<lastmod>2026-09-07T00:06:43+02:00</lastmod>',
+    );
+  });
+
+  it('clientSitemapEntries toma la fecha del archivo de cada página', () => {
+    const page: ClientPage = {
+      path: '/cv/',
+      pattern: '/cv',
+      entrypoint: 'src/pages/cv.astro',
+      head: { noindex: false, alternates: [], headings: [], og: {}, jsonLd: [] },
+    };
+    const dates = new Map([['src/pages/cv.astro', '2026-09-07T00:06:43+02:00']]);
+    expect(clientSitemapEntries([page], site, dates)[0]?.lastmod).toBe('2026-09-07T00:06:43+02:00');
+    expect(clientSitemapEntries([page], site)[0]).not.toHaveProperty('lastmod');
+  });
+});

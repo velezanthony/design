@@ -120,7 +120,7 @@ Vite, lejos del hook que la conoce. El puente es un **módulo virtual** (el mism
 Starlight):
 
 - `createVirtualData` (`src/astro/virtual/data.ts`) junta la config resuelta con lo que solo sabe
-  Astro (`base`, `site`, `trailingSlash`, `build.format`, `publicDir`) y fusiona los textos de
+  Astro (`base`, `site`, `trailingSlash`, `build.format`, `publicDir`, `root`) y fusiona los textos de
   interfaz por idioma en `strings`.
 - `createVirtualConfigPlugin` (`src/astro/virtual/plugin.ts`) sirve ese objeto con
   `JSON.stringify` bajo el id `virtual:@velezanthony/design/config`. Solo datos: nada de funciones.

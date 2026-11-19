@@ -36,6 +36,8 @@ export function buildSitemap(
   site: URL,
   noindex: ReadonlySet<string> = new Set(),
   extra: readonly SitemapEntry[] = [],
+  /** Fecha de cada página por su URL (la de `availability`); la que falta no lleva `lastmod`. */
+  lastmods: ReadonlyMap<string, string> = new Map(),
 ): string {
   const indexable = excludeNoindex(availability, noindex);
   // Una página del cliente con la URL de una de la librería la sustituye: Astro publica la suya.
@@ -59,7 +61,9 @@ export function buildSitemap(
         : '';
     for (const [, href] of languages) {
       if (taken.has(new URL(href, site).href)) continue;
-      entries.push(`<url><loc>${absolute(href)}</loc>${alternates}</url>`);
+      entries.push(
+        `<url><loc>${absolute(href)}</loc>${lastmodElement(lastmods.get(href))}${alternates}</url>`,
+      );
     }
   }
   const total = entries.length + extra.length;
@@ -82,10 +86,16 @@ export function buildSitemap(
 export interface SitemapEntry {
   loc: string;
   alternates: { hreflang: string; href: string }[];
+  /** Fecha W3C de la última modificación; sin ella, no hay `lastmod`. */
+  lastmod?: string;
 }
 
-function urlElement({ loc, alternates }: SitemapEntry) {
-  return `<url><loc>${escapeXml(loc)}</loc>${alternates
+function lastmodElement(lastmod: string | undefined) {
+  return lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : '';
+}
+
+function urlElement({ loc, alternates, lastmod }: SitemapEntry) {
+  return `<url><loc>${escapeXml(loc)}</loc>${lastmodElement(lastmod)}${alternates
     .map(
       ({ hreflang, href }) =>
         `<xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}"/>`,
@@ -94,11 +104,17 @@ function urlElement({ loc, alternates }: SitemapEntry) {
 }
 
 /** Páginas del cliente como entradas del sitemap: las indexables y canónicas de sí mismas, con los idiomas de su `hreflang`. */
-export function clientSitemapEntries(pages: readonly ClientPage[], site: URL): SitemapEntry[] {
-  return pages.flatMap(({ path, head }) => {
+export function clientSitemapEntries(
+  pages: readonly ClientPage[],
+  site: URL,
+  /** Fecha por archivo de página (`entrypoint`). */
+  dates: ReadonlyMap<string, string> = new Map(),
+): SitemapEntry[] {
+  return pages.flatMap(({ path, entrypoint, head }) => {
     const loc = new URL(path, site).href;
     if (head.noindex || (head.canonical !== undefined && head.canonical !== loc)) return [];
-    return [{ loc, alternates: head.alternates }];
+    const lastmod = dates.get(entrypoint);
+    return [{ loc, alternates: head.alternates, ...(lastmod && { lastmod }) }];
   });
 }
 

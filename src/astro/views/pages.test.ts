@@ -46,7 +46,10 @@ describe('pagesOf: kind', () => {
 
 describe('sitemapXml', () => {
   it('lista solo páginas reales, con alternates y base', () => {
-    const xml = sitemapXml([data('guide', 'en'), data('guide', 'es')], config);
+    const xml = sitemapXml(
+      [data('guide', 'en'), data('guide', 'es', { sourcePath: 'guide.es.md' })],
+      config,
+    );
     expect(xml).toContain('<loc>https://x.dev/repo/guide/</loc>');
     expect(xml).toContain('hreflang="es" href="https://x.dev/repo/es/guide/"');
   });
@@ -59,6 +62,19 @@ describe('sitemapXml', () => {
     expect(xml).toContain('<loc>https://x.dev/repo/guide/</loc>');
     expect(xml).not.toContain('/repo/es/guide/');
     expect(xml).not.toContain('xhtml:link');
+  });
+
+  it('la página lleva el lastmod del archivo del que sale; sin fecha, ninguno', () => {
+    const [english, spanish] = [
+      data('guide', 'en'),
+      data('guide', 'es', { sourcePath: 'guide.es.md' }),
+    ];
+    const dates = new Map([[english.sourcePath, '2026-09-07T00:06:43+02:00']]);
+    const xml = sitemapXml([english, spanish], config, [], dates);
+    expect(xml).toContain(
+      '<loc>https://x.dev/repo/guide/</loc><lastmod>2026-09-07T00:06:43+02:00</lastmod>',
+    );
+    expect(xml.match(/<lastmod>/g)).toHaveLength(1);
   });
 
   it('nunca incluye rutas de reserva ni 404 (no son páginas)', () => {

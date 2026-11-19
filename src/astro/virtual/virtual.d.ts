@@ -52,6 +52,7 @@ declare module 'virtual:@velezanthony/design/config' {
     trailingSlash: 'always' | 'never' | 'ignore';
     buildFormat: 'directory' | 'file' | 'preserve';
     publicDir: string;
+    root: string;
   };
   export default config;
 }
