@@ -35,3 +35,20 @@ propios (lo que muestran llega por props o por la ranura) y usan los tokens de `
 ```astro
 <SectionHead eyebrow="Proyectos" title="Lo último" action={{ href: '/proyectos/', label: 'Ver todos' }} />
 ```
+
+## Scripts, `<head>` y textos para quien tiene su propio layout
+
+Un sitio con su propio layout no tiene que reimplementar lo que la librería ya hace. Estas subrutas
+son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y un test lo comprueba.
+
+| Importación | Qué da |
+| --- | --- |
+| `@velezanthony/design/client/theme` | Tema claro/oscuro: `initTheme`, `themeBootstrapScript` (el script previo al pintado) y los tipos `Theme` y `ThemeColors`. |
+| `@velezanthony/design/client/consent` | Consentimiento: `initConsent`, `readConsent`, `writeConsent` y `CONSENT_VERSION`. |
+| `@velezanthony/design/client/storage` | Claves y acceso seguro al almacenamiento: `THEME_KEY`, `CONSENT_KEY`, `safeGet`, `safeSet`, `storageOf`. |
+| `@velezanthony/design/client/toc` | `trackSections`: resalta en el índice la sección visible. |
+| `@velezanthony/design/head` | `buildHead` y el tipo `HeadConfig` (una etiqueta del `<head>` como dato: lo que acepta la prop `head` de `BaseLayout`). |
+| `@velezanthony/design/ui-strings` | El tipo `UiStrings`, `defaultStrings`, `mergeUiStrings` y `translate`. |
+| `@velezanthony/design/code-themes` | `codeThemes`: los temas de Shiki que usa la librería, para que el sitio resalte igual. |
+
+`bootBase` y `bootDocs` siguen saliendo de `@velezanthony/design/components/layouts/boot.ts`.

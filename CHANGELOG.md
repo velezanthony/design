@@ -44,3 +44,6 @@ todo vive en «Sin publicar».
 - **`InlineList`, `Text` y `SectionHead`**, subidos desde el portfolio: `components/atoms/display/InlineList.astro`,
   `components/atoms/display/Text.astro` y `components/molecules/content/SectionHead.astro` (esta última sobre
   `Heading` y `Link`). Genéricas: sin datos ni textos propios. Ver «Piezas sueltas» en la documentación.
+- **Subrutas nuevas en `exports`** para no duplicar piezas: `client/theme`, `client/consent`,
+  `client/storage`, `client/toc`, `head` (`buildHead` y `HeadConfig`), `ui-strings` (`UiStrings`) y
+  `code-themes`. Ninguna importa `seo-on-page`.

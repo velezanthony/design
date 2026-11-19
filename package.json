@@ -24,7 +24,14 @@
     "./content": "./src/astro/content/index.ts",
     "./components/*": "./src/components/*",
     "./theme.css": "./src/components/styles/theme.css",
-    "./theme-colors": "./src/components/styles/theme-colors.ts"
+    "./theme-colors": "./src/components/styles/theme-colors.ts",
+    "./code-themes": "./src/components/styles/code-themes.ts",
+    "./client/theme": "./src/client/preferences/theme.ts",
+    "./client/consent": "./src/client/preferences/consent.ts",
+    "./client/storage": "./src/client/preferences/storage.ts",
+    "./client/toc": "./src/client/layout/toc.ts",
+    "./head": "./src/core/seo/head.ts",
+    "./ui-strings": "./src/core/i18n/ui-strings.ts"
   },
   "scripts": {
     "dev": "astro dev",
