@@ -59,6 +59,9 @@ jobs:
 
       - run: npm ci
 
+      # El checker de tipos de Stryker usa `tsc`, que necesita los tipos que Astro genera en `.astro/`.
+      - run: npx astro sync
+
       # Sin restaurar caché: esta ejecución reconstruye la base desde cero.
       - name: Mutar el trozo
         run: >
