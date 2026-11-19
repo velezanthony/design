@@ -43,6 +43,14 @@ todo vive en «Sin publicar».
   `layout`, `pending` ni `htmlAttrs` de la 404 (sí un `htmlAttrs` genérico). El tema y el consentimiento
   los arranca ahora `bootBase`; `bootDocs` ya no los cablea.
 
+### Cambiado
+
+- **Los bloques ```` ```django ```` y ```` ```htmldjango ```` ahora se resaltan.** Shiki no trae esos
+  lenguajes, así que antes salían sin resaltado y con un aviso de «lenguaje desconocido»; la librería
+  los trata como alias de `jinja` (como `pycon` → `python`, `env` → `dotenv` o `terminal` →
+  `shellsession`). Los bloques ya escritos cambian de aspecto sin tocar el Markdown. Un alias propio
+  en `markdown.shikiConfig.langAlias` manda sobre estos.
+
 ### Añadido
 
 - **Guía de migración desde MkDocs más completa.** El proyecto de Astro ya no se llama `site/` en los
