@@ -115,8 +115,8 @@ Los textos (`designStrings(locale)`) salen de `@velezanthony/design/site` y ya l
 sobrescrituras de `ui`. Esa subruta evita importar `virtual:@velezanthony/design/config` desde el sitio.
 
 > [!NOTE]
-> Con analítica, `BaseLayout` necesita `gtmId` y `privacyUrl`. `@velezanthony/design/site` da el
-> `gtmId` ya resuelto, pero no `privacyUrl`: la pasas tú, como un solo texto (el del idioma de la página).
+> Con analítica, `BaseLayout` necesita `gtmId` y `privacyUrl`. `@velezanthony/design/site` da las dos ya
+> resueltas: `gtmId` y `privacyUrl(locale)`, la URL del idioma de la página, leída de la config.
 
 ## Lo que ya viene resuelto
 

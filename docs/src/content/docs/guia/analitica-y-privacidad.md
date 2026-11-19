@@ -77,9 +77,10 @@ stateDiagram-v2
 - Las claves `consent` y `theme` viven en el mismo origen (`velezanthony.github.io`), así que el
   portfolio y todos los sitios de docs **comparten** la elección del visitante.
 
-Un sitio con su propio layout ([BaseLayout](./layout-propio.md)) pasa `gtmId` y `privacyUrl` a mano:
-`gtmId` sale ya resuelto de `@velezanthony/design/site`, y `privacyUrl` es un solo texto, el del idioma
-de la página. `BaseLayout` falla con un error que la nombra si recibe `gtmId` sin `privacyUrl`.
+Un sitio con su propio layout ([BaseLayout](./layout-propio.md)) pasa `gtmId` y `privacyUrl` al layout,
+pero no hace falta calcularlas: `@velezanthony/design/site` exporta `gtmId` y `privacyUrl(locale)`, ya
+resueltas desde la config (la URL es un solo texto, la del idioma de la página). `BaseLayout` falla con
+un error que la nombra si recibe `gtmId` sin `privacyUrl`.
 
 ## Política de privacidad
 

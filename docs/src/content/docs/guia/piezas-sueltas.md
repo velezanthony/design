@@ -102,7 +102,7 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | `@velezanthony/design/client/toc` | `trackSections`: resalta en el índice la sección visible. |
 | `@velezanthony/design/head` | `buildHead` y el tipo `HeadConfig` (una etiqueta del `<head>` como dato: lo que acepta la prop `head` de `BaseLayout`). |
 | `@velezanthony/design/ui-strings` | El tipo `UiStrings`, `defaultStrings`, `englishStrings`, `mergeUiStrings` y `translate`. |
-| `@velezanthony/design/site` | `designStrings(locale)`: los textos de interfaz ya fusionados con los del sitio, y `gtmId`: el ID resuelto desde `PUBLIC_GTM_ID` o la config. Evita importar `virtual:` desde el sitio. |
+| `@velezanthony/design/site` | `designStrings(locale)`: los textos de interfaz ya fusionados con los del sitio, `gtmId`: el ID resuelto desde `PUBLIC_GTM_ID` o la config, y `privacyUrl(locale)`: la URL de privacidad de ese idioma, resuelta desde la config. Evita importar `virtual:` desde el sitio. |
 | `@velezanthony/design/last-modified` | `fileLastModified(file, root?)`: fecha ISO de la última modificación de un archivo (su último commit o, sin él, la del archivo; nada en un clon superficial), la misma que el `<lastmod>` del sitemap. Asíncrona; sirve para el `dateModified` de un JSON-LD. |
 | `@velezanthony/design/seo` | `pageHead(…)`: el `<head>` de una página del sitio con la config de la librería (ver [El `<head>` de una página propia](#el-head-de-una-página-propia)). |
 | `@velezanthony/design/seo-schema` | `seoSchema`: el bloque `seo` del frontmatter como fragmento zod, y el tipo `PageSeo`. |

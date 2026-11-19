@@ -67,6 +67,9 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`privacyUrl(locale)` en `@velezanthony/design/site`.** La URL de privacidad ya resuelta para un
+  idioma (cae al idioma por defecto), junto a `designStrings` y `gtmId`: un layout propio ya no
+  necesita repetirla a mano. Devuelve `undefined` si el sitio no declara `privacyUrl`.
 - **El `<head>` de una página propia: subrutas `@velezanthony/design/seo` y `@velezanthony/design/seo-schema`.**
   `seoSchema` es el bloque `seo` del frontmatter como fragmento zod (`seo: seoSchema.optional()` en
   cualquier colección). `pageHead({ title, seo, locale, url, alternates, ogType, schema })` devuelve las
