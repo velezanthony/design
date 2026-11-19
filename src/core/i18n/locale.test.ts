@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DocsError } from '../errors';
-import { localeFromPath, localizedPath, splitLocale, stripLocale } from './locale';
+import { localizedPath, splitLocale, stripLocale } from './locale';
 
 const locales = ['en', 'es'];
 
@@ -38,45 +38,6 @@ describe('splitLocale', () => {
       stem: 'x',
       locale: 'pt-BR',
     });
-  });
-});
-
-describe('localeFromPath', () => {
-  function detect(pathname: string, base = '/repo') {
-    return localeFromPath(pathname, base, locales, 'en');
-  }
-
-  it('detecta el idioma por el primer segmento tras la base', () => {
-    expect(detect('/repo/es/x')).toBe('es');
-    expect(detect('/repo/es')).toBe('es');
-    expect(detect('/repo/es/')).toBe('es');
-  });
-
-  it('exige el segmento completo', () => {
-    expect(detect('/repo/esx/a')).toBe('en');
-  });
-
-  it('una ruta sin prefijo de idioma es el idioma por defecto', () => {
-    expect(detect('/repo/x')).toBe('en');
-    expect(detect('/repo/')).toBe('en');
-  });
-
-  it('una ruta fuera de la base es el idioma por defecto', () => {
-    expect(detect('/otra/es/x')).toBe('en');
-    expect(detect('/repoo/es/x')).toBe('en');
-  });
-
-  it('base raíz y base con o sin barra final', () => {
-    expect(detect('/es/x', '/')).toBe('es');
-    expect(detect('/x', '/')).toBe('en');
-    expect(detect('/repo/es/x', '/repo/')).toBe('es');
-    expect(detect('/repo/es/x', '/repo')).toBe('es');
-    expect(detect('/es/x', '')).toBe('es');
-  });
-
-  it('con otro idioma por defecto, el prefijo explícito del defecto sigue siendo ese idioma', () => {
-    expect(localeFromPath('/repo/x', '/repo', locales, 'es')).toBe('es');
-    expect(localeFromPath('/repo/en/x', '/repo', locales, 'es')).toBe('en');
   });
 });
 
@@ -123,10 +84,5 @@ describe('rutas con `.md` en una carpeta', () => {
   it('solo se toca el `.md` final, no uno que esté en medio de la ruta', () => {
     expect(splitLocale('docs.md/page.md', locales, 'en').stem).toBe('docs.md/page');
     expect(localizedPath('docs.md/page.md', 'es', 'en')).toBe('docs.md/page.es.md');
-  });
-
-  it('`localeFromPath`: bajo la base se detecta el idioma, fuera de ella no', () => {
-    expect(localeFromPath('/repo/es/x', '/repo', locales, 'en')).toBe('es');
-    expect(localeFromPath('/repo-es/es/x', '/repo', locales, 'en')).toBe('en');
   });
 });

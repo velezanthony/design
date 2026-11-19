@@ -21,12 +21,13 @@ const CLIENT = 'src/client/theme.ts';
 const UI = 'src/components/organisms/Header.ts';
 const ASTRO = 'src/astro/loader/index.ts';
 const VIEWS = 'src/astro/views/doc.ts';
-const DATA = 'src/astro/data/privacy.ts';
+const DATA = 'src/astro/data/site-config.ts';
 const ROUTES = 'src/astro/routes/sitemap.xml.ts';
 const PANEL_ROUTES = 'src/astro/routes/seo-on-page/overview.ts';
 const PANEL_COMPONENTS = 'src/components/seo-on-page/molecules/Kpi.ts';
 const PANEL_CLIENT = 'src/client/seo-on-page/boot.ts';
 const LAYOUT = 'src/components/layouts/DocsLayout.ts';
+const ORGANISM = 'src/components/organisms/content/Article.ts';
 
 const forbidden: [string, string, string][] = [
   ['core/ no importa astro:content', CORE, `import { getCollection } from 'astro:content';`],
@@ -58,7 +59,11 @@ const forbidden: [string, string, string][] = [
   ['views/ no importa astro:content', VIEWS, `import { getCollection } from 'astro:content';`],
   ['views/ no importa astro', VIEWS, `import { defineConfig } from 'astro';`],
   ['views/ no importa data/', VIEWS, `import { x } from '../data/site-config';`],
-  ['views/ no importa data/ desde su subcarpeta', VIEWS, `import { x } from '../../data/privacy';`],
+  [
+    'views/ no importa data/ desde su subcarpeta',
+    VIEWS,
+    `import { x } from '../../data/site-config';`,
+  ],
   [
     'views/ no importa components/',
     VIEWS,
@@ -71,6 +76,19 @@ const forbidden: [string, string, string][] = [
     DATA,
     `import { x } from '../../components/atoms/actions/Link';`,
   ],
+  /* Atomic Design: ningún nivel importa uno superior. */
+  ['organisms/ no importa layouts/', ORGANISM, `import { x } from '../../layouts/boot';`],
+  [
+    'molecules/ no importa layouts/',
+    'src/components/molecules/navigation/Toc.ts',
+    `import { x } from '../../layouts/boot';`,
+  ],
+  [
+    'atoms/ no importa layouts/',
+    'src/components/atoms/display/Tag.ts',
+    `import { x } from '../../layouts/BaseLayout';`,
+  ],
+  ['organisms/ no importa pages/', ORGANISM, `import { x } from '../../pages/DocPage';`],
   /* Valla de dev: lo publicado no toca el panel. */
   [
     'components/ no importa components/seo-on-page',
@@ -110,6 +128,11 @@ const allowed: [string, string, string][] = [
     `import { type Locale } from '../core/i18n/locale';`,
   ],
   ['components/ sí importa core/', UI, `import { translate } from '../../core/i18n/ui-strings';`],
+  [
+    'organisms/ sí importa el arranque neutral',
+    ORGANISM,
+    `import { x } from '../../boot/article';`,
+  ],
   ['components/ sí importa client/', UI, `import { x } from '../../client/theme';`],
   ['astro/ sí importa astro:content', ASTRO, `import { getCollection } from 'astro:content';`],
   ['astro/ sí importa astro', ASTRO, `import { defineConfig } from 'astro';`],
@@ -132,7 +155,7 @@ const allowed: [string, string, string][] = [
   [
     'routes/ sí importa data/, views/ y components/',
     ROUTES,
-    `import { x } from '../data/privacy';
+    `import { x } from '../data/site-config';
 import { y } from '../views/doc';
 import { z } from '../../components/pages/DocPage';`,
   ],

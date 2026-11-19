@@ -163,11 +163,9 @@ describe('#9 rutas inyectadas bajo base', () => {
     expect(xml).not.toContain('404');
   });
 
-  it('404.html en la raíz de base y /<locale>/404/ por idioma no por defecto', async () => {
-    expect(await site.read('404.html')).toContain('<main');
-    expect(await site.read('es/404/index.html')).toContain('lang="es"');
-    expect(await site.read('es/404/index.html')).toContain('Página no encontrada');
-    await expect(site.read('en/404/index.html')).rejects.toThrow();
+  it('la librería no genera 404: es del sitio, una sola para todo el dominio', async () => {
+    await expect(site.read('404.html')).rejects.toThrow();
+    await expect(site.read('es/404/index.html')).rejects.toThrow();
   });
 });
 
@@ -227,40 +225,6 @@ describe('#11 layouts y rutas de la Fase 12', () => {
     expect(xml).not.toContain('/repo/es/fallback-demo/');
     expect(await site.read('fallback-demo/index.html')).toContain('data-pagefind-body');
   });
-
-  it('404.html: idioma por defecto, plantilla del resto, noindex sin canonical, fuera del índice', async () => {
-    const html = await site.read('404.html');
-    expect(html).toContain('<html lang="en"');
-    expect(html).toContain('<template data-locale="es"');
-    expect(html).toContain('Página no encontrada');
-    expect(html).toContain('nf-pending');
-    expect(html).toContain('<meta name="robots" content="noindex"');
-    expect(html).not.toContain('rel="canonical"');
-    expect(html).not.toContain('data-pagefind-body');
-    expect(html).toMatch(/<main[^>]*data-pagefind-ignore/);
-    expect(html).toContain('data-nf-base="/repo/"');
-  });
-
-  it('404.html: un único script de módulo, que sustituye ANTES de cablear el cliente', async () => {
-    const html = await site.read('404.html');
-    const scripts = [...html.matchAll(/<script type="module"([^>]*)>([\s\S]*?)<\/script>/g)];
-    expect(scripts).toHaveLength(1);
-    const [, attrs, inline] = scripts[0]!;
-    const src = /src="([^"]+)"/.exec(attrs!)?.[1];
-    let code = src ? await site.read(src.replace(/^\/repo\//, '')) : inline!;
-    const chunk = /from"\.\/([^"]+)"/.exec(code)?.[1];
-    if (chunk) code += await site.read(`_astro/${chunk}`);
-    expect(code).toContain('nf-pending');
-    expect(html.indexOf('<script type="module"')).toBeLessThan(html.indexOf('</body>'));
-  });
-
-  it('/es/404/: su idioma directamente, sin plantillas, noindex', async () => {
-    const html = await site.read('es/404/index.html');
-    expect(html).toContain('<html lang="es"');
-    expect(html).not.toContain('<template');
-    expect(html).toContain('<meta name="robots" content="noindex"');
-    expect(html).toMatch(/<main[^>]*data-pagefind-ignore/);
-  });
 });
 
 describe('#12 alcance del índice de búsqueda', () => {
@@ -288,11 +252,6 @@ describe('#12 alcance del índice de búsqueda', () => {
   it('el cromo queda fuera: la barra lateral (título de otra página) y la cabecera no dan resultados', async () => {
     expect(await search('en', 'hidden')).toEqual([]);
     expect(await search('en', 'Fixture')).toEqual([]);
-  });
-
-  it('las 404 no se indexan: su texto no se encuentra', async () => {
-    expect(await search('en', 'moved')).toEqual([]);
-    expect(await search('es', 'movido')).toEqual([]);
   });
 
   it('el aislamiento por idioma se mantiene: es no encuentra lo de en', async () => {
@@ -367,7 +326,7 @@ describe('#15 etiquetas SEO y cascada', () => {
   it('twitter:*, og:locale y og:locale:alternate solo de traducciones reales', async () => {
     const html = await site.read('es/card/index.html');
     expect(metaContent(html, 'twitter:card')).toBe('summary_large_image');
-    expect(metaContent(html, 'twitter:title')).toBe('Tarjeta');
+    expect(metaContent(html, 'twitter:title')).toBe('Tarjeta | Fixture docs');
     expect(metaContent(html, 'og:locale')).toBe('es');
     expect(metaAll(html, 'og:locale:alternate')).toEqual(['en']);
     expect(titleOf(html)).toBe('Tarjeta | Fixture docs');
@@ -460,11 +419,6 @@ describe('#16 políticas de traducción y textos en una build real', () => {
     expect(await site.read('es/guide/index.html')).toContain('placeholder="Buscar en la fixture"');
     expect(await site.read('guide/index.html')).toContain('placeholder="Search the docs"');
   });
-
-  it('404.html en la raíz de base con plantilla es y /es/404/ (ver #9 y #11)', async () => {
-    expect(await site.read('404.html')).toContain('<template data-locale="es"');
-    expect(await site.read('es/404/index.html')).toContain('lang="es"');
-  });
 });
 
 describe('#17 enlace relativo de una página nativa a un external', () => {
@@ -492,7 +446,7 @@ describe('#19 tabla ancha', () => {
 describe('#20 favicon por defecto', () => {
   it('toda página enlaza el favicon del paquete con la base, sin tocar public/', async () => {
     const link = '<link rel="icon" href="/repo/_design/favicon.png" type="image/png"';
-    for (const page of ['index.html', 'es/guide/index.html', '404.html', 'es/404/index.html']) {
+    for (const page of ['index.html', 'es/guide/index.html']) {
       expect(await site.read(page)).toContain(link);
     }
   });
@@ -565,5 +519,27 @@ describe('JSON-LD declarado por el sitio y por el frontmatter', () => {
     const html = await site.read('lonely/index.html');
     expect(html).not.toContain('<script>alert(1)');
     expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)');
+  });
+});
+
+describe('`theme`: el CSS del sitio entra en la misma compilación de Tailwind', () => {
+  async function stylesheets(): Promise<string[]> {
+    const files = (await readdir(resolve(site.dist, '_astro'))).filter((file) =>
+      file.endsWith('.css'),
+    );
+    return Promise.all(files.map((file) => readFile(resolve(site.dist, '_astro', file), 'utf8')));
+  }
+
+  it('sus tokens llegan al CSS y generan utilidades para las clases del propio sitio', async () => {
+    const css = (await stylesheets()).join('\n');
+    expect(css).toContain('--color-fixture-brand:#123456');
+    expect(css).toContain('.bg-fixture-brand');
+    expect(css).toContain('.text-fixture-size');
+    expect(css).toContain('.fixture-rule');
+  });
+
+  it('la base de la librería sigue ahí, una sola vez', async () => {
+    const css = (await stylesheets()).join('\n');
+    expect(css.match(/--color-canvas:/g)).toHaveLength(1);
   });
 });

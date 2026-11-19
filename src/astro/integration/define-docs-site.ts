@@ -1,4 +1,3 @@
-import tailwindcss from '@tailwindcss/vite';
 import type { AstroUserConfig } from 'astro';
 import { AstroError } from 'astro/errors';
 import type { DocsUserConfig } from '../../core/config/schema';
@@ -12,7 +11,7 @@ export interface DocsSiteOptions {
   base: string;
   /** Origen absoluto del sitio (sitemap y URLs canónicas). Por defecto, el de GitHub Pages del propietario. */
   site?: string;
-  /** Otra config de Astro, fusionada con la de la librería (`integrations` y `vite.plugins` van después de `docs()`); `site` y `base` van en las opciones. */
+  /** Otra config de Astro, fusionada con la de la librería (`integrations` va después de `docs()`); `site` y `base` van en las opciones. */
   astro?: Omit<AstroUserConfig, 'site' | 'base'>;
 }
 
@@ -29,13 +28,12 @@ export function defineDocsSite(
       `Pásala como \`{ base: '/mi-repo' }\` (o '/' en un sitio de usuario): empieza por '/' y es una ruta, no una URL. Recibido: ${JSON.stringify(base)}.`,
     );
   }
-  const { vite, integrations, ...rest } = options.astro ?? {};
+  const { integrations, ...rest } = options.astro ?? {};
   return {
     trailingSlash: 'always',
     ...rest,
     site: options.site ?? DEFAULT_SITE,
     base,
-    vite: { ...vite, plugins: [tailwindcss(), ...(vite?.plugins ?? [])] },
     integrations: [docs(docsConfig), ...(integrations ?? [])],
   };
 }

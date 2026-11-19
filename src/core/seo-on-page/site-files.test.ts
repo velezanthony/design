@@ -4,11 +4,9 @@ import { siteFiles, type SiteFilesFacts } from './site-files';
 function facts(extra: Partial<SiteFilesFacts> = {}): SiteFilesFacts {
   return {
     url: { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' },
-    locales: ['en'],
     sitemapUrls: 12,
     robots: false,
     llms: false,
-    privacyPage: false,
     ...extra,
   };
 }
@@ -23,9 +21,7 @@ describe('siteFiles', () => {
       'sitemap',
       'robots',
       'llms',
-      'not-found',
       'favicon',
-      'privacy',
       'pagefind',
     ]);
   });
@@ -54,17 +50,6 @@ describe('siteFiles', () => {
     expect(entry('llms').state).toBe('absent');
   });
 
-  it('la 404 se genera por idioma: el principal sin prefijo y los demás con él', () => {
-    expect(entry('not-found', { locales: ['en', 'es'] })).toMatchObject({
-      state: 'generated',
-      href: '/repo/404/',
-      links: [
-        { locale: 'en', href: '/repo/404/' },
-        { locale: 'es', href: '/repo/es/404/' },
-      ],
-    });
-  });
-
   it('favicon: sin config es el del paquete; con uno local, el de public/; https tal cual', () => {
     expect(entry('favicon')).toMatchObject({
       state: 'generated',
@@ -79,20 +64,6 @@ describe('siteFiles', () => {
     expect(entry('favicon', { favicon: 'https://cdn.dev/i.png' })).toMatchObject({
       state: 'present',
       href: 'https://cdn.dev/i.png',
-    });
-  });
-
-  it('privacidad: solo se genera con privacy.page; si no, no aplica y sin enlaces', () => {
-    const off = entry('privacy');
-    expect(off.state).toBe('not-applicable');
-    expect(off).not.toHaveProperty('href');
-    expect(entry('privacy', { privacyPage: true, locales: ['en', 'es'] })).toMatchObject({
-      state: 'generated',
-      href: '/repo/privacy/',
-      links: [
-        { locale: 'en', href: '/repo/privacy/' },
-        { locale: 'es', href: '/repo/es/privacidad/' },
-      ],
     });
   });
 

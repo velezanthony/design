@@ -1,6 +1,7 @@
 import type { Page } from '../../core/content/discovery';
 import { buildAvailability } from '../../core/i18n/availability';
 import { noindexUrls } from '../../core/seo/indexable';
+import { pageLastmods } from '../../core/seo/lastmod';
 import {
   buildSitemap,
   buildSitemapIndex,
@@ -8,7 +9,6 @@ import {
   sitemapIncludes,
   type SitemapEntry,
 } from '../../core/seo/sitemap';
-import { privacyAvailability } from '../../core/privacy/pages';
 import { urlPolicyOf } from '../config';
 import { orAstroError } from '../errors';
 import type { DocData } from '../loader/schema';
@@ -34,24 +34,26 @@ export function pagesOf(data: DocData[]): Page[] {
   return data.map(pageOf);
 }
 
-/** Único `sitemap.xml`: solo páginas REALES e indexables (más privacidad si es propia), con alternates; un fallo del núcleo sale como `AstroError`. */
+/** Único `sitemap.xml`: solo páginas REALES e indexables, con alternates; un fallo del núcleo sale como `AstroError`. */
 export function sitemapXml(
   data: DocData[],
-  config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site' | 'locales'> & {
-    privacy: Pick<VirtualConfig['privacy'], 'page'>;
-  },
+  config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site'>,
   /** Las páginas del cliente (`src/pages/`), ya decididas, que van después de las de la documentación. */
   extra: readonly SitemapEntry[] = [],
+  /** Fecha de cada archivo de página por su `sourcePath`, para el `lastmod`. */
+  dates: ReadonlyMap<string, string> = new Map(),
 ): string {
   const pages = pagesOf(data);
   const url = urlPolicyOf(config, config.defaultLocale);
   const availability = buildAvailability(pages, url);
-  // La página de privacidad propia no es contenido: se suma aquí, con su hreflang entre idiomas.
-  if (config.privacy.page) {
-    for (const [key, urls] of privacyAvailability(config.locales, url)) availability.set(key, urls);
-  }
   return orAstroError('No se puede generar sitemap.xml.', () =>
-    buildSitemap(availability, new URL(config.site), noindexUrls(pages, url), extra),
+    buildSitemap(
+      availability,
+      new URL(config.site),
+      noindexUrls(pages, url),
+      extra,
+      pageLastmods(pages, url, dates),
+    ),
   );
 }
 

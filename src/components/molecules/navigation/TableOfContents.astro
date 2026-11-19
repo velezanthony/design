@@ -4,17 +4,23 @@ import { tocEntries } from '../../../core/navigation/toc-entries';
 import PanelToggle from '../controls/PanelToggle.astro';
 
 interface Props {
-  /** Encabezados de la página tal como los devuelve `render(entry)`. Se listan h2 y h3. */
+  /** Encabezados de la página tal como los devuelve `render(entry)`. Se listan de h2 a `depth`. */
   headings: { depth: number; slug: string; text: string }[];
   strings: UiStrings;
   /** Con el botón que pliega el índice a un raíl (`layout.toggles`). */
   toggles?: boolean;
   /** Estado con el que nace el botón; `initLayout` lo corrige con lo guardado. */
   open?: boolean;
+  /** Último nivel de encabezado que se lista (2 a 6). */
+  depth?: number;
+  /** Longitud CSS (`60vh`): la lista no pasa de ahí y hace scroll por dentro. */
+  maxHeight?: string;
 }
 
-const { headings, strings, toggles = false, open = true } = Astro.props;
-const entries = tocEntries(headings);
+const { headings, strings, toggles = false, open = true, depth, maxHeight } = Astro.props;
+const entries = tocEntries(headings, depth);
+/* Una sangría por nivel; el h2 es la raíz. */
+const indent = ['pl-3', 'pl-6', 'pl-9', 'pl-12', 'pl-14'];
 const title = translate(strings, 'toc.title');
 ---
 
@@ -32,7 +38,14 @@ const title = translate(strings, 'toc.title');
     ) : (
       <p class="label mb-3 text-muted">{title}</p>
     )}
-    <ol id="docs-toc-panel" class="docs-panel space-y-1 border-l border-rule">
+    <ol
+      id="docs-toc-panel"
+      class:list={[
+        'docs-panel space-y-1 border-l border-rule',
+        maxHeight && 'max-h-(--toc-max-height) overflow-y-auto',
+      ]}
+      style={maxHeight ? `--toc-max-height:${maxHeight}` : undefined}
+    >
       {entries.map((entry) => (
         <li>
           <a
@@ -40,7 +53,7 @@ const title = translate(strings, 'toc.title');
             data-depth={entry.depth}
             class:list={[
               '-ml-px block border-l border-transparent py-1 text-sm text-muted transition-colors hover:text-ink aria-[current=location]:border-accent-line aria-[current=location]:text-accent',
-              entry.depth === 3 ? 'pl-6' : 'pl-3',
+              indent[entry.depth - 2],
             ]}
           >
             {entry.text}

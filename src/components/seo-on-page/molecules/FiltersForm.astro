@@ -30,6 +30,8 @@ interface Props {
   locales: string[];
   /** Lo que cuenta cada ficha de gravedad. */
   severityCounts: Record<keyof SeverityCounts, number>;
+  /** La casilla de las noindex: si se ocultan y cuántas páginas hay. */
+  noindex: { hidden: boolean; count: number };
   /** Las casillas del desplegable de tipos: «Todos», los que tienen incidencias y los que no. */
   kinds: KindOptions;
   /** Ruta de la tabla: el formulario es un GET a ella, así los filtros viven en la URL. */
@@ -38,7 +40,8 @@ interface Props {
   clear: string;
 }
 
-const { filters, perPage, view, locales, severityCounts, kinds, action, clear } = Astro.props;
+const { filters, perPage, view, locales, severityCounts, kinds, noindex, action, clear } =
+  Astro.props;
 const group = 'flex flex-wrap items-center gap-2';
 const separator = 'hidden w-px self-stretch bg-rule sm:block';
 ---
@@ -89,6 +92,14 @@ const separator = 'hidden w-px self-stretch bg-rule sm:block';
         <span class="font-mono">{locale.toUpperCase()}</span>
       </Checkbox>
     ))}
+  </fieldset>
+  <span class={separator} aria-hidden="true"></span>
+  <fieldset class={group} data-auto-submit>
+    <legend class="sr-only">{FILTER_LABELS.noindex}</legend>
+    <Checkbox variant="chip" name="noindex" value="hide" checked={noindex.hidden}>
+      {FILTER_LABELS.noindex}
+      <span class="font-mono text-xs">{noindex.count}</span>
+    </Checkbox>
   </fieldset>
   <span class={separator} aria-hidden="true"></span>
   {/* «Todos» marcado = sin filtro de tipo; sin JS el servidor lee igual «todas marcadas». */}

@@ -1,7 +1,10 @@
-import { PRIVACY_LOCALES } from '../privacy/copy';
-import { missingPrivacyLocales } from '../privacy/pages';
 import { z } from 'astro/zod';
 import { contentDirProblem } from '../content/content-dir';
+import {
+  staticDestinationsOverlap,
+  staticFolderProblem,
+  type StaticFolder,
+} from '../content/static-folders';
 import { MissingTranslation } from '../i18n/translation-policy';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
@@ -96,7 +99,7 @@ const PageSchemasSchema = z.any().superRefine((value, context) => {
 
 /** Override de SEO de una página: frontmatter `seo` (nativas) o `external[].seo` (externas). */
 export const PageSeoOverrideSchema = z.strictObject({
-  title: z.string().optional(),
+  title: LabelSchema.optional(),
   titleSuffix: TitleSuffixSchema.optional(),
   description: LabelSchema.optional(),
   image: z.strictObject({ src: ImageSrcSchema, alt: LabelSchema.optional() }).optional(),
@@ -194,6 +197,13 @@ export const DocsConfigSchema = z
       })
       .optional(),
     favicon: FaviconSchema.optional(),
+    /** `og:locale` de cada idioma con territorio (`es_ES`); sin él, el propio idioma (`es`). */
+    ogLocales: z
+      .record(
+        z.string(),
+        z.string().regex(/^[a-z]{2,3}_[A-Z]{2}$/, 'Debe ser idioma_TERRITORIO: es_ES, en_GB.'),
+      )
+      .optional(),
     content: z
       .string()
       .superRefine((directory, context) => {
@@ -201,6 +211,18 @@ export const DocsConfigSchema = z
         if (problem) context.addIssue({ code: 'custom', message: problem });
       })
       .optional(),
+    /** CSS del proyecto (ruta desde su raíz) con `@theme` y estilos propios: se compila junto a `theme.css`. */
+    theme: z
+      .string()
+      .refine(
+        (file) => file.endsWith('.css') && !/^[a-z][a-z0-9+.-]*:\/\//i.test(file),
+        'Debe ser la ruta local de un archivo CSS (src/styles/site.css).',
+      )
+      .optional(),
+    /** Carpetas que se publican tal cual (un informe de cobertura HTML): `from` desde la raíz del proyecto, `to` bajo el sitio. */
+    static: z.array(z.strictObject({ from: z.string().min(1), to: z.string().min(1) })).optional(),
+    /** Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican; equivale a `exclude_docs` de MkDocs. */
+    exclude: z.array(z.string().min(1)).optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
     defaultLocale: z.string().optional(),
     translations: z.strictObject({ missing: MissingTranslationSchema.optional() }).optional(),
@@ -213,19 +235,6 @@ export const DocsConfigSchema = z
     repoRoot: z.string().optional(),
     privacyUrl: z.union([PrivacyUrlSchema, z.record(z.string(), PrivacyUrlSchema)]).optional(),
     gtmId: z.string().min(1).optional(),
-    privacy: z
-      .strictObject({
-        page: z.boolean().optional(),
-        controller: z
-          .strictObject({
-            name: z.string().min(1),
-            email: z
-              .string()
-              .refine((email) => /^[^\s@]+@[^\s@]+$/.test(email), 'Debe ser un correo.'),
-          })
-          .optional(),
-      })
-      .optional(),
     social: z.strictObject({ github: z.string().optional() }).optional(),
     /** Otros sitemaps del dominio que el índice `sitemap.xml` declara (rutas o URLs del mismo origen). */
     sitemap: z.strictObject({ include: z.array(z.string().min(1)).optional() }).optional(),
@@ -235,6 +244,11 @@ export const DocsConfigSchema = z
         toc: PanelStateSchema.optional(),
         width: LayoutWidthSchema.optional(),
         toggles: z.boolean().optional(),
+        tocDepth: z.number().int().min(2).max(6).optional(),
+        tocMaxHeight: z
+          .string()
+          .regex(/^\d+(\.\d+)?(px|rem|em|vh|dvh|svh)$/, 'Debe ser una longitud CSS: 60vh, 24rem.')
+          .optional(),
       })
       .optional(),
   })
@@ -258,6 +272,11 @@ export const DocsConfigSchema = z
         `«${config.defaultLocale}» no está en \`locales\` (${locales.join(', ')}).`,
       );
     }
+    for (const locale of Object.keys(config.ogLocales ?? {})) {
+      if (!locales.includes(locale)) {
+        issue(['ogLocales', locale], `«${locale}» no está en \`locales\` (${locales.join(', ')}).`);
+      }
+    }
     for (const locale of Object.keys(config.ui ?? {})) {
       if (!locales.includes(locale)) {
         issue(['ui', locale], `«${locale}» no está en \`locales\` (${locales.join(', ')}).`);
@@ -273,17 +292,9 @@ export const DocsConfigSchema = z
         }
       });
     });
+    validateStaticFolders(config.static ?? [], locales, issue);
     validateNavShape(config.nav ?? [], issue);
     validateFooterShape(config.footer, issue);
-    if (config.privacy?.page) {
-      const missing = missingPrivacyLocales(locales);
-      if (missing.length > 0) {
-        issue(
-          ['privacy', 'page'],
-          `La página de privacidad solo tiene texto en ${PRIVACY_LOCALES.join(', ')}; falta para ${missing.join(', ')}. Desactiva \`privacy.page\` o quita esos idiomas.`,
-        );
-      }
-    }
     if (typeof config.privacyUrl === 'object') {
       for (const locale of Object.keys(config.privacyUrl)) {
         if (!locales.includes(locale)) {
@@ -298,6 +309,30 @@ export const DocsConfigSchema = z
 
 /** Lo que escribe el consumidor en `docs({...})` / `defineDocsConfig({...})`. */
 export type DocsUserConfig = z.input<typeof DocsConfigSchema>;
+
+/** Forma de cada carpeta estática y que sus destinos no se pisen entre sí. */
+function validateStaticFolders(
+  folders: readonly StaticFolder[],
+  locales: readonly string[],
+  issue: (path: (string | number)[], message: string) => void,
+): void {
+  folders.forEach((folder, index) => {
+    const problem = staticFolderProblem(folder, locales);
+    if (problem) {
+      issue(['static', index], problem);
+      return;
+    }
+    const clash = folders
+      .slice(0, index)
+      .findIndex((other) => staticDestinationsOverlap(other.to, folder.to));
+    if (clash !== -1) {
+      issue(
+        ['static', index, 'to'],
+        `«${folder.to}» se solapa con «${folders[clash]!.to}» (static[${clash}].to): dos carpetas no pueden publicarse en el mismo sitio.`,
+      );
+    }
+  });
+}
 
 /** Lo que se puede juzgar de `nav` sin conocer las páginas: forma de cada item, https y solape de dirs. */
 function validateNavShape(
@@ -315,15 +350,17 @@ function validateNavShape(
       icon?: unknown;
     };
     const kinds = (['dir', 'slug', 'href'] as const).filter((key) => item[key] !== undefined);
+    // Una sección puede ser solo `sidebar`: sus páginas no tienen por qué compartir carpeta.
+    if (kinds.length === 0 && item.sidebar !== undefined) return;
     if (kinds.length !== 1) {
       issue(
         ['nav', index],
-        'Debe ser una sección (`dir`), una página (`slug`) o un enlace (`href`), solo una de las tres.',
+        'Debe ser una sección (`dir` o `sidebar`), una página (`slug`) o un enlace (`href`), solo una de las tres.',
       );
       return;
     }
     if (item.sidebar !== undefined && item.dir === undefined) {
-      issue(['nav', index, 'sidebar'], 'Solo una sección (`dir`) tiene `sidebar`.');
+      issue(['nav', index, 'sidebar'], 'Solo una sección tiene `sidebar`.');
     }
     if (item.icon !== undefined && item.href === undefined) {
       issue(['nav', index, 'icon'], 'Solo un enlace (`href`) tiene `icon`.');

@@ -37,6 +37,16 @@ describe('ThemeToggle', () => {
     expect(element.getAttribute('title')).toBe('Dark mode');
   });
 
+  it('sin strings ni label usa el texto en inglés por defecto', async () => {
+    expect((await button({})).getAttribute('aria-label')).toBe('Toggle color theme');
+  });
+
+  it('`label` manda sobre strings, para quien tiene su propio i18n', async () => {
+    const element = await button({ strings: stringsFor('es'), label: 'Modo oscuro' });
+    expect(element.getAttribute('aria-label')).toBe('Modo oscuro');
+    expect(element.getAttribute('title')).toBe('Modo oscuro');
+  });
+
   it('lleva los dos iconos decorativos', async () => {
     const svgs = [...(await button({ strings: stringsFor('en') })).querySelectorAll('svg')];
     expect(svgs).toHaveLength(2);

@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { builtClientPages, type ClientPage } from '../../../core/seo/client-pages';
 import { readHead } from '../../../core/seo/html-head';
 import { appendToSitemap, clientSitemapEntries } from '../../../core/seo/sitemap';
+import { lastModifiedDates } from '../../data/last-modified';
 import { clientRegistry, type ClientRegistry } from '../../registry';
 import { trimBase } from '../../../core/shared/urls';
 
@@ -14,7 +15,12 @@ interface Built {
   base: string;
   /** El fichero con las páginas propias (`sitemapFiles`). */
   pagesFile: string;
+  /** La raíz del proyecto (ruta de disco): de ahí cuelgan los archivos de las páginas. */
+  root: string;
 }
+
+/** Fecha por archivo, que es lo que `lastmod` necesita; inyectable para probar sin git. */
+type DatesOf = (root: string, files: string[]) => Promise<Map<string, string>>;
 
 async function readIfExists(url: URL) {
   return readFile(url, 'utf8').catch(() => undefined);
@@ -33,6 +39,7 @@ async function builtHtml(directory: URL, pathname: string): Promise<string | und
 export async function addClientPagesToSitemap(
   built: Built,
   registry: ClientRegistry = clientRegistry(),
+  datesOf: DatesOf = lastModifiedDates,
 ): Promise<number> {
   const refs = builtClientPages(
     built.pages.map(({ pathname }) => pathname),
@@ -45,7 +52,11 @@ export async function addClientPagesToSitemap(
     const html = await builtHtml(built.dir, pathname);
     if (html) pages.push({ ...ref, head: readHead(html, new URL(ref.path, built.site)) });
   }
-  const entries = clientSitemapEntries(pages, new URL(built.site));
+  const dates = await datesOf(
+    built.root,
+    pages.map(({ entrypoint }) => entrypoint),
+  );
+  const entries = clientSitemapEntries(pages, new URL(built.site), dates);
   if (entries.length === 0) return 0;
   const file = new URL(built.pagesFile, built.dir);
   const xml = await readIfExists(file);

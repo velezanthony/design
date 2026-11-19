@@ -9,9 +9,17 @@ export interface SeoFilters {
   severities: IssueSeverity[];
   locales: Locale[];
   text: string;
+  /** Oculta las páginas noindex de la tabla, de los recuentos y de los avisos; no cambia qué es un problema. */
+  hideNoindex: boolean;
 }
 
-export const EMPTY_FILTERS: SeoFilters = { kinds: [], severities: [], locales: [], text: '' };
+export const EMPTY_FILTERS: SeoFilters = {
+  kinds: [],
+  severities: [],
+  locales: [],
+  text: '',
+  hideNoindex: false,
+};
 
 const KINDS: readonly string[] = Object.values(IssueKind);
 const SEVERITIES: readonly string[] = Object.values(IssueSeverity);
@@ -30,6 +38,7 @@ export function parseFilters(params: URLSearchParams): SeoFilters {
     ),
     locales: values(params, 'locale'),
     text: params.get('q') ?? '',
+    hideNoindex: params.get('noindex') === 'hide',
   };
 }
 
@@ -90,6 +99,7 @@ export function serializeFilters(
   for (const severity of filters.severities) params.append('severity', severity);
   for (const locale of filters.locales) params.append('locale', locale);
   if (filters.text !== '') params.set('q', filters.text);
+  if (filters.hideNoindex) params.set('noindex', 'hide');
   if (view.view !== SeoView.PAGE) params.set('view', view.view);
   if (view.view === SeoView.HAVE && view.lacks) params.set('lacks', view.lacks);
   if (page > 1) params.set('page', String(page));

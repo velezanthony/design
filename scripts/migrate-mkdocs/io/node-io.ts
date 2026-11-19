@@ -22,6 +22,15 @@ export function nodeInPlaceIo(repo: string): InPlaceIo {
         .sort(),
     read: (file) => fs.readFileSync(path.join(docs, file), 'utf8'),
     write: (file, text) => fs.writeFileSync(path.join(docs, file), text),
+    readMkdocs: () => {
+      const file = path.join(repo, 'mkdocs.yml');
+      return fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : undefined;
+    },
+    readText: (file) => fs.readFileSync(path.resolve(file), 'utf8'),
+    writeText: (file, text) => {
+      fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true });
+      fs.writeFileSync(path.resolve(file), text);
+    },
     git: (gitArguments) =>
       execFileSync('git', gitArguments, { cwd: repo, encoding: 'utf8', stdio: 'pipe' }),
   };

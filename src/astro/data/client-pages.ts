@@ -69,7 +69,12 @@ export async function loadClientPages(
 }
 
 /** Páginas del cliente para el sitemap en dev; en build las añade `astro:build:done` desde `dist/`. */
-export async function loadClientSitemapEntries(where: Where, deps?: Deps): Promise<SitemapEntry[]> {
+export async function loadClientSitemapEntries(
+  where: Where,
+  deps?: Deps,
+  /** Fecha por archivo de página (`entrypoint`), para el `lastmod`. */
+  dates?: ReadonlyMap<string, string>,
+): Promise<SitemapEntry[]> {
   const { pages } = await loadClientPages(where, deps);
-  return clientSitemapEntries(pages, new URL(where.site));
+  return clientSitemapEntries(pages, new URL(where.site), dates);
 }

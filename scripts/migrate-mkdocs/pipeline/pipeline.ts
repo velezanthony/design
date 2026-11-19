@@ -1,5 +1,5 @@
 /** Pipeline puro de un CONJUNTO de documentos: newlines, stubs aparte, transform, anclas, restos y stub-links, en ese orden. */
-import { fixAccentAnchors } from '../checks/anchors.ts';
+import { fixAnchors, type SlugStyle } from '../checks/anchors.ts';
 import { findStubLinks, type StubLink } from '../checks/stub-links.ts';
 import {
   checkOutput,
@@ -15,6 +15,8 @@ export interface PipelineOptions {
   symbols?: TransformOptions['symbols'];
   /** Reescritor de enlaces por fichero (ruta relativa a `docs/`). */
   rewriteHref?: (file: string) => TransformOptions['rewriteHref'];
+  /** Cómo genera MkDocs los ids de encabezado (`toc.slugify` de `mkdocs.yml`). */
+  slugStyle?: SlugStyle;
 }
 
 export interface PipelineResult {
@@ -55,7 +57,7 @@ export function runPipeline(
     if (result.log.length > 0) log[file] = result.log;
   }
 
-  const anchors = fixAccentAnchors(converted);
+  const anchors = fixAnchors(converted, normalized, options.slugStyle);
   for (const entry of anchors.log) {
     (log[entry.file] ??= []).push({ kind: 'anchor', line: 0, detail: entry.detail });
   }

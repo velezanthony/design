@@ -9,7 +9,6 @@ const config = {
   trailingSlash: 'always' as const,
   defaultLocale: 'en',
   locales: ['en', 'es'],
-  privacy: { page: false },
 };
 
 function data(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
@@ -47,7 +46,10 @@ describe('pagesOf: kind', () => {
 
 describe('sitemapXml', () => {
   it('lista solo páginas reales, con alternates y base', () => {
-    const xml = sitemapXml([data('guide', 'en'), data('guide', 'es')], config);
+    const xml = sitemapXml(
+      [data('guide', 'en'), data('guide', 'es', { sourcePath: 'guide.es.md' })],
+      config,
+    );
     expect(xml).toContain('<loc>https://x.dev/repo/guide/</loc>');
     expect(xml).toContain('hreflang="es" href="https://x.dev/repo/es/guide/"');
   });
@@ -60,6 +62,19 @@ describe('sitemapXml', () => {
     expect(xml).toContain('<loc>https://x.dev/repo/guide/</loc>');
     expect(xml).not.toContain('/repo/es/guide/');
     expect(xml).not.toContain('xhtml:link');
+  });
+
+  it('la página lleva el lastmod del archivo del que sale; sin fecha, ninguno', () => {
+    const [english, spanish] = [
+      data('guide', 'en'),
+      data('guide', 'es', { sourcePath: 'guide.es.md' }),
+    ];
+    const dates = new Map([[english.sourcePath, '2026-09-07T00:06:43+02:00']]);
+    const xml = sitemapXml([english, spanish], config, [], dates);
+    expect(xml).toContain(
+      '<loc>https://x.dev/repo/guide/</loc><lastmod>2026-09-07T00:06:43+02:00</lastmod>',
+    );
+    expect(xml.match(/<lastmod>/g)).toHaveLength(1);
   });
 
   it('nunca incluye rutas de reserva ni 404 (no son páginas)', () => {
@@ -83,32 +98,6 @@ describe('sitemapXml: páginas del cliente', () => {
       'https://x.dev/repo/guide/',
       'https://x.dev/repo/cv/',
     ]);
-  });
-});
-
-describe('sitemapXml: página de privacidad', () => {
-  const withPrivacy = {
-    ...config,
-    defaultLocale: 'es',
-    locales: ['es', 'en'],
-    privacy: { page: true },
-  };
-
-  it('con `page: true` la incluye en cada idioma, con hreflang entre ellas', () => {
-    const xml = sitemapXml([data('guide', 'es')], withPrivacy);
-    expect(xml).toContain('<loc>https://x.dev/repo/privacidad/</loc>');
-    expect(xml).toContain('<loc>https://x.dev/repo/en/privacy/</loc>');
-    expect(xml).toContain('hreflang="en" href="https://x.dev/repo/en/privacy/"');
-    expect(xml).toContain('hreflang="es" href="https://x.dev/repo/privacidad/"');
-  });
-
-  it('sin `page` no aparece', () => {
-    const xml = sitemapXml([data('guide', 'es')], {
-      ...withPrivacy,
-      privacy: { page: false },
-    });
-    expect(xml).not.toContain('privacidad');
-    expect(xml).not.toContain('privacy');
   });
 });
 

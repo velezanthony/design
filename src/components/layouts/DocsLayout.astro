@@ -1,4 +1,5 @@
 ---
+import { layoutBootstrapScript } from '../../client/layout/layout';
 import { navOpenScript } from '../../client/layout/nav-open';
 import { sidebarScrollScript } from '../../client/layout/sidebar-scroll';
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
@@ -14,15 +15,14 @@ import FallbackNotice from '../molecules/content/FallbackNotice.astro';
 import NavList from '../molecules/navigation/NavList.astro';
 import PanelToggle from '../molecules/controls/PanelToggle.astro';
 import PrevNext from '../molecules/navigation/PrevNext.astro';
-import TableOfContents from '../molecules/navigation/TableOfContents.astro';
 import { tocEntries } from '../../core/navigation/toc-entries';
 import BackToTop from '../organisms/chrome/BackToTop.astro';
-import ConsentBanner from '../organisms/privacy/ConsentBanner.astro';
 import DocsFooter from '../organisms/chrome/DocsFooter.astro';
 import DocsHeader from '../organisms/chrome/DocsHeader.astro';
+import Article from '../organisms/content/Article.astro';
 import SearchBox from '../organisms/chrome/SearchBox.astro';
 import Sidebar from '../organisms/chrome/Sidebar.astro';
-import Shell from './Shell.astro';
+import BaseLayout from './BaseLayout.astro';
 
 interface Props {
   lang: Locale;
@@ -84,18 +84,35 @@ const {
   prose = true,
 } = Astro.props;
 /* Con índice, tres columnas; sin él, el contenido ocupa también la de la derecha. */
-const hasToc = tocEntries(headings).length > 0;
+const hasToc = tocEntries(headings, layout.tocDepth).length > 0;
 
 if (gtmId && !privacyUrl) {
   throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
 }
 
-/* Pagefind solo indexa lo que cuelga de `data-pagefind-body`; lo demás, ni se marca. */
-const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': '' };
+/* El estado inicial va en `<html>` desde el servidor (así la config manda también sin JavaScript);
+   el script previo al pintado solo lo pisa con lo que el visitante guardó. */
+const layoutAttrs = {
+  'data-left': layout.sidebar,
+  'data-right': layout.toc,
+  'data-width': layout.width,
+};
+const layoutScript = layoutBootstrapScript(layout);
 ---
 
-<Shell lang={lang} head={head} layout={layout}>
-  <slot name="head" slot="head" />
+<BaseLayout
+  lang={lang}
+  head={head}
+  bodyClass="flex min-h-dvh flex-col"
+  htmlAttrs={layoutAttrs}
+  gtmId={gtmId}
+  privacyUrl={privacyUrl}
+  strings={strings}
+>
+  <Fragment slot="head">
+    {layoutScript && <script is:inline set:html={layoutScript} />}
+    <slot name="head" />
+  </Fragment>
   <DocsHeader
     siteName={siteName}
     homeHref={homeHref}
@@ -152,51 +169,34 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
       </div>
     </aside>
 
-    <main
+    <Article
       id="main-content"
-      class="min-w-0 lg:py-8"
-      {...pagefind}
-      data-copy-label={translate(strings, 'copy.label')}
-      data-copied-label={translate(strings, 'copy.copied')}
-      data-copy-failed-label={translate(strings, 'copy.failed')}
-      data-anchor-label={strings['heading.anchor']}
-      data-zoom-label={strings['zoom.open']}
-      data-zoom-close-label={translate(strings, 'zoom.close')}
-      data-diagram-label={translate(strings, 'diagram.label')}
-      data-diagram-expand-label={translate(strings, 'diagram.expand')}
-      data-diagram-zoom-in-label={translate(strings, 'diagram.zoomIn')}
-      data-diagram-zoom-out-label={translate(strings, 'diagram.zoomOut')}
-      data-diagram-fit-label={translate(strings, 'diagram.fit')}
+      class="lg:py-8"
+      indexable={indexable}
+      strings={strings}
+      headings={headings}
+      depth={layout.tocDepth}
+      maxHeight={layout.tocMaxHeight}
+      toggles={layout.toggles}
+      open={layout.toc === 'open'}
+      contentLang={fallback?.originalLocale}
+      prose={prose}
+      columnClass="hidden xl:block xl:py-8"
     >
       {fallback && (
         <FallbackNotice
+          slot="before"
           originalLocale={fallback.originalLocale}
           href={fallback.href}
           strings={strings}
         />
       )}
-      {/* `.prose` es la utilidad que da estilo al Markdown renderizado (encabezados, código, anclas,
-          admoniciones, pestañas). Va solo en el contenido: el cromo de debajo no la hereda. */}
-      <div class:list={[prose && 'prose']} lang={fallback?.originalLocale}>
-        <slot />
-      </div>
-      <div data-pagefind-ignore>
+      <slot />
+      <div slot="after" data-pagefind-ignore>
         {editUrl && editFile && <EditLink href={editHref(editUrl, editFile)} strings={strings} />}
         <PrevNext prev={prev} next={next} strings={strings} />
       </div>
-    </main>
-
-    {/* Sin índice no se reserva su columna: el contenido (tablas, herramientas) usa ese ancho. */}
-    {hasToc && (
-      <div data-toc-column class="hidden xl:block xl:py-8">
-        <TableOfContents
-          headings={headings}
-          strings={strings}
-          toggles={layout.toggles}
-          open={layout.toc === 'open'}
-        />
-      </div>
-    )}
+    </Article>
   </div>
 
   <DocsFooter
@@ -207,11 +207,13 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     cookieControl={Boolean(gtmId)}
     footer={footer}
   />
-  {gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
   <BackToTop strings={strings} />
-  <script>
-    import { bootDocs } from './boot';
+  <Fragment slot="scripts">
+    <script>
+      import { bootDocs } from './boot';
 
-    bootDocs();
-  </script>
-</Shell>
+      bootDocs();
+    </script>
+    <slot name="scripts" />
+  </Fragment>
+</BaseLayout>

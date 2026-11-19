@@ -55,11 +55,8 @@ describe('routeOverrides', () => {
     },
   );
 
-  it('la 404 y el sitemap propios, y el sitemap de páginas solo cuando hay índice', () => {
-    expect(routes(pagesWith('404.astro', 'sitemap.xml.ts', 'sitemap-pages.xml.ts'))).toEqual([
-      'sitemap.xml',
-      '404',
-    ]);
+  it('el sitemap propio, y el sitemap de páginas solo cuando hay índice', () => {
+    expect(routes(pagesWith('sitemap.xml.ts', 'sitemap-pages.xml.ts'))).toEqual(['sitemap.xml']);
     expect(routes(pagesWith('sitemap-pages.xml.ts'), { ...site, sitemapIndex: true })).toEqual([
       'sitemap-pages.xml',
     ]);
@@ -72,27 +69,20 @@ describe('routeOverrides', () => {
     ]);
   });
 
-  it('las de los idiomas con prefijo: `es/index.astro` y `es/404.astro`', () => {
-    expect(files(pagesWith('es/index.astro', 'es/404.astro'))).toEqual([
-      'src/pages/es/index.astro',
-      'src/pages/es/404.astro',
-    ]);
+  it('la 404 y la privacidad son del sitio: sus ficheros no sustituyen nada', () => {
+    const pages = pagesWith(
+      '404.astro',
+      'es/404.astro',
+      'privacidad.astro',
+      'en/privacy/index.astro',
+    );
+    expect(files(pages)).toEqual([]);
   });
 
   it('con un solo idioma no hay `/es/` de la librería: `es/index.astro` es solo del sitio', () => {
     expect(files(pagesWith('es/index.astro'), { locales: ['en'], defaultLocale: 'en' })).toEqual(
       [],
     );
-  });
-
-  it('la página de privacidad propia solo cuenta si la librería genera la suya', () => {
-    const privacy = { locales: ['es', 'en'], defaultLocale: 'es' };
-    const pages = pagesWith('privacidad.astro', 'en/privacy/index.astro');
-    expect(files(pages, { ...privacy, privacyPage: true })).toEqual([
-      'src/pages/privacidad.astro',
-      'src/pages/en/privacy/index.astro',
-    ]);
-    expect(files(pages, privacy)).toEqual([]);
   });
 
   it('las rutas del panel SEO on page solo cuentan en desarrollo', () => {

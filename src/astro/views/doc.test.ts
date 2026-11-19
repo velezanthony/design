@@ -14,6 +14,7 @@ function site(user: Partial<DocsUserConfig> = {}) {
     trailingSlash: 'always',
     buildFormat: 'directory',
     publicDir: 'file:///site/public/',
+    root: 'file:///site/',
   });
 }
 
@@ -324,6 +325,7 @@ describe('docView: analítica y privacidad', () => {
         trailingSlash: 'always',
         buildFormat: 'directory',
         publicDir: 'file:///site/public/',
+        root: 'file:///site/',
       },
     );
   }
@@ -338,14 +340,16 @@ describe('docView: analítica y privacidad', () => {
     expect(view.privacyUrl).toBeUndefined();
   });
 
-  it('con analítica cada idioma enlaza la política del portfolio de su idioma', () => {
-    const config = withEnv('GTM-ENV0001');
+  it('con analítica cada idioma enlaza la política de su idioma', () => {
+    const config = withEnv('GTM-ENV0001', {
+      privacyUrl: { en: 'https://x.dev/en/privacy/', es: 'https://x.dev/privacidad/' },
+    });
     const routes = docRoutes(all, config);
     const en = docView({ route: route(routes, 'guide', 'en'), data: all, config });
     const es = docView({ route: route(routes, 'guide', 'es'), data: all, config });
     expect(en.gtmId).toBe('GTM-ENV0001');
-    expect(en.privacyUrl).toBe('https://velezanthony.github.io/en/privacy/');
-    expect(es.privacyUrl).toBe('https://velezanthony.github.io/privacidad/');
+    expect(en.privacyUrl).toBe('https://x.dev/en/privacy/');
+    expect(es.privacyUrl).toBe('https://x.dev/privacidad/');
   });
 
   it('una privacyUrl explícita sin analítica se enlaza sin gtmId', () => {

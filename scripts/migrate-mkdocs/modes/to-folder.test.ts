@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { isExcluded, parseMkdocs, planCopies, runToFolder, type ToFolderIo } from './to-folder.ts';
+import { isExcluded, planCopies, runToFolder, type ToFolderIo } from './to-folder.ts';
 
 const MKDOCS = [
   'site_name: Demo',
@@ -15,21 +15,6 @@ const MKDOCS = [
   '  - Home: index.md',
   '',
 ].join('\n');
-
-describe('parseMkdocs', () => {
-  it('ignora las etiquetas !!python/name, que yaml no conoce', () => {
-    const parsed = parseMkdocs(MKDOCS);
-    expect(parsed.nav).toEqual([{ Home: 'index.md' }]);
-  });
-
-  it('parte exclude_docs en patrones sin líneas vacías ni espacios', () => {
-    expect(parseMkdocs(MKDOCS).excludePatterns).toEqual(['drafts/', 'skip.md']);
-  });
-
-  it('sin exclude_docs no hay patrones', () => {
-    expect(parseMkdocs('nav: []\n').excludePatterns).toEqual([]);
-  });
-});
 
 describe('isExcluded', () => {
   const patterns = ['drafts/', 'skip.md'];
@@ -150,5 +135,37 @@ describe('runToFolder', () => {
     const { io, writes } = fakeIo(files);
     runToFolder(io, { ...options, sidebarOut: '/work/sidebar.mjs' });
     expect(writes.get(path.resolve('/work/sidebar.mjs'))).toContain('export default');
+  });
+
+  it('--dry-run calcula todo y no escribe, copia ni borra nada', () => {
+    const { io, writes, copies, removed, printed } = fakeIo(files);
+    expect(
+      runToFolder(io, {
+        ...options,
+        dryRun: true,
+        sidebarOut: '/work/sidebar.mjs',
+        configOut: '/work/c.mjs',
+        report: '/work/r.json',
+      }),
+    ).toBe(0);
+    expect([writes.size, copies.length, removed.length]).toEqual([0, 0, 0]);
+    expect(printed[0]).toContain('DRY-RUN');
+    expect(printed.join('\n')).toContain('"markdown": 1');
+    expect(printed.join('\n')).toContain('export default');
+  });
+
+  it('--config-out escribe la config sugerida desde el mkdocs.yml', () => {
+    const { io, writes } = fakeIo(files);
+    runToFolder(io, { ...options, configOut: '/work/c.mjs' });
+    expect(writes.get(path.resolve('/work/c.mjs'))).toContain('export default');
+  });
+
+  it('avisa de lo que el migrador ignora', () => {
+    const { io, printed } = fakeIo({
+      ...files,
+      'mkdocs.yml': `${MKDOCS}plugins:\n  - macros\n`,
+    });
+    runToFolder(io, options);
+    expect(printed.join('\n')).toContain('plugin «macros»');
   });
 });

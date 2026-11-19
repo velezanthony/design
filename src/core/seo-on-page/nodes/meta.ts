@@ -42,7 +42,7 @@ export function buildMetaNode(
     titleLength: title.length,
     ...(description !== undefined && { description, descriptionLength: description.length }),
     descriptionSource: descriptionSource(config.seo, page, description),
-    ogTitle: resolved.title,
+    ogTitle: title,
     ...(description !== undefined && { ogDescription: description }),
     ...(image && { ogImage: image }),
     ogImageSource: ogImageSource(page, image),

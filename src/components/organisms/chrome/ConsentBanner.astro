@@ -1,0 +1,82 @@
+---
+import Link from '../../atoms/actions/Link.astro';
+import { englishStrings, translate, type UiStrings } from '../../../core/i18n/ui-strings';
+
+interface Props {
+  /** Contenedor de Tag Manager que se carga si la persona acepta. Lo lee el script. */
+  gtmId: string;
+  /** Página de privacidad a la que enlaza el aviso. */
+  privacyUrl: string;
+  /** Catálogo de interfaz; sin él, los textos por defecto en inglés. */
+  strings?: UiStrings;
+  /** Textos sueltos para quien tiene su propio i18n: cada uno manda sobre `strings`. */
+  label?: string;
+  message?: string;
+  acceptLabel?: string;
+  rejectLabel?: string;
+  privacyLabel?: string;
+}
+
+const { gtmId, privacyUrl, strings: given, ...texts } = Astro.props;
+const strings = given ?? englishStrings;
+const label = texts.label ?? translate(strings, 'consent.label');
+const message = texts.message ?? translate(strings, 'consent.message');
+const acceptLabel = texts.acceptLabel ?? translate(strings, 'consent.accept');
+const rejectLabel = texts.rejectLabel ?? translate(strings, 'consent.reject');
+const privacyLabel = texts.privacyLabel ?? translate(strings, 'consent.privacy');
+
+/* Una sola cadena de clases para ambos: rechazar tiene que ser tan fácil y tan visible como aceptar. */
+const button =
+  'label inline-flex min-h-10 cursor-pointer items-center justify-center border border-ink px-5 text-ink transition-colors hover:border-accent hover:text-accent';
+---
+
+{/* Oculto hasta que `initConsent` no halle elección guardada; es una región, no un diálogo: no atrapa el foco. */}
+<section
+  data-consent-banner
+  data-gtm-id={gtmId}
+  aria-label={label}
+  hidden
+  class="consent-banner border-t border-rule bg-canvas"
+>
+  <div class="mx-auto flex max-w-(--container-page) flex-wrap items-center justify-between gap-x-8 gap-y-4 px-6 py-4 lg:px-10">
+    <p class="max-w-measure text-sm text-muted">
+      {message} <Link href={privacyUrl}>{privacyLabel}</Link>
+    </p>
+
+    <div class="flex gap-3">
+      <button type="button" data-consent-accept class={button}>
+        {acceptLabel}
+      </button>
+      <button type="button" data-consent-reject class={button}>
+        {rejectLabel}
+      </button>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .consent-banner {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* El script escribe aquí la altura del aviso mientras se muestra, para que el pie quede libre
+     en vez de quedar debajo. */
+  body {
+    padding-bottom: var(--consent-space, 0);
+  }
+
+  /* Un aviso interactivo no tiene sentido en papel, ni el hueco que reserva. */
+  @media print {
+    .consent-banner {
+      display: none;
+    }
+
+    body {
+      padding-bottom: 0;
+    }
+  }
+</style>

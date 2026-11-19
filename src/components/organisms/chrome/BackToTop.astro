@@ -83,4 +83,11 @@ const { strings } = Astro.props;
       transition: none;
     }
   }
+
+  /* En papel un botón fijo se repetiría encima del texto en cada hoja. */
+  @media print {
+    .back-to-top {
+      display: none;
+    }
+  }
 </style>

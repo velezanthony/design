@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatLeftovers,
+  formatPlan,
   formatStubLinks,
   formatStubs,
   formatSummary,
@@ -89,5 +90,36 @@ describe('formatStubLinks', () => {
     expect(
       formatStubLinks([{ file: 'a/b.md', line: 4, href: '../c.md', suggestion: '../../C.md' }]),
     ).toEqual(['docs/a/b.md:4  ../c.md  ->  ../../C.md']);
+  });
+});
+
+describe('formatPlan', () => {
+  it('una línea por fichero con lo que cambiaría en él', () => {
+    const log = {
+      'a.md': [
+        { kind: 'link' as const, line: 1, detail: '' },
+        { kind: 'link' as const, line: 2, detail: '' },
+        { kind: 'tabs' as const, line: 3, detail: '' },
+      ],
+    };
+    expect(formatPlan(['a.md', 'b.md'], log)).toEqual([
+      '  a.md  enlaces reescritos: 2, grupos de pestañas: 1',
+      '  b.md',
+    ]);
+  });
+});
+
+describe('formatSummary: dry-run', () => {
+  const input = { scanned: 3, changed: ['a.md'], log: {}, stubs: [], leftovers: [] };
+
+  it('habla en condicional y no manda a `git diff`', () => {
+    const text = formatSummary({ ...input, dryRun: true }).join('\n');
+    expect(text).toContain('Ficheros que cambiarían: 1 de 3');
+    expect(text).not.toContain('git diff');
+    expect(text).toContain('--dry-run');
+  });
+
+  it('sin dry-run sigue diciendo cómo revisar el diff', () => {
+    expect(formatSummary(input).join('\n')).toContain('git diff docs/');
   });
 });

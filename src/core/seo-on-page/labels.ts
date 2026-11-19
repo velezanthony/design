@@ -394,6 +394,8 @@ export const FILTER_LABELS = {
   locale: 'Idioma',
   apply: 'Filtrar',
   clear: 'Limpiar',
+  /** La casilla que esconde las páginas con `noindex`: no son un problema, solo ruido en la lista. */
+  noindex: 'Ocultar noindex',
 };
 
 /** El recuento sobre la tabla: cuenta filas de la vista y dice qué son (páginas o entradas). */
@@ -657,7 +659,6 @@ export const FILE_STATE_LABELS: Record<
   generated: { glyph: '✓', text: 'Lo genera la librería', tone: 'live' },
   present: { glyph: '✓', text: 'Lo pone el sitio', tone: 'live' },
   absent: { glyph: '—', text: 'No hay', tone: 'faint' },
-  'not-applicable': { glyph: '', text: 'No aplica', tone: 'neutral' },
   'build-only': { glyph: '', text: 'Solo en la build', tone: 'neutral' },
 };
 
@@ -669,7 +670,7 @@ export const FILE_LABELS: Record<
   sitemap: {
     name: 'sitemap.xml',
     describe: (file, locales) =>
-      `${file.urls ?? 0} URLs (${locales.join(' + ')}), sin las noindex ni las 404. Le dice a Google qué rastrear.`,
+      `${file.urls ?? 0} URLs (${locales.join(' + ')}), sin las noindex. Le dice a Google qué rastrear.`,
   },
   robots: {
     name: 'robots.txt',
@@ -687,25 +688,12 @@ export const FILE_LABELS: Record<
         : 'Opcional. Formato propuesto para agentes de IA; Google no lo usa. Iría en `public/llms.txt`.',
     tag: 'opcional',
   },
-  'not-found': {
-    name: '404',
-    describe: (file) =>
-      `Una por idioma (${(file.links ?? []).map((link) => `\`${link.href}\``).join(', ')}), con \`noindex\` y sin schema.`,
-  },
   favicon: {
     name: 'favicon',
     describe: (file) =>
       file.state === 'present'
         ? `El del sitio, en \`${file.path}\`.`
         : `En \`${file.path}\`, salvo que el sitio ponga el suyo.`,
-  },
-  privacy: {
-    name: 'Privacidad',
-    describe: (file) =>
-      file.state === 'generated'
-        ? `Una por idioma (${(file.links ?? []).map((link) => `\`${link.href}\``).join(', ')}): la config pide la página propia.`
-        : 'Solo se genera con la página de privacidad propia (`privacy.page`). Este sitio no la pide.',
-    tag: 'sin página propia',
   },
   pagefind: {
     name: 'pagefind/',
@@ -725,6 +713,7 @@ export function reportFilterText(filters: SeoFilters, view: ViewState): string {
       : '',
     filters.locales.length > 0 ? `idioma ${filters.locales.join(', ')}` : '',
     filters.text.trim() !== '' ? `búsqueda «${filters.text.trim()}»` : '',
+    filters.hideNoindex ? 'sin las noindex' : '',
     view.lacks ? `sin ${LACKS_PHRASES[view.lacks]}` : '',
   ].filter((part) => part !== '');
   return parts.length > 0 ? parts.join(' · ') : 'todas las páginas';

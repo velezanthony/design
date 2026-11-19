@@ -3,7 +3,7 @@ declare module 'virtual:@velezanthony/design/config' {
   type Label = string | Record<string, string>;
   type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
   type NavItem =
-    | { label: Label; dir: string; sidebar?: SidebarItem[] }
+    | { label: Label; dir?: string; sidebar?: SidebarItem[] }
     | { label: Label; slug: string }
     | { label: Label; href: string; icon?: 'github' };
   type FooterLink = { label: Label; slug: string } | { label: Label; href: string };
@@ -28,7 +28,7 @@ declare module 'virtual:@velezanthony/design/config' {
       slug: string;
       file: string;
       locales?: string[];
-      seo?: { title?: string; titleSuffix?: Label | false; description?: Label; noindex?: boolean };
+      seo?: { title?: Label; titleSuffix?: Label | false; description?: Label; noindex?: boolean };
       translations?: 'link' | 'omit' | 'fallback';
     }[];
     sidebar?: SidebarItem[];
@@ -52,6 +52,7 @@ declare module 'virtual:@velezanthony/design/config' {
     trailingSlash: 'always' | 'never' | 'ignore';
     buildFormat: 'directory' | 'file' | 'preserve';
     publicDir: string;
+    root: string;
   };
   export default config;
 }

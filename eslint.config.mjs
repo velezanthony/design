@@ -40,6 +40,9 @@ const noSeoOnPage = {
   message: 'Lo publicado no importa `seo-on-page`: el panel es solo de desarrollo.',
 };
 
+const componentsPatterns = [noAstroScheme, noVirtual, noAstroFolder, noSeoOnPage];
+const lowerLevels = ['atoms', 'molecules', 'organisms'];
+
 /** @returns {import('eslint').Linter.Config} */
 function layer(
   /** @type {string} */ folder,
@@ -115,11 +118,20 @@ export default defineConfig(
     noAstroScheme,
     noVirtual,
   ]),
-  layer(
-    'components',
-    astroPackage,
-    [noAstroScheme, noVirtual, noAstroFolder, noSeoOnPage],
-    ['src/components/seo-on-page/**'],
+  layer('components', astroPackage, componentsPatterns, [
+    'src/components/seo-on-page/**',
+    ...lowerLevels.map((folder) => `src/components/${folder}/**`),
+  ]),
+  /* Atomic Design: lo de abajo no importa lo de arriba (`layouts` y `pages` componen átomos, moléculas y organismos, no al revés). Una regla posterior sustituye a la anterior, por eso repite las de `components`. */
+  ...lowerLevels.map((folder) =>
+    layer(`components/${folder}`, astroPackage, [
+      ...componentsPatterns,
+      {
+        regex: relativeTo(['layouts', 'pages']),
+        message:
+          'Átomos, moléculas y organismos no importan de `layouts/` ni de `pages/`: es una dependencia hacia arriba.',
+      },
+    ]),
   ),
   layer('components/seo-on-page', astroPackage, [noAstroScheme, noVirtual, noAstroFolder]),
 

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DocsErrors } from '../errors';
 import { MissingTranslation } from '../i18n/translation-policy';
-import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 import { resolveConfig } from './resolve';
 
 /** Mensajes de error de una config inválida. */
@@ -41,8 +40,13 @@ describe('resolveConfig: valores por defecto', () => {
     expect(config.defaultLocale).toBe('en');
     expect(config.translations.missing).toBe(MissingTranslation.LINK);
     expect(config.external).toEqual([]);
-    expect(config.seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
+    expect(config.seo.titleSuffix).toBe('Design');
     expect(config.sitemap).toEqual({ include: [] });
+  });
+
+  it('`exclude` vale una lista vacía por defecto y se conserva si se declara', () => {
+    expect(resolveConfig({ name: 'X' }).exclude).toEqual([]);
+    expect(resolveConfig({ name: 'X', exclude: ['drafts/'] }).exclude).toEqual(['drafts/']);
   });
 
   it('conserva los sitemaps que se incluyen en el índice', () => {
@@ -181,40 +185,16 @@ describe('resolveConfig: `ui`', () => {
   });
 });
 
-describe('resolveConfig: privacy', () => {
-  it('por defecto no hay página y el responsable es el del portfolio', () => {
-    const { privacy } = resolveConfig({ name: 'X' });
-    expect(privacy.page).toBe(false);
-    expect(privacy.controller).toEqual({
-      name: 'Anthony Velez Tapia',
-      email: 'velezanthony2000@gmail.com',
-    });
+describe('resolveConfig: privacidad', () => {
+  it('las claves `privacy.page` y `privacy.controller` ya no existen: son opciones desconocidas', () => {
+    expect(messages({ name: 'X', privacy: { page: true } })[0]).toContain('privacy');
+    expect(messages({ name: 'X', privacy: { page: true } })[0]).toContain('opción desconocida');
   });
 
-  it('acepta `page` y un responsable propio', () => {
-    const { privacy } = resolveConfig({
-      name: 'X',
-      privacy: { page: true, controller: { name: 'Ada', email: 'ada@x.dev' } },
-    });
-    expect(privacy).toEqual({ page: true, controller: { name: 'Ada', email: 'ada@x.dev' } });
-  });
-
-  it('es estricta: una opción desconocida se nombra con su ruta', () => {
-    expect(messages({ name: 'X', privacy: { pagee: true } })[0]).toContain('privacy.pagee');
-    expect(
-      messages({
-        name: 'X',
-        privacy: { controller: { name: 'A', email: 'a@b.c', phone: '1' } },
-      })[0],
-    ).toContain('privacy.controller.phone');
-  });
-
-  it('el responsable pide nombre y un correo con arroba', () => {
-    expect(
-      messages({ name: 'X', privacy: { controller: { name: '', email: 'a@b.c' } } })[0],
-    ).toContain('privacy.controller.name');
-    expect(
-      messages({ name: 'X', privacy: { controller: { name: 'A', email: 'nope' } } })[0],
-    ).toContain('privacy.controller.email');
+  it('privacyUrl acepta una URL o una por idioma, y rechaza un idioma que no está en `locales`', () => {
+    expect(resolveConfig({ name: 'X', privacyUrl: '/privacy/' }).privacyUrl).toBe('/privacy/');
+    expect(messages({ name: 'X', privacyUrl: { es: '/privacidad/' } })[0]).toContain(
+      'privacyUrl.es',
+    );
   });
 });

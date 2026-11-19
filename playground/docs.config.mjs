@@ -62,6 +62,11 @@ export default defineDocsConfig({
   editUrl: 'https://github.com/velezanthony/snake-orm/edit/main',
   repoRoot: './src/content',
   social: { github: 'https://github.com/velezanthony/snake-orm' },
+  /* La analítica (`PUBLIC_GTM_ID` en `.env`) exige `privacyUrl`: aquí, la política del portfolio. */
+  privacyUrl: {
+    en: 'https://velezanthony.github.io/en/privacy/',
+    es: 'https://velezanthony.github.io/privacidad/',
+  },
   footer: {
     license: { label: 'MIT', href: 'https://github.com/velezanthony/snake-orm/blob/main/LICENSE' },
   },

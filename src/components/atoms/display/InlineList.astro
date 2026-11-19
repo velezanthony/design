@@ -1,0 +1,60 @@
+---
+interface Props {
+  /** Los elementos, cortos, ya con su texto final. */
+  items: string[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+{/*
+  Una tirada de elementos cortos separados por un punto medio, que fluye como prosa sin que el
+  punto empiece ni acabe nunca una línea.
+
+  El separador se dibuja antes de cada elemento, así que ninguno queda al final de línea. La lista
+  se corre a la izquierda el ancho de un separador dentro de una caja que recorta: el del elemento
+  que abre cada línea cae fuera y se corta.
+
+  Cada elemento es un flex item: el que no cabe pasa entero a la línea siguiente, así que
+  «VS Code API» no se parte. Con tope en la columna, solo parte por dentro uno más ancho que toda
+  ella; sin el tope, el recorte lo cortaría.
+*/}
+{items.length > 0 && (
+  <div class:list={['inline-list', className]}>
+    <ul>
+      {items.map((item) => (
+        <li class="max-w-full">{item}</li>
+      ))}
+    </ul>
+  </div>
+)}
+
+<style>
+  /* El ancho del separador lo fija la tipografía de quien llama: 1em va bien en sans; mono pide
+     3ch, el « · » que sustituye. */
+  .inline-list {
+    overflow: hidden;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: calc(-1 * var(--separator, 1em));
+  }
+
+  li {
+    position: relative;
+    padding-left: var(--separator, 1em);
+  }
+
+  li::before {
+    /* Alternativa vacía: un lector de pantalla anuncia la lista, no los puntos. */
+    content: '·' / '';
+    position: absolute;
+    left: 0;
+    width: var(--separator, 1em);
+    text-align: center;
+    color: var(--color-rule);
+  }
+</style>

@@ -131,11 +131,9 @@ export async function loadSiteFiles(
   const sitemap = sitemapXml(docs, config, clientSitemapEntries(client, new URL(config.site)));
   return siteFiles({
     url: urlPolicyOf(config, config.defaultLocale),
-    locales: config.locales,
     sitemapUrls: sitemap.split('<loc>').length - 1,
     robots: await exists('/robots.txt'),
     llms: await exists('/llms.txt'),
-    privacyPage: config.privacy.page,
     ...(config.favicon !== undefined && { favicon: config.favicon }),
   });
 }

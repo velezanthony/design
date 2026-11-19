@@ -5,7 +5,7 @@ import type { Page } from '../content/discovery';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import type { TranslationPolicies } from '../i18n/translation-policy';
-import { sectionIndexOf, slugInDir } from './nav-sections';
+import { sectionIndexOf, sectionOwns } from './nav-sections';
 import { buildSidebar, type SidebarNode } from './sidebar';
 
 /** Lo que el árbol y la cabecera necesitan de la config. */
@@ -52,7 +52,7 @@ export function buildSectionSidebar(context: NavContext, index: number): Sidebar
   const nav = context.config.nav;
   const item = nav?.[index];
   if (item && isNavSection(item)) {
-    return buildSidebarFor(context, (slug) => slugInDir(item.dir, slug), item.sidebar, item.dir);
+    return buildSidebarFor(context, (slug) => sectionOwns(item, slug), item.sidebar, item.dir);
   }
   return buildSidebarFor(
     context,

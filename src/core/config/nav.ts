@@ -4,10 +4,10 @@ import type { Label, SidebarItem } from './schema';
 export const NavIcon = { GITHUB: 'github' } as const;
 export type NavIcon = (typeof NavIcon)[keyof typeof NavIcon];
 
-/** Sección de la cabecera: la forman las páginas cuyo slug es `dir` o cuelga de `dir/`; `sidebar` fija el orden. */
+/** Sección de la cabecera: la forman las páginas de `dir` (su slug es `dir` o cuelga de `dir/`) y las que nombra `sidebar`, vivan donde vivan; `sidebar` fija además el orden. Sin `dir`, solo cuenta `sidebar`. */
 export interface NavSection {
   label: Label;
-  dir: string;
+  dir?: string;
   sidebar?: SidebarItem[];
 }
 
@@ -27,7 +27,7 @@ export interface NavLink {
 export type NavItem = NavSection | NavPage | NavLink;
 
 export function isNavSection(item: NavItem): item is NavSection {
-  return 'dir' in item;
+  return 'dir' in item || 'sidebar' in item;
 }
 export function isNavPage(item: NavItem): item is NavPage {
   return 'slug' in item;

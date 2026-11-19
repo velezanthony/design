@@ -37,7 +37,7 @@ export function formatStubs(stubs: SnippetStub[], docsDirectory: string): string
     entries.add(`{ slug: '${stubSlug(stub.file)}', file: '../${include}' }`);
   }
   lines.push(
-    'Publica ese fichero con `external[]` en site/docs.config.mjs y borra el stub:',
+    'Publica ese fichero con `external[]` en docs.config.mjs y borra el stub:',
     '  external: [',
     ...[...entries].map((entry) => `    ${entry},`),
     '  ],',
@@ -62,7 +62,7 @@ const LABELS: Record<LogKind, string> = {
   autoref: 'autorreferencias a enlaces',
   'autoref-unresolved': 'autorreferencias sin resolver (a texto)',
   link: 'enlaces reescritos',
-  anchor: 'anclas con acento corregidas',
+  anchor: 'anclas de MkDocs reescritas a los ids de la librería',
   'code-language': 'bloques de código etiquetados',
 };
 
@@ -72,6 +72,18 @@ export interface SummaryInput {
   log: Record<string, LogEntry[]>;
   stubs: SnippetStub[];
   leftovers: Leftover[];
+  /** Con `--dry-run` nada se ha escrito: el resumen habla en condicional. */
+  dryRun?: boolean;
+}
+
+/** Un fichero por línea con lo que cambiaría en él (`a.md  admoniciones a directiva: 2, enlaces reescritos: 1`). */
+export function formatPlan(files: string[], log: Record<string, LogEntry[]>): string[] {
+  return files.map((file) => {
+    const counts = new Map<LogKind, number>();
+    for (const entry of log[file] ?? []) counts.set(entry.kind, (counts.get(entry.kind) ?? 0) + 1);
+    const detail = [...counts].map(([kind, count]) => `${LABELS[kind]}: ${count}`).join(', ');
+    return detail === '' ? `  ${file}` : `  ${file}  ${detail}`;
+  });
 }
 
 export function formatSummary(input: SummaryInput): string[] {
@@ -79,7 +91,9 @@ export function formatSummary(input: SummaryInput): string[] {
   for (const entries of Object.values(input.log)) {
     for (const entry of entries) counts.set(entry.kind, (counts.get(entry.kind) ?? 0) + 1);
   }
-  const lines = [`Ficheros cambiados: ${input.changed.length} de ${input.scanned}`];
+  const lines = [
+    `${input.dryRun ? 'Ficheros que cambiarían' : 'Ficheros cambiados'}: ${input.changed.length} de ${input.scanned}`,
+  ];
   for (const kind of Object.keys(LABELS) as LogKind[]) {
     const count = counts.get(kind);
     if (count) lines.push(`  ${LABELS[kind]}: ${count}`);
@@ -88,7 +102,9 @@ export function formatSummary(input: SummaryInput): string[] {
     `Stubs de snippet: ${input.stubs.length}`,
     `Restos de sintaxis MkDocs: ${input.leftovers.length}`,
     '',
-    'Siguiente paso: git diff docs/   (revisa; luego commit, o git checkout docs/ para descartar)',
+    input.dryRun
+      ? 'Siguiente paso: quita --dry-run para aplicarlo.'
+      : 'Siguiente paso: git diff docs/   (revisa; luego commit, o git checkout docs/ para descartar)',
   );
   return lines;
 }

@@ -356,3 +356,32 @@ describe('DocsLayout: contenido sin prosa', () => {
     expect(htmlDocument.querySelector('main h1')!.textContent).toBe('Guía');
   });
 });
+
+describe('DocsLayout: ranuras de BaseLayout', () => {
+  async function withSlots() {
+    return renderDocument(DocsLayout, props(), {
+      default: '<h1>Guía</h1>',
+      head: '<meta name="extra" content="1">',
+      scripts: '<script id="mine"></script>',
+    });
+  }
+
+  it('`head` llega al final del <head>, tras el script de disposición', async () => {
+    const htmlDocument = await withSlots();
+    expect(htmlDocument.head.querySelector('meta[name="extra"]')).not.toBeNull();
+    const last = [...htmlDocument.head.children].at(-1)!;
+    expect(last.getAttribute('name')).toBe('extra');
+  });
+
+  it('`scripts` llega al final del <body>, tras el arranque de la página', async () => {
+    const htmlDocument = await withSlots();
+    const last = htmlDocument.body.lastElementChild!;
+    expect(last.getAttribute('id')).toBe('mine');
+    expect(htmlDocument.body.querySelector('footer')).not.toBeNull();
+  });
+
+  it('el contenido por defecto sigue dentro de <main>', async () => {
+    const htmlDocument = await withSlots();
+    expect(htmlDocument.querySelector('main h1')!.textContent).toBe('Guía');
+  });
+});

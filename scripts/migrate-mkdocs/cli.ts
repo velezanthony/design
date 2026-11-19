@@ -19,6 +19,8 @@ const { values } = parseArgs({
     report: { type: 'string' },
     'in-place': { type: 'boolean' },
     force: { type: 'boolean' },
+    'dry-run': { type: 'boolean' },
+    'config-out': { type: 'string' },
   },
 });
 
@@ -31,7 +33,12 @@ if (problem) {
 const repo = path.resolve(values.repo!);
 
 if (values['in-place']) {
-  const result = runInPlace(nodeInPlaceIo(repo), { force: values.force ?? false });
+  const result = runInPlace(nodeInPlaceIo(repo), {
+    force: values.force ?? false,
+    dryRun: values['dry-run'] ?? false,
+    api: values.api,
+    configOut: values['config-out'],
+  });
   for (const line of result.output) console.log(line);
   process.exit(result.exitCode);
 }
@@ -47,5 +54,7 @@ process.exit(
     externalOut: values['external-out'],
     sidebarOut: values['sidebar-out'],
     report: values.report,
+    configOut: values['config-out'],
+    dryRun: values['dry-run'] ?? false,
   }),
 );

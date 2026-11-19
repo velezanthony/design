@@ -22,7 +22,7 @@ describe('buildMetaNode', () => {
     const node = buildMetaNode(page(), config, url);
     expect(node.title).toBe('Install | Design');
     expect(node.titleLength).toBe('Install | Design'.length);
-    expect(node.ogTitle).toBe('Install');
+    expect(node.ogTitle).toBe('Install | Design');
   });
 
   it('el seo.title de la página manda y sin sufijo el título va solo', () => {

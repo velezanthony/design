@@ -464,6 +464,85 @@ describe('docsLoader: dev (watcher)', () => {
   });
 });
 
+describe('docsLoader: portada y carpeta de contenido opcionales', () => {
+  it('sin index.md no hay portada y la carga no falla', async () => {
+    await write('src/content/docs/guide.md', '# Guía\n');
+    const { entries } = await load({ name: 'T' });
+    expect([...entries.keys()]).toEqual(['en/guide']);
+  });
+
+  it('sin la carpeta de contenido por defecto, el sitio carga sin páginas nativas', async () => {
+    const { entries } = await load({ name: 'T' });
+    expect(entries.size).toBe(0);
+  });
+
+  it('sin la carpeta por defecto siguen entrando los externos', async () => {
+    await write('CHANGELOG.md', '# Cambios\n');
+    const { entries } = await load({
+      name: 'T',
+      external: [{ slug: 'changelog', file: 'CHANGELOG.md' }],
+    });
+    expect([...entries.keys()]).toEqual(['en/changelog']);
+  });
+
+  it('un README externo con `slug: index` es la portada', async () => {
+    await write('README.md', '# Mi proyecto\n');
+    const { entries } = await load({
+      name: 'T',
+      external: [{ slug: 'index', file: 'README.md' }],
+    });
+    expect(entries.get('en/index')!.data).toMatchObject({ slug: '', kind: 'external' });
+  });
+
+  it('vigila la carpeta por defecto aunque aún no exista: crearla recarga', async () => {
+    const watcher = new FakeWatcher();
+    const made = makeContext({ watcher });
+    await load({ name: 'T' }, made);
+    expect(watcher.added).toContain(path.join(root, 'src/content/docs'));
+
+    await write('src/content/docs/a.md', '# A\n');
+    watcher.emit('add', path.join(root, 'src/content/docs/a.md'));
+    await vi.waitFor(() => expect(made.entries.has('en/a')).toBe(true));
+  });
+});
+
+describe('docsLoader: exclude', () => {
+  it('lo excluido no se publica', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/drafts/a.md', '# A\n');
+    await write('src/content/docs/guia/b.borrador.md', '# B\n');
+    const { entries } = await load({ name: 'T', exclude: ['drafts/', '*.borrador.md'] });
+    expect([...entries.keys()]).toEqual(['en/index']);
+  });
+
+  it('un archivo excluido no se lee: su frontmatter roto no falla la carga', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/drafts/a.md', '---\norder: nope\n---\n# A\n');
+    const { entries } = await load({ name: 'T', exclude: ['drafts/'] });
+    expect(entries.has('en/index')).toBe(true);
+  });
+
+  it('un enlace a un archivo excluido rompe con un mensaje que nombra `exclude`', async () => {
+    await write('src/content/docs/index.md', '# Home\n\n[a](./drafts/a.md)\n');
+    await write('src/content/docs/drafts/a.md', '# A\n');
+    const message = await failure({ name: 'T', exclude: ['drafts/'] });
+    expect(message).toContain('drafts/a.md');
+    expect(message).toContain('exclude');
+  });
+
+  it('un enlace a un archivo excluido desde un externo también nombra `exclude`', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/drafts/a.md', '# A\n');
+    await write('README.md', '# Leeme\n\n[a](./src/content/docs/drafts/a.md)\n');
+    const message = await failure({
+      name: 'T',
+      exclude: ['drafts/'],
+      external: [{ slug: 'readme', file: 'README.md' }],
+    });
+    expect(message).toContain('exclude');
+  });
+});
+
 describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   function site() {
     return makeContext({ project: 'site', base: '/repo' });

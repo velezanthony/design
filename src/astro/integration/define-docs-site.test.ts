@@ -20,14 +20,8 @@ describe('defineDocsSite: valores por defecto', () => {
     expect(config.integrations?.[0]).toMatchObject({ name: INTEGRATION_NAME });
   });
 
-  it('añade el plugin de Tailwind de Vite', () => {
-    const plugins = (config.vite?.plugins ?? []).flat();
-    expect(
-      plugins.some(
-        (plugin) =>
-          plugin && 'name' in plugin && String(plugin.name).startsWith('@tailwindcss/vite'),
-      ),
-    ).toBe(true);
+  it('no registra Tailwind: lo hace `docs()`', () => {
+    expect((config.vite?.plugins ?? []).flat()).toHaveLength(0);
   });
 
   it('permite cambiar el origen', () => {
@@ -70,14 +64,13 @@ describe('defineDocsSite: reglas de fusión con `astro`', () => {
     ).toEqual([INTEGRATION_NAME, 'extra']);
   });
 
-  it('añade plugins de Vite DESPUÉS del de Tailwind y fusiona el resto de claves de vite', () => {
+  it('añade los plugins de Vite del sitio y fusiona el resto de claves de vite', () => {
     const config = defineDocsSite(docsConfig, {
       base: '/r',
       astro: { vite: { plugins: [marker], logLevel: 'warn' } },
     });
     const plugins = config.vite?.plugins ?? [];
-    expect(plugins).toHaveLength(2);
-    expect(plugins[1]).toBe(marker);
+    expect(plugins).toEqual([marker]);
     expect(config.vite?.logLevel).toBe('warn');
   });
 

@@ -139,6 +139,35 @@ describe('astro:config:setup: fuentes y módulo virtual', () => {
   });
 });
 
+describe('astro:config:setup: Tailwind', () => {
+  function pluginNames(update: { vite?: { plugins?: unknown[] } }): string[] {
+    return (update.vite?.plugins ?? []).flat().map((plugin) => (plugin as { name: string }).name);
+  }
+
+  it('registra el plugin de Tailwind: la librería es la dueña del CSS', async () => {
+    const { updateConfig } = await runSetup(satteri());
+    const partial = updateConfig.mock.calls
+      .map(([update]) => update as { vite?: { plugins?: unknown[] } })
+      .find((update) => update.vite);
+    expect(pluginNames(partial!).some((name) => name.startsWith('@tailwindcss/vite'))).toBe(true);
+  });
+
+  it('no lo repite si el sitio ya lo registró', async () => {
+    const { updateConfig } = await runSetup(
+      satteri(),
+      {},
+      { name: 'x' },
+      {
+        vite: { plugins: [{ name: '@tailwindcss/vite:scan' }] },
+      },
+    );
+    const partial = updateConfig.mock.calls
+      .map(([update]) => update as { vite?: { plugins?: unknown[] } })
+      .find((update) => update.vite);
+    expect(pluginNames(partial!).some((name) => name.startsWith('@tailwindcss/vite'))).toBe(false);
+  });
+});
+
 describe('astro:config:setup: Shiki', () => {
   async function shikiOf(processorShiki: object) {
     const { updateConfig } = await runSetup(satteri(), processorShiki);
@@ -218,6 +247,7 @@ describe('astro:config:setup: módulo virtual', () => {
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
+      root: 'file:///site/',
     });
     expect(data.translations).toEqual({ missing: MissingTranslation.LINK });
   });
@@ -352,33 +382,24 @@ describe('astro:config:setup: rutas inyectadas', () => {
     return String(route?.entrypoint);
   }
 
-  it('inyecta la página de docs, el sitemap y su hoja, el favicon y la 404', async () => {
+  it('inyecta la página de docs, el sitemap y su hoja, y el favicon', async () => {
     const routes = await routesOf({ name: 'x' });
     expect(routes.map((route) => route.pattern)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
       '/_design/favicon.png',
-      '/404',
     ]);
     expect(entry(routes[0])).toMatch(/routes\/doc\.astro$/);
     expect(entry(routes[1])).toMatch(/routes\/sitemap\.xml\.ts$/);
     expect(entry(routes[2])).toMatch(/routes\/sitemap\.css\.ts$/);
     expect(entry(routes[3])).toMatch(/routes\/favicon\.png\.ts$/);
-    expect(entry(routes[4])).toMatch(/routes\/not-found\.astro$/);
   });
 
-  it('con varios idiomas añade /[locale]/404 con el mismo contenedor', async () => {
-    const routes = await routesOf({ name: 'x', locales: ['en', 'es'] });
-    expect(routes.map((route) => route.pattern)).toEqual([
-      '/[...slug]',
-      '/sitemap.xml',
-      '/_design/sitemap.css',
-      '/_design/favicon.png',
-      '/404',
-      '/[locale]/404',
-    ]);
-    expect(entry(routes[5])).toBe(entry(routes[4]));
+  it('con varios idiomas las rutas son las mismas: la 404 y la privacidad son del sitio', async () => {
+    const single = await routesOf({ name: 'x' });
+    const multiple = await routesOf({ name: 'x', locales: ['en', 'es'] });
+    expect(multiple.map((route) => route.pattern)).toEqual(single.map((route) => route.pattern));
   });
 
   it('con sitemaps incluidos, inyecta también el sitemap de páginas', async () => {
@@ -438,87 +459,36 @@ describe('astro:config:setup: panel SEO on page (solo en desarrollo)', () => {
   });
 });
 
-describe('astro:config:setup: página de privacidad', () => {
-  afterEach(() => vi.unstubAllEnvs());
-  async function routesOf(userConfig: Parameters<typeof docs>[0]) {
-    const { injectRoute } = await runSetup(satteri(), {}, userConfig);
-    return injectRoute.mock.calls.map(([route]) => route as { pattern: string; entrypoint: URL });
-  }
-  async function patterns(userConfig: Parameters<typeof docs>[0]) {
-    return (await routesOf(userConfig)).map((route) => route.pattern);
-  }
-
-  it('por defecto no se inyecta ninguna ruta de privacidad', async () => {
-    expect(await patterns({ name: 'x', locales: ['es', 'en'] })).not.toContain('/[privacy]');
-  });
-
-  it('`page: false` tampoco', async () => {
-    const all = await patterns({ name: 'x', locales: ['es', 'en'], privacy: { page: false } });
-    expect(all.some((pattern) => pattern.includes('[privacy]'))).toBe(false);
-  });
-
-  it('`page: true` inyecta la página por defecto y la de cada otro idioma, prerenderizadas', async () => {
-    const routes = await routesOf({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
-    const privacy = routes.filter((route) => route.pattern.includes('[privacy]'));
-    expect(privacy.map((route) => route.pattern)).toEqual(['/[privacy]', '/[locale]/[privacy]']);
-    expect(privacy.map((route) => String(route.entrypoint).split('/').at(-1))).toEqual([
-      'privacy.astro',
-      'privacy-locale.astro',
-    ]);
-    expect(privacy.every((route) => (route as { prerender?: boolean }).prerender === true)).toBe(
-      true,
-    );
-  });
-
-  it('monolingüe: solo la ruta del idioma por defecto', async () => {
-    const all = await patterns({ name: 'x', privacy: { page: true } });
-    expect(all).toContain('/[privacy]');
-    expect(all).not.toContain('/[locale]/[privacy]');
-  });
-
-  it('el enlace de privacidad del módulo virtual apunta a la página local, con la base', async () => {
-    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
-    const data = await virtualData({ name: 'x', locales: ['es', 'en'], privacy: { page: true } });
-    expect(data.privacyUrl).toEqual({ es: '/repo/privacidad/', en: '/repo/en/privacy/' });
-  });
-
-  it('sin `page` el enlace sigue siendo el del portfolio', async () => {
-    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
-    const data = await virtualData({ name: 'x', locales: ['es', 'en'] });
-    expect(data.privacyUrl.es).toBe('https://velezanthony.github.io/privacidad/');
-  });
-});
-
 describe('astro:config:setup: analítica desde el entorno', () => {
   afterEach(() => vi.unstubAllEnvs());
   const two = { name: 'x', locales: ['en', 'es'] };
+  const withPrivacy = { ...two, privacyUrl: { en: '/privacy/', es: '/privacidad/' } };
 
-  it('sin PUBLIC_GTM_ID no hay gtmId ni enlace de privacidad', async () => {
+  it('sin PUBLIC_GTM_ID ni privacyUrl no hay gtmId ni enlace de privacidad', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', '');
     const data = await virtualData(two);
     expect(data.gtmId).toBeUndefined();
     expect(data.privacyUrl).toBeUndefined();
   });
 
-  it('con PUBLIC_GTM_ID activa la analítica y la privacidad del portfolio por idioma', async () => {
+  it('con PUBLIC_GTM_ID y privacyUrl activa la analítica y el enlace de cada idioma', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', ' GTM-ENV0001 ');
-    const data = await virtualData(two);
+    const data = await virtualData(withPrivacy);
     expect(data.gtmId).toBe('GTM-ENV0001');
-    expect(data.privacyUrl).toEqual({
-      en: 'https://velezanthony.github.io/en/privacy/',
-      es: 'https://velezanthony.github.io/privacidad/',
-    });
+    expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
   });
 
-  it('el gtmId de la config gana al entorno y su privacyUrl por idioma se respeta', async () => {
-    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
-    const data = await virtualData({
-      ...two,
-      gtmId: 'GTM-CONF001',
-      privacyUrl: { en: '/privacy/', es: '/privacidad/' },
-    });
-    expect(data.gtmId).toBe('GTM-CONF001');
+  it('solo privacyUrl: el enlace del pie, sin analítica', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', '');
+    const data = await virtualData(withPrivacy);
+    expect(data.gtmId).toBeUndefined();
     expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+  });
+
+  it('el gtmId de la config gana al entorno', async () => {
+    vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+    const data = await virtualData({ ...withPrivacy, gtmId: 'GTM-CONF001' });
+    expect(data.gtmId).toBe('GTM-CONF001');
   });
 
   it('un ID con formato inválido rompe la construcción con un AstroError', async () => {
@@ -528,7 +498,97 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     expect(String((error as AstroError).hint)).toContain('GTM-XXXXXXX');
   });
 
-  it('con analítica y un idioma sin política posible falla', async () => {
+  describe('un ID sin privacyUrl', () => {
+    async function setupFor(command: 'dev' | 'build', userConfig: Parameters<typeof docs>[0]) {
+      const setup = setupContext(satteri());
+      vi.mocked(logger.warn).mockClear();
+      await docs(userConfig).hooks['astro:config:setup']?.({
+        ...(setup.context as object),
+        command,
+      } as never);
+      return setup;
+    }
+    function source(setup: ReturnType<typeof setupContext>) {
+      return setup.updateConfig.mock.calls
+        .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+        .find((update) => update.vite)
+        ?.vite?.plugins?.[0]?.load.handler();
+    }
+
+    it('en build falla nombrando `privacyUrl`, venga el ID de la config o del entorno', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', '');
+      const fromConfig = await setupFor('build', { ...two, gtmId: 'GTM-CONF001' }).catch(
+        (caught: unknown) => caught,
+      );
+      expect(fromConfig).toBeInstanceOf(AstroError);
+      expect(String((fromConfig as AstroError).hint)).toContain('privacyUrl');
+      vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+      const fromEnv = await setupFor('build', two).catch((caught: unknown) => caught);
+      expect(fromEnv).toBeInstanceOf(AstroError);
+      expect(String((fromEnv as AstroError).hint)).toContain('privacyUrl');
+    });
+
+    it('en dev avisa nombrando `privacyUrl` y arranca sin analítica', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', '');
+      const setup = await setupFor('dev', { ...two, gtmId: 'GTM-CONF001' });
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('privacyUrl'));
+      expect(source(setup)).not.toContain('gtmId');
+    });
+
+    it('en dev con el ID en el entorno también avisa y no carga analítica', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+      const setup = await setupFor('dev', two);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('privacyUrl'));
+      expect(source(setup)).not.toContain('gtmId');
+    });
+
+    it('en dev, con privacyUrl no avisa y la analítica sigue activa', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
+      const setup = await setupFor('dev', withPrivacy);
+      expect(logger.warn).not.toHaveBeenCalled();
+      expect(source(setup)).toContain('GTM-ENV0001');
+    });
+
+    it('en dev, un gtmId mal formado sigue siendo un error aunque falte privacyUrl', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', '');
+      await expect(setupFor('dev', { ...two, gtmId: 'nope' })).rejects.toBeInstanceOf(AstroError);
+    });
+  });
+
+  describe('con un PUBLIC_GTM_ID inválido en dev', () => {
+    async function devSetup(userConfig: Parameters<typeof docs>[0]) {
+      const setup = setupContext(satteri());
+      vi.mocked(logger.warn).mockClear();
+      await docs(userConfig).hooks['astro:config:setup']?.({
+        ...(setup.context as object),
+        command: 'dev',
+      } as never);
+      return setup;
+    }
+
+    it('avisa con el nombre de la variable y no tumba el servidor', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
+      await devSetup(two);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('PUBLIC_GTM_ID'));
+      expect(logger.warn).toHaveBeenCalledWith(expect.not.stringContaining('G-NOPE'));
+    });
+
+    it('la analítica queda desactivada', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
+      const { updateConfig } = await devSetup(two);
+      const source = updateConfig.mock.calls
+        .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+        .find((update) => update.vite)
+        ?.vite?.plugins?.[0]?.load.handler();
+      expect(source).not.toContain('gtmId');
+    });
+
+    it('un gtmId inválido en la config sigue siendo un error', async () => {
+      await expect(devSetup({ ...two, gtmId: 'nope' })).rejects.toBeInstanceOf(AstroError);
+    });
+  });
+
+  it('con un idioma sin política posible falla nombrando el idioma', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
     const error = await virtualData({
       ...two,
@@ -593,7 +653,7 @@ describe('astro:config:setup: contenido fuera del proyecto', () => {
 describe('astro:config:setup: rutas que el sitio sustituye', () => {
   function site() {
     const root = mkdtempSync(join(tmpdir(), 'design-site-'));
-    for (const file of ['index.astro', '404.astro', 'sitemap.xml.ts']) {
+    for (const file of ['index.astro', 'sitemap.xml.ts']) {
       mkdirSync(join(root, 'src', 'pages'), { recursive: true });
       writeFileSync(join(root, 'src', 'pages', file), '');
     }
@@ -617,15 +677,13 @@ describe('astro:config:setup: rutas que el sitio sustituye', () => {
       );
       expect(patterns).toContain('/[...slug]');
       expect(patterns).not.toContain('/sitemap.xml');
-      expect(patterns).not.toContain('/404');
       expect(logger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Tu sitio sustituye 3 rutas de @velezanthony/design'),
+        expect.stringContaining('Tu sitio sustituye 2 rutas de @velezanthony/design'),
       );
       // El panel las enseña: quedan en el registro que comparte con la integración.
       expect(clientRegistry().overrides?.map(({ route }) => route)).toEqual([
         'index',
         'sitemap.xml',
-        '404',
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });

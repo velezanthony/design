@@ -1,20 +1,16 @@
-import { AUTHOR } from '../author';
 import type { Label } from '../config/schema';
 import type { Locale } from '../i18n/locale';
-
-/** Sufijo del `<title>` por defecto: el nombre del autor, o `false` para quitarlo. */
-export const DEFAULT_TITLE_SUFFIX = AUTHOR.name;
 
 /** Separador entre título y sufijo en el `<title>`. Fijo: la librería decide el formato, no la config. */
 export const TITLE_SEPARATOR = ' | ';
 
-/** Cascada del sufijo página > sitio > librería; `false` en cualquier nivel corta la cascada, y un idioma ausente tampoco da sufijo. */
+/** Cascada del sufijo página > sitio (la config ya lo rellena con `name`); `false` en cualquier nivel corta la cascada, y un idioma ausente tampoco da sufijo. */
 export function resolveTitleSuffix(
   page: Label | false | undefined,
-  site: Label | false | undefined,
+  site: Label | false,
   locale: Locale,
 ): string | undefined {
-  const chosen = page ?? site ?? DEFAULT_TITLE_SUFFIX;
+  const chosen = page ?? site;
   if (chosen === false) return undefined;
   return typeof chosen === 'string' ? chosen : chosen[locale];
 }

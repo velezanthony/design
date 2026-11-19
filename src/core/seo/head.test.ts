@@ -40,11 +40,11 @@ function links(tags: HeadConfig[], rel: string) {
 }
 
 describe('buildHead: página normal', () => {
-  it('<title> con sufijo y og:title / twitter:title sin él', () => {
+  it('<title>, og:title y twitter:title llevan el título completo con sufijo', () => {
     const tags = head(meta(), enPage, single);
     expect(tags.find((tag) => tag.tag === 'title')?.content).toBe('Install | Design');
-    expect(value(tags, 'property', 'og:title')).toBe('Install');
-    expect(value(tags, 'name', 'twitter:title')).toBe('Install');
+    expect(value(tags, 'property', 'og:title')).toBe('Install | Design');
+    expect(value(tags, 'name', 'twitter:title')).toBe('Install | Design');
   });
 
   it('un único canonical absoluto a su propia URL', () => {
@@ -122,6 +122,30 @@ describe('buildHead: traducciones', () => {
   });
 });
 
+describe('buildHead: og:type y og:locale', () => {
+  it('og:type es article salvo que la página diga otra cosa', () => {
+    expect(value(head(meta(), enPage, single), 'property', 'og:type')).toBe('article');
+    const website: PageData = { ...enPage, ogType: 'website' };
+    expect(value(head(meta(), website, single), 'property', 'og:type')).toBe('website');
+  });
+
+  it('og:locale sale del mapa `ogLocales` y, sin él, del idioma', () => {
+    const withMap = { ...config, ogLocales: { en: 'en_GB', es: 'es_ES' } };
+    const tags = buildHead(meta(), enPage, pair, site, withMap, url);
+    expect(value(tags, 'property', 'og:locale')).toBe('en_GB');
+    expect(
+      metaTag(tags, 'property', 'og:locale:alternate').map((tag) => tag.attrs.content),
+    ).toEqual(['es_ES']);
+    expect(value(head(meta(), enPage, single), 'property', 'og:locale')).toBe('en');
+  });
+
+  it('un idioma ausente del mapa cae al formato del idioma', () => {
+    const partial = { ...config, ogLocales: { en: 'en_GB' } };
+    const tags = buildHead(meta(), esPage, pair, site, partial, url);
+    expect(value(tags, 'property', 'og:locale')).toBe('es');
+  });
+});
+
 describe('buildHead: imagen', () => {
   const image = { src: '/og.png', alt: 'Logo', width: 1200, height: 630 };
 
@@ -186,21 +210,6 @@ describe('buildHead: noindex, reserva y 404', () => {
     expect(metaTag(tags, 'property', 'og:locale:alternate')).toEqual([]);
     expect(value(tags, 'property', 'og:locale')).toBe('es');
   });
-
-  it('notFound: noindex, sin canonical ni alternates', () => {
-    const notFound: PageData = {
-      kind: 'notFound',
-      slug: '404',
-      locale: 'en',
-      url: '/repo/404.html',
-    };
-    const tags = head(meta(), notFound, pair);
-    expect(value(tags, 'name', 'robots')).toBe('noindex');
-    expect(links(tags, 'canonical')).toEqual([]);
-    expect(links(tags, 'alternate')).toEqual([]);
-    expect(metaTag(tags, 'property', 'og:locale:alternate')).toEqual([]);
-    expect(metaTag(tags, 'property', 'og:url')).toEqual([]);
-  });
 });
 
 describe('buildHead + resolveMeta', () => {
@@ -232,11 +241,9 @@ describe('buildHead: favicon', () => {
     });
   });
 
-  it('también en rutas de reserva y 404', () => {
+  it('también en rutas de reserva', () => {
     const fallback: PageData = { ...enPage, kind: 'fallback', canonical: '/repo/install/' };
-    const notFound: PageData = { ...enPage, kind: 'notFound', slug: '' };
     expect(icons(head(meta(), fallback, single))).toHaveLength(1);
-    expect(icons(head(meta(), notFound, new Map()))).toHaveLength(1);
   });
 
   it('el favicon de la config manda: ruta con base o https tal cual', () => {
@@ -288,11 +295,9 @@ describe('buildHead: JSON-LD', () => {
     expect(tag?.content).not.toContain('<');
   });
 
-  it('también salen en las páginas de reserva y en la 404', () => {
+  it('también salen en las páginas de reserva', () => {
     const schemas = [{ '@type': 'Thing' }];
     const fallback: PageData = { ...esPage, kind: 'fallback', canonical: '/repo/install/' };
-    const notFound: PageData = { ...esPage, kind: 'notFound' };
     expect(scripts(head(meta({ schemas }), fallback, pair))).toHaveLength(1);
-    expect(scripts(head(meta({ schemas }), notFound, pair))).toHaveLength(1);
   });
 });

@@ -10,6 +10,8 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
+import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
+import { excluder } from '../../core/content/exclude';
 import { validateFooter } from '../../core/navigation/footer';
 import { validateNav } from '../../core/navigation/nav-sections';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
@@ -36,10 +38,11 @@ function contentDir(root: string, config: Pick<LoaderConfig, 'content'>) {
   return path.resolve(root, config.content);
 }
 
-/** Falla con la ruta ya resuelta si la carpeta de contenido no existe o no es una carpeta. */
-async function assertContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
+/** Si la carpeta de contenido existe y es carpeta; la de por defecto puede faltar (el sitio solo con `external` o con su propia portada), la que se eligió no. */
+async function hasContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
   const info = await stat(directory).catch(() => undefined);
-  if (info?.isDirectory()) return;
+  if (info?.isDirectory()) return true;
+  if (config.content === DEFAULT_CONTENT_DIR && info === undefined) return false;
   throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${directory}.`, {
     hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
   });
@@ -59,12 +62,16 @@ async function walk(directory: string): Promise<string[]> {
 async function readSources(
   root: string,
   config: LoaderConfig,
-): Promise<{ files: SourceFile[]; errors: DocsError[] }> {
+): Promise<{ files: SourceFile[]; errors: DocsError[]; excluded: Set<string> }> {
   const nativeDir = contentDir(root, config);
-  await assertContentDir(nativeDir, config);
   const errors: DocsError[] = [];
+  const found = (await hasContentDir(nativeDir, config)) ? await walk(nativeDir) : [];
+  // Lo excluido ni se lee: ni se publica ni se valida su frontmatter.
+  const isExcluded = excluder(config.exclude);
+  const nativeFiles = found.filter((file) => !isExcluded(file));
+  const excluded = new Set(found.filter((file) => isExcluded(file)));
   const native = await Promise.all(
-    (await walk(nativeDir)).map(async (file): Promise<SourceFile> => {
+    nativeFiles.map(async (file): Promise<SourceFile> => {
       const raw = await readFile(path.join(nativeDir, file), 'utf8');
       const parsed = readFrontmatter(raw, file);
       errors.push(...parsed.errors);
@@ -77,7 +84,11 @@ async function readSources(
       return body === undefined ? undefined : { kind: 'external', path: file, body };
     }),
   );
-  return { files: [...native, ...external.filter((file) => file !== undefined)], errors };
+  return {
+    files: [...native, ...external.filter((file) => file !== undefined)],
+    errors,
+    excluded,
+  };
 }
 
 /** Archivo absoluto de una página: las nativas cuelgan del directorio de contenido. */
@@ -137,6 +148,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
     pages,
     url: urlPolicyOf(context.config, config.defaultLocale),
     contentDir: config.content,
+    excluded: read.excluded,
   };
   const refs: LinkRef[] = [];
   const headings: { slug: string; locale: string; headings: { slug: string }[] }[] = [];

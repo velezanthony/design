@@ -44,6 +44,7 @@ describe('API pública de ./integration: layout', () => {
       toc: 'open',
       width: 'full',
       toggles: true,
+      tocDepth: 3,
     });
   });
 });

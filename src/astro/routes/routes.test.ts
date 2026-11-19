@@ -28,19 +28,17 @@ describe('ROUTES', () => {
 });
 
 describe('routesFor', () => {
-  it('lo básico: docs, sitemap, su hoja, favicon y 404', () => {
+  it('lo básico: docs, sitemap, su hoja y favicon', () => {
     expect(patterns(single)).toEqual([
       '/[...slug]',
       '/sitemap.xml',
       '/_design/sitemap.css',
       '/_design/favicon.png',
-      '/404',
     ]);
   });
 
-  it('con varios idiomas añade /[locale]/404', () => {
-    expect(patterns(multiple)).toContain('/[locale]/404');
-    expect(patterns(single)).not.toContain('/[locale]/404');
+  it('con varios idiomas las rutas son las mismas: la 404 y la privacidad son del sitio', () => {
+    expect(patterns(multiple)).toEqual(patterns(single));
   });
 
   it('el sitemap de páginas solo con índice', () => {
@@ -60,13 +58,6 @@ describe('routesFor', () => {
         .every((route) => route.prerender),
     ).toBe(true);
   });
-
-  it('la privacidad solo con `privacy.page`, y la de idioma además con varios idiomas', () => {
-    expect(patterns(multiple).some((pattern) => pattern.includes('[privacy]'))).toBe(false);
-    expect(patterns({ ...single, privacyPage: true })).toContain('/[privacy]');
-    expect(patterns({ ...single, privacyPage: true })).not.toContain('/[locale]/[privacy]');
-    expect(patterns({ ...multiple, privacyPage: true })).toContain('/[locale]/[privacy]');
-  });
 });
 
 describe('injectedPaths', () => {
@@ -77,8 +68,6 @@ describe('injectedPaths', () => {
       'sitemap.xml',
       '_design/sitemap.css',
       '_design/favicon.png',
-      '404',
-      'es/404',
     ]);
   });
 
@@ -86,17 +75,9 @@ describe('injectedPaths', () => {
     expect(injectedPaths(single)).not.toContain('en/index');
   });
 
-  it('el panel y la privacidad cuentan también como carpeta con index', () => {
-    const paths = injectedPaths({ ...multiple, seoOnPage: true, privacyPage: true });
+  it('el panel cuenta también como carpeta con index', () => {
+    const paths = injectedPaths({ ...multiple, seoOnPage: true });
     expect(paths).toContain('seo-on-page/pages');
     expect(paths).toContain('seo-on-page/pages/index');
-    expect(paths).toContain('privacy');
-    expect(paths).toContain('privacy/index');
-  });
-
-  it('la privacidad usa el nombre de cada idioma', () => {
-    const paths = injectedPaths({ locales: ['es', 'en'], defaultLocale: 'es', privacyPage: true });
-    expect(paths).toContain('privacidad');
-    expect(paths).toContain('en/privacy/index');
   });
 });

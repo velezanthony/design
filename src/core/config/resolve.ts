@@ -1,11 +1,10 @@
 import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
+import type { StaticFolder } from '../content/static-folders';
 import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
-import { DEFAULT_CONTROLLER, type Controller } from '../privacy/copy';
-import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
 import {
@@ -21,7 +20,7 @@ import {
 export interface ResolvedConfig {
   name: string;
   seo: {
-    /** Sufijo del `<title>` del sitio, ya con el de la librería si la config no dice nada. */
+    /** Sufijo del `<title>` del sitio, ya con el `name` del sitio si la config no dice nada. */
     titleSuffix: Label | false;
     description?: Label;
     image?: { src: string; alt: Label };
@@ -30,8 +29,16 @@ export interface ResolvedConfig {
   };
   /** Favicon de `public/` o URL https; sin definir, el del paquete. */
   favicon?: string;
+  /** `og:locale` de cada idioma con territorio (`es_ES`); sin él, el propio idioma. */
+  ogLocales?: Record<Locale, string>;
+  /** CSS propio del proyecto, relativo a su raíz; la integración lo compila con el tema de la librería. */
+  theme?: string;
   /** Carpeta de las páginas nativas, relativa a la raíz del proyecto y ya normalizada (`../docs`). */
   content: string;
+  /** Carpetas que se publican tal cual (informe de cobertura): `from` desde la raíz del proyecto, `to` bajo el sitio. */
+  static?: StaticFolder[];
+  /** Patrones de `.md` de `content` que no se publican (relativos a esa carpeta). */
+  exclude: string[];
   locales: Locale[];
   defaultLocale: Locale;
   translations: { missing: MissingTranslation };
@@ -44,12 +51,10 @@ export interface ResolvedConfig {
   footer?: FooterConfig;
   editUrl?: string;
   repoRoot?: string;
-  /** Enlace de privacidad: una URL o una por idioma. La integración lo completa según la analítica. */
+  /** Enlace de privacidad del pie: una URL o una por idioma. Con `gtmId` es obligatoria (el aviso de cookies enlaza a ella). */
   privacyUrl?: Label;
   /** ID del contenedor de GTM de la config (anula al del entorno); la integración fija el efectivo. */
   gtmId?: string;
-  /** Página de privacidad propia: desactivada por defecto; el responsable sale en el texto. */
-  privacy: { page: boolean; controller: Controller };
   social?: { github?: string };
   /** Con `include`, `sitemap.xml` es un índice: las páginas propias y estos sitemaps del dominio. */
   sitemap: { include: string[] };
@@ -79,8 +84,9 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
   const locales = config.locales ?? DEFAULT_LOCALES;
   return {
     ...config,
-    seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
+    seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? config.name },
     content: normalizePath(config.content ?? DEFAULT_CONTENT_DIR),
+    exclude: config.exclude ?? [],
     locales,
     defaultLocale: config.defaultLocale ?? locales[0]!, // el esquema exige al menos un idioma
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },
@@ -88,9 +94,5 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     external: config.external ?? [],
     layout: resolveLayout(config.layout),
     sitemap: { include: config.sitemap?.include ?? [] },
-    privacy: {
-      page: config.privacy?.page ?? false,
-      controller: config.privacy?.controller ?? { ...DEFAULT_CONTROLLER },
-    },
   };
 }

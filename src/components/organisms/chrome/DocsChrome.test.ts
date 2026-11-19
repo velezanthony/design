@@ -152,6 +152,12 @@ describe('DocsFooter', () => {
     expect(text(htmlDocument.querySelector('footer'))).toContain('© 2026 Design');
   });
 
+  it('lleva la superficie invertida con su nombre neutro, reutilizable fuera de los docs', async () => {
+    const element = (await footer()).querySelector('footer')!;
+    expect(element.classList.contains('surface-inverse')).toBe(true);
+    expect(element.classList.contains('docs-footer')).toBe(false);
+  });
+
   it('el año va por props: la misma salida siempre', async () => {
     expect(text(await footer({ year: 2030 }))).toContain('© 2030');
   });

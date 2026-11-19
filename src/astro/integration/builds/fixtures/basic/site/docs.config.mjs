@@ -23,6 +23,7 @@ export default defineDocsConfig({
     { slug: 'notes', file: '../NOTES.md', translations: 'link' },
   ],
   ui: { es: { 'search.placeholder': 'Buscar en la fixture' } },
+  theme: 'site.css',
   editUrl: 'https://github.com/o/r/edit/main',
   privacyUrl: 'https://example.dev/privacy',
   gtmId: 'GTM-TEST',

@@ -22,16 +22,12 @@ describe('catálogo', () => {
     }
   });
 
-  it('cubre los títulos de las alertas de GitHub y los textos de traducción ausente y 404', () => {
+  it('cubre los títulos de las alertas de GitHub y los textos de traducción ausente', () => {
     for (const key of [
       'admonition.important',
       'admonition.caution',
       'translation.badgeLabel',
       'translation.fallbackNotice',
-      'notFound.title',
-      'notFound.body',
-      'notFound.home',
-      'notFound.description',
     ] as const) {
       expect(uiKeys).toContain(key);
     }
@@ -39,12 +35,6 @@ describe('catálogo', () => {
 
   it('cubre los textos de los organismos (barra lateral, aviso de cookies, pie)', () => {
     for (const key of ['sidebar.label', 'consent.label', 'consent.preferences'] as const) {
-      expect(uiKeys).toContain(key);
-    }
-  });
-
-  it('cubre los textos de la página de privacidad', () => {
-    for (const key of ['privacy.eyebrow', 'privacy.updated', 'privacy.description'] as const) {
       expect(uiKeys).toContain(key);
     }
   });
@@ -105,7 +95,7 @@ describe('mergeUiStrings', () => {
 
   it('el resultado sigue siendo completo', () => {
     const merged: Record<string, UiStrings> = mergeUiStrings(defaultStrings, {
-      es: { 'notFound.title': 'Nada por aquí' },
+      es: { 'edit.page': 'Editar aquí' },
     });
     expect(Object.keys(merged.es ?? {}).sort()).toEqual([...uiKeys].sort());
   });

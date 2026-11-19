@@ -8,7 +8,7 @@ se comporten igual.
 A un repo consumidor le da, desde un único archivo de configuración: páginas localizadas
 (`en`/`es`), el layout, la barra lateral, la tabla de contenidos, la búsqueda (Pagefind, por
 idioma; la tecla `/` enfoca el buscador), el tema claro/oscuro, un banner de consentimiento de analítica, etiquetas SEO en el head,
-`sitemap.xml` y un `404.html` que responde en el idioma del visitante. También puede publicar
+y `sitemap.xml`. También puede publicar
 archivos de la raíz como `README.md` o `CHANGELOG.md` como páginas, así que GitHub y el sitio de
 docs leen la misma fuente.
 
@@ -16,11 +16,11 @@ docs leen la misma fuente.
 
 - Node `>=22.23.4`
 - Astro `^7.4.12`
-- Tailwind CSS `^4.3.5` con `@tailwindcss/vite`
 - `@astrojs/markdown-satteri` `>=0.4.10 <0.5` (el procesador de Markdown que usa Astro 7; se
   respeta un procesador Sätteri propio, cualquier otro procesador rompe el build)
 
-Los cuatro son peer dependencies: instálalos en el consumidor.
+Los dos son peer dependencies: instálalos en el consumidor. Tailwind CSS (`tailwindcss` y
+`@tailwindcss/vite`) viene con la librería: no se instala aparte.
 
 ## Instalación
 
@@ -28,7 +28,7 @@ No está publicado en npm. Instálalo desde GitHub, fijado a una etiqueta de rel
 
 ```sh
 npm install github:velezanthony/design#v0.1.0
-npm install astro tailwindcss @tailwindcss/vite @astrojs/markdown-satteri
+npm install astro @astrojs/markdown-satteri
 ```
 
 El paquete distribuye fuentes TypeScript y `.astro` (sin paso de build); las compila Astro. Para
@@ -44,8 +44,8 @@ Las rutas de abajo están escritas para una carpeta `docs/` dentro del repo; en 
 `npm create astro` el proyecto de Astro es la raíz del repo, así que quita el prefijo `docs/` y
 ajusta las rutas relativas (`../CHANGELOG.md` pasa a ser `./CHANGELOG.md`). Empieza borrando la
 página del scaffold `src/pages/index.astro`: la home es `src/content/docs/index.md`, y una página
-propia en `/`, `/404` o `/sitemap.xml` (o `/es/`, `/es/404` para otros idiomas) rompe el build,
-porque Astro la renderizaría en lugar de los docs.
+propia en `/` o `/sitemap.xml` (o `/es/` para otros idiomas) no rompe el build: sustituye a la de la
+librería, y Astro renderiza la tuya en lugar de los docs (al arrancar se avisa con el fichero).
 
 Declara la configuración una sola vez en `docs.config.mjs` y pásala a `docs()` en
 `astro.config.mjs`. El `content.config.ts` es una línea que no la importa: la colección toma la
@@ -76,7 +76,7 @@ export default defineDocsSite(docsConfig, { base: '/my-repo' });
 obligatorio (la ruta del repo en GitHub Pages; `'/'` en un sitio de usuario u organización) y falla
 con un error claro si falta o no empieza por `/`. `site` es opcional y por defecto es
 `https://velezanthony.github.io`. Para añadir más config de Astro usa la clave `astro`, que se
-fusiona: `integrations` y `vite.plugins` se añaden después de `docs()` y de Tailwind, el resto de
+fusiona: `integrations` y `vite.plugins` se añaden después de `docs()`, el resto de
 claves de `vite` se fusionan en superficial y las demás claves de primer nivel pisan los valores por
 defecto (por ejemplo `trailingSlash`).
 
@@ -91,7 +91,6 @@ export default defineDocsSite(docsConfig, {
 Equivale a esta forma larga, que sigue funcionando:
 
 ```js
-import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import { docs } from '@velezanthony/design/integration';
 import docsConfig from './docs.config.mjs';
@@ -100,8 +99,7 @@ export default defineConfig({
   site: 'https://velezanthony.github.io', // obligatorio
   base: '/my-repo',
   trailingSlash: 'always',
-  vite: { plugins: [tailwindcss()] },
-  integrations: [docs(docsConfig)],
+  integrations: [docs(docsConfig)], // registra también el plugin de Tailwind
 });
 ```
 
@@ -130,13 +128,40 @@ export const collections = {
 ```
 
 Pon las páginas nativas en `docs/src/content/docs/` (o en otra carpeta con la opción `content`, ver
-[Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro)). La librería inyecta todas las rutas (páginas,
-`404`, `sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
+[Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro)). La librería inyecta todas las rutas (páginas y
+`sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
 escribe ningún layout, ningún import de CSS ni ningún `@source`.
 
 Páginas nativas: `index.md` es la home, `guide.md` es `/guide/`, `guide.es.md` es su gemela en
 español (el idioma por defecto no lleva sufijo). El título es el primer `h1` (o el `title` del
 frontmatter); una página sin ninguno de los dos rompe el build.
+
+La home y la carpeta de contenido son **opcionales**. Sin `index.md` (ni `README.md`, ver abajo) no se genera
+portada y el sitio pone la suya en `src/pages/index.astro`. Si la carpeta de contenido por defecto
+(`src/content/docs/`) no existe, no hay páginas nativas y no falla (un sitio solo con `external`, o solo con
+páginas propias); una carpeta elegida con `content` que no existe sí falla, para cazar la errata.
+
+Un `README.md` hace de `index.md` de su carpeta (el de la raíz de `content` es la home) cuando esa carpeta no tiene
+`index.md` en el mismo idioma, como en MkDocs. Un archivo de fuera (el `README.md` de la raíz del repo) también
+puede ser la home con `external: [{ slug: 'index', file: '../README.md' }]`; `slug: 'guia/index'` es `guia`.
+
+## Excluir archivos
+
+`exclude` es la lista de patrones de los `.md` de la carpeta de contenido que no se publican, el equivalente de
+`exclude_docs` de MkDocs. Son relativos a esa carpeta y siguen las reglas de `.gitignore`:
+
+```js
+exclude: ['drafts/', '*.borrador.md', '/notas.md', 'guia/**/interno.md', '!drafts/listo.md'],
+```
+
+- Un nombre sin `/` vale a cualquier profundidad; con `/` al principio o en medio, cuelga de la carpeta de contenido.
+- `/` al final es una carpeta con todo lo que contiene.
+- `*` y `?` no cruzan carpetas; `**` sí.
+- `!` vuelve a incluir y manda el último patrón que coincide.
+- El sufijo de idioma cuenta como parte del nombre (`*.es.md` excluye solo las traducciones al español).
+
+Lo excluido ni se lee (su frontmatter no se valida), ni se publica, ni cuenta para los enlaces. Un enlace a un
+archivo excluido falla nombrando `exclude`: quita el enlace o el patrón. Los `external` no se ven afectados.
 
 ## Referencia de configuración
 
@@ -146,6 +171,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`          | Nombre del sitio (cabecera, pie, plantilla de título por defecto). Obligatorio.                                                                          |
 | `content`       | Carpeta de las páginas nativas, relativa a la raíz del proyecto de Astro; puede estar fuera (`'../docs'`). Por defecto `'src/content/docs'`. Ver [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro). |
+| `exclude`       | Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican, relativos a esa carpeta. Ver [Excluir archivos](#excluir-archivos). |
 | `locales`       | Idiomas; `en` y `es` tienen textos de UI incluidos. Por defecto `['en']`.                                                                                |
 | `defaultLocale` | Archivos sin sufijo y `/`. Por defecto: el primer idioma.                                                                                                |
 | `seo`           | Base SEO de todo el sitio, ver abajo.                                                                                                                    |
@@ -157,17 +183,21 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
 | `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
 | `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
+| `ogLocales`     | `og:locale` con territorio por idioma: `{ es: 'es_ES', en: 'en_GB' }`; sin él, el idioma tal cual (`es`). Cada clave debe estar en `locales`. |
+| `sitemap`       | `{ include: [...] }`: otros sitemaps del mismo dominio; con él, `sitemap.xml` pasa a ser un índice y las páginas propias van en `sitemap-pages.xml`. Ver [Despliegue](#despliegue-en-github-pages). |
+| `static`        | Carpetas que se publican tal cual: `[{ from, to }]`. Ver [Carpetas estáticas](#carpetas-estáticas-static). |
 | `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
 | `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
-| `privacyUrl`    | Sobrescritura opcional del enlace a la política de privacidad: una URL o una por idioma. Por defecto: la página del portfolio. Ver [Analítica](#analítica). |
-| `layout`        | Barras laterales plegables y ancho de lectura / completo: `{ sidebar?, toc?, width?, toggles? }`. Ver abajo.                                             |
+| `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/guia/primeros-pasos.md#css-propio-del-sitio-theme). |
+| `privacyUrl`    | URL de tu política de privacidad: una URL o una por idioma. Obligatoria con analítica (el banner enlaza a ella); sin analítica, es solo el enlace del pie. Ver [Analítica](#analítica). |
+| `layout`        | Barras laterales plegables, ancho de lectura / completo y el índice: `{ sidebar?, toc?, width?, toggles?, tocDepth?, tocMaxHeight? }`. Ver abajo.       |
 | `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |
 
 ### `seo`
 
 ```js
 seo: {
-  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto 'Anthony Velez Tapia'
+  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto, el `name` del sitio
   description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string o por idioma
   image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // bajo public/ o https absoluta
 }
@@ -177,10 +207,10 @@ Una página sobrescribe la base campo a campo: `seo` en el frontmatter en las p�
 `external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex?, schema? }`.
 
 El `<title>` tiene dos partes, título y sufijo, y se forma `título | sufijo` (separador fijo). Cada
-parte se resuelve por separado: página > sitio > librería. `seo.title` cambia el título solo en el
-head (el H1 no se toca) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
+parte se resuelve por separado: página > sitio > `name`. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
+head (el H1 no se toca; sin el idioma de la página, vale el título de la página) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
 también a un sufijo del sitio). Si el título es igual al sufijo no se repite, y `og:title` /
-`twitter:title` nunca llevan sufijo.
+`twitter:title` llevan el mismo título completo que el `<title>`, sufijo incluido.
 
 ```md
 <!-- docs.config.mjs: seo: { titleSuffix: 'My repo' } -->
@@ -194,7 +224,7 @@ seo:
 ---
 ```
 
-Sin `titleSuffix` en el sitio ni en la página, el sufijo es el de la librería (`Anthony Velez Tapia`).
+Sin `titleSuffix` en el sitio ni en la página, el sufijo es el `name` del sitio.
 `titleTemplate` ya no existe: dejarlo en la config falla el build.
 La imagen OG debería medir unos 1,91:1 y pesar menos de 300 KB (si no, avisa). Las páginas
 `noindex` salen de `sitemap.xml` y de la búsqueda.
@@ -246,7 +276,7 @@ export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
 
 ### `favicon`
 
-Todas las páginas (docs, rutas de respaldo y 404) emiten `<link rel="icon" href type>`. Por defecto
+Todas las páginas (docs y rutas de respaldo) emiten `<link rel="icon" href type>`. Por defecto
 el paquete sirve su propio icono en `<base>/_design/favicon.png`, una ruta con espacio de nombres que
 nunca choca con tu `public/`. Define `favicon` para usar el tuyo:
 
@@ -284,12 +314,15 @@ nav: [
 ],
 ```
 
-- **Sección** `{ label, dir, sidebar? }`: pertenece a ella toda página (nativa o externa) cuyo slug
-  sea `dir` o empiece por `dir/`. Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y
-  anterior / siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer
-  nivel, los slugs deben estar dentro de `dir`); el resto sigue por `order` y luego por slug,
-  agrupado bajo `dir` (la carpeta en sí no es un nivel). El elemento enlaza a la página índice de
-  `dir` si existe y, si no, a la primera página de la sección.
+- **Sección** `{ label, dir?, sidebar? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
+  página (nativa o externa) cuyo slug sea `dir` o empiece por `dir/`, y también las que nombra su
+  `sidebar`, vivan donde vivan: así una sección admite páginas sueltas y ficheros de fuera de `docs/`
+  (`external`). Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y anterior /
+  siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer nivel); lo
+  de `dir` que no nombra sigue por `order` y luego por slug, agrupado bajo `dir` (la carpeta en sí no
+  es un nivel), y **sin `sidebar` el orden es alfabético por slug**. Sin `dir`, la sección la forma
+  solo su `sidebar`. El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
+  página de la sección. Una página no puede ser de dos secciones.
 - **Página** `{ label, slug }`: un enlace a una sola página. Esa página no pertenece a ninguna
   sección.
 - **Enlace** `{ label, href, icon? }`: externo, solo `https://`, con `rel="noopener"` y un marcador
@@ -303,15 +336,15 @@ nav: [
   idioma por defecto, como cualquier otro label. Un elemento de página cuya página no está traducida
   sigue `translations.missing` (`link`/`fallback` apuntan al original, `omit` oculta el elemento).
 - Rompe el build, de forma agregada y con la ruta de configuración (`nav[1].dir`): un `dir` sin
-  páginas, `dir` solapados (iguales, o uno dentro de otro), un slug de `sidebar` de sección que es
-  desconocido o está fuera de su `dir`, un `slug` de página que no es una página o que vive dentro
-  de una sección, y un `href` que no es https.
+  páginas, `dir` solapados (iguales, o uno dentro de otro), un slug de `sidebar` de sección que no es
+  una página o que ya es de otra sección, un `slug` de página que no es una página o que es de una
+  sección, y un `href` que no es https.
 - Textos de UI: `nav.label` (el landmark de navegación) y `nav.external` (el marcador para lectores
   de pantalla).
 
 ### `footer`
 
-Dos filas, iguales en todas las páginas (la 404 incluida). Todo es opcional.
+Dos filas, iguales en todas las páginas. Todo es opcional.
 
 ```js
 footer: {
@@ -350,6 +383,8 @@ layout: {
   toc: PanelState.OPEN, // igual para "On this page" (xl y superior)
   width: LayoutWidth.READING, // 'reading' (por defecto) | 'full'
   toggles: true, // false elimina todos los controles e ignora lo que guardó un visitante
+  tocDepth: 3, // último nivel que lista «On this page»: 2 (solo h2) a 6; por defecto 3
+  tocMaxHeight: '60vh', // opcional: longitud CSS (px, rem, em, vh, dvh, svh); la lista hace scroll por dentro
 }
 ```
 
@@ -384,6 +419,11 @@ canonical al original). Una página sobrescribe la base: `translations: omit` en
 páginas nativas, `external[].translations` en las externas. Los archivos de una misma página que no
 coinciden rompen el build; una gemela ausente sin política declarada solo avisa.
 
+**Si vienes de MkDocs**, su `fallback_to_default: true` (servir la página sin traducir en el idioma por
+defecto bajo la URL del otro) es `translations: { missing: MissingTranslation.FALLBACK }`. El valor por
+defecto sigue siendo `link`, que no duplica contenido; con `fallback_to_default: false` lo más cercano
+es `omit`.
+
 ### Archivos externos
 
 `external[].file` es relativo al proyecto de Astro (`../CHANGELOG.md`). `CHANGELOG.es.md` es su
@@ -399,20 +439,35 @@ recurso como en la barra lateral) y se validan, `#anchor` incluido; una ruta rel
 que no es ni una página ni un asset declarado rompe el build. Los enlaces `https://` se permiten
 pero no se validan.
 
+### Carpetas estáticas (`static`)
+
+`static` publica una carpeta **tal cual**, sin Markdown, sin optimizar y fuera del índice de búsqueda y
+del sitemap: un informe de cobertura HTML, por ejemplo.
+
+```js
+static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/index.html
+```
+
+`from` es relativa a la raíz del proyecto de Astro y debe existir al construir (se genera antes; si
+falta, el build falla nombrando `static[0].from`); `to` es la ruta bajo el sitio, sin barras en los
+extremos. No puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no pueden solaparse. Con
+`astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con su URL
+(`[Cobertura](/coverage/)`, con el `base` delante si lo hay).
+
 ### Docs fuera del proyecto de Astro
 
 Si el repo ya guarda sus docs como `.md` sueltos (por ejemplo los de un MkDocs), no hace falta
-moverlos: pon el proyecto de Astro en `site/` y apunta `content` a la carpeta de siempre.
+moverlos: pon el proyecto de Astro en su propia carpeta (`docs-site/`) y apunta `content` a la carpeta de siempre.
 
 ```text
 repo/
 ├── docs/            # páginas nativas, tal cual (index.md, index.es.md, users/guia.md, img/…)
 ├── CHANGELOG.md     # external, fuera de ambos
-└── site/            # proyecto de Astro (astro.config.mjs, docs.config.mjs, package.json)
+└── docs-site/       # proyecto de Astro (astro.config.mjs, docs.config.mjs, package.json)
 ```
 
 ```js
-// site/docs.config.mjs
+// docs-site/docs.config.mjs
 export default defineDocsConfig({
   name: 'Mi repo',
   locales: ['en', 'es'],
@@ -422,6 +477,10 @@ export default defineDocsConfig({
   repoRoot: '..',
 });
 ```
+
+> **No lo llames `site/`.** Es donde MkDocs escribe su salida (`site_dir`): choca con su `.gitignore`,
+> con `mkdocs build` y con lo que ya despliegue esa carpeta. Elige otro nombre (`docs-site/`, `astro/`…);
+> da igual cuál, siempre que `content` y las rutas de `external` sean relativas a él.
 
 Reglas de `content`:
 
@@ -442,6 +501,30 @@ Reglas de `content`:
   carpeta queda fuera de la raíz del proyecto, la integración la añade a `server.fs.allow` de Vite
   (junto con la raíz del workspace) para servir sus imágenes.
 - Una imagen relativa sin `./` (`img/x.png`, lo normal en MkDocs) se trata como `./img/x.png`.
+
+#### El orden del menú por sección
+
+Un `nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
+las páginas de la sección salen por `order` del frontmatter y después alfabéticamente por slug**, no en
+el orden en que MkDocs las tenía en `nav:`. Para conservarlo, escribe el `sidebar` de cada sección con
+las mismas páginas y en el mismo orden (el migrador lo genera desde `mkdocs.yml` con `--in-place`: ver
+«Config sugerida» en `scripts/migrate-mkdocs`):
+
+```js
+nav: [
+  {
+    label: 'Guía',
+    sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
+  },
+],
+```
+
+#### El slug de `carpeta/index.md`
+
+`carpeta/index.md` es la página `carpeta`, no `carpeta/index`: así se escribe en un `sidebar`, en un
+`nav` (`{ label, slug: 'carpeta' }`) y en un `external` (`slug: 'carpeta/index'` también colapsa a
+`carpeta`). Solo la portada se llama `index` (el `index.md` de la raíz). Con `navigation.indexes` de
+Material, esa página es la de la sección: `dir: 'carpeta'` enlaza a ella.
 
 ## Markdown
 
@@ -504,6 +587,15 @@ flowchart LR
 ```
 ````
 
+## Páginas propias del sitio
+
+Además de la documentación, un sitio puede tener páginas suyas en `src/pages/` (portada, currículum)
+con el tema y el consentimiento de la librería: se montan sobre `BaseLayout`, con las ranuras `head`,
+la de por defecto y `scripts`, y `pageHead` para el `<head>` SEO. `Article` pinta Markdown con su índice
+fuera de docs. Es un tema aparte de la configuración, y está documentado en el sitio de la librería:
+[Cabecera y pie propios](docs/src/content/docs/guia/layout-propio.md) y
+[Piezas sueltas](docs/src/content/docs/guia/piezas-sueltas.md).
+
 ## Transiciones y zoom de imágenes
 
 Las páginas usan la View Transitions API, todo ello tras `prefers-reduced-motion: no-preference` y
@@ -527,7 +619,7 @@ ni banner de consentimiento, ni botón "Cookie preferences", ni nada guardado en
 viene del entorno, nunca de código versionado:
 
 ```sh
-# .env (dev) o .env.production (build); ambos están en el .gitignore. Copia .env.example.
+# .env (dev) o .env.production (build); ponlos en el .gitignore del consumidor.
 PUBLIC_GTM_ID=GTM-XXXXXXX
 ```
 
@@ -541,11 +633,10 @@ el valor). Un valor vacío o en blanco cuenta como no definido.
   los archivos.
 - `gtmId` en la configuración es una sobrescritura explícita y gana al entorno. Úsalo solo si un repo
   debe fijar un contenedor; déjalo fuera en caso contrario.
-- Política de privacidad: existe una, la del portfolio. Por defecto el banner y el pie enlazan a
-  `https://velezanthony.github.io/privacidad/` (`es`) y `https://velezanthony.github.io/en/privacy/`
-  (`en`), según el idioma. Define `privacyUrl` (un string, o `{ en: '...', es: '...' }`) solo para
-  sobrescribirla; también se enlaza desde el pie sin analítica. Con la analítica activada, un idioma
-  sin URL resoluble rompe el build.
+- Política de privacidad: la analítica exige `privacyUrl` (un string, o `{ en: '...', es: '...' }`);
+  el banner y el pie enlazan a ella y no hay ninguna por defecto. Sin ella, `astro build` falla
+  nombrando `privacyUrl` y `astro dev` avisa y arranca sin analítica. Sin analítica, `privacyUrl` solo
+  pone el enlace en el pie. Un idioma sin URL resoluble rompe el build.
 
 En GitHub Actions pasa la variable al paso de build (el portfolio la guarda como secret; una variable
 de repositorio también sirve, el id es público en la página de todos modos):
@@ -558,44 +649,19 @@ de repositorio también sirve, el id es público en la página de todos modos):
 
 Sin ella, los builds locales y de forks quedan sin rastreo y sin ningún camino de código propio.
 
-### Página de privacidad propia (`privacy`)
+### La política de privacidad y la 404 no son de la librería
 
-Por defecto no se genera ninguna página: si la analítica está activa (o defines `privacyUrl`), el
-footer y el aviso de consentimiento enlazan a la política del portfolio, una por idioma
-(`https://velezanthony.github.io/privacidad/` en `es` y `https://velezanthony.github.io/en/privacy/`
-en `en`).
+La librería no genera ninguna página de privacidad ni ninguna 404: las da el portfolio, una vez para
+todo el dominio (GitHub Pages sirve un único `/404.html` y la política es la misma para todos los
+sitios). `privacy.page` y `privacy.controller` ya no existen; dejarlas en la config falla con «opción
+desconocida».
 
-Para que el sitio publique la suya, actívala:
-
-```js
-export default defineDocsConfig({
-  name: 'Portfolio',
-  locales: ['es', 'en'],
-  privacy: {
-    page: true,
-    // Opcional. Por defecto, el responsable del portfolio.
-    controller: { name: 'Tu Nombre', email: 'tu@correo.dev' },
-  },
-});
-```
-
-| Opción               | Descripción                                                                                                                                                           |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `privacy.page`       | `true` inyecta la página de privacidad en cada idioma (`es` → `/privacidad/`, `en` → `/privacy/`, con el prefijo de idioma y la `base` que corresponda). Por defecto `false`. |
-| `privacy.controller` | `{ name, email }` del responsable que aparece en el texto. Por defecto, el del portfolio.                                                                              |
-
-- La página lleva la cabecera, el pie y el aviso de consentimiento de la documentación, pero sin barra
-  lateral. Es indexable: entra en `sitemap.xml` y lleva `hreflang` entre idiomas.
-- El enlace de privacidad del footer y del aviso apunta entonces a esta página (relativo a la `base`),
-  salvo que definas `privacyUrl`, que siempre gana.
-- El texto cubre este sitio y las webs de documentación de `velezanthony.github.io/<repo>/` (mismo
-  responsable, misma analítica, mismo consentimiento). Describe qué se guarda (tema, disposición y
-  elección de cookies en `localStorage`; cookies de GTM/GA solo tras aceptar), la base legal, la
-  conservación, los derechos y cómo retirar el consentimiento con «Preferencias de cookies».
-- Solo hay texto en `es` y `en`: con `page: true` y otro idioma en `locales`, la construcción falla con
-  un error claro.
-- Si ya tienes un fichero en `src/pages/` que ocupa `/privacidad/` o `/en/privacy/`, la integración
-  falla y te dice cuál.
+| Config                                 | Resultado                                         |
+| -------------------------------------- | ------------------------------------------------- |
+| `gtmId` (o `PUBLIC_GTM_ID`) + `privacyUrl` | Analítica, banner de cookies y enlace en el pie |
+| Solo `privacyUrl`                      | Solo el enlace en el pie                          |
+| Solo `gtmId`                           | `astro build` falla nombrando `privacyUrl`; `astro dev` avisa y arranca sin analítica |
+| Ninguno                                | Nada                                              |
 
 ## SEO on page (solo en desarrollo)
 
@@ -607,7 +673,8 @@ configurar nada:
 - `/<base>/seo-on-page/pages`: tabla filtrable (gravedad, idioma, tipo, texto) de las páginas e
   idiomas, con el `<title>` final y su longitud contra el límite, el origen de la descripción y los
   problemas. Sin filtros enseña solo errores y avisos (un enlace muestra también lo informativo).
-  Los filtros y la página (25 filas por página) van en la URL.
+  Los filtros y la página (25 filas por página) van en la URL. Una casilla oculta las páginas `noindex`
+  de la tabla y de los problemas (`?noindex=hide`).
 - `/<base>/seo-on-page/page?slug=…&locale=…`: inspector de una página, con vista previa de buscador y
   Open Graph, canonical, esquema de encabezados y traducciones lado a lado.
 
@@ -629,10 +696,14 @@ mal proporcionada, un lenguaje de Shiki desconocido y un bloque de código con f
 ## Despliegue en GitHub Pages
 
 - `site` debe ser el origen del usuario y `base` la ruta del repo; el build es totalmente estático.
-- `sitemap.xml` (con alternativas `hreflang`) se emite en `<base>/sitemap.xml`; no hay `robots.txt`
-  (el portfolio en el origen del usuario es el dueño).
-- GitHub Pages sirve un único `<base>/404.html`. Está en el idioma por defecto y se cambia solo al
-  idioma de la URL fallida (`/repo/es/nope/` muestra español, la URL no cambia).
+- `sitemap.xml` (con alternativas `hreflang` y `<lastmod>`) se emite en `<base>/sitemap.xml`; no hay
+  `robots.txt` (el portfolio en el origen del usuario es el dueño). El `<lastmod>` de cada URL es el
+  último commit del archivo del que sale (sin él, la fecha del archivo). Un clon superficial
+  (`git clone --depth 1`, lo habitual en CI) no da ninguna fecha: usa `fetch-depth: 0` en
+  `actions/checkout` si la quieres.
+- Con `sitemap: { include: ['/otro/sitemap.xml'] }` el sitio principal convierte `sitemap.xml` en un
+  índice: `sitemap-pages.xml` con sus páginas y luego cada sitemap declarado (mismo origen que `site`).
+- La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el portfolio.
 - El índice de búsqueda se construye tras `astro build` en `dist/pagefind/`; la búsqueda necesita un
   build de producción.
 - El tema y el consentimiento se guardan en `localStorage` bajo `theme` y `consent`, así que se
@@ -661,18 +732,25 @@ orden `$ ` y `sql` si empieza por `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREAT
 cada cambio queda en el registro como `code-language`. Nunca adivina Python ni otros lenguajes.
 
 Para migrar un repo MkDocs **sin mover sus `.md`**: `node scripts/migrate-mkdocs/cli.ts --repo <repo> --in-place`
-convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), se niega a correr si el
-repo no es git o `docs/` tiene cambios sin confirmar (`--force` lo salta; se desaconseja) y termina
-con un resumen, los restos de sintaxis que no ha entendido y las páginas `--8<--` que conviene
-publicar con `external[]`. Luego: `git diff docs/` y commit, o `git checkout docs/` para descartarlo.
+convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), reescribe las anclas a los
+ids de la librería, se niega a correr si el repo no es git o `docs/` tiene cambios sin confirmar
+(`--force` lo salta; se desaconseja) y termina con un resumen, los restos de sintaxis que no ha
+entendido, las páginas `--8<--` que conviene publicar con `external[]`, una **config sugerida** leída
+de `mkdocs.yml` (idiomas, `fallback`, `exclude` y `nav`; `--config-out <fichero>` la escribe) y la
+lista de lo que ignora. `--api <api.json>` resuelve las directivas de mkdocstrings y `--dry-run` no
+escribe nada y solo imprime el plan. Luego: `git diff docs/` y commit, o `git checkout docs/` para
+descartarlo.
 
 CI ejecuta lint, format, check y test en cada push y pull request a `main`.
 
 ## Publicación de versiones
 
-Sube `version` en `package.json`, haz commit, etiqueta ese commit y sube la etiqueta:
+En el PR, sube `version` en `package.json` y escribe en `CHANGELOG.md` la sección de la versión
+(`## 0.1.0`). Tras el merge a `main`, etiqueta el commit del merge, sube la etiqueta y crea la
+Release en GitHub con esa sección del CHANGELOG como notas:
 
 ```sh
 git tag v0.1.0
 git push origin v0.1.0
+gh release create v0.1.0 --verify-tag --title v0.1.0
 ```

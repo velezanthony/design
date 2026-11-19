@@ -158,6 +158,60 @@ describe('discoverPages: nativas', () => {
   });
 });
 
+describe('discoverPages: README como portada', () => {
+  it('README.md sin index.md hace de portada', () => {
+    const pages = discoverPages([native('README.md')], config());
+    expect(pages.map((page) => page.slug)).toEqual(['']);
+  });
+
+  it('también en una carpeta: guide/README.md es `guide`', () => {
+    const pages = discoverPages([native('guide/README.md'), native('guide/a.md')], config());
+    expect(pages.map((page) => page.slug)).toEqual(['guide', 'guide/a']);
+  });
+
+  it('cada idioma decide por su cuenta: index.md en en, README.es.md en es', () => {
+    const pages = discoverPages([native('index.md'), native('README.es.md')], config());
+    expect(pages.map((page) => [page.slug, page.locale])).toEqual([
+      ['', 'en'],
+      ['', 'es'],
+    ]);
+  });
+
+  it('con index.md en la misma carpeta e idioma, README.md es una página más', () => {
+    const pages = discoverPages([native('index.md'), native('README.md')], config());
+    expect(pages.map((page) => page.slug)).toEqual(['', 'README']);
+  });
+});
+
+describe('discoverPages: portada externa', () => {
+  it('`slug: index` hace de portada un archivo de fuera (un README de la raíz)', () => {
+    const pages = discoverPages(
+      [external('../README.md')],
+      config({ external: [{ slug: 'index', file: '../README.md' }] }),
+    );
+    expect(pages.map((page) => [page.slug, page.kind])).toEqual([['', 'external']]);
+  });
+
+  it('`guide/index` colapsa a `guide`, igual que un index.md nativo', () => {
+    const pages = discoverPages(
+      [external('x.md')],
+      config({ external: [{ slug: 'guide/index', file: 'x.md' }] }),
+    );
+    expect(pages.map((page) => page.slug)).toEqual(['guide']);
+  });
+
+  it('choca con un index.md nativo nombrando ambos archivos', () => {
+    const problems = errorsOf(() =>
+      discoverPages(
+        [native('index.md'), external('../README.md')],
+        config({ external: [{ slug: 'index', file: '../README.md' }] }),
+      ),
+    );
+    expect(problems.join('\n')).toContain('index.md');
+    expect(problems.join('\n')).toContain('../README.md');
+  });
+});
+
 describe('discoverPages: externas', () => {
   const entry = { slug: 'changelog', file: '../CHANGELOG.md' };
 

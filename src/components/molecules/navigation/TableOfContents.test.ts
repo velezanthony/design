@@ -87,3 +87,27 @@ describe('TableOfContents: raíl plegable', () => {
     expect(text(htmlDocument.querySelector('.docs-panel-title'))).toBe('En esta página');
   });
 });
+
+describe('TableOfContents: profundidad y altura', () => {
+  it('`depth` suma niveles al índice', async () => {
+    const htmlDocument = await toc({ depth: 4 });
+    expect(htmlDocument.querySelector('a[href="#fino"]')?.getAttribute('data-depth')).toBe('4');
+  });
+
+  it('`depth: 2` deja solo los h2', async () => {
+    const htmlDocument = await toc({ depth: 2 });
+    expect(htmlDocument.querySelector('a[href="#detalle"]')).toBeNull();
+  });
+
+  it('`maxHeight` limita la lista y deja que haga scroll', async () => {
+    const list = (await toc({ maxHeight: '60vh' })).querySelector('ol')!;
+    expect(list.getAttribute('style')).toContain('--toc-max-height:60vh');
+    expect(list.classList.contains('overflow-y-auto')).toBe(true);
+  });
+
+  it('sin `maxHeight` la lista no tiene límite', async () => {
+    const list = (await toc({})).querySelector('ol')!;
+    expect(list.getAttribute('style')).toBeNull();
+    expect(list.classList.contains('overflow-y-auto')).toBe(false);
+  });
+});

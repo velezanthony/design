@@ -119,6 +119,33 @@ describe('buildScopedSidebar', () => {
     expect(slugsOf(tree)[0]).toBe('showcase');
   });
 
+  it('una página de fuera del dir que nombra el sidebar entra en la sección, en su orden', () => {
+    const loose: NavItem[] = [
+      { label: 'G', dir: 'users', sidebar: ['changelog', 'users/install'] },
+      { label: 'C', dir: 'contributors' },
+    ];
+    const tree = buildScopedSidebar(context('en', 'changelog', { nav: loose }));
+    expect(slugsOf(tree)).toEqual([
+      'changelog',
+      'users/install',
+      'users/guide/columns',
+      'users/guide/queries',
+    ]);
+    expect(slugsOf(buildScopedSidebar(context('en', 'showcase', { nav: loose })))).not.toContain(
+      'changelog',
+    );
+  });
+
+  it('una sección sin dir se forma solo con su sidebar', () => {
+    const only: NavItem[] = [{ label: 'G', sidebar: ['showcase', 'changelog'] }];
+    expect(slugsOf(buildScopedSidebar(context('en', 'changelog', { nav: only })))).toEqual([
+      'showcase',
+      'changelog',
+    ]);
+    const entry = buildNav(only, context('en', 'changelog', { nav: only }))[0]!;
+    expect(entry).toMatchObject({ kind: 'section', current: 'true' });
+  });
+
   it('sin `nav` se comporta como siempre: todo el árbol', () => {
     const tree = buildScopedSidebar(context('en', 'showcase', { nav: undefined }));
     expect(slugsOf(tree)).toContain('users/install');

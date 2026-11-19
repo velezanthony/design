@@ -3,7 +3,6 @@ import { resolveConfig } from './resolve';
 import { DocsConfigSchema, PageSeoOverrideSchema } from './schema';
 import { DocsErrors } from '../errors';
 import { NavIcon } from './nav';
-import { DEFAULT_TITLE_SUFFIX } from '../seo/title';
 
 function messages(input: unknown): string[] {
   try {
@@ -15,9 +14,36 @@ function messages(input: unknown): string[] {
   return [];
 }
 
+describe('ogLocales de la config', () => {
+  it('da a cada idioma su og:locale con territorio', () => {
+    const config = resolveConfig({
+      name: 'X',
+      locales: ['es', 'en'],
+      ogLocales: { es: 'es_ES', en: 'en_GB' },
+    });
+    expect(config.ogLocales).toEqual({ es: 'es_ES', en: 'en_GB' });
+  });
+
+  it('sin definir, no hay mapa', () => {
+    expect(resolveConfig({ name: 'X' }).ogLocales).toBeUndefined();
+  });
+
+  it('un idioma que no está en `locales` falla con su ruta', () => {
+    expect(messages({ name: 'X', locales: ['en'], ogLocales: { fr: 'fr_FR' } })[0]).toContain(
+      'ogLocales.fr',
+    );
+  });
+
+  it('un valor que no es idioma_TERRITORIO falla con su ruta', () => {
+    expect(messages({ name: 'X', locales: ['en'], ogLocales: { en: 'english' } })[0]).toContain(
+      'ogLocales.en',
+    );
+  });
+});
+
 describe('seo de la config', () => {
-  it('sufijo por defecto: el de la librería', () => {
-    expect(resolveConfig({ name: 'Design' }).seo.titleSuffix).toBe(DEFAULT_TITLE_SUFFIX);
+  it('sufijo por defecto: el `name` del sitio', () => {
+    expect(resolveConfig({ name: 'Design' }).seo.titleSuffix).toBe('Design');
   });
 
   it('el sufijo acepta texto, un Label por idioma o `false`', () => {
@@ -103,6 +129,12 @@ describe('external[].seo', () => {
     });
     expect(config.external[0]?.seo).toEqual({ noindex: true });
   });
+
+  it('el título SEO de un externo puede ir por idioma', () => {
+    const seo = { title: { en: 'Readme', es: 'Léeme' } };
+    const config = resolveConfig({ name: 'X', external: [{ slug: 'a', file: 'a.md', seo }] });
+    expect(config.external[0]?.seo).toEqual(seo);
+  });
 });
 
 describe('DocsConfigSchema', () => {
@@ -118,16 +150,31 @@ describe('layout de la config', () => {
       toc: 'open',
       width: 'reading',
       toggles: true,
+      tocDepth: 3,
     });
   });
 
   it('acepta cada campo y completa el resto con los valores por defecto', () => {
     expect(
       resolveConfig({ name: 'X', layout: { sidebar: 'collapsed', width: 'full' } }).layout,
-    ).toEqual({ sidebar: 'collapsed', toc: 'open', width: 'full', toggles: true });
+    ).toEqual({ sidebar: 'collapsed', toc: 'open', width: 'full', toggles: true, tocDepth: 3 });
     expect(
       resolveConfig({ name: 'X', layout: { toc: 'collapsed', toggles: false } }).layout,
-    ).toEqual({ sidebar: 'open', toc: 'collapsed', width: 'reading', toggles: false });
+    ).toEqual({ sidebar: 'open', toc: 'collapsed', width: 'reading', toggles: false, tocDepth: 3 });
+  });
+
+  it('`tocDepth` y `tocMaxHeight` ajustan el índice', () => {
+    expect(
+      resolveConfig({ name: 'X', layout: { tocDepth: 4, tocMaxHeight: '60vh' } }).layout,
+    ).toMatchObject({ tocDepth: 4, tocMaxHeight: '60vh' });
+  });
+
+  it('`tocDepth` fuera de 2 a 6 y `tocMaxHeight` sin unidad fallan con su ruta', () => {
+    expect(messages({ name: 'X', layout: { tocDepth: 1 } })[0]).toContain('layout.tocDepth');
+    expect(messages({ name: 'X', layout: { tocDepth: 7 } })[0]).toContain('layout.tocDepth');
+    expect(messages({ name: 'X', layout: { tocMaxHeight: '60' } })[0]).toContain(
+      'layout.tocMaxHeight',
+    );
   });
 
   it('un valor desconocido falla con la ruta del campo', () => {
@@ -186,7 +233,11 @@ describe('nav', () => {
     );
   });
 
-  it('`sidebar` solo va con `dir` e `icon` solo con `href`', () => {
+  it('una sección puede ser solo `sidebar`, sin `dir`', () => {
+    expect(messages({ ...base, nav: [{ label: 'G', sidebar: ['a', 'b'] }] })).toEqual([]);
+  });
+
+  it('`sidebar` solo va con una sección e `icon` solo con `href`', () => {
     expect(messages({ ...base, nav: [{ label: 'G', slug: 'a', sidebar: ['a'] }] })[0]).toContain(
       'nav[0].sidebar',
     );
@@ -371,6 +422,61 @@ describe('seo.schema (JSON-LD)', () => {
   });
 });
 
+describe('theme de la config', () => {
+  it('es opcional', () => {
+    expect(messages({ name: 'X' })).toEqual([]);
+    expect(resolveConfig({ name: 'X' }).theme).toBeUndefined();
+  });
+
+  it('acepta la ruta de un .css del proyecto', () => {
+    expect(resolveConfig({ name: 'X', theme: 'src/styles/site.css' }).theme).toBe(
+      'src/styles/site.css',
+    );
+  });
+
+  it.each([
+    ['vacío', ''],
+    ['sin extensión .css', 'src/styles/site'],
+    ['una URL', 'https://x.dev/site.css'],
+  ])('rechaza un valor %s con la ruta `theme`', (_name, theme) => {
+    expect(messages({ name: 'X', theme })[0]).toContain('theme');
+  });
+});
+
+describe('static de la config', () => {
+  const base = { name: 'X', locales: ['en', 'es'] };
+
+  it('acepta carpetas con su destino y sin `static` no hay ninguna', () => {
+    const folders = [{ from: '../htmlcov', to: 'coverage' }];
+    expect(resolveConfig({ ...base, static: folders }).static).toEqual(folders);
+    expect(resolveConfig(base).static).toBeUndefined();
+  });
+
+  it('una carpeta inválida falla con su ruta', () => {
+    expect(messages({ ...base, static: [{ from: '/abs', to: 'c' }] })[0]).toContain('static[0]');
+    expect(messages({ ...base, static: [{ from: 'out', to: 'es' }] })[0]).toContain('static[0]');
+  });
+
+  it('destinos que se solapan fallan en el segundo', () => {
+    const out = messages({
+      ...base,
+      static: [
+        { from: 'a', to: 'reports' },
+        { from: 'b', to: 'reports/api' },
+      ],
+    });
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('static[1].to');
+    expect(out[0]).toContain('static[0]');
+  });
+
+  it('una opción desconocida se nombra con su ruta', () => {
+    expect(messages({ ...base, static: [{ from: 'a', to: 'b', copy: true }] })[0]).toContain(
+      'static[0].copy',
+    );
+  });
+});
+
 describe('config: lo que el esquema promete rechazar', () => {
   const base = { name: 'X', locales: ['en', 'es'] };
 
@@ -431,32 +537,6 @@ describe('config: lo que el esquema promete rechazar', () => {
         expect(messages({ ...base, favicon })[0]).toContain('favicon');
       },
     );
-  });
-
-  describe('privacy', () => {
-    it('el correo del responsable no admite espacios ni texto alrededor', () => {
-      for (const email of [' ada@x.dev', 'ada@x.dev y', 'ada x@x.dev', 'ada']) {
-        const [message] = messages({
-          ...base,
-          privacy: { controller: { name: 'Ada', email } },
-        });
-        expect(message, email).toContain('privacy.controller.email');
-      }
-    });
-
-    it('la página de privacidad falla si algún idioma no tiene texto, y lo nombra', () => {
-      const found = messages({ name: 'X', locales: ['en', 'fr'], privacy: { page: true } }).find(
-        (message) => message.startsWith('privacy.page'),
-      );
-      expect(found).toContain('fr');
-    });
-
-    it('sin `page` no se exige texto de privacidad en cada idioma', () => {
-      const found = messages({ name: 'X', locales: ['en', 'fr'] }).filter((message) =>
-        message.startsWith('privacy'),
-      );
-      expect(found).toEqual([]);
-    });
   });
 
   describe('idiomas por defecto', () => {

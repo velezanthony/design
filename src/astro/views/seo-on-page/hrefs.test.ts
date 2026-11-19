@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { EMPTY_FILTERS } from '../../../core/seo-on-page/queries/url-filters';
 import { IssueKind, IssueSeverity } from '../../../core/seo-on-page/tree/types';
 import { assetHref, devHrefs } from './hrefs';
 
@@ -36,6 +37,7 @@ describe('devHrefs', () => {
       severities: [IssueSeverity.ERROR],
       locales: ['es'],
       text: 'a b',
+      hideNoindex: false,
     };
     expect(devHrefs(policy).pages(filters)).toBe(
       '/repo/seo-on-page/pages/?kind=no-h1&severity=error&locale=es&q=a+b',
@@ -43,7 +45,7 @@ describe('devHrefs', () => {
   });
 
   it('la página se añade tras los filtros y la 1 no se escribe', () => {
-    const filters = { kinds: [], severities: [IssueSeverity.INFO], locales: [], text: '' };
+    const filters = { ...EMPTY_FILTERS, severities: [IssueSeverity.INFO] };
     expect(devHrefs(policy).pages(filters, 2)).toBe(
       '/repo/seo-on-page/pages/?severity=info&page=2',
     );
@@ -71,7 +73,7 @@ describe('devHrefs', () => {
   });
 
   it('sin filtros no deja un `?` colgando', () => {
-    const empty = { kinds: [], severities: [], locales: [], text: '' };
+    const empty = EMPTY_FILTERS;
     expect(devHrefs(policy).pages(empty)).toBe('/repo/seo-on-page/pages/');
   });
 });
