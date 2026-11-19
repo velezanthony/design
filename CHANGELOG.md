@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Guía de migración desde MkDocs más completa.** El proyecto de Astro ya no se llama `site/` en los
+  ejemplos (es la carpeta de salida de MkDocs: choca con su `.gitignore` y con `mkdocs build`), se
+  explica que una sección sin `sidebar` se ordena alfabéticamente por slug y cómo fijar el orden, y
+  qué slug tiene `carpeta/index.md`.
 - **Migrador de MkDocs (`scripts/migrate-mkdocs`).**
   - `--in-place` lee también `mkdocs.yml`: imprime una config sugerida (idiomas, `fallback`,
     `exclude` y `nav` con una sección por grupo y los ficheros de fuera de `docs/` como `external`) y

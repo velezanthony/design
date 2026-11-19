@@ -37,7 +37,7 @@ export function formatStubs(stubs: SnippetStub[], docsDirectory: string): string
     entries.add(`{ slug: '${stubSlug(stub.file)}', file: '../${include}' }`);
   }
   lines.push(
-    'Publica ese fichero con `external[]` en site/docs.config.mjs y borra el stub:',
+    'Publica ese fichero con `external[]` en docs.config.mjs y borra el stub:',
     '  external: [',
     ...[...entries].map((entry) => `    ${entry},`),
     '  ],',

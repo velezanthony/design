@@ -148,7 +148,7 @@ lo cubre.
 
 **Stubs de snippet.** Una página cuyo cuerpo es solo `--8<-- "CHANGELOG.md"` (con, como mucho,
 frontmatter, comentarios HTML y un título) no se convierte ni se borra. Se lista aparte con la
-entrada exacta para `external[]` de `site/docs.config.mjs`
+entrada exacta para `external[]` de `docs.config.mjs`
 (`{ slug: 'changelog', file: '../CHANGELOG.md' }`), y también los enlaces que apuntan al stub con
 la ruta real que los sustituiría (`../../CONTRIBUTING.md`). Después, borra el stub.
 

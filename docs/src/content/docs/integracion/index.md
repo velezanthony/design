@@ -292,20 +292,20 @@ pasa a ser `./CHANGELOG.md`). Es el caso del portfolio.
 ## Docs fuera del proyecto de Astro
 
 Cuando el repo ya guarda sus páginas en `docs/` y no quieres moverlas, el proyecto de Astro va en
-`site/` y `content` apunta a ellas:
+su propia carpeta (`docs-site/`, nunca `site/`: es donde MkDocs escribe su salida) y `content` apunta a ellas:
 
 ```text
 repo/
 ├── docs/            # páginas nativas, tal cual (index.md, index.es.md, users/guia.md…)
 ├── CHANGELOG.md     # external
-└── site/            # proyecto de Astro
+└── docs-site/       # proyecto de Astro
 ```
 
 ```js
-// site/docs.config.mjs
+// docs-site/docs.config.mjs
 export default defineDocsConfig({
   name: 'Mi repo',
-  content: '../docs', // relativa a la raíz del proyecto de Astro (site/)
+  content: '../docs', // relativa a la raíz del proyecto de Astro (docs-site/)
   external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
   editUrl: 'https://github.com/velezanthony/mi-repo/edit/main',
   repoRoot: '..',
@@ -319,3 +319,27 @@ export default defineDocsConfig({
 - Enlaces, anclas, imágenes y «Editar esta página» se resuelven contra la ubicación real de cada
   archivo; un `external` y una página nativa pueden enlazarse en ambos sentidos.
 - Los plugins de Markdown y las reglas estrictas aplican a esa carpeta, y `astro dev` la vigila.
+
+#### El orden del menú por sección
+
+Un `nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
+las páginas de la sección salen por `order` del frontmatter y después alfabéticamente por slug**, no en
+el orden en que MkDocs las tenía en `nav:`. Para conservarlo, escribe el `sidebar` de cada sección con
+las mismas páginas y en el mismo orden (el migrador lo genera desde `mkdocs.yml` con `--in-place`: ver
+«Config sugerida» en `scripts/migrate-mkdocs`):
+
+```js
+nav: [
+  {
+    label: 'Guía',
+    sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
+  },
+],
+```
+
+#### El slug de `carpeta/index.md`
+
+`carpeta/index.md` es la página `carpeta`, no `carpeta/index`: así se escribe en un `sidebar`, en un
+`nav` (`{ label, slug: 'carpeta' }`) y en un `external` (`slug: 'carpeta/index'` también colapsa a
+`carpeta`). Solo la portada se llama `index` (el `index.md` de la raíz). Con `navigation.indexes` de
+Material, esa página es la de la sección: `dir: 'carpeta'` enlaza a ella.

@@ -110,7 +110,7 @@ export function suggestConfig(mkdocs: Mkdocs): ConfigSuggestion {
 export function formatConfigModule({ config, notes }: ConfigSuggestion): string {
   return [
     '// Sugerencia generada por scripts/migrate-mkdocs desde mkdocs.yml: pasa lo que quieras a docs.config.mjs.',
-    '// Las rutas de `external` suponen el proyecto de Astro en una carpeta del repo (site/, docs-site/…).',
+    '// Las rutas de `external` suponen el proyecto de Astro en una carpeta del repo (docs-site/, astro/…; no `site/`, que es la salida de MkDocs).',
     ...notes.map((note) => `// AVISO ${note}`),
     `export default ${JSON.stringify(config, null, 2)};`,
     '',

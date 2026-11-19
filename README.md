@@ -453,17 +453,17 @@ extremos. No puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no pued
 ### Docs fuera del proyecto de Astro
 
 Si el repo ya guarda sus docs como `.md` sueltos (por ejemplo los de un MkDocs), no hace falta
-moverlos: pon el proyecto de Astro en `site/` y apunta `content` a la carpeta de siempre.
+moverlos: pon el proyecto de Astro en su propia carpeta (`docs-site/`) y apunta `content` a la carpeta de siempre.
 
 ```text
 repo/
 ├── docs/            # páginas nativas, tal cual (index.md, index.es.md, users/guia.md, img/…)
 ├── CHANGELOG.md     # external, fuera de ambos
-└── site/            # proyecto de Astro (astro.config.mjs, docs.config.mjs, package.json)
+└── docs-site/       # proyecto de Astro (astro.config.mjs, docs.config.mjs, package.json)
 ```
 
 ```js
-// site/docs.config.mjs
+// docs-site/docs.config.mjs
 export default defineDocsConfig({
   name: 'Mi repo',
   locales: ['en', 'es'],
@@ -473,6 +473,10 @@ export default defineDocsConfig({
   repoRoot: '..',
 });
 ```
+
+> **No lo llames `site/`.** Es donde MkDocs escribe su salida (`site_dir`): choca con su `.gitignore`,
+> con `mkdocs build` y con lo que ya despliegue esa carpeta. Elige otro nombre (`docs-site/`, `astro/`…);
+> da igual cuál, siempre que `content` y las rutas de `external` sean relativas a él.
 
 Reglas de `content`:
 
@@ -493,6 +497,30 @@ Reglas de `content`:
   carpeta queda fuera de la raíz del proyecto, la integración la añade a `server.fs.allow` de Vite
   (junto con la raíz del workspace) para servir sus imágenes.
 - Una imagen relativa sin `./` (`img/x.png`, lo normal en MkDocs) se trata como `./img/x.png`.
+
+#### El orden del menú por sección
+
+Un `nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
+las páginas de la sección salen por `order` del frontmatter y después alfabéticamente por slug**, no en
+el orden en que MkDocs las tenía en `nav:`. Para conservarlo, escribe el `sidebar` de cada sección con
+las mismas páginas y en el mismo orden (el migrador lo genera desde `mkdocs.yml` con `--in-place`: ver
+«Config sugerida» en `scripts/migrate-mkdocs`):
+
+```js
+nav: [
+  {
+    label: 'Guía',
+    sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
+  },
+],
+```
+
+#### El slug de `carpeta/index.md`
+
+`carpeta/index.md` es la página `carpeta`, no `carpeta/index`: así se escribe en un `sidebar`, en un
+`nav` (`{ label, slug: 'carpeta' }`) y en un `external` (`slug: 'carpeta/index'` también colapsa a
+`carpeta`). Solo la portada se llama `index` (el `index.md` de la raíz). Con `navigation.indexes` de
+Material, esa página es la de la sección: `dir: 'carpeta'` enlaza a ella.
 
 ## Markdown
 

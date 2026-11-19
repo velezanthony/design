@@ -160,8 +160,8 @@ describe('runInPlace', () => {
 
     it('--config-out escribe la sugerencia', () => {
       const { io, outside } = fakeIo({ 'a.md': reportMarkdown('# A') }, cleanGit, { mkdocs });
-      runInPlace(io, { ...options, configOut: 'site/docs.suggested.mjs' });
-      expect(outside.get('site/docs.suggested.mjs')).toContain('export default');
+      runInPlace(io, { ...options, configOut: 'docs-site/docs.suggested.mjs' });
+      expect(outside.get('docs-site/docs.suggested.mjs')).toContain('export default');
     });
 
     it('usa el slugify propio del mkdocs.yml para reescribir las anclas', () => {
