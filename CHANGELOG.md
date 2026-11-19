@@ -7,6 +7,11 @@ todo vive en «Sin publicar».
 
 ### Cambios que rompen
 
+- **La clase `.docs-footer` pasa a llamarse `.surface-inverse`.** Es la superficie invertida (tinta
+  clara sobre antracita, redefine los tokens en su ámbito) y ya no es cosa del pie de los docs: la
+  puede usar cualquier pie o banda. `DocsFooter` la lleva con el nombre nuevo; si un sitio apuntaba a
+  `.docs-footer` desde su CSS o sus pruebas, que apunte a `.surface-inverse`. `.docs-header` no se
+  renombra: es interno (transición de vista y ancho completo) y no está pensado para reutilizarse.
 - **La librería ya no genera la 404 ni la página de privacidad.** Las pone el portfolio, una vez para
   todo el dominio. Se quitan las rutas `/404`, `/[locale]/404`, `/[privacy]` y `/[locale]/[privacy]`,
   `NotFoundLayout`, `PrivacyLayout`, `organisms/not-found` y `organisms/privacy` (`ConsentBanner` se

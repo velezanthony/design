@@ -89,10 +89,11 @@ tócalo en los dos. Y `src/components/styles/theme-colors.ts` repite el canvas d
 ## El pie: re-tematizado por ámbito
 
 El pie es una superficie invertida: tinta clara sobre antracita. En vez de pintar cada pieza con
-otra clase, `.docs-footer` **redefine los tokens en su ámbito**:
+otra clase, `.surface-inverse` **redefine los tokens en su ámbito** (es pública: un sitio la puede
+poner en su propio pie o banda):
 
 ```css
-.docs-footer {
+.surface-inverse {
   --color-ink: var(--color-inverse-ink);
   --color-muted: var(--color-inverse-muted);
   --color-faint: var(--color-inverse-muted);

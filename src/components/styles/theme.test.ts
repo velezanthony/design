@@ -233,3 +233,10 @@ describe('estructura del tema', () => {
     },
   );
 });
+
+describe('superficie invertida', () => {
+  it('`.surface-inverse` redefine los tokens en su ámbito y ya no se llama `.docs-footer`', () => {
+    expect(css).toMatch(/\.surface-inverse\s*\{[^{}]*--color-ink:\s*var\(--color-inverse-ink\)/);
+    expect(css).not.toContain('.docs-footer');
+  });
+});

@@ -205,8 +205,8 @@
   }
 }
 
-/* El pie es una superficie invertida que redefine los tokens en su ámbito; el foco usa tinta clara (el verde da 2.9:1) y conserva el filete en oscuro (1.03:1). */
-.docs-footer {
+/* Superficie invertida (el pie de los docs y quien la quiera: es pública) que redefine los tokens en su ámbito; el foco usa tinta clara (el verde da 2.9:1) y conserva el filete en oscuro (1.03:1). */
+.surface-inverse {
   --color-ink: var(--color-inverse-ink);
   --color-muted: var(--color-inverse-muted);
   --color-faint: var(--color-inverse-muted);
