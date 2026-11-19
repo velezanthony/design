@@ -107,7 +107,7 @@ Tres decisiones que conviene conocer antes de tocarlo:
 
 - **`BootEnv` inyectable.** `bootDocs` recibe el entorno (documento, almacenamiento, consultas de
   medios, portapapeles…) como parámetro, con `browserEnv()` como valor por defecto. Así
-  `BootEnv` vive en `components/boot/env.ts`, compartido por los dos arranques; `boot.test.ts` lo ejecuta con dobles, sin globales del navegador.
+  `BootEnv` vive en `components/boot/env.ts`, compartido por los arranques; `boot.test.ts` lo ejecuta con dobles, sin globales del navegador.
 - **Cada `init*` ignora lo que la página no tiene.** Una página sin pestañas no falla en
   `initTabs`; simplemente no hay nada que cablear.
 - **Los textos llegan por `data-*`.** `client/` no puede importar valores de `core/`, así que el

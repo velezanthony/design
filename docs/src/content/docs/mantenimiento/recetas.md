@@ -7,7 +7,7 @@ seo:
 
 # Recetas
 
-Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres el orden es el mismo:
+Cuatro cambios que harás a menudo, con todos los archivos que tocan. En todos el orden es el mismo:
 **test primero** donde haya lógica, después el código, después la documentación.
 
 ## Un componente
@@ -23,7 +23,8 @@ Tres cambios que harás a menudo, con todos los archivos que tocan. En los tres 
    o compartida, va en `theme.css` con `@apply`. Nunca colores literales.
 4. **Comportamiento en el navegador**, si lo tiene: una función `init*` en `src/client/` que recibe
    el documento y lo que necesite, su test en `client/`, y su llamada en `bootDocs`
-   (`src/components/layouts/boot.ts`). Los textos que necesite el script viajan en atributos `data-*`.
+   (`src/components/layouts/boot.ts`) o, si es del contenido (como las pestañas o el zoom), en `bootArticle`
+   (`src/components/boot/article.ts`). Los textos que necesite el script viajan en atributos `data-*`.
 5. **Test** en `components/<nivel>/<tipo>/<Componente>.test.ts` si tiene lógica de render (qué se pinta según las
    props, atributos ARIA, URLs). Usa `render()` de `src/testing/render.ts` y `stringsFor()`. Si es
    puramente visual, no lleva test.

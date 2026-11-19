@@ -23,16 +23,19 @@ Todos se ejecutan desde la **raíz** del repo:
 | `npm run lint` | ESLint, con la regla de capas incluida. |
 | `npm run format` | Prettier escribe el formato. |
 | `npm run format:check` | Prettier solo comprueba (lo que hace la CI). |
+| `npm run test:coverage` | Vitest con cobertura de V8 (lo que ejecuta la CI en lugar de `npm test`). |
+| `npm run test:mutation` | Stryker: mide si los tests notan un cambio en el código (ver [Tests](./tests.md#cobertura-y-mutación)). |
 | `npm run check` | `astro check`: los tipos de `.ts` y `.astro`. |
 | `npm run dev` | La página mínima de la raíz (sin la integración). |
 | `npm run playground:dev` | El playground con contenido de snake-orm, con recarga al editar `src/`. |
 | `npm run playground:build` | Build completo del playground. |
+| `npm run playground:check` | `astro check` del playground. |
 | `npm run docs:dev` | Este sitio en desarrollo. |
 | `npm run docs:build` | Build completo de este sitio (con índice de búsqueda). |
 | `npm run docs:check` | `astro check` de este sitio. |
 
-La CI (`.github/workflows/ci.yml`) ejecuta `lint`, `format:check`, `check` y `test` en cada push y
-pull request a `main`. Este sitio se despliega aparte con `.github/workflows/docs.yml`.
+La CI (`.github/workflows/ci.yml`) ejecuta `lint`, `format:check`, `check` y `test:coverage` en cada push
+y pull request a `main`. No construye este sitio: eso lo hace `docs.yml`, solo en push a `main`. Este sitio se despliega aparte con `.github/workflows/docs.yml`.
 
 > [!NOTE]
 > Prettier no toca los `.md` (`.prettierignore`): la prosa se ajusta a mano y Prettier la

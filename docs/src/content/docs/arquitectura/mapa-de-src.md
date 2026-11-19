@@ -53,8 +53,8 @@ core/
 │   ├── footer.ts          Vista del pie y validación de sus enlaces
 │   └── label.ts           Etiqueta por idioma con recurso al idioma por defecto
 ├── seo/
-│   ├── meta.ts            Cascada página > base > derivado; plantilla de título
-│   ├── title.ts           Sufijo del título (el autor, o ninguno)
+│   ├── meta.ts            Cascada página > base > derivado de título, descripción e imagen
+│   ├── title.ts           Sufijo del título (página > sitio > `name`, o ninguno) y `título | sufijo`
 │   ├── head.ts            Etiquetas del head: title, canonical, hreflang, OG, twitter
 │   ├── page-head.ts       El head de una página del sitio que no es de docs: meta, alternates y JSON-LD extra
 │   ├── seo-schema.ts      El bloque `seo` del frontmatter como fragmento zod reutilizable
