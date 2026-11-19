@@ -18,6 +18,7 @@ const PUBLISHED_ENTRIES = [
   './ui-strings',
   './site',
   './code-themes',
+  './fonts',
 ];
 
 /** Los módulos relativos que importa un archivo (`import … from './x'`, también `export … from`). */

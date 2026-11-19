@@ -367,6 +367,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/head` | `src/core/seo/head.ts` |
 | `@velezanthony/design/ui-strings` | `src/core/i18n/ui-strings.ts` |
 | `@velezanthony/design/site` | `src/astro/data/site.ts` |
+| `@velezanthony/design/fonts` | `src/astro/routes/Fonts.astro` |
 
 Mover un archivo a los que apunta una de estas subrutas es un cambio incompatible para los
 consumidores. `src/astro/integration/public-api.test.ts` sujeta lo que exporta la integración.

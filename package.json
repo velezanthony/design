@@ -34,7 +34,8 @@
     "./last-modified": "./src/astro/data/file-last-modified.ts",
     "./head": "./src/core/seo/head.ts",
     "./ui-strings": "./src/core/i18n/ui-strings.ts",
-    "./site": "./src/astro/data/site.ts"
+    "./site": "./src/astro/data/site.ts",
+    "./fonts": "./src/astro/routes/Fonts.astro"
   },
   "scripts": {
     "dev": "astro dev",

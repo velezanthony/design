@@ -100,6 +100,7 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | `@velezanthony/design/ui-strings` | El tipo `UiStrings`, `defaultStrings`, `englishStrings`, `mergeUiStrings` y `translate`. |
 | `@velezanthony/design/site` | `designStrings(locale)`: los textos de interfaz ya fusionados con los del sitio, y `gtmId`: el ID resuelto desde `PUBLIC_GTM_ID` o la config. Evita importar `virtual:` desde el sitio. |
 | `@velezanthony/design/last-modified` | `fileLastModified(file, root?)`: fecha ISO de la última modificación de un archivo (su último commit o, sin él, la del archivo; nada en un clon superficial), la misma que el `<lastmod>` del sitemap. Asíncrona; sirve para el `dateModified` de un JSON-LD. |
+| `@velezanthony/design/fonts` | `<Fonts />`: las fuentes que registra `docs()` (IBM Plex Sans con `preload` y Plex Mono), para el `<head>` de un layout propio: `<Fonts slot="head" />` dentro de `BaseLayout`. Necesita la integración `docs()`: sin ella no hay fuentes que pintar. |
 | `@velezanthony/design/code-themes` | `codeThemes`: los temas de Shiki que usa la librería, para que el sitio resalte igual. |
 
 `bootBase` y `bootDocs` salen de `@velezanthony/design/components/layouts/boot.ts`; `bootArticle`, de `@velezanthony/design/components/boot/article.ts` (un organismo no importa del nivel de los layouts, así que vive aparte).

@@ -59,6 +59,7 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Subruta `@velezanthony/design/fonts`: el componente `Fonts`.** Pinta las fuentes que registra `docs()` (Plex Sans con `preload` y Plex Mono). Un layout propio ya no repite los dos `<Font cssVariable=… />` de `astro:assets`: pone `<Fonts slot="head" />` dentro de `BaseLayout`. Vive en `astro/routes/` porque `components/` no puede importar `astro:*`.
 - **Organismo `Article` (`components/organisms/content/Article.astro`) y `bootArticle`.** Es el
   contenido de una página de docs sacado de `DocsLayout`: el contenedor con los textos del cliente
   (copiar, anclas, zoom, visor de diagramas), el `.prose` con su `lang` y la columna del índice
