@@ -97,3 +97,21 @@ El workflow **Mutation** (`.github/workflows/mutation.yml`) lo hace en CI, solo 
 La entrada `shards` (1 a 20, por defecto 12) fija cuántos trozos. Lánzalo **sobre `main`**: las cachés
 de una rama no las ven los PR, y esta base es la que leerán después. Para repetir el reparto en
 local: `node scripts/mutation/cli.ts plan --shards 12`.
+
+### Mutación incremental en cada PR y en main
+
+El workflow **Mutation incremental** (`.github/workflows/mutation-incremental.yml`) corre solo en los PR
+hacia `main` y en cada push a `main` que toque `src/`, `scripts/`, las dependencias o la config de
+Stryker y de los tests. Es informativo: no falla por la puntuación.
+
+1. `plan` reparte **todos** los ficheros mutables en **dos** trozos (dos máquinas, tanto en PR como en push).
+2. Cada trozo restaura la base más reciente de la caché (la que guardó la ejecución manual o el último
+   push a `main`) y la pasa a Stryker con `--incrementalFile`: solo se repiten los mutantes cuyo código
+   o tests han cambiado. Como Stryker reescribe la base entera, el trozo devuelve solo sus ficheros
+   (`cli.ts slice`) para que la unión no choque.
+3. `merge` une los dos trozos, escribe la puntuación y cuántos resultados se reutilizaron en el resumen
+   del job, y **solo en un push a `main`** guarda la base unida en la caché. Un PR no la guarda: su caché
+   no la ve ningún otro PR.
+
+Sin base en la caché (la primera vez, o si se ha purgado) cada trozo mide desde cero, que son horas:
+lanza antes la ejecución manual sobre `main`.

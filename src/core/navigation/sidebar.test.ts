@@ -263,3 +263,77 @@ describe('missingEntry', () => {
     ).toBeNull();
   });
 });
+
+describe('buildSidebar: casos límite', () => {
+  it('el nombre de una sección sin página índice sale de su carpeta, con los separadores como espacios', () => {
+    expect(shape(build([page('getting-started/a'), page('x--y_z/b')]))).toEqual([
+      { 'Getting started': ['getting-started/a'] },
+      { 'X y z': ['x--y_z/b'] },
+    ]);
+  });
+
+  describe('`order`', () => {
+    it('con el mismo `order` desempata el collator, no la posición de entrada', () => {
+      const pages = [
+        page('z', 'en', { order: 1 }),
+        page('m', 'en', { order: 1 }),
+        page('a', 'en', { order: 1 }),
+      ];
+      expect(shape(build(pages))).toEqual(['a', 'm', 'z']);
+    });
+
+    it('una sección ordena por el `order` de su página índice', () => {
+      const pages = [
+        page('a'),
+        page('guide', 'en', { order: 1 }),
+        page('guide/x'),
+        page('guide/y'),
+      ];
+      expect(shape(build(pages))).toEqual([{ guide: ['guide/x', 'guide/y'] }, 'a']);
+    });
+
+    it('lo mismo dentro de una sección anidada', () => {
+      const pages = [
+        page('g/a'),
+        page('g/z', 'en', { order: 1 }),
+        page('g/z/x'),
+        page('g/b', 'en', { order: 2 }),
+      ];
+      expect(shape(build(pages))).toEqual([{ G: [{ z: ['g/z/x'] }, 'g/b', 'g/a'] }]);
+    });
+
+    it('una página sin traducir conserva el `order` de su original', () => {
+      const pages = [page('x', 'en', { order: 1 }), page('a', 'es'), page('b', 'es', { order: 2 })];
+      expect(shape(build(pages, 'es'))).toEqual(['x', 'b', 'a']);
+    });
+  });
+
+  describe('secciones declaradas con `slug`', () => {
+    it('sin hijas es una hoja, con la insignia de su página si no está traducida', () => {
+      const config: SidebarItem[] = [{ label: 'Guía', slug: 'guide' }];
+      expect(build([page('guide', 'en')], 'es', config)).toEqual([
+        { label: 'Guía', slug: 'guide', href: '/repo/guide/', badge: 'en' },
+      ]);
+    });
+
+    it('con hijas conserva la insignia en la sección', () => {
+      const config: SidebarItem[] = [{ label: 'Guía', slug: 'guide', items: ['guide/a'] }];
+      const [group] = build([page('guide', 'en'), page('guide/a', 'es')], 'es', config);
+      expect(group).toMatchObject({ badge: 'en' });
+    });
+  });
+
+  describe('insignia de la sección automática', () => {
+    it('la hereda de su página índice sin traducir y la deja fuera si está traducida', () => {
+      const [untranslated] = build([page('guide', 'en'), page('guide/a', 'es')], 'es');
+      expect(untranslated).toMatchObject({ badge: 'en' });
+      const [translated] = build([page('guide', 'es'), page('guide/a', 'es')], 'es');
+      expect(translated).not.toHaveProperty('badge');
+    });
+
+    it('`flatten` la conserva en la hoja de la sección', () => {
+      const tree = build([page('guide', 'en'), page('guide/a', 'es')], 'es');
+      expect(flatten(tree)[0]).toMatchObject({ slug: 'guide', badge: 'en' });
+    });
+  });
+});

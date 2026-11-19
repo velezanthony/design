@@ -103,6 +103,27 @@ describe('validateNav', () => {
     expect(out[1]).toContain('nav[0].sidebar[2]');
   });
 
+  it('un slug vacío en el sidebar de una sección falla aunque la portada exista', () => {
+    const out = messages([{ label: 'G', dir: 'users', sidebar: ['users/install', ''] }]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('nav[0].sidebar[1]');
+    expect(out[0]).toContain('no hay ninguna página');
+  });
+
+  it('cada error lleva una pista para arreglarlo', () => {
+    const out = validateNav(
+      [
+        { label: 'A', dir: 'nope' },
+        { label: 'B', slug: 'ghost' },
+        { label: 'P', slug: 'users/install' },
+        { label: 'G', dir: 'users', sidebar: ['ghost', 'changelog'] },
+      ],
+      slugs,
+    );
+    expect(out).toHaveLength(5);
+    for (const error of out) expect(error.hint, error.message).toBeTruthy();
+  });
+
   it('agrega todos los fallos en una sola pasada', () => {
     const out = messages([
       { label: 'A', dir: 'nope' },

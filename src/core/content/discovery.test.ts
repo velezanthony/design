@@ -119,6 +119,24 @@ describe('discoverPages: nativas', () => {
     expect(slugs).toEqual(['esperanza', 'espanol/x']);
   });
 
+  it('el prefijo solo se reserva al idioma por defecto: `es/guia.es.md` es una página de `es`', () => {
+    const [page] = discoverPages([native('es/guia.es.md')], config());
+    expect(page).toMatchObject({ slug: 'es/guia', locale: 'es' });
+  });
+
+  it('el error de prefijo reservado explica cómo renombrar', () => {
+    expect(errorsOf(() => discoverPages([native('es.md')], config()))[0]).toContain('Renombra');
+  });
+
+  it('un archivo nativo no cuenta como el external declarado aunque comparta ruta', () => {
+    const errors = errorsOf(() =>
+      discoverPages([native('x.md')], config({ external: [{ slug: 'y', file: 'x.md' }] })),
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('Falta el archivo externo');
+    expect(errors[0]).toContain('external[].file');
+  });
+
   it('un sitio monolingüe no tiene prefijos que reservar', () => {
     const mono = resolveConfig({ name: 'X' });
     expect(discoverPages([native('es.md')], mono).map((page) => page.slug)).toEqual(['es']);

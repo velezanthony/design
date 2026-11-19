@@ -92,6 +92,15 @@ describe('resolvePrivacyUrls', () => {
     expect(message).toContain('fr');
   });
 
+  it('el fallo lleva la pista de definir `privacyUrl`', () => {
+    try {
+      resolvePrivacyUrls(undefined, true, ['en', 'fr'], 'en');
+      expect.unreachable();
+    } catch (error) {
+      expect((error as DocsErrors).errors[0]?.hint).toContain('privacyUrl');
+    }
+  });
+
   it('una etiqueta incompleta sin idioma por defecto ni respaldo falla', () => {
     const [message] = fails(() => resolvePrivacyUrls({ es: '/p/' }, true, ['en', 'es'], 'en'));
     expect(message).toContain('en');
@@ -103,6 +112,12 @@ describe('applyAnalytics', () => {
     const config = applyAnalytics(resolveConfig({ name: 'X', locales: ['en', 'es'] }), undefined);
     expect(config.gtmId).toBeUndefined();
     expect(config.privacyUrl).toBeUndefined();
+  });
+
+  it('sin ID ni enlace las claves no existen, no valen `undefined`', () => {
+    const config = applyAnalytics(resolveConfig({ name: 'X' }), undefined);
+    expect(Object.keys(config)).not.toContain('gtmId');
+    expect(Object.keys(config)).not.toContain('privacyUrl');
   });
 
   it('con ID en el entorno: gtmId y privacidad por defecto del portfolio', () => {

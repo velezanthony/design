@@ -63,6 +63,11 @@ describe('buildFooter: derivaciones', () => {
     expect(links[1]?.href).toBe('https://github.com/x/y/issues/new');
   });
 
+  it('varias barras finales en `social.github` tampoco', () => {
+    const { links } = view({ social: { github: 'https://github.com/x/y//' } });
+    expect(links[0]?.href).toBe('https://github.com/x/y');
+  });
+
   it('sin `social.github` no hay ninguno de los dos', () => {
     expect(view().links).toEqual([]);
   });
