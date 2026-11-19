@@ -28,6 +28,11 @@ describe('parseCommitDates', () => {
     );
   });
 
+  it('la hora UTC sale igual escriba git `Z` o `+00:00`', () => {
+    const log = [`${RECORD}2026-02-02T10:00:00Z`, '', 'docs/a.md', ''].join('\n');
+    expect(parseCommitDates(log).get('docs/a.md')).toBe('2026-02-02T10:00:00+00:00');
+  });
+
   it('un commit sin archivos (una fusión) no inventa nada', () => {
     const log = `${RECORD}2026-09-07T00:06:43+02:00\n\n${RECORD}2026-08-08T14:01:37+02:00\n\na.md\n`;
     expect(parseCommitDates(log)).toEqual(new Map([['a.md', '2026-08-08T14:01:37+02:00']]));

@@ -10,7 +10,8 @@ export function parseCommitDates(log: string): Map<string, string> {
   let date: string | undefined;
   for (const line of log.split('\n')) {
     if (line.startsWith(COMMIT_MARK)) {
-      date = line.slice(COMMIT_MARK.length);
+      // Las versiones nuevas de git escriben la hora UTC con `Z` y las viejas con `+00:00`: una sola forma.
+      date = line.slice(COMMIT_MARK.length).replace(/Z$/, '+00:00');
     } else if (line && date && !dates.has(line)) {
       dates.set(line, date);
     }
