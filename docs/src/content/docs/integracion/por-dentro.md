@@ -45,7 +45,7 @@ sequenceDiagram
   Int->>Int: exige site, lee PUBLIC_GTM_ID (applyAnalyticsForCommand)
   Int->>Int: routeOverrides (aviso), assertNoFontConflict
   Int->>MD: extendMarkdownProcessor (directivas + plugins)
-  Int->>Vite: updateConfig (shikiConfig, fonts, plugin virtual)
+  Int->>Vite: updateConfig (shikiConfig, fonts, alias del tema, plugin virtual y Tailwind)
   Int->>Rt: injectRoute /[...slug], /sitemap.xml y su hoja, favicon
   CLI->>Int: astro:config:done → injectTypes(virtual.d.ts)
   CLI->>Ldr: sincroniza la colección docs (config del módulo virtual)
@@ -89,7 +89,12 @@ Es donde ocurre casi todo. En orden:
    - `markdown.shikiConfig.themes`: `github-light-default`/`github-dark-default` (`src/components/styles/code-themes.ts`),
      **solo si el consumidor no eligió temas**.
    - `fonts`: IBM Plex Sans y Mono vía la API de fuentes de Astro (`src/astro/integration/fonts.ts`).
-   - `vite.plugins`: el plugin del módulo virtual.
+   - `vite.resolve.alias`: `@velezanthony/design/site-theme` apunta al CSS de la opción `theme` (o a
+     uno vacío del paquete), que `theme.css` importa en último lugar
+     (`src/astro/integration/site-theme.ts`).
+   - `vite.plugins`: el plugin del módulo virtual y el de Tailwind (`@tailwindcss/vite`), salvo que el
+     sitio ya registrase el suyo (`src/astro/integration/tailwind.ts`).
+   - `vite.server.fs.allow`: solo si la carpeta de contenido queda fuera del proyecto.
 6. **`injectRoute`.** Todas las rutas salen de una tabla, `src/astro/routes/routes.ts` (patrón, contenedor y cuándo: `site`, `dev` o una opción); las del sitio llevan `prerender: true` y las de dev, no:
 
 | Patrón | Contenedor | Cuándo |
@@ -102,6 +107,12 @@ Es donde ocurre casi todo. En orden:
 
 La 404 y la página de privacidad no están en la tabla: la librería no las inyecta, las pone el sitio.
 
+### `astro:routes:resolved` y `astro:server:setup`
+
+`astro:routes:resolved` guarda las páginas que el sitio tiene en `src/pages/` (para el panel SEO y el
+sitemap). `astro:server:setup`, solo en dev, vigila esas páginas y, si hay `static`, monta el
+middleware que sirve esas carpetas (`static-folders-dev.ts`).
+
 ### `astro:config:done`
 
 Solo una cosa: `injectTypes` copia `src/astro/virtual/virtual.d.ts` al `.astro/` del consumidor, para
@@ -110,17 +121,22 @@ en `config:setup`.
 
 ### `astro:build:done`
 
-`buildPagefindIndex` (`src/astro/integration/build/pagefind.ts`, que llama `build/build-done.ts`) indexa `dist/` con la API de Node de
-Pagefind y escribe `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-y-busqueda.md).
+`runBuildDone` (`src/astro/integration/build/build-done.ts`) hace cinco cosas, en este orden, sin que el
+sitio configure nada:
 
-Antes de indexar, `build-done.ts` pasa por los recursos de `dist/` sin que el sitio configure nada:
-
-- `boundAnimationLoops` reescribe los WebP animados infinitos (Sharp pierde las vueltas del GIF y los
-  recodifica así) para que se reproduzcan una vez: una demo que no para es movimiento que el visitante
-  no puede detener (WCAG 2.2.2).
-- `pruneOrphanAssets` borra de `_astro/` las imágenes que ningún `.html`, `.css`, `.js`, `.xml`, `.txt`
-  ni `.json` del build nombra. Una imagen usada desde un `<Image>` y desde un cuerpo Markdown deja su
-  original copiado junto a las derivadas; así no se publica.
+1. `boundAnimationLoops` reescribe los WebP animados infinitos (Sharp pierde las vueltas del GIF y los
+   recodifica así) para que se reproduzcan una vez: una demo que no para es movimiento que el visitante
+   no puede detener (WCAG 2.2.2).
+2. `pruneOrphanAssets` borra de `_astro/` las imágenes que ningún `.html`, `.css`, `.js`, `.xml`, `.txt`
+   ni `.json` del build nombra. Una imagen usada desde un `<Image>` y desde un cuerpo Markdown deja su
+   original copiado junto a las derivadas; así no se publica.
+3. `buildPagefindIndex` (`pagefind.ts`) indexa `dist/` con la API de Node de Pagefind y escribe
+   `dist/pagefind/`. Ver [Navegación y búsqueda](./navegacion-y-busqueda.md). Va después de 1 y 2 para
+   no leer recursos que se van a borrar.
+4. `addClientPagesToSitemap` suma al sitemap las páginas de `src/pages/`, salvo que el sitio sustituya
+   el sitemap.
+5. `copyStaticFolders` copia las carpetas de `static` tal cual. Va la última: lo publicado así no pasa
+   por la poda, el índice ni el sitemap.
 
 ## El módulo virtual
 

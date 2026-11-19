@@ -73,6 +73,7 @@ lo propio de docs (barra, búsqueda, año) queda fuera.
 ---
 import Article from '@velezanthony/design/components/organisms/content/Article.astro';
 import { designStrings } from '@velezanthony/design/site';
+import { render } from 'astro:content';
 
 const { Content, headings } = await render(entry);
 ---
@@ -92,6 +93,9 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 
 | Importación | Qué da |
 | --- | --- |
+| `@velezanthony/design/theme.css` | La hoja de la librería (Tailwind, tokens y estilos). `BaseLayout` ya la carga: impórtala solo si montas un `<html>` sin él. |
+| `@velezanthony/design/site-theme` | El CSS vacío que `theme.css` importa en último lugar; la integración lo apunta al archivo de la opción `theme` ([CSS propio](./index.md#css-propio-del-sitio-theme)). No se importa a mano. |
+| `@velezanthony/design/theme-colors` | `themeColors`: el `--color-canvas` de cada tema, para `<meta name="theme-color">` y `themeBootstrapScript`. |
 | `@velezanthony/design/client/theme` | Tema claro/oscuro: `initTheme`, `themeBootstrapScript` (el script previo al pintado) y los tipos `Theme` y `ThemeColors`. |
 | `@velezanthony/design/client/consent` | Consentimiento: `initConsent`, `readConsent`, `writeConsent` y `CONSENT_VERSION`. |
 | `@velezanthony/design/client/storage` | Claves y acceso seguro al almacenamiento: `THEME_KEY`, `CONSENT_KEY`, `safeGet`, `safeSet`, `storageOf`. |

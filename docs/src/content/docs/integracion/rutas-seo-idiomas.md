@@ -102,7 +102,9 @@ flowchart LR
 
 - **Título.** El `<title>` tiene dos partes, título y sufijo, y sale como `título | sufijo` (el
   separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > `name`.
-  `seo.title` en el frontmatter cambia solo el título del head, no el `h1`. `seo.titleSuffix`
+  `seo.title` en el frontmatter cambia solo el título del head, no el `h1`, y acepta texto o uno por
+  idioma (útil en un `external`, que no tiene un archivo por idioma; sin el idioma de la página, vale
+  el título de la página). `seo.titleSuffix`
   (en `docs.config.mjs` o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
   ninguno de los dos, el sufijo es el `name` de la config. Con `false` en la
   página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
@@ -161,6 +163,9 @@ flowchart LR
 
   El JSON sale escapando `<`, `>`, `&`, U+2028 y U+2029 (`\u003c`…): un valor con
   `</script><script>alert(1)</script>` no puede cerrar el `<script>` ni abrir otro.
+
+Una página del sitio que no es Markdown (`src/pages/`) usa la misma cascada con `pageHead`
+(`@velezanthony/design/seo`, ver [El `<head>` de una página propia](./piezas-sueltas.md#el-head-de-una-página-propia)).
 
 `buildHead` emite: `<title>`, favicon, `canonical`, los `hreflang` (con `x-default`), Open Graph
 (`og:title`, `og:description`, `og:url`, `og:type`, `og:site_name`, `og:locale` y alternativas,

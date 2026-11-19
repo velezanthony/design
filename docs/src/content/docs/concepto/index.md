@@ -54,12 +54,13 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 
 | La librería (`@velezanthony/design`) | El consumidor (`docs/` de su repo) |
 | --- | --- |
-| Estilos, tokens y paleta (`src/components/styles/theme.css`) | El contenido Markdown |
+| Tailwind (con su plugin de Vite, que registra `docs()`), estilos, tokens y paleta (`src/components/styles/theme.css`) | El contenido Markdown |
 | Tema claro/oscuro y su selector | `docs.config.mjs`: nombre, idiomas, `nav`, `sidebar`, SEO base |
-| Fuentes (IBM Plex vía la API de fuentes de Astro) | `site` y `base` en `astro.config.mjs` |
+| Fuentes (IBM Plex vía la API de fuentes de Astro) | CSS propio y opcional (`theme`): tokens `@theme` y estilos que se compilan junto al de la librería |
+| Layouts: `BaseLayout` (documento y tema) y `DocsLayout` (páginas de docs) | `site` y `base` en `astro.config.mjs` |
 | Componentes genéricos: cabecera, barra lateral, índice, pie, pestañas, admoniciones | Imágenes de `public/` (imagen OG, favicon propio si quiere) |
 | Todas las rutas: páginas, `sitemap.xml`, favicon por defecto | La 404 y la política de privacidad, una vez para todo el dominio |
-| SEO: plantilla de título, descripción, Open Graph, canonical, `hreflang` | Componentes propios, solo si algo es específico de su proyecto |
+| SEO: título con sufijo, descripción, Open Graph, canonical, `hreflang` | Componentes propios, solo si algo es específico de su proyecto |
 | Búsqueda (índice de Pagefind generado al terminar el build) | |
 | Idiomas: URLs por idioma, textos de interfaz, política de traducciones ausentes | |
 | Validación estricta: enlaces, anclas, títulos, lenguajes de código | |

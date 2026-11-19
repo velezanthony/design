@@ -62,21 +62,24 @@ import BaseLayout from '@velezanthony/design/components/layouts/BaseLayout.astro
 
 ```astro
 ---
-import { Font } from 'astro:assets';
 import BaseLayout from '@velezanthony/design/components/layouts/BaseLayout.astro';
 import ThemeToggle from '@velezanthony/design/components/molecules/controls/ThemeToggle.astro';
-import config from 'virtual:@velezanthony/design/config';
+import Fonts from '@velezanthony/design/fonts';
+import { pageHead } from '@velezanthony/design/seo';
+import { designStrings } from '@velezanthony/design/site';
 
 /* Los textos de interfaz ya fusionados con los tuyos, por idioma. */
-const strings = config.strings.es;
-const head = [
-  { tag: 'title', attrs: {}, content: 'Currículum · Ana' },
-  { tag: 'meta', attrs: { name: 'description', content: 'Mi currículum.' } },
-];
+const strings = designStrings('es');
+const head = await pageHead({
+  title: 'Currículum',
+  seo: { description: 'Mi currículum.' },
+  locale: 'es',
+  url: Astro.url.pathname,
+});
 ---
 
 <BaseLayout lang="es" head={head} bodyClass="flex min-h-dvh flex-col">
-  <Font slot="head" cssVariable="--font-plex-sans" preload />
+  <Fonts slot="head" />
   <link slot="head" rel="preload" href="/cv.pdf" as="document" />
 
   <header class="flex items-center justify-between px-6 py-4">
@@ -92,16 +95,28 @@ const head = [
 </BaseLayout>
 ```
 
+- **El `<head>`.** `pageHead` (`@velezanthony/design/seo`) calcula título con sufijo, descripción,
+  `canonical`, `hreflang`, Open Graph y JSON-LD con la config del sitio. Es asíncrona y devuelve lo que
+  acepta la prop `head`. Sus campos, en [El `<head>` de una página propia](./piezas-sueltas.md#el-head-de-una-página-propia).
+  Si prefieres no usarla, `head` admite etiquetas a mano: `{ tag: 'title', attrs: {}, content: '…' }`.
+- **Fuentes.** `<Fonts slot="head" />` pinta las de la librería (Plex Sans y Plex Mono). Necesita la
+  integración `docs()`: sin ella no hay fuentes registradas.
 - **Contenido extra en el `head`.** Todo lo que lleve `slot="head"` va al final de `<head>`, después de
-  lo que pone la librería. Sirve para las fuentes (`<Font>`), una hoja más o una etiqueta propia. Los
-  elementos de la ranura se pueden agrupar con `<Fragment slot="head">`.
+  lo que pone la librería: fuentes, una hoja más, una etiqueta propia. Los elementos de la ranura se
+  pueden agrupar con `<Fragment slot="head">`.
 - **Scripts propios.** Todo lo que lleve `slot="scripts"` va al final de `<body>`. La librería ya ha
   cableado el tema y el consentimiento antes (`bootBase`), así que el `ThemeToggle` funciona sin más.
 - **Tu diseño.** `bodyClass` es lo único que `BaseLayout` te deja decir sobre el `<body>`; el resto de
   clases y el orden de los bloques son tuyos.
+- **Markdown con índice.** Para pintar contenido Markdown con su índice «En esta página» dentro de tu
+  diseño, usa `Article` ([Piezas sueltas](./piezas-sueltas.md#article-el-contenido-de-una-página-con-el-índice-al-lado)).
 
-Los textos (`strings`) salen del módulo virtual de la integración, `virtual:@velezanthony/design/config`
-(`config.strings[idioma]`): ya llevan fusionadas tus sobrescrituras de `ui`.
+Los textos (`designStrings(locale)`) salen de `@velezanthony/design/site` y ya llevan fusionadas tus
+sobrescrituras de `ui`. Esa subruta evita importar `virtual:@velezanthony/design/config` desde el sitio.
+
+> [!NOTE]
+> Con analítica, `BaseLayout` necesita `gtmId` y `privacyUrl`. `@velezanthony/design/site` da el
+> `gtmId` ya resuelto, pero no `privacyUrl`: la pasas tú, como un solo texto (el del idioma de la página).
 
 ## Lo que ya viene resuelto
 

@@ -49,7 +49,7 @@ actualizar se cambia la etiqueta y se vuelve a instalar (ver
 
 Las dos _peers_ son obligatorias porque el paquete se distribuye como fuente: es el Astro del
 consumidor quien compila los `.ts` y `.astro` de la librería, con su procesador de Markdown. Tailwind
-(`tailwindcss` y `@tailwindcss/vite`) no se instala: son dependencias de la librería. El rango exacto está en `peerDependencies` del `package.json` de la librería.
+(`tailwindcss` y `@tailwindcss/vite`) no se instala: son `dependencies` de la librería y llegan con ella. El rango de las dos peers (`astro` y `@astrojs/markdown-satteri`) está en `peerDependencies` del `package.json` de la librería.
 
 ## 3. `docs/docs.config.mjs`
 
@@ -121,8 +121,6 @@ export default defineConfig({
   `markdown.processor` debe seguir siendo Sätteri: si no, `docs()` falla con un error claro.
 - `docs(docsConfig)` recibe la config. Editar `docs.config.mjs` reinicia `astro dev`: la integración
   le pide a Astro que vigile ese archivo, porque por sí solo solo vigila `astro.config.mjs`.
-- `site` es **obligatorio**: sin él, la integración falla en `astro:config:setup` porque el sitemap y
-  las URLs canónicas necesitan un origen absoluto.
 - `base` es el nombre del repo: GitHub Pages sirve las páginas de proyecto bajo
   `https://<usuario>.github.io/<repo>/`. Todos los enlaces internos, y la búsqueda lo
   respetan.
@@ -215,6 +213,9 @@ docs/src/content/docs/
   (otras herramientas escriben las suyas), pero las nuestras se validan.
 - Los enlaces entre páginas son rutas `.md` relativas (`./instalar.md#requisitos`): funcionan en
   GitHub y la librería los convierte en URLs del sitio, validando el archivo y el ancla.
+
+Para dejar archivos fuera de la publicación (borradores, notas), la opción `exclude` toma patrones
+estilo `.gitignore` (ver [Navegación y búsqueda](./navegacion-y-busqueda.md#excluir-archivos)).
 
 Esa carpeta es la opción `content` (`'src/content/docs'` por defecto) y, si es la de por defecto, también es
 opcional: sin ella no hay páginas nativas y no falla (un sitio solo con `external`). Una carpeta elegida con
@@ -343,3 +344,13 @@ nav: [
 `nav` (`{ label, slug: 'carpeta' }`) y en un `external` (`slug: 'carpeta/index'` también colapsa a
 `carpeta`). Solo la portada se llama `index` (el `index.md` de la raíz). Con `navigation.indexes` de
 Material, esa página es la de la sección: `dir: 'carpeta'` enlaza a ella.
+
+## Y después
+
+| Si quieres… | Lee |
+| --- | --- |
+| Páginas propias en `src/pages/` (portada, currículum) con el tema de la librería | [Cabecera y pie propios](./layout-propio.md) y [Piezas sueltas](./piezas-sueltas.md) |
+| El `<head>` SEO de una página que no es Markdown | [El `<head>` de una página propia](./piezas-sueltas.md#el-head-de-una-página-propia) |
+| Analítica con consentimiento (`gtmId` exige `privacyUrl`) | [Analítica y privacidad](./analitica-y-privacidad.md) |
+| Ancho, columnas plegables, índice y tema | [Disposición](./disposicion.md) |
+| Migrar un MkDocs | [Playground, este sitio y la migración](../arquitectura/herramientas.md#scriptsmigrate-mkdocs-de-mkdocs-a-la-librería) |
