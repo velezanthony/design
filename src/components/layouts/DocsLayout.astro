@@ -1,4 +1,5 @@
 ---
+import { layoutBootstrapScript } from '../../client/layout/layout';
 import { navOpenScript } from '../../client/layout/nav-open';
 import { sidebarScrollScript } from '../../client/layout/sidebar-scroll';
 import { DEFAULT_LAYOUT, type ResolvedLayout } from '../../core/config/layout';
@@ -17,12 +18,11 @@ import PrevNext from '../molecules/navigation/PrevNext.astro';
 import TableOfContents from '../molecules/navigation/TableOfContents.astro';
 import { tocEntries } from '../../core/navigation/toc-entries';
 import BackToTop from '../organisms/chrome/BackToTop.astro';
-import ConsentBanner from '../organisms/chrome/ConsentBanner.astro';
 import DocsFooter from '../organisms/chrome/DocsFooter.astro';
 import DocsHeader from '../organisms/chrome/DocsHeader.astro';
 import SearchBox from '../organisms/chrome/SearchBox.astro';
 import Sidebar from '../organisms/chrome/Sidebar.astro';
-import Shell from './Shell.astro';
+import BaseLayout from './BaseLayout.astro';
 
 interface Props {
   lang: Locale;
@@ -90,12 +90,32 @@ if (gtmId && !privacyUrl) {
   throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
 }
 
+/* El estado inicial va en `<html>` desde el servidor (así la config manda también sin JavaScript);
+   el script previo al pintado solo lo pisa con lo que el visitante guardó. */
+const layoutAttrs = {
+  'data-left': layout.sidebar,
+  'data-right': layout.toc,
+  'data-width': layout.width,
+};
+const layoutScript = layoutBootstrapScript(layout);
+
 /* Pagefind solo indexa lo que cuelga de `data-pagefind-body`; lo demás, ni se marca. */
 const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ignore': '' };
 ---
 
-<Shell lang={lang} head={head} layout={layout}>
-  <slot name="head" slot="head" />
+<BaseLayout
+  lang={lang}
+  head={head}
+  bodyClass="flex min-h-dvh flex-col"
+  htmlAttrs={layoutAttrs}
+  gtmId={gtmId}
+  privacyUrl={privacyUrl}
+  strings={strings}
+>
+  <Fragment slot="head">
+    <slot name="head" />
+    {layoutScript && <script is:inline set:html={layoutScript} />}
+  </Fragment>
   <DocsHeader
     siteName={siteName}
     homeHref={homeHref}
@@ -207,11 +227,12 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
     cookieControl={Boolean(gtmId)}
     footer={footer}
   />
-  {gtmId && privacyUrl && <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />}
   <BackToTop strings={strings} />
-  <script>
-    import { bootDocs } from './boot';
+  <Fragment slot="scripts">
+    <script>
+      import { bootDocs } from './boot';
 
-    bootDocs();
-  </script>
-</Shell>
+      bootDocs();
+    </script>
+  </Fragment>
+</BaseLayout>

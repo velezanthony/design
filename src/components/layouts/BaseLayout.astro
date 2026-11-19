@@ -1,0 +1,58 @@
+---
+import { themeBootstrapScript } from '../../client/preferences/theme';
+import type { Locale } from '../../core/i18n/locale';
+import type { UiStrings } from '../../core/i18n/ui-strings';
+import type { HeadConfig } from '../../core/seo/head';
+import '../styles/theme.css';
+import { themeColors } from '../styles/theme-colors';
+import ConsentBanner from '../organisms/chrome/ConsentBanner.astro';
+import Head from '../organisms/chrome/Head.astro';
+
+/* El documento y nada más: `<html>`, `<head>` con el tema y `theme.css`, y el consentimiento. La
+   cabecera, el pie y el diseño del `<body>` los pone quien lo usa (`DocsLayout` es uno de ellos). */
+interface Props {
+  lang: Locale;
+  head: HeadConfig[];
+  /** Clases del `<body>`: su diseño es de quien usa el layout, aquí no se impone ninguno. */
+  bodyClass?: string;
+  /** Atributos extra de `<html>`. */
+  htmlAttrs?: Record<string, string>;
+  /** Con `gtmId` hay aviso de consentimiento: exige `privacyUrl` y `strings`. */
+  gtmId?: string;
+  privacyUrl?: string;
+  strings?: UiStrings;
+}
+
+const { lang, head, bodyClass, htmlAttrs = {}, gtmId, privacyUrl, strings } = Astro.props;
+
+if (gtmId && !privacyUrl) {
+  throw new Error('BaseLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+}
+if (gtmId && !strings) {
+  throw new Error('BaseLayout: `strings` es obligatoria cuando se define `gtmId`.');
+}
+---
+
+<html lang={lang} {...htmlAttrs}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Head head={head} />
+    <meta name="theme-color" content={themeColors.light} media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content={themeColors.dark} media="(prefers-color-scheme: dark)" />
+    <script is:inline set:html={themeBootstrapScript(themeColors)} />
+    <slot name="head" />
+  </head>
+  <body class={bodyClass}>
+    <slot />
+    {gtmId && privacyUrl && strings && (
+      <ConsentBanner gtmId={gtmId} privacyUrl={privacyUrl} strings={strings} />
+    )}
+    <script>
+      import { bootBase } from './boot';
+
+      bootBase();
+    </script>
+    <slot name="scripts" />
+  </body>
+</html>

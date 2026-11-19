@@ -7,7 +7,7 @@ import Radio from '@velezanthony/design/components/atoms/form/Radio.astro';
 import Switch from '@velezanthony/design/components/atoms/form/Switch.astro';
 import FormField from '@velezanthony/design/components/molecules/form/FormField.astro';
 import RadioGroup from '@velezanthony/design/components/molecules/form/RadioGroup.astro';
-import Shell from '@velezanthony/design/components/layouts/Shell.astro';
+import BaseLayout from '@velezanthony/design/components/layouts/BaseLayout.astro';
 
 const head: { tag: 'title' | 'meta'; attrs: Record<string, string>; content?: string }[] = [
   { tag: 'title', attrs: {}, content: 'Form components' },
@@ -20,7 +20,7 @@ const plans = [
 ];
 ---
 
-<Shell lang="en" head={head}>
+<BaseLayout lang="en" head={head} bodyClass="flex min-h-dvh flex-col">
   <Font slot="head" cssVariable="--font-plex-sans" preload />
   <Font slot="head" cssVariable="--font-plex-mono" />
   <main id="main-content" class="demo">
@@ -55,7 +55,7 @@ const plans = [
       <Button type="submit">Send</Button>
     </form>
   </main>
-</Shell>
+</BaseLayout>
 
 <style is:global>
   .demo {

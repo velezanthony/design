@@ -214,9 +214,9 @@ components/
 │   └── tables.ts    Clases de la celda y del filete de las tablas del listado
 ├── pages/       Páginas presentacionales: reciben el modelo por props y solo pintan (DocPage)
 ├── layouts/
-│   ├── Shell.astro          <html>, <head>, CSS, scripts previos al pintado
-│   ├── DocsLayout.astro     Página de docs: cabecera, barra, contenido, índice, pie
-│   └── boot.ts              Arranque del JavaScript de cliente (bootDocs)
+│   ├── BaseLayout.astro     <html>, <head>, tema, CSS y consentimiento; sin cabecera ni pie
+│   ├── DocsLayout.astro     Página de docs sobre BaseLayout: cabecera, barra, contenido, índice, pie
+│   └── boot.ts              Arranque del JavaScript de cliente (bootBase, bootDocs)
 ├── styles/
 │   ├── theme.css            El punto de entrada: Tailwind y el resto de hojas, en orden
 │   ├── tokens.css           Tokens y paletas de color (claro y oscuro con light-dark())

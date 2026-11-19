@@ -58,8 +58,8 @@ function browserEnv(): BootEnv {
   };
 }
 
-/** Cablea todo el cliente de una página de docs; cada `init*` ignora lo que la página no tenga y los textos vienen de `data-*` de `<main>`. */
-export function bootDocs(env: BootEnv = browserEnv()): void {
+/** Lo que cablea todo documento de `BaseLayout`: el tema y el consentimiento. */
+export function bootBase(env: BootEnv = browserEnv()): void {
   const { htmlDocument } = env;
   initTheme({
     htmlDocument,
@@ -68,6 +68,12 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
     colors: themeColors,
     motion: env.motion,
   });
+  initConsent({ htmlDocument, storage: env.storage, hostname: env.hostname, reload: env.reload });
+}
+
+/** Cablea el cliente de una página de docs (el tema y el consentimiento ya los cablea `bootBase`); cada `init*` ignora lo que la página no tenga y los textos vienen de `data-*` de `<main>`. */
+export function bootDocs(env: BootEnv = browserEnv()): void {
+  const { htmlDocument } = env;
   initLayout({ htmlDocument, storage: env.storage, rail: env.rail });
   if (env.browserWindow) {
     initSidebarScroll({
@@ -77,7 +83,6 @@ export function bootDocs(env: BootEnv = browserEnv()): void {
       rail: env.rail,
     });
   }
-  initConsent({ htmlDocument, storage: env.storage, hostname: env.hostname, reload: env.reload });
   for (const search of htmlDocument.querySelectorAll<HTMLElement>('[data-search]'))
     initSearch(search);
   initSearchShortcut(htmlDocument);

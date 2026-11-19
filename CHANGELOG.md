@@ -31,3 +31,9 @@ todo vive en «Sin publicar».
   falla como clave desconocida.
 - **El panel SEO on page deja de listar la 404 y la privacidad como archivos que genera la librería,**
   y `sitemap.xml` ya no suma las URLs de privacidad.
+- **`BaseLayout` sustituye a `Shell`.** `components/layouts/Shell.astro` ya no existe; su sitio lo
+  ocupa `components/layouts/BaseLayout.astro`, que pinta `<html>`, `<head>` (con `theme.css`, el tema y
+  el consentimiento) y deja el `<body>` a quien lo usa: `bodyClass` por props (antes el `<body>` llevaba
+  siempre `flex min-h-dvh flex-col`) y las ranuras `head`, la de por defecto y `scripts`. Ya no recibe
+  `layout`, `pending` ni `htmlAttrs` de la 404 (sí un `htmlAttrs` genérico). El tema y el consentimiento
+  los arranca ahora `bootBase`; `bootDocs` ya no los cablea.

@@ -21,7 +21,7 @@ flowchart TD
     store --> doc["doc.astro<br/>getStaticPaths → docRoutes"]
     vm["virtual:@velezanthony/design/config"] --> doc
     doc --> view["docView · astro/views/doc.ts<br/>(llama a core/navigation, core/seo, core/i18n)"]
-    view --> lay["DocsLayout + Shell<br/>components/layouts"]
+    view --> lay["DocsLayout + BaseLayout<br/>components/layouts"]
     lay --> html["dist/guia/instalar/index.html"]
   end
   subgraph browser["En el navegador"]
@@ -61,17 +61,20 @@ reescribe sus enlaces, lo renderiza con el pipeline de Markdown y guarda la entr
 
 ## 3. Del layout al HTML
 
-- `Shell.astro` pinta `<html lang>` con los atributos de disposición, importa `theme.css` (la única
-  importación de CSS de toda la librería), los `<meta name="theme-color">` y los scripts inline que
-  aplican el tema y la disposición guardados **antes del primer pintado**.
+- `BaseLayout.astro` pinta `<html lang>`, importa `theme.css` (la única importación de CSS de toda la
+  librería), los `<meta name="theme-color">` y el script inline que aplica el tema guardado **antes
+  del primer pintado**, y el aviso de consentimiento. No impone el diseño del `<body>`: ofrece las
+  ranuras `head`, la de por defecto y `scripts`.
 - `Head.astro` pinta las etiquetas que calculó `core/seo/head.ts`.
-- `DocsLayout.astro` monta cabecera, barra lateral, contenido (`.prose`), índice y pie. En el
-  `<main>` deja los textos que el cliente necesitará como atributos `data-*` (`data-copy-label`,
+- `DocsLayout.astro` se apoya en `BaseLayout`: pone en `<html>` los atributos de disposición y su
+  script previo al pintado, y monta en la ranura de por defecto cabecera, barra lateral, contenido
+  (`.prose`), índice y pie. En el `<main>` deja los textos que el cliente necesitará como atributos `data-*` (`data-copy-label`,
   `data-anchor-label`, `data-zoom-label`…) y marca con `data-pagefind-body` lo que se indexa.
 
 ## 4. El arranque del cliente
 
-Al final de `DocsLayout.astro` hay un único `<script>` de módulo:
+Hay dos `<script>` de módulo, uno por nivel. `BaseLayout.astro` arranca lo de todo documento (el
+tema y el consentimiento) con `bootBase`; `DocsLayout.astro` arranca lo propio de una página de docs:
 
 ```astro
 <script>
@@ -81,17 +84,16 @@ Al final de `DocsLayout.astro` hay un único `<script>` de módulo:
 </script>
 ```
 
-`bootDocs` (`src/components/layouts/boot.ts`) cablea todo el cliente en un orden fijo:
+`bootBase` y `bootDocs` (`src/components/layouts/boot.ts`) cablean el cliente en un orden fijo:
 
 ```mermaid
 sequenceDiagram
   participant P as Página cargada
-  participant B as bootDocs(env)
+  participant B as bootBase(env) → bootDocs(env)
   participant C as client/*
   P->>B: browserEnv(): document, localStorage, sessionStorage, matchMedia…
-  B->>C: initTheme (colores de theme-colors.ts)
-  B->>C: initLayout · initSidebarScroll
-  B->>C: initConsent (solo si hay banner)
+  B->>C: bootBase: initTheme (colores de theme-colors.ts) · initConsent (solo si hay banner)
+  B->>C: bootDocs: initLayout · initSidebarScroll
   B->>C: initSearch por cada [data-search] · initSearchShortcut
   B->>C: initCurrentYear · initTabs
   B->>C: initCopyCode · initHeadingAnchors · initZoom (con los data-* de main)

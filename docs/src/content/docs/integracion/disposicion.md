@@ -39,7 +39,7 @@ El estado está en atributos de `<html>`: `data-left`, `data-right` y `data-widt
 
 ```mermaid
 sequenceDiagram
-  participant Sv as Shell.astro (servidor)
+  participant Sv as DocsLayout.astro (servidor)
   participant H as script inline del head
   participant S as localStorage docs:layout
   participant C as theme.css
@@ -52,7 +52,7 @@ sequenceDiagram
   L->>S: guarda cada cambio
 ```
 
-El estado inicial lo escribe el servidor en `<html>` (`Shell.astro`), así que la config manda también
+El estado inicial lo escribe el servidor en `<html>` (`DocsLayout.astro`, a través de `htmlAttrs` de `BaseLayout`), así que la config manda también
 sin JavaScript. El script inline (`layoutBootstrapScript` en `client/layout/layout.ts`) solo lo pisa con lo
 que guardó el visitante, y corre en el `<head>` para que al recargar **no haya saltos**: si esperara
 al módulo de cliente, la página se pintaría primero abierta y después se plegaría. Los valores por

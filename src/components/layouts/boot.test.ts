@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { parseHTML } from 'linkedom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { bootDocs, type BootEnv } from './boot';
+import { bootBase, bootDocs, type BootEnv } from './boot';
 
 function env(html: string, extra: Partial<BootEnv> = {}): BootEnv {
   const { document } = parseHTML(
@@ -28,13 +28,32 @@ const content = `
     <div class="docs-tabs"><div class="docs-tab-panel"><div class="docs-tab-label">A</div>a</div></div>
   </main>`;
 
-describe('bootDocs', () => {
-  it('cablea tema, pestañas, botón de copiar y anclas de encabezado', () => {
-    const bootEnv = env(content);
-    bootDocs(bootEnv);
+describe('bootBase', () => {
+  it('cablea el tema: el selector toma su estado', () => {
+    const bootEnv = env('<button data-theme-toggle aria-pressed="x"></button>');
+    bootBase(bootEnv);
     expect(
       bootEnv.htmlDocument.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed'),
     ).toBe('false');
+  });
+
+  it('el tema solo lo cablea bootBase: bootDocs lo deja como está', () => {
+    const bootEnv = env('<button data-theme-toggle aria-pressed="x"></button>');
+    bootDocs(bootEnv);
+    expect(
+      bootEnv.htmlDocument.querySelector('[data-theme-toggle]')!.getAttribute('aria-pressed'),
+    ).toBe('x');
+  });
+
+  it('sin banner ni selector no hace nada (ni falla)', () => {
+    expect(() => bootBase(env(''))).not.toThrow();
+  });
+});
+
+describe('bootDocs', () => {
+  it('cablea pestañas, botón de copiar y anclas de encabezado', () => {
+    const bootEnv = env(content);
+    bootDocs(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('.docs-tabs[data-enhanced]')).not.toBeNull();
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')!.textContent).toBe('Copiar');
     expect(bootEnv.htmlDocument.querySelector('a.heading-anchor')!.getAttribute('aria-label')).toBe(
