@@ -29,7 +29,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Historial completo: el sitemap saca el `lastmod` del último commit de cada página y un clon superficial no lo tiene.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
