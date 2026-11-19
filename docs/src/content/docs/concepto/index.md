@@ -68,7 +68,9 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 Lo que el consumidor **no** escribe nunca: un layout, un `import` de CSS, un `@source` de Tailwind o
 una página en `src/pages/`. Puede hacerlo: una página propia en `/` o `/sitemap.xml`
 sustituye a la de la librería, y al arrancar se avisa de cuáles
-(`src/astro/integration/route-overrides.ts`) para que nunca pase sin saberlo.
+(`src/astro/integration/route-overrides.ts`) para que nunca pase sin saberlo. Si esa página
+necesita cabecera y pie propios, se monta sobre `BaseLayout` (ver
+[Cabecera y pie propios](../integracion/layout-propio.md)).
 
 ## Por qué se distribuye como fuente
 

@@ -239,8 +239,8 @@ jobs:
         uses: actions/deploy-pages@v5
 ```
 
-- `PUBLIC_GTM_ID` es opcional. Sin él no hay analítica de ningún tipo (ver
-  [Analítica y privacidad](./analitica-y-privacidad.md)).
+- `PUBLIC_GTM_ID` es opcional. Sin él no hay analítica de ningún tipo; con él, la config necesita
+  `privacyUrl` (ver [Analítica y privacidad](./analitica-y-privacidad.md)).
 - El repo de la librería es público, así que `npm ci` instala `github:velezanthony/design#…` sin
   token. Si algún día pasara a privado, el job necesitaría un token con acceso de lectura.
 - El workflow de ESTE sitio (`.github/workflows/docs.yml`) es igual salvo que, al ser un workspace,
