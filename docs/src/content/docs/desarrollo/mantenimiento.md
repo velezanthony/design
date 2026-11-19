@@ -34,8 +34,9 @@ Todos se ejecutan desde la **raíz** del repo:
 | `npm run docs:build` | Build completo de este sitio (con índice de búsqueda). |
 | `npm run docs:check` | `astro check` de este sitio. |
 
-La CI (`.github/workflows/ci.yml`) ejecuta `lint`, `format:check`, `check` y `test:coverage` en cada push
-y pull request a `main`. No construye este sitio: eso lo hace `docs.yml`, solo en push a `main`. Este sitio se despliega aparte con `.github/workflows/docs.yml`.
+La CI (`.github/workflows/ci.yml`) ejecuta `lint`, `format:check`, `check`, `docs:check` y `test:coverage`
+en cada push y pull request a `main`: los tipos de este sitio también se comprueban, pero no se construye.
+Eso lo hace `docs.yml`, solo en push a `main`, y es lo que lo despliega.
 
 > [!NOTE]
 > Prettier no toca los `.md` (`.prettierignore`): la prosa se ajusta a mano y Prettier la

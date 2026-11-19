@@ -25,6 +25,7 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run check
+      - run: npm run docs:check
       - run: npm run test:coverage
 
       # Solo informa: sin umbrales, el porcentaje no decide si el CI pasa.
