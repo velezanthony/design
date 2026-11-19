@@ -100,7 +100,6 @@ export default defineConfig({
   base: '/my-repo',
   trailingSlash: 'always',
   integrations: [docs(docsConfig)], // registra también el plugin de Tailwind
-
 });
 ```
 
@@ -184,11 +183,14 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
 | `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
 | `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
+| `ogLocales`     | `og:locale` con territorio por idioma: `{ es: 'es_ES', en: 'en_GB' }`; sin él, el idioma tal cual (`es`). Cada clave debe estar en `locales`. |
+| `sitemap`       | `{ include: [...] }`: otros sitemaps del mismo dominio; con él, `sitemap.xml` pasa a ser un índice y las páginas propias van en `sitemap-pages.xml`. Ver [Despliegue](#despliegue-en-github-pages). |
+| `static`        | Carpetas que se publican tal cual: `[{ from, to }]`. Ver [Carpetas estáticas](#carpetas-estáticas-static). |
 | `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
 | `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
 | `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/integracion/index.md#css-propio-del-sitio-theme). |
 | `privacyUrl`    | URL de tu política de privacidad: una URL o una por idioma. Obligatoria con analítica (el banner enlaza a ella); sin analítica, es solo el enlace del pie. Ver [Analítica](#analítica). |
-| `layout`        | Barras laterales plegables y ancho de lectura / completo: `{ sidebar?, toc?, width?, toggles? }`. Ver abajo.                                             |
+| `layout`        | Barras laterales plegables, ancho de lectura / completo y el índice: `{ sidebar?, toc?, width?, toggles?, tocDepth?, tocMaxHeight? }`. Ver abajo.       |
 | `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |
 
 ### `seo`
@@ -381,6 +383,8 @@ layout: {
   toc: PanelState.OPEN, // igual para "On this page" (xl y superior)
   width: LayoutWidth.READING, // 'reading' (por defecto) | 'full'
   toggles: true, // false elimina todos los controles e ignora lo que guardó un visitante
+  tocDepth: 3, // último nivel que lista «On this page»: 2 (solo h2) a 6; por defecto 3
+  tocMaxHeight: '60vh', // opcional: longitud CSS (px, rem, em, vh, dvh, svh); la lista hace scroll por dentro
 }
 ```
 
@@ -583,6 +587,15 @@ flowchart LR
 ```
 ````
 
+## Páginas propias del sitio
+
+Además de la documentación, un sitio puede tener páginas suyas en `src/pages/` (portada, currículum)
+con el tema y el consentimiento de la librería: se montan sobre `BaseLayout`, con las ranuras `head`,
+la de por defecto y `scripts`, y `pageHead` para el `<head>` SEO. `Article` pinta Markdown con su índice
+fuera de docs. Es un tema aparte de la configuración, y está documentado en el sitio de la librería:
+[Cabecera y pie propios](docs/src/content/docs/integracion/layout-propio.md) y
+[Piezas sueltas](docs/src/content/docs/integracion/piezas-sueltas.md).
+
 ## Transiciones y zoom de imágenes
 
 Las páginas usan la View Transitions API, todo ello tras `prefers-reduced-motion: no-preference` y
@@ -606,7 +619,7 @@ ni banner de consentimiento, ni botón "Cookie preferences", ni nada guardado en
 viene del entorno, nunca de código versionado:
 
 ```sh
-# .env (dev) o .env.production (build); ambos están en el .gitignore. Copia .env.example.
+# .env (dev) o .env.production (build); ponlos en el .gitignore del consumidor.
 PUBLIC_GTM_ID=GTM-XXXXXXX
 ```
 
@@ -683,8 +696,13 @@ mal proporcionada, un lenguaje de Shiki desconocido y un bloque de código con f
 ## Despliegue en GitHub Pages
 
 - `site` debe ser el origen del usuario y `base` la ruta del repo; el build es totalmente estático.
-- `sitemap.xml` (con alternativas `hreflang`) se emite en `<base>/sitemap.xml`; no hay `robots.txt`
-  (el portfolio en el origen del usuario es el dueño).
+- `sitemap.xml` (con alternativas `hreflang` y `<lastmod>`) se emite en `<base>/sitemap.xml`; no hay
+  `robots.txt` (el portfolio en el origen del usuario es el dueño). El `<lastmod>` de cada URL es el
+  último commit del archivo del que sale (sin él, la fecha del archivo). Un clon superficial
+  (`git clone --depth 1`, lo habitual en CI) no da ninguna fecha: usa `fetch-depth: 0` en
+  `actions/checkout` si la quieres.
+- Con `sitemap: { include: ['/otro/sitemap.xml'] }` el sitio principal convierte `sitemap.xml` en un
+  índice: `sitemap-pages.xml` con sus páginas y luego cada sitemap declarado (mismo origen que `site`).
 - La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el portfolio.
 - El índice de búsqueda se construye tras `astro build` en `dist/pagefind/`; la búsqueda necesita un
   build de producción.
