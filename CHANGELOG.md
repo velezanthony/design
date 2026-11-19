@@ -47,3 +47,6 @@ todo vive en «Sin publicar».
 - **Subrutas nuevas en `exports`** para no duplicar piezas: `client/theme`, `client/consent`,
   `client/storage`, `client/toc`, `head` (`buildHead` y `HeadConfig`), `ui-strings` (`UiStrings`) y
   `code-themes`. Ninguna importa `seo-on-page`.
+- **`ThemeToggle` y `ConsentBanner` aceptan sus textos por props** (`label`; `label`, `message`,
+  `acceptLabel`, `rejectLabel` y `privacyLabel`), y `strings` pasa a ser opcional (por defecto, el
+  catálogo en inglés).

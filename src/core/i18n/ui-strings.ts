@@ -139,6 +139,9 @@ export const uiKeys = Object.keys(en) as UiKey[];
 /** Catálogo del paquete por idioma. */
 export const defaultStrings: Record<Locale, UiStrings> = { en, es };
 
+/** El catálogo en inglés: lo que usan los componentes cuando no reciben `strings`. */
+export const englishStrings: UiStrings = en;
+
 /** Nombre de cada idioma en su propio idioma, para el selector. */
 export const localeNames: Record<Locale, string> = { en: 'English', es: 'Español' };
 

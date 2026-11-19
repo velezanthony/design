@@ -48,7 +48,23 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | `@velezanthony/design/client/storage` | Claves y acceso seguro al almacenamiento: `THEME_KEY`, `CONSENT_KEY`, `safeGet`, `safeSet`, `storageOf`. |
 | `@velezanthony/design/client/toc` | `trackSections`: resalta en el índice la sección visible. |
 | `@velezanthony/design/head` | `buildHead` y el tipo `HeadConfig` (una etiqueta del `<head>` como dato: lo que acepta la prop `head` de `BaseLayout`). |
-| `@velezanthony/design/ui-strings` | El tipo `UiStrings`, `defaultStrings`, `mergeUiStrings` y `translate`. |
+| `@velezanthony/design/ui-strings` | El tipo `UiStrings`, `defaultStrings`, `englishStrings`, `mergeUiStrings` y `translate`. |
 | `@velezanthony/design/code-themes` | `codeThemes`: los temas de Shiki que usa la librería, para que el sitio resalte igual. |
 
 `bootBase` y `bootDocs` siguen saliendo de `@velezanthony/design/components/layouts/boot.ts`.
+
+## Textos de `ThemeToggle` y `ConsentBanner` por props
+
+Los dos reciben `strings` (el catálogo de interfaz) y ahora es **opcional**: sin él se usan los textos
+por defecto en inglés. Un sitio con su propio i18n puede ignorar el catálogo y pasar los textos
+sueltos; cada prop manda sobre `strings`, y lo que no se pase sale de él.
+
+| Componente | Props de texto |
+| --- | --- |
+| `ThemeToggle` | `label`: el nombre accesible del botón. |
+| `ConsentBanner` | `label` (nombre de la región), `message`, `acceptLabel`, `rejectLabel` y `privacyLabel` (el enlace a la privacidad). |
+
+```astro
+<ThemeToggle label={t('Cambiar tema')} />
+<ConsentBanner gtmId={gtmId} privacyUrl="/privacidad/" message={t('Usamos cookies…')} acceptLabel={t('Aceptar')} />
+```

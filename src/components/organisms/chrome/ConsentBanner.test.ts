@@ -53,6 +53,32 @@ describe('ConsentBanner', () => {
     expect(text(element.querySelector('[data-consent-reject]'))).toBe('Reject');
     expect(element.getAttribute('aria-label')).toBe('Cookie notice');
   });
+
+  it('sin strings usa los textos en inglés por defecto', async () => {
+    const element = (
+      await render(ConsentBanner, { gtmId: 'GTM-TEST', privacyUrl: '/p/' })
+    ).querySelector('[data-consent-banner]')!;
+    expect(element.getAttribute('aria-label')).toBe('Cookie notice');
+    expect(text(element.querySelector('[data-consent-accept]'))).toBe('Accept');
+  });
+
+  it('cada texto por props manda sobre strings; los que faltan salen de strings', async () => {
+    const element = await banner({
+      label: 'Cookies',
+      message: 'Usamos cookies.',
+      acceptLabel: 'Vale',
+      rejectLabel: 'No',
+      privacyLabel: 'Privacidad',
+    });
+    expect(element.getAttribute('aria-label')).toBe('Cookies');
+    expect(text(element.querySelector('p'))).toBe('Usamos cookies. Privacidad');
+    expect(text(element.querySelector('[data-consent-accept]'))).toBe('Vale');
+    expect(text(element.querySelector('[data-consent-reject]'))).toBe('No');
+
+    const partial = await banner({ acceptLabel: 'Vale' });
+    expect(text(partial.querySelector('[data-consent-accept]'))).toBe('Vale');
+    expect(text(partial.querySelector('[data-consent-reject]'))).toBe('Rechazar');
+  });
 });
 
 describe('BackToTop', () => {

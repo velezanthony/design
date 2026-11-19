@@ -1,13 +1,16 @@
 ---
-import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import { englishStrings, translate, type UiStrings } from '../../../core/i18n/ui-strings';
 
 interface Props {
-  strings: UiStrings;
+  /** Catálogo de interfaz; sin él, el texto por defecto en inglés. */
+  strings?: UiStrings;
+  /** El nombre accesible, para quien tiene su propio i18n: manda sobre `strings`. */
+  label?: string;
   class?: string;
 }
 
-const { strings, class: className } = Astro.props;
-const label = translate(strings, 'theme.toggle');
+const { strings = englishStrings, label: given, class: className } = Astro.props;
+const label = given ?? translate(strings, 'theme.toggle');
 ---
 
 {/* Solo marcado: `initTheme` engancha `[data-theme-toggle]` y lo arranca el layout. */}
