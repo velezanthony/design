@@ -164,6 +164,31 @@ function brokenLink(target: string, from: Page, line: number, reason: string): D
   });
 }
 
+/** Reescribe los enlaces de un párrafo entero: el texto de un enlace puede partirse en varias líneas. */
+function rewriteBlock(block: string, firstLine: number, context: Context): string {
+  const spans = codeSpans(block);
+  return block.replace(
+    INLINE_LINK,
+    (match: string, bang: string, label: string, target: string, title: string, offset: number) => {
+      if (inside(spans, offset)) return match;
+      // La línea donde empieza el enlace, que es donde se busca al avisar.
+      const line = firstLine + block.slice(0, offset).split('\n').length - 1;
+      if (bang) {
+        context.images.push({
+          file: context.from.sourcePath,
+          line,
+          src: target.startsWith('<') ? target.slice(1, -1) : target,
+          alt: label,
+        });
+        const dotted = dotImageTarget(target);
+        return dotted === target ? match : `![${label}](${dotted}${title})`;
+      }
+      const replaced = rewriteTarget(target, line, context);
+      return replaced === undefined ? match : `[${label}](${replaced}${title})`;
+    },
+  );
+}
+
 /** Reescribe los enlaces relativos hacia la URL destino y devuelve enlaces, imágenes y rotos; ignora código, externos y rutas absolutas. */
 export function rewriteLinks(
   body: string,
@@ -172,44 +197,33 @@ export function rewriteLinks(
 ): { body: string; refs: LinkRef[]; images: BodyImage[]; errors: DocsError[] } {
   const context: Context = { from, index, refs: [], images: [], errors: [] };
   const mask = fenceMask(body);
-  const lines = body.split('\n').map((text, lineIndex) => {
-    if (mask[lineIndex]) return text;
-    const spans = codeSpans(text);
-    const definition = DEFINITION.exec(text);
-    if (definition?.[2] !== undefined) {
-      const replaced = rewriteTarget(definition[2], lineIndex + 1, context);
-      return replaced === undefined
-        ? text
-        : definition[1] + replaced + text.slice(definition[0].length);
+  const output: string[] = [];
+  let block: { first: number; lines: string[] } | undefined;
+  function flush() {
+    if (!block) return;
+    output.push(rewriteBlock(block.lines.join('\n'), block.first, context));
+    block = undefined;
+  }
+  body.split('\n').forEach((text, lineIndex) => {
+    const definition = mask[lineIndex] ? null : DEFINITION.exec(text);
+    if (mask[lineIndex] || text.trim() === '' || definition) {
+      flush();
+      if (definition?.[2] !== undefined) {
+        const replaced = rewriteTarget(definition[2], lineIndex + 1, context);
+        output.push(
+          replaced === undefined
+            ? text
+            : definition[1] + replaced + text.slice(definition[0].length),
+        );
+      } else output.push(text);
+      return;
     }
-    return text.replace(
-      INLINE_LINK,
-      (
-        match: string,
-        bang: string,
-        label: string,
-        target: string,
-        title: string,
-        offset: number,
-      ) => {
-        if (inside(spans, offset)) return match;
-        if (bang) {
-          context.images.push({
-            file: from.sourcePath,
-            line: lineIndex + 1,
-            src: target.startsWith('<') ? target.slice(1, -1) : target,
-            alt: label,
-          });
-          const dotted = dotImageTarget(target);
-          return dotted === target ? match : `![${label}](${dotted}${title})`;
-        }
-        const replaced = rewriteTarget(target, lineIndex + 1, context);
-        return replaced === undefined ? match : `[${label}](${replaced}${title})`;
-      },
-    );
+    block ??= { first: lineIndex + 1, lines: [] };
+    block.lines.push(text);
   });
+  flush();
   return {
-    body: lines.join('\n'),
+    body: output.join('\n'),
     refs: context.refs,
     images: context.images,
     errors: context.errors,

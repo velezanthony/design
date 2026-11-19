@@ -44,6 +44,26 @@ describe('rewriteLinks', () => {
     ]);
   });
 
+  it('reescribe un enlace cuyo texto se parte en dos líneas', () => {
+    const body = 'Antes\nver [los cambios\nmás largos](./CHANGELOG.md) y listo.';
+    const result = rewriteLinks(body, from('../README.md'), index);
+    expect(result.body).toBe('Antes\nver [los cambios\nmás largos](/repo/changelog/) y listo.');
+    expect(result.refs).toEqual([
+      { file: '../README.md', line: 2, slug: 'changelog', locale: 'en' },
+    ]);
+  });
+
+  it('un enlace partido y roto se avisa con la línea donde empieza', () => {
+    const result = rewriteLinks('x\n[texto\npartido](./nada.md)', from('../README.md'), index);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]?.line).toBe(2);
+  });
+
+  it('un texto partido no cruza un fence ni un párrafo', () => {
+    const body = '[abierto\n\nsegundo](./nada.md)\n```\n[a\nb](./nada.md)\n```';
+    expect(rewriteLinks(body, from('../README.md'), index).errors).toEqual([]);
+  });
+
   it('si no hay gemela en el idioma, enlaza a la página que existe', () => {
     const result = rewriteLinks('[g](./guide.md)', from('index.es.md'), index);
     expect(result.body).toBe('[g](/repo/guide/)');
