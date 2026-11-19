@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`tailwindcss` y `@tailwindcss/vite` pasan de peer dependencies a `dependencies`.** `docs()` ya
+  registra el plugin y `theme.css` importa `tailwindcss`, así que el consumidor deja de instalarlos
+  (`npm install astro @astrojs/markdown-satteri` basta). Si el sitio ya los tiene, no pasa nada: el
+  plugin no se repite. `astro` y `@astrojs/markdown-satteri` siguen como peers.
 - **`docs()` registra el plugin de Tailwind (`@tailwindcss/vite`)**: la librería es la dueña de la
   compilación del CSS, así que el sitio no lo declara en su `vite.plugins`. Si ya lo declara, la
   integración no lo repite (dos pasadas duplicarían el CSS). `defineDocsSite` deja de añadirlo por su

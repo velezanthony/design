@@ -16,11 +16,11 @@ docs leen la misma fuente.
 
 - Node `>=22.23.4`
 - Astro `^7.4.12`
-- Tailwind CSS `^4.3.5` con `@tailwindcss/vite`
 - `@astrojs/markdown-satteri` `>=0.4.10 <0.5` (el procesador de Markdown que usa Astro 7; se
   respeta un procesador Sätteri propio, cualquier otro procesador rompe el build)
 
-Los cuatro son peer dependencies: instálalos en el consumidor.
+Los dos son peer dependencies: instálalos en el consumidor. Tailwind CSS (`tailwindcss` y
+`@tailwindcss/vite`) viene con la librería: no se instala aparte.
 
 ## Instalación
 
@@ -28,7 +28,7 @@ No está publicado en npm. Instálalo desde GitHub, fijado a una etiqueta de rel
 
 ```sh
 npm install github:velezanthony/design#v0.1.0
-npm install astro tailwindcss @tailwindcss/vite @astrojs/markdown-satteri
+npm install astro @astrojs/markdown-satteri
 ```
 
 El paquete distribuye fuentes TypeScript y `.astro` (sin paso de build); las compila Astro. Para

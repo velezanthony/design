@@ -81,8 +81,8 @@ compila es el Astro del consumidor. Ventajas:
 - En el `playground/` y en este sitio, editar `src/` recarga en caliente, porque el workspace enlaza
   el paquete por symlink.
 
-El precio es doble: el consumidor necesita las _peer dependencies_ (`astro`, `tailwindcss`,
-`@tailwindcss/vite`, `@astrojs/markdown-satteri`), y el código no puede usar sintaxis de TypeScript
+El precio es doble: el consumidor necesita las _peer dependencies_ (`astro`,
+`@astrojs/markdown-satteri`), y el código no puede usar sintaxis de TypeScript
 que no sea borrable. Por eso ESLint prohíbe los `enum` (ver
 [Arquitectura](../arquitectura/index.md#el-resto-de-reglas-de-eslint)).
 

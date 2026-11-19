@@ -39,7 +39,7 @@ Borra después lo que el scaffold trae y la librería ya resuelve:
 
 ```sh
 npm install --prefix docs github:velezanthony/design#v0.1.0
-npm install --prefix docs astro tailwindcss @tailwindcss/vite @astrojs/markdown-satteri
+npm install --prefix docs astro @astrojs/markdown-satteri
 npm install --prefix docs -D @astrojs/check typescript
 ```
 
@@ -47,9 +47,9 @@ La etiqueta (`#v0.1.0`) fija la versión: el `package-lock.json` guarda el commi
 actualizar se cambia la etiqueta y se vuelve a instalar (ver
 [Publicar una versión](../mantenimiento/versiones.md)).
 
-Las cuatro _peers_ son obligatorias porque el paquete se distribuye como fuente: es el Astro del
-consumidor quien compila los `.ts` y `.astro` de la librería, con su Tailwind y su procesador de
-Markdown. El rango exacto está en `peerDependencies` del `package.json` de la librería.
+Las dos _peers_ son obligatorias porque el paquete se distribuye como fuente: es el Astro del
+consumidor quien compila los `.ts` y `.astro` de la librería, con su procesador de Markdown. Tailwind
+(`tailwindcss` y `@tailwindcss/vite`) no se instala: son dependencias de la librería. El rango exacto está en `peerDependencies` del `package.json` de la librería.
 
 ## 3. `docs/docs.config.mjs`
 
@@ -127,7 +127,7 @@ export default defineConfig({
   `https://<usuario>.github.io/<repo>/`. Todos los enlaces internos, y la búsqueda lo
   respetan.
 - `trailingSlash: 'always'` coincide con cómo GitHub Pages sirve los directorios (`/guia/`).
-- El plugin de Tailwind sale del _peer_ `@tailwindcss/vite`, que instala el consumidor, pero lo registra
+- El plugin de Tailwind sale de `@tailwindcss/vite`, dependencia de la librería, y lo registra
   `docs()`: el sitio no lo declara en su `vite.plugins` (si ya lo hace, la integración no lo repite).
   La librería pone el CSS y la pasada de Tailwind.
 
