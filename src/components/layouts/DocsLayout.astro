@@ -113,8 +113,8 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
   strings={strings}
 >
   <Fragment slot="head">
-    <slot name="head" />
     {layoutScript && <script is:inline set:html={layoutScript} />}
+    <slot name="head" />
   </Fragment>
   <DocsHeader
     siteName={siteName}
@@ -234,5 +234,6 @@ const pagefind = indexable ? { 'data-pagefind-body': '' } : { 'data-pagefind-ign
 
       bootDocs();
     </script>
+    <slot name="scripts" />
   </Fragment>
 </BaseLayout>
