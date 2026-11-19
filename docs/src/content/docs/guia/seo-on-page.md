@@ -1,5 +1,4 @@
 ---
-order: 8
 seo:
   title: "SEO on page: el panel de desarrollo"
   description: "Un panel que solo existe con astro dev: resumen de problemas SEO, tabla filtrable de páginas e inspector con vista previa de buscador y Open Graph, calculado con los mismos datos con que se genera el sitio."

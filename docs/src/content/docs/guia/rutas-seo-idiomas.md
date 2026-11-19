@@ -1,5 +1,4 @@
 ---
-order: 4
 seo:
   title: "Rutas, SEO e idiomas de un sitio de docs"
   description: "La política de URLs y el sitemap; cómo se eligen título, descripción e imagen de cada página y qué pasa si falta una traducción."

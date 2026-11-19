@@ -1,5 +1,4 @@
 ---
-order: 6
 seo:
   title: "Analítica con consentimiento y privacidad"
   description: "Sin consentimiento no se carga nada: de dónde sale el id de Google Tag Manager, cómo funciona el aviso de cookies y qué opciones hay para la privacidad."

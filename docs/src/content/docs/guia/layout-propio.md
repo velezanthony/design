@@ -1,5 +1,4 @@
 ---
-order: 9
 seo:
   title: "Un sitio con su propia cabecera y pie: BaseLayout"
   description: "Los dos niveles de layout de la librería y cómo montar una página con tu cabecera y tu pie sobre BaseLayout, con contenido extra en el head y scripts propios por las ranuras."

@@ -1,5 +1,4 @@
 ---
-order: 5
 seo:
   title: "Publicar una versión de la librería"
   description: "Una versión es una etiqueta de git: cómo publicarla, qué número le toca y cómo actualizar los repos que la consumen, y cómo se despliega este sitio."

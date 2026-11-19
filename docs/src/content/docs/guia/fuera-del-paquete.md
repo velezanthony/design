@@ -1,5 +1,4 @@
 ---
-order: 2
 seo:
   title: "Por qué playground y docs no van en el paquete"
   description: "Seis barreras impiden que playground/ y docs/ lleguen a los consumidores: la lista files, el empaquetado de git, los workspaces, Tailwind y un test de guarda."

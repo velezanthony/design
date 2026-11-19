@@ -1,5 +1,4 @@
 ---
-order: 2
 seo:
   title: "Cómo funciona la integración de Astro por dentro"
   description: "Qué hace la integración en cada hook de Astro, el módulo virtual, las rutas inyectadas y el loader de contenido, siguiendo un astro build de principio a fin."

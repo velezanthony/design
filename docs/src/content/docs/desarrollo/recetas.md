@@ -1,5 +1,4 @@
 ---
-order: 4
 seo:
   title: "Recetas: componentes, opciones y textos nuevos"
   description: "Paso a paso y con todos los archivos que tocan: añadir un componente, una opción de configuración, un texto de interfaz o un idioma nuevo."

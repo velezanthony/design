@@ -1,5 +1,4 @@
 ---
-order: 10
 seo:
   title: "Piezas sueltas: iconos, listas, textos y cabeceras de sección"
   description: "Componentes de la librería pensados para páginas propias de un sitio: Icon, InlineList, Text, SectionHead y Article, con sus props y su ruta de importación."
