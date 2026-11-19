@@ -31,7 +31,7 @@ export default defineDocsConfig({
           ],
         },
         { label: 'Páginas propias', items: ['guia/layout-propio', 'guia/piezas-sueltas'] },
-        { label: 'Panel SEO', items: ['guia/seo-on-page'] },
+        'guia/seo-on-page',
       ],
     },
     {
