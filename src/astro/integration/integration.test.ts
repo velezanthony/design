@@ -528,6 +528,39 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     expect(String((error as AstroError).hint)).toContain('GTM-XXXXXXX');
   });
 
+  describe('con un PUBLIC_GTM_ID inválido en dev', () => {
+    async function devSetup(userConfig: Parameters<typeof docs>[0]) {
+      const setup = setupContext(satteri());
+      vi.mocked(logger.warn).mockClear();
+      await docs(userConfig).hooks['astro:config:setup']?.({
+        ...(setup.context as object),
+        command: 'dev',
+      } as never);
+      return setup;
+    }
+
+    it('avisa con el nombre de la variable y no tumba el servidor', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
+      await devSetup(two);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('PUBLIC_GTM_ID'));
+      expect(logger.warn).toHaveBeenCalledWith(expect.not.stringContaining('G-NOPE'));
+    });
+
+    it('la analítica queda desactivada', async () => {
+      vi.stubEnv('PUBLIC_GTM_ID', 'G-NOPE');
+      const { updateConfig } = await devSetup(two);
+      const source = updateConfig.mock.calls
+        .map(([update]) => update as { vite?: { plugins?: { load: { handler: () => string } }[] } })
+        .find((update) => update.vite)
+        ?.vite?.plugins?.[0]?.load.handler();
+      expect(source).not.toContain('gtmId');
+    });
+
+    it('un gtmId inválido en la config sigue siendo un error', async () => {
+      await expect(devSetup({ ...two, gtmId: 'nope' })).rejects.toBeInstanceOf(AstroError);
+    });
+  });
+
   it('con analítica y un idioma sin política posible falla', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', 'GTM-ENV0001');
     const error = await virtualData({

@@ -1,6 +1,11 @@
 import { fileURLToPath } from 'node:url';
 import { loadEnv } from 'vite';
-import { applyAnalytics, GTM_ENV_VAR } from '../../core/analytics/resolve';
+import {
+  applyAnalytics,
+  GTM_ENV_VAR,
+  invalidGtmIdError,
+  isGtmId,
+} from '../../core/analytics/resolve';
 import type { ResolvedConfig } from '../../core/config/resolve';
 import type { UrlPolicy } from '../../core/i18n/availability';
 import { orAstroError } from '../errors';
@@ -31,4 +36,17 @@ export function applyAnalyticsOrThrow(
   return orAstroError('La analítica de `@velezanthony/design` no es válida.', () =>
     applyAnalytics(config, envValue, url),
   );
+}
+
+/** En dev un `PUBLIC_GTM_ID` mal formado avisa y se ignora (sin analítica) en vez de tumbar el servidor; la `gtmId` de la config manda y en build sigue fallando. */
+export function envValueForCommand(
+  command: string,
+  envValue: string | undefined,
+  configGtmId: string | undefined,
+  warn: (message: string) => void,
+) {
+  const value = envValue?.trim();
+  if (command !== 'dev' || !value || configGtmId?.trim() || isGtmId(value)) return envValue;
+  warn(`${invalidGtmIdError(false).describe()} Se ignora: sin analítica en este servidor.`);
+  return undefined;
 }

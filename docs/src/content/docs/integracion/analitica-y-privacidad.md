@@ -20,7 +20,7 @@ flowchart TD
   rd --> res
   res -->|vacío o ausente| off["Sin analítica:<br/>ni banner, ni GTM, ni botón de cookies"]
   res -->|"GTM-XXXX válido"| on["Banner de consentimiento<br/>+ botón «Preferencias de cookies» en el pie"]
-  res -->|formato inválido| err["El build falla<br/>(sin imprimir el valor)"]
+  res -->|formato inválido| err["El build falla; en dev, aviso y sin analítica<br/>(sin imprimir el valor)"]
 ```
 
 - `readAnalyticsEnv` (`src/astro/integration/analytics-env.ts`) usa `loadEnv` de Vite porque en
@@ -28,7 +28,9 @@ flowchart TD
   lee `.env.development`, `build` lee `.env.production`; las variables del proceso (la CI) ganan.
 - `resolveAnalytics` exige el formato `GTM-` más mayúsculas y dígitos. Un valor en blanco cuenta como
   no definido. Si el formato es imposible, falla en el build: un id mal escrito no debe convertirse
-  en un aviso que nunca carga nada. El mensaje nombra la variable, **nunca el valor**.
+  en un aviso que nunca carga nada. El mensaje nombra la variable, **nunca el valor**. Solo en `astro dev`
+  un `PUBLIC_GTM_ID` inválido no tumba el servidor: avisa con ese mismo mensaje y arranca sin analítica
+  (`envValueForCommand`); un `gtmId` inválido de la config falla también en dev.
 - `gtmId` en la config es una sobrescritura explícita. Úsalo solo si un repo debe fijar un
   contenedor; lo normal es el entorno.
 

@@ -11,11 +11,26 @@ export const GTM_ENV_VAR = 'PUBLIC_GTM_ID';
 /** Un ID de contenedor de GTM: `GTM-` y letras mayúsculas o dígitos. */
 const GTM_ID = /^GTM-[A-Z0-9]+$/;
 
+/** Si `value` (sin espacios alrededor) tiene el formato de un ID de contenedor de GTM. */
+export function isGtmId(value: string) {
+  return GTM_ID.test(value.trim());
+}
+
 /** Política de privacidad por defecto por idioma: la del portfolio; solo con analítica y sin `privacyUrl`. */
 export const DEFAULT_PRIVACY_URLS: Readonly<Record<Locale, string>> = {
   es: 'https://velezanthony.github.io/privacidad/',
   en: 'https://velezanthony.github.io/en/privacy/',
 };
+
+/** El error de un ID mal formado, con su origen (config o variable de entorno); el valor no se imprime: sigue siendo un dato del consumidor. */
+export function invalidGtmIdError(fromConfig: boolean) {
+  const origin = fromConfig
+    ? 'La opción `gtmId` de la config'
+    : `La variable ${GTM_ENV_VAR} (leída de .env, .env.production o del entorno de la CI)`;
+  return new DocsError(`${origin} no tiene el formato de un ID de contenedor de GTM.`, {
+    hint: `Debe ser GTM-XXXXXXX (letras mayúsculas y dígitos). Corrígela o déjala vacía para no cargar analítica.`,
+  });
+}
 
 /** Gana `configGtmId` sobre el entorno; vacío es no definido, y un ID mal formado falla aquí. */
 export function resolveAnalytics(
@@ -26,15 +41,7 @@ export function resolveAnalytics(
   const fromEnv = envValue?.trim();
   const id = fromConfig || fromEnv;
   if (!id) return undefined;
-  if (!GTM_ID.test(id)) {
-    // El valor no se imprime: un ID mal escrito sigue siendo un dato del consumidor.
-    const origin = fromConfig
-      ? 'La opción `gtmId` de la config'
-      : `La variable ${GTM_ENV_VAR} (leída de .env, .env.production o del entorno de la CI)`;
-    throw new DocsError(`${origin} no tiene el formato de un ID de contenedor de GTM.`, {
-      hint: `Debe ser GTM-XXXXXXX (letras mayúsculas y dígitos). Corrígela o déjala vacía para no cargar analítica.`,
-    });
-  }
+  if (!GTM_ID.test(id)) throw invalidGtmIdError(Boolean(fromConfig));
   return id;
 }
 

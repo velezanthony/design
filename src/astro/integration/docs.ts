@@ -14,7 +14,7 @@ import { mergeLangAlias } from '../markdown/register';
 import { routesFor } from '../routes/routes';
 import { createVirtualData } from '../virtual/data';
 import { createVirtualConfigPlugin } from '../virtual/plugin';
-import { applyAnalyticsOrThrow, readAnalyticsEnv } from './analytics-env';
+import { applyAnalyticsOrThrow, envValueForCommand, readAnalyticsEnv } from './analytics-env';
 import { runBuildDone } from './build/build-done';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
 import { CONFIG_FILES } from './config';
@@ -73,7 +73,12 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         // Analítica: el ID sale de la config o de PUBLIC_GTM_ID; sin ninguno no hay nada de nada.
         const siteConfig = applyAnalyticsOrThrow(
           resolvedConfig,
-          readAnalyticsEnv(command, config.root),
+          envValueForCommand(
+            command,
+            readAnalyticsEnv(command, config.root),
+            resolvedConfig.gtmId,
+            (message) => logger.warn(message),
+          ),
           urlPolicyOf(config, resolvedConfig.defaultLocale),
         );
         // El sitio puede sustituir páginas de la librería con las suyas: se avisa, y las rutas
