@@ -11,6 +11,7 @@ import {
 } from '../../core/content/discovery';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
 import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
+import { excluder } from '../../core/content/exclude';
 import { validateFooter } from '../../core/navigation/footer';
 import { validateNav } from '../../core/navigation/nav-sections';
 import { validateSidebarSlugs } from '../../core/navigation/sidebar-slugs';
@@ -61,10 +62,14 @@ async function walk(directory: string): Promise<string[]> {
 async function readSources(
   root: string,
   config: LoaderConfig,
-): Promise<{ files: SourceFile[]; errors: DocsError[] }> {
+): Promise<{ files: SourceFile[]; errors: DocsError[]; excluded: Set<string> }> {
   const nativeDir = contentDir(root, config);
   const errors: DocsError[] = [];
-  const nativeFiles = (await hasContentDir(nativeDir, config)) ? await walk(nativeDir) : [];
+  const found = (await hasContentDir(nativeDir, config)) ? await walk(nativeDir) : [];
+  // Lo excluido ni se lee: ni se publica ni se valida su frontmatter.
+  const isExcluded = excluder(config.exclude);
+  const nativeFiles = found.filter((file) => !isExcluded(file));
+  const excluded = new Set(found.filter((file) => isExcluded(file)));
   const native = await Promise.all(
     nativeFiles.map(async (file): Promise<SourceFile> => {
       const raw = await readFile(path.join(nativeDir, file), 'utf8');
@@ -79,7 +84,11 @@ async function readSources(
       return body === undefined ? undefined : { kind: 'external', path: file, body };
     }),
   );
-  return { files: [...native, ...external.filter((file) => file !== undefined)], errors };
+  return {
+    files: [...native, ...external.filter((file) => file !== undefined)],
+    errors,
+    excluded,
+  };
 }
 
 /** Archivo absoluto de una página: las nativas cuelgan del directorio de contenido. */
@@ -139,6 +148,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
     pages,
     url: urlPolicyOf(context.config, config.defaultLocale),
     contentDir: config.content,
+    excluded: read.excluded,
   };
   const refs: LinkRef[] = [];
   const headings: { slug: string; locale: string; headings: { slug: string }[] }[] = [];

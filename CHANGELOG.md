@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`exclude` en la config.** Patrones (estilo `.gitignore`, relativos a la carpeta de contenido) de los
+  `.md` que no se publican, como `exclude_docs` de MkDocs. Lo excluido no se lee, no se publica y no cuenta
+  para los enlaces; un enlace a un archivo excluido falla nombrando `exclude`. Los `external` no se ven
+  afectados.
 - **La portada y la carpeta de contenido son opcionales.** Sin `index.md` no se genera portada y el sitio
   pone la suya en `src/pages/`. Si falta `src/content/docs/` (la carpeta por defecto), la carga no falla y
   no hay páginas nativas; el portfolio ya no necesita un `.gitkeep`. Una carpeta elegida con `content` que

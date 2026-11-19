@@ -25,6 +25,7 @@ core/
 │   └── footer.ts          Tipos del pie
 ├── content/
 │   ├── content-dir.ts     Carpeta de las páginas nativas por defecto y su validación
+│   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
 │   ├── slug.ts            guia/index → guia, index → '' (portada)

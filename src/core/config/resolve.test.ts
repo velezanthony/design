@@ -45,6 +45,11 @@ describe('resolveConfig: valores por defecto', () => {
     expect(config.sitemap).toEqual({ include: [] });
   });
 
+  it('`exclude` vale una lista vacía por defecto y se conserva si se declara', () => {
+    expect(resolveConfig({ name: 'X' }).exclude).toEqual([]);
+    expect(resolveConfig({ name: 'X', exclude: ['drafts/'] }).exclude).toEqual(['drafts/']);
+  });
+
   it('conserva los sitemaps que se incluyen en el índice', () => {
     const config = resolveConfig({ name: 'X', sitemap: { include: ['/lib/sitemap.xml'] } });
     expect(config.sitemap.include).toEqual(['/lib/sitemap.xml']);

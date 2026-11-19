@@ -506,6 +506,43 @@ describe('docsLoader: portada y carpeta de contenido opcionales', () => {
   });
 });
 
+describe('docsLoader: exclude', () => {
+  it('lo excluido no se publica', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/drafts/a.md', '# A\n');
+    await write('src/content/docs/guia/b.borrador.md', '# B\n');
+    const { entries } = await load({ name: 'T', exclude: ['drafts/', '*.borrador.md'] });
+    expect([...entries.keys()]).toEqual(['en/index']);
+  });
+
+  it('un archivo excluido no se lee: su frontmatter roto no falla la carga', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/drafts/a.md', '---\norder: nope\n---\n# A\n');
+    const { entries } = await load({ name: 'T', exclude: ['drafts/'] });
+    expect(entries.has('en/index')).toBe(true);
+  });
+
+  it('un enlace a un archivo excluido rompe con un mensaje que nombra `exclude`', async () => {
+    await write('src/content/docs/index.md', '# Home\n\n[a](./drafts/a.md)\n');
+    await write('src/content/docs/drafts/a.md', '# A\n');
+    const message = await failure({ name: 'T', exclude: ['drafts/'] });
+    expect(message).toContain('drafts/a.md');
+    expect(message).toContain('exclude');
+  });
+
+  it('un enlace a un archivo excluido desde un externo también nombra `exclude`', async () => {
+    await write('src/content/docs/index.md', '# Home\n');
+    await write('src/content/docs/drafts/a.md', '# A\n');
+    await write('README.md', '# Leeme\n\n[a](./src/content/docs/drafts/a.md)\n');
+    const message = await failure({
+      name: 'T',
+      exclude: ['drafts/'],
+      external: [{ slug: 'readme', file: 'README.md' }],
+    });
+    expect(message).toContain('exclude');
+  });
+});
+
 describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   function site() {
     return makeContext({ project: 'site', base: '/repo' });

@@ -13,6 +13,8 @@ export interface PageIndex {
   assets?: ReadonlySet<string>;
   /** Carpeta de las páginas nativas relativa a la raíz del proyecto; puede estar fuera de él (`../docs`). */
   contentDir?: string;
+  /** Los `.md` de `content` que `exclude` deja fuera, relativos a esa carpeta: un enlace a ellos tiene su propio error. */
+  excluded?: ReadonlySet<string>;
 }
 
 /** Enlace interno ya resuelto a una página; `validateAnchors` comprueba su ancla. */
@@ -67,6 +69,15 @@ function findTarget(
   if (!resolved.startsWith(prefix)) return undefined;
   const inside = resolved.slice(prefix.length);
   return pages.find((page) => page.kind === 'native' && page.sourcePath === inside);
+}
+
+/** El archivo excluido al que apunta `resolved`, en la forma relativa a `content` que guarda `index.excluded`. */
+function findExcluded(resolved: string, from: Page, index: PageIndex): string | undefined {
+  if (!index.excluded?.size) return undefined;
+  if (from.kind === 'native') return index.excluded.has(resolved) ? resolved : undefined;
+  const prefix = `${normalizePath(index.contentDir ?? DEFAULT_CONTENT_DIR)}/`;
+  const inside = resolved.startsWith(prefix) ? resolved.slice(prefix.length) : undefined;
+  return inside !== undefined && index.excluded.has(inside) ? inside : undefined;
 }
 
 /** Rangos `[inicio, fin)` de los códigos en línea de una línea (backticks de igual longitud). */
@@ -138,6 +149,20 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
   }
   const found = findTarget(resolved, decoded, from, index);
   if (!found) {
+    const excluded = findExcluded(resolved, from, index);
+    if (excluded !== undefined) {
+      errors.push(
+        new DocsError(
+          `El enlace «${rawTarget}» apunta a «${excluded}», que \`exclude\` deja fuera de la publicación.`,
+          {
+            file: from.sourcePath,
+            line,
+            hint: 'Quita el enlace o saca ese archivo de `exclude` en la config.',
+          },
+        ),
+      );
+      return undefined;
+    }
     errors.push(brokenLink(rawTarget, from, line, 'no es una página publicada'));
     return undefined;
   }

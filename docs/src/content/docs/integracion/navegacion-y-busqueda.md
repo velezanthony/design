@@ -54,6 +54,14 @@ aparecen en el menú móvil.
 - La barra recuerda su desplazamiento entre páginas en `sessionStorage` (`docs:sidebar-scroll`,
   `client/layout/sidebar-scroll.ts`); sin posición guardada, deja a la vista la página actual.
 
+### Excluir archivos
+
+`exclude` deja fuera de la publicación los `.md` de la carpeta de contenido que casan con sus patrones (estilo
+`.gitignore`, relativos a esa carpeta), como `exclude_docs` de MkDocs: `exclude: ['drafts/', '*.borrador.md']`.
+Un nombre sin `/` vale a cualquier profundidad, `/` al final es una carpeta, `**` cruza carpetas y `!` vuelve a
+incluir (manda el último patrón que coincide). Lo excluido no se lee, ni se publica, ni cuenta para los enlaces;
+un enlace a un archivo excluido falla con un mensaje que nombra `exclude`. Los `external` no se ven afectados.
+
 ### Archivos externos
 
 `external` publica archivos que viven fuera de la carpeta de contenido (`src/content/docs/` por defecto), típicamente el `CHANGELOG.md` o

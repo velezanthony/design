@@ -146,6 +146,24 @@ Un `README.md` hace de `index.md` de su carpeta (el de la raíz de `content` es 
 `index.md` en el mismo idioma, como en MkDocs. Un archivo de fuera (el `README.md` de la raíz del repo) también
 puede ser la home con `external: [{ slug: 'index', file: '../README.md' }]`; `slug: 'guia/index'` es `guia`.
 
+## Excluir archivos
+
+`exclude` es la lista de patrones de los `.md` de la carpeta de contenido que no se publican, el equivalente de
+`exclude_docs` de MkDocs. Son relativos a esa carpeta y siguen las reglas de `.gitignore`:
+
+```js
+exclude: ['drafts/', '*.borrador.md', '/notas.md', 'guia/**/interno.md', '!drafts/listo.md'],
+```
+
+- Un nombre sin `/` vale a cualquier profundidad; con `/` al principio o en medio, cuelga de la carpeta de contenido.
+- `/` al final es una carpeta con todo lo que contiene.
+- `*` y `?` no cruzan carpetas; `**` sí.
+- `!` vuelve a incluir y manda el último patrón que coincide.
+- El sufijo de idioma cuenta como parte del nombre (`*.es.md` excluye solo las traducciones al español).
+
+Lo excluido ni se lee (su frontmatter no se valida), ni se publica, ni cuenta para los enlaces. Un enlace a un
+archivo excluido falla nombrando `exclude`: quita el enlace o el patrón. Los `external` no se ven afectados.
+
 ## Referencia de configuración
 
 Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.search.placeholdr`).
@@ -154,6 +172,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`          | Nombre del sitio (cabecera, pie, plantilla de título por defecto). Obligatorio.                                                                          |
 | `content`       | Carpeta de las páginas nativas, relativa a la raíz del proyecto de Astro; puede estar fuera (`'../docs'`). Por defecto `'src/content/docs'`. Ver [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro). |
+| `exclude`       | Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican, relativos a esa carpeta. Ver [Excluir archivos](#excluir-archivos). |
 | `locales`       | Idiomas; `en` y `es` tienen textos de UI incluidos. Por defecto `['en']`.                                                                                |
 | `defaultLocale` | Archivos sin sufijo y `/`. Por defecto: el primer idioma.                                                                                                |
 | `seo`           | Base SEO de todo el sitio, ver abajo.                                                                                                                    |

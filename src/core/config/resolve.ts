@@ -33,6 +33,8 @@ export interface ResolvedConfig {
   theme?: string;
   /** Carpeta de las páginas nativas, relativa a la raíz del proyecto y ya normalizada (`../docs`). */
   content: string;
+  /** Patrones de `.md` de `content` que no se publican (relativos a esa carpeta). */
+  exclude: string[];
   locales: Locale[];
   defaultLocale: Locale;
   translations: { missing: MissingTranslation };
@@ -80,6 +82,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     ...config,
     seo: { ...config.seo, titleSuffix: config.seo?.titleSuffix ?? DEFAULT_TITLE_SUFFIX },
     content: normalizePath(config.content ?? DEFAULT_CONTENT_DIR),
+    exclude: config.exclude ?? [],
     locales,
     defaultLocale: config.defaultLocale ?? locales[0]!, // el esquema exige al menos un idioma
     translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },

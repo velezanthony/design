@@ -207,6 +207,8 @@ export const DocsConfigSchema = z
         'Debe ser la ruta local de un archivo CSS (src/styles/site.css).',
       )
       .optional(),
+    /** Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican; equivale a `exclude_docs` de MkDocs. */
+    exclude: z.array(z.string().min(1)).optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
     defaultLocale: z.string().optional(),
     translations: z.strictObject({ missing: MissingTranslationSchema.optional() }).optional(),

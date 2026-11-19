@@ -29,6 +29,30 @@ function from(sourcePath: string) {
   return pages.find((candidate) => candidate.sourcePath === sourcePath)!;
 }
 
+describe('rewriteLinks: archivos excluidos', () => {
+  const withExcluded: PageIndex = { ...index, excluded: new Set(['borrador.md']) };
+
+  it('un enlace a un archivo excluido falla diciendo que `exclude` lo deja fuera', () => {
+    const result = rewriteLinks('Ver [x](./borrador.md).', from('guide.md'), withExcluded);
+    expect(result.errors).toHaveLength(1);
+    const [error] = result.errors;
+    expect(error?.describe()).toContain('borrador.md');
+    expect(error?.describe()).toContain('exclude');
+    expect(error?.describe()).not.toContain('no es una página publicada');
+  });
+
+  it('también desde un archivo externo que apunta a la carpeta de contenido', () => {
+    const readme = page('leeme', 'en', 'LEEME.md', 'external');
+    const result = rewriteLinks('[x](./src/content/docs/borrador.md)', readme, withExcluded);
+    expect(result.errors[0]?.describe()).toContain('exclude');
+  });
+
+  it('un archivo que no existe sigue siendo un enlace roto normal', () => {
+    const result = rewriteLinks('[x](./nada.md)', from('guide.md'), withExcluded);
+    expect(result.errors[0]?.describe()).toContain('no es una página publicada');
+  });
+});
+
 describe('rewriteLinks', () => {
   it('reescribe un enlace a un hermano publicado por la URL de su página', () => {
     const result = rewriteLinks('Ver [cambios](./CHANGELOG.md).', from('../README.md'), index);
