@@ -24,6 +24,7 @@
     "./content": "./src/astro/content/index.ts",
     "./components/*": "./src/components/*",
     "./theme.css": "./src/components/styles/theme.css",
+    "./site-theme": "./src/components/styles/site-theme.css",
     "./theme-colors": "./src/components/styles/theme-colors.ts",
     "./code-themes": "./src/components/styles/code-themes.ts",
     "./client/theme": "./src/client/preferences/theme.ts",

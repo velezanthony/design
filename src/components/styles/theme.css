@@ -7,5 +7,8 @@
 @import './chrome.css';
 @import './motion.css';
 
+/* Lo último, para que los tokens y reglas del sitio extiendan o pisen los anteriores. */
+@import '@velezanthony/design/site-theme';
+
 /* Tailwind debe escanear todo `src/`, también si el paquete llega por un symlink del workspace fuera de la raíz del consumidor. */
 @source '../../';

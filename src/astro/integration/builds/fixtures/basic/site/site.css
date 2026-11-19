@@ -1,0 +1,9 @@
+/* El CSS propio del sitio: tokens con utilidades y una regla suelta. */
+@theme {
+  --color-fixture-brand: #123456;
+  --text-fixture-size: 13px;
+}
+
+.fixture-rule {
+  outline-color: var(--color-fixture-brand);
+}

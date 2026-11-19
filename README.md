@@ -159,6 +159,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
 | `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
 | `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
+| `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/integracion/index.md#css-propio-del-sitio-theme). |
 | `privacyUrl`    | URL de tu política de privacidad: una URL o una por idioma. Obligatoria con analítica (el banner enlaza a ella); sin analítica, es solo el enlace del pie. Ver [Analítica](#analítica). |
 | `layout`        | Barras laterales plegables y ancho de lectura / completo: `{ sidebar?, toc?, width?, toggles? }`. Ver abajo.                                             |
 | `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |

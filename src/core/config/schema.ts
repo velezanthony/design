@@ -199,6 +199,14 @@ export const DocsConfigSchema = z
         if (problem) context.addIssue({ code: 'custom', message: problem });
       })
       .optional(),
+    /** CSS del proyecto (ruta desde su raíz) con `@theme` y estilos propios: se compila junto a `theme.css`. */
+    theme: z
+      .string()
+      .refine(
+        (file) => file.endsWith('.css') && !/^[a-z][a-z0-9+.-]*:\/\//i.test(file),
+        'Debe ser la ruta local de un archivo CSS (src/styles/site.css).',
+      )
+      .optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
     defaultLocale: z.string().optional(),
     translations: z.strictObject({ missing: MissingTranslationSchema.optional() }).optional(),

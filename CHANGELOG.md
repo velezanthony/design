@@ -40,6 +40,12 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **Opción `theme` en `docs.config.mjs`**: ruta (desde la raíz del proyecto) a un CSS con los tokens
+  `@theme` y los estilos propios del sitio. Entra en la MISMA compilación de Tailwind que `theme.css`
+  (que lo importa el último, vía el alias `@velezanthony/design/site-theme`), así que los tokens generan
+  utilidades y el sitio no necesita su propio `@import 'tailwindcss'` ni importar el tema de la librería.
+  Falla con la ruta si el archivo no existe, no es `.css` o es una URL. Nueva subruta `site-theme` en
+  `exports` (CSS vacío por defecto).
 - **`Icon` admite `mail` y `linkedin`** (la segunda rellena, como `github`).
 - **`InlineList`, `Text` y `SectionHead`**, subidos desde el portfolio: `components/atoms/display/InlineList.astro`,
   `components/atoms/display/Text.astro` y `components/molecules/content/SectionHead.astro` (esta última sobre

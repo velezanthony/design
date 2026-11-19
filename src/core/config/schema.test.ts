@@ -370,3 +370,24 @@ describe('seo.schema (JSON-LD)', () => {
     expect(message).toContain("external[0].seo.schema[0]['@type']");
   });
 });
+
+describe('theme de la config', () => {
+  it('es opcional', () => {
+    expect(messages({ name: 'X' })).toEqual([]);
+    expect(resolveConfig({ name: 'X' }).theme).toBeUndefined();
+  });
+
+  it('acepta la ruta de un .css del proyecto', () => {
+    expect(resolveConfig({ name: 'X', theme: 'src/styles/site.css' }).theme).toBe(
+      'src/styles/site.css',
+    );
+  });
+
+  it.each([
+    ['vacío', ''],
+    ['sin extensión .css', 'src/styles/site'],
+    ['una URL', 'https://x.dev/site.css'],
+  ])('rechaza un valor %s con la ruta `theme`', (_name, theme) => {
+    expect(messages({ name: 'X', theme })[0]).toContain('theme');
+  });
+});

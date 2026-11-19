@@ -131,6 +131,41 @@ export default defineConfig({
 - `trailingSlash: 'always'` coincide con cómo GitHub Pages sirve los directorios (`/guia/`).
 - El plugin de Tailwind sale del _peer_ `@tailwindcss/vite`, que instala el consumidor; la librería pone el CSS.
 
+## CSS propio del sitio (`theme`)
+
+La librería es la dueña de Tailwind y de la base de estilos: el consumidor no tiene su propio
+`@import 'tailwindcss'`. Si el sitio necesita tokens (`@theme`) o estilos suyos, los escribe en un
+CSS y lo declara en `docs.config.mjs`:
+
+```js
+export default defineDocsConfig({
+  name: 'Mi sitio',
+  theme: 'src/styles/site.css', // desde la raíz del proyecto; el archivo debe existir
+});
+```
+
+```css
+/* src/styles/site.css: sin `@import 'tailwindcss'` ni import del tema de la librería. */
+@theme {
+  --color-aviso: light-dark(#92400e, #fbbf24);
+}
+
+@utility banda {
+  background-color: var(--color-raised);
+}
+```
+
+- **Una sola compilación.** `theme.css` de la librería importa `@velezanthony/design/site-theme` en
+  último lugar, y la integración apunta ese especificador (con un alias de Vite, que Tailwind respeta al
+  resolver `@import`) al archivo del sitio; sin `theme`, apunta a un CSS vacío del paquete. Tokens y
+  reglas del sitio comparten pasada con la paleta de la librería, así que `@theme` genera utilidades
+  (`text-aviso`, `bg-aviso`) y el sitio puede extender o pisar lo anterior.
+- **Las clases de tus archivos** (`.astro`, `.ts`, `.md`) las detecta Tailwind solo: escanea la raíz del
+  proyecto, y la librería añade su propio `src/` con `@source`. No hace falta ningún `@source`.
+- **No importes `theme.css` tú.** Lo carga `BaseLayout`; importarlo otra vez sirve el CSS por duplicado.
+- Un `theme` que apunta a un archivo inexistente, sin extensión `.css` o a una URL falla con la ruta
+  del campo. Editar el CSS recarga en caliente; cambiar la ruta reinicia `astro dev`.
+
 ## 5. `docs/src/content.config.ts`
 
 ```ts

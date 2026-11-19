@@ -521,3 +521,25 @@ describe('JSON-LD declarado por el sitio y por el frontmatter', () => {
     expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)');
   });
 });
+
+describe('`theme`: el CSS del sitio entra en la misma compilación de Tailwind', () => {
+  async function stylesheets(): Promise<string[]> {
+    const files = (await readdir(resolve(site.dist, '_astro'))).filter((file) =>
+      file.endsWith('.css'),
+    );
+    return Promise.all(files.map((file) => readFile(resolve(site.dist, '_astro', file), 'utf8')));
+  }
+
+  it('sus tokens llegan al CSS y generan utilidades para las clases del propio sitio', async () => {
+    const css = (await stylesheets()).join('\n');
+    expect(css).toContain('--color-fixture-brand:#123456');
+    expect(css).toContain('.bg-fixture-brand');
+    expect(css).toContain('.text-fixture-size');
+    expect(css).toContain('.fixture-rule');
+  });
+
+  it('la base de la librería sigue ahí, una sola vez', async () => {
+    const css = (await stylesheets()).join('\n');
+    expect(css.match(/--color-canvas:/g)).toHaveLength(1);
+  });
+});

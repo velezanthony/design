@@ -21,6 +21,7 @@ import { CONFIG_FILES } from './config';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { overrideWarning, routeOverrides } from './route-overrides';
+import { siteThemeAlias } from './site-theme';
 
 /** Nombre de la integración en `astro.config` (lo que Astro enseña en sus avisos). */
 export const INTEGRATION_NAME = '@velezanthony/design';
@@ -111,6 +112,8 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           markdown: { shikiConfig: { langAlias, ...(hasThemes ? {} : { themes: codeThemes }) } },
           fonts,
           vite: {
+            // `theme.css` importa este especificador al final: así el CSS del sitio entra en su misma compilación.
+            resolve: { alias: [siteThemeAlias(fileURLToPath(config.root), resolvedConfig.theme)] },
             ...(allow.length > 0 && { server: { fs: { allow } } }),
             plugins: [
               createVirtualConfigPlugin(

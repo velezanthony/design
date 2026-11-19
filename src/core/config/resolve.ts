@@ -29,6 +29,8 @@ export interface ResolvedConfig {
   };
   /** Favicon de `public/` o URL https; sin definir, el del paquete. */
   favicon?: string;
+  /** CSS propio del proyecto, relativo a su raíz; la integración lo compila con el tema de la librería. */
+  theme?: string;
   /** Carpeta de las páginas nativas, relativa a la raíz del proyecto y ya normalizada (`../docs`). */
   content: string;
   locales: Locale[];

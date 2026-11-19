@@ -220,6 +220,7 @@ components/
 │   └── boot.ts              Arranque del JavaScript de cliente (bootBase, bootDocs)
 ├── styles/
 │   ├── theme.css            El punto de entrada: Tailwind y el resto de hojas, en orden
+│   ├── site-theme.css       Vacío: lo que `theme.css` importa si el sitio no define `theme`
 │   ├── tokens.css           Tokens y paletas de color (claro y oscuro con light-dark())
 │   ├── base.css             Reglas base, como las barras de desplazamiento con los colores del tema
 │   ├── chrome.css           Disposición de las páginas de docs (columnas, raíl, ancho)
@@ -252,6 +253,7 @@ astro/
 │   ├── route-overrides.ts   Avisa de las rutas de la librería que src/pages/ sustituye
 │   ├── client-pages.ts      Guarda las páginas del consumidor al resolver las rutas
 │   ├── fs-allow.ts          Carpetas que Vite debe servir si el contenido está fuera del proyecto
+│   ├── site-theme.ts        Alias de Vite al CSS propio del sitio (opción `theme`)
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
 │   └── build/
 │       ├── build-done.ts    Lo que corre en astro:build:done
@@ -341,6 +343,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 | `@velezanthony/design/content` | `src/astro/content/index.ts` |
 | `@velezanthony/design/components/*` | `src/components/*` |
 | `@velezanthony/design/theme.css` | `src/components/styles/theme.css` |
+| `@velezanthony/design/site-theme` | `src/components/styles/site-theme.css` |
 | `@velezanthony/design/theme-colors` | `src/components/styles/theme-colors.ts` |
 | `@velezanthony/design/code-themes` | `src/components/styles/code-themes.ts` |
 | `@velezanthony/design/client/theme` | `src/client/preferences/theme.ts` |
