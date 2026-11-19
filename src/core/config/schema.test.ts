@@ -370,3 +370,119 @@ describe('seo.schema (JSON-LD)', () => {
     expect(message).toContain("external[0].seo.schema[0]['@type']");
   });
 });
+
+describe('config: lo que el esquema promete rechazar', () => {
+  const base = { name: 'X', locales: ['en', 'es'] };
+
+  describe('JSON-LD', () => {
+    function schemaMessages(extra: Record<string, unknown>): string[] {
+      return messages({ ...base, seo: { schema: [{ '@type': 'Thing', ...extra }] } });
+    }
+
+    it.each([
+      ['un símbolo', Symbol('x')],
+      ['un bigint', 10n],
+      ['NaN', Number.NaN],
+      ['Infinity', Number.POSITIVE_INFINITY],
+    ])('%s no es JSON: falla con la ruta del valor', (_name, value) => {
+      const [message] = schemaMessages({ value });
+      expect(message).toContain('seo.schema[0].value');
+      expect(message).toContain('JSON');
+    });
+
+    it('el valor malo dentro de una lista se señala con su índice', () => {
+      const [message] = schemaMessages({ items: [1, 2, () => 3] });
+      expect(message).toContain('seo.schema[0].items[2]');
+    });
+
+    it('números finitos, null, listas y objetos anidados sí pasan', () => {
+      expect(
+        schemaMessages({ zero: 0, negative: -1.5, nothing: null, list: [1, { a: [true] }] }),
+      ).toEqual([]);
+    });
+  });
+
+  describe('external[]', () => {
+    it.each(['/a', 'a/'])('el slug «%s» con barra a un lado falla', (slug) => {
+      expect(messages({ ...base, external: [{ slug, file: 'a.md' }] })[0]).toContain(
+        'external[0].slug',
+      );
+    });
+
+    it('un slug con barras en medio es válido', () => {
+      expect(messages({ ...base, external: [{ slug: 'guides/a', file: 'a.md' }] })).toEqual([]);
+    });
+
+    it('el archivo no puede ser una URL', () => {
+      expect(
+        messages({ ...base, external: [{ slug: 'a', file: 'https://x.dev/a.md' }] })[0],
+      ).toContain('external[0].file');
+    });
+  });
+
+  describe('favicon', () => {
+    it('una ruta con dos puntos fuera del inicio no se confunde con un esquema', () => {
+      expect(messages({ ...base, favicon: 'img/a:b.svg' })).toEqual([]);
+    });
+
+    it.each(['http://x.dev/f.svg', '//x.dev/f.svg', 'data:image/svg+xml,x'])(
+      '«%s» no es https ni ruta de public/',
+      (favicon) => {
+        expect(messages({ ...base, favicon })[0]).toContain('favicon');
+      },
+    );
+  });
+
+  describe('privacy', () => {
+    it('el correo del responsable no admite espacios ni texto alrededor', () => {
+      for (const email of [' ada@x.dev', 'ada@x.dev y', 'ada x@x.dev', 'ada']) {
+        const [message] = messages({
+          ...base,
+          privacy: { controller: { name: 'Ada', email } },
+        });
+        expect(message, email).toContain('privacy.controller.email');
+      }
+    });
+
+    it('la página de privacidad falla si algún idioma no tiene texto, y lo nombra', () => {
+      const found = messages({ name: 'X', locales: ['en', 'fr'], privacy: { page: true } }).find(
+        (message) => message.startsWith('privacy.page'),
+      );
+      expect(found).toContain('fr');
+    });
+
+    it('sin `page` no se exige texto de privacidad en cada idioma', () => {
+      const found = messages({ name: 'X', locales: ['en', 'fr'] }).filter((message) =>
+        message.startsWith('privacy'),
+      );
+      expect(found).toEqual([]);
+    });
+  });
+
+  describe('idiomas por defecto', () => {
+    it('sin `locales` el idioma es `en`: `defaultLocale` y `ui` en `en` valen', () => {
+      expect(messages({ name: 'X', defaultLocale: 'en', ui: { en: {} } })).toEqual([]);
+    });
+  });
+
+  describe('nav[].dir', () => {
+    it.each(['', '/users', 'users/'])('la carpeta «%s» falla', (dir) => {
+      expect(messages({ ...base, nav: [{ label: 'G', dir }] })[0]).toContain('nav[0].dir');
+    });
+
+    it('una carpeta anidada sin barras en los extremos es válida', () => {
+      expect(messages({ ...base, nav: [{ label: 'G', dir: 'users/guide' }] })).toEqual([]);
+    });
+
+    it('el solape se detecta también cuando la carpeta hija va primero', () => {
+      const [message] = messages({
+        ...base,
+        nav: [
+          { label: 'A', dir: 'users/guide' },
+          { label: 'B', dir: 'users' },
+        ],
+      });
+      expect(message).toContain('nav[1].dir');
+    });
+  });
+});
