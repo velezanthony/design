@@ -37,3 +37,7 @@ todo vive en «Sin publicar».
   siempre `flex min-h-dvh flex-col`) y las ranuras `head`, la de por defecto y `scripts`. Ya no recibe
   `layout`, `pending` ni `htmlAttrs` de la 404 (sí un `htmlAttrs` genérico). El tema y el consentimiento
   los arranca ahora `bootBase`; `bootDocs` ya no los cablea.
+
+### Añadido
+
+- **`Icon` admite `mail` y `linkedin`** (la segunda rellena, como `github`).
