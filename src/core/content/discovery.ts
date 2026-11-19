@@ -79,10 +79,34 @@ function attempt<T>(errors: DocsError[], build: () => T): T | undefined {
   }
 }
 
+/** `guide/README` → `guide/index`: un README hace de índice de su carpeta si esta no tiene `index`. */
+function readmeAsIndex(stem: string, locale: Locale, indexKeys: ReadonlySet<string>): string {
+  if (stem !== 'README' && !stem.endsWith('/README')) return stem;
+  const asIndex = `${stem.slice(0, -'README'.length)}index`;
+  return indexKeys.has(`${locale}\0${asIndex}`) ? stem : asIndex;
+}
+
+/** Los `index` nativos que existen, por idioma y carpeta: lo que decide si un README los sustituye. */
+function nativeIndexKeys(files: SourceFile[], config: DiscoveryConfig): Set<string> {
+  const keys = files
+    .filter((file) => file.kind === 'native')
+    .flatMap((file) => {
+      // Los fallos de idioma los cuenta `nativePage`; aquí solo importa quién tiene `index`.
+      const located = attempt([], () =>
+        splitLocale(file.path, config.locales, config.defaultLocale),
+      );
+      return located && /(^|\/)index$/.test(located.stem)
+        ? [`${located.locale}\0${located.stem}`]
+        : [];
+    });
+  return new Set(keys);
+}
+
 function nativePage(
   file: SourceFile,
   config: DiscoveryConfig,
   errors: DocsError[],
+  indexKeys: ReadonlySet<string>,
 ): Page | undefined {
   const located = attempt(errors, () =>
     splitLocale(file.path, config.locales, config.defaultLocale),
@@ -91,7 +115,7 @@ function nativePage(
   const title = attempt(errors, () => resolveTitle(file.body, file.frontmatter?.title, file.path));
   if (title === undefined) return undefined;
   return {
-    slug: toSlug(located.stem),
+    slug: toSlug(readmeAsIndex(located.stem, located.locale, indexKeys)),
     locale: located.locale,
     title,
     kind: 'native',
@@ -129,7 +153,8 @@ function externalPages(
     const title = attempt(errors, () => resolveTitle(file.body, undefined, path));
     if (title === undefined) continue;
     pages.push({
-      slug: entry.slug,
+      // `index` y `carpeta/index` colapsan como en los nativos: así un README externo puede ser la portada.
+      slug: toSlug(entry.slug),
       locale,
       title,
       kind: 'external',
@@ -168,10 +193,11 @@ export function discoverPages(files: SourceFile[], config: DiscoveryConfig): Pag
   const externalFiles = new Map(
     files.filter((file) => file.kind === 'external').map((file) => [normalize(file.path), file]),
   );
+  const indexKeys = nativeIndexKeys(files, config);
   const pages = [
     ...files
       .filter((file) => file.kind === 'native')
-      .flatMap((file) => nativePage(file, config, errors) ?? []),
+      .flatMap((file) => nativePage(file, config, errors, indexKeys) ?? []),
     ...config.external.flatMap((entry) => externalPages(entry, externalFiles, config, errors)),
   ];
   errors.push(...findLocalePrefixCollisions(pages, config));
