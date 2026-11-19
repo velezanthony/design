@@ -256,3 +256,41 @@ describe('buildNav', () => {
     expect(buildNav(undefined, context('en', ''))).toEqual([]);
   });
 });
+
+describe('buildNav: destino de una sección con páginas sin traducir', () => {
+  function entryFor(docs: Page[], sidebar?: string[]) {
+    const all = [page(''), page('', 'es'), ...docs];
+    const { policies } = resolvePolicies(all, MissingTranslation.LINK);
+    return buildNav([{ label: 'Docs', dir: 'docs', ...(sidebar && { sidebar }) }], {
+      pages: all,
+      availability: buildAvailability(all, url),
+      locale: 'es',
+      config: {
+        locales: ['en', 'es'],
+        defaultLocale: 'en',
+        nav: [{ label: 'Docs', dir: 'docs', ...(sidebar && { sidebar }) }],
+      },
+      policies,
+      url,
+      slug: '',
+    })[0]!;
+  }
+
+  it('prefiere una hoja traducida a la página índice que solo existe en otro idioma', () => {
+    const entry = entryFor([page('docs'), page('docs/a', 'es'), page('docs/b', 'es')]);
+    expect(entry.href).toBe('/repo/es/docs/a/');
+  });
+
+  it('si todas están en otro idioma, enlaza la primera', () => {
+    const entry = entryFor([page('docs/a'), page('docs/b')]);
+    expect(entry.href).toBe('/repo/docs/a/');
+  });
+
+  it('la página índice traducida gana a una hoja que el `sidebar` pone antes', () => {
+    const entry = entryFor(
+      [page('docs', 'es'), page('docs/a', 'es'), page('docs/b', 'es')],
+      ['docs/b'],
+    );
+    expect(entry.href).toBe('/repo/es/docs/');
+  });
+});

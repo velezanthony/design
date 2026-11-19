@@ -66,8 +66,23 @@ describe('stripLocale', () => {
     expect(stripLocale('guide/installXesXmd', 'es', 'en')).toBe('guide/installXesXmd');
   });
 
+  it('una ruta sin el sufijo del idioma se devuelve intacta', () => {
+    expect(stripLocale('guide/install.md', 'es', 'en')).toBe('guide/install.md');
+  });
+
+  it('el idioma por defecto no pierde un `.en.md` que sea parte del nombre', () => {
+    expect(stripLocale('guide/api.en.md', 'en', 'en')).toBe('guide/api.en.md');
+  });
+
   it('ida y vuelta con localizedPath', () => {
     const file = localizedPath('a/b.md', 'es', 'en');
     expect(stripLocale(file, 'es', 'en')).toBe('a/b.md');
+  });
+});
+
+describe('rutas con `.md` en una carpeta', () => {
+  it('solo se toca el `.md` final, no uno que esté en medio de la ruta', () => {
+    expect(splitLocale('docs.md/page.md', locales, 'en').stem).toBe('docs.md/page');
+    expect(localizedPath('docs.md/page.md', 'es', 'en')).toBe('docs.md/page.es.md');
   });
 });

@@ -365,3 +365,60 @@ describe('rewriteLinks: imágenes del cuerpo', () => {
     expect(images('[x](./install.md)')).toEqual([]);
   });
 });
+
+describe('rewriteLinks: casos límite de lo que cuenta como enlace', () => {
+  const missing = '[x](./missing.md)';
+  function errorCount(body: string, source = 'guide.md') {
+    return rewriteLinks(body, from(source), index).errors.length;
+  }
+
+  describe('código en línea', () => {
+    it('un código con dos backticks protege el enlace de dentro', () => {
+      expect(errorCount(`\`\`${missing}\`\``)).toBe(0);
+    });
+
+    it('un enlace pegado al cierre del código ya no está dentro', () => {
+      expect(errorCount(`\`a\`${missing}`)).toBe(1);
+    });
+
+    it('el enlace antes o entre dos códigos sí se valida', () => {
+      expect(errorCount(`${missing} \`a\``)).toBe(1);
+      expect(errorCount(`\`a\` ${missing} \`b\``)).toBe(1);
+    });
+  });
+
+  it('el destino entre `<...>` se reescribe sin los ángulos', () => {
+    const result = rewriteLinks('[i](<./install.md#uso>)', from('guide.md'), index);
+    expect(result.body).toBe('[i](/repo/install/#uso)');
+  });
+
+  it('un destino con `%20` se busca decodificado', () => {
+    const spaced = [...pages, page('my-page', 'en', 'my page.md')];
+    const result = rewriteLinks('[m](./my%20page.md)', from('guide.md'), { pages: spaced, url });
+    expect(result.body).toBe('[m](/repo/my-page/)');
+  });
+
+  it('un recurso cuyo nombre contiene `.md` pero no termina en `.md` no es una página', () => {
+    const withAssets: PageIndex = { ...index, assets: new Set(['notes.md.txt']) };
+    expect(rewriteLinks('[n](./notes.md.txt)', from('guide.md'), withAssets).errors).toEqual([]);
+  });
+
+  it('una nativa no resuelve a un external por la ruta relativa a su propio archivo', () => {
+    expect(errorCount('[r](../README.md)')).toBe(1);
+  });
+
+  it('la línea de una definición de referencia es la suya, contando desde 1', () => {
+    const result = rewriteLinks(
+      'uno\n\n[ref]: ./install.md\n[roto]: ./missing.md',
+      from('guide.md'),
+      index,
+    );
+    expect(result.refs[0]?.line).toBe(3);
+    expect(result.errors[0]?.line).toBe(4);
+  });
+
+  it('una imagen que ya tiene `./` se devuelve idéntica, espacios incluidos', () => {
+    const body = '![c](  ./img/a.png  )';
+    expect(rewriteLinks(body, from('guide.md'), index).body).toBe(body);
+  });
+});

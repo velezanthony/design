@@ -104,6 +104,12 @@ describe('applyAnalytics', () => {
     expect(config.privacyUrl).toBeUndefined();
   });
 
+  it('sin ID ni enlace las claves no existen, no valen `undefined`', () => {
+    const config = applyAnalytics(resolveConfig({ name: 'X' }), undefined);
+    expect(Object.keys(config)).not.toContain('gtmId');
+    expect(Object.keys(config)).not.toContain('privacyUrl');
+  });
+
   it('ID del entorno y privacyUrl: analítica y enlace', () => {
     const config = applyAnalytics(resolveConfig({ ...site, privacyUrl: '/privacy/' }), 'GTM-ENV1');
     expect(config.gtmId).toBe('GTM-ENV1');

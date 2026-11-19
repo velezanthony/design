@@ -129,6 +129,16 @@ describe('buildSitemapIndex', () => {
   });
 });
 
+function thrown(run: () => unknown): DocsError {
+  try {
+    run();
+  } catch (error) {
+    if (error instanceof DocsError) return error;
+    throw error;
+  }
+  throw new Error('no ha fallado');
+}
+
 describe('sitemapIncludes', () => {
   const portfolio = new URL('https://x.dev');
 
@@ -155,10 +165,12 @@ describe('sitemapIncludes', () => {
       return sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
     }
     expect(run).toThrow(DocsError);
+    expect(thrown(run).hint).toBeTruthy();
     expect(run).toThrow(/sitemap\.include\[1\].*otro\.dev/);
   });
 
   it('el propio índice o el de páginas no se pueden incluir: se apuntarían a sí mismos', () => {
+    expect(thrown(() => sitemapIncludes(['/sitemap.xml'], portfolio)).hint).toBeTruthy();
     expect(() => sitemapIncludes(['/sitemap.xml'], portfolio)).toThrow(/sitemap\.include\[0\]/);
     expect(() => sitemapIncludes([`/${SITEMAP_PAGES}`], portfolio)).toThrow(DocsError);
   });
@@ -248,6 +260,23 @@ describe('appendToSitemap', () => {
     const merged = appendToSitemap(xml, [{ loc: 'https://x.dev/a/', alternates: [] }]);
     expect(locs(merged)).toEqual(['https://x.dev/es/a/', 'https://x.dev/a/']);
     expect(merged).toContain('<url><loc>https://x.dev/a/</loc></url>');
+  });
+
+  it('sustituye varias entradas a la vez y deja un único cierre', () => {
+    const xml = buildSitemap(
+      new Map([
+        ['a', { en: '/a/' }],
+        ['b', { en: '/b/' }],
+        ['c', { en: '/c/' }],
+      ]),
+      site,
+    );
+    const merged = appendToSitemap(xml, [
+      { loc: 'https://x.dev/a/', alternates: [] },
+      { loc: 'https://x.dev/b/', alternates: [] },
+    ]);
+    expect(locs(merged)).toEqual(['https://x.dev/c/', 'https://x.dev/a/', 'https://x.dev/b/']);
+    expect(merged.split('</urlset>')).toHaveLength(2);
   });
 
   it('sin entradas lo deja tal cual', () => {

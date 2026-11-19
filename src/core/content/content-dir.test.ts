@@ -18,6 +18,13 @@ describe('normalizePath', () => {
 });
 
 describe('contentDirProblem', () => {
+  it.each(['docs/a:/b', 'docs/c:/guias', 'docs/https://x'])(
+    '«%s» es válida: un esquema o una unidad solo cuentan al principio',
+    (value) => {
+      expect(contentDirProblem(value)).toBeUndefined();
+    },
+  );
+
   it.each(['../docs', 'docs', 'src/content/docs', './docs/'])('«%s» es válida', (value) => {
     expect(contentDirProblem(value)).toBeUndefined();
   });
