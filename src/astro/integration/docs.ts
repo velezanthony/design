@@ -22,6 +22,7 @@ import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
 import { overrideWarning, routeOverrides } from './route-overrides';
 import { siteThemeAlias } from './site-theme';
+import { staticFoldersMiddleware } from './static-folders-dev';
 import { tailwindPlugins } from './tailwind';
 
 /** Nombre de la integración en `astro.config` (lo que Astro enseña en sus avisos). */
@@ -138,13 +139,26 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
       },
       // Las páginas que el cliente añade en `src/pages/`, para el panel SEO y el sitemap.
       'astro:routes:resolved': ({ routes }) => rememberClientRoutes(routes),
-      'astro:server:setup': ({ server }) => watchClientPages(server),
+      'astro:server:setup': ({ server }) => {
+        watchClientPages(server);
+        const folders = resolvedConfig.static ?? [];
+        if (folders.length > 0)
+          server.middlewares.use(staticFoldersMiddleware({ ...published, folders }));
+      },
       // `injectTypes` solo existe en `astro:config:done`, no en `config:setup`.
       'astro:config:done': ({ injectTypes }) => {
         injectTypes({ filename: 'virtual.d.ts', content: virtualTypes() });
       },
       'astro:build:done': ({ dir, pages, logger }) =>
-        runBuildDone({ dir, pages, logger, ...published, pagesFile: sitemap.pages, ownSitemap }),
+        runBuildDone({
+          dir,
+          pages,
+          logger,
+          ...published,
+          pagesFile: sitemap.pages,
+          ownSitemap,
+          staticFolders: resolvedConfig.static ?? [],
+        }),
     },
   };
 }

@@ -1,4 +1,5 @@
 import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
+import type { StaticFolder } from '../content/static-folders';
 import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
@@ -33,6 +34,8 @@ export interface ResolvedConfig {
   theme?: string;
   /** Carpeta de las páginas nativas, relativa a la raíz del proyecto y ya normalizada (`../docs`). */
   content: string;
+  /** Carpetas que se publican tal cual (informe de cobertura): `from` desde la raíz del proyecto, `to` bajo el sitio. */
+  static?: StaticFolder[];
   /** Patrones de `.md` de `content` que no se publican (relativos a esa carpeta). */
   exclude: string[];
   locales: Locale[];

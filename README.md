@@ -430,6 +430,21 @@ recurso como en la barra lateral) y se validan, `#anchor` incluido; una ruta rel
 que no es ni una página ni un asset declarado rompe el build. Los enlaces `https://` se permiten
 pero no se validan.
 
+### Carpetas estáticas (`static`)
+
+`static` publica una carpeta **tal cual**, sin Markdown, sin optimizar y fuera del índice de búsqueda y
+del sitemap: un informe de cobertura HTML, por ejemplo.
+
+```js
+static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/index.html
+```
+
+`from` es relativa a la raíz del proyecto de Astro y debe existir al construir (se genera antes; si
+falta, el build falla nombrando `static[0].from`); `to` es la ruta bajo el sitio, sin barras en los
+extremos. No puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no pueden solaparse. Con
+`astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con su URL
+(`[Cobertura](/coverage/)`, con el `base` delante si lo hay).
+
 ### Docs fuera del proyecto de Astro
 
 Si el repo ya guarda sus docs como `.md` sueltos (por ejemplo los de un MkDocs), no hace falta

@@ -416,3 +416,37 @@ describe('theme de la config', () => {
     expect(messages({ name: 'X', theme })[0]).toContain('theme');
   });
 });
+
+describe('static de la config', () => {
+  const base = { name: 'X', locales: ['en', 'es'] };
+
+  it('acepta carpetas con su destino y sin `static` no hay ninguna', () => {
+    const folders = [{ from: '../htmlcov', to: 'coverage' }];
+    expect(resolveConfig({ ...base, static: folders }).static).toEqual(folders);
+    expect(resolveConfig(base).static).toBeUndefined();
+  });
+
+  it('una carpeta inválida falla con su ruta', () => {
+    expect(messages({ ...base, static: [{ from: '/abs', to: 'c' }] })[0]).toContain('static[0]');
+    expect(messages({ ...base, static: [{ from: 'out', to: 'es' }] })[0]).toContain('static[0]');
+  });
+
+  it('destinos que se solapan fallan en el segundo', () => {
+    const out = messages({
+      ...base,
+      static: [
+        { from: 'a', to: 'reports' },
+        { from: 'b', to: 'reports/api' },
+      ],
+    });
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('static[1].to');
+    expect(out[0]).toContain('static[0]');
+  });
+
+  it('una opción desconocida se nombra con su ruta', () => {
+    expect(messages({ ...base, static: [{ from: 'a', to: 'b', copy: true }] })[0]).toContain(
+      'static[0].copy',
+    );
+  });
+});

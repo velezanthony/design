@@ -45,6 +45,10 @@ todo vive en «Sin publicar».
 
 ### Añadido
 
+- **`static`: publicar una carpeta tal cual.** `static: [{ from: '../htmlcov', to: 'coverage' }]`
+  copia la carpeta a `dist/coverage/` sin procesarla (ni Markdown, ni optimización, ni búsqueda, ni
+  sitemap) y `astro dev` la sirve en esa ruta. Un `from` que no existe, un `to` que pisa `_astro`,
+  `pagefind` o un idioma, o dos destinos solapados fallan con su ruta.
 - **`seo.title` por idioma.** En `external[].seo` (y en el frontmatter) el título SEO acepta, además de
   un texto, uno por idioma (`{ en: 'Readme', es: 'Léeme' }`); un externo ya no sale con el mismo
   título en todos los idiomas. Si falta el del idioma de la página, vale el título de la página.

@@ -25,6 +25,7 @@ core/
 │   └── footer.ts          Tipos del pie
 ├── content/
 │   ├── content-dir.ts     Carpeta de las páginas nativas por defecto y su validación
+│   ├── static-folders.ts  Carpetas de `static` (publicadas tal cual): validación y a qué carpeta casa una petición
 │   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
@@ -255,12 +256,14 @@ astro/
 │   ├── client-pages.ts      Guarda las páginas del consumidor al resolver las rutas
 │   ├── fs-allow.ts          Carpetas que Vite debe servir si el contenido está fuera del proyecto
 │   ├── site-theme.ts        Alias de Vite al CSS propio del sitio (opción `theme`)
+│   ├── static-folders-dev.ts  Middleware de dev que sirve las carpetas de `static`
 │   ├── tailwind.ts          El plugin de Tailwind, salvo que el sitio ya lo registrase
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
 │   └── build/
 │       ├── build-done.ts    Lo que corre en astro:build:done
 │       ├── client-sitemap.ts  Suma las páginas del consumidor al sitemap
 │       ├── pagefind.ts      Índice de búsqueda tras el build
+│       ├── copy-static-folders.ts  Copia a dist/ las carpetas de `static`, tal cual
 │       ├── prune-orphan-assets.ts   Borra de `_astro/` los recursos que ningún texto del build enlaza
 │       └── bound-animation-loops.ts   Limita a una pasada los WebP animados infinitos
 ├── loader/

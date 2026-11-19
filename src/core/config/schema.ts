@@ -1,5 +1,10 @@
 import { z } from 'astro/zod';
 import { contentDirProblem } from '../content/content-dir';
+import {
+  staticDestinationsOverlap,
+  staticFolderProblem,
+  type StaticFolder,
+} from '../content/static-folders';
 import { MissingTranslation } from '../i18n/translation-policy';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
@@ -207,6 +212,8 @@ export const DocsConfigSchema = z
         'Debe ser la ruta local de un archivo CSS (src/styles/site.css).',
       )
       .optional(),
+    /** Carpetas que se publican tal cual (un informe de cobertura HTML): `from` desde la raíz del proyecto, `to` bajo el sitio. */
+    static: z.array(z.strictObject({ from: z.string().min(1), to: z.string().min(1) })).optional(),
     /** Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican; equivale a `exclude_docs` de MkDocs. */
     exclude: z.array(z.string().min(1)).optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),
@@ -273,6 +280,7 @@ export const DocsConfigSchema = z
         }
       });
     });
+    validateStaticFolders(config.static ?? [], locales, issue);
     validateNavShape(config.nav ?? [], issue);
     validateFooterShape(config.footer, issue);
     if (typeof config.privacyUrl === 'object') {
@@ -289,6 +297,30 @@ export const DocsConfigSchema = z
 
 /** Lo que escribe el consumidor en `docs({...})` / `defineDocsConfig({...})`. */
 export type DocsUserConfig = z.input<typeof DocsConfigSchema>;
+
+/** Forma de cada carpeta estática y que sus destinos no se pisen entre sí. */
+function validateStaticFolders(
+  folders: readonly StaticFolder[],
+  locales: readonly string[],
+  issue: (path: (string | number)[], message: string) => void,
+): void {
+  folders.forEach((folder, index) => {
+    const problem = staticFolderProblem(folder, locales);
+    if (problem) {
+      issue(['static', index], problem);
+      return;
+    }
+    const clash = folders
+      .slice(0, index)
+      .findIndex((other) => staticDestinationsOverlap(other.to, folder.to));
+    if (clash !== -1) {
+      issue(
+        ['static', index, 'to'],
+        `«${folder.to}» se solapa con «${folders[clash]!.to}» (static[${clash}].to): dos carpetas no pueden publicarse en el mismo sitio.`,
+      );
+    }
+  });
+}
 
 /** Lo que se puede juzgar de `nav` sin conocer las páginas: forma de cada item, https y solape de dirs. */
 function validateNavShape(

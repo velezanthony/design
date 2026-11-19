@@ -91,6 +91,22 @@ Con `slug: 'index'` el archivo es la **portada** (el `README.md` de la raíz, po
 es `guia`, igual que un `index.md` nativo; si además hay un `index.md` en ese idioma, la build falla nombrando
 los dos archivos.
 
+### Carpetas estáticas
+
+`static` publica una carpeta tal cual, sin Markdown ni optimización, y la deja fuera del índice de
+búsqueda y del sitemap. Sirve para lo que ya viene generado, como un informe de cobertura HTML:
+
+```js
+static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/
+```
+
+`from` es relativa a la raíz del proyecto de Astro y debe existir al construir; si falta, el build
+falla con `static[0].from`. `to` no puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no
+pueden solaparse. El build la copia a `dist/` al final de `astro:build:done`
+(`astro/integration/build/copy-static-folders.ts`) y `astro dev` la sirve con un middleware
+(`astro/integration/static-folders-dev.ts`). La validación de forma vive en
+`core/content/static-folders.ts`.
+
 ### Pie
 
 Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al repositorio y a
