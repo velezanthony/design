@@ -41,3 +41,6 @@ todo vive en «Sin publicar».
 ### Añadido
 
 - **`Icon` admite `mail` y `linkedin`** (la segunda rellena, como `github`).
+- **`InlineList`, `Text` y `SectionHead`**, subidos desde el portfolio: `components/atoms/display/InlineList.astro`,
+  `components/atoms/display/Text.astro` y `components/molecules/content/SectionHead.astro` (esta última sobre
+  `Heading` y `Link`). Genéricas: sin datos ni textos propios. Ver «Piezas sueltas» en la documentación.

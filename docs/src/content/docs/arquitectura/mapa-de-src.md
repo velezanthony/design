@@ -187,11 +187,11 @@ components/
 ├── atoms/
 │   ├── form/        Checkbox, FieldError, HelpText, Input, Label, Radio, Select, Switch, Textarea
 │   ├── actions/     Button, Link
-│   └── display/     Heading, Icon, Tag
+│   └── display/     Heading, Icon, InlineList, Tag, Text
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
 │   ├── navigation/  EditLink, LocaleSwitch, NavList, Pagination, PrevNext, TableOfContents
-│   ├── content/     Admonition, FallbackNotice, Tabs
+│   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
 │   └── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
