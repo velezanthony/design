@@ -3,7 +3,7 @@
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Cada versión lleva
 su sección; la de la versión publicada es la que se pega como notas de su Release.
 
-## 0.1.1
+## 0.2.0
 
 ### Arreglado
 
