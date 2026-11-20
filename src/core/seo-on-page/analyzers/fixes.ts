@@ -38,13 +38,18 @@ export function siblingPath(
   return localizedPath(stripLocale(sourcePath, ownLocale, defaultLocale), locale, defaultLocale);
 }
 
+/** Nombre de la página como se escribe en la config: la portada tiene slug vacío, pero se declara como `index`. */
+function entryName(page: FixPage): string {
+  return page.slug || 'index';
+}
+
 /** Una página externa no tiene frontmatter: su clave vive en la entrada de `docs.config.mjs`, no en un archivo. */
 function where(page: FixPage, key: string): string {
   const scoped = `\`${scopedKey(key, page.kind)}\``;
   if (page.kind === 'client')
     return `${scoped} de \`${page.sourcePath}\` (o lo que le pase a su layout)`;
   return page.kind === 'external'
-    ? `${scoped} de la entrada «${page.slug}» en docs.config.mjs`
+    ? `${scoped} de la entrada «${entryName(page)}» en docs.config.mjs`
     : `${scoped} en el frontmatter de \`${page.sourcePath}\``;
 }
 
@@ -113,7 +118,7 @@ export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): 
       const locale = detail.missingLocale ?? '';
       const twin = `\`${siblingPath(page.sourcePath, page.locale, locale, defaultLocale)}\``;
       return page.kind === 'external'
-        ? `Crea ${twin} o declara \`external[].translations\` en la entrada «${page.slug}» de docs.config.mjs.`
+        ? `Crea ${twin} o declara \`external[].translations\` en la entrada «${entryName(page)}» de docs.config.mjs.`
         : `Crea ${twin} o declara \`translations: omit\` en el frontmatter de ${file}.`;
     }
     case IssueKind.CANONICAL_MISMATCH:
@@ -121,7 +126,7 @@ export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): 
     case IssueKind.LINK_TO_NOINDEX:
       return `Quita de ${file} el enlace a ${slugs(detail.related)} o, si debe indexarse, quita \`seo.noindex\` de esa página.`;
     case IssueKind.ORPHAN_PAGE:
-      return `Enlaza «${page.slug}» desde el cuerpo de otra página de su idioma (\`[texto](./${basename(page.sourcePath)})\`) o declárala en \`nav\` o \`sidebar\` de docs.config.mjs.`;
+      return `Enlaza «${entryName(page)}» desde el cuerpo de otra página de su idioma (\`[texto](./${basename(page.sourcePath)})\`) o declárala en \`nav\` o \`sidebar\` de docs.config.mjs.`;
     case IssueKind.IMAGE_ALT_MISSING: {
       const images = (detail.images ?? []).map((src) => `\`${src}\``).join(', ');
       return `Describe en ${file} ${images ? `las imágenes ${images}` : 'las imágenes sin texto'}: \`![qué se ve](ruta)\`. Si una es decorativa, escríbela como \`<img alt="">\`.`;
@@ -134,7 +139,7 @@ export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): 
     }
     case IssueKind.TRANSLATION_POLICY_CONFLICT: {
       if (page.kind === 'external') {
-        return `Declara una sola \`external[].translations\` en la entrada «${page.slug}» de docs.config.mjs.`;
+        return `Declara una sola \`external[].translations\` en la entrada «${entryName(page)}» de docs.config.mjs.`;
       }
       const files = (detail.groupLocales ?? [page.locale])
         .map((locale) => `\`${siblingPath(page.sourcePath, page.locale, locale, defaultLocale)}\``)

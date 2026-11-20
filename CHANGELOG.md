@@ -11,6 +11,8 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   `translations: { missing: … }` en `docs.config.mjs`, una página sin traducción ya no avisa «Declara
   `translations`» al arrancar ni resta salud en el panel SEO: el aviso solo miraba el frontmatter de
   cada página. Es el caso de quien viene de MkDocs con `fallback`.
+- **El panel SEO nombra la portada externa como «index».** Las ayudas para arreglar una página
+  externa usada como portada decían «la entrada «»», porque su slug interno es vacío.
 
 ## 0.1.0
 
