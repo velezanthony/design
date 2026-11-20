@@ -3,6 +3,15 @@
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Cada versión lleva
 su sección; la de la versión publicada es la que se pega como notas de su Release.
 
+## 0.1.1
+
+### Arreglado
+
+- **Una política de traducción declarada en la config del sitio cuenta como declarada.** Con
+  `translations: { missing: … }` en `docs.config.mjs`, una página sin traducción ya no avisa «Declara
+  `translations`» al arrancar ni resta salud en el panel SEO: el aviso solo miraba el frontmatter de
+  cada página. Es el caso de quien viene de MkDocs con `fallback`.
+
 ## 0.1.0
 
 ### Cambios que rompen
