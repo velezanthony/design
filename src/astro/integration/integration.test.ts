@@ -249,7 +249,7 @@ describe('astro:config:setup: módulo virtual', () => {
       publicDir: 'file:///site/public/',
       root: 'file:///site/',
     });
-    expect(data.translations).toEqual({ missing: MissingTranslation.LINK });
+    expect(data.translations).toEqual({ missing: MissingTranslation.LINK, declared: false });
   });
 
   it('lleva el catálogo fusionado por idioma, con los textos del consumidor encima', async () => {

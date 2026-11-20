@@ -46,7 +46,9 @@ export function buildSeoTree(input: SeoInput): SeoTree {
   // Los conflictos de política los reporta `buildSeoTree` como incidencia (policy sin definir).
   const { policies } = resolvePolicies(pages, config.translations.missing);
   const undeclared = new Map(
-    undeclaredMissing(pages, config.locales).map(({ slug, missing }) => [slug, new Set(missing)]),
+    undeclaredMissing(pages, config.locales, config.translations.declared).map(
+      ({ slug, missing }) => [slug, new Set(missing)],
+    ),
   );
 
   const facts: SeoPageFacts[] = sorted.map((page) => {

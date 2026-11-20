@@ -132,6 +132,10 @@ describe('undeclaredMissing', () => {
     expect(undeclaredMissing([page('i', 'en')], ['en'])).toEqual([]);
   });
 
+  it('con la política declarada en la config del sitio no avisa', () => {
+    expect(undeclaredMissing([page('install', 'en')], locales, true)).toEqual([]);
+  });
+
   it('varios grupos y varios idiomas ausentes, en orden', () => {
     expect(
       undeclaredMissing(

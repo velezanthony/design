@@ -41,7 +41,8 @@ export interface ResolvedConfig {
   exclude: string[];
   locales: Locale[];
   defaultLocale: Locale;
-  translations: { missing: MissingTranslation };
+  /** `declared`: el sitio eligió la política; entonces una traducción ausente no es un olvido. */
+  translations: { missing: MissingTranslation; declared: boolean };
   ui: UiOverrides;
   external: ExternalDoc[];
   sidebar?: SidebarItem[];
@@ -89,7 +90,10 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     exclude: config.exclude ?? [],
     locales,
     defaultLocale: config.defaultLocale ?? locales[0]!, // el esquema exige al menos un idioma
-    translations: { missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION },
+    translations: {
+      missing: config.translations?.missing ?? DEFAULT_MISSING_TRANSLATION,
+      declared: config.translations?.missing !== undefined,
+    },
     ui: config.ui ?? {},
     external: config.external ?? [],
     layout: resolveLayout(config.layout),

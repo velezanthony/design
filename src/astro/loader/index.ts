@@ -131,7 +131,11 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
       ...validateFooter(config.footer?.links ?? [], pageSlugs),
     );
   }
-  for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {
+  for (const { slug, missing } of undeclaredMissing(
+    pages,
+    config.locales,
+    config.translations.declared,
+  )) {
     context.logger.warn(
       `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`translations\` para elegir qué ve quien no tiene traducción.`,
     );

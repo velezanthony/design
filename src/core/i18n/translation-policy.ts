@@ -55,12 +55,13 @@ export function sourceLocale(
   return locales.find((locale) => locale in available) ?? defaultLocale;
 }
 
-/** Grupos incompletos sin `translations` declarado (traducciones quizá olvidadas); un sitio monolingüe no devuelve nada. */
+/** Grupos incompletos sin `translations` declarado (traducciones quizá olvidadas); un sitio monolingüe, o uno con política en su config, no devuelve nada. */
 export function undeclaredMissing(
   pages: Page[],
   locales: Locale[],
+  siteDeclared = false,
 ): { slug: string; missing: Locale[] }[] {
-  if (locales.length <= 1) return [];
+  if (locales.length <= 1 || siteDeclared) return [];
   const result: { slug: string; missing: Locale[] }[] = [];
   for (const [slug, group] of groupBySlug(pages)) {
     if (group.some((page) => page.translations !== undefined)) continue;

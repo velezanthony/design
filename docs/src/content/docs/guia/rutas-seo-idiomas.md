@@ -216,7 +216,8 @@ externo, `CHANGELOG.md` y `CHANGELOG.es.md`. Un sufijo que no está en `locales`
 La política se decide por **grupo de traducción** (todas las versiones de un slug) en
 `resolvePolicies` (`src/core/i18n/translation-policy.ts`): la declarada por alguna de sus páginas
 (frontmatter o `external[].translations`) o, si no, la base. Dos archivos del mismo grupo con valores
-distintos rompen el build. Una gemela ausente **sin** política declarada solo avisa.
+distintos rompen el build. Una gemela ausente **sin** política declarada, ni en sus páginas ni en la
+config del sitio, solo avisa.
 
 #### Si vienes de MkDocs
 

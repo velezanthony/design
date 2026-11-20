@@ -39,6 +39,7 @@ describe('resolveConfig: valores por defecto', () => {
     expect(config.locales).toEqual(['en']);
     expect(config.defaultLocale).toBe('en');
     expect(config.translations.missing).toBe(MissingTranslation.LINK);
+    expect(config.translations.declared).toBe(false);
     expect(config.external).toEqual([]);
     expect(config.seo.titleSuffix).toBe('Design');
     expect(config.sitemap).toEqual({ include: [] });
@@ -68,6 +69,7 @@ describe('resolveConfig: valores por defecto', () => {
     });
     expect(config.defaultLocale).toBe('es');
     expect(config.translations.missing).toBe('omit');
+    expect(config.translations.declared).toBe(true);
     expect(config.seo.titleSuffix).toBe('X');
     expect(config.seo.description).toEqual({ en: 'Docs', es: 'Documentación' });
   });
