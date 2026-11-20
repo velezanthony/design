@@ -13,6 +13,11 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   cada página. Es el caso de quien viene de MkDocs con `fallback`.
 - **El panel SEO nombra la portada externa como «index».** Las ayudas para arreglar una página
   externa usada como portada decían «la entrada «»», porque su slug interno es vacío.
+- **Solo una imagen sola en su párrafo se pinta como captura.** Antes toda imagen del contenido iba
+  en bloque, a todo el ancho y con borde: tres insignias de shields.io salían apiladas y de ~800 px y
+  un `<img width="300">` se ignoraba. Ahora las insignias, varias imágenes en un párrafo, una imagen
+  en el texto o en un enlace y un `<img>` en HTML conservan su tamaño natural, en línea y sin borde;
+  `<img align="right">` flota como en GitHub. Las capturas no cambian.
 
 ## 0.1.0
 

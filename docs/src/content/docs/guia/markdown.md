@@ -34,7 +34,8 @@ flowchart TD
   ga --> ad["admonitions"]
   ad --> tb["tabs"]
   tb --> st["scrollableTables"]
-  st --> mm["mermaid"]
+  st --> ii["inlineImages"]
+  ii --> mm["mermaid"]
   mm --> cl["codeLanguages"]
   cl --> rd["restoreDirectives"]
   rd --> sh["Shiki<br/>github-light-default / github-dark-default"]
@@ -49,6 +50,7 @@ El orden lo fija `markdownPlugins` en `register.ts`, y no es arbitrario:
 | `admonitions` | `admonitions.ts` | `:::tip[Título]` → `<aside class="admonition" data-kind>`; con `{collapsed}`, un `<details>`. Un contenedor con nombre desconocido rompe el build. |
 | `tabs` | `tabs.ts` | `::::tabs` con `:::tab[Etiqueta]` dentro → pestañas. Sin JavaScript se ven apiladas con su etiqueta. |
 | `scrollableTables` | `tables.ts` | Envuelve cada tabla en un `div.table-scroll` enfocable que se desplaza en horizontal. |
+| `inlineImages` | `images.ts` | Marca con `p.docs-inline-images` el párrafo que mezcla texto e imágenes: el CSS no ve el texto, y sin la marca una imagen única entre palabras se pintaría como captura. |
 | `mermaid` | `mermaid.ts` | Un bloque `mermaid` pasa a `.docs-mermaid[data-mermaid]` con el código dentro, sin Shiki. El cliente lo sustituye por el SVG; sin JavaScript se lee el código. |
 | `codeLanguages` | `code-languages.ts` | Avisa de bloques con fence sin lenguaje y de lenguajes que Shiki no conoce. |
 | `restoreDirectives` | `restore-directives.ts` | **El último**: devuelve a texto las directivas que nadie reclamó. |
@@ -93,6 +95,18 @@ Las alertas de GitHub son la opción preferida para archivos que también se lee
   copiar (`client/content/copy-code.ts`). La etiqueta es CSS puro sobre `data-language`.
 - `text`, `txt`, `plain` y `plaintext` significan «texto plano a propósito»: ni avisan ni llevan
   etiqueta.
+
+## Imágenes
+
+Una imagen **sola en su párrafo** (`![alt](captura.png)` en su propia línea) es una captura: bloque,
+ancho de la columna con su desborde (`--img-bleed`, `--img-max`), borde y esquinas redondeadas. Las
+demás conservan su tamaño natural, en línea y sin borde, con `max-width: 100%`: insignias, varias
+imágenes en el mismo párrafo, una imagen dentro del texto o de un enlace y un `<img width="300">`
+escrito en HTML. Un `<img align="right">` (o `left`) flota como en GitHub.
+
+El CSS no ve el texto de un párrafo, así que `inlineImages` marca los que mezclan texto e imágenes.
+Fuera de la documentación ese plugin no corre: allí una imagen que sea el único elemento entre
+palabras se sigue pintando como captura.
 
 ## Diagramas
 

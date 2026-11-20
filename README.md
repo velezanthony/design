@@ -587,6 +587,11 @@ flowchart LR
 ```
 ````
 
+Imágenes: solo una imagen sola en su párrafo se pinta como captura (bloque, ancho de la columna,
+borde y esquinas). Las insignias, varias imágenes en un párrafo, una imagen dentro del texto o de un
+enlace y un `<img width="…">` en HTML conservan su tamaño natural, en línea y sin borde; un
+`<img align="right">` flota como en GitHub.
+
 ## Páginas propias del sitio
 
 Además de la documentación, un sitio puede tener páginas suyas en `src/pages/` (portada, currículum)

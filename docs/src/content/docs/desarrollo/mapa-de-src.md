@@ -291,6 +291,7 @@ astro/
 │   ├── github-alerts.ts     Citas > [!NOTE] como admoniciones
 │   ├── tabs.ts              ::::tabs con :::tab[Etiqueta]
 │   ├── tables.ts            Envuelve cada tabla en un contenedor con scroll
+│   ├── images.ts            Marca los párrafos que mezclan texto e imágenes (no son capturas)
 │   ├── mermaid.ts           Bloques mermaid → .docs-mermaid
 │   ├── code-languages.ts    Alias de lenguajes que Shiki no trae
 │   └── restore-directives.ts  Devuelve a texto las directivas que nadie reclamó

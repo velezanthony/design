@@ -5,7 +5,14 @@
     max-width: var(--prose-measure);
   }
 
-  & > :is(pre, .docs-code, .docs-tabs, .docs-mermaid, p:has(> img, > .docs-zoom)) {
+  &
+    > :is(
+      pre,
+      .docs-code,
+      .docs-tabs,
+      .docs-mermaid,
+      p:not(.docs-inline-images):has(> :is(img, .docs-zoom):only-child)
+    ) {
     max-width: var(--wide-max);
   }
 
@@ -224,40 +231,59 @@
     border-top: 1px solid var(--color-rule);
   }
 
-  /* En móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o todo el documento haría scroll lateral. */
+  /* Insignias, varias imágenes seguidas, una en el texto o un `<img width>`: tamaño natural y en línea
+     (el preflight de Tailwind las hace bloque). */
   & img {
+    @apply inline h-auto max-w-full;
+  }
+
+  /* Captura: una imagen sola en su párrafo; `.docs-inline-images` (astro/markdown/images.ts) marca los que además llevan texto, que el CSS no ve. En móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o todo el documento haría scroll lateral. */
+  & p:not(.docs-inline-images) > img:only-child,
+  & p:not(.docs-inline-images) > .docs-zoom:only-child > img {
     display: block;
     width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
     max-width: var(--img-max);
-    height: auto;
     border: 1px solid var(--color-rule);
     border-radius: 4px;
   }
 
-  & p:has(> img, > .docs-zoom) {
+  & p:not(.docs-inline-images):has(> :is(img, .docs-zoom):only-child) {
     margin-top: 2em;
   }
 
-  /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la captura y esta rellena el
-     botón, así que el foco rodea la imagen y no cambia nada de la maquetación. */
+  /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la imagen y esta lo rellena,
+     así que el foco rodea la imagen y no cambia nada de la maquetación. */
   & .docs-zoom {
-    @apply block cursor-zoom-in rounded-[4px] p-0;
+    @apply inline-block cursor-zoom-in p-0 align-middle;
+  }
+
+  & p:not(.docs-inline-images) > .docs-zoom:only-child {
+    @apply block rounded-[4px];
     width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
     max-width: var(--img-max);
   }
 
-  & .docs-zoom > img {
+  & p:not(.docs-inline-images) > .docs-zoom:only-child > img {
     @apply w-full max-w-none;
+  }
+
+  /* `align` de HTML, como en GitHub: si el zoom envuelve la imagen, el que flota es el botón. */
+  & .docs-zoom:has(> img[align='right']) {
+    @apply float-right ml-4;
+  }
+
+  & .docs-zoom:has(> img[align='left']) {
+    @apply float-left mr-4;
   }
 
   /* Dentro de una caja (pestaña, admonición) no hay margen al que sobresalir: la captura se ajusta
      a la caja o se sale de su borde. */
-  & :is(.docs-tab-panel, .admonition) :is(img, .docs-zoom) {
+  & :is(.docs-tab-panel, .admonition) p:not(.docs-inline-images) > :is(img, .docs-zoom):only-child {
     @apply w-full max-w-full;
   }
 
   /* El aire extra sobre una captura separa del texto corrido; dentro de una caja ya lo da su padding. */
-  & .docs-tab-panel p:has(> img, > .docs-zoom) {
+  & .docs-tab-panel p:not(.docs-inline-images):has(> :is(img, .docs-zoom):only-child) {
     @apply mt-0;
   }
 

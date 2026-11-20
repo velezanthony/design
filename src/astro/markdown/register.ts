@@ -3,6 +3,7 @@ import { admonitions } from './admonitions';
 import { codeLanguages, SHIKI_LANG_ALIAS } from './code-languages';
 import type { MarkdownEnv } from './env';
 import { githubAlerts } from './github-alerts';
+import { inlineImages } from './images';
 import { mermaid } from './mermaid';
 import { restoreDirectives } from './restore-directives';
 import { scrollableTables } from './tables';
@@ -18,6 +19,7 @@ export function markdownPlugins(
     admonitions(env),
     tabs(env),
     scrollableTables(env),
+    inlineImages(env),
     mermaid(env),
     codeLanguages(env, langAlias),
     restoreDirectives,
