@@ -19,6 +19,8 @@ import ReportDialog from '../organisms/shared/ReportDialog.astro';
 interface Props {
   view: Omit<ComponentProps<typeof DocsLayout>, 'year'>;
   year: number;
+  /** Pie configurado (`components.Footer`), que pasa la ruta; sin él, el de la librería. */
+  Footer?: ComponentProps<typeof DocsLayout>['Footer'];
   model?: InspectorModel;
   slug: string;
   locale: string;
@@ -29,10 +31,11 @@ interface Props {
   report?: ComponentProps<typeof ReportDialog>;
 }
 
-const { view, year, model, slug, locale, pagesHref, prompts, failures, report } = Astro.props;
+const { view, year, Footer, model, slug, locale, pagesHref, prompts, failures, report } =
+  Astro.props;
 ---
 
-<DocsLayout {...view} year={year}>
+<DocsLayout {...view} year={year} Footer={Footer}>
   <slot name="head" slot="head" />
   <PanelIntro title={model ? slugLabel(slug) : PANEL_LABELS.pageNotFound} strings={view.strings} />
   <ClientPageFailures failures={failures} />

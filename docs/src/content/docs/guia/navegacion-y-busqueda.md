@@ -173,8 +173,10 @@ El componente sustituye entero al pie de la librería y recibe estas props (`Foo
 
 - **Cómo llega.** La integración comprueba la ruta y sirve el módulo virtual
   `virtual:@velezanthony/design/components/Footer`, que reexporta ese archivo o, sin `components`,
-  `DocsFooter`. Lo importa la ruta de las páginas de docs (`astro/routes/doc.astro`) y se lo pasa a
-  `DocsLayout` por su prop `Footer`: los componentes no leen módulos virtuales. Un layout propio que use
+  `DocsFooter`. Lo importan la ruta de las páginas de docs (`astro/routes/doc.astro`) y las del panel
+  SEO (`astro/routes/seo-on-page/`), que se lo pasan a `DocsLayout` por su prop `Footer`: los
+  componentes no leen módulos virtuales. Así el panel, solo de desarrollo, lleva el mismo pie que el
+  sitio. Un layout propio que use
   `DocsLayout` puede pasarle su pie por esa misma prop.
 - **Con analítica,** el pie propio es quien da la forma de retirar el consentimiento:
   `CookieSettingsButton` es el botón de «Preferencias de cookies» de `DocsFooter`, con el atributo
@@ -182,7 +184,7 @@ El componente sustituye entero al pie de la librería y recibe estas props (`Foo
 - **El `<body>` es una columna flexible:** `mt-auto` en el `<footer>` lo deja abajo en una página corta.
 - **Rompe el build:** una ruta que no existe (nombra `components.Footer` y dónde se buscó), una que no
   es `.astro` o es una URL, y cualquier otra clave dentro de `components` (`components.Header: opción
-  desconocida.`). Las pantallas del panel SEO, solo de desarrollo, siguen con el pie de la librería.
+  desconocida.`).
 
 ## Búsqueda
 

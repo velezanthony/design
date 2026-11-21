@@ -1,6 +1,7 @@
 ---
 /* Contenedor de la vista general del panel SEO; solo existe con `astro dev`. */
 import Fonts from '../Fonts.astro';
+import Footer from 'virtual:@velezanthony/design/components/Footer';
 import { overviewModel } from '../../../core/seo-on-page/pages/overview/model';
 import OverviewPage from '../../../components/seo-on-page/pages/OverviewPage.astro';
 import { SCREEN_LABELS } from '../../../core/seo-on-page/labels';
@@ -32,6 +33,7 @@ const report = overviewReport(tree, siteConfig);
 <OverviewPage
   view={view}
   year={new Date().getFullYear()}
+  Footer={Footer}
   model={model}
   locales={siteConfig.locales}
   failures={failures}

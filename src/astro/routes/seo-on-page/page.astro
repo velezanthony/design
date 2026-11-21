@@ -2,6 +2,7 @@
 /* Contenedor del inspector: una página e idioma elegidos por la query (`?slug=…&locale=…`; la
    portada tiene slug vacío). Ruta bajo demanda por lo mismo que la tabla. */
 import Fonts from '../Fonts.astro';
+import Footer from 'virtual:@velezanthony/design/components/Footer';
 import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model';
 import { findEntry } from '../../../core/seo-on-page/tree/keys';
 import InspectorPage from '../../../components/seo-on-page/pages/InspectorPage.astro';
@@ -60,6 +61,7 @@ const view = panelView({
 <InspectorPage
   view={view}
   year={new Date().getFullYear()}
+  Footer={Footer}
   model={model}
   slug={slug}
   locale={locale}

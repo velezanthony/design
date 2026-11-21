@@ -13,7 +13,9 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   `FooterProps`, exportado por `@velezanthony/design/integration`). Llega por el módulo virtual
   `virtual:@velezanthony/design/components/Footer`, y `DocsLayout` acepta el componente en su prop
   `Footer`. Una ruta inexistente, un archivo que no es `.astro` o una clave desconocida en `components`
-  rompen el build con la ruta del campo. Sin `components`, el pie es el de siempre.
+  rompen el build con la ruta del campo. Sin `components`, el pie es el de siempre. Las pantallas del
+  panel SEO (`/seo-on-page/`, solo en `astro dev`) llevan el mismo pie: sus rutas lo pasan a cada
+  pantalla, que lo reenvía a `DocsLayout`.
 - **`CookieSettingsButton`**, el botón «Preferencias de cookies» que reabre el aviso de consentimiento
   (`data-consent-open`), como átomo propio en `atoms/actions/`. Lo usa `DocsFooter` y puede usarlo un pie
   propio, con `strings` y una `class` opcional.

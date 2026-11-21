@@ -20,6 +20,8 @@ import ReportDialog from '../organisms/shared/ReportDialog.astro';
 interface Props {
   view: Omit<ComponentProps<typeof DocsLayout>, 'year'>;
   year: number;
+  /** Pie configurado (`components.Footer`), que pasa la ruta; sin él, el de la librería. */
+  Footer?: ComponentProps<typeof DocsLayout>['Footer'];
   model: OverviewModel;
   locales: string[];
   failures: ComponentProps<typeof ClientPageFailures>['failures'];
@@ -27,11 +29,11 @@ interface Props {
   report: ComponentProps<typeof ReportDialog>;
 }
 
-const { view, year, model, locales, failures, overrides, report } = Astro.props;
+const { view, year, Footer, model, locales, failures, overrides, report } = Astro.props;
 const lede = OVERVIEW_LABELS.lede(view.siteName, model.kpis.pages.pages, locales);
 ---
 
-<DocsLayout {...view} year={year}>
+<DocsLayout {...view} year={year} Footer={Footer}>
   <slot name="head" slot="head" />
   <PanelIntro title={SCREEN_LABELS.overview} lede={lede} strings={view.strings}>
     <ReportButton slot="actions" scope="site" />

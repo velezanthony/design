@@ -2,6 +2,7 @@
 /* Contenedor de la tabla de páginas. Los filtros viven en la query de la URL (`parseFilters`),
    así que es una ruta bajo demanda: una prerenderizada no vería `Astro.url.searchParams`. */
 import Fonts from '../Fonts.astro';
+import Footer from 'virtual:@velezanthony/design/components/Footer';
 import { listingModel } from '../../../core/seo-on-page/pages/listing/model';
 import PagesPage from '../../../components/seo-on-page/pages/PagesPage.astro';
 import { SCREEN_LABELS } from '../../../core/seo-on-page/labels';
@@ -31,6 +32,7 @@ const report = listingReport(tree, Astro.url.searchParams, siteConfig);
 <PagesPage
   view={view}
   year={new Date().getFullYear()}
+  Footer={Footer}
   model={model}
   failures={failures}
   report={report}
