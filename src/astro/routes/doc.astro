@@ -5,6 +5,7 @@ import Footer from 'virtual:@velezanthony/design/components/Footer';
 import DocPage from '../../components/pages/DocPage.astro';
 import { docNavTrees, docRoutes, docView, type DocRoute } from '../views/doc';
 import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
+import { loadDocIndex } from '../data/doc-index';
 import { siteImageSizes } from '../data/image-sizes';
 import { siteConfig } from '../data/site-config';
 
@@ -30,6 +31,8 @@ const data = entries.map((item) => item.data);
 const navTrees = entry.body?.includes('::nav-tree')
   ? docNavTrees({ route, config: siteConfig, data })
   : undefined;
+/* Un `_index.md` o una carpeta de `indexes`: su listado, debajo del cuerpo (o solo, desde la página 2). */
+const index = await loadDocIndex(route, data, headings);
 const view = docView({
   route,
   config: siteConfig,
@@ -44,6 +47,7 @@ const view = docView({
   year={new Date().getFullYear()}
   Footer={Footer}
   navTrees={navTrees}
+  index={index}
 >
   <Fonts slot="head" />
   <Content />

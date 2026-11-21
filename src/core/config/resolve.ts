@@ -5,6 +5,7 @@ import type { Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
+import { resolveIndexes, type ResolvedIndexes } from './indexes';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
 import {
@@ -63,6 +64,8 @@ export interface ResolvedConfig {
   /** Con `include`, `sitemap.xml` es un índice: las páginas propias y estos sitemaps del dominio. */
   sitemap: { include: string[] };
   layout: ResolvedLayout;
+  /** Índices generados; sin definir, solo los `index.md` con `index.layout` llevan listado. */
+  indexes?: ResolvedIndexes;
 }
 
 const DEFAULT_LOCALES = ['en'];
@@ -84,7 +87,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
       }),
     );
   }
-  const config = result.data;
+  const { indexes, ...config } = result.data;
   const locales = config.locales ?? DEFAULT_LOCALES;
   return {
     ...config,
@@ -100,6 +103,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     ui: config.ui ?? {},
     external: config.external ?? [],
     layout: resolveLayout(config.layout),
+    ...(indexes && { indexes: resolveIndexes(indexes) }),
     sitemap: { include: config.sitemap?.include ?? [] },
   };
 }

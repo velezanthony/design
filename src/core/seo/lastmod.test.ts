@@ -71,4 +71,29 @@ describe('pageLastmods', () => {
   it('una página sin fecha se queda fuera: sin lastmod, no un lastmod inventado', () => {
     expect(pageLastmods([page('a', 'en', 'a.md')], url, new Map())).toEqual(new Map());
   });
+
+  it('una página con listado cambia cuando cambia la página más reciente de su carpeta', () => {
+    const dates = new Map([
+      ['b/_index.md', '2026-01-01T00:00:00+00:00'],
+      ['b/x.md', '2026-05-01T00:00:00+00:00'],
+      ['b/y.md', '2026-03-01T00:00:00+00:00'],
+      ['c.md', '2026-09-01T00:00:00+00:00'],
+    ]);
+    const pages = [
+      { ...page('b', 'en', 'b/_index.md'), listing: true as const },
+      page('b/x', 'en', 'b/x.md'),
+      page('b/y', 'en', 'b/y.md'),
+      page('c', 'en', 'c.md'),
+    ];
+    expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-05-01T00:00:00+00:00');
+  });
+
+  it('un índice generado (sin archivo) toma la fecha de su página más reciente', () => {
+    const dates = new Map([['b/x.md', '2026-05-01T00:00:00+00:00']]);
+    const pages = [
+      { ...page('b', 'en', 'b/_index.md'), kind: 'generated' as const, listing: true as const },
+      page('b/x', 'en', 'b/x.md'),
+    ];
+    expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-05-01T00:00:00+00:00');
+  });
 });

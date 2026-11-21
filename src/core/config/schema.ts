@@ -6,6 +6,7 @@ import {
   type StaticFolder,
 } from '../content/static-folders';
 import { MissingTranslation } from '../i18n/translation-policy';
+import { ALL_FOLDERS, IndexLayout } from './indexes';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
 import { NavIcon, type NavItem } from './nav';
@@ -45,6 +46,49 @@ export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation)
 /** Valores permitidos de las columnas laterales y del ancho: zod los lista en el mensaje de error. */
 export const PanelStateSchema = z.enum(Object.values(PanelState));
 export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
+
+/** Disposiciones de un índice generado: zod las lista en el mensaje de error. */
+export const IndexLayoutSchema = z.enum(Object.values(IndexLayout));
+
+/** Páginas por página de un índice paginado: un entero positivo. */
+export const IndexPageSizeSchema = z.number().int().min(1).max(500);
+
+/** Opciones del selector «Por página»: al menos una, todas enteros positivos. */
+export const IndexPerPageOptionsSchema = z.array(IndexPageSizeSchema).min(1);
+
+/** Carpeta del contenido como la nombra `indexes`: sin barras al principio ni al final. */
+const IndexFolderSchema = z
+  .string()
+  .min(1)
+  .refine(
+    (folder) => !folder.startsWith('/') && !folder.endsWith('/'),
+    'Carpeta sin barras al principio ni al final (articulos, no /articulos/).',
+  );
+
+const IndexOverrideSchema = z.strictObject({
+  layout: IndexLayoutSchema.optional(),
+  pageSize: IndexPageSizeSchema.optional(),
+  perPageOptions: IndexPerPageOptionsSchema.optional(),
+  image: z.boolean().optional(),
+  title: LabelSchema.optional(),
+  description: LabelSchema.optional(),
+});
+
+/* Índices generados (`indexes`): disposición, paginación y portadas por defecto, y qué carpetas sin
+   `index.md` reciben una página generada. */
+const IndexesSchema = z.strictObject({
+  layout: IndexLayoutSchema.optional(),
+  pageSize: IndexPageSizeSchema.optional(),
+  perPageOptions: IndexPerPageOptionsSchema.optional(),
+  image: z.boolean().optional(),
+  include: z
+    .union([z.literal(ALL_FOLDERS), z.array(IndexFolderSchema)], {
+      error: `Debe ser '${ALL_FOLDERS}' o una lista de carpetas (['articulos']).`,
+    })
+    .optional(),
+  exclude: z.array(IndexFolderSchema).optional(),
+  overrides: z.record(z.string(), IndexOverrideSchema).optional(),
+});
 
 /** Sufijo del `<title>`: texto (o uno por idioma), o `false` para no llevar ninguno. */
 const TitleSuffixSchema = z.union([LabelSchema, z.literal(false)]);
@@ -252,6 +296,8 @@ export const DocsConfigSchema = z
     sidebar: z.array(SidebarItemSchema).optional(),
     nav: z.array(NavItemSchema).optional(),
     footer: FooterSchema.optional(),
+    /** Índices generados: valores por defecto de los listados y carpetas sin `index.md` que reciben uno. */
+    indexes: IndexesSchema.optional(),
     /** Componentes propios que sustituyen a los de la librería: `{ Footer: './src/…/Footer.astro' }`. */
     components: ComponentsSchema.optional(),
     editUrl: z.string().optional(),
@@ -315,6 +361,20 @@ export const DocsConfigSchema = z
         }
       });
     });
+    for (const [folder, override] of Object.entries(config.indexes?.overrides ?? {})) {
+      for (const key of ['title', 'description'] as const) {
+        const label = override[key];
+        if (typeof label !== 'object') continue;
+        for (const locale of Object.keys(label)) {
+          if (!locales.includes(locale)) {
+            issue(
+              ['indexes', 'overrides', folder, key, locale],
+              `«${locale}» no está en \`locales\` (${locales.join(', ')}).`,
+            );
+          }
+        }
+      }
+    }
     validateStaticFolders(config.static ?? [], locales, issue);
     validateNavShape(config.nav ?? [], issue);
     validateFooterShape(config.footer, issue);

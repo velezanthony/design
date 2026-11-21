@@ -1,0 +1,123 @@
+---
+import type { Locale } from '../../../core/i18n/locale';
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import {
+  PAGE_PARAM,
+  PER_PAGE_PARAM,
+  type CoverView,
+  type IndexView,
+} from '../../../core/navigation/index-entries';
+import Select from '../../atoms/form/Select.astro';
+import Pagination from '../../molecules/navigation/Pagination.astro';
+import IndexCards from './IndexCards.astro';
+import IndexList from './IndexList.astro';
+import IndexTable from './IndexTable.astro';
+
+/* El listado de un índice generado en su disposición y, si tiene varias páginas, el paginador de la
+   librería con enlaces de verdad (`/carpeta/`, `/carpeta/2/`…).
+
+   Tabla y tarjetas llevan además el selector «Por página», una mejora progresiva: va oculto y solo lo
+   enseña el script (`client/content/index-pager.ts`). En la página 1 se pintan todas las entradas (las
+   de más, `hidden`) y un paginador por cada tamaño y página; el script solo decide cuál se ve, así que
+   el marcado es siempre el de estos componentes. Sin JavaScript se ve lo de siempre: las `perPage`
+   primeras y el paginador de las rutas estáticas. */
+interface Props {
+  index: IndexView<CoverView>;
+  strings: UiStrings;
+  lang: Locale;
+}
+
+const { index, strings, lang } = Astro.props;
+const empty = index.layout === 'list' ? index.sections.length === 0 : index.items.length === 0;
+const labels = {
+  nav: translate(strings, 'pagination.label'),
+  previous: `← ${translate(strings, 'pagination.prev')}`,
+  next: `${translate(strings, 'pagination.next')} →`,
+  page: (page: number) => translate(strings, 'index.page', { page: String(page) }),
+};
+/* Con una sola opción, o si todo cabe en la más pequeña, elegir no cambia nada. */
+const [smallest] = index.perPageOptions;
+const selector =
+  index.layout !== 'list' &&
+  index.perPageOptions.length > 1 &&
+  smallest !== undefined &&
+  index.total > smallest;
+const visible = index.all ? index.perPage : undefined;
+/* Los paginadores: en la página 1, uno por tamaño y página; en las demás, el suyo. */
+const pagers = index.all
+  ? index.sizes.flatMap((size) =>
+      size.hrefs.map((_href, position) => ({
+        perPage: size.perPage,
+        page: position + 1,
+        pages: size.pages,
+        hrefs: size.hrefs,
+      })),
+    )
+  : [{ perPage: index.perPage, page: index.page, pages: index.pages, hrefs: index.hrefs }];
+const pager = selector
+  ? {
+      'data-index-pager': '',
+      tabindex: '-1',
+      'data-per-page': String(index.perPage),
+      'data-options': index.perPageOptions.join(','),
+      'data-total': String(index.total),
+      'data-all': String(index.all),
+      'data-folder': index.hrefs[0],
+      'data-key': index.hrefs[0],
+      'data-param-per': PER_PAGE_PARAM,
+      'data-param-page': PAGE_PARAM,
+      'data-showing': translate(strings, 'index.showing'),
+    }
+  : {};
+---
+
+{/* Fuera de la búsqueda: cada entrada ya está indexada en su página y aquí se repetiría. */}
+<div data-index-listing data-pagefind-ignore {...pager} class="outline-none">
+  {selector && (
+    <Fragment>
+      <div data-index-per-page-field hidden class="mb-6 flex justify-end">
+        <Select
+          id="index-per-page"
+          name="por"
+          label={translate(strings, 'index.perPage')}
+          options={index.perPageOptions.map((option) => ({
+            value: String(option),
+            label: String(option),
+          }))}
+          value={String(index.perPage)}
+          inline
+          data-index-per-page
+        />
+      </div>
+      <p data-index-status aria-live="polite" class="sr-only" />
+    </Fragment>
+  )}
+  {empty ? (
+    <p class="text-muted">{translate(strings, 'index.empty')}</p>
+  ) : index.layout === 'list' ? (
+    <IndexList sections={index.sections} strings={strings} lang={lang} />
+  ) : index.layout === 'table' ? (
+    <IndexTable items={index.items} strings={strings} lang={lang} visible={visible} />
+  ) : (
+    <IndexCards items={index.items} strings={strings} lang={lang} visible={visible} />
+  )}
+  {index.layout !== 'list' &&
+    pagers.map((item) => (
+      <div
+        data-index-pagination
+        data-per={item.perPage}
+        data-page={item.page}
+        hidden={index.all && !(item.perPage === index.perPage && item.page === 1)}
+        class:list={[item.pages > 1 && 'mt-10']}
+      >
+        {item.pages > 1 && (
+          <Pagination
+            page={item.page}
+            pages={item.pages}
+            href={(page: number) => item.hrefs[page - 1] ?? item.hrefs[0]!}
+            labels={labels}
+          />
+        )}
+      </div>
+    ))}
+</div>

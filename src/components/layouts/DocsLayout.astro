@@ -195,6 +195,8 @@ const layoutScript = layoutBootstrapScript(layout);
         />
       )}
       <slot />
+      {/* Lo que va tras el contenido y fuera de `.prose`: el listado de un índice generado. */}
+      <slot name="below" slot="after" />
       <div slot="after" data-pagefind-ignore>
         {editUrl && editFile && <EditLink href={editHref(editUrl, editFile)} strings={strings} />}
         <PrevNext prev={prev} next={next} strings={strings} />

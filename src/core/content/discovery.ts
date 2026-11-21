@@ -1,4 +1,5 @@
 import type { ResolvedConfig } from '../config/resolve';
+import type { IndexLayout } from '../config/indexes';
 import type { PageSeoOverride } from '../config/schema';
 import { collectErrors, DocsError } from '../errors';
 import { localizedPath, splitLocale, type Locale } from '../i18n/locale';
@@ -6,12 +7,28 @@ import type { MissingTranslation } from '../i18n/translation-policy';
 import { findSlugCollisions, toSlug } from './slug';
 import { resolveTitle } from './title';
 
+/** Bloque `index` del frontmatter: cómo sale la página en un índice y, en un `index.md`, su listado. */
+export interface PageIndex {
+  /** Resumen en el listado; sin él, `seo.description`. */
+  summary?: string;
+  /** Portada: ruta relativa al `.md` o de `public/`, o `false`. En un `_index.md`, la política de portadas del listado (`true`/`false`). */
+  image?: string | boolean;
+  /** Texto alternativo de la portada; sin él, decorativa (`alt=""`). */
+  imageAlt?: string;
+  /** Solo en un `_index.md`: disposición del listado de su carpeta. */
+  layout?: IndexLayout;
+  pageSize?: number;
+  /** Solo en un `_index.md`: opciones del selector «Por página». */
+  perPageOptions?: number[];
+}
+
 /** Frontmatter de una página nativa que el núcleo entiende (ya validado por `docsSchema()`). */
 export interface Frontmatter {
   title?: string;
   order?: number;
   seo?: PageSeoOverride;
   translations?: MissingTranslation;
+  index?: PageIndex;
 }
 
 /** Archivo leído: `path` es relativo al contenido en nativas y a la raíz del proyecto en externas. */
@@ -22,17 +39,23 @@ export interface SourceFile {
   frontmatter?: Frontmatter;
 }
 
+/** De dónde sale una página: un `.md` de `content`, una entrada de `external[]` o un índice generado (una carpeta sin `index.md`). */
+export type PageKind = SourceFile['kind'] | 'generated';
+
 export interface Page {
   slug: string;
   locale: Locale;
   title: string;
-  kind: SourceFile['kind'];
+  kind: PageKind;
   /** Ruta tal como llegó en `SourceFile.path`. */
   sourcePath: string;
   body: string;
   order?: number;
   seo?: PageSeoOverride;
   translations?: MissingTranslation;
+  index?: PageIndex;
+  /** Lleva el listado de su carpeta: sale de un `_index.md` o es un índice generado. */
+  listing?: true;
 }
 
 /** `./x.md` y `x.md` son el mismo archivo. */
@@ -102,6 +125,34 @@ function nativeIndexKeys(files: SourceFile[], config: DiscoveryConfig): Set<stri
   return new Set(keys);
 }
 
+/** `articulos/_index` → `articulos`; `_index` → `` (portada); `undefined` si no es un `_index`. */
+function listingFolder(stem: string): string | undefined {
+  if (stem === LISTING_STEM) return '';
+  return stem.endsWith(`/${LISTING_STEM}`) ? stem.slice(0, -LISTING_STEM.length - 1) : undefined;
+}
+
+/** Nombre (sin idioma ni extensión) del archivo fuente de un índice generado. */
+const LISTING_STEM = '_index';
+
+/** Carpetas con un `index` nativo en algún idioma: ahí un `_index.md` no cuenta. */
+function indexedFolders(indexKeys: ReadonlySet<string>): Set<string> {
+  return new Set([...indexKeys].map((key) => toSlug(key.split('\0')[1] ?? '')));
+}
+
+/** Los `_index.md` que no cuentan porque su carpeta tiene un `index.md`: el loader avisa de cada uno. */
+export function ignoredListings(files: SourceFile[], config: DiscoveryConfig): string[] {
+  const indexed = indexedFolders(nativeIndexKeys(files, config));
+  return files
+    .filter((file) => file.kind === 'native')
+    .flatMap((file) => {
+      const located = attempt([], () =>
+        splitLocale(file.path, config.locales, config.defaultLocale),
+      );
+      const folder = located && listingFolder(located.stem);
+      return folder !== undefined && indexed.has(folder) ? [file.path] : [];
+    });
+}
+
 function nativePage(
   file: SourceFile,
   config: DiscoveryConfig,
@@ -112,10 +163,13 @@ function nativePage(
     splitLocale(file.path, config.locales, config.defaultLocale),
   );
   if (!located) return undefined;
+  const folder = listingFolder(located.stem);
+  if (folder !== undefined && indexedFolders(indexKeys).has(folder)) return undefined;
   const title = attempt(errors, () => resolveTitle(file.body, file.frontmatter?.title, file.path));
   if (title === undefined) return undefined;
   return {
-    slug: toSlug(readmeAsIndex(located.stem, located.locale, indexKeys)),
+    slug: folder ?? toSlug(readmeAsIndex(located.stem, located.locale, indexKeys)),
+    ...(folder !== undefined && { listing: true as const }),
     locale: located.locale,
     title,
     kind: 'native',
@@ -124,6 +178,7 @@ function nativePage(
     ...(file.frontmatter?.order !== undefined && { order: file.frontmatter.order }),
     ...(file.frontmatter?.seo && { seo: file.frontmatter.seo }),
     ...(file.frontmatter?.translations && { translations: file.frontmatter.translations }),
+    ...(file.frontmatter?.index && { index: file.frontmatter.index }),
   };
 }
 

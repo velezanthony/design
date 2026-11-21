@@ -196,4 +196,21 @@ describe('bootArticle', () => {
     bootArticle(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
   });
+
+  it('revela el selector «Por página» de un índice cuando hay navegación', () => {
+    const html = `<div data-index-pager data-per-page="9" data-options="9,18" data-total="3" data-all="true" data-folder="/a/">
+      <div data-index-per-page-field hidden><select data-index-per-page><option value="9">9</option><option value="18">18</option></select></div>
+      <ul><li data-index-item>1</li></ul></div>`;
+    const location = { href: 'https://x.dev/a/', pathname: '/a/', search: '', assign: vi.fn() };
+    const booted = env(html, { location, history: { pushState: vi.fn(), replaceState: vi.fn() } });
+    bootArticle(booted);
+    const field = booted.htmlDocument.querySelector('[data-index-per-page-field]')!;
+    expect(field.hasAttribute('hidden')).toBe(false);
+    // Sin `location` en el entorno no se toca: el selector sigue oculto.
+    const bare = env(html);
+    bootArticle(bare);
+    expect(
+      bare.htmlDocument.querySelector('[data-index-per-page-field]')!.hasAttribute('hidden'),
+    ).toBe(true);
+  });
 });

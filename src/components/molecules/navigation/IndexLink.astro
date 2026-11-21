@@ -1,0 +1,31 @@
+---
+import type { Locale } from '../../../core/i18n/locale';
+import { localeNames, translate, type UiStrings } from '../../../core/i18n/ui-strings';
+
+/* El enlace a una página desde un índice generado: su título y, si lleva al original de otro
+   idioma (política `link`), la insignia de ese idioma, como en la barra lateral. */
+interface Props {
+  href: string;
+  title: string;
+  badge?: Locale;
+  strings: UiStrings;
+  class?: string;
+}
+
+const { href, title, badge, strings, class: className } = Astro.props;
+const badgeName =
+  badge && translate(strings, 'translation.badgeLabel', { locale: localeNames[badge] ?? badge });
+---
+
+<a href={href} hreflang={badge} lang={badge} class={className}>
+  {title}
+  {badge && (
+    <span
+      role="img"
+      aria-label={badgeName}
+      class="label ml-2 border border-rule px-1 align-middle text-faint"
+    >
+      {badge}
+    </span>
+  )}
+</a>

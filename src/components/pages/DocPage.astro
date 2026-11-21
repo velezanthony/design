@@ -1,23 +1,40 @@
 ---
 import type { ComponentProps } from 'astro/types';
+import type { CoverView, IndexView } from '../../core/navigation/index-entries';
 import { splitNavTrees, type NavTreeNode } from '../../core/navigation/nav-tree';
 import DocsLayout from '../layouts/DocsLayout.astro';
 import NavTree from '../molecules/navigation/NavTree.astro';
+import IndexListing from '../organisms/content/IndexListing.astro';
 
 /* Solo pinta: la ruta lee los datos, arma el modelo y renderiza el Markdown (su `Content` llega como slot). */
 type Props = ComponentProps<typeof DocsLayout> & {
   /** Árboles de `::nav-tree`, uno por posición de `nav`: cada hueco del Markdown se rellena con el suyo. */
   navTrees?: NavTreeNode[][];
+  /** Índice generado (un `_index.md` o una carpeta de `indexes`): su listado va debajo del contenido, fuera de `.prose`. */
+  index?: IndexView<CoverView>;
 };
 
-const { navTrees, ...layout } = Astro.props;
-const segments = navTrees && splitNavTrees(await Astro.slots.render('default'));
+const { navTrees, index, ...layout } = Astro.props;
+/* Desde la página 2 de un índice el cuerpo no se repite: solo el título y en qué página se está. */
+const heading = index?.heading;
+const segments = !heading && navTrees && splitNavTrees(await Astro.slots.render('default'));
+const headings = heading ? index.headings : [...layout.headings, ...(index?.headings ?? [])];
 ---
 
-<DocsLayout {...layout}>
+<DocsLayout {...layout} headings={headings}>
   <slot name="head" slot="head" />
   <slot name="scripts" slot="scripts" />
-  {segments ? (
+  {index && (
+    <div slot="below" class="mt-12">
+      <IndexListing index={index} strings={layout.strings} lang={layout.lang} />
+    </div>
+  )}
+  {heading ? (
+    <Fragment>
+      <h1>{heading.title}</h1>
+      <p class="text-faint">{heading.page}</p>
+    </Fragment>
+  ) : segments ? (
     segments.map((segment) =>
       segment.kind === 'html' ? (
         <Fragment set:html={segment.html} />

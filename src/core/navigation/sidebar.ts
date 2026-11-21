@@ -47,8 +47,8 @@ interface Entry {
 /** Secciones anidadas como máximo hasta aquí: sección → sección → hoja son tres niveles. */
 const MAX_SECTION_DEPTH = 2;
 
-/** `getting-started` → `Getting started`. */
-function humanize(segment: string): string {
+/** Nombre legible de una carpeta: `getting-started` → `Getting started`. */
+export function humanize(segment: string): string {
   const text = segment.replace(/[-_]+/g, ' ');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

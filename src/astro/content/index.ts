@@ -19,6 +19,7 @@ const { default: config } = await import('virtual:@velezanthony/design/config').
 export const collections = {
   docs: defineCollection({
     loader: docsLoaderFromResolved(config as unknown as VirtualConfig),
-    schema: docsSchema(),
+    // En forma de función para recibir `image()`: las portadas relativas pasan por `astro:assets`.
+    schema: ({ image }) => docsSchema(image),
   }),
 };

@@ -123,7 +123,11 @@ import { docsLoader, docsSchema } from '@velezanthony/design/loader';
 import docsConfig from '../docs.config.mjs';
 
 export const collections = {
-  docs: defineCollection({ loader: docsLoader(docsConfig), schema: docsSchema() }),
+  // `image` deja que las portadas relativas de los índices pasen por astro:assets.
+  docs: defineCollection({
+    loader: docsLoader(docsConfig),
+    schema: ({ image }) => docsSchema(image),
+  }),
 };
 ```
 
@@ -390,6 +394,45 @@ es el botón que reabre el aviso de consentimiento. Rompe el build una ruta inex
 `.astro` y cualquier otra clave en `components`. Detalle en
 [Pie propio](docs/src/content/docs/guia/navegacion-y-busqueda.md#pie-propio-componentsfooter).
 
+### `indexes`
+
+Índices generados: la página de una carpeta que lista lo que cuelga de ella, en lista, tabla o
+tarjetas. La forma recomendada es un `_index.md` en la carpeta (como en Hugo), que pone el título, la
+entradilla, el `seo` y el bloque `index`, y se traduce con `_index.en.md`; no necesita config. Un
+`index.md` en la misma carpeta gana siempre (y el `_index.md` se ignora con un aviso). La opción
+`indexes` pone los valores por defecto y activa el índice en las carpetas sin ninguno de los dos:
+
+```js
+indexes: {
+  layout: 'list', // 'list' (por defecto) | 'table' | 'cards'
+  pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla (la lista no se pagina)
+  perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
+  image: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
+  include: 'all', // 'all' (por defecto) | ['articulos', 'guia/avanzado']: carpetas exactas
+  exclude: [], // carpetas que no, aunque `include` las abarque
+  overrides: {
+    articulos: { layout: 'cards', pageSize: 12, perPageOptions: [12, 24, 48], image: true, title: { es: 'Artículos', en: 'Articles' }, description: { es: '…', en: '…' } },
+  },
+},
+```
+
+En el frontmatter, `_index.md` lleva `index: { layout, pageSize, perPageOptions, image }` (gana a la config) y cada
+página `index: { summary, image, imageAlt }`: `summary` sustituye a `seo.description` en el listado e
+`image` es una ruta relativa al `.md` (pasa por astro:assets), de `public/` o `false`. Precedencia de
+la portada: la página → la carpeta (`_index.md` u `overrides`) → `indexes.image` → la de la librería.
+Una imagen que no existe avisa y deja la de la librería. Las portadas son decorativas (`alt=""`) salvo
+con `imageAlt`.
+
+La tabla y las tarjetas van de la más reciente a la más antigua (fecha del último commit; lo que no
+tiene commit va primero y sin fecha) y se paginan en `/carpeta/2/`, `/carpeta/3/`…, que son
+`noindex`, canónicas de sí mismas y fuera del sitemap. Con JavaScript, un selector «Por página»
+(`perPageOptions`; el `pageSize` se añade si falta) cambia el tamaño sin salir de la página 1, que
+trae todas las entradas: el estado va en la URL (`?por=18&pagina=2`) y se recuerda por índice en
+`localStorage`; sin JavaScript queda oculto. Sin `_index.md` ni `indexes`, nada cambia.
+Una carpeta de `include`, `exclude` u `overrides` que no existe, una disposición desconocida o una
+clave de más rompen el build con su ruta. Detalle en
+[Índices de carpeta](docs/src/content/docs/guia/navegacion-y-busqueda.md#índices-de-carpeta-_indexmd-e-indexes).
+
 ### `layout`
 
 ```js
@@ -588,6 +631,8 @@ en cualquier idioma o su `dir`) y `{descriptions="false"}` quita las descripcion
 reserva, el texto es el del original y las URLs las de la barra lateral de esa ruta. Una sección que
 no existe o un atributo desconocido rompen el build con el archivo y la línea. Detalle en
 [Índice generado](docs/src/content/docs/guia/navegacion-y-busqueda.md#índice-generado-nav-tree).
+Para una página que liste su carpeta con tarjetas o una tabla paginada, usa un `_index.md` (ver
+[`indexes`](#indexes)).
 
 Los bloques de código usan Shiki (`github-light-default` / `github-dark-default`); Shiki ya
 entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la

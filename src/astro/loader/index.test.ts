@@ -678,3 +678,119 @@ describe('docsLoaderFromResolved', () => {
     expect([...made.entries.keys()]).toEqual(['en/index']);
   });
 });
+
+describe('docsLoader: índices generados', () => {
+  const bilingual = { locales: ['es', 'en'], defaultLocale: 'es' };
+
+  it('un _index.md es la página de su carpeta, con listado y su frontmatter `index`', async () => {
+    await write(
+      'src/content/docs/articulos/_index.md',
+      '---\nindex:\n  layout: cards\n  pageSize: 6\n---\n# Artículos\n\nNotas.\n',
+    );
+    await write('src/content/docs/articulos/git.md', '# Git\n');
+    const { entries } = await load({ name: 'T', ...bilingual });
+    expect(entries.has('es/articulos/_index')).toBe(false);
+    const entry = entries.get('es/articulos')!;
+    expect(entry.data).toMatchObject({
+      slug: 'articulos',
+      title: 'Artículos',
+      kind: 'native',
+      listing: true,
+      index: { layout: 'cards', pageSize: 6 },
+      sourcePath: path.join('src/content/docs', 'articulos/_index.md'),
+    });
+  });
+
+  it('un index.md gana a su _index.md, que se ignora con un aviso', async () => {
+    await write('src/content/docs/articulos/index.md', '# Portada\n');
+    await write('src/content/docs/articulos/_index.md', '# Artículos\n');
+    await write('src/content/docs/articulos/git.md', '# Git\n');
+    const { entries, warnings } = await load({ name: 'T', ...bilingual });
+    expect(entries.get('es/articulos')!.data).toMatchObject({ title: 'Portada' });
+    expect(entries.get('es/articulos')!.data.listing).toBeUndefined();
+    expect(warnings.join('\n')).toContain('articulos/_index.md');
+  });
+
+  it('con `indexes`, una carpeta sin index.md ni _index.md recibe una página por idioma', async () => {
+    await write('src/content/docs/articulos/git.md', '# Git\n');
+    await write('src/content/docs/notas-varias/a.md', '# A\n');
+    const { entries, rendered } = await load({
+      name: 'T',
+      ...bilingual,
+      nav: [{ label: { es: 'Artículos', en: 'Articles' }, dir: 'articulos' }],
+      indexes: { overrides: { articulos: { description: { es: 'Todo.', en: 'All.' } } } },
+      editUrl: 'https://github.com/x/y/edit/main/',
+      repoRoot: '.',
+    });
+    expect(entries.get('en/articulos')!.data).toMatchObject({
+      slug: 'articulos',
+      locale: 'en',
+      title: 'Articles',
+      kind: 'generated',
+      listing: true,
+      seo: { description: 'All.' },
+    });
+    expect(entries.get('en/articulos')!.data.editPath).toBeUndefined();
+    expect(entries.get('es/notas-varias')!.data.title).toBe('Notas varias');
+    expect(rendered).toContain('# Articles\n\nAll.\n');
+  });
+
+  it('el título y la entradilla generados no se leen como Markdown', async () => {
+    await write('src/content/docs/a/x.md', '# X\n');
+    const { rendered } = await load({
+      name: 'T',
+      indexes: { overrides: { a: { title: '*Uno* [dos]', description: '<b>tres</b>' } } },
+    });
+    expect(rendered).toContain('# \\*Uno\\* \\[dos\\]\n\n\\<b\\>tres\\</b\\>\n');
+  });
+
+  it('sin `indexes` no se genera nada', async () => {
+    await write('src/content/docs/articulos/git.md', '# Git\n');
+    const { entries } = await load({ name: 'T' });
+    expect([...entries.keys()]).toEqual(['en/articulos/git']);
+  });
+
+  it('`include` limita las carpetas y una carpeta que no existe es un error', async () => {
+    await write('src/content/docs/a/x.md', '# X\n');
+    await write('src/content/docs/b/y.md', '# Y\n');
+    const { entries } = await load({ name: 'T', indexes: { include: ['a'] } });
+    expect(entries.has('en/a')).toBe(true);
+    expect(entries.has('en/b')).toBe(false);
+    expect(await failure({ name: 'T', indexes: { include: ['c'] } })).toContain(
+      'indexes.include[0]',
+    );
+  });
+
+  it('el slug de un índice generado vale en `sidebar` y en `nav`', async () => {
+    await write('src/content/docs/articulos/git.md', '# Git\n');
+    const { entries } = await load({
+      name: 'T',
+      indexes: {},
+      sidebar: ['articulos'],
+      nav: [{ label: 'Artículos', slug: 'articulos' }],
+    });
+    expect(entries.has('en/articulos')).toBe(true);
+  });
+
+  it('la portada de una página: relativa, de public/, false, o la de la librería si falta', async () => {
+    await write('src/content/docs/a/img/x.png', 'png');
+    await write('public/portadas/y.png', 'png');
+    await write('src/content/docs/a/x.md', '---\nindex:\n  image: ./img/x.png\n---\n# X\n');
+    await write('src/content/docs/a/y.md', '---\nindex:\n  image: /portadas/y.png\n---\n# Y\n');
+    await write('src/content/docs/a/z.md', '---\nindex:\n  image: false\n---\n# Z\n');
+    await write(
+      'src/content/docs/a/w.md',
+      '---\nindex:\n  image: ./nada.png\n  imageAlt: Nada\n  summary: Corto.\n---\n# W\n',
+    );
+    const { entries, warnings } = await load({ name: 'T' });
+    expect(entries.get('en/a/x')!.data.index).toEqual({ cover: { asset: './img/x.png' } });
+    expect(entries.get('en/a/y')!.data.index).toEqual({ cover: { src: '/portadas/y.png' } });
+    expect(entries.get('en/a/z')!.data.index).toEqual({ cover: false });
+    expect(entries.get('en/a/w')!.data.index).toEqual({
+      cover: 'missing',
+      imageAlt: 'Nada',
+      summary: 'Corto.',
+    });
+    expect(warnings).toEqual([expect.stringContaining('«./nada.png»')]);
+  });
+});

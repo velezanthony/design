@@ -129,3 +129,21 @@ describe('sitemapIndexXml', () => {
     ).toThrow(expect.objectContaining({ hint: expect.stringContaining('otro.dev') }));
   });
 });
+
+describe('pagesOf: índices', () => {
+  it('conserva el listado y el bloque `index` (sin la portada, que es de la vista)', () => {
+    const [page] = pagesOf([
+      data('a', 'en', {
+        kind: 'generated',
+        listing: true,
+        index: { summary: 'Corto.', layout: 'cards', cover: false },
+      }),
+    ]);
+    expect(page).toMatchObject({
+      kind: 'generated',
+      listing: true,
+      index: { summary: 'Corto.', layout: 'cards' },
+    });
+    expect(page!.index).not.toHaveProperty('cover');
+  });
+});

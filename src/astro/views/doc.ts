@@ -13,9 +13,12 @@ import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
 import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import type { DocData } from '../loader/schema';
-import { consentOf, navContextOf, siteContext } from './chrome';
+import { consentOf, navContextOf, siteContext, type SiteContext } from './chrome';
 import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
+import { DocsError } from '../../core/errors';
+import { translate } from '../../core/i18n/ui-strings';
+import { listingPages, listingPageUrl } from './doc-index';
 
 /** Una ruta que sirve `doc.astro`: una página real o una ruta de reserva (`fallback`). */
 export interface DocRoute {
@@ -29,6 +32,10 @@ export interface DocRoute {
   contentLocale: Locale;
   /** Solo en `fallback`: URL (con base) del original. */
   canonical?: string;
+  /** Solo en las páginas 2 y siguientes de un índice paginado: cuál es. */
+  page?: number;
+  /** En un índice paginado (más de una página): cuántas tiene. */
+  pages?: number;
 }
 
 function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
@@ -37,7 +44,8 @@ function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
 
 /** Todas las rutas del sitio: las páginas reales y, con política `fallback`, las de reserva. */
 export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
-  const { pages, url, availability, policies } = siteContext(config, data);
+  const site = siteContext(config, data);
+  const { pages, url, availability, policies } = site;
   const real = pages.map((page): DocRoute => ({
     param: paramOf(page.slug, page.locale, config.defaultLocale),
     kind: 'page',
@@ -53,7 +61,42 @@ export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
     contentLocale: spec.entryMeta.locale,
     canonical: spec.canonical,
   }));
-  return [...real, ...fallback];
+  return withListingPages([...real, ...fallback], site, data);
+}
+
+/** Las rutas con un índice paginado saben cuántas páginas tiene y suman las suyas (`<carpeta>/2/`…); una página real en esa URL rompe el build. */
+function withListingPages(routes: DocRoute[], site: SiteContext, data: DocData[]): DocRoute[] {
+  const taken = new Set(routes.map((route) => route.param));
+  return routes.flatMap((route) => {
+    const pages = listingPages(site, route, data) ?? 1;
+    if (pages === 1) return [route];
+    const extra = Array.from({ length: pages - 1 }, (_item, index): DocRoute => {
+      const page = index + 2;
+      const param = paramOf(
+        [route.slug, String(page)].filter(Boolean).join('/'),
+        route.locale,
+        site.config.defaultLocale,
+      );
+      if (taken.has(param)) {
+        throw new DocsError(
+          `La página ${page} del índice de «${route.slug || '(portada)'}» (/${param}/) coincide con una página real.`,
+          {
+            hint: 'Renombra esa página: las URLs `<carpeta>/<número>/` son de la paginación del índice.',
+          },
+        );
+      }
+      return {
+        ...route,
+        param,
+        page,
+        pages,
+        ...(route.kind === 'fallback' && {
+          canonical: listingPageUrl(route.slug, route.contentLocale, page, site.url),
+        }),
+      };
+    });
+    return [{ ...route, pages }, ...extra];
+  });
 }
 
 /** Todo lo que `DocsLayout` necesita, ya calculado por el núcleo: el contenedor solo lo pasa. */
@@ -99,26 +142,40 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
   if (!original) throw new Error(`No hay entrada ${route.contentLocale}/${route.slug}.`);
 
   const isFallback = route.kind === 'fallback';
-  const meta = withImageSize(
+  const strings = config.strings[route.locale] as UiStrings;
+  const page = route.page ?? 1;
+  const resolved = withImageSize(
     resolveMeta(config.seo, original.seo, { title: original.title }, route.locale),
     sizes,
   );
+  /* Desde la página 2 de un índice: su propio título, fuera del índice y canónica de sí misma. */
+  const meta =
+    page > 1
+      ? {
+          ...resolved,
+          title: `${resolved.title} · ${translate(strings, 'index.pageOf', { page: String(page), pages: String(route.pages ?? page) })}`,
+          noindex: true,
+        }
+      : resolved;
   const pageUrlOfRoute = pageUrl(route.slug, route.locale, url);
   const pageData: PageData = {
     kind: route.kind,
     slug: route.slug,
     locale: route.locale,
-    url: pageUrlOfRoute,
+    url: listingPageUrl(route.slug, route.locale, page, url),
     ...(route.canonical !== undefined && { canonical: route.canonical }),
   };
-  const head = buildHead(
-    meta,
-    pageData,
-    excludeNoindex(availability, noindexUrls(pages, url)),
-    new URL(config.site),
-    config,
-    url,
-  );
+  const head = [
+    ...buildHead(
+      meta,
+      pageData,
+      excludeNoindex(availability, noindexUrls(pages, url)),
+      new URL(config.site),
+      config,
+      url,
+    ),
+    ...paginationLinks(route, page, url, new URL(config.site)),
+  ];
 
   const navContext = navContextOf(site, route.locale, route.slug);
   const sidebar = buildScopedSidebar(navContext);
@@ -135,7 +192,7 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
     siteName: config.name,
     homeHref: pageUrl('', route.locale, url),
     hrefs: availability.get(route.slug) ?? {},
-    strings: config.strings[route.locale] as UiStrings,
+    strings,
     sidebar,
     nav: buildNav(config.nav, navContext),
     footer: buildFooter(config, navContext, config.strings[route.locale] as UiStrings),
@@ -151,6 +208,26 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
       fallback: { originalLocale: route.contentLocale, href: route.canonical ?? '' },
     }),
   };
+}
+
+/** `<link rel="prev|next">` entre las páginas de un índice paginado. */
+function paginationLinks(
+  route: DocRoute,
+  page: number,
+  url: Parameters<typeof pageUrl>[2],
+  site: URL,
+): HeadConfig[] {
+  const pages = route.pages ?? 1;
+  const links: HeadConfig[] = [];
+  for (const [rel, target] of [
+    ['prev', page - 1],
+    ['next', page + 1],
+  ] as const) {
+    if (target < 1 || target > pages) continue;
+    const href = new URL(listingPageUrl(route.slug, route.locale, target, url), site).href;
+    links.push({ tag: 'link', attrs: { rel, href } });
+  }
+  return links;
 }
 
 /** Los árboles de `::nav-tree` de la página, uno por posición de `nav`: textos en el idioma del contenido y URLs como las de su barra lateral. */

@@ -91,3 +91,12 @@ describe('`::nav-tree` en la ruta de reserva (`/en/articulos/`)', () => {
     expect(content.textContent).toContain('Consultas N+1 en Django');
   });
 });
+
+describe('sin `indexes` ni `_index.md`', () => {
+  it('ningún listado generado ni páginas de paginación: el sitio queda como estaba', async () => {
+    for (const file of ['articulos/index.html', 'en/articulos/index.html', 'index.html']) {
+      expect((await page(file)).querySelector('[data-index-listing]')).toBeNull();
+    }
+    expect(await site.read('articulos/2/index.html').catch(() => undefined)).toBeUndefined();
+  });
+});

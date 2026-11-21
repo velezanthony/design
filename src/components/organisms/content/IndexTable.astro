@@ -1,0 +1,96 @@
+---
+import type { Locale } from '../../../core/i18n/locale';
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import {
+  formatIndexDate,
+  type CoverView,
+  type IndexItem,
+} from '../../../core/navigation/index-entries';
+import IndexLink from '../../molecules/navigation/IndexLink.astro';
+
+/* Índice en tabla (`layout: 'table'`): título, resumen, sección y fecha. En móvil cada fila es una
+   tarjeta apilada (la utilidad `table-cards`), con el nombre de cada celda encima de su valor; una
+   celda vacía (sin fecha, sin resumen) no se apila, para no dejar una etiqueta sin valor (con `!`:
+   la regla de `table-cards` que vuelve bloque cada celda es más específica). */
+interface Props {
+  items: IndexItem<CoverView>[];
+  strings: UiStrings;
+  lang: Locale;
+  /** Cuántas se ven sin JavaScript; las demás van `hidden` y las enseña el selector «Por página». */
+  visible?: number;
+}
+
+const { items, strings, lang, visible } = Astro.props;
+const columns = {
+  title: translate(strings, 'index.title'),
+  summary: translate(strings, 'index.summary'),
+  section: translate(strings, 'index.section'),
+  updated: translate(strings, 'index.updated'),
+};
+const cell = 'px-3 py-3 align-top max-md:px-4 max-md:py-2';
+const head = `${cell} border-b border-ink font-normal`;
+---
+
+<table class="table-cards w-full border-collapse text-left text-sm">
+  <caption class="sr-only">{translate(strings, 'index.caption')}</caption>
+  <thead>
+    <tr class="label text-muted">
+      <th scope="col" class={head}>
+        {columns.title}
+      </th>
+      <th scope="col" class={head}>
+        {columns.summary}
+      </th>
+      <th scope="col" class={head}>
+        {columns.section}
+      </th>
+      <th scope="col" class:list={[head, 'text-right']}>
+        {columns.updated}
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {items.map((item, position) => (
+      <tr
+        data-card
+        data-index-item
+        hidden={visible !== undefined && position >= visible}
+        class="md:border-b md:border-rule md:hover:bg-raised"
+      >
+        <td data-cell={columns.title} class:list={[cell, 'md:w-[26%]']}>
+          <IndexLink
+            href={item.href}
+            title={item.title}
+            badge={item.badge}
+            strings={strings}
+            class="font-medium text-accent underline decoration-accent-line decoration-1 underline-offset-[0.2em] hover:decoration-2"
+          />
+        </td>
+        <td
+          data-cell={columns.summary}
+          class:list={[cell, 'leading-relaxed text-muted', !item.summary && 'max-md:hidden!']}
+        >
+          {item.summary}
+        </td>
+        <td
+          data-cell={columns.section}
+          class:list={[cell, 'text-muted md:w-[18%]', item.path.length === 0 && 'max-md:hidden!']}
+        >
+          {item.path.join(' › ')}
+        </td>
+        <td
+          data-cell={columns.updated}
+          class:list={[
+            cell,
+            'whitespace-nowrap text-faint tabular-nums md:text-right',
+            !item.updated && 'max-md:hidden!',
+          ]}
+        >
+          {item.updated && (
+            <time datetime={item.updated}>{formatIndexDate(item.updated, lang)}</time>
+          )}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>

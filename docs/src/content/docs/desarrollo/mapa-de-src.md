@@ -20,6 +20,7 @@ core/
 │   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
+│   ├── indexes.ts         `indexes`: IndexLayout, valores por defecto, qué carpetas, opciones del listado y las páginas generadas
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
 ├── content/
@@ -47,6 +48,7 @@ core/
 │   ├── nav-sidebar.ts     La barra lateral de la sección actual
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
 │   ├── nav-tree.ts        Árbol de cada sección para el índice de ::nav-tree, y los huecos que deja en el HTML
+│   ├── index-entries.ts   Listado de un índice generado: entradas, secciones, orden por fecha, paginación y portada
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
 │   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── toc-entries.ts     Encabezados de Astro → entradas del índice «En esta página»
@@ -166,6 +168,7 @@ client/
 │   ├── anchors.ts        Enlace a cada encabezado
 │   ├── zoom.ts           Ampliación de imágenes en un <dialog>
 │   ├── copy-code.ts      Botón de copiar en los bloques de código
+│   ├── index-pager.ts    Selector «Por página» de un índice: URL, localStorage y qué se ve
 │   └── tabs.ts           Pestañas accesibles con teclado
 ├── preferences/        Lo que elige el visitante y se guarda
 │   ├── theme.ts          Tema claro/oscuro, script previo al pintado, revelado circular
@@ -193,15 +196,17 @@ components/
 ├── atoms/
 │   ├── form/        Checkbox, FieldError, HelpText, Input, Label, Radio, Select, Switch, Textarea
 │   ├── actions/     Button, Link, CookieSettingsButton (reabre el aviso de consentimiento)
-│   └── display/     Heading, Icon, InlineList, Tag, Text
+│   └── display/     Heading, Icon, InlineList, Tag, Text, CoverPlaceholder (portada de un índice)
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
-│   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents
+│   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents,
+│   │                IndexLink e IndexTree (enlace y árbol de un índice generado)
 │   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
 │   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
-│   └── content/     Article (contenido con diagramas y anclas, y la columna del índice y un aside)
+│   └── content/     Article (contenido con diagramas y anclas, y la columna del índice y un aside);
+│                    IndexListing con IndexList, IndexTable e IndexCards (las disposiciones de un índice generado)
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag, LengthMeter, LocaleBadge,
 │   │                Note, StateMark
@@ -280,6 +285,7 @@ astro/
 │   ├── frontmatter.ts       Lee y valida YAML con archivo y línea
 │   ├── repo-root.ts         repoRoot o el .git más cercano, para editPath
 │   ├── images.ts            Comprueba las imágenes de public/
+│   ├── covers.ts            Comprueba la portada (`index.image`) de cada página; si falta, avisa
 │   ├── favicon.ts           Comprueba el favicon local
 │   └── watch.ts             Recarga en astro dev
 ├── content/
@@ -312,6 +318,8 @@ astro/
 │       └── overview.astro, pages.astro, page.astro
 ├── views/                   Lógica pura que prepara los datos de cada página (con sus tests)
 │   ├── doc.ts               docRoutes y docView: todo lo que necesita una página
+│   ├── doc-index.ts         El índice generado de una ruta: sus páginas, sus entradas y su paginación
+│   ├── index-covers.ts      Portadas del índice → URLs (con la base o con el `getImage` que pasa la ruta)
 │   ├── chrome.ts            Lo que cabecera y pie necesitan del sitio
 │   ├── pages.ts             DocData → Page y sitemap
 │   └── seo-on-page/
@@ -326,6 +334,7 @@ astro/
 │   ├── page-head.ts         `pageHead`: el head de una página del sitio con la config del módulo virtual (subruta `seo`)
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
 │   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
+│   ├── doc-index.ts         `loadDocIndex`: el índice de una ruta con fechas de commit y portadas de astro:assets
 │   ├── file-last-modified.ts  `fileLastModified`: la de un solo archivo, la subruta pública `last-modified`
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
@@ -346,6 +355,7 @@ astro/
 - `testing/markdown.ts`: renderiza Markdown con los plugins de la librería.
 - `testing/search.ts`: busca en el índice de Pagefind de un `dist/`.
 - `testing/seo-page.ts`: una página del árbol del panel con valores razonables.
+- `testing/index-items.ts`: entradas de un índice generado para los tests de sus disposiciones.
 - `testing/build.ts` y `testing/case.ts`: construyen proyectos consumidores mínimos descritos como
   datos, para los tests de integración (con un entorno limpio de variables de Vitest).
 - `testing/contrast.ts`: luminancia y contraste WCAG para los tests de la paleta.

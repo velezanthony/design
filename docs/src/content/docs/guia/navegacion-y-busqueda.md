@@ -111,6 +111,167 @@ nueva aparece en el índice en cuanto entra en un `sidebar`.
   que hay), un atributo desconocido, un `descriptions` que no es `true` ni `false`, la directiva sin
   secciones en `nav`, con texto (`::nav-tree[…]`) o como contenedor (`:::nav-tree`).
 
+### Índices de carpeta (`_index.md` e `indexes`)
+
+Un blog o una guía necesitan una página que liste lo que cuelga de su carpeta. La librería la
+genera, como Hugo, a partir de un `_index.md` en esa carpeta o, sin él, de la opción `indexes`.
+
+```md
+<!-- articulos/_index.md -->
+---
+seo:
+  description: "Artículos técnicos sobre desarrollo y sistemas."
+index:
+  layout: cards # list (por defecto) | table | cards
+  pageSize: 12 # por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
+  perPageOptions: [12, 24, 48] # selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
+  image: true # política de portadas: true (la de la librería) | false
+---
+
+# Artículos
+
+Notas técnicas sobre problemas que me he encontrado y cómo los resuelvo.
+```
+
+`/articulos/` pinta el cuerpo del `_index.md` (el `#` y la entradilla, con el estilo de siempre) y,
+debajo, el listado de la carpeta. **El `_index.md` no es una página propia:** no tiene ruta
+(`/articulos/_index/` no existe), su página es la de la carpeta. Su slug es el de la carpeta, así que
+`sidebar: ['articulos']` o un `nav` con `slug: 'articulos'` lo enlazan, y un enlace del Markdown a
+`articulos/_index.md` lleva a `/articulos/`. Se traduce como cualquier página (`_index.en.md`), con la
+política de `translations` de siempre: sin traducción, `/en/articulos/` es una ruta de reserva con el
+texto original y las URLs de `/en/`. Cada traducción lleva su propio bloque `index`.
+
+**Es la forma recomendada de dar título y entradilla a un índice:** todo lo que se traduce vive en
+Markdown, no en la config.
+
+| En la carpeta | Qué se publica en `/carpeta/` |
+| --- | --- |
+| `index.md` | Esa página, normal (puede usar `::nav-tree`). Gana siempre: si también hay `_index.md`, se ignora con un aviso. |
+| `_index.md` (sin `index.md`) | El índice generado, con el título, la entradilla y el `seo` del `_index.md`. No hace falta config. |
+| Ninguno de los dos | El índice generado si `indexes` activa la carpeta; si no, nada (como hasta ahora). |
+
+#### Qué lista y en qué orden
+
+Las páginas de la carpeta (y sus subcarpetas) que están en la navegación, con la resolución de la
+barra lateral y de `::nav-tree`: el árbol de cada sección de `nav` y luego el de las páginas sin
+sección, con su orden, sus URLs y la política de traducción (`link` enlaza al original con su
+insignia; `omit` no la lista). De cada página salen su título, su resumen (`index.summary` o, sin él,
+`seo.description`), su camino (sección › grupos) y la fecha de su último commit.
+
+| `layout` | Cómo se ve |
+| --- | --- |
+| `list` | El árbol: un `##` por sección de `nav` (entra en «En esta página»), los grupos en negrita y cada página con su resumen y su fecha discreta a la derecha. Sin paginar. |
+| `table` | Título, resumen, sección y fecha, de la más reciente a la más antigua. En móvil, cada fila es una tarjeta apilada (`table-cards`). |
+| `cards` | Tarjetas de blog: portada 16:9, camino, título (toda la tarjeta es el enlace), resumen en tres líneas y fecha. Una columna en móvil, dos o tres según el ancho del contenido. |
+
+- **Fechas.** Las del último commit de cada archivo (el mismo historial de git que el `lastmod` del
+  sitemap). Una página sin commit (un borrador aún sin publicar) no muestra fecha y, en la tabla y
+  las tarjetas, va **delante**: es lo más nuevo. Sin git o en un clon superficial no hay fechas y el
+  orden es el del árbol.
+- **Paginación** (tabla y tarjetas): la página 1 es la de la carpeta (`/articulos/`) y las demás,
+  `/articulos/2/`, `/articulos/3/`… con el `Pagination` de la librería. Desde la 2 se repite el
+  título del `_index.md` con «Página 2 de 3» y **no** la entradilla (no duplica contenido). Son
+  `noindex` con `canonical` a sí mismas, llevan `rel="prev"`/`rel="next"`, no entran en el sitemap ni
+  en la búsqueda: lo que se indexa es la página 1 y cada artículo. Una página real en
+  `articulos/2.md` choca con esa URL y rompe el build.
+- **Tamaño de página por defecto:** 12 en las tarjetas (con 12, 24 o 48 las filas quedan completas
+  tanto a dos como a tres columnas) y 10 en la tabla (la medida redonda de una tabla).
+- **Sitemap.** La página de la carpeta entra con `lastmod` = la fecha más reciente entre su
+  `_index.md` y sus páginas.
+
+#### Selector «Por página» (tabla y tarjetas)
+
+Encima del listado, un `<select>` nativo con la etiqueta «Por página» («Per page») deja elegir
+cuántas entradas se ven: por defecto 12, 24 o 48 en las tarjetas y 10, 25 o 50 en la tabla. Las
+opciones salen de `perPageOptions` (en `indexes`, en `indexes.overrides[carpeta]` o en el `index` del
+`_index.md`, con la precedencia de siempre) y deben ser enteros positivos; si el `pageSize` no está
+entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción ni si todo cabe en la
+más pequeña.
+
+- **Mejora progresiva.** Sin JavaScript el selector no se ve y el índice es el de siempre: rutas
+  estáticas (`/articulos/`, `/articulos/2/`…) del `pageSize` configurado, la 1 indexable y canónica.
+  Lo enseña el script del artículo (`client/content/index-pager.ts`).
+- **Sin marcado duplicado ni red.** La página 1 trae todas las entradas de su carpeta (las de más,
+  `hidden`) y un paginador por cada tamaño y página, pintados por los mismos componentes del
+  servidor; el script solo decide qué se ve. Con 200 entradas la página 1 pesa más (cada tarjeta
+  son unos cientos de bytes comprimidos), pero no hay un JSON aparte que mantener ni plantillas que
+  imiten a los componentes. El listado queda fuera de la búsqueda (`data-pagefind-ignore`): cada
+  artículo ya está indexado en su página.
+- **La URL manda:** `?por=18&pagina=2` (los mismos nombres en todos los idiomas), así que se puede
+  compartir y sobrevive a recargar; atrás y adelante vuelven a cada estado. Cambiar el tamaño vuelve
+  a la página 1. Con el tamaño de la config, el paginador enlaza las rutas estáticas: es lo que ven
+  los buscadores y quien no tiene JavaScript. Los enlaces con query cambian de página sin recargar.
+- **Se recuerda por índice** en `localStorage` (`docs:index-per-page:<URL de la carpeta>`): al volver
+  a la página 1 sin query se aplica lo elegido. Si el navegador bloquea el almacenamiento, funciona
+  igual, sin recordar.
+- **Desde la página 2** (que solo trae sus entradas), cambiar el tamaño lleva a la página de la
+  carpeta con `?por=…`.
+- **Accesibilidad.** Un aviso educado (`aria-live="polite"`, oculto a la vista) dice «Mostrando 1–18
+  de 18» tras cada cambio; al cambiar de página el foco va al principio del listado. Todo es nativo:
+  `<select>` y enlaces, con teclado.
+
+#### Portadas (tarjetas)
+
+En el frontmatter de cada página:
+
+```yaml
+index:
+  summary: "Resumen para el listado." # opcional; sin él, seo.description
+  image: ./portada.png # relativa al .md (astro:assets) o de public/ (/portadas/x.png) | false
+  imageAlt: "Lo que muestra la imagen" # opcional
+```
+
+Precedencia, de más a menos: `index.image` de la página → `image` del `_index.md` (o de
+`indexes.overrides[carpeta]`) → `indexes.image` → la portada de la librería. `false` en un nivel
+quita la imagen salvo que uno más alto ponga una real. En un `_index.md`, `index.image` es la
+**política** del listado (`true`/`false`); en una página, su portada (una ruta o `false`).
+
+- La portada de la librería es un dibujo (rejilla, diagonales o puntos, estable por página) hecho
+  solo con los tokens del tema, con el grupo de la página como etiqueta pequeña.
+- Una ruta relativa pasa por `astro:assets` (se optimiza a WebP); una de `public/` se sirve tal cual,
+  con la `base` del sitio. Si el archivo no existe, el build **avisa** y pone la de la librería: no
+  falla.
+- La de la librería va siempre debajo de la imagen: si no carga en el navegador, se ve ella.
+- **Texto alternativo:** decorativa por defecto (`alt=""`), porque el título enlazado va al lado y
+  se anunciaría dos veces; `imageAlt` le da un `alt` real. La de la librería es `aria-hidden`.
+
+#### La opción `indexes`
+
+Pone los valores por defecto de todos los listados y activa el índice generado en las carpetas sin
+`index.md` ni `_index.md`. Lo que diga un `_index.md` gana.
+
+```js
+indexes: {
+  layout: 'list', // 'list' (por defecto) | 'table' | 'cards'
+  pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla
+  perPageOptions: [12, 24, 48], // por defecto [12, 24, 48] en tarjetas y [10, 25, 50] en tabla
+  image: true, // política de portadas por defecto
+  include: 'all', // 'all' (por defecto) o las carpetas exactas: ['articulos', 'guia/avanzado']
+  exclude: ['borradores'], // carpetas que no, aunque `include` las abarque
+  overrides: {
+    guia: { layout: 'table', pageSize: 20, image: false, title: { es: 'Guía', en: 'Guide' }, description: { es: '…', en: '…' } },
+  },
+},
+```
+
+- **Todas:** `indexes: {}`. **Todas menos unas:** `exclude`. **Solo unas:** `include: [...]`.
+  Las carpetas se nombran por su ruta en el contenido, exactas (`articulos` no incluye
+  `articulos/viejos`); una que no existe rompe el build con su ruta (`indexes.include[1]`).
+- La página generada de una carpeta sin `_index.md` se titula con el `title` de `overrides`, o con la
+  etiqueta de la sección de `nav` con ese `dir` (ya traducida), o con el nombre de la carpeta
+  (`notas-de-version` → «Notas de version»). Su entradilla y su `seo.description` son la
+  `description` de `overrides`, si la hay. Existe en todos los idiomas del sitio.
+- Sin `indexes`, todo queda como antes: solo los `_index.md` generan índices.
+- **Cómo funciona.** El descubrimiento convierte `carpeta/_index.md` en la página de `carpeta`
+  (`core/content/discovery.ts`) y el loader añade las generadas (`generatedIndexPages`,
+  `core/config/indexes.ts`); la ruta de las páginas de docs calcula el listado
+  (`buildIndexListing`, `core/navigation/index-entries.ts`, con `docIndexView`) y `DocPage` lo pinta
+  debajo del contenido, fuera de `.prose`, con `IndexListing` (`IndexList`, `IndexTable`,
+  `IndexCards` y el átomo `CoverPlaceholder`). Los textos de la interfaz son las claves `index.*`.
+- **Forma explícita del loader:** las portadas relativas necesitan el `image()` de Astro:
+  `schema: ({ image }) => docsSchema(image)`. Con `docsSchema()` a secas, una portada relativa cae a
+  la de la librería.
+
 ### Excluir archivos
 
 `exclude` deja fuera de la publicación los `.md` de la carpeta de contenido que casan con sus patrones (estilo

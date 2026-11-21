@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from '../config/resolve';
 import { DocsErrors } from '../errors';
-import { discoverPages, externalPath, type SourceFile } from './discovery';
+import { discoverPages, ignoredListings, externalPath, type SourceFile } from './discovery';
 
 function config(extra: object = {}) {
   return resolveConfig({ name: 'X', locales: ['en', 'es'], ...extra });
@@ -318,5 +318,48 @@ describe('externalPath', () => {
     expect(externalPath('../CHANGELOG.md', 'en', 'en')).toBe('../CHANGELOG.md');
     expect(externalPath('../CHANGELOG.md', 'es', 'en')).toBe('../CHANGELOG.es.md');
     expect(externalPath('./docs/x.md', 'es', 'es')).toBe('docs/x.md');
+  });
+});
+
+describe('discoverPages: _index.md', () => {
+  it('es la fuente del índice de su carpeta: su slug es la carpeta, nunca `_index`', () => {
+    const index = { layout: 'cards' as const, pageSize: 6 };
+    const pages = discoverPages(
+      [
+        native('articulos/_index.md', '# Artículos', { index }),
+        native('articulos/_index.en.md', '# Articles'),
+        native('articulos/git.md'),
+      ],
+      config({ locales: ['es', 'en'], defaultLocale: 'es' }),
+    );
+    const listings = pages.filter((page) => page.listing);
+    expect(listings.map((page) => [page.slug, page.locale, page.title])).toEqual([
+      ['articulos', 'es', 'Artículos'],
+      ['articulos', 'en', 'Articles'],
+    ]);
+    expect(listings[0]).toMatchObject({ kind: 'native', index, sourcePath: 'articulos/_index.md' });
+    expect(pages.some((page) => page.slug.includes('_index'))).toBe(false);
+  });
+
+  it('un index.md de la carpeta gana: se ignoran todos sus _index.md', () => {
+    const files = [
+      native('articulos/index.md', '# Portada'),
+      native('articulos/_index.md', '# Artículos'),
+      native('articulos/_index.en.md', '# Articles'),
+    ];
+    const settings = config({ locales: ['es', 'en'], defaultLocale: 'es' });
+    const pages = discoverPages(files, settings);
+    expect(pages.map((page) => [page.slug, page.title, page.listing])).toEqual([
+      ['articulos', 'Portada', undefined],
+    ]);
+    expect(ignoredListings(files, settings)).toEqual([
+      'articulos/_index.md',
+      'articulos/_index.en.md',
+    ]);
+  });
+
+  it('el _index.md de la raíz es el de la portada', () => {
+    const [page] = discoverPages([native('_index.md', '# Inicio')], config());
+    expect(page).toMatchObject({ slug: '', listing: true });
   });
 });

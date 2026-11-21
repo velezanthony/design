@@ -27,7 +27,16 @@ export function pageOf(item: DocData): Page {
     ...(item.order !== undefined && { order: item.order }),
     ...(item.seo && { seo: item.seo }),
     ...(item.translations && { translations: item.translations }),
+    ...(item.listing && { listing: true as const }),
+    ...(item.index && { index: pageIndexOf(item.index) }),
   };
+}
+
+/** El bloque `index` que entiende el núcleo; la portada guardada se queda en los datos (la lee la vista del índice). */
+function pageIndexOf(index: NonNullable<DocData['index']>): Page['index'] {
+  return Object.fromEntries(
+    Object.entries(index).filter(([key, value]) => key !== 'cover' && value !== undefined),
+  ) as Page['index'];
 }
 
 export function pagesOf(data: DocData[]): Page[] {

@@ -74,3 +74,80 @@ describe('DocPage: árboles de `::nav-tree`', () => {
     expect(document.querySelector('main [data-docs-nav-tree]')).toBeNull();
   });
 });
+
+describe('DocPage: índice generado', () => {
+  const index = {
+    layout: 'cards',
+    sections: [],
+    items: [
+      {
+        slug: 'articulos/git',
+        title: 'Git',
+        href: '/repo/articulos/git/',
+        path: ['Desarrollo'],
+        cover: { kind: 'placeholder' },
+      },
+    ],
+    page: 1,
+    pages: 2,
+    total: 3,
+    hrefs: ['/repo/articulos/', '/repo/articulos/2/'],
+    headings: [],
+    all: false,
+    perPage: 1,
+    perPageOptions: [],
+    sizes: [],
+  };
+  const body = '<h1>Artículos</h1><p>Notas técnicas.</p>';
+
+  it('página 1: el cuerpo del _index.md en `.prose` y debajo el listado, fuera de `.prose`', async () => {
+    const document = await renderDocument(DocPage, props({ index }), { default: body });
+    const main = document.querySelector('main')!;
+    const prose = main.querySelector('.prose')!;
+    expect(text(prose.querySelector('h1'))).toBe('Artículos');
+    expect(text(prose.querySelector('p'))).toBe('Notas técnicas.');
+    const listing = main.querySelector('[data-index-listing]')!;
+    expect(listing.closest('.prose')).toBeNull();
+    expect(listing.querySelector('a[href="/repo/articulos/git/"]')).not.toBeNull();
+    // Antes del pie del artículo (anterior/siguiente).
+    const after = [...main.children];
+    expect(after.indexOf(listing.parentElement!)).toBeGreaterThan(after.indexOf(prose));
+  });
+
+  it('desde la página 2: el título y «Página n de m» en lugar del cuerpo', async () => {
+    const heading = { title: 'Artículos', page: 'Página 2 de 2' };
+    const document = await renderDocument(
+      DocPage,
+      props({ index: { ...index, page: 2, heading } }),
+      {
+        default: body,
+      },
+    );
+    const prose = document.querySelector('main .prose')!;
+    expect(text(prose.querySelector('h1'))).toBe('Artículos');
+    expect(text(prose.querySelector('p'))).toBe('Página 2 de 2');
+    expect(text(prose)).not.toContain('Notas técnicas.');
+  });
+
+  it('las secciones de la lista entran en «En esta página»', async () => {
+    const list = {
+      ...index,
+      layout: 'list',
+      items: [],
+      pages: 1,
+      sections: [
+        { label: 'Desarrollo', id: 'desarrollo', nodes: index.items },
+        { label: 'Sistemas', id: 'sistemas', nodes: index.items },
+        { label: 'Redes', id: 'redes', nodes: index.items },
+      ],
+      headings: [
+        { depth: 2, slug: 'desarrollo', text: 'Desarrollo' },
+        { depth: 2, slug: 'sistemas', text: 'Sistemas' },
+        { depth: 2, slug: 'redes', text: 'Redes' },
+      ],
+    };
+    const document = await renderDocument(DocPage, props({ index: list }), { default: body });
+    expect(document.querySelector('[data-toc-column] a[href="#desarrollo"]')).not.toBeNull();
+    expect(document.querySelector('h2#desarrollo')).not.toBeNull();
+  });
+});

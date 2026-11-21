@@ -191,7 +191,10 @@ import { docsLoader, docsSchema } from '@velezanthony/design/loader';
 import docsConfig from '../docs.config.mjs';
 
 export const collections = {
-  docs: defineCollection({ loader: docsLoader(docsConfig), schema: docsSchema() }),
+  docs: defineCollection({
+    loader: docsLoader(docsConfig),
+    schema: ({ image }) => docsSchema(image),
+  }),
 };
 ```
 

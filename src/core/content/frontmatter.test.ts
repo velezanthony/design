@@ -99,3 +99,68 @@ describe('parseFrontmatter', () => {
     expect(errors[0]?.file).toBe('a.md');
   });
 });
+
+describe('parseFrontmatter: index', () => {
+  function messages(index: unknown, file = 'articulos/git.md') {
+    return parseFrontmatter({ index }, file).errors.map((error) => error.message);
+  }
+
+  it('una página normal: resumen, imagen (ruta o false) y texto alternativo', () => {
+    const { frontmatter, errors } = parseFrontmatter(
+      { index: { summary: 'Corto.', image: './portada.png', imageAlt: 'Un gato' } },
+      'articulos/git.md',
+    );
+    expect(errors).toEqual([]);
+    expect(frontmatter.index).toEqual({
+      summary: 'Corto.',
+      image: './portada.png',
+      imageAlt: 'Un gato',
+    });
+    expect(messages({ image: false })).toEqual([]);
+    expect(messages({ image: '/portadas/git.png' })).toEqual([]);
+    expect(messages({ image: 'portada.png' })).toEqual([]);
+  });
+
+  it('un _index.md: disposición, tamaño de página, opciones por página y política de portadas', () => {
+    const index = { layout: 'cards', pageSize: 6, perPageOptions: [6, 12], image: false };
+    for (const file of ['articulos/_index.md', 'articulos/_index.en.md', '_index.md']) {
+      expect(parseFrontmatter({ index }, file)).toEqual({ frontmatter: { index }, errors: [] });
+    }
+  });
+
+  it('`layout` y `pageSize` solo en un _index.md: un index.md es una página normal', () => {
+    expect(messages({ layout: 'list' }, 'articulos/index.md').join('\n')).toContain('index.layout');
+    expect(messages({ pageSize: 4 }).join('\n')).toContain('index.pageSize');
+    expect(messages({ perPageOptions: [4] }).join('\n')).toContain('index.perPageOptions');
+  });
+
+  it('en un _index.md `image` es la política del listado: true o false, no una ruta', () => {
+    expect(messages({ image: './x.png' }, 'a/_index.md').join('\n')).toContain('index.image');
+    expect(messages({ image: true }, 'a/_index.md')).toEqual([]);
+  });
+
+  it('fuera de un _index.md `image: true` no significa nada', () => {
+    expect(messages({ image: true }).join('\n')).toContain('index.image');
+  });
+
+  it.each(['https://x.dev/a.png', '//x.dev/a.png', 'data:image/png;base64,AA', ''])(
+    'una imagen «%s» que no es una ruta local falla',
+    (image) => {
+      expect(messages({ image }).join('\n')).toContain('index.image');
+    },
+  );
+
+  it('`perPageOptions` son enteros positivos y al menos uno', () => {
+    expect(messages({ perPageOptions: [0] }, 'a/_index.md').join('\n')).toContain(
+      'index.perPageOptions',
+    );
+    expect(messages({ perPageOptions: [] }, 'a/_index.md').join('\n')).toContain(
+      'index.perPageOptions',
+    );
+  });
+
+  it('una disposición o una clave desconocidas fallan con su ruta', () => {
+    expect(messages({ layout: 'grid' }, 'a/_index.md').join('\n')).toContain('index.layout');
+    expect(messages({ sumary: 'x' }).join('\n')).toContain('index.sumary');
+  });
+});

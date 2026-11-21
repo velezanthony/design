@@ -27,6 +27,28 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   ruta de reserva el texto es el del original y las URLs, las de la barra lateral de esa ruta. Una
   sección que no existe, un atributo desconocido o la directiva sin secciones en `nav` rompen el build
   con el archivo y la línea.
+- **Índices de carpeta generados (`_index.md` e `indexes`).** Como en Hugo, un `_index.md` en una
+  carpeta es la fuente de su página: `/articulos/` pinta su cuerpo (título y entradilla) y debajo el
+  listado de lo que cuelga de la carpeta, con la resolución de la barra lateral. Tres disposiciones:
+  `list` (el árbol por secciones de `nav`), `table` (título, resumen, sección y fecha; tarjetas
+  apiladas en móvil) y `cards` (tarjetas de blog con portada 16:9). La tabla y las tarjetas van de la
+  más reciente a la más antigua por fecha de commit (lo no publicado, primero y sin fecha) y se
+  paginan en `/articulos/2/`… (`noindex`, canónicas de sí mismas, con `rel=prev/next` y fuera del
+  sitemap). El `_index.md` no es una página propia y se traduce con `_index.en.md`; un `index.md` en
+  la misma carpeta gana y el `_index.md` se ignora con un aviso. La opción `indexes` (`layout`,
+  `pageSize`, `image`, `include`, `exclude`, `overrides`) pone los valores por defecto y genera la
+  página de las carpetas sin ninguno de los dos, titulada con la etiqueta de su sección de `nav` o
+  el nombre de la carpeta. Cada página puede llevar `index: { summary, image, imageAlt }`: una portada
+  relativa pasa por `astro:assets`, una de `public/` se sirve con la base, `false` la quita y una que
+  no existe avisa y deja la portada de la librería, un dibujo hecho con los tokens del tema
+  (`CoverPlaceholder`). Las tarjetas van de 12 en 12 y la tabla de 10 en 10 por defecto, con un
+  selector «Por página» (`perPageOptions`, por defecto 12/24/48 y 10/25/50) que es una mejora
+  progresiva: sin JavaScript está oculto y valen las rutas estáticas; con él, la página 1 (que trae
+  todas las entradas) cambia el tamaño y la página sin recargar, con el estado en la URL
+  (`?por=18&pagina=2`), recordado por índice en `localStorage` y anunciado con `aria-live`.
+  Organismos nuevos: `IndexListing`, `IndexList`, `IndexTable` e
+  `IndexCards`; textos nuevos `index.*`. `docsSchema(image)` acepta el `image()` de Astro para las
+  portadas en la forma explícita del loader. Sin `_index.md` ni `indexes`, nada cambia.
 - **`static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas del
   `exclude` de la config pero relativas a `from`:
   `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se
