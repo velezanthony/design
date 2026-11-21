@@ -107,3 +107,11 @@ describe('buildMetaNode', () => {
     expect(node).not.toHaveProperty('ogImage');
   });
 });
+
+describe('buildMetaNode: `slug` propio', () => {
+  it('la canónica es la URL traducida de la página', () => {
+    const config = resolveConfig({ name: 'D', locales: ['en', 'es'] });
+    const node = buildMetaNode(page({ locale: 'es', urlSlug: 'instalar' }), config, url);
+    expect(node.canonical).toBe('/repo/es/instalar/');
+  });
+});

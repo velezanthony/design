@@ -19,6 +19,7 @@ import { withBase } from '../../core/shared/urls';
 export function pageOf(item: DocData): Page {
   return {
     slug: item.slug,
+    ...(item.urlSlug !== undefined && { urlSlug: item.urlSlug }),
     locale: item.locale,
     title: item.title,
     kind: item.kind ?? 'native',

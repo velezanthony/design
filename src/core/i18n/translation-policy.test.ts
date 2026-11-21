@@ -181,6 +181,7 @@ describe('fallbackRoutes', () => {
     expect(fallbackRoutes(availability, policies, config, url)).toEqual([
       {
         slug: 'changelog',
+        urlSlug: 'changelog',
         locale: 'es',
         isFallback: true,
         entryMeta: { locale: 'en' },
@@ -213,5 +214,24 @@ describe('fallbackRoutes', () => {
       url,
     );
     expect(routes.map((route) => route.locale)).toEqual(['es', 'fr']);
+  });
+});
+
+describe('fallbackRoutes: `slug` propio', () => {
+  it('la ruta de reserva usa la URL del original: el prefijo del idioma y el `slug` del original', () => {
+    const pages = [{ ...page('a', 'en'), urlSlug: 'guide/a' }];
+    const [route] = fallbackRoutes(
+      new Map([['a', { en: '/repo/guide/a/' }]]),
+      new Map([['a', 'fallback']]),
+      config,
+      url,
+      pages,
+    );
+    expect(route).toMatchObject({
+      slug: 'a',
+      urlSlug: 'guide/a',
+      locale: 'es',
+      canonical: '/repo/guide/a/',
+    });
   });
 });

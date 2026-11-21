@@ -1,4 +1,5 @@
 import type { Page } from '../content/discovery';
+import { urlSlugOf } from '../content/slug';
 import { pageUrl, type UrlPolicy } from '../i18n/availability';
 
 /** Separador de commits en el formato de `git log`; no puede aparecer en un nombre de archivo. */
@@ -47,7 +48,7 @@ export function pageLastmods(
       dates.get(page.sourcePath),
       ...inFolder.map((other) => dates.get(other.sourcePath)),
     ]);
-    if (date) lastmods.set(pageUrl(page.slug, page.locale, url), date);
+    if (date) lastmods.set(pageUrl(urlSlugOf(page), page.locale, url), date);
   }
   return lastmods;
 }

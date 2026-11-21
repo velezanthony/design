@@ -164,3 +164,21 @@ describe('parseFrontmatter: index', () => {
     expect(messages({ sumary: 'x' }).join('\n')).toContain('index.sumary');
   });
 });
+
+describe('parseFrontmatter: slug', () => {
+  it('acepta `slug`, la URL propia de la página', () => {
+    const { frontmatter, errors } = parseFrontmatter(
+      { slug: 'articles/n-plus-one-queries-django' },
+      'a.en.md',
+    );
+    expect(errors).toEqual([]);
+    expect(frontmatter.slug).toBe('articles/n-plus-one-queries-django');
+  });
+
+  it('un `slug` que no es texto nombra archivo y campo', () => {
+    const { errors } = parseFrontmatter({ slug: 3 }, 'a.en.md');
+    expect(errors).toHaveLength(1);
+    expect(errors[0]?.describe()).toContain('a.en.md');
+    expect(errors[0]?.describe()).toContain('slug');
+  });
+});

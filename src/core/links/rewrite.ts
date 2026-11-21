@@ -1,5 +1,6 @@
 import type { Page } from '../content/discovery';
 import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
+import { urlSlugOf } from '../content/slug';
 import { staticExcluder, type StaticFolder } from '../content/static-folders';
 import { DocsError } from '../errors';
 import { pageUrl, type UrlPolicy } from '../i18n/availability';
@@ -195,7 +196,7 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     errors.push(brokenLink(rawTarget, from, line, 'no es una página publicada', index));
     return undefined;
   }
-  // La gemela del idioma de origen manda; si no existe, se enlaza la página que sí existe.
+  // La gemela del idioma de origen (misma identidad) manda; si no existe, se enlaza la página que sí existe. Su URL lleva su `slug` propio.
   const twin = index.pages.find(
     (page) => page.kind === found.kind && page.slug === found.slug && page.locale === from.locale,
   );
@@ -207,7 +208,9 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     locale: destination.locale,
     ...withAnchor,
   });
-  return pageUrl(destination.slug, destination.locale, index.url) + (anchor ? `#${anchor}` : '');
+  return (
+    pageUrl(urlSlugOf(destination), destination.locale, index.url) + (anchor ? `#${anchor}` : '')
+  );
 }
 
 /** URL publicada de un archivo de `static` (base + `to` + el resto, con su query y su ancla), o un error si su `exclude` lo deja fuera. */

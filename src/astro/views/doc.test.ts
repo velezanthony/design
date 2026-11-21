@@ -406,3 +406,94 @@ describe('docNavTrees: índice generado (`::nav-tree`)', () => {
     ]);
   });
 });
+
+describe('`slug` propio (URL traducida)', () => {
+  const data = [
+    doc('', 'en'),
+    doc('', 'es'),
+    doc('guide', 'en'),
+    doc('guide', 'es', { urlSlug: 'guia' }),
+    doc('install', 'en', { urlSlug: 'setup' }),
+    doc('install', 'es'),
+    doc('only-en', 'en', { urlSlug: 'just-english' }),
+  ];
+
+  it('la ruta usa el `slug` propio y conserva la identidad del archivo', () => {
+    const routes = docRoutes(data, site());
+    expect(route(routes, 'guide', 'es')).toMatchObject({ param: 'es/guia', urlSlug: 'guia' });
+    expect(route(routes, 'install', 'en')).toMatchObject({ param: 'setup', urlSlug: 'setup' });
+    expect(route(routes, 'install', 'es')).toMatchObject({ param: 'es/install' });
+  });
+
+  it('la reserva de una traducción ausente: prefijo del idioma y `slug` del original, como hoy', () => {
+    const routes = docRoutes(data, site({ translations: { missing: 'fallback' } }));
+    expect(route(routes, 'only-en', 'es')).toMatchObject({
+      kind: 'fallback',
+      param: 'es/just-english',
+      urlSlug: 'just-english',
+      canonical: '/repo/just-english/',
+    });
+  });
+
+  it('una reserva que coincide con la URL de una página real rompe la build nombrando ambas', () => {
+    const clash = [
+      doc('', 'en'),
+      doc('a', 'en'),
+      doc('b', 'en'),
+      doc('b', 'es', { urlSlug: 'a', sourcePath: 'b.es.md' }),
+    ];
+    expect(() => docRoutes(clash, site({ translations: { missing: 'fallback' } }))).toThrow(
+      /\/es\/a\/.*b\.es\.md/s,
+    );
+  });
+
+  describe('docView de la traducción con `slug`', () => {
+    const view = docView({
+      route: route(docRoutes(data, site()), 'guide', 'es'),
+      data,
+      config: site(),
+    });
+
+    it('selector de idioma, página actual y barra lateral con las URLs de cada idioma', () => {
+      expect(view.hrefs).toEqual({ en: '/repo/guide/', es: '/repo/es/guia/' });
+      expect(view.current).toBe('/repo/es/guia/');
+      expect(JSON.stringify(view.sidebar)).toContain('/repo/es/guia/');
+    });
+
+    it('canonical y hreflang con las URLs traducidas', () => {
+      function href(key: string, value: string) {
+        return view.head.find((tag) => tag.attrs[key] === value)?.attrs['href'];
+      }
+      expect(href('rel', 'canonical')).toBe('https://x.dev/repo/es/guia/');
+      expect(href('hreflang', 'es')).toBe('https://x.dev/repo/es/guia/');
+      expect(href('hreflang', 'en')).toBe('https://x.dev/repo/guide/');
+    });
+
+    it('anterior y siguiente enlazan las URLs del idioma de la ruta', () => {
+      expect(view.prev?.href).toBe('/repo/es/');
+      expect(view.next?.href).toBe('/repo/es/install/');
+    });
+  });
+
+  it('un listado con `slug` propio pagina bajo su URL (`en/articles/2`)', () => {
+    const listing = [
+      doc('', 'es'),
+      doc('articulos', 'es', { listing: true, index: { layout: 'cards', pageSize: 1 } }),
+      doc('articulos', 'en', {
+        listing: true,
+        urlSlug: 'articles',
+        index: { layout: 'cards', pageSize: 1 },
+      }),
+      doc('articulos/a', 'es'),
+      doc('articulos/a', 'en', { urlSlug: 'articles/a' }),
+      doc('articulos/b', 'es'),
+      doc('articulos/b', 'en'),
+    ];
+    const config = site({ locales: ['es', 'en'], defaultLocale: 'es' });
+    const params = docRoutes(listing, config).map((docRoute) => docRoute.param);
+    expect(params).toContain('en/articles');
+    expect(params).toContain('en/articles/2');
+    expect(params).toContain('articulos/2');
+    expect(params).not.toContain('en/articulos/2');
+  });
+});

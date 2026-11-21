@@ -282,3 +282,51 @@ describe('sizeHrefs', () => {
     ]);
   });
 });
+
+describe('docIndexView: `_index.en.md` con `slug` propio', () => {
+  const translated = [
+    doc(''),
+    listing,
+    doc('articulos', 'en', {
+      title: 'Articles',
+      listing: true,
+      urlSlug: 'articles',
+      sourcePath: 'docs/articulos/_index.en.md',
+      index: { layout: 'cards', pageSize: 2 },
+    }),
+    ...articles,
+    doc('articulos/a', 'en', { urlSlug: 'articles/a-in-english' }),
+  ];
+  const routes = docRoutes(translated, site());
+
+  it('sus páginas cuelgan de su URL y cada entrada enlaza su URL en inglés (o la reserva)', () => {
+    const view = docIndexView({
+      route: routeOf(routes, 'en/articles/2'),
+      config: site(),
+      data: translated,
+    });
+    expect(view!.hrefs).toEqual([
+      '/repo/en/articles/',
+      '/repo/en/articles/2/',
+      '/repo/en/articles/3/',
+    ]);
+    const first = docIndexView({
+      route: routeOf(routes, 'en/articles'),
+      config: site(),
+      data: translated,
+    });
+    const hrefs = first!.items.map((item) => item.href);
+    expect(hrefs).toContain('/repo/en/articles/a-in-english/');
+    expect(hrefs).toContain('/repo/en/articulos/b/');
+  });
+
+  it('la página 2 del listado en inglés es canónica de sí misma bajo la URL traducida', () => {
+    const view = docView({
+      route: routeOf(routes, 'en/articles/2'),
+      config: site(),
+      data: translated,
+    });
+    const canonical = view.head.find((tag) => tag.attrs['rel'] === 'canonical');
+    expect(canonical?.attrs['href']).toBe('https://x.dev/repo/en/articles/2/');
+  });
+});

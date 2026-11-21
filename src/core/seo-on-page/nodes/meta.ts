@@ -1,4 +1,5 @@
 import type { ResolvedConfig } from '../../config/resolve';
+import { urlSlugOf } from '../../content/slug';
 import type { UrlPolicy } from '../../i18n/availability';
 import { pageUrl } from '../../i18n/availability';
 import { resolveMeta, withImageSize, type ImageSizes, type SeoBase } from '../../seo/meta';
@@ -46,7 +47,7 @@ export function buildMetaNode(
     ...(description !== undefined && { ogDescription: description }),
     ...(image && { ogImage: image }),
     ogImageSource: ogImageSource(page, image),
-    canonical: pageUrl(page.slug, page.locale, url),
+    canonical: pageUrl(urlSlugOf(page), page.locale, url),
     noindex: resolved.noindex,
   };
 }

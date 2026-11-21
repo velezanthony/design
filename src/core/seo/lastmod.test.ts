@@ -97,3 +97,40 @@ describe('pageLastmods', () => {
     expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-05-01T00:00:00+00:00');
   });
 });
+
+describe('pageLastmods: `slug` propio', () => {
+  it('la fecha va a la URL traducida y el listado mira su carpeta por identidad', () => {
+    const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
+    const pages: Page[] = [
+      {
+        slug: 'articulos',
+        locale: 'es',
+        title: 'A',
+        kind: 'native',
+        sourcePath: 'articulos/_index.es.md',
+        body: '',
+        listing: true,
+        urlSlug: 'articles-es',
+      },
+      {
+        slug: 'articulos/x',
+        locale: 'es',
+        title: 'X',
+        kind: 'native',
+        sourcePath: 'articulos/x.es.md',
+        body: '',
+        urlSlug: 'blog/x',
+      },
+    ];
+    const dates = new Map([
+      ['articulos/_index.es.md', '2026-01-01T00:00:00+00:00'],
+      ['articulos/x.es.md', '2026-03-01T00:00:00+00:00'],
+    ]);
+    expect(pageLastmods(pages, url, dates)).toEqual(
+      new Map([
+        ['/repo/es/articles-es/', '2026-03-01T00:00:00+00:00'],
+        ['/repo/es/blog/x/', '2026-03-01T00:00:00+00:00'],
+      ]),
+    );
+  });
+});

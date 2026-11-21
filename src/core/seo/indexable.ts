@@ -1,10 +1,13 @@
 import type { Page } from '../content/discovery';
+import { urlSlugOf } from '../content/slug';
 import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
 
 /** URLs de las páginas con `seo.noindex`: no van al sitemap ni a los alternates de sus gemelas. */
 export function noindexUrls(pages: Page[], url: UrlPolicy): Set<string> {
   return new Set(
-    pages.filter((page) => page.seo?.noindex).map((page) => pageUrl(page.slug, page.locale, url)),
+    pages
+      .filter((page) => page.seo?.noindex)
+      .map((page) => pageUrl(urlSlugOf(page), page.locale, url)),
   );
 }
 

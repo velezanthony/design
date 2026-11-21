@@ -7,6 +7,7 @@ import {
   discoverPages,
   externalCandidates,
   ignoredListings,
+  urlCollisions,
   type Page,
   type SourceFile,
 } from '../../core/content/discovery';
@@ -38,6 +39,7 @@ import { checkSeoImages } from './images';
 import { resolveRepoRoot } from './repo-root';
 import { docsSchema } from './schema';
 import { createReloader, watchSources } from './watch';
+import { slugRouteCollisions } from './slug-routes';
 
 const LOAD_ERROR = 'No se puede cargar el contenido de docs.';
 
@@ -113,7 +115,10 @@ function discoverOrErrors(
 ): { pages: Page[]; errors: DocsError[] } {
   try {
     const pages = discoverPages(files, config);
-    return { pages: [...pages, ...generatedIndexPages(pages, config)], errors: [] };
+    const all = [...pages, ...generatedIndexPages(pages, config)];
+    // Las descubiertas ya no chocan entre sí: lo que choque ahora es con un índice generado.
+    const clashes = urlCollisions(all);
+    return clashes.length > 0 ? { pages: [], errors: clashes } : { pages: all, errors: [] };
   } catch (error) {
     if (error instanceof DocsErrors) return { pages: [], errors: error.errors };
     throw error;
@@ -143,6 +148,12 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
   const discovered = discoverOrErrors(read.files, config);
   errors.push(...discovered.errors);
   const { pages } = discovered;
+  errors.push(
+    ...slugRouteCollisions(pages, {
+      defaultLocale: config.defaultLocale,
+      srcDir: context.config.srcDir,
+    }),
+  );
   for (const file of ignoredListings(read.files, config)) {
     context.logger.warn(
       `${file}: se ignora porque su carpeta tiene un index.md, que es una página normal y gana al índice generado.`,
@@ -208,6 +219,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
       id,
       data: {
         slug: page.slug,
+        ...(page.urlSlug !== undefined && { urlSlug: page.urlSlug }),
         locale: page.locale,
         title: page.title,
         kind: page.kind,

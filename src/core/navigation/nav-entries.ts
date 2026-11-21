@@ -23,7 +23,7 @@ export interface NavEntry {
 export function buildNav(nav: readonly NavItem[] | undefined, context: NavContext): NavEntry[] {
   if (!nav) return [];
   const { locale, config } = context;
-  const here = pageUrl(context.slug, locale, context.url);
+  const here = pageUrl(context.urlSlug ?? context.slug, locale, context.url);
   const currentSection = sectionIndexOf(nav, context.slug);
   const entries: NavEntry[] = [];
 

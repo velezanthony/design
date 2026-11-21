@@ -288,6 +288,7 @@ astro/
 │   ├── images.ts            Comprueba las imágenes de public/
 │   ├── covers.ts            Comprueba la portada (`index.image`) de cada página; si falta, avisa
 │   ├── favicon.ts           Comprueba el favicon local
+│   ├── slug-routes.ts       Un `slug` del frontmatter en una ruta de la librería o de src/pages/
 │   └── watch.ts             Recarga en astro dev
 ├── content/
 │   ├── index.ts             `collections`: la colección docs con la config del módulo virtual

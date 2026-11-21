@@ -49,6 +49,8 @@ const PageIndexSchema = z.strictObject({
 /* Las claves ajenas se ignoran (otras herramientas escriben las suyas); las nuestras son estrictas. */
 const FrontmatterSchema = z.object({
   title: z.string().optional(),
+  /** URL propia de la página; la forma la valida el descubrimiento, que conoce los idiomas. */
+  slug: z.string().optional(),
   order: z.number().optional(),
   seo: PageSeoOverrideSchema.optional(),
   translations: MissingTranslationSchema.optional(),

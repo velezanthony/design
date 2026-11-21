@@ -147,3 +147,20 @@ describe('pagesOf: índices', () => {
     expect(page!.index).not.toHaveProperty('cover');
   });
 });
+
+describe('`slug` propio', () => {
+  it('pagesOf conserva la URL propia de la página', () => {
+    const [page] = pagesOf([data('guide', 'es', { urlSlug: 'guia' })]);
+    expect(page).toMatchObject({ slug: 'guide', urlSlug: 'guia' });
+  });
+
+  it('el sitemap lista la URL traducida con sus alternates recíprocos', () => {
+    const xml = sitemapXml(
+      [data('guide', 'en'), data('guide', 'es', { sourcePath: 'guide.es.md', urlSlug: 'guia' })],
+      config,
+    );
+    expect(xml).toContain('<loc>https://x.dev/repo/es/guia/</loc>');
+    expect(xml).not.toContain('/repo/es/guide/');
+    expect(xml).toContain('hreflang="es" href="https://x.dev/repo/es/guia/"');
+  });
+});

@@ -202,6 +202,46 @@ que estar en `locales` y cada valor tiene la forma `idioma_TERRITORIO`.
 `guia.md` es la página en el idioma por defecto; `guia.en.md` es su gemela en inglés. Para un
 externo, `CHANGELOG.md` y `CHANGELOG.es.md`. Un sufijo que no está en `locales` rompe el build.
 
+### URL traducida (`slug`)
+
+Una página puede fijar su propia URL con `slug` en el frontmatter. Así la traducción inglesa de
+`articulos/consultas-n-mas-1-django.md` puede vivir en una URL en inglés:
+
+```yaml
+# articulos/consultas-n-mas-1-django.en.md
+---
+slug: articles/n-plus-one-queries-django
+---
+```
+
+La página inglesa sale en `/en/articles/n-plus-one-queries-django/`; la española sigue en
+`/articulos/consultas-n-mas-1-django/`.
+
+| Regla | Detalle |
+| --- | --- |
+| Emparejamiento | Sigue siendo por nombre de archivo: `x.md` y `x.en.md` son la misma página aunque sus URLs difieran. |
+| Forma | Ruta completa relativa a la raíz del contenido, sin idioma, `base` ni barras en los extremos. El prefijo de idioma y la `base` los pone `pageUrl`. |
+| Idioma por defecto | También puede llevar `slug`: cambia la URL de ese archivo y nada más. |
+| Config | `sidebar`, `nav` y `footer` nombran la página por su archivo (`'articulos/consultas-n-mas-1-django'`); un `slug` no obliga a cambiarla, y en `/en/` el enlace sale con la URL traducida. |
+| Lo que la usa | Selector de idioma, `hreflang`, sitemap, canonical, anterior/siguiente, barra lateral, cabecera, `::nav-tree`, índices generados, panel SEO y Pagefind. |
+| Enlaces | `[x](guia.md)` o `[x](guia.en.md)` desde la página inglesa llevan a la URL de su gemela inglesa, con su `slug`; las anclas se validan igual. |
+| `_index.en.md` | Con `slug: articles`, el listado de `articulos/` en inglés vive en `/en/articles/` y pagina en `/en/articles/2/`. Sus entradas enlazan sus URLs en inglés. |
+| Traducción ausente | La ruta de reserva (`fallback`) sigue como siempre: el prefijo del idioma más la URL del original (`/en/articulos/nginx/`). |
+
+Rompen el build, con el archivo y una pista:
+
+- un `slug` vacío, absoluto o con barra final, con `..` o `.` como segmento, con prefijo de idioma
+  (`en/...`), terminado en `/index` o con caracteres que no sean letras, números, `-`, `_` o `.`;
+- dos archivos con la misma URL en el mismo idioma (`slug` contra `slug`, o contra la URL de otro
+  archivo o de un índice generado);
+- un `slug` en una ruta de la librería (`seo-on-page/…`, `sitemap.xml`, `pagefind/`…) o en una
+  página del sitio en `src/pages/` (solo los ficheros que existen con esa ruta; una ruta dinámica
+  no se detecta);
+- una ruta de reserva que cae en la URL que un `slug` ya ocupa en ese idioma.
+
+Por dentro, `Page.slug` es la identidad (archivo sin sufijo de idioma) y `Page.urlSlug` la URL
+propia; `urlSlugOf(page)` (`src/core/content/slug.ts`) devuelve la que toca.
+
 ### Cuando falta una traducción
 
 `translations.missing` decide qué ve quien navega en un idioma sin traducción. Los valores son

@@ -472,3 +472,34 @@ describe('rewriteLinks: casos límite de lo que cuenta como enlace', () => {
     expect(rewriteLinks(body, from('guide.md'), index).body).toBe(body);
   });
 });
+
+describe('rewriteLinks: `slug` propio', () => {
+  const translated = [
+    { ...page('articulos/a', 'en', 'articulos/a.md'), urlSlug: 'articles/a' },
+    { ...page('articulos/a', 'es', 'articulos/a.es.md'), urlSlug: 'articulos/a-es' },
+    page('articulos/b', 'en', 'articulos/b.md'),
+    { ...page('articulos/b', 'es', 'articulos/b.es.md'), urlSlug: 'blog/b' },
+  ];
+  const site: PageIndex = { pages: translated, url };
+  function at(sourcePath: string) {
+    return translated.find((item) => item.sourcePath === sourcePath)!;
+  }
+
+  it('`[x](b.md)` desde la traducción lleva a la URL traducida de la gemela, y el ancla se valida en ella', () => {
+    const result = rewriteLinks('[b](./b.md#uso)', at('articulos/a.es.md'), site);
+    expect(result.body).toBe('[b](/repo/es/blog/b/#uso)');
+    expect(result.refs).toEqual([
+      { file: 'articulos/a.es.md', line: 1, slug: 'articulos/b', locale: 'es', anchor: 'uso' },
+    ]);
+  });
+
+  it('`[x](b.es.md)` también: el archivo del otro idioma resuelve a la misma gemela', () => {
+    const result = rewriteLinks('[b](./b.es.md)', at('articulos/a.es.md'), site);
+    expect(result.body).toBe('[b](/repo/es/blog/b/)');
+  });
+
+  it('desde el idioma por defecto, la página con `slug` propio enlaza su URL', () => {
+    const result = rewriteLinks('[a](./a.md)', at('articulos/b.md'), site);
+    expect(result.body).toBe('[a](/repo/articles/a/)');
+  });
+});

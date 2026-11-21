@@ -1,8 +1,5 @@
 import { existsSync } from 'node:fs';
-import { injectedPaths, type RouteOptions } from '../routes/routes';
-
-/** Extensiones con las que Astro enruta un fichero de `src/pages/` (páginas y endpoints). */
-const PAGE_EXTENSIONS = ['astro', 'md', 'mdx', 'html', 'ts', 'js', 'mts', 'mjs'];
+import { injectedPaths, PAGE_EXTENSIONS, type RouteOptions } from '../routes/routes';
 
 /** Una ruta de la librería que el sitio sustituye con un fichero suyo. */
 export interface RouteOverride {

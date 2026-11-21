@@ -337,3 +337,33 @@ describe('buildSidebar: casos límite', () => {
     });
   });
 });
+
+describe('buildSidebar: `slug` propio', () => {
+  const pages = [
+    page('articulos/a', 'en'),
+    page('articulos/a', 'es', { urlSlug: 'articles/a-es' }),
+    page('articulos/b', 'en', { urlSlug: 'blog/b' }),
+  ];
+
+  it('la hoja de cada idioma enlaza su URL traducida y el árbol sigue la carpeta del archivo', () => {
+    expect(build(pages, 'es')).toEqual([
+      {
+        label: 'Articulos',
+        items: [
+          { label: 'a', slug: 'articulos/a', href: '/repo/es/articles/a-es/' },
+          { label: 'b', slug: 'articulos/b', href: '/repo/blog/b/', badge: 'en' },
+        ],
+      },
+    ]);
+  });
+
+  it('el orden declarado sigue usando la identidad: `articulos/a` encuentra la URL traducida', () => {
+    const tree = build(pages, 'es', ['articulos/a']);
+    expect(tree[0]).toEqual({ label: 'a', slug: 'articulos/a', href: '/repo/es/articles/a-es/' });
+  });
+
+  it('fallback: la reserva va al `slug` del original con el prefijo del idioma', () => {
+    const tree = flatten(build(pages, 'es', undefined, MissingTranslation.FALLBACK));
+    expect(tree).toContainEqual({ label: 'b', slug: 'articulos/b', href: '/repo/es/blog/b/' });
+  });
+});

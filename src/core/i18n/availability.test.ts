@@ -66,3 +66,24 @@ describe('buildAvailability', () => {
     expect(availability.has('es-only')).toBe(false);
   });
 });
+
+describe('buildAvailability: `slug` propio', () => {
+  it('agrupa por identidad (el archivo) y da a cada idioma su URL traducida', () => {
+    const availability = buildAvailability(
+      [
+        { ...page('articulos/consultas', 'es'), sourcePath: 'articulos/consultas.md' },
+        {
+          ...page('articulos/consultas', 'en'),
+          sourcePath: 'articulos/consultas.en.md',
+          urlSlug: 'articles/queries',
+        },
+      ],
+      policy({ defaultLocale: 'es', base: '/repo' }),
+    );
+    expect([...availability.keys()]).toEqual(['articulos/consultas']);
+    expect(availability.get('articulos/consultas')).toEqual({
+      es: '/repo/articulos/consultas/',
+      en: '/repo/en/articles/queries/',
+    });
+  });
+});

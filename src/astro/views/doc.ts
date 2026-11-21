@@ -17,6 +17,7 @@ import { consentOf, navContextOf, siteContext, type SiteContext } from './chrome
 import type { VirtualConfig } from '../virtual/data';
 import { baseUrl } from '../../core/shared/urls';
 import { DocsError } from '../../core/errors';
+import { urlSlugOf } from '../../core/content/slug';
 import { translate } from '../../core/i18n/ui-strings';
 import { listingPages, listingPageUrl } from './doc-index';
 
@@ -25,7 +26,10 @@ export interface DocRoute {
   /** Valor de `[...slug]`: sin base; el idioma por defecto va sin prefijo; la portada es `undefined`. */
   param: string | undefined;
   kind: 'page' | 'fallback';
+  /** Identidad de la página (su archivo sin sufijo de idioma): con ella se buscan el contenido y la sección. */
   slug: string;
+  /** URL de la ruta sin idioma ni base: el `slug` propio de la página o, en una reserva, el del original. */
+  urlSlug: string;
   /** Idioma de la ruta (`<html lang>`, barra lateral, textos). */
   locale: Locale;
   /** Idioma del contenido que se pinta: el de la ruta salvo en las de reserva. */
@@ -47,21 +51,53 @@ export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
   const site = siteContext(config, data);
   const { pages, url, availability, policies } = site;
   const real = pages.map((page): DocRoute => ({
-    param: paramOf(page.slug, page.locale, config.defaultLocale),
+    param: paramOf(urlSlugOf(page), page.locale, config.defaultLocale),
     kind: 'page',
     slug: page.slug,
+    urlSlug: urlSlugOf(page),
     locale: page.locale,
     contentLocale: page.locale,
   }));
-  const fallback = fallbackRoutes(availability, policies, config, url).map((spec): DocRoute => ({
-    param: paramOf(spec.slug, spec.locale, config.defaultLocale),
-    kind: 'fallback',
-    slug: spec.slug,
-    locale: spec.locale,
-    contentLocale: spec.entryMeta.locale,
-    canonical: spec.canonical,
-  }));
+  const fallback = fallbackRoutes(availability, policies, config, url, pages).map(
+    (spec): DocRoute => ({
+      param: paramOf(spec.urlSlug, spec.locale, config.defaultLocale),
+      kind: 'fallback',
+      slug: spec.slug,
+      urlSlug: spec.urlSlug,
+      locale: spec.locale,
+      contentLocale: spec.entryMeta.locale,
+      canonical: spec.canonical,
+    }),
+  );
+  assertFreeFallbacks(real, fallback, site, data);
   return withListingPages([...real, ...fallback], site, data);
+}
+
+/** Una reserva va en la URL del original con el prefijo de su idioma; si un `slug` propio ya la ocupa en ese idioma, la build se para. */
+function assertFreeFallbacks(
+  real: DocRoute[],
+  fallback: DocRoute[],
+  site: SiteContext,
+  data: DocData[],
+): void {
+  const owners = new Map(real.map((route) => [route.param, route]));
+  for (const route of fallback) {
+    const owner = owners.get(route.param);
+    if (!owner) continue;
+    const file =
+      data.find((item) => item.slug === owner.slug && item.locale === owner.locale)?.sourcePath ??
+      owner.slug;
+    const original = data.find(
+      (item) => item.slug === route.slug && item.locale === route.contentLocale,
+    )?.sourcePath;
+    throw new DocsError(
+      `La ruta de reserva ${pageUrl(route.urlSlug, route.locale, site.url)} de «${original ?? route.slug}» (sin traducción a ${route.locale}) coincide con la URL de «${file}».`,
+      {
+        file,
+        hint: `Cambia el \`slug\` de «${file}», traduce la página o declara \`translations: link\` u \`omit\` en ella para que no tenga reserva.`,
+      },
+    );
+  }
 }
 
 /** Las rutas con un índice paginado saben cuántas páginas tiene y suman las suyas (`<carpeta>/2/`…); una página real en esa URL rompe el build. */
@@ -73,7 +109,7 @@ function withListingPages(routes: DocRoute[], site: SiteContext, data: DocData[]
     const extra = Array.from({ length: pages - 1 }, (_item, index): DocRoute => {
       const page = index + 2;
       const param = paramOf(
-        [route.slug, String(page)].filter(Boolean).join('/'),
+        [route.urlSlug, String(page)].filter(Boolean).join('/'),
         route.locale,
         site.config.defaultLocale,
       );
@@ -91,7 +127,7 @@ function withListingPages(routes: DocRoute[], site: SiteContext, data: DocData[]
         page,
         pages,
         ...(route.kind === 'fallback' && {
-          canonical: listingPageUrl(route.slug, route.contentLocale, page, site.url),
+          canonical: listingPageUrl(route.urlSlug, route.contentLocale, page, site.url),
         }),
       };
     });
@@ -157,12 +193,12 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
           noindex: true,
         }
       : resolved;
-  const pageUrlOfRoute = pageUrl(route.slug, route.locale, url);
+  const pageUrlOfRoute = pageUrl(route.urlSlug, route.locale, url);
   const pageData: PageData = {
     kind: route.kind,
     slug: route.slug,
     locale: route.locale,
-    url: listingPageUrl(route.slug, route.locale, page, url),
+    url: listingPageUrl(route.urlSlug, route.locale, page, url),
     ...(route.canonical !== undefined && { canonical: route.canonical }),
   };
   const head = [
@@ -177,7 +213,7 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
     ...paginationLinks(route, page, url, new URL(config.site)),
   ];
 
-  const navContext = navContextOf(site, route.locale, route.slug);
+  const navContext = navContextOf(site, route.locale, route.slug, route.urlSlug);
   const sidebar = buildScopedSidebar(navContext);
   const neighbours = prevNext(flatten(sidebar), route.slug);
   function link(leaf?: { label: string; href: string }) {
@@ -224,7 +260,7 @@ function paginationLinks(
     ['next', page + 1],
   ] as const) {
     if (target < 1 || target > pages) continue;
-    const href = new URL(listingPageUrl(route.slug, route.locale, target, url), site).href;
+    const href = new URL(listingPageUrl(route.urlSlug, route.locale, target, url), site).href;
     links.push({ tag: 'link', attrs: { rel, href } });
   }
   return links;
@@ -233,5 +269,8 @@ function paginationLinks(
 /** Los árboles de `::nav-tree` de la página, uno por posición de `nav`: textos en el idioma del contenido y URLs como las de su barra lateral. */
 export function docNavTrees({ route, config, data }: Omit<DocViewInput, 'sizes'>): NavTreeNode[][] {
   const site = siteContext(config, data);
-  return buildNavTrees(navContextOf(site, route.locale, route.slug), route.contentLocale);
+  return buildNavTrees(
+    navContextOf(site, route.locale, route.slug, route.urlSlug),
+    route.contentLocale,
+  );
 }

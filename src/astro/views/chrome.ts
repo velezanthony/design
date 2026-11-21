@@ -30,10 +30,24 @@ export function siteContext(config: VirtualConfig, data: DocData[]): SiteContext
   };
 }
 
-/** El contexto del núcleo para construir cabecera, pie y barra lateral de una página. */
-export function navContextOf(site: SiteContext, locale: Locale, slug: string): NavContext {
+/** El contexto del núcleo para construir cabecera, pie y barra lateral de una página: `slug` es su identidad y `urlSlug` la URL de la ruta, si es otra. */
+export function navContextOf(
+  site: SiteContext,
+  locale: Locale,
+  slug: string,
+  urlSlug?: string,
+): NavContext {
   const { config, pages, availability, policies, url } = site;
-  return { pages, availability, locale, config, policies, url, slug };
+  return {
+    pages,
+    availability,
+    locale,
+    config,
+    policies,
+    url,
+    slug,
+    ...(urlSlug !== undefined && urlSlug !== slug && { urlSlug }),
+  };
 }
 
 /** Enlace a la política de privacidad y ID de analítica; cada clave solo está si existe. */

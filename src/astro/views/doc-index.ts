@@ -25,7 +25,10 @@ import { navContextOf, siteContext, type SiteContext } from './chrome';
 
 /** Lo que el índice necesita saber de la ruta que se pinta. */
 interface ListingRoute {
+  /** Identidad de la página del listado: su carpeta. */
   slug: string;
+  /** URL del listado sin idioma ni base, si no es la de su identidad (un `_index.en.md` con `slug`). */
+  urlSlug?: string;
   locale: Locale;
   contentLocale: Locale;
   /** Página del listado (desde 2); sin ella, la 1. */
@@ -96,7 +99,7 @@ function listingOf(
   takenIds: Iterable<string> = [],
 ): IndexListing {
   return buildIndexListing(
-    navContextOf(site, route.locale, route.slug),
+    navContextOf(site, route.locale, route.slug, route.urlSlug),
     route.contentLocale,
     options.folder,
     detailsOf(data, route.contentLocale, site.config.defaultLocale, dates),
@@ -158,7 +161,7 @@ export function docIndexView({
   );
   const title = contentOf(route, data)?.title ?? '';
   const hrefs = Array.from({ length: pages }, (_item, index) =>
-    listingPageUrl(route.slug, route.locale, index + 1, site.url),
+    listingPageUrl(route.urlSlug ?? route.slug, route.locale, index + 1, site.url),
   );
   const sections = isPaginated ? [] : listing.sections;
   return {

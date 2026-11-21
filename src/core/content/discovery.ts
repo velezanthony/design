@@ -4,7 +4,7 @@ import type { PageSeoOverride } from '../config/schema';
 import { collectErrors, DocsError } from '../errors';
 import { localizedPath, splitLocale, type Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
-import { findSlugCollisions, toSlug } from './slug';
+import { findSlugCollisions, findUrlCollisions, slugProblem, toSlug, urlSlugOf } from './slug';
 import { resolveTitle } from './title';
 
 /** Bloque `index` del frontmatter: cómo sale la página en un índice y, en un `index.md`, su listado. */
@@ -25,6 +25,8 @@ export interface PageIndex {
 /** Frontmatter de una página nativa que el núcleo entiende (ya validado por `docsSchema()`). */
 export interface Frontmatter {
   title?: string;
+  /** URL propia (ruta relativa al contenido, sin idioma ni base); sin ella, la del nombre del archivo. */
+  slug?: string;
   order?: number;
   seo?: PageSeoOverride;
   translations?: MissingTranslation;
@@ -42,8 +44,16 @@ export interface SourceFile {
 /** De dónde sale una página: un `.md` de `content`, una entrada de `external[]` o un índice generado (una carpeta sin `index.md`). */
 export type PageKind = SourceFile['kind'] | 'generated';
 
+/**
+ * Una página en un idioma. `slug` es su IDENTIDAD: sale del archivo sin el sufijo de idioma
+ * (`guia.md` y `guia.en.md` son `guia`), empareja las traducciones y es lo que nombran la config
+ * (`sidebar`, `nav`), las políticas y los mapas por página. `urlSlug` es su URL cuando el
+ * frontmatter la fija con `slug`; sin él la URL sale de la identidad (`urlSlugOf`).
+ */
 export interface Page {
   slug: string;
+  /** URL propia, sin idioma ni base: el `slug` del frontmatter. Solo existe si se declaró. */
+  urlSlug?: string;
   locale: Locale;
   title: string;
   kind: PageKind;
@@ -153,6 +163,22 @@ export function ignoredListings(files: SourceFile[], config: DiscoveryConfig): s
     });
 }
 
+/** El `slug` del frontmatter si vale como URL; si no, apunta el fallo y la página sigue con la URL de su archivo. */
+function ownUrlSlug(
+  file: SourceFile,
+  config: DiscoveryConfig,
+  errors: DocsError[],
+): string | undefined {
+  const slug = file.frontmatter?.slug;
+  if (slug === undefined) return undefined;
+  const problem = slugProblem(slug, config.locales);
+  if (!problem) return slug;
+  errors.push(
+    new DocsError(`slug: «${slug}» ${problem.message}.`, { file: file.path, hint: problem.hint }),
+  );
+  return undefined;
+}
+
 function nativePage(
   file: SourceFile,
   config: DiscoveryConfig,
@@ -167,8 +193,10 @@ function nativePage(
   if (folder !== undefined && indexedFolders(indexKeys).has(folder)) return undefined;
   const title = attempt(errors, () => resolveTitle(file.body, file.frontmatter?.title, file.path));
   if (title === undefined) return undefined;
+  const urlSlug = ownUrlSlug(file, config, errors);
   return {
     slug: folder ?? toSlug(readmeAsIndex(located.stem, located.locale, indexKeys)),
+    ...(urlSlug !== undefined && { urlSlug }),
     ...(folder !== undefined && { listing: true as const }),
     locale: located.locale,
     title,
@@ -228,11 +256,11 @@ function findLocalePrefixCollisions(pages: Page[], config: DiscoveryConfig): Doc
   return pages
     .filter((page) => page.locale === config.defaultLocale)
     .flatMap((page) => {
-      const prefix = prefixes.find((locale) => page.slug.split('/')[0] === locale);
+      const prefix = prefixes.find((locale) => urlSlugOf(page).split('/')[0] === locale);
       if (prefix === undefined) return [];
       return [
         new DocsError(
-          `El slug «${page.slug}» de «${page.sourcePath}» empieza por el código de idioma «${prefix}» y colisiona con las URLs de ese idioma (/${prefix}/…).`,
+          `El slug «${urlSlugOf(page)}» de «${page.sourcePath}» empieza por el código de idioma «${prefix}» y colisiona con las URLs de ese idioma (/${prefix}/…).`,
           {
             file: page.sourcePath,
             hint: `Renombra el archivo (el idioma por defecto «${config.defaultLocale}» va sin prefijo, y «${prefix}» está reservado para sus traducciones).`,
@@ -260,7 +288,20 @@ export function discoverPages(files: SourceFile[], config: DiscoveryConfig): Pag
     ...findSlugCollisions(
       pages.map((page) => ({ slug: page.slug, locale: page.locale, file: page.sourcePath })),
     ),
+    ...urlCollisions(pages),
   );
   collectErrors(errors);
   return pages;
+}
+
+/** Las URLs que reclaman varias páginas de un idioma por culpa de un `slug` del frontmatter. */
+export function urlCollisions(pages: readonly Page[]): DocsError[] {
+  return findUrlCollisions(
+    pages.map((page) => ({
+      slug: urlSlugOf(page),
+      locale: page.locale,
+      file: page.sourcePath,
+      explicit: page.urlSlug !== undefined,
+    })),
+  );
 }

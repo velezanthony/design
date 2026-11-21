@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
 import type { Page } from '../content/discovery';
+import { urlSlugOf } from '../content/slug';
 import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import {
@@ -77,7 +78,16 @@ function toEntries(
     const original = pages.find((page) => page.slug === slug && page.locale === source);
     if (!original) continue;
     const policy = policies.get(slug) ?? MissingTranslation.LINK;
-    const leaf = missingEntry(slug, original.title, available, locale, policy, config, url);
+    const leaf = missingEntry(
+      slug,
+      original.title,
+      available,
+      locale,
+      policy,
+      config,
+      url,
+      urlSlugOf(original),
+    );
     if (leaf) {
       entries.push({ slug, leaf, ...(original.order !== undefined && { order: original.order }) });
     }
@@ -94,6 +104,8 @@ export function missingEntry(
   policy: MissingTranslation,
   config: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
   url: UrlPolicy,
+  /** URL del original sin idioma ni base (su `slug` propio): la reserva la reutiliza con el prefijo del idioma. */
+  sourceUrlSlug = slug,
 ): SidebarLeaf | null {
   switch (policy) {
     case MissingTranslation.LINK: {
@@ -101,12 +113,12 @@ export function missingEntry(
       return {
         label: title,
         slug,
-        href: available[source] ?? pageUrl(slug, source, url),
+        href: available[source] ?? pageUrl(sourceUrlSlug, source, url),
         badge: source,
       };
     }
     case MissingTranslation.FALLBACK:
-      return { label: title, slug, href: pageUrl(slug, locale, url) };
+      return { label: title, slug, href: pageUrl(sourceUrlSlug, locale, url) };
     case MissingTranslation.OMIT:
       return null;
   }

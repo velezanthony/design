@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import type { AstroIntegrationLogger } from 'astro';
 import { AstroError } from 'astro/errors';
 import * as pagefind from 'pagefind';
+import { PAGEFIND_DIR } from '../../routes/routes';
 
 /** Indexa `dist/` con Pagefind; `base` no interviene al indexar, lo aplica el cliente al cargar `pagefind.js`. */
 export async function buildPagefindIndex(
@@ -18,7 +19,7 @@ export async function buildPagefindIndex(
       throw new AstroError('Pagefind no pudo indexar `dist/`.', added.errors.join('\n'));
     }
     const written = await index.writeFiles({
-      outputPath: fileURLToPath(new URL('pagefind/', directory)),
+      outputPath: fileURLToPath(new URL(`${PAGEFIND_DIR}/`, directory)),
     });
     if (written.errors.length > 0) {
       throw new AstroError('Pagefind no pudo escribir el índice.', written.errors.join('\n'));

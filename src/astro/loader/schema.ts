@@ -26,7 +26,10 @@ function coverSchema(image?: ImageHelper) {
  */
 export function docsSchema(image?: ImageHelper) {
   return z.object({
+    /** Identidad: el archivo sin sufijo de idioma; empareja las traducciones. */
     slug: z.string(),
+    /** URL propia sin idioma ni base (el `slug` del frontmatter); sin ella, la de `slug`. */
+    urlSlug: z.string().optional(),
     locale: z.string(),
     title: z.string(),
     sourcePath: z.string(),

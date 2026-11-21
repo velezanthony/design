@@ -363,3 +363,80 @@ describe('discoverPages: _index.md', () => {
     expect(page).toMatchObject({ slug: '', listing: true });
   });
 });
+
+describe('discoverPages: `slug` propio (URL traducida)', () => {
+  function bilingual() {
+    return config({ locales: ['es', 'en'], defaultLocale: 'es' });
+  }
+
+  it('la traducción con `slug` conserva la identidad del archivo y guarda su URL aparte', () => {
+    const pages = discoverPages(
+      [
+        native('articulos/consultas.md'),
+        native('articulos/consultas.en.md', '# Queries', { slug: 'articles/queries' }),
+      ],
+      bilingual(),
+    );
+    expect(pages.map((page) => [page.slug, page.locale, page.urlSlug])).toEqual([
+      ['articulos/consultas', 'es', undefined],
+      ['articulos/consultas', 'en', 'articles/queries'],
+    ]);
+  });
+
+  it('el archivo del idioma por defecto también puede fijar su `slug`', () => {
+    const [page] = discoverPages(
+      [native('articulos/consultas.md', '# Consultas', { slug: 'blog/consultas' })],
+      bilingual(),
+    );
+    expect(page).toMatchObject({ slug: 'articulos/consultas', urlSlug: 'blog/consultas' });
+  });
+
+  it('un `_index.en.md` con `slug` mueve el listado de su carpeta, que sigue siendo la misma', () => {
+    const pages = discoverPages(
+      [
+        native('articulos/_index.md', '# Artículos'),
+        native('articulos/_index.en.md', '# Articles', { slug: 'articles' }),
+      ],
+      bilingual(),
+    );
+    expect(pages.map((page) => [page.slug, page.locale, page.urlSlug, page.listing])).toEqual([
+      ['articulos', 'es', undefined, true],
+      ['articulos', 'en', 'articles', true],
+    ]);
+  });
+
+  it('un `slug` mal formado falla nombrando el archivo, el campo y la razón', () => {
+    const errors = errorsOf(() =>
+      discoverPages([native('a.en.md', '# A', { slug: 'en/a' })], bilingual()),
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('a.en.md');
+    expect(errors[0]).toContain('slug');
+    expect(errors[0]).toContain('«en»');
+  });
+
+  it('un `slug` que coincide con la URL de otro archivo del mismo idioma falla nombrando ambos', () => {
+    const errors = errorsOf(() =>
+      discoverPages(
+        [
+          native('a.md'),
+          native('a.en.md', '# A', { slug: 'guide' }),
+          native('guide.md'),
+          native('guide.en.md'),
+        ],
+        bilingual(),
+      ),
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain('a.en.md (slug)');
+    expect(errors[0]).toContain('guide.en.md');
+  });
+
+  it('el mismo `slug` en dos idiomas no choca: cada uno va con su prefijo', () => {
+    const pages = discoverPages(
+      [native('a.md', '# A', { slug: 'x' }), native('a.en.md', '# A', { slug: 'x' })],
+      bilingual(),
+    );
+    expect(pages.map((page) => page.urlSlug)).toEqual(['x', 'x']);
+  });
+});

@@ -484,6 +484,12 @@ defecto bajo la URL del otro) es `translations: { missing: MissingTranslation.FA
 defecto sigue siendo `link`, que no duplica contenido; con `fallback_to_default: false` lo más cercano
 es `omit`.
 
+### URL traducida (`slug` en el frontmatter)
+
+| Campo  | Significado |
+| ------ | ----------- |
+| `slug` | URL propia de la página, relativa a la raíz del contenido y sin idioma, `base` ni barras en los extremos: `slug: articles/n-plus-one-queries-django` en `consultas.en.md` la publica en `/en/articles/n-plus-one-queries-django/`. Las traducciones se siguen emparejando por nombre de archivo y la config las sigue nombrando por él. Vale también en el idioma por defecto y en un `_index.<idioma>.md` (mueve el listado de la carpeta). Un `slug` mal formado, una URL repetida en un idioma o una ruta de la librería o de `src/pages/` rompen el build. Ver [Rutas, SEO e idiomas](docs/src/content/docs/guia/rutas-seo-idiomas.md#url-traducida-slug). |
+
 ### Archivos externos
 
 `external[].file` es relativo al proyecto de Astro (`../CHANGELOG.md`). `CHANGELOG.es.md` es su

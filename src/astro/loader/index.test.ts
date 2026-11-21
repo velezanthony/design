@@ -52,6 +52,7 @@ function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: 
   const context = {
     config: {
       root: pathToFileURL(`${projectRoot}/`),
+      srcDir: pathToFileURL(`${projectRoot}/src/`),
       base: options.base ?? '/',
       trailingSlash: 'ignore',
       publicDir: pathToFileURL(`${projectRoot}/public/`),
@@ -792,5 +793,47 @@ describe('docsLoader: índices generados', () => {
       summary: 'Corto.',
     });
     expect(warnings).toEqual([expect.stringContaining('«./nada.png»')]);
+  });
+});
+
+describe('docsLoader: `slug` propio', () => {
+  const bilingual: DocsUserConfig = { name: 'T', locales: ['es', 'en'], defaultLocale: 'es' };
+
+  it('la entrada guarda su URL propia y conserva la identidad; los enlaces van a la URL traducida', async () => {
+    await write('src/content/docs/a.md', '# A\n\n[b](./b.md#uso)\n');
+    await write('src/content/docs/a.en.md', '# A\n\n[b](./b.md#use)\n');
+    await write('src/content/docs/b.md', '# B\n\n## Uso\n');
+    await write('src/content/docs/b.en.md', '---\nslug: articles/b\n---\n# B\n\n## Use\n');
+    const { entries, rendered } = await load(bilingual, makeContext({ base: '/repo' }));
+    expect(entries.get('en/b')?.data).toMatchObject({ slug: 'b', urlSlug: 'articles/b' });
+    expect(entries.get('es/b')?.data).not.toHaveProperty('urlSlug');
+    expect(rendered.join('\n')).toContain('[b](/repo/en/articles/b/#use)');
+    expect(rendered.join('\n')).toContain('[b](/repo/b/#uso)');
+  });
+
+  it('un `slug` que ocupa una ruta de la librería rompe con archivo y ruta', async () => {
+    await write('src/content/docs/index.md', '# Inicio\n');
+    await write('src/content/docs/a.md', '---\nslug: seo-on-page/a\n---\n# A\n');
+    const message = await failure(bilingual);
+    expect(message).toContain('a.md');
+    expect(message).toContain('/seo-on-page/a/');
+    expect(message).toContain('librería');
+  });
+
+  it('un `slug` que ocupa una página del sitio en src/pages/ rompe nombrando ambos archivos', async () => {
+    await write('src/content/docs/index.md', '# Inicio\n');
+    await write('src/content/docs/a.en.md', '---\nslug: contact\n---\n# A\n');
+    await write('src/pages/en/contact.astro', '<p>hola</p>\n');
+    const message = await failure(bilingual);
+    expect(message).toContain('a.en.md');
+    expect(message).toContain('src/pages/en/contact.astro');
+  });
+
+  it('un `slug` que coincide con la URL de un índice generado rompe la carga', async () => {
+    await write('src/content/docs/guia/a.md', '# A\n');
+    await write('src/content/docs/otra.en.md', '---\nslug: guia\n---\n# Otra\n');
+    const message = await failure({ ...bilingual, indexes: { include: ['guia'] } });
+    expect(message).toContain('otra.en.md (slug)');
+    expect(message).toContain('guia/_index.md');
   });
 });

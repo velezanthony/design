@@ -67,6 +67,19 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   llega a ejecutarse, el CSS retira la caja a los 10 s. Mermaid empieza a descargarse a la par que el
   código que lo dibuja, no después.
 
+- **URLs traducidas con `slug` en el frontmatter.** `slug: articles/n-plus-one-queries-django` en
+  `articulos/consultas-n-mas-1-django.en.md` publica la traducción en
+  `/en/articles/n-plus-one-queries-django/`, mientras la española sigue en su URL. Las traducciones se
+  siguen emparejando por nombre de archivo: el selector de idioma, `hreflang`, el sitemap, el
+  canonical, anterior/siguiente, la barra lateral, la cabecera, `::nav-tree`, los índices generados,
+  el panel SEO, Pagefind y los enlaces relativos entre `.md` usan la URL de cada idioma, y `sidebar`,
+  `nav` y `footer` siguen nombrando la página por su archivo. Un `_index.en.md` con `slug: articles`
+  mueve el listado de su carpeta (y su paginación) a `/en/articles/`. También vale en el idioma por
+  defecto. Las rutas de reserva no cambian. Rompen el build un `slug` mal formado (vacío, absoluto,
+  con `..`, prefijo de idioma, `/index` final o caracteres no válidos), dos archivos con la misma URL
+  en un idioma, un `slug` en una ruta de la librería o de `src/pages/` y una reserva que cae en una
+  URL ocupada. Sin `slug`, la salida es idéntica.
+
 ### Cambiado
 
 - **El migrador de MkDocs sugiere el `README.md` de la raíz de `docs_dir` como portada.** Con

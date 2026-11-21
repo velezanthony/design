@@ -21,8 +21,10 @@ export interface NavContext {
   config: NavConfig;
   policies: TranslationPolicies;
   url: UrlPolicy;
-  /** Slug de la página que se renderiza: decide a qué sección pertenece. */
+  /** Identidad de la página que se renderiza: decide a qué sección pertenece. */
   slug: string;
+  /** URL de la ruta sin idioma ni base, si no es la de su identidad (un `slug` propio o una reserva). */
+  urlSlug?: string;
 }
 
 /** Árbol de las páginas que cumplen `keep`, con el orden declarado en `sidebar` y la carpeta `base` como raíz. */
