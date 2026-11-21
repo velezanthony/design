@@ -1,4 +1,9 @@
 @utility prose {
+  /* Una palabra larga sin espacios (un código de error, un identificador, una URL) en un título o
+     un párrafo se parte antes que empujar la página en horizontal en móvil. `break-word` solo
+     corta cuando la palabra no cabe en la línea: el texto normal no cambia. */
+  overflow-wrap: break-word;
+
   /* El texto conserva su medida; lo ancho (código, tablas, pestañas, capturas) la desborda hasta
      `--wide-max`. La caja de `prose` ocupa toda la columna: la medida va en los hijos. */
   & > * {

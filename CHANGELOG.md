@@ -23,6 +23,10 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Arreglado
 
+- **Una palabra larga ya no se sale de la página en móvil.** `prose` lleva
+  `overflow-wrap: break-word`: un código de error, un identificador o una URL sin espacios en un
+  título o un párrafo se parte cuando no cabe en la línea. Antes solo se partía el código en línea, y
+  un `# ERR_TOO_MANY_REDIRECTS` a tamaño display empujaba la página en horizontal.
 - **Una política de traducción declarada en la config del sitio cuenta como declarada.** Con
   `translations: { missing: … }` en `docs.config.mjs`, una página sin traducción ya no avisa «Declara
   `translations`» al arrancar ni resta salud en el panel SEO: el aviso solo miraba el frontmatter de
