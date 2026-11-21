@@ -20,6 +20,8 @@ export interface Mkdocs {
   fallbackToDefault: boolean;
   /** `docs_dir`; por defecto `docs`. */
   docsDir: string;
+  /** `site_url` tal cual, si lo hay. */
+  siteUrl?: string;
   /** Con `toc.slugify` propio los ids no son los de Python-Markdown. */
   slugStyle: SlugStyle;
   /** El documento tal cual se leyó, para avisar de las claves que no se migran. */
@@ -62,6 +64,7 @@ export function parseMkdocs(text: string): Mkdocs {
     languages,
     fallbackToDefault: i18n?.fallback_to_default === true,
     docsDir: typeof raw.docs_dir === 'string' ? raw.docs_dir : 'docs',
+    ...(typeof raw.site_url === 'string' ? { siteUrl: raw.site_url } : {}),
     slugStyle:
       toc && 'slugify' in toc && !DEFAULT_SLUGIFY.test(text) ? 'unicode' : 'python-markdown',
     raw,

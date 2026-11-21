@@ -11,6 +11,15 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   `exclude` de la config pero relativas a `from`:
   `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se
   copia a `dist/` y `astro dev` responde 404.
+- **El migrador de MkDocs sugiere `site` y `base` desde `site_url`.** Como van en `astro.config.mjs`,
+  otro archivo, salen en una línea de comentario sobre la config sugerida:
+  `https://o.github.io/repo/` → `defineDocsSite(docsConfig, { site: 'https://o.github.io', base: '/repo' })`.
+
+### Cambiado
+
+- **El migrador de MkDocs sugiere el `README.md` de la raíz de `docs_dir` como portada.** Con
+  `docs_dir: .` o `Home: README.md` en el `nav`, el externo sale con `slug: 'index'` y no
+  `'readme'`, así que el sitio tiene portada. Si el `nav` trae un `docs/index.md`, la portada es esa.
 
 ### Arreglado
 

@@ -749,7 +749,8 @@ convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), rees
 ids de la librería, se niega a correr si el repo no es git o `docs/` tiene cambios sin confirmar
 (`--force` lo salta; se desaconseja) y termina con un resumen, los restos de sintaxis que no ha
 entendido, las páginas `--8<--` que conviene publicar con `external[]`, una **config sugerida** leída
-de `mkdocs.yml` (idiomas, `fallback`, `exclude` y `nav`; `--config-out <fichero>` la escribe) y la
+de `mkdocs.yml` (idiomas, `fallback`, `exclude`, `nav` con el `README.md` de la raíz como portada
+`index`, y `site`/`base` de `astro.config.mjs` sacados de `site_url`; `--config-out <fichero>` la escribe) y la
 lista de lo que ignora. `--api <api.json>` resuelve las directivas de mkdocstrings y `--dry-run` no
 escribe nada y solo imprime el plan. Luego: `git diff docs/` y commit, o `git checkout docs/` para
 descartarlo.

@@ -116,8 +116,12 @@ sugerida** (`--config-out <fichero>` la escribe, sin pisar nada más): `locales`
 `exclude` desde `exclude_docs` (sin comentarios) y `nav`: cada grupo de primer nivel es una
 **sección con solo `sidebar`** (sin `dir`), con la etiqueta de cada idioma sacada de `nav_translations`.
 Con `docs_dir: .` lo que vive fuera de `docs/` (`README.md`, `CHANGELOG.md`…) va como `external`
-en esa misma sugerencia, y los slugs se reparten por el `nav`. Es un punto de partida: revisa los
-slugs de los externos y las etiquetas antes de pegarla en `docs.config.mjs`.
+en esa misma sugerencia, y los slugs se reparten por el `nav`. El `README.md` de la raíz de
+`docs_dir` es la portada, como en MkDocs: sale con `slug: 'index'` (salvo que el `nav` traiga un
+`docs/index.md`). `site_url` se parte en el `site` (origen) y el `base` (ruta) de `astro.config.mjs`,
+que es otro archivo: van en una línea de comentario encima del módulo
+(`https://o.github.io/repo/` → `{ site: 'https://o.github.io', base: '/repo' }`). Es un punto de
+partida: revisa los slugs de los externos y las etiquetas antes de pegarla en `docs.config.mjs`.
 
 **`--api` en `--in-place`.** `--api <api.json>` (el que genera `api/generate-api.py`) sustituye las
 directivas `::: paquete.Símbolo` de mkdocstrings por la referencia generada; sin él quedan como una
