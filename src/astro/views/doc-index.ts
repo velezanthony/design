@@ -1,6 +1,7 @@
 import { IndexLayout, listingOptions, type ListingOptions } from '../../core/config/indexes';
 import { pageUrl, type UrlPolicy } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
+import { pickLocalized } from '../../core/i18n/translation-policy';
 import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import {
   buildIndexListing,
@@ -68,13 +69,15 @@ export function listingPageUrl(slug: string, locale: Locale, page: number, url: 
   return pageUrl(page === 1 ? slug : [slug, String(page)].filter(Boolean).join('/'), locale, url);
 }
 
-/** La portada y la fecha de cada página, de su entrada en el idioma del contenido (o del original). */
-function detailsOf(data: DocData[], locale: Locale, defaultLocale: Locale, dates: DatesBySource) {
+/** La portada y la fecha de cada página, de su entrada en el idioma del contenido o, sin ella, la del original (`pickLocalized`). */
+function detailsOf(
+  data: DocData[],
+  locale: Locale,
+  config: Pick<VirtualConfig, 'locales' | 'defaultLocale'>,
+  dates: DatesBySource,
+) {
   return (slug: string): EntryDetails | undefined => {
-    const item =
-      data.find((entry) => entry.slug === slug && entry.locale === locale) ??
-      data.find((entry) => entry.slug === slug && entry.locale === defaultLocale) ??
-      data.find((entry) => entry.slug === slug);
+    const item = pickLocalized(data, slug, locale, config);
     if (!item) return undefined;
     const updated = dates.get(item.sourcePath);
     const { cover, imageAlt } = item.index ?? {};
@@ -101,7 +104,7 @@ function listingOf(
     navContextOf(site, route),
     route.contentLocale,
     options.folder,
-    detailsOf(data, route.contentLocale, site.config.defaultLocale, dates),
+    detailsOf(data, route.contentLocale, site.config, dates),
     takenIds,
   );
 }

@@ -49,10 +49,19 @@ export function buildSidebarFor(
   );
 }
 
-/** Árbol de la sección `index` de `nav`, o el de las páginas sin sección si es `-1`. */
-export function buildSectionSidebar(context: NavContext, index: number): SidebarNode[] {
+/** Un ámbito de la navegación: una sección de `nav` (por su posición) o las páginas que no cuelgan de ninguna. */
+export type NavScope = { kind: 'section'; position: number } | { kind: 'unsectioned' };
+
+/** El ámbito al que pertenece la página `slug`. */
+export function navScopeOf(nav: readonly NavItem[] | undefined, slug: string): NavScope {
+  const position = sectionIndexOf(nav, slug);
+  return position === -1 ? { kind: 'unsectioned' } : { kind: 'section', position };
+}
+
+/** Árbol de un ámbito: el de su sección de `nav` o el de las páginas sin sección. Una posición que no es una sección cuenta como «sin sección». */
+export function buildSectionSidebar(context: NavContext, scope: NavScope): SidebarNode[] {
   const nav = context.config.nav;
-  const item = nav?.[index];
+  const item = scope.kind === 'section' ? nav?.[scope.position] : undefined;
   if (item && isNavSection(item)) {
     return buildSidebarFor(context, (slug) => sectionOwns(item, slug), item.sidebar, item.dir);
   }
@@ -75,5 +84,5 @@ export function buildScopedSidebar(context: NavContext): SidebarNode[] {
       context.url,
     );
   }
-  return buildSectionSidebar(context, sectionIndexOf(context.config.nav, context.slug));
+  return buildSectionSidebar(context, navScopeOf(context.config.nav, context.slug));
 }

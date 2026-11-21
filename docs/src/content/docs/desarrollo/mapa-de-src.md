@@ -45,10 +45,11 @@ core/
 │   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
 │   ├── nav-sections.ts    Secciones por dir, validación de nav
-│   ├── nav-sidebar.ts     La barra lateral de la sección actual
+│   ├── nav-sidebar.ts     La barra lateral de un ámbito (NavScope: una sección o las páginas sin sección)
+│   ├── nav-walk.ts        El único recorrido de la nav: ámbitos, árboles de contenido y de ruta, visitantes
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
-│   ├── nav-tree.ts        Árbol de cada sección para el índice de ::nav-tree, y los huecos que deja en el HTML
-│   ├── index-entries.ts   Listado de un índice generado: entradas, secciones, orden por fecha y portada
+│   ├── nav-tree.ts        Árbol de cada sección para ::nav-tree (visitante de nav-walk) y los huecos que deja en el HTML
+│   ├── index-entries.ts   Listado de un índice generado (visitante de nav-walk): entradas, secciones, orden por fecha y portada
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
 │   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── toc-entries.ts     Encabezados de Astro → entradas del índice «En esta página»

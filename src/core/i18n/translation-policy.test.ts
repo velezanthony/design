@@ -5,6 +5,7 @@ import type { UrlPolicy } from './availability';
 import {
   fallbackRoutes,
   MissingTranslation,
+  pickLocalized,
   resolvePolicies,
   sourceLocale,
   undeclaredMissing,
@@ -240,5 +241,28 @@ describe('fallbackRoutes: `slug` propio', () => {
       locale: 'es',
       canonical: '/repo/guide/a/',
     });
+  });
+});
+
+describe('pickLocalized', () => {
+  const config = { locales: ['es', 'en', 'fr'], defaultLocale: 'es' };
+
+  it('la página en el idioma pedido, si existe', () => {
+    const items = [page('a', 'es'), page('a', 'en')];
+    expect(pickLocalized(items, 'a', 'en', config)).toBe(items[1]);
+  });
+
+  it('sin esa traducción, la del idioma por defecto', () => {
+    const items = [page('a', 'en'), page('a', 'es')];
+    expect(pickLocalized(items, 'a', 'fr', config)).toBe(items[1]);
+  });
+
+  it('con tres idiomas y sin el por defecto, el primero de `locales` presente, no el primero que aparece', () => {
+    const items = [page('a', 'fr'), page('a', 'en')];
+    expect(pickLocalized(items, 'a', 'es', config)).toBe(items[1]);
+  });
+
+  it('sin ninguna página con esa identidad, nada', () => {
+    expect(pickLocalized([page('b', 'es')], 'a', 'es', config)).toBeUndefined();
   });
 });

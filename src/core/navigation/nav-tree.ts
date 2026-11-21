@@ -1,10 +1,9 @@
 import { isNavSection, type NavItem } from '../config/nav';
 import type { Locale } from '../i18n/locale';
-import { sourceLocale } from '../i18n/translation-policy';
+import { pickLocalized } from '../i18n/translation-policy';
 import { resolveLabel } from './label';
-import type { NavContext } from './nav-entries';
-import { buildSectionSidebar } from './nav-sidebar';
-import { flatten, isSidebarGroup, type SidebarNode } from './sidebar';
+import type { NavContext } from './nav-sidebar';
+import { pageBlurb, scopeTrees, walkScope } from './nav-walk';
 
 /* El índice generado por la directiva `::nav-tree`: el árbol de cada sección de `nav`, el mismo que
    pinta la barra lateral, con la descripción de cada página. El plugin de Markdown deja un hueco
@@ -62,52 +61,6 @@ export function navSectionNames(
     .map((item) => resolveLabel(item.label, locale, defaultLocale));
 }
 
-/** Descripción de la página `slug` en el idioma del contenido; sin esa traducción, la del original. */
-function descriptionOf(context: NavContext, slug: string, locale: Locale): string | undefined {
-  const { pages, availability, config } = context;
-  const own = pages.find((page) => page.slug === slug && page.locale === locale);
-  const source = sourceLocale(availability.get(slug) ?? {}, config.locales, config.defaultLocale);
-  const page = own ?? pages.find((item) => item.slug === slug && item.locale === source);
-  const description = page?.seo?.description;
-  if (description === undefined) return undefined;
-  return resolveLabel(description, locale, config.defaultLocale) || undefined;
-}
-
-/** Destino de cada página en el árbol de la ruta: lo que no está ahí, la política lo omite. */
-type Targets = Map<string, { href: string; badge?: Locale }>;
-
-function targetsOf(tree: SidebarNode[]): Targets {
-  return new Map(
-    flatten(tree).map((leaf) => [
-      leaf.slug,
-      { href: leaf.href, ...(leaf.badge && { badge: leaf.badge }) },
-    ]),
-  );
-}
-
-function toNavTree(
-  nodes: SidebarNode[],
-  targets: Targets,
-  describe: (slug: string) => string | undefined,
-): NavTreeNode[] {
-  return nodes.flatMap((node): NavTreeNode[] => {
-    const target = node.slug === undefined ? undefined : targets.get(node.slug);
-    const own = target && {
-      href: target.href,
-      ...(target.badge && { badge: target.badge }),
-      ...withDescription(describe(node.slug!)),
-    };
-    if (!isSidebarGroup(node)) return own ? [{ label: node.label, ...own }] : [];
-    const items = toNavTree(node.items, targets, describe);
-    if (items.length === 0 && !own) return [];
-    return [{ label: node.label, ...own, items }];
-  });
-}
-
-function withDescription(description: string | undefined) {
-  return description === undefined ? {} : { description };
-}
-
 /** Árbol de la sección `index` de `nav`, con la resolución de la barra lateral. Los textos (etiquetas, títulos y descripciones) van en `contentLocale`, el idioma del contenido; las URLs, las insignias y lo que se omite son los de la barra lateral de `context.locale`, el idioma de la ruta. Solo difieren en una ruta de reserva. */
 export function buildNavTree(
   context: NavContext,
@@ -116,13 +69,30 @@ export function buildNavTree(
 ): NavTreeNode[] {
   const item = context.config.nav?.[index];
   if (!item || !isNavSection(item)) return [];
-  const route = buildSectionSidebar(context, index);
-  const content =
-    contentLocale === context.locale
-      ? route
-      : buildSectionSidebar({ ...context, locale: contentLocale }, index);
-  return toNavTree(content, targetsOf(route), (slug) =>
-    descriptionOf(context, slug, contentLocale),
+  const { pages, config } = context;
+  const trees = scopeTrees(context, contentLocale, { kind: 'section', position: index });
+  return walkScope<NavTreeNode, undefined>(
+    trees,
+    {
+      page(node, target) {
+        const description = pageBlurb(
+          pickLocalized(pages, node.slug!, contentLocale, config),
+          contentLocale,
+          { defaultLocale: config.defaultLocale },
+        );
+        return {
+          label: node.label,
+          href: target.href,
+          ...(target.badge && { badge: target.badge }),
+          ...(description !== undefined && { description }),
+        };
+      },
+      group(group, own, items) {
+        if (items.length === 0 && !own) return [];
+        return [{ ...own, label: group.label, items }];
+      },
+    },
+    undefined,
   );
 }
 

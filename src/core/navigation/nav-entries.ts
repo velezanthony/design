@@ -52,7 +52,7 @@ export function buildNav(nav: readonly NavItem[] | undefined, context: NavContex
       return;
     }
     if (!isNavSection(item)) return;
-    const leaves = flatten(buildSectionSidebar(context, index));
+    const leaves = flatten(buildSectionSidebar(context, { kind: 'section', position: index }));
     // Destino: la página índice del dir si existe; si no, la primera hoja que no sea un enlace a otro idioma.
     const landing =
       leaves.find((leaf) => leaf.slug === item.dir && !leaf.badge) ??

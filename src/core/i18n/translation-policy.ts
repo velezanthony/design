@@ -56,6 +56,21 @@ export function sourceLocale(
   return locales.find((locale) => locale in available) ?? defaultLocale;
 }
 
+/** La versión de `slug` en `locale` o, sin esa traducción, la del original que elige `sourceLocale`. Vale para cualquier lista con identidad e idioma (páginas del núcleo o datos de la colección). */
+export function pickLocalized<T extends { slug: string; locale: Locale }>(
+  items: readonly T[],
+  slug: string,
+  locale: Locale,
+  config: { locales: Locale[]; defaultLocale: Locale },
+): T | undefined {
+  const group = items.filter((item) => item.slug === slug);
+  const own = group.find((item) => item.locale === locale);
+  if (own) return own;
+  const available = Object.fromEntries(group.map((item) => [item.locale, item.locale]));
+  const source = sourceLocale(available, config.locales, config.defaultLocale);
+  return group.find((item) => item.locale === source);
+}
+
 /** Grupos incompletos sin `translations` declarado (traducciones quizá olvidadas); un sitio monolingüe, o uno con política en su config, no devuelve nada. */
 export function undeclaredMissing(
   pages: Page[],

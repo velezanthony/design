@@ -273,6 +273,33 @@ describe('docIndexView', () => {
   });
 });
 
+describe('docIndexView: tres idiomas', () => {
+  it('la portada y la fecha salen del original que elige `sourceLocale`, no del primero que aparece', () => {
+    // El paquete solo trae textos de interfaz en es y en: el tercer idioma se añade a la config ya
+    // resuelta, que es lo que reciben las vistas.
+    const config = { ...site({ translations: { missing: 'link' } }), locales: ['es', 'en', 'fr'] };
+    const items = [
+      doc(''),
+      doc('tutoriales', 'es', { listing: { layout: 'cards' } }),
+      // Sin versión en español (el idioma por defecto): la francesa aparece antes que la inglesa.
+      doc('tutoriales/x', 'fr', { index: { cover: { src: '/fr.png' } } }),
+      doc('tutoriales/x', 'en', { index: { cover: { src: '/en.png' } } }),
+    ];
+    const result = docIndexView({
+      route: routeOf(docRoutes(items, config), 'tutoriales'),
+      config,
+      data: items,
+      dates: new Map([
+        ['docs/tutoriales/x.fr.md', '2026-01-01T00:00:00+00:00'],
+        ['docs/tutoriales/x.en.md', '2026-02-02T00:00:00+00:00'],
+      ]),
+    })!;
+    const entry = result.items.find((item) => item.slug === 'tutoriales/x')!;
+    expect(entry.cover).toMatchObject({ kind: 'image', source: { src: '/en.png' } });
+    expect(entry.updated).toBe('2026-02-02T00:00:00+00:00');
+  });
+});
+
 describe('sizeHrefs', () => {
   it('con otro tamaño, la página 1 lleva solo `por` y las demás también `pagina`', () => {
     expect(sizeHrefs('/repo/tutoriales/', 9, 3)).toEqual([

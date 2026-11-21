@@ -1,12 +1,11 @@
 import type { IndexLayout } from '../config/indexes';
-import { isNavSection } from '../config/nav';
 import type { Locale } from '../i18n/locale';
-import { sourceLocale } from '../i18n/translation-policy';
+import { pickLocalized } from '../i18n/translation-policy';
 import { resolveLabel } from './label';
-import type { NavContext } from './nav-entries';
 import { slugInDir } from './nav-sections';
-import { buildSectionSidebar } from './nav-sidebar';
-import { flatten, isSidebarGroup, type SidebarGroup, type SidebarNode } from './sidebar';
+import type { NavContext } from './nav-sidebar';
+import { navScopes, pageBlurb, scopeTrees, walkScope, type ScopeVisitor } from './nav-walk';
+import type { SidebarGroup } from './sidebar';
 
 /* El listado de un índice generado: las páginas de una carpeta que están en la navegación, con la
    misma resolución que la barra lateral y `::nav-tree` (orden, URLs, insignias y políticas de
@@ -84,44 +83,9 @@ function headingId(text: string, taken: Set<string>): string {
   return id;
 }
 
-/** La página `slug` en el idioma del contenido o, sin esa traducción, la del original. */
-function contentPage(context: NavContext, slug: string, locale: Locale) {
-  const { pages, availability, config } = context;
-  const own = pages.find((page) => page.slug === slug && page.locale === locale);
-  if (own) return own;
-  const source = sourceLocale(availability.get(slug) ?? {}, config.locales, config.defaultLocale);
-  return pages.find((page) => page.slug === slug && page.locale === source);
-}
-
-function summaryOf(context: NavContext, slug: string, locale: Locale): string | undefined {
-  const page = contentPage(context, slug, locale);
-  if (page?.index?.summary) return page.index.summary;
-  const description = page?.seo?.description;
-  if (description === undefined) return undefined;
-  return resolveLabel(description, locale, context.config.defaultLocale) || undefined;
-}
-
 /** ¿Es `group` el de la propia carpeta (el que arma el árbol automático, o el que enlaza su página)? No aporta nada al camino. */
 function isFolderGroup(group: SidebarGroup, folder: string): boolean {
   return group.dir === folder || group.slug === folder;
-}
-
-type Targets = Map<string, { href: string; badge?: Locale }>;
-
-/** Árboles de la ruta (URLs) y del contenido (textos) de la sección `index` (`-1`: sin sección). */
-function sectionTrees(context: NavContext, contentLocale: Locale, index: number) {
-  const route = buildSectionSidebar(context, index);
-  const content =
-    contentLocale === context.locale
-      ? route
-      : buildSectionSidebar({ ...context, locale: contentLocale }, index);
-  const targets: Targets = new Map(
-    flatten(route).map((leaf) => [
-      leaf.slug,
-      { href: leaf.href, ...(leaf.badge && { badge: leaf.badge }) },
-    ]),
-  );
-  return { content, targets };
 }
 
 /** Listado de la carpeta `folder`: textos en `contentLocale` y URLs como las de la barra lateral de `context.locale`. `takenIds` son los ids que la página ya usa. */
@@ -132,56 +96,53 @@ export function buildIndexListing(
   details: (slug: string) => EntryDetails | undefined,
   takenIds: Iterable<string> = [],
 ): IndexListing {
-  const { nav } = context.config;
+  const { pages, config } = context;
   const seen = new Set<string>();
   const entries: IndexEntry[] = [];
   const ids = new Set(takenIds);
 
-  function entryOf(slug: string, label: string, path: string[], targets: Targets) {
-    const target = targets.get(slug);
-    if (!target || seen.has(slug) || slug === folder || !slugInDir(folder, slug)) return undefined;
-    seen.add(slug);
-    const summary = summaryOf(context, slug, contentLocale);
-    const extra = details(slug);
-    const entry: IndexEntry = {
-      slug,
-      title: label,
-      href: target.href,
-      ...(target.badge && { badge: target.badge }),
-      ...(summary !== undefined && { summary }),
-      path,
-      ...(extra?.updated !== undefined && { updated: extra.updated }),
-      ...(extra?.cover !== undefined && { cover: extra.cover }),
-      ...(extra?.imageAlt !== undefined && { imageAlt: extra.imageAlt }),
-    };
-    entries.push(entry);
-    return entry;
-  }
-
-  function walk(nodes: SidebarNode[], path: string[], targets: Targets): IndexNode[] {
-    return nodes.flatMap((node): IndexNode[] => {
-      if (!isSidebarGroup(node)) {
-        const entry = entryOf(node.slug, node.label, path, targets);
-        return entry ? [entry] : [];
+  const visitor: ScopeVisitor<IndexNode, string[]> = {
+    page(node, target, path) {
+      const { slug } = node;
+      if (slug === undefined || seen.has(slug) || slug === folder || !slugInDir(folder, slug)) {
+        return undefined;
       }
-      if (isFolderGroup(node, folder)) return walk(node.items, path, targets);
-      const inner = [...path, node.label];
-      const own =
-        node.slug === undefined ? undefined : entryOf(node.slug, node.label, path, targets);
-      const items = walk(node.items, inner, targets);
-      if (items.length === 0 && !own) return [];
-      if (items.length === 0 && own) return [own];
-      return [{ label: node.label, ...(own && { href: own.href }), items }];
-    });
-  }
+      seen.add(slug);
+      const summary = pageBlurb(pickLocalized(pages, slug, contentLocale, config), contentLocale, {
+        defaultLocale: config.defaultLocale,
+        preferSummary: true,
+      });
+      const extra = details(slug);
+      const entry: IndexEntry = {
+        slug,
+        title: node.label,
+        href: target.href,
+        ...(target.badge && { badge: target.badge }),
+        ...(summary !== undefined && { summary }),
+        path,
+        ...(extra?.updated !== undefined && { updated: extra.updated }),
+        ...(extra?.cover !== undefined && { cover: extra.cover }),
+        ...(extra?.imageAlt !== undefined && { imageAlt: extra.imageAlt }),
+      };
+      entries.push(entry);
+      return entry;
+    },
+    group(group, own, items) {
+      if (isFolderGroup(group, folder)) return items;
+      if (items.length === 0) return own ? [own] : [];
+      return [{ label: group.label, ...(own && { href: own.href }), items }];
+    },
+    inside(group, path) {
+      return isFolderGroup(group, folder) ? path : [...path, group.label];
+    },
+  };
 
   const sections: IndexSection[] = [];
-  const indexes = (nav ?? []).flatMap((item, index) => (isNavSection(item) ? [index] : []));
-  for (const index of [...indexes, -1]) {
-    const { content, targets } = sectionTrees(context, contentLocale, index);
-    const item = index === -1 ? undefined : nav?.[index];
-    const label = item && resolveLabel(item.label, contentLocale, context.config.defaultLocale);
-    const nodes = walk(content, label === undefined ? [] : [label], targets);
+  for (const scope of navScopes(config.nav)) {
+    const item = scope.kind === 'section' ? config.nav?.[scope.position] : undefined;
+    const label = item && resolveLabel(item.label, contentLocale, config.defaultLocale);
+    const trees = scopeTrees(context, contentLocale, scope);
+    const nodes = walkScope(trees, visitor, label === undefined ? [] : [label]);
     if (nodes.length === 0) continue;
     sections.push(label === undefined ? { nodes } : { label, id: headingId(label, ids), nodes });
   }
