@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { getImage } from 'astro:assets';
-import type { CoverView, IndexView } from '../../core/navigation/index-entries';
+import type { CoverView } from '../../core/listing/covers';
+import type { IndexView } from '../../core/listing/view';
 import type { DocData } from '../loader/schema';
 import { docIndexView, listingFor } from '../views/doc-index';
 import type { DocRoute } from '../views/doc';

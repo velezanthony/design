@@ -1,12 +1,8 @@
 ---
 import type { Locale } from '../../../core/i18n/locale';
 import type { UiStrings } from '../../../core/i18n/ui-strings';
-import {
-  coverPattern,
-  formatIndexDate,
-  type CoverView,
-  type IndexItem,
-} from '../../../core/navigation/index-entries';
+import { coverPattern, type CoverView } from '../../../core/listing/covers';
+import { formatListingDate, type IndexItem } from '../../../core/listing/view';
 import CoverPlaceholder from '../../atoms/display/CoverPlaceholder.astro';
 import IndexLink from '../../molecules/navigation/IndexLink.astro';
 
@@ -73,7 +69,7 @@ const { items, strings, lang, visible } = Astro.props;
           )}
           {item.updated && (
             <time datetime={item.updated} class="mt-auto pt-4 text-xs text-faint tabular-nums">
-              {formatIndexDate(item.updated, lang)}
+              {formatListingDate(item.updated, lang)}
             </time>
           )}
         </div>

@@ -11,11 +11,8 @@ import {
   type Page,
   type SourceFile,
 } from '../../core/content/discovery';
-import {
-  contentFolders,
-  generatedIndexPages,
-  validateIndexFolders,
-} from '../../core/config/indexes';
+import { validateIndexFolders } from '../../core/config/indexes';
+import { contentFolders, generatedListingPages } from '../../core/content/generated-listings';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
 import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
 import { excluder } from '../../core/content/exclude';
@@ -26,7 +23,7 @@ import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
 import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
-import type { StoredCover } from '../../core/navigation/index-entries';
+import type { StoredCover } from '../../core/listing/covers';
 import { CONTENT_METADATA_KEY, contentFacts } from '../../core/seo-on-page/nodes/content';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { resolveConfigOrThrow } from '../config';
@@ -115,7 +112,7 @@ function discoverOrErrors(
 ): { pages: Page[]; errors: DocsError[] } {
   try {
     const pages = discoverPages(files, config);
-    const all = [...pages, ...generatedIndexPages(pages, config)];
+    const all = [...pages, ...generatedListingPages(pages, config)];
     // Las descubiertas ya no chocan entre sí: lo que choque ahora es con un índice generado.
     const clashes = urlCollisions(all);
     return clashes.length > 0 ? { pages: [], errors: clashes } : { pages: all, errors: [] };

@@ -20,7 +20,7 @@ core/
 │   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
-│   ├── indexes.ts         `indexes`: IndexLayout, valores por defecto, qué carpetas, opciones del listado y las páginas generadas
+│   ├── indexes.ts         `indexes`: IndexLayout, sus valores por defecto, qué carpetas y su validación
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
 ├── content/
@@ -29,6 +29,7 @@ core/
 │   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
+│   ├── generated-listings.ts  Las páginas que genera `indexes`: carpetas, título y entradilla
 │   ├── slug.ts            guia/index → guia, index → '' (portada); qué es un _index y de qué carpeta
 │   ├── scrollable-tables.ts  Envuelve cada <table> del HTML en su .table-scroll (lo usa Article)
 │   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
@@ -41,6 +42,11 @@ core/
 │   ├── rewrite.ts         Enlaces relativos (.md y archivos de `static`) → URLs del sitio, con referencias para validar
 │   ├── anchors.ts         Índice de encabezados y validación de #anclas
 │   └── fences.ts          No tocar enlaces dentro de bloques de código
+├── listing/               El índice generado de una carpeta
+│   ├── options.ts         resolveListing: el listado resuelto (lista o paginado) con su precedencia
+│   ├── entries.ts         buildListing (visitante de nav-walk): entradas, secciones y orden por fecha
+│   ├── covers.ts          Portada guardada, la que se pinta y el dibujo de la librería
+│   └── view.ts            Lo que pinta el índice de una página y la fecha de cada entrada
 ├── navigation/
 │   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
@@ -49,7 +55,6 @@ core/
 │   ├── nav-walk.ts        El único recorrido de la nav: ámbitos, árboles de contenido y de ruta, visitantes
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
 │   ├── nav-tree.ts        Árbol de cada sección para ::nav-tree (visitante de nav-walk) y los huecos que deja en el HTML
-│   ├── index-entries.ts   Listado de un índice generado (visitante de nav-walk): entradas, secciones, orden por fecha y portada
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
 │   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── toc-entries.ts     Encabezados de Astro → entradas del índice «En esta página»

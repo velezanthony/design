@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { IndexSection } from '../../../core/navigation/index-entries';
+import type { ListingSection } from '../../../core/listing/entries';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
 import { linkVariants } from '../../atoms/actions/variants';
@@ -15,7 +15,7 @@ function entry(title: string, slug: string, extra = {}) {
   return { slug, title, href: `/repo/${slug}/`, path: [], ...extra };
 }
 
-const sections: IndexSection[] = [
+const sections: ListingSection[] = [
   {
     label: 'Esenciales',
     id: 'esenciales',

@@ -1,11 +1,8 @@
 ---
 import type { Locale } from '../../../core/i18n/locale';
 import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
-import {
-  formatIndexDate,
-  type CoverView,
-  type IndexItem,
-} from '../../../core/navigation/index-entries';
+import { type CoverView } from '../../../core/listing/covers';
+import { formatListingDate, type IndexItem } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
 import IndexLink from '../../molecules/navigation/IndexLink.astro';
 
@@ -88,7 +85,7 @@ const head = `${cell} border-b border-ink font-normal`;
           ]}
         >
           {item.updated && (
-            <time datetime={item.updated}>{formatIndexDate(item.updated, lang)}</time>
+            <time datetime={item.updated}>{formatListingDate(item.updated, lang)}</time>
           )}
         </td>
       </tr>

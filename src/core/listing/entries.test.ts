@@ -3,17 +3,14 @@ import type { NavItem } from '../config/nav';
 import type { Page } from '../content/discovery';
 import { buildAvailability, type UrlPolicy } from '../i18n/availability';
 import { MissingTranslation, resolvePolicies } from '../i18n/translation-policy';
+import type { NavContext } from '../navigation/nav-sidebar';
 import {
-  buildIndexListing,
-  coverFor,
-  coverPattern,
-  formatIndexDate,
-  isIndexGroup,
+  buildListing,
+  isListingGroup,
   sortByUpdated,
   type EntryDetails,
-  type IndexEntry,
-} from './index-entries';
-import type { NavContext } from './nav-entries';
+  type ListingEntry,
+} from './entries';
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'es' };
 
@@ -78,13 +75,18 @@ function none() {
   return undefined;
 }
 
-function titles(entries: IndexEntry[]) {
+function titles(entries: ListingEntry[]) {
   return entries.map((entry) => entry.title);
 }
 
-describe('buildIndexListing: entradas', () => {
+describe('buildListing: entradas', () => {
   it('las páginas de la carpeta que están en la navegación, en el orden del árbol', () => {
-    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    const { entries } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     expect(titles(entries)).toEqual([
       'instalacion (es)',
       'configuracion (es)',
@@ -100,7 +102,12 @@ describe('buildIndexListing: entradas', () => {
   });
 
   it('el camino es la sección y cada grupo; lo que no está en ninguna sección no lleva', () => {
-    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    const { entries } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     expect(entries.map((entry) => entry.path)).toEqual([
       ['Esenciales', 'Primeros pasos'],
       ['Esenciales', 'Astro', 'Vite'],
@@ -110,7 +117,12 @@ describe('buildIndexListing: entradas', () => {
   });
 
   it('el resumen es `index.summary` y, sin él, `seo.description`', () => {
-    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    const { entries } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     expect(entries.map((entry) => entry.summary)).toEqual([
       'Resumen propio.',
       'Las opciones del archivo de configuración.',
@@ -120,7 +132,12 @@ describe('buildIndexListing: entradas', () => {
   });
 
   it('en inglés: URLs de la ruta y textos del contenido inglés si la traducción existe', () => {
-    const { entries } = buildIndexListing(context('en'), 'en', 'tutoriales', none);
+    const { entries } = buildListing({
+      context: context('en'),
+      contentLocale: 'en',
+      folder: 'tutoriales',
+      details: none,
+    });
     const configuration = entries.find((entry) => entry.slug === 'tutoriales/configuracion')!;
     expect(configuration).toMatchObject({
       title: 'configuracion (en)',
@@ -146,7 +163,12 @@ describe('buildIndexListing: entradas', () => {
           }
         : undefined;
     }
-    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', details);
+    const { entries } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: details,
+    });
     expect(entries[0]).toMatchObject({
       updated: '2026-01-02T00:00:00+00:00',
       cover: { src: '/instalacion.png' },
@@ -156,12 +178,12 @@ describe('buildIndexListing: entradas', () => {
   });
 
   it('sin `nav`: el árbol de la barra lateral, sin el grupo de la propia carpeta', () => {
-    const { entries, sections } = buildIndexListing(
-      context('es', { nav: undefined, sidebar: undefined }),
-      'es',
-      'tutoriales',
-      none,
-    );
+    const { entries, sections } = buildListing({
+      context: context('es', { nav: undefined, sidebar: undefined }),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     expect(titles(entries)).toEqual([
       'configuracion (es)',
       'despliegue (es)',
@@ -177,28 +199,28 @@ describe('buildIndexListing: entradas', () => {
     const renamed = pages.map((item) =>
       item.slug === 'tutoriales' ? { ...item, title: 'Todo sobre tutoriales' } : item,
     );
-    const { entries } = buildIndexListing(
-      { ...context('es', { nav: undefined, sidebar: undefined }), pages: renamed },
-      'es',
-      'tutoriales',
-      none,
-    );
+    const { entries } = buildListing({
+      context: { ...context('es', { nav: undefined, sidebar: undefined }), pages: renamed },
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     expect(entries.length).toBeGreaterThan(0);
     expect(entries.every((entry) => entry.path.length === 0)).toBe(true);
   });
 
   it('un grupo de `sidebar` con la etiqueta humanizada de la carpeta sí cuenta en el camino', () => {
-    const { entries } = buildIndexListing(
-      context('es', {
+    const { entries } = buildListing({
+      context: context('es', {
         nav: undefined,
         sidebar: [
           { label: 'Tutoriales', items: ['tutoriales/instalacion', 'tutoriales/despliegue'] },
         ],
       }),
-      'es',
-      'tutoriales',
-      none,
-    );
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     function pathOf(slug: string) {
       return entries.find((entry) => entry.slug === slug)?.path;
     }
@@ -208,16 +230,23 @@ describe('buildIndexListing: entradas', () => {
   });
 
   it('una carpeta sin páginas en la navegación da un listado vacío', () => {
-    expect(buildIndexListing(context(), 'es', 'nada', none)).toEqual({
+    expect(
+      buildListing({ context: context(), contentLocale: 'es', folder: 'nada', details: none }),
+    ).toEqual({
       sections: [],
       entries: [],
     });
   });
 });
 
-describe('buildIndexListing: secciones (disposición lista)', () => {
+describe('buildListing: secciones (disposición lista)', () => {
   it('una por sección de `nav` con entradas, con su etiqueta y un id', () => {
-    const { sections } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    const { sections } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     expect(sections.map((section) => [section.label, section.id])).toEqual([
       ['Esenciales', 'esenciales'],
       ['Avanzado', 'avanzado'],
@@ -226,17 +255,28 @@ describe('buildIndexListing: secciones (disposición lista)', () => {
   });
 
   it('los grupos anidados conservan su etiqueta y sus entradas', () => {
-    const { sections } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    const { sections } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
     const [gettingStarted, astro] = sections[0]!.nodes;
-    expect(isIndexGroup(gettingStarted!) && gettingStarted.label).toBe('Primeros pasos');
+    expect(isListingGroup(gettingStarted!) && gettingStarted.label).toBe('Primeros pasos');
     expect(
-      isIndexGroup(astro!) &&
-        astro.items.map((node) => (isIndexGroup(node) ? node.label : node.title)),
+      isListingGroup(astro!) &&
+        astro.items.map((node) => (isListingGroup(node) ? node.label : node.title)),
     ).toEqual(['Vite']);
   });
 
   it('un id que ya existe en la página se desambigua', () => {
-    const { sections } = buildIndexListing(context(), 'es', 'tutoriales', none, ['esenciales']);
+    const { sections } = buildListing({
+      context: context(),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+      takenIds: ['esenciales'],
+    });
     expect(sections[0]!.id).toBe('esenciales-1');
   });
 });
@@ -265,47 +305,5 @@ describe('sortByUpdated', () => {
     const list = [entry('a', '2025-01-01'), entry('b', '2026-01-01')];
     sortByUpdated(list);
     expect(list[0]!.title).toBe('a');
-  });
-});
-
-describe('coverFor', () => {
-  it('una imagen real se muestra con su alt, decorativa (vacío) si no lo trae', () => {
-    expect(coverFor({ src: '/a.png' }, false, 'Un gato')).toEqual({
-      kind: 'image',
-      source: { src: '/a.png' },
-      alt: 'Un gato',
-    });
-    expect(coverFor({ src: '/a.png' }, true)).toMatchObject({ kind: 'image', alt: '' });
-  });
-
-  it('`false` en la página: sin imagen aunque la carpeta pida portadas', () => {
-    expect(coverFor(false, true)).toEqual({ kind: 'none' });
-  });
-
-  it('una imagen que falta: la de la librería aunque la política diga que no', () => {
-    expect(coverFor('missing', false)).toEqual({ kind: 'placeholder' });
-  });
-
-  it('sin nada en la página manda la política de la carpeta', () => {
-    expect(coverFor(undefined, true)).toEqual({ kind: 'placeholder' });
-    expect(coverFor(undefined, false)).toEqual({ kind: 'none' });
-  });
-});
-
-describe('coverPattern', () => {
-  it('estable por slug y entre los tres dibujos', () => {
-    expect(coverPattern('tutoriales/instalacion')).toBe(coverPattern('tutoriales/instalacion'));
-    const patterns = new Set(['a', 'b', 'c', 'd', 'e', 'f'].map(coverPattern));
-    expect([...patterns].every((pattern) => ['grid', 'diagonal', 'dots'].includes(pattern))).toBe(
-      true,
-    );
-    expect(patterns.size).toBeGreaterThan(1);
-  });
-});
-
-describe('formatIndexDate', () => {
-  it('fecha media en el idioma, en UTC', () => {
-    expect(formatIndexDate('2026-11-21T23:30:00+00:00', 'es')).toBe('21 nov 2026');
-    expect(formatIndexDate('2026-11-21T23:30:00+00:00', 'en')).toBe('Nov 21, 2026');
   });
 });

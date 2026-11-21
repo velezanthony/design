@@ -276,9 +276,9 @@ indexes: {
   `description` de `overrides`, si la hay. Existe en todos los idiomas del sitio.
 - Sin `indexes`, todo queda como antes: solo los `_index.md` generan índices.
 - **Cómo funciona.** El descubrimiento convierte `carpeta/_index.md` en la página de `carpeta`
-  (`core/content/discovery.ts`) y el loader añade las generadas (`generatedIndexPages`,
-  `core/config/indexes.ts`); la ruta de las páginas de docs calcula el listado
-  (`buildIndexListing`, `core/navigation/index-entries.ts`, con `docIndexView`) y `DocPage` lo pinta
+  (`core/content/discovery.ts`) y el loader añade las generadas (`generatedListingPages`,
+  `core/content/generated-listings.ts`); la ruta de las páginas de docs resuelve el listado
+  (`resolveListing`) y lo calcula (`buildListing`), los dos en `core/listing/`, con `docIndexView`, y `DocPage` lo pinta
   debajo del contenido, fuera de `.prose`, con `IndexListing` (`IndexList`, `IndexTable`,
   `IndexCards` y el átomo `CoverPlaceholder`). Los textos de la interfaz son las claves `index.*`.
 - **Forma explícita del loader:** las portadas relativas necesitan el `image()` de Astro:

@@ -1,4 +1,5 @@
-import type { CoverView, IndexItem } from '../core/navigation/index-entries';
+import type { CoverView } from '../core/listing/covers';
+import type { IndexItem } from '../core/listing/view';
 
 /** Entradas de prueba de un índice: una sin publicar, una con imagen y otra sin portada. */
 export const items: IndexItem<CoverView>[] = [

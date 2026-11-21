@@ -1,12 +1,8 @@
 ---
 import type { Locale } from '../../../core/i18n/locale';
 import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
-import {
-  PAGE_PARAM,
-  PER_PAGE_PARAM,
-  type CoverView,
-  type IndexView,
-} from '../../../core/navigation/index-entries';
+import { type CoverView } from '../../../core/listing/covers';
+import { PAGE_PARAM, PER_PAGE_PARAM, type IndexView } from '../../../core/listing/view';
 import Select from '../../atoms/form/Select.astro';
 import Pagination from '../../molecules/navigation/Pagination.astro';
 import PaginationBar from '../../molecules/navigation/PaginationBar.astro';

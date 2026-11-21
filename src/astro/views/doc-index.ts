@@ -1,19 +1,21 @@
-import { IndexLayout, listingOptions, type ListingOptions } from '../../core/config/indexes';
 import { pageUrl, type UrlPolicy } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import { pickLocalized } from '../../core/i18n/translation-policy';
 import { translate, type UiStrings } from '../../core/i18n/ui-strings';
+import { coverFor } from '../../core/listing/covers';
+import { isPagedListing, resolveListing, type ListingOptions } from '../../core/listing/options';
 import {
-  buildIndexListing,
-  coverFor,
+  buildListing,
   sortByUpdated,
+  type EntryDetails,
+  type Listing,
+} from '../../core/listing/entries';
+import {
   PAGE_PARAM,
   PER_PAGE_PARAM,
-  type EntryDetails,
   type IndexItem,
-  type IndexListing,
   type IndexView,
-} from '../../core/navigation/index-entries';
+} from '../../core/listing/view';
 import { pageCount, paginate } from '../../core/shared/paginate';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
@@ -47,12 +49,8 @@ export function listingFor(
   data: DocData[],
 ): ListingOptions | undefined {
   const page = contentOf(route, data);
-  return page && listingOptions(page, config.indexes);
-}
-
-/** ¿Se pagina esta disposición? La lista no: es el árbol entero. */
-function paginated(layout: IndexLayout): boolean {
-  return layout !== IndexLayout.LIST;
+  if (!page?.listing) return undefined;
+  return resolveListing({ folder: page.slug, own: page.listing, indexes: config.indexes });
 }
 
 /** URLs de las páginas de un tamaño que no es el de las rutas estáticas: la carpeta con la query. */
@@ -99,14 +97,14 @@ function listingOf(
   data: DocData[],
   dates: DatesBySource = new Map(),
   takenIds: Iterable<string> = [],
-): IndexListing {
-  return buildIndexListing(
-    navContextOf(site, route),
-    route.contentLocale,
-    options.folder,
-    detailsOf(data, route.contentLocale, site.config, dates),
+): Listing {
+  return buildListing({
+    context: navContextOf(site, route),
+    contentLocale: route.contentLocale,
+    folder: options.folder,
+    details: detailsOf(data, route.contentLocale, site.config, dates),
     takenIds,
-  );
+  });
 }
 
 /** Páginas del listado de una ruta, o `undefined` si no se pagina (no tiene listado o es una lista). */
@@ -116,7 +114,7 @@ export function listingPages(
   data: DocData[],
 ): number | undefined {
   const options = listingFor(route, site.config, data);
-  if (!options || !paginated(options.layout)) return undefined;
+  if (!options || !isPagedListing(options)) return undefined;
   return pageCount(listingOf(site, route, options, data).entries.length, options.pageSize);
 }
 
@@ -149,13 +147,17 @@ export function docIndexView({
     headings.map((heading) => heading.slug),
   );
   const strings = config.strings[route.locale] as UiStrings;
-  const isPaginated = paginated(options.layout);
-  const pages = isPaginated ? pageCount(listing.entries.length, options.pageSize) : 1;
+  const paged = isPagedListing(options) ? options : undefined;
+  const total = listing.entries.length;
+  /* La lista no se pagina: todo cabe en su única página. */
+  const perPage = paged?.pageSize ?? total;
+  const perPageOptions = paged?.perPageOptions ?? [];
+  const pages = paged ? pageCount(total, paged.pageSize) : 1;
   const page = route.page ?? 1;
-  const sorted = isPaginated ? sortByUpdated(listing.entries) : [];
+  const sorted = paged ? sortByUpdated(listing.entries) : [];
   /* La página 1 trae todas las entradas (las de más, ocultas) para que el selector no necesite red. */
-  const all = isPaginated && page === 1;
-  const items = (all ? sorted : paginate(sorted, page, options.pageSize).rows).map(
+  const all = paged !== undefined && page === 1;
+  const items = (all ? sorted : paginate(sorted, page, perPage).rows).map(
     ({ cover, imageAlt, ...entry }): IndexItem => ({
       ...entry,
       cover: coverFor(cover, options.covers, imageAlt),
@@ -165,25 +167,25 @@ export function docIndexView({
   const hrefs = Array.from({ length: pages }, (_item, index) =>
     listingPageUrl(route.urlSlug ?? route.slug, route.locale, index + 1, site.url),
   );
-  const sections = isPaginated ? [] : listing.sections;
+  const sections = paged ? [] : listing.sections;
   return {
     layout: options.layout,
     sections,
     items,
     page,
     pages,
-    total: listing.entries.length,
+    total,
     hrefs,
     all,
-    perPage: options.pageSize,
-    perPageOptions: options.perPageOptions,
+    perPage,
+    perPageOptions,
     sizes: all
-      ? options.perPageOptions.map((perPage) => {
-          const count = pageCount(listing.entries.length, perPage);
+      ? perPageOptions.map((size) => {
+          const count = pageCount(total, size);
           return {
-            perPage,
+            perPage: size,
             pages: count,
-            hrefs: perPage === options.pageSize ? hrefs : sizeHrefs(hrefs[0]!, perPage, count),
+            hrefs: size === perPage ? hrefs : sizeHrefs(hrefs[0]!, size, count),
           };
         })
       : [],

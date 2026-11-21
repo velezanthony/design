@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CoverView, IndexView } from '../../../core/navigation/index-entries';
+import type { CoverView } from '../../../core/listing/covers';
+import type { IndexView } from '../../../core/listing/view';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
 import { items } from '../../../testing/index-items';

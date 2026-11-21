@@ -1,6 +1,6 @@
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
-import type { StoredCover } from '../../core/navigation/index-entries';
+import type { StoredCover } from '../../core/listing/covers';
 import { readPublic } from './images';
 
 /** Portada ya comprobada de una página y, si su ruta no existe, el aviso que da el loader. */

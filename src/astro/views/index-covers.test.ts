@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { EntryCover, IndexView } from '../../core/navigation/index-entries';
+import type { EntryCover } from '../../core/listing/covers';
+import type { IndexView } from '../../core/listing/view';
 import { resolveCovers } from './index-covers';
 
 function view(covers: EntryCover[]): IndexView {

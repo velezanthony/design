@@ -1,4 +1,5 @@
-import type { CoverView, EntryCover, IndexView } from '../../core/navigation/index-entries';
+import type { CoverView, EntryCover } from '../../core/listing/covers';
+import type { IndexView } from '../../core/listing/view';
 import { withBase } from '../../core/shared/urls';
 
 /** Lo que `astro:assets` sabe de una imagen importada; aquí basta con reconocerla. */

@@ -1,14 +1,14 @@
 ---
 import type { Locale } from '../../../core/i18n/locale';
 import type { UiStrings } from '../../../core/i18n/ui-strings';
-import type { IndexSection } from '../../../core/navigation/index-entries';
+import type { ListingSection } from '../../../core/listing/entries';
 import Heading from '../../atoms/display/Heading.astro';
 import IndexTree from '../../molecules/navigation/IndexTree.astro';
 
 /* Índice en lista (`layout: 'list'`): el árbol de la navegación, sin paginar. Cada sección de `nav`
    es un h2 (entra en «En esta página»); las páginas sin sección van al final, sin encabezado. */
 interface Props {
-  sections: IndexSection[];
+  sections: ListingSection[];
   strings: UiStrings;
   lang: Locale;
 }
