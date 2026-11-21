@@ -1,5 +1,5 @@
 ---
-/* Pie de la tabla: «Filas por página» a un lado y rango y paginador al otro; el tamaño es un control de la tabla, no un filtro. */
+/* Pie de la tabla: «Filas por página» a un lado y rango y paginador al otro, en la fila de `PaginationBar`; el tamaño es un control de la tabla, no un filtro. */
 import { PAGE_SIZES } from '../../../../core/seo-on-page/queries/paginate';
 import {
   filterFields,
@@ -9,6 +9,7 @@ import {
 import Button from '../../../atoms/actions/Button.astro';
 import Select from '../../../atoms/form/Select.astro';
 import Pagination from '../../../molecules/navigation/Pagination.astro';
+import PaginationBar from '../../../molecules/navigation/PaginationBar.astro';
 import {
   PAGINATION_LABELS,
   rowsUnit,
@@ -36,9 +37,9 @@ interface Props {
 const { filters, perPage, view, action, from, to, total, overall, page, pages, href } = Astro.props;
 ---
 
-<div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+<PaginationBar>
   {/* Un GET propio con los filtros ocultos y sin `page`: cambiar el tamaño vuelve a la página 1. */}
-  <form method="get" action={action} class="flex flex-wrap items-center gap-2">
+  <form slot="start" method="get" action={action} class="flex flex-wrap items-center gap-2">
     {filterFields(filters, view).map((field) => (
       <input type="hidden" name={field.name} value={field.value} />
     ))}
@@ -58,8 +59,13 @@ const { filters, perPage, view, action, from, to, total, overall, page, pages, h
       </Button>
     </noscript>
   </form>
-  <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
-    <ResultsCount from={from} to={to} total={total} overall={overall} unit={rowsUnit(view.view)} />
-    <Pagination page={page} pages={pages} labels={PAGINATION_LABELS} href={href} />
-  </div>
-</div>
+  <ResultsCount
+    slot="status"
+    from={from}
+    to={to}
+    total={total}
+    overall={overall}
+    unit={rowsUnit(view.view)}
+  />
+  <Pagination page={page} pages={pages} labels={PAGINATION_LABELS} href={href} />
+</PaginationBar>

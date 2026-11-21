@@ -106,7 +106,8 @@ describe('IndexListing: selector «Por página»', () => {
     expect(root.getAttribute('tabindex')).toBe('-1');
     const status = root.querySelector('[data-index-status]')!;
     expect(status.getAttribute('aria-live')).toBe('polite');
-    expect(text(status)).toBe('');
+    // El rango se ve también sin JavaScript; el script lo actualiza y la región lo anuncia.
+    expect(text(status)).toBe('Mostrando 1–1 de 3');
   });
 
   it('página 1: todas las entradas, las de más ocultas; un paginador por tamaño y página', async () => {
@@ -159,5 +160,60 @@ describe('IndexListing: selector «Por página»', () => {
     expect(
       document.querySelector('[data-index-listing]')!.hasAttribute('data-pagefind-ignore'),
     ).toBe(true);
+  });
+});
+
+describe('IndexListing: fila de pie', () => {
+  const pageOne: Partial<IndexView<CoverView>> = {
+    page: 1,
+    pages: 3,
+    all: true,
+    perPage: 1,
+    perPageOptions: [1, 2],
+    total: 3,
+    sizes: [
+      {
+        perPage: 1,
+        pages: 3,
+        hrefs: ['/repo/articulos/', '/repo/articulos/2/', '/repo/articulos/3/'],
+      },
+      {
+        perPage: 2,
+        pages: 2,
+        hrefs: ['/repo/articulos/?por=2', '/repo/articulos/?por=2&pagina=2'],
+      },
+    ],
+  };
+
+  it('debajo del listado, en una línea: el selector a la izquierda; el rango y el paginador a la derecha', async () => {
+    const document = await listing(pageOne);
+    const root = document.querySelector('[data-index-listing]')!;
+    const bar = root.querySelector(':scope > [data-pagination-bar]')!;
+    const children = [...root.children];
+    expect(children.indexOf(bar)).toBe(children.length - 1);
+    const [start, end] = [...bar.children];
+    expect(start!.hasAttribute('data-index-per-page-field')).toBe(true);
+    expect(end!.querySelector('[data-index-status]')).not.toBeNull();
+    expect(end!.querySelectorAll('[data-index-pagination]')).toHaveLength(5);
+    // Nada arriba: ni selector ni paginador antes de las tarjetas.
+    expect(root.querySelectorAll('[data-index-per-page-field]')).toHaveLength(1);
+  });
+
+  it('desde la página 2, el rango de esa página', async () => {
+    const document = await listing({ page: 2, pages: 3, perPage: 2, total: 5 });
+    expect(text(document.querySelector('[data-index-status]'))).toBe('Mostrando 3–4 de 5');
+  });
+
+  it('sin selector (una sola opción) la fila sigue con el rango y el paginador estático', async () => {
+    const document = await listing({ ...pageOne, perPageOptions: [1] });
+    const bar = document.querySelector('[data-pagination-bar]')!;
+    expect(bar.querySelector('select')).toBeNull();
+    expect(text(bar.querySelector('[data-index-status]'))).toBe('Mostrando 1–1 de 3');
+    expect(bar.querySelector('nav a[rel="next"]')!.getAttribute('href')).toBe('/repo/articulos/2/');
+  });
+
+  it('sin selector y con una sola página no hay fila', async () => {
+    const document = await listing({ ...pageOne, perPageOptions: [9, 18], perPage: 9, pages: 1 });
+    expect(document.querySelector('[data-pagination-bar]')).toBeNull();
   });
 });

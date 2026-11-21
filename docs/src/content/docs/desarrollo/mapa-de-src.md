@@ -200,7 +200,8 @@ components/
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
 │   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents,
-│   │                IndexLink e IndexTree (enlace y árbol de un índice generado)
+│   │                IndexLink e IndexTree (enlace y árbol de un índice generado), PaginationBar
+│   │                (fila de pie: por página a un lado, rango y paginador al otro)
 │   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/

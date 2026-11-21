@@ -1,0 +1,23 @@
+---
+/* La fila de pie de una lista paginada, en una línea que se parte en móvil: a un lado el control de
+   «por página» (slot `start`) y al otro el rango o el recuento (slot `status`) y el paginador (slot
+   por defecto). Solo dispone: cada consumidor pone su comportamiento (el panel SEO, un formulario GET
+   con `data-auto-submit`; los índices, el selector que solo existe con JavaScript). */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div
+  data-pagination-bar
+  class:list={['flex flex-wrap items-center justify-between gap-x-6 gap-y-3', className]}
+>
+  <slot name="start" />
+  {/* `ml-auto`: sin control de tamaño, el rango y el paginador se quedan a la derecha. */}
+  <div class="ml-auto flex flex-wrap items-center gap-x-6 gap-y-2">
+    <slot name="status" />
+    <slot />
+  </div>
+</div>

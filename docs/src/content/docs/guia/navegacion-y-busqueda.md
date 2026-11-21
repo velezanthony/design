@@ -181,8 +181,11 @@ insignia; `omit` no la lista). De cada página salen su título, su resumen (`in
 
 #### Selector «Por página» (tabla y tarjetas)
 
-Encima del listado, un `<select>` nativo con la etiqueta «Por página» («Per page») deja elegir
-cuántas entradas se ven: por defecto 12, 24 o 48 en las tarjetas y 10, 25 o 50 en la tabla. Las
+Debajo del listado, una sola fila de pie lleva a la izquierda un `<select>` nativo con la etiqueta
+«Por página» («Per page») y a la derecha el rango («Mostrando 1–12 de 18») y el paginador; en móvil
+la fila se parte. Es la misma pieza que el pie de la tabla del panel SEO (`PaginationBar`). No hay
+copia arriba: con 12 entradas por página la fila queda cerca. El selector deja elegir cuántas
+entradas se ven: por defecto 12, 24 o 48 en las tarjetas y 10, 25 o 50 en la tabla. Las
 opciones salen de `perPageOptions` (en `indexes`, en `indexes.overrides[carpeta]` o en el `index` del
 `_index.md`, con la precedencia de siempre) y deben ser enteros positivos; si el `pageSize` no está
 entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción ni si todo cabe en la
@@ -206,8 +209,10 @@ más pequeña.
   igual, sin recordar.
 - **Desde la página 2** (que solo trae sus entradas), cambiar el tamaño lleva a la página de la
   carpeta con `?por=…`.
-- **Accesibilidad.** Un aviso educado (`aria-live="polite"`, oculto a la vista) dice «Mostrando 1–18
-  de 18» tras cada cambio; al cambiar de página el foco va al principio del listado. Todo es nativo:
+- **Accesibilidad.** El rango es una región `aria-live="polite"`: se ve siempre (también sin
+  JavaScript, con el de la página estática) y anuncia «Mostrando 1–18 de 18» tras cada cambio de
+  quien lee; el ajuste al cargar (por la URL o lo recordado) se hace sin anunciar. Al cambiar de
+  página el foco va al principio del listado. Todo es nativo:
   `<select>` y enlaces, con teclado.
 
 #### Portadas (tarjetas)

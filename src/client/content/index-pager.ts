@@ -115,12 +115,17 @@ function initPager(root: HTMLElement, env: PagerEnv): void {
         Number(pager.dataset.per) !== state.perPage || Number(pager.dataset.page) !== state.page;
     }
     selectValue(select!, state.perPage);
-    if (announce && status && data.showing) {
+    if (status && data.showing) {
       const { from, to } = visibleRange(state, total);
-      status.textContent = data.showing
+      const text = data.showing
         .replace('{from}', String(from))
         .replace('{to}', String(to))
         .replace('{total}', String(total));
+      /* El rango se ve siempre; solo se anuncia lo que hace quien lee, no el ajuste al cargar. */
+      const live = status.getAttribute('aria-live');
+      if (!announce) status.removeAttribute('aria-live');
+      status.textContent = text;
+      if (!announce && live !== null) status.setAttribute('aria-live', live);
     }
   }
 

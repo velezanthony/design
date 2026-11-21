@@ -232,9 +232,39 @@ describe('initIndexPager: página 1', () => {
     expect(visible()).toHaveLength(20);
   });
 
-  it('al cargar no se anuncia nada', () => {
+  it('al cargar, el rango visible sigue al estado de la URL pero sin anunciarlo', () => {
     const { root } = setup({ search: '?por=18' });
-    expect(root.querySelector('[data-index-status]')!.textContent).toBe('');
+    const status = root.querySelector('[data-index-status]')!;
+    expect(status.textContent).toBe('Mostrando 1–18 de 20');
+    // La región vuelve a ser `polite` para los cambios siguientes.
+    expect(status.getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('el cambio del rango al cargar se hace con la región en silencio', () => {
+    const { document } = parseHTML(`<!doctype html><html><body>${pageOne()}</body></html>`);
+    const status = document.querySelector('[data-index-status]')!;
+    const seen: (string | null)[] = [];
+    const descriptor =
+      Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(Object.getPrototypeOf(status)),
+        'textContent',
+      ) ?? Object.getOwnPropertyDescriptor(Object.getPrototypeOf(status), 'textContent');
+    Object.defineProperty(status, 'textContent', {
+      configurable: true,
+      get: () => descriptor?.get?.call(status),
+      set: (value: string) => {
+        seen.push(status.getAttribute('aria-live'));
+        descriptor?.set?.call(status, value);
+      },
+    });
+    const location = {
+      href: 'https://x.dev/a/?por=18',
+      pathname: '/a/',
+      search: '?por=18',
+      assign: vi.fn(),
+    };
+    initIndexPager(document, { storage: undefined, location });
+    expect(seen).toEqual([null]);
   });
 });
 

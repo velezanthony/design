@@ -42,7 +42,9 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   relativa pasa por `astro:assets`, una de `public/` se sirve con la base, `false` la quita y una que
   no existe avisa y deja la portada de la librería, un dibujo hecho con los tokens del tema
   (`CoverPlaceholder`). Las tarjetas van de 12 en 12 y la tabla de 10 en 10 por defecto, con un
-  selector «Por página» (`perPageOptions`, por defecto 12/24/48 y 10/25/50) que es una mejora
+  selector «Por página» (`perPageOptions`, por defecto 12/24/48 y 10/25/50), en la fila de pie
+  junto al rango y el paginador (la molécula `PaginationBar`, que también usa ahora el pie de la
+  tabla del panel SEO), que es una mejora
   progresiva: sin JavaScript está oculto y valen las rutas estáticas; con él, la página 1 (que trae
   todas las entradas) cambia el tamaño y la página sin recargar, con el estado en la URL
   (`?por=18&pagina=2`), recordado por índice en `localStorage` y anunciado con `aria-live`.

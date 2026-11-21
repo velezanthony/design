@@ -9,6 +9,7 @@ import {
 } from '../../../core/navigation/index-entries';
 import Select from '../../atoms/form/Select.astro';
 import Pagination from '../../molecules/navigation/Pagination.astro';
+import PaginationBar from '../../molecules/navigation/PaginationBar.astro';
 import IndexCards from './IndexCards.astro';
 import IndexList from './IndexList.astro';
 import IndexTable from './IndexTable.astro';
@@ -20,7 +21,10 @@ import IndexTable from './IndexTable.astro';
    enseña el script (`client/content/index-pager.ts`). En la página 1 se pintan todas las entradas (las
    de más, `hidden`) y un paginador por cada tamaño y página; el script solo decide cuál se ve, así que
    el marcado es siempre el de estos componentes. Sin JavaScript se ve lo de siempre: las `perPage`
-   primeras y el paginador de las rutas estáticas. */
+   primeras y el paginador de las rutas estáticas.
+
+   Selector, rango («Mostrando 1–12 de 18») y paginador comparten la fila de pie de `PaginationBar`,
+   debajo del listado: el mismo patrón que la tabla del panel SEO. */
 interface Props {
   index: IndexView<CoverView>;
   strings: UiStrings;
@@ -54,6 +58,15 @@ const pagers = index.all
       })),
     )
   : [{ perPage: index.perPage, page: index.page, pages: index.pages, hrefs: index.hrefs }];
+/* El rango que se ve: el de la página estática; el script lo cambia y la región lo anuncia. */
+const first = index.total === 0 ? 0 : (index.page - 1) * index.perPage + 1;
+const last = Math.min(index.page * index.perPage, index.total);
+const range = translate(strings, 'index.showing', {
+  from: String(first),
+  to: String(last),
+  total: String(index.total),
+});
+const bar = index.layout !== 'list' && !empty && (selector || index.pages > 1);
 const pager = selector
   ? {
       'data-index-pager': '',
@@ -73,25 +86,6 @@ const pager = selector
 
 {/* Fuera de la búsqueda: cada entrada ya está indexada en su página y aquí se repetiría. */}
 <div data-index-listing data-pagefind-ignore {...pager} class="outline-none">
-  {selector && (
-    <Fragment>
-      <div data-index-per-page-field hidden class="mb-6 flex justify-end">
-        <Select
-          id="index-per-page"
-          name="por"
-          label={translate(strings, 'index.perPage')}
-          options={index.perPageOptions.map((option) => ({
-            value: String(option),
-            label: String(option),
-          }))}
-          value={String(index.perPage)}
-          inline
-          data-index-per-page
-        />
-      </div>
-      <p data-index-status aria-live="polite" class="sr-only" />
-    </Fragment>
-  )}
   {empty ? (
     <p class="text-muted">{translate(strings, 'index.empty')}</p>
   ) : index.layout === 'list' ? (
@@ -101,23 +95,44 @@ const pager = selector
   ) : (
     <IndexCards items={index.items} strings={strings} lang={lang} visible={visible} />
   )}
-  {index.layout !== 'list' &&
-    pagers.map((item) => (
-      <div
-        data-index-pagination
-        data-per={item.perPage}
-        data-page={item.page}
-        hidden={index.all && !(item.perPage === index.perPage && item.page === 1)}
-        class:list={[item.pages > 1 && 'mt-10']}
-      >
-        {item.pages > 1 && (
-          <Pagination
-            page={item.page}
-            pages={item.pages}
-            href={(page: number) => item.hrefs[page - 1] ?? item.hrefs[0]!}
-            labels={labels}
+  {bar && (
+    <PaginationBar class="mt-10">
+      {selector && (
+        <div slot="start" data-index-per-page-field hidden>
+          <Select
+            id="index-per-page"
+            name="por"
+            label={translate(strings, 'index.perPage')}
+            options={index.perPageOptions.map((option) => ({
+              value: String(option),
+              label: String(option),
+            }))}
+            value={String(index.perPage)}
+            inline
+            data-index-per-page
           />
-        )}
-      </div>
-    ))}
+        </div>
+      )}
+      <p slot="status" data-index-status aria-live="polite" class="text-sm text-muted">
+        {range}
+      </p>
+      {pagers.map((item) => (
+        <div
+          data-index-pagination
+          data-per={item.perPage}
+          data-page={item.page}
+          hidden={index.all && !(item.perPage === index.perPage && item.page === 1)}
+        >
+          {item.pages > 1 && (
+            <Pagination
+              page={item.page}
+              pages={item.pages}
+              href={(page: number) => item.hrefs[page - 1] ?? item.hrefs[0]!}
+              labels={labels}
+            />
+          )}
+        </div>
+      ))}
+    </PaginationBar>
+  )}
 </div>
