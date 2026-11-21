@@ -20,12 +20,12 @@ async function isFile(file: string): Promise<boolean> {
  * librería. `where` es como se nombra la página en el aviso.
  */
 export async function resolveCover(
-  image: string | boolean | undefined,
+  image: string | false | undefined,
   file: string,
   publicDir: URL,
   where: string,
 ): Promise<ResolvedCover> {
-  if (image === undefined || image === true) return {};
+  if (image === undefined) return {};
   if (image === false) return { cover: false };
   const exists = image.startsWith('/')
     ? (await readPublic(publicDir, image)) !== undefined

@@ -4,7 +4,7 @@ import type { Locale } from '../i18n/locale';
 import { resolveLabel } from '../navigation/label';
 import { folderLabel } from '../shared/text';
 import { isNavSection, type NavItem } from './nav';
-import type { Label } from './schema';
+import type { IndexesUserConfig, IndexOverride, ListingFrontmatter } from './schema';
 
 /* Índices generados: el listado de las páginas de una carpeta. Lo pide su `_index.md` (convención
    de Hugo) o, en una carpeta sin `index.md` ni `_index.md`, la sección `indexes` de la config. Aquí
@@ -28,41 +28,17 @@ export const DEFAULT_PER_PAGE_OPTIONS: Record<IndexLayout, number[]> = {
 /** `include: 'all'`: todas las carpetas sin `index.md`. */
 export const ALL_FOLDERS = 'all';
 
-/** Lo que se puede fijar para una carpeta en `indexes.overrides`. */
-export interface IndexOverride {
-  layout?: IndexLayout;
-  pageSize?: number;
-  /** Opciones del selector «Por página». */
-  perPageOptions?: number[];
-  /** Política de portadas del listado: `true` pone la de la librería a quien no trae imagen. */
-  image?: boolean;
-  /** Título de la página generada (no se usa si la carpeta tiene `index.md`). */
-  title?: Label;
-  /** Entradilla y `seo.description` de la página generada. */
-  description?: Label;
-}
-
-/** Lo que escribe el consumidor en `indexes`: todo es opcional. */
-export interface IndexesUserConfig {
-  layout?: IndexLayout;
-  pageSize?: number;
-  perPageOptions?: number[];
-  image?: boolean;
-  /** `'all'` (por defecto) o las carpetas exactas que reciben un índice generado. */
-  include?: typeof ALL_FOLDERS | string[];
-  /** Carpetas que no lo reciben aunque `include` las abarque. */
-  exclude?: string[];
-  overrides?: Record<string, IndexOverride>;
-}
-
 export interface ResolvedIndexes {
   layout: IndexLayout;
   /** Sin él, el de la disposición (`DEFAULT_PAGE_SIZES`). */
   pageSize?: number;
   /** Sin él, las de la disposición (`DEFAULT_PER_PAGE_OPTIONS`). */
   perPageOptions?: number[];
-  image: boolean;
+  /** Política de portadas por defecto: `true` pone la de la librería a quien no trae imagen. */
+  covers: boolean;
+  /** `'all'` (por defecto) o las carpetas exactas que reciben un índice generado. */
   include: typeof ALL_FOLDERS | string[];
+  /** Carpetas que no lo reciben aunque `include` las abarque. */
   exclude: string[];
   overrides: Record<string, IndexOverride>;
 }
@@ -73,7 +49,7 @@ export function resolveIndexes(user: IndexesUserConfig): ResolvedIndexes {
     layout: user.layout ?? IndexLayout.LIST,
     ...(user.pageSize !== undefined && { pageSize: user.pageSize }),
     ...(user.perPageOptions !== undefined && { perPageOptions: user.perPageOptions }),
-    image: user.image ?? true,
+    covers: user.covers ?? true,
     include: user.include ?? ALL_FOLDERS,
     exclude: user.exclude ?? [],
     overrides: user.overrides ?? {},
@@ -124,14 +100,6 @@ export function validateIndexFolders(
     );
 }
 
-/** Opciones del listado en el frontmatter de un `_index.md`. */
-export interface PageListing {
-  layout?: IndexLayout;
-  pageSize?: number;
-  perPageOptions?: number[];
-  image?: boolean;
-}
-
 /** El listado ya resuelto de una página: de qué carpeta y cómo se pinta. */
 export interface ListingOptions {
   folder: string;
@@ -140,7 +108,8 @@ export interface ListingOptions {
   pageSize: number;
   /** Opciones del selector «Por página», ordenadas y con `pageSize` entre ellas; vacío en la lista. */
   perPageOptions: number[];
-  image: boolean;
+  /** Política de portadas: `true` pone la de la librería a quien no trae imagen. */
+  covers: boolean;
 }
 
 /** Las opciones con el tamaño de las rutas estáticas siempre entre ellas, ordenadas y sin repetir. */
@@ -148,20 +117,20 @@ function withPageSize(options: readonly number[], pageSize: number): number[] {
   return [...new Set([...options, pageSize])].sort((left, right) => left - right);
 }
 
-/** Listado de una página (un `_index.md` o una generada), o `undefined` si no lleva. Precedencia: su `_index.md` → `overrides` de su carpeta → `indexes` → valores por defecto. */
+/** Listado de una página (un `_index.md` o una generada), o `undefined` si no lleva. Precedencia: el bloque `listing:` de su `_index.md` → `overrides` de su carpeta → `indexes` → valores por defecto. */
 export function listingOptions(
-  page: { slug: string; listing?: true; index?: PageListing },
+  page: { slug: string; listing?: ListingFrontmatter },
   indexes: ResolvedIndexes | undefined,
 ): ListingOptions | undefined {
   if (!page.listing) return undefined;
-  const own = page.index;
+  const own = page.listing;
   const folder = page.slug;
   const override = indexes?.overrides[folder];
-  const layout = own?.layout ?? override?.layout ?? indexes?.layout ?? IndexLayout.LIST;
+  const layout = own.layout ?? override?.layout ?? indexes?.layout ?? IndexLayout.LIST;
   const pageSize =
-    own?.pageSize ?? override?.pageSize ?? indexes?.pageSize ?? DEFAULT_PAGE_SIZES[layout];
+    own.pageSize ?? override?.pageSize ?? indexes?.pageSize ?? DEFAULT_PAGE_SIZES[layout];
   const options =
-    own?.perPageOptions ??
+    own.perPageOptions ??
     override?.perPageOptions ??
     indexes?.perPageOptions ??
     DEFAULT_PER_PAGE_OPTIONS[layout];
@@ -170,7 +139,7 @@ export function listingOptions(
     layout,
     pageSize,
     perPageOptions: layout === IndexLayout.LIST ? [] : withPageSize(options, pageSize),
-    image: own?.image ?? override?.image ?? indexes?.image ?? true,
+    covers: own.covers ?? override?.covers ?? indexes?.covers ?? true,
   };
 }
 
@@ -231,7 +200,7 @@ export function generatedIndexPages(pages: readonly Page[], config: GeneratedCon
           kind: 'generated',
           sourcePath: `${folder}/_index.md`,
           body: `# ${plainMarkdown(title)}\n${description === undefined ? '' : `\n${plainMarkdown(description)}\n`}`,
-          listing: true,
+          listing: {},
           ...(description !== undefined && { seo: { description } }),
         };
       }),

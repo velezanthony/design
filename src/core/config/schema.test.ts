@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from './resolve';
-import { DocsConfigSchema, PageSeoOverrideSchema } from './schema';
+import { DocsConfigSchema, ListingSchema, PageSeoOverrideSchema } from './schema';
 import { DocsErrors } from '../errors';
 import { NavIcon } from './nav';
 
@@ -89,6 +89,31 @@ describe('seo de la config', () => {
 
   it('la descripción es un Label: cadena o por idioma', () => {
     expect(resolveConfig({ name: 'X', seo: { description: 'Docs' } }).seo.description).toBe('Docs');
+  });
+});
+
+describe('ListingSchema', () => {
+  it('acepta disposición, tamaño, opciones y portadas', () => {
+    const listing = { layout: 'cards', pageSize: 12, perPageOptions: [12, 24], covers: false };
+    expect(ListingSchema.parse(listing)).toEqual(listing);
+  });
+
+  it('`image` es una clave desconocida: la política de portadas es `covers`', () => {
+    const result = ListingSchema.safeParse({ image: true });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.code).toBe('unrecognized_keys');
+  });
+});
+
+describe('indexes de la config', () => {
+  it('`indexes.covers` vale', () => {
+    expect(messages({ name: 'X', indexes: { covers: false } })).toEqual([]);
+  });
+
+  it('`indexes.image` es una opción desconocida', () => {
+    expect(messages({ name: 'X', indexes: { image: false } }).join('\n')).toContain(
+      'indexes.image: opción desconocida',
+    );
   });
 });
 

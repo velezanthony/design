@@ -323,10 +323,11 @@ describe('externalPath', () => {
 
 describe('discoverPages: _index.md', () => {
   it('es la fuente del índice de su carpeta: su slug es la carpeta, nunca `_index`', () => {
-    const index = { layout: 'cards' as const, pageSize: 6 };
+    const listing = { layout: 'cards' as const, pageSize: 6 };
+    const index = { summary: 'Todos los tutoriales.' };
     const pages = discoverPages(
       [
-        native('tutoriales/_index.md', '# Tutoriales', { index }),
+        native('tutoriales/_index.md', '# Tutoriales', { listing, index }),
         native('tutoriales/_index.en.md', '# Tutorials'),
         native('tutoriales/instalacion.md'),
       ],
@@ -339,9 +340,12 @@ describe('discoverPages: _index.md', () => {
     ]);
     expect(listings[0]).toMatchObject({
       kind: 'native',
+      listing,
       index,
       sourcePath: 'tutoriales/_index.md',
     });
+    // Sin bloque `listing:`, el `_index.md` lista igual su carpeta con las opciones por defecto.
+    expect(listings[1]!.listing).toEqual({});
     expect(pages.some((page) => page.slug.includes('_index'))).toBe(false);
   });
 
@@ -364,7 +368,12 @@ describe('discoverPages: _index.md', () => {
 
   it('el _index.md de la raíz es el de la portada', () => {
     const [page] = discoverPages([native('_index.md', '# Inicio')], config());
-    expect(page).toMatchObject({ slug: '', listing: true });
+    expect(page).toMatchObject({ slug: '', listing: {} });
+  });
+
+  it('una página normal no lleva `listing`', () => {
+    const [page] = discoverPages([native('tutoriales/instalacion.md')], config());
+    expect(page).not.toHaveProperty('listing');
   });
 });
 
@@ -406,8 +415,8 @@ describe('discoverPages: `slug` propio (URL traducida)', () => {
       bilingual(),
     );
     expect(pages.map((page) => [page.slug, page.locale, page.urlSlug, page.listing])).toEqual([
-      ['tutoriales', 'es', undefined, true],
-      ['tutoriales', 'en', 'tutorials', true],
+      ['tutoriales', 'es', undefined, {}],
+      ['tutoriales', 'en', 'tutorials', {}],
     ]);
   });
 

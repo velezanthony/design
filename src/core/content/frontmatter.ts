@@ -1,13 +1,6 @@
 import { z } from 'astro/zod';
-import {
-  IndexLayoutSchema,
-  IndexPageSizeSchema,
-  IndexPerPageOptionsSchema,
-  MissingTranslationSchema,
-  PageSeoOverrideSchema,
-} from '../config/schema';
+import { ListingSchema, MissingTranslationSchema, PageSeoOverrideSchema } from '../config/schema';
 import { DocsError, formatPath } from '../errors';
-import type { Frontmatter } from './discovery';
 import { isListingFile } from './slug';
 
 const FRONTMATTER_OPEN = /^---[ \t]*\r?\n/;
@@ -35,19 +28,17 @@ export function splitFrontmatter(raw: string): {
   };
 }
 
-/* `index`: cómo sale la página en un índice generado (resumen, portada) y, en un `_index.md`, el
-   listado de su carpeta (`layout`, `pageSize` y la política de portadas `image`). La forma se valida
-   aquí; lo que depende del archivo (si es un `_index.md`), en `indexProblems`. */
-const PageIndexSchema = z.strictObject({
+/* `index`: cómo sale la página en el listado de su carpeta (resumen, portada y su texto
+   alternativo). Lo admite cualquier página, también un `_index.md`: su ficha en el listado padre. */
+const EntryIndexSchema = z.strictObject({
   summary: z.string().min(1).optional(),
-  image: z.union([z.string(), z.boolean()]).optional(),
+  image: z.union([z.string(), z.literal(false)]).optional(),
   imageAlt: z.string().optional(),
-  layout: IndexLayoutSchema.optional(),
-  pageSize: IndexPageSizeSchema.optional(),
-  perPageOptions: IndexPerPageOptionsSchema.optional(),
 });
+export type EntryIndex = z.infer<typeof EntryIndexSchema>;
 
-/* Las claves ajenas se ignoran (otras herramientas escriben las suyas); las nuestras son estrictas. */
+/* Las claves ajenas se ignoran (otras herramientas escriben las suyas); las nuestras son estrictas.
+   `listing` solo vale en un `_index.md`: lo comprueba `fileProblems`, que conoce el archivo. */
 const FrontmatterSchema = z.object({
   title: z.string().optional(),
   /** URL propia de la página; la forma la valida el descubrimiento, que conoce los idiomas. */
@@ -55,40 +46,30 @@ const FrontmatterSchema = z.object({
   order: z.number().optional(),
   seo: PageSeoOverrideSchema.optional(),
   translations: MissingTranslationSchema.optional(),
-  index: PageIndexSchema.optional(),
+  index: EntryIndexSchema.optional(),
+  listing: ListingSchema.optional(),
 });
+
+/** Frontmatter de una página nativa que el núcleo entiende, ya validado. */
+export type Frontmatter = z.infer<typeof FrontmatterSchema>;
 
 /** Una ruta de imagen local: relativa al `.md` o absoluta de `public/`; nada de URLs ni esquemas. */
 function isLocalImage(image: string): boolean {
   return image !== '' && !image.startsWith('//') && !/^[a-z][a-z0-9+.-]*:/i.test(image);
 }
 
-/** Lo que `index` no puede decir según el archivo: el listado solo en un índice y la imagen según qué sea. */
-function indexProblems(index: z.infer<typeof PageIndexSchema>, file: string): DocsError[] {
+/** Lo que la forma no ve: `listing` fuera de un `_index.md` y una portada que no es una ruta local. */
+function fileProblems(frontmatter: Frontmatter, file: string): DocsError[] {
   const problems: { field: string; message: string }[] = [];
-  const listing = isListingFile(file);
-  for (const field of ['layout', 'pageSize', 'perPageOptions'] as const) {
-    if (!listing && index[field] !== undefined) {
-      problems.push({
-        field: `index.${field}`,
-        message:
-          'solo en un `_index.md`, la fuente del índice generado de su carpeta (un `index.md` es una página normal).',
-      });
-    }
-  }
-  if (listing && typeof index.image === 'string') {
+  if (frontmatter.listing !== undefined && !isListingFile(file)) {
     problems.push({
-      field: 'index.image',
-      message: 'en un `_index.md` es la política de portadas del listado: `true` o `false`.',
+      field: 'listing',
+      message:
+        'solo en un `_index.md`, el que pide el listado de su carpeta (un `index.md` es una página normal).',
     });
   }
-  if (!listing && index.image === true) {
-    problems.push({
-      field: 'index.image',
-      message: 'debe ser la ruta de una imagen (./portada.png o /portadas/x.png) o `false`.',
-    });
-  }
-  if (typeof index.image === 'string' && !isLocalImage(index.image)) {
+  const image = frontmatter.index?.image;
+  if (typeof image === 'string' && !isLocalImage(image)) {
     problems.push({
       field: 'index.image',
       message: 'debe ser una ruta relativa al `.md` (./portada.png) o de `public/` (/portada.png).',
@@ -108,7 +89,7 @@ export function parseFrontmatter(
   if (data === undefined || data === null) return { frontmatter: {}, errors: [] };
   const result = FrontmatterSchema.safeParse(data);
   if (result.success) {
-    const problems = result.data.index ? indexProblems(result.data.index, file) : [];
+    const problems = fileProblems(result.data, file);
     if (problems.length > 0) return { frontmatter: {}, errors: problems };
     return { frontmatter: stripUndefined(result.data), errors: [] };
   }
@@ -133,7 +114,7 @@ export function parseFrontmatter(
   return { frontmatter: {}, errors };
 }
 
-function stripUndefined(data: z.infer<typeof FrontmatterSchema>): Frontmatter {
+function stripUndefined(data: Frontmatter): Frontmatter {
   return Object.fromEntries(
     Object.entries(data).filter(([, value]) => value !== undefined),
   ) as Frontmatter;

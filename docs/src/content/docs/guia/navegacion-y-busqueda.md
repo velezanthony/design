@@ -121,11 +121,11 @@ genera, como Hugo, a partir de un `_index.md` en esa carpeta o, sin él, de la o
 ---
 seo:
   description: "Tutoriales paso a paso, agrupados por nivel."
-index:
+listing:
   layout: cards # list (por defecto) | table | cards
   pageSize: 12 # por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
   perPageOptions: [12, 24, 48] # selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
-  image: true # política de portadas: true (la de la librería) | false
+  covers: true # política de portadas: true (la de la librería) | false
 ---
 
 # Tutoriales
@@ -139,7 +139,15 @@ debajo, el listado de la carpeta. **El `_index.md` no es una página propia:** n
 `sidebar: ['tutoriales']` o un `nav` con `slug: 'tutoriales'` lo enlazan, y un enlace del Markdown a
 `tutoriales/_index.md` lleva a `/tutoriales/`. Se traduce como cualquier página (`_index.en.md`), con
 la política de `translations` de siempre: sin traducción, `/en/tutoriales/` es una ruta de reserva con el
-texto original y las URLs de `/en/`. Cada traducción lleva su propio bloque `index`.
+texto original y las URLs de `/en/`. Cada traducción lleva su propio bloque `listing`.
+
+Dos bloques, cada uno con un significado:
+
+- **`listing:`** dice cómo es el listado de la carpeta. Solo vale en un `_index.md`; en cualquier otro
+  archivo (también en un `index.md`) rompe el build nombrando el campo.
+- **`index:`** dice cómo sale una página en el listado de su carpeta (resumen y portada; ver
+  [Portadas](#portadas-tarjetas)). Lo admite cualquier página, también un `_index.md`: es su ficha en
+  el listado de la carpeta padre.
 
 **Es la forma recomendada de dar título y entradilla a un índice:** todo lo que se traduce vive en
 Markdown, no en la config.
@@ -186,8 +194,8 @@ Debajo del listado, una sola fila de pie lleva a la izquierda un `<select>` nati
 la fila se parte. Es la misma pieza que el pie de la tabla del panel SEO (`PaginationBar`). No hay
 copia arriba: con 12 entradas por página la fila queda cerca. El selector deja elegir cuántas
 entradas se ven: por defecto 12, 24 o 48 en las tarjetas y 10, 25 o 50 en la tabla. Las
-opciones salen de `perPageOptions` (en `indexes`, en `indexes.overrides[carpeta]` o en el `index` del
-`_index.md`, con la precedencia de siempre) y deben ser enteros positivos; si el `pageSize` no está
+opciones salen de `perPageOptions` (en `indexes`, en `indexes.overrides[carpeta]` o en el `listing`
+del `_index.md`, con la precedencia de siempre) y deben ser enteros positivos; si el `pageSize` no está
 entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción ni si todo cabe en la
 más pequeña.
 
@@ -217,7 +225,7 @@ más pequeña.
 
 #### Portadas (tarjetas)
 
-En el frontmatter de cada página:
+En el frontmatter de cada página (también de un `_index.md`, para su ficha en el listado padre):
 
 ```yaml
 index:
@@ -226,10 +234,10 @@ index:
   imageAlt: "Lo que muestra la imagen" # opcional
 ```
 
-Precedencia, de más a menos: `index.image` de la página → `image` del `_index.md` (o de
-`indexes.overrides[carpeta]`) → `indexes.image` → la portada de la librería. `false` en un nivel
-quita la imagen salvo que uno más alto ponga una real. En un `_index.md`, `index.image` es la
-**política** del listado (`true`/`false`); en una página, su portada (una ruta o `false`).
+Precedencia, de más a menos: `index.image` de la página → `listing.covers` del `_index.md` (o
+`covers` de `indexes.overrides[carpeta]`) → `indexes.covers` → la portada de la librería. `false` en
+un nivel quita la imagen salvo que uno más alto ponga una real. `index.image` es siempre la portada
+de la página (una ruta o `false`); la **política** del listado (`true`/`false`) es `covers`.
 
 - La portada de la librería es un dibujo (rejilla, diagonales o puntos, estable por página) hecho
   solo con los tokens del tema, con el grupo de la página como etiqueta pequeña.
@@ -250,11 +258,11 @@ indexes: {
   layout: 'list', // 'list' (por defecto) | 'table' | 'cards'
   pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla
   perPageOptions: [12, 24, 48], // por defecto [12, 24, 48] en tarjetas y [10, 25, 50] en tabla
-  image: true, // política de portadas por defecto
+  covers: true, // política de portadas por defecto
   include: 'all', // 'all' (por defecto) o las carpetas exactas: ['tutoriales', 'guia/avanzado']
   exclude: ['borradores'], // carpetas que no, aunque `include` las abarque
   overrides: {
-    guia: { layout: 'table', pageSize: 20, image: false, title: { es: 'Guía', en: 'Guide' }, description: { es: '…', en: '…' } },
+    guia: { layout: 'table', pageSize: 20, covers: false, title: { es: 'Guía', en: 'Guide' }, description: { es: '…', en: '…' } },
   },
 },
 ```

@@ -683,10 +683,10 @@ describe('docsLoaderFromResolved', () => {
 describe('docsLoader: índices generados', () => {
   const bilingual = { locales: ['es', 'en'], defaultLocale: 'es' };
 
-  it('un _index.md es la página de su carpeta, con listado y su frontmatter `index`', async () => {
+  it('un _index.md es la página de su carpeta, con su `listing` tal cual y su ficha `index`', async () => {
     await write(
       'src/content/docs/tutoriales/_index.md',
-      '---\nindex:\n  layout: cards\n  pageSize: 6\n---\n# Tutoriales\n\nNotas.\n',
+      '---\nlisting:\n  layout: cards\n  pageSize: 6\n  covers: false\nindex:\n  summary: Todos.\n---\n# Tutoriales\n\nNotas.\n',
     );
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({ name: 'T', ...bilingual });
@@ -696,8 +696,8 @@ describe('docsLoader: índices generados', () => {
       slug: 'tutoriales',
       title: 'Tutoriales',
       kind: 'native',
-      listing: true,
-      index: { layout: 'cards', pageSize: 6 },
+      listing: { layout: 'cards', pageSize: 6, covers: false },
+      index: { summary: 'Todos.' },
       sourcePath: path.join('src/content/docs', 'tutoriales/_index.md'),
     });
   });
@@ -728,7 +728,7 @@ describe('docsLoader: índices generados', () => {
       locale: 'en',
       title: 'Tutorials',
       kind: 'generated',
-      listing: true,
+      listing: {},
       seo: { description: 'All.' },
     });
     expect(entries.get('en/tutoriales')!.data.editPath).toBeUndefined();
@@ -793,6 +793,19 @@ describe('docsLoader: índices generados', () => {
       summary: 'Corto.',
     });
     expect(warnings).toEqual([expect.stringContaining('«./nada.png»')]);
+  });
+
+  it('el `index` guardado no lleva opciones del listado; la portada de un _index.md también se comprueba', async () => {
+    await write('public/portadas/t.png', 'png');
+    await write(
+      'src/content/docs/tutoriales/_index.md',
+      '---\nlisting:\n  layout: table\nindex:\n  image: /portadas/t.png\n---\n# Tutoriales\n',
+    );
+    await write('src/content/docs/tutoriales/a.md', '# A\n');
+    const { entries } = await load({ name: 'T' });
+    const data = entries.get('en/tutoriales')!.data;
+    expect(data.index).toEqual({ cover: { src: '/portadas/t.png' } });
+    expect(data.listing).toEqual({ layout: 'table' });
   });
 });
 

@@ -121,28 +121,23 @@ describe('parseFrontmatter: index', () => {
     expect(messages({ image: 'portada.png' })).toEqual([]);
   });
 
-  it('un _index.md: disposición, tamaño de página, opciones por página y política de portadas', () => {
-    const index = { layout: 'cards', pageSize: 6, perPageOptions: [6, 12], image: false };
-    for (const file of ['tutoriales/_index.md', 'tutoriales/_index.en.md', '_index.md']) {
-      expect(parseFrontmatter({ index }, file)).toEqual({ frontmatter: { index }, errors: [] });
-    }
+  it('un _index.md admite `index:`: es su ficha en el listado de la carpeta padre', () => {
+    const index = { summary: 'Todos los tutoriales.', image: './portada.png' };
+    expect(parseFrontmatter({ index }, 'tutoriales/_index.md')).toEqual({
+      frontmatter: { index },
+      errors: [],
+    });
   });
 
-  it('`layout` y `pageSize` solo en un _index.md: un index.md es una página normal', () => {
-    expect(messages({ layout: 'list' }, 'tutoriales/index.md').join('\n')).toContain(
-      'index.layout',
-    );
-    expect(messages({ pageSize: 4 }).join('\n')).toContain('index.pageSize');
-    expect(messages({ perPageOptions: [4] }).join('\n')).toContain('index.perPageOptions');
-  });
-
-  it('en un _index.md `image` es la política del listado: true o false, no una ruta', () => {
-    expect(messages({ image: './x.png' }, 'a/_index.md').join('\n')).toContain('index.image');
-    expect(messages({ image: true }, 'a/_index.md')).toEqual([]);
-  });
-
-  it('fuera de un _index.md `image: true` no significa nada', () => {
+  it('`index.image: true` es un error en cualquier archivo', () => {
     expect(messages({ image: true }).join('\n')).toContain('index.image');
+    expect(messages({ image: true }, 'a/_index.md').join('\n')).toContain('index.image');
+  });
+
+  it('las opciones del listado no van en `index:`', () => {
+    for (const key of ['layout', 'pageSize', 'perPageOptions', 'covers']) {
+      expect(messages({ [key]: 'x' }, 'a/_index.md').join('\n')).toContain(`index.${key}`);
+    }
   });
 
   it.each(['https://x.dev/a.png', '//x.dev/a.png', 'data:image/png;base64,AA', ''])(
@@ -152,18 +147,46 @@ describe('parseFrontmatter: index', () => {
     },
   );
 
-  it('`perPageOptions` son enteros positivos y al menos uno', () => {
-    expect(messages({ perPageOptions: [0] }, 'a/_index.md').join('\n')).toContain(
-      'index.perPageOptions',
-    );
-    expect(messages({ perPageOptions: [] }, 'a/_index.md').join('\n')).toContain(
-      'index.perPageOptions',
-    );
+  it('una clave desconocida falla con su ruta', () => {
+    expect(messages({ sumary: 'x' }).join('\n')).toContain('index.sumary');
+  });
+});
+
+describe('parseFrontmatter: listing', () => {
+  function messages(listing: unknown, file = 'a/_index.md') {
+    return parseFrontmatter({ listing }, file).errors.map((error) => error.message);
+  }
+
+  it('un _index.md: disposición, tamaño de página, opciones por página y portadas', () => {
+    const listing = { layout: 'cards', pageSize: 6, perPageOptions: [6, 12], covers: false };
+    for (const file of ['tutoriales/_index.md', 'tutoriales/_index.en.md', '_index.md']) {
+      expect(parseFrontmatter({ listing }, file)).toEqual({
+        frontmatter: { listing },
+        errors: [],
+      });
+    }
   });
 
-  it('una disposición o una clave desconocidas fallan con su ruta', () => {
-    expect(messages({ layout: 'grid' }, 'a/_index.md').join('\n')).toContain('index.layout');
-    expect(messages({ sumary: 'x' }).join('\n')).toContain('index.sumary');
+  it('en una página normal es un error con su campo (un index.md también es una página normal)', () => {
+    expect(messages({ layout: 'list' }, 'tutoriales/instalacion.md').join('\n')).toContain(
+      'listing',
+    );
+    const [error] = parseFrontmatter({ listing: {} }, 'tutoriales/index.md').errors;
+    expect(error?.message).toContain('listing');
+    expect(error?.file).toBe('tutoriales/index.md');
+  });
+
+  it('`listing.image` es una clave desconocida: la política de portadas es `covers`', () => {
+    expect(messages({ image: false }).join('\n')).toContain('listing.image');
+  });
+
+  it('`perPageOptions` son enteros positivos y al menos uno', () => {
+    expect(messages({ perPageOptions: [0] }).join('\n')).toContain('listing.perPageOptions');
+    expect(messages({ perPageOptions: [] }).join('\n')).toContain('listing.perPageOptions');
+  });
+
+  it('una disposición desconocida falla con su ruta', () => {
+    expect(messages({ layout: 'grid' }).join('\n')).toContain('listing.layout');
   });
 });
 

@@ -21,7 +21,7 @@ beforeEach(async () => {
 afterEach(() => rm(directory, { recursive: true, force: true }));
 
 describe('resolveCover', () => {
-  it('sin `index.image` no hay nada que resolver: decide la política del listado', async () => {
+  it('sin `index.image` no hay nada que resolver: decide la política `covers` del listado', async () => {
     expect(await resolveCover(undefined, page, publicDir, 'tutoriales/instalacion.md')).toEqual({});
   });
 

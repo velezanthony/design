@@ -17,6 +17,7 @@ import { withBase } from '../../core/shared/urls';
 
 /** `Page` del núcleo a partir de los datos de la colección; el cuerpo no se arrastra. */
 export function pageOf(item: DocData): Page {
+  const index = entryIndexOf(item);
   return {
     slug: item.slug,
     ...(item.urlSlug !== undefined && { urlSlug: item.urlSlug }),
@@ -28,16 +29,19 @@ export function pageOf(item: DocData): Page {
     ...(item.order !== undefined && { order: item.order }),
     ...(item.seo && { seo: item.seo }),
     ...(item.translations && { translations: item.translations }),
-    ...(item.listing && { listing: true as const }),
-    ...(item.index && { index: pageIndexOf(item.index) }),
+    ...(item.listing && { listing: item.listing }),
+    ...(index && { index }),
   };
 }
 
 /** El bloque `index` que entiende el núcleo; la portada guardada se queda en los datos (la lee la vista del índice). */
-function pageIndexOf(index: NonNullable<DocData['index']>): Page['index'] {
-  return Object.fromEntries(
-    Object.entries(index).filter(([key, value]) => key !== 'cover' && value !== undefined),
-  ) as Page['index'];
+function entryIndexOf(item: DocData): Page['index'] {
+  const { summary, imageAlt } = item.index ?? {};
+  if (summary === undefined && imageAlt === undefined) return undefined;
+  return {
+    ...(summary !== undefined && { summary }),
+    ...(imageAlt !== undefined && { imageAlt }),
+  };
 }
 
 export function pagesOf(data: DocData[]): Page[] {

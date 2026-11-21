@@ -398,7 +398,7 @@ es el botón que reabre el aviso de consentimiento. Rompe el build una ruta inex
 
 Índices generados: la página de una carpeta que lista lo que cuelga de ella, en lista, tabla o
 tarjetas. La forma recomendada es un `_index.md` en la carpeta (como en Hugo), que pone el título, la
-entradilla, el `seo` y el bloque `index`, y se traduce con `_index.en.md`; no necesita config. Un
+entradilla, el `seo` y el bloque `listing`, y se traduce con `_index.en.md`; no necesita config. Un
 `index.md` en la misma carpeta gana siempre (y el `_index.md` se ignora con un aviso). La opción
 `indexes` pone los valores por defecto y activa el índice en las carpetas sin ninguno de los dos:
 
@@ -407,19 +407,19 @@ indexes: {
   layout: 'list', // 'list' (por defecto) | 'table' | 'cards'
   pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla (la lista no se pagina)
   perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
-  image: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
+  covers: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
   include: 'all', // 'all' (por defecto) | ['tutoriales', 'guia/avanzado']: carpetas exactas
   exclude: [], // carpetas que no, aunque `include` las abarque
   overrides: {
-    tutoriales: { layout: 'cards', pageSize: 12, perPageOptions: [12, 24, 48], image: true, title: { es: 'Tutoriales', en: 'Tutorials' }, description: { es: '…', en: '…' } },
+    tutoriales: { layout: 'cards', pageSize: 12, perPageOptions: [12, 24, 48], covers: true, title: { es: 'Tutoriales', en: 'Tutorials' }, description: { es: '…', en: '…' } },
   },
 },
 ```
 
-En el frontmatter, `_index.md` lleva `index: { layout, pageSize, perPageOptions, image }` (gana a la config) y cada
-página `index: { summary, image, imageAlt }`: `summary` sustituye a `seo.description` en el listado e
+En el frontmatter, `_index.md` lleva `listing: { layout, pageSize, perPageOptions, covers }` (gana a la config) y cada
+página (también un `_index.md`, para su ficha en el listado padre) `index: { summary, image, imageAlt }`: `summary` sustituye a `seo.description` en el listado e
 `image` es una ruta relativa al `.md` (pasa por astro:assets), de `public/` o `false`. Precedencia de
-la portada: la página → la carpeta (`_index.md` u `overrides`) → `indexes.image` → la de la librería.
+la portada: la página → la carpeta (`listing.covers` del `_index.md` u `overrides`) → `indexes.covers` → la de la librería. `listing:` fuera de un `_index.md` rompe el build.
 Una imagen que no existe avisa y deja la de la librería. Las portadas son decorativas (`alt=""`) salvo
 con `imageAlt`.
 

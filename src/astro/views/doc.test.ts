@@ -478,11 +478,10 @@ describe('`slug` propio (URL traducida)', () => {
   it('un listado con `slug` propio pagina bajo su URL (`en/tutorials/2`)', () => {
     const listing = [
       doc('', 'es'),
-      doc('tutoriales', 'es', { listing: true, index: { layout: 'cards', pageSize: 1 } }),
+      doc('tutoriales', 'es', { listing: { layout: 'cards', pageSize: 1 } }),
       doc('tutoriales', 'en', {
-        listing: true,
+        listing: { layout: 'cards', pageSize: 1 },
         urlSlug: 'tutorials',
-        index: { layout: 'cards', pageSize: 1 },
       }),
       doc('tutoriales/a', 'es'),
       doc('tutoriales/a', 'en', { urlSlug: 'tutorials/a' }),

@@ -1,5 +1,5 @@
 ---
-index:
+listing:
   layout: cards
   pageSize: 1
 ---

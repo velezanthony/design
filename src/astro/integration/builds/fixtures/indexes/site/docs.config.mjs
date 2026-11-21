@@ -35,6 +35,7 @@ export default defineDocsConfig({
   ],
   sidebar: ['index', 'tutoriales', 'recetas', 'notas'],
   indexes: {
+    covers: true,
     include: ['guia'],
     overrides: {
       guia: {

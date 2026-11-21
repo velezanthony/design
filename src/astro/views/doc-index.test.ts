@@ -43,9 +43,8 @@ const tutorials = ['a', 'b', 'c', 'd', 'e'].map((name) =>
 );
 const listing = doc('tutoriales', 'es', {
   title: 'Tutoriales',
-  listing: true,
+  listing: { layout: 'cards', pageSize: 2 },
   sourcePath: 'docs/tutoriales/_index.md',
-  index: { layout: 'cards', pageSize: 2 },
 });
 const data = [doc(''), listing, ...tutorials];
 
@@ -84,7 +83,7 @@ describe('docRoutes: índices paginados', () => {
 
   it('la lista no se pagina', () => {
     const list = data.map((item) =>
-      item === listing ? { ...item, index: { layout: 'list' as const, pageSize: 2 } } : item,
+      item === listing ? { ...item, listing: { layout: 'list' as const, pageSize: 2 } } : item,
     );
     const params = docRoutes(list, site()).map((route) => route.param);
     expect(params).not.toContain('tutoriales/2');
@@ -211,12 +210,13 @@ describe('docIndexView', () => {
     });
   });
 
-  it('la portada: `false` de la página, imagen con alt y política `image: false` del listado', () => {
+  it('la portada: `false` de la página, imagen con alt y política `covers: false` del listado', () => {
     const covered = data.map((item) => {
       if (item.slug === 'tutoriales/e') return { ...item, index: { cover: false as const } };
       if (item.slug === 'tutoriales/b')
         return { ...item, index: { cover: { src: '/b.png' }, imageAlt: 'B' } };
-      if (item === listing) return { ...item, index: { layout: 'cards' as const, image: false } };
+      if (item === listing)
+        return { ...item, listing: { layout: 'cards' as const, covers: false } };
       return item;
     });
     const items = docIndexView({
@@ -239,7 +239,7 @@ describe('docIndexView', () => {
       nav: [{ label: { es: 'Esenciales', en: 'Essentials' }, sidebar: ['tutoriales/a'] }],
     };
     const list = data.map((item) =>
-      item === listing ? { ...item, index: { layout: 'list' as const } } : item,
+      item === listing ? { ...item, listing: { layout: 'list' as const } } : item,
     );
     const result = docIndexView({
       route: routeOf(docRoutes(list, site(user)), 'tutoriales'),
@@ -258,7 +258,7 @@ describe('docIndexView', () => {
     const generated = doc('tutoriales', 'es', {
       title: 'Tutoriales',
       kind: 'generated',
-      listing: true,
+      listing: {},
       sourcePath: 'docs/tutoriales/_index.md',
     });
     const config = site({ indexes: { layout: 'table', pageSize: 10 } });
@@ -289,10 +289,9 @@ describe('docIndexView: `_index.en.md` con `slug` propio', () => {
     listing,
     doc('tutoriales', 'en', {
       title: 'Tutorials',
-      listing: true,
+      listing: { layout: 'cards', pageSize: 2 },
       urlSlug: 'tutorials',
       sourcePath: 'docs/tutoriales/_index.en.md',
-      index: { layout: 'cards', pageSize: 2 },
     }),
     ...tutorials,
     doc('tutoriales/a', 'en', { urlSlug: 'tutorials/a-in-english' }),

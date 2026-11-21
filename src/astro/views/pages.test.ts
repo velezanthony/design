@@ -135,16 +135,21 @@ describe('pagesOf: índices', () => {
     const [page] = pagesOf([
       data('a', 'en', {
         kind: 'generated',
-        listing: true,
-        index: { summary: 'Corto.', layout: 'cards', cover: false },
+        listing: { layout: 'cards' },
+        index: { summary: 'Corto.', imageAlt: 'Un gato', cover: false },
       }),
     ]);
     expect(page).toMatchObject({
       kind: 'generated',
-      listing: true,
-      index: { summary: 'Corto.', layout: 'cards' },
+      listing: { layout: 'cards' },
+      index: { summary: 'Corto.', imageAlt: 'Un gato' },
     });
     expect(page!.index).not.toHaveProperty('cover');
+  });
+
+  it('sin resumen ni texto alternativo no hay bloque `index`', () => {
+    const [page] = pagesOf([data('a', 'en', { index: { cover: false } })]);
+    expect(page).not.toHaveProperty('index');
   });
 });
 

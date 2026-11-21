@@ -155,7 +155,7 @@ export function docIndexView({
   const items = (all ? sorted : paginate(sorted, page, options.pageSize).rows).map(
     ({ cover, imageAlt, ...entry }): IndexItem => ({
       ...entry,
-      cover: coverFor(cover, options.image, imageAlt),
+      cover: coverFor(cover, options.covers, imageAlt),
     }),
   );
   const title = contentOf(route, data)?.title ?? '';

@@ -125,17 +125,13 @@ function discoverOrErrors(
   }
 }
 
-/** El bloque `index` que se guarda: el listado de un `_index.md` (con `image` como política) o el resumen y la portada ya comprobada de una página. */
+/** El bloque `index` que se guarda: el resumen, el texto alternativo y la portada ya comprobada. */
 function indexDataOf(page: Page, cover: StoredCover | undefined) {
-  const { summary, imageAlt, layout, pageSize, perPageOptions, image } = page.index ?? {};
+  const { summary, imageAlt } = page.index ?? {};
   const data = {
     ...(summary !== undefined && { summary }),
     ...(imageAlt !== undefined && { imageAlt }),
     ...(cover !== undefined && { cover }),
-    ...(page.listing && layout !== undefined && { layout }),
-    ...(page.listing && pageSize !== undefined && { pageSize }),
-    ...(page.listing && perPageOptions !== undefined && { perPageOptions }),
-    ...(page.listing && typeof image === 'boolean' && { image }),
   };
   return Object.keys(data).length > 0 ? data : undefined;
 }
@@ -207,7 +203,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
     errors.push(...rewritten.errors);
     refs.push(...rewritten.refs);
     const resolved = await resolveCover(
-      page.listing ? undefined : page.index?.image,
+      page.index?.image,
       file,
       context.config.publicDir,
       page.sourcePath,
@@ -229,7 +225,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
         ...(page.translations && { translations: page.translations }),
         ...(repoRoot !== undefined &&
           page.kind !== 'generated' && { editPath: path.relative(repoRoot, file) }),
-        ...(page.listing && { listing: true }),
+        ...(page.listing && { listing: page.listing }),
         ...(indexData && { index: indexData }),
       },
       filePath: path.relative(root, file),

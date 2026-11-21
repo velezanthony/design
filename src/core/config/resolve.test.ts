@@ -209,7 +209,7 @@ describe('resolveConfig: indexes', () => {
   it('`indexes: {}` activa los índices con los valores por defecto', () => {
     expect(resolveConfig({ name: 'X', indexes: {} }).indexes).toEqual({
       layout: 'list',
-      image: true,
+      covers: true,
       include: 'all',
       exclude: [],
       overrides: {},
@@ -232,7 +232,7 @@ describe('resolveConfig: indexes', () => {
       indexes: {
         layout: 'cards',
         pageSize: 6,
-        image: false,
+        covers: false,
         include: ['tutoriales'],
         overrides: {
           tutoriales: {
@@ -250,7 +250,9 @@ describe('resolveConfig: indexes', () => {
     [{ layout: 'grid' }, 'indexes.layout'],
     [{ pageSize: 0 }, 'indexes.pageSize'],
     [{ pageSize: 2.5 }, 'indexes.pageSize'],
-    [{ image: 'yes' }, 'indexes.image'],
+    [{ covers: 'yes' }, 'indexes.covers'],
+    [{ image: false }, 'indexes.image'],
+    [{ overrides: { a: { image: true } } }, 'indexes.overrides.a.image'],
     [{ include: 'todas' }, 'indexes.include'],
     [{ include: ['/tutoriales/'] }, 'indexes.include[0]'],
     [{ exclude: [''] }, 'indexes.exclude[0]'],
@@ -262,6 +264,21 @@ describe('resolveConfig: indexes', () => {
     [{ overrides: { a: { perPageOptions: ['9'] } } }, 'indexes.overrides.a.perPageOptions[0]'],
   ])('%j falla nombrando %s', (indexes, path) => {
     expect(messages({ name: 'X', indexes }).join('\n')).toContain(path);
+  });
+
+  it('`covers` vale en `indexes` y en cada carpeta', () => {
+    const config = resolveConfig({
+      name: 'X',
+      indexes: { covers: false, overrides: { a: { covers: true } } },
+    });
+    expect(config.indexes?.covers).toBe(false);
+    expect(config.indexes?.overrides.a?.covers).toBe(true);
+  });
+
+  it('`image` ya no existe en `indexes`: es una opción desconocida', () => {
+    expect(messages({ name: 'X', indexes: { image: true } }).join('\n')).toContain(
+      'indexes.image: opción desconocida',
+    );
   });
 
   it('un idioma de `title` o `description` que no está en `locales` falla', () => {

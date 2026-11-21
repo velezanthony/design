@@ -31,7 +31,7 @@ function page(slug: string, locale = 'es', extra: Partial<Page> = {}): Page {
 
 /* Un sitio de tutoriales: páginas planas en `tutoriales/`, el árbol lo forman los `sidebar`. */
 const pages = [
-  page('tutoriales', 'es', { index: { layout: 'cards' } }),
+  page('tutoriales', 'es', { listing: { layout: 'cards' } }),
   page('tutoriales/configuracion', 'es', {
     seo: { description: 'Las opciones del archivo de configuración.' },
   }),

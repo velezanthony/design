@@ -11,10 +11,10 @@ import {
 } from './indexes';
 
 describe('resolveIndexes', () => {
-  it('sin nada declarado: lista, con imagen y todas las carpetas (el tamaño depende de la disposición)', () => {
+  it('sin nada declarado: lista, con portadas y todas las carpetas (el tamaño depende de la disposición)', () => {
     expect(resolveIndexes({})).toEqual({
       layout: IndexLayout.LIST,
-      image: true,
+      covers: true,
       include: 'all',
       exclude: [],
       overrides: {},
@@ -25,7 +25,7 @@ describe('resolveIndexes', () => {
     const resolved = resolveIndexes({
       layout: 'cards',
       pageSize: 6,
-      image: false,
+      covers: false,
       include: ['tutoriales'],
       exclude: ['borradores'],
       overrides: { tutoriales: { layout: 'table' } },
@@ -33,7 +33,7 @@ describe('resolveIndexes', () => {
     expect(resolved).toMatchObject({
       layout: 'cards',
       pageSize: 6,
-      image: false,
+      covers: false,
       include: ['tutoriales'],
       exclude: ['borradores'],
       overrides: { tutoriales: { layout: 'table' } },
@@ -98,73 +98,66 @@ describe('listingOptions', () => {
   const indexes = resolveIndexes({
     layout: 'table',
     pageSize: 20,
-    image: false,
-    overrides: { tutoriales: { layout: 'cards', pageSize: 6, image: true } },
+    covers: false,
+    overrides: { tutoriales: { layout: 'cards', pageSize: 6, covers: true } },
   });
 
   it('una página normal no tiene listado', () => {
     expect(listingOptions({ slug: 'tutoriales/instalacion' }, indexes)).toBeUndefined();
   });
 
-  it('sin `index` propio: la carpeta, luego `indexes`, luego los valores por defecto', () => {
-    expect(listingOptions({ slug: 'tutoriales', listing: true }, indexes)).toEqual({
+  it('sin `listing` propio: la carpeta, luego `indexes`, luego los valores por defecto', () => {
+    expect(listingOptions({ slug: 'tutoriales', listing: {} }, indexes)).toEqual({
       folder: 'tutoriales',
       layout: 'cards',
       pageSize: 6,
       perPageOptions: [6, 12, 24, 48],
-      image: true,
+      covers: true,
     });
-    expect(listingOptions({ slug: 'guia', listing: true }, indexes)).toEqual({
+    expect(listingOptions({ slug: 'guia', listing: {} }, indexes)).toEqual({
       folder: 'guia',
       layout: 'table',
       pageSize: 20,
       perPageOptions: [10, 20, 25, 50],
-      image: false,
+      covers: false,
     });
-    expect(listingOptions({ slug: 'guia', listing: true }, undefined)).toEqual({
+    expect(listingOptions({ slug: 'guia', listing: {} }, undefined)).toEqual({
       folder: 'guia',
       layout: 'list',
       pageSize: 10,
       perPageOptions: [],
-      image: true,
+      covers: true,
     });
   });
 
-  it('el `index` de un _index.md manda sobre la carpeta y sobre `indexes`', () => {
+  it('el `listing` de un _index.md manda sobre la carpeta y sobre `indexes`', () => {
     const page = {
       slug: 'tutoriales',
-      listing: true as const,
-      index: { layout: 'list' as const, image: false },
+      listing: { layout: 'list' as const, covers: false },
     };
     expect(listingOptions(page, indexes)).toEqual({
       folder: 'tutoriales',
       layout: 'list',
       pageSize: 6,
       perPageOptions: [],
-      image: false,
+      covers: false,
     });
   });
 
   it('un _index.md funciona sin `indexes` en la config', () => {
-    const page = { slug: 'a', listing: true as const, index: { layout: 'cards' as const } };
+    const page = { slug: 'a', listing: { layout: 'cards' as const } };
     expect(listingOptions(page, undefined)).toEqual({
       folder: 'a',
       layout: 'cards',
       pageSize: 12,
       perPageOptions: [12, 24, 48],
-      image: true,
+      covers: true,
     });
   });
 
   it('por defecto: tarjetas de 12 en 12 (12, 24, 48) y tabla de 10 en 10 (10, 25, 50)', () => {
-    const cards = listingOptions(
-      { slug: 'a', listing: true, index: { layout: 'cards' } },
-      undefined,
-    );
-    const table = listingOptions(
-      { slug: 'a', listing: true, index: { layout: 'table' } },
-      undefined,
-    );
+    const cards = listingOptions({ slug: 'a', listing: { layout: 'cards' } }, undefined);
+    const table = listingOptions({ slug: 'a', listing: { layout: 'table' } }, undefined);
     expect(cards).toMatchObject({ pageSize: 12, perPageOptions: [12, 24, 48] });
     expect(table).toMatchObject({ pageSize: 10, perPageOptions: [10, 25, 50] });
   });
@@ -176,21 +169,20 @@ describe('listingOptions', () => {
       pageSize: 3,
       overrides: { b: { perPageOptions: [12, 24], pageSize: 12 } },
     });
-    expect(listingOptions({ slug: 'a', listing: true }, config)).toMatchObject({
+    expect(listingOptions({ slug: 'a', listing: {} }, config)).toMatchObject({
       perPageOptions: [3, 6],
     });
-    expect(listingOptions({ slug: 'b', listing: true }, config)).toMatchObject({
+    expect(listingOptions({ slug: 'b', listing: {} }, config)).toMatchObject({
       perPageOptions: [12, 24],
     });
-    const own = { slug: 'b', listing: true as const, index: { perPageOptions: [5], pageSize: 5 } };
+    const own = { slug: 'b', listing: { perPageOptions: [5], pageSize: 5 } };
     expect(listingOptions(own, config)).toMatchObject({ pageSize: 5, perPageOptions: [5] });
   });
 
   it('el tamaño de página siempre es una de las opciones: se añade si falta, ordenado y sin repetir', () => {
     const page = {
       slug: 'a',
-      listing: true as const,
-      index: { layout: 'cards' as const, pageSize: 12, perPageOptions: [27, 9, 9] },
+      listing: { layout: 'cards' as const, pageSize: 12, perPageOptions: [27, 9, 9] },
     };
     expect(listingOptions(page, undefined)).toMatchObject({
       pageSize: 12,

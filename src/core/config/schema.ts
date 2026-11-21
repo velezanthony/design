@@ -65,22 +65,27 @@ const IndexFolderSchema = z
     'Carpeta sin barras al principio ni al final (tutoriales, no /tutoriales/).',
   );
 
-const IndexOverrideSchema = z.strictObject({
+/* Cómo es un listado: disposición, tamaño de página, opciones del selector «Por página» y política de
+   portadas (`covers: true` pone la de la librería a quien no trae imagen). Lo escriben el bloque
+   `listing:` de un `_index.md`, `indexes` y cada carpeta de `indexes.overrides`. */
+export const ListingSchema = z.strictObject({
   layout: IndexLayoutSchema.optional(),
   pageSize: IndexPageSizeSchema.optional(),
   perPageOptions: IndexPerPageOptionsSchema.optional(),
-  image: z.boolean().optional(),
+  covers: z.boolean().optional(),
+});
+export type ListingFrontmatter = z.infer<typeof ListingSchema>;
+
+/* Una carpeta de `indexes.overrides`: su listado y, si se genera, el título y la entradilla. */
+const IndexOverrideSchema = ListingSchema.extend({
   title: LabelSchema.optional(),
   description: LabelSchema.optional(),
 });
+export type IndexOverride = z.infer<typeof IndexOverrideSchema>;
 
-/* Índices generados (`indexes`): disposición, paginación y portadas por defecto, y qué carpetas sin
-   `index.md` reciben una página generada. */
-const IndexesSchema = z.strictObject({
-  layout: IndexLayoutSchema.optional(),
-  pageSize: IndexPageSizeSchema.optional(),
-  perPageOptions: IndexPerPageOptionsSchema.optional(),
-  image: z.boolean().optional(),
+/* Índices generados (`indexes`): el listado por defecto y qué carpetas sin `index.md` reciben una
+   página generada. */
+const IndexesSchema = ListingSchema.extend({
   include: z
     .union([z.literal(ALL_FOLDERS), z.array(IndexFolderSchema)], {
       error: `Debe ser '${ALL_FOLDERS}' o una lista de carpetas (['tutoriales']).`,
@@ -89,6 +94,8 @@ const IndexesSchema = z.strictObject({
   exclude: z.array(IndexFolderSchema).optional(),
   overrides: z.record(z.string(), IndexOverrideSchema).optional(),
 });
+/** Lo que escribe el consumidor en `indexes`: todo es opcional. */
+export type IndexesUserConfig = z.infer<typeof IndexesSchema>;
 
 /** Sufijo del `<title>`: texto (o uno por idioma), o `false` para no llevar ninguno. */
 const TitleSuffixSchema = z.union([LabelSchema, z.literal(false)]);

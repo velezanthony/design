@@ -80,7 +80,7 @@ describe('pageLastmods', () => {
       ['c.md', '2026-09-01T00:00:00+00:00'],
     ]);
     const pages = [
-      { ...page('b', 'en', 'b/_index.md'), listing: true as const },
+      { ...page('b', 'en', 'b/_index.md'), listing: {} },
       page('b/x', 'en', 'b/x.md'),
       page('b/y', 'en', 'b/y.md'),
       page('c', 'en', 'c.md'),
@@ -91,7 +91,7 @@ describe('pageLastmods', () => {
   it('un índice generado (sin archivo) toma la fecha de su página más reciente', () => {
     const dates = new Map([['b/x.md', '2026-05-01T00:00:00+00:00']]);
     const pages = [
-      { ...page('b', 'en', 'b/_index.md'), kind: 'generated' as const, listing: true as const },
+      { ...page('b', 'en', 'b/_index.md'), kind: 'generated' as const, listing: {} },
       page('b/x', 'en', 'b/x.md'),
     ];
     expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-05-01T00:00:00+00:00');
@@ -109,7 +109,7 @@ describe('pageLastmods: `slug` propio', () => {
         kind: 'native',
         sourcePath: 'tutoriales/_index.es.md',
         body: '',
-        listing: true,
+        listing: {},
         urlSlug: 'tutorials-es',
       },
       {

@@ -1,9 +1,9 @@
 import type { ResolvedConfig } from '../config/resolve';
-import type { IndexLayout } from '../config/indexes';
-import type { PageSeoOverride } from '../config/schema';
+import type { ListingFrontmatter, PageSeoOverride } from '../config/schema';
 import { collectErrors, DocsError } from '../errors';
 import { localizedPath, splitLocale, type Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
+import type { EntryIndex, Frontmatter } from './frontmatter';
 import {
   findSlugCollisions,
   findUrlCollisions,
@@ -13,32 +13,6 @@ import {
   urlSlugOf,
 } from './slug';
 import { resolveTitle } from './title';
-
-/** Bloque `index` del frontmatter: cómo sale la página en un índice y, en un `_index.md`, su listado. */
-export interface PageIndex {
-  /** Resumen en el listado; sin él, `seo.description`. */
-  summary?: string;
-  /** Portada: ruta relativa al `.md` o de `public/`, o `false`. En un `_index.md`, la política de portadas del listado (`true`/`false`). */
-  image?: string | boolean;
-  /** Texto alternativo de la portada; sin él, decorativa (`alt=""`). */
-  imageAlt?: string;
-  /** Solo en un `_index.md`: disposición del listado de su carpeta. */
-  layout?: IndexLayout;
-  pageSize?: number;
-  /** Solo en un `_index.md`: opciones del selector «Por página». */
-  perPageOptions?: number[];
-}
-
-/** Frontmatter de una página nativa que el núcleo entiende (ya validado por `docsSchema()`). */
-export interface Frontmatter {
-  title?: string;
-  /** URL propia (ruta relativa al contenido, sin idioma ni base); sin ella, la del nombre del archivo. */
-  slug?: string;
-  order?: number;
-  seo?: PageSeoOverride;
-  translations?: MissingTranslation;
-  index?: PageIndex;
-}
 
 /** Archivo leído: `path` es relativo al contenido en nativas y a la raíz del proyecto en externas. */
 export interface SourceFile {
@@ -70,9 +44,10 @@ export interface Page {
   order?: number;
   seo?: PageSeoOverride;
   translations?: MissingTranslation;
-  index?: PageIndex;
-  /** Lleva el listado de su carpeta: sale de un `_index.md` o es un índice generado. */
-  listing?: true;
+  /** Su ficha en los listados (resumen, portada): el bloque `index:` del frontmatter. */
+  index?: EntryIndex;
+  /** Presente si lista su carpeta: el bloque `listing:` de su `_index.md` (`{}` sin él, y en las generadas). */
+  listing?: ListingFrontmatter;
 }
 
 /** `./x.md` y `x.md` son el mismo archivo. */
@@ -201,7 +176,7 @@ function nativePage(
   return {
     slug: folder ?? toSlug(readmeAsIndex(located.stem, located.locale, indexes.keys)),
     ...(urlSlug !== undefined && { urlSlug }),
-    ...(folder !== undefined && { listing: true as const }),
+    ...(folder !== undefined && { listing: file.frontmatter?.listing ?? {} }),
     locale: located.locale,
     title,
     kind: 'native',
