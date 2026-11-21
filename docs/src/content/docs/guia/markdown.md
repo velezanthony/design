@@ -125,6 +125,20 @@ hasta que termina. Nunca se queda ahí:
 
 Con movimiento reducido la caja no tiene brillo, pero el plazo se mantiene.
 
+Un `accTitle: …` en el diagrama es su nombre accesible; sin él, el bloque usa el texto
+`diagram.label`. `accTitle` y `accDescr` son las líneas de
+[accesibilidad de Mermaid](https://mermaid.js.org/config/accessibility.html) y funcionan en
+`flowchart` y en los demás tipos que las admiten.
+
+:::warning[`accTitle` y `accDescr` rompen los diagramas `block`]
+Con Mermaid 11.17.2, un diagrama `block-beta` con una línea `accTitle:` o `accDescr:`, en cualquier
+posición, no se dibuja: Mermaid da un error de sintaxis (`Expecting 'BLOCK_DIAGRAM_KEY' … got
+'acc_title'`) y el bloque pasa al estado de error, con el código a la vista. Es un fallo de Mermaid:
+su analizador conoce esas palabras, pero la gramática de `block` no las acepta. Para un título
+accesible usa otro tipo de diagrama, como `flowchart`, o quita esas líneas: el diagrama se anuncia
+entonces con el nombre genérico.
+:::
+
 ## Reglas estrictas
 
 El build **falla** (con archivo y línea, todos los errores a la vez) por:
