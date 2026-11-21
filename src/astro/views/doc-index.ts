@@ -5,8 +5,6 @@ import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import {
   buildIndexListing,
   coverFor,
-  pageCount,
-  pageSlice,
   sortByUpdated,
   PAGE_PARAM,
   PER_PAGE_PARAM,
@@ -15,6 +13,7 @@ import {
   type IndexListing,
   type IndexView,
 } from '../../core/navigation/index-entries';
+import { pageCount, paginate } from '../../core/shared/paginate';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { navContextOf, siteContext, type SiteContext } from './chrome';
@@ -153,7 +152,7 @@ export function docIndexView({
   const sorted = isPaginated ? sortByUpdated(listing.entries) : [];
   /* La página 1 trae todas las entradas (las de más, ocultas) para que el selector no necesite red. */
   const all = isPaginated && page === 1;
-  const items = (all ? sorted : pageSlice(sorted, page, options.pageSize)).map(
+  const items = (all ? sorted : paginate(sorted, page, options.pageSize).rows).map(
     ({ cover, imageAlt, ...entry }): IndexItem => ({
       ...entry,
       cover: coverFor(cover, options.image, imageAlt),

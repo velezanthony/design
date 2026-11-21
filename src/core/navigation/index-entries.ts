@@ -211,16 +211,6 @@ export function sortByUpdated<T extends { updated?: string }>(entries: readonly 
     .map(({ entry }) => entry);
 }
 
-/** Páginas de un listado paginado: al menos una. */
-export function pageCount(total: number, size: number): number {
-  return Math.max(1, Math.ceil(total / size));
-}
-
-/** Las entradas de la página `page` (desde 1). */
-export function pageSlice<T>(items: readonly T[], page: number, size: number): T[] {
-  return items.slice((page - 1) * size, page * size);
-}
-
 /** Lo que se pinta como portada de una entrada. */
 export type EntryCover =
   | { kind: 'none' }

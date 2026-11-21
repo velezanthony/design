@@ -1,8 +1,4 @@
-/** 25 son unas dos pantallas con insignias; rige si la URL no dice nada (el resto, en `PAGE_SIZES`). */
-export const PAGE_SIZE = 25;
-
-/** Tamaños elegibles. Cerrados a propósito: una URL con un número cualquiera no pide una página gigante. */
-export const PAGE_SIZES = [10, 25, 50, 100] as const;
+/* La única matemática de páginas: la usan el panel SEO y los índices generados. */
 
 export interface Paginated<T> {
   rows: T[];
@@ -15,11 +11,21 @@ export interface Paginated<T> {
   to: number;
 }
 
+/** Un tamaño no válido (0, negativo, `NaN`) se trata como 1 en vez de dividir por cero. */
+function sizeOf(size: number): number {
+  return Number.isFinite(size) && size >= 1 ? Math.floor(size) : 1;
+}
+
+/** Páginas de `total` filas de `size` en `size`: al menos una, también sin filas. */
+export function pageCount(total: number, size: number): number {
+  return Math.max(1, Math.ceil(total / sizeOf(size)));
+}
+
 /** La página viene de una URL editable: lo inválido se acota a la válida más cercana; sin filas hay una página. */
 export function paginate<T>(items: readonly T[], page: number, size: number): Paginated<T> {
-  const perPage = Number.isFinite(size) && size >= 1 ? Math.floor(size) : 1;
+  const perPage = sizeOf(size);
   const total = items.length;
-  const pages = Math.max(1, Math.ceil(total / perPage));
+  const pages = pageCount(total, perPage);
   const wanted = Number.isNaN(page) ? 1 : Math.trunc(page);
   const current = Math.min(Math.max(wanted, 1), pages);
   const start = (current - 1) * perPage;

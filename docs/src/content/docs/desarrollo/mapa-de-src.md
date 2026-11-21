@@ -48,7 +48,7 @@ core/
 │   ├── nav-sidebar.ts     La barra lateral de la sección actual
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
 │   ├── nav-tree.ts        Árbol de cada sección para el índice de ::nav-tree, y los huecos que deja en el HTML
-│   ├── index-entries.ts   Listado de un índice generado: entradas, secciones, orden por fecha, paginación y portada
+│   ├── index-entries.ts   Listado de un índice generado: entradas, secciones, orden por fecha y portada
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
 │   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── toc-entries.ts     Encabezados de Astro → entradas del índice «En esta página»
@@ -73,6 +73,7 @@ core/
 ├── analytics/resolve.ts   PUBLIC_GTM_ID / gtmId → id validado y enlace de privacidad por idioma
 ├── shared/
 │   ├── text.ts            Plurales y listas legibles
+│   ├── paginate.ts        La única matemática de páginas (trozo, páginas, rango): panel SEO e índices
 │   ├── urls.ts            Quita las barras finales de la base
 │   └── tones.ts           TagTone: los tonos de Tag y de las marcas del panel
 └── seo-on-page/           La lógica del panel SOLO de dev (ver Integración → SEO on page)
@@ -114,7 +115,7 @@ core/seo-on-page/
 ├── queries/               Consultas puras sobre el árbol
 │   ├── url-filters.ts     Filtros de la tabla ↔ query de la URL
 │   ├── filter.ts          Qué problemas cumplen los filtros
-│   ├── paginate.ts        Paginación de las filas
+│   ├── page-sizes.ts      Tamaños de página de la tabla (por defecto y elegibles)
 │   ├── priorities.ts      Qué arreglar primero
 │   ├── summary.ts         Resumen de schemas
 │   ├── outline.ts         Esquema de encabezados con sus saltos

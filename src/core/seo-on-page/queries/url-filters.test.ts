@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACTIONABLE_SEVERITIES, ALL_SEVERITIES } from '../severity';
-import { PAGE_SIZE } from './paginate';
+import { PAGE_SIZE } from './page-sizes';
 import {
   EMPTY_FILTERS,
   filterFields,

@@ -1,20 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { PAGE_SIZE, PAGE_SIZES, paginate } from './paginate';
+import { pageCount, paginate } from './paginate';
 
 function rows(count: number) {
   return Array.from({ length: count }, (_item, index) => index + 1);
 }
 
+describe('pageCount', () => {
+  it('sin filas hay una página', () => {
+    expect(pageCount(0, 12)).toBe(1);
+  });
+
+  it('un múltiplo exacto no añade una página vacía', () => {
+    expect(pageCount(12, 12)).toBe(1);
+  });
+
+  it('una fila de más abre otra página', () => {
+    expect(pageCount(13, 12)).toBe(2);
+  });
+
+  it('coincide con las páginas de paginate', () => {
+    for (const total of [0, 1, 11, 12, 13, 25, 60]) {
+      expect(pageCount(total, 12)).toBe(paginate(rows(total), 1, 12).pages);
+    }
+  });
+
+  it('un tamaño no válido se trata como 1, como en paginate', () => {
+    expect(pageCount(3, 0)).toBe(3);
+  });
+});
+
 describe('paginate', () => {
-  it('el tamaño por defecto es 25', () => {
-    expect(PAGE_SIZE).toBe(25);
-  });
-
-  it('los tamaños elegibles son 10, 25, 50 y 100, y incluyen el de por defecto', () => {
-    expect(PAGE_SIZES).toEqual([10, 25, 50, 100]);
-    expect(PAGE_SIZES).toContain(PAGE_SIZE);
-  });
-
   it('lista vacía: una sola página sin filas y el rango a cero', () => {
     expect(paginate([], 1, 25)).toEqual({ rows: [], page: 1, pages: 1, total: 0, from: 0, to: 0 });
   });

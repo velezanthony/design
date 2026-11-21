@@ -9,8 +9,6 @@ import {
   coverPattern,
   formatIndexDate,
   isIndexGroup,
-  pageCount,
-  pageSlice,
   sortByUpdated,
   type EntryDetails,
   type IndexEntry,
@@ -233,19 +231,6 @@ describe('sortByUpdated', () => {
     const list = [entry('a', '2025-01-01'), entry('b', '2026-01-01')];
     sortByUpdated(list);
     expect(list[0]!.title).toBe('a');
-  });
-});
-
-describe('paginación', () => {
-  it('pageCount: al menos una página', () => {
-    expect(pageCount(0, 12)).toBe(1);
-    expect(pageCount(12, 12)).toBe(1);
-    expect(pageCount(13, 12)).toBe(2);
-  });
-
-  it('pageSlice: la página pedida', () => {
-    expect(pageSlice([1, 2, 3, 4, 5], 2, 2)).toEqual([3, 4]);
-    expect(pageSlice([1, 2, 3, 4, 5], 3, 2)).toEqual([5]);
   });
 });
 
