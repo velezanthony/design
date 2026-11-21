@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
 import { items } from '../../../testing/index-items';
+import { linkVariants } from '../../atoms/actions/variants';
 import IndexTable from './IndexTable.astro';
+
+/** ¿Lleva `element` todas las clases de la variante? */
+function hasVariant(element: Element, variant: string) {
+  return variant.split(' ').every((name) => element.classList.contains(name));
+}
 
 describe('IndexTable', () => {
   it('columnas del catálogo y un título de tabla para lectores de pantalla', async () => {
@@ -59,5 +65,12 @@ describe('IndexTable', () => {
     });
     const entries = [...document.querySelectorAll('[data-index-item]')];
     expect(entries.map((entry) => entry.hasAttribute('hidden'))).toEqual([false, false, true]);
+  });
+
+  it('el enlace del título usa la variante `inline` de Link', async () => {
+    const document = await render(IndexTable, { items, strings: stringsFor('es'), lang: 'es' });
+    const anchor = document.querySelector('tbody td a')!;
+    expect(hasVariant(anchor, linkVariants.inline)).toBe(true);
+    expect(anchor.classList.contains('font-medium')).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 ---
 import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import { linkVariants } from './variants';
 
 interface Props {
   /** Textos de interfaz del idioma de la página: da el «Preferencias de cookies». */
@@ -13,15 +14,12 @@ const { strings, class: className } = Astro.props;
 
 {/* Reabre el aviso de consentimiento: el script de `client/preferences/consent.ts` escucha
     `[data-consent-open]`. Un botón, no un enlace: actúa sobre la página, no lleva a ningún sitio. El
-    preflight de Tailwind pone `cursor: default` a los botones. */}
+    preflight de Tailwind pone `cursor: default` a los botones. Se pinta como la variante `quiet` de
+    `Link`, la de los enlaces del pie. */}
 <button
   type="button"
   data-consent-open
-  class:list={[
-    'inline-flex cursor-pointer items-center',
-    'min-h-6 text-muted hover:text-ink transition-colors',
-    className,
-  ]}
+  class:list={['inline-flex cursor-pointer items-center', linkVariants.quiet, className]}
 >
   {translate(strings, 'consent.preferences')}
 </button>

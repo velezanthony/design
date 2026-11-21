@@ -196,7 +196,8 @@ textos (`strings: UiStrings`).
 components/
 ├── atoms/
 │   ├── form/        Checkbox, FieldError, HelpText, Input, Label, Radio, Select, Switch, Textarea
-│   ├── actions/     Button, Link, CookieSettingsButton (reabre el aviso de consentimiento)
+│   ├── actions/     Button, Link, CookieSettingsButton (reabre el aviso de consentimiento);
+│   │                variants.ts: las clases de cada variante de Link, que reutilizan el botón y los índices
 │   └── display/     Heading, Icon, InlineList, Tag, Text, CoverPlaceholder (portada de un índice)
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)

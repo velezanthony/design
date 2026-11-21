@@ -2,12 +2,23 @@ import { describe, expect, it } from 'vitest';
 
 import { render } from '../../../testing/render';
 import Link from './Link.astro';
+import { linkVariants } from './variants';
 
 async function link(props: Record<string, unknown>) {
   return (await render(Link, { href: '/x/', ...props })).querySelector('a')!;
 }
 
 describe('Link', () => {
+  it.each(['inline', 'quiet', 'action', 'value'] as const)(
+    'la variante %s lleva las clases de `variants.ts`',
+    async (variant) => {
+      const classes = (await link({ variant })).classList;
+      for (const name of linkVariants[variant].split(' ')) {
+        expect(classes.contains(name)).toBe(true);
+      }
+    },
+  );
+
   /* WCAG 2.5.8: objetivo de al menos 24px. Una etiqueta de 12px sola mide 14px. */
   it.each(['quiet', 'action', 'value'])(
     'da a un enlace %s un objetivo de 24px',

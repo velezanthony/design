@@ -6,6 +6,7 @@ import {
   isIndexGroup,
   type IndexNode,
 } from '../../../core/navigation/index-entries';
+import { linkVariants } from '../../atoms/actions/variants';
 import IndexLink from './IndexLink.astro';
 
 /* Las páginas y los grupos de una sección del índice en lista: cada grupo con su etiqueta en negrita
@@ -19,8 +20,7 @@ interface Props {
 }
 
 const { nodes, strings, lang, depth = 1 } = Astro.props;
-const link =
-  'font-medium text-accent underline decoration-accent-line decoration-1 underline-offset-[0.2em] hover:decoration-2';
+const link = `font-medium ${linkVariants.inline}`;
 ---
 
 <ul class="space-y-5">

@@ -6,6 +6,7 @@ import {
   type CoverView,
   type IndexItem,
 } from '../../../core/navigation/index-entries';
+import { linkVariants } from '../../atoms/actions/variants';
 import IndexLink from '../../molecules/navigation/IndexLink.astro';
 
 /* Índice en tabla (`layout: 'table'`): título, resumen, sección y fecha. En móvil cada fila es una
@@ -63,7 +64,7 @@ const head = `${cell} border-b border-ink font-normal`;
             title={item.title}
             badge={item.badge}
             strings={strings}
-            class="font-medium text-accent underline decoration-accent-line decoration-1 underline-offset-[0.2em] hover:decoration-2"
+            class={`font-medium ${linkVariants.inline}`}
           />
         </td>
         <td

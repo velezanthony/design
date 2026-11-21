@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import type { IndexSection } from '../../../core/navigation/index-entries';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
+import { linkVariants } from '../../atoms/actions/variants';
 import IndexList from './IndexList.astro';
+
+/** ¿Lleva `element` todas las clases de la variante? */
+function hasVariant(element: Element, variant: string) {
+  return variant.split(' ').every((name) => element.classList.contains(name));
+}
 
 function entry(title: string, slug: string, extra = {}) {
   return { slug, title, href: `/repo/${slug}/`, path: [], ...extra };
@@ -50,5 +56,12 @@ describe('IndexList', () => {
     expect(text(tipado.querySelector('p'))).toBe('Sin generar código.');
     const plugins = document.querySelector('a[href="/repo/plugins/"]')!.closest('li')!;
     expect(text(plugins.querySelector('time'))).toBe('2 mar 2026');
+  });
+
+  it('el enlace de cada página usa la variante `inline` de Link', async () => {
+    const document = await render(IndexList, { sections, strings: stringsFor('es'), lang: 'es' });
+    const anchor = [...document.querySelectorAll('a')].find((link) => text(link) === 'Plugins')!;
+    expect(hasVariant(anchor, linkVariants.inline)).toBe(true);
+    expect(anchor.classList.contains('font-medium')).toBe(true);
   });
 });

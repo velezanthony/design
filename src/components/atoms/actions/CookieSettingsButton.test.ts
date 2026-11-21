@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
 import CookieSettingsButton from './CookieSettingsButton.astro';
+import { linkVariants } from './variants';
 
 async function button(props: Record<string, unknown> = {}) {
   const htmlDocument = await render(CookieSettingsButton, { strings: stringsFor('es'), ...props });
@@ -35,9 +36,14 @@ describe('CookieSettingsButton', () => {
     expect(element.classList.contains('min-h-6')).toBe(true);
   });
 
-  it('pinta igual que un enlace tenue del pie', async () => {
+  /* Las clases salen de la variante `quiet` de `Link`, no de una copia: si cambia el enlace, cambia el botón. */
+  it('pinta igual que un enlace tenue del pie (la variante `quiet` de Link)', async () => {
+    const classes = (await button()).classList;
+    for (const name of linkVariants.quiet.split(' ')) {
+      expect(classes.contains(name)).toBe(true);
+    }
     expect((await button()).className).toBe(
-      'inline-flex cursor-pointer items-center min-h-6 text-muted hover:text-ink transition-colors',
+      `inline-flex cursor-pointer items-center ${linkVariants.quiet}`,
     );
   });
 
