@@ -127,15 +127,14 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   puede usar cualquier pie o banda. `DocsFooter` la lleva con el nombre nuevo; si un sitio apuntaba a
   `.docs-footer` desde su CSS o sus pruebas, que apunte a `.surface-inverse`. `.docs-header` no se
   renombra: es interno (transición de vista y ancho completo) y no está pensado para reutilizarse.
-- **La librería ya no genera la 404 ni la página de privacidad.** Las pone el portfolio, una vez para
-  todo el dominio. Se quitan las rutas `/404`, `/[locale]/404`, `/[privacy]` y `/[locale]/[privacy]`,
+- **La librería ya no genera la 404 ni la página de privacidad.** Las pone el sitio de la raíz del
+  dominio, una vez para todos. Se quitan las rutas `/404`, `/[locale]/404`, `/[privacy]` y `/[locale]/[privacy]`,
   `NotFoundLayout`, `PrivacyLayout`, `organisms/not-found` y `organisms/privacy` (`ConsentBanner` se
   queda, ahora en `organisms/chrome`) y `core/privacy`. Un `src/pages/404.astro` o
   `src/pages/privacidad.astro` del sitio ya no «sustituye» nada: es simplemente una página del sitio.
 - **Se quitan `privacy.page` y `privacy.controller` de la config.** La config es estricta: dejarlas
   falla con «opción desconocida».
-- **La analítica exige `privacyUrl`.** La librería ya no enlaza por defecto a la política del
-  portfolio.
+- **La analítica exige `privacyUrl`.** La librería ya no enlaza por defecto a ninguna política.
 
   | Config | Resultado |
   | --- | --- |
@@ -252,7 +251,7 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   afectados.
 - **La portada y la carpeta de contenido son opcionales.** Sin `index.md` no se genera portada y el sitio
   pone la suya en `src/pages/`. Si falta `src/content/docs/` (la carpeta por defecto), la carga no falla y
-  no hay páginas nativas; el portfolio ya no necesita un `.gitkeep`. Una carpeta elegida con `content` que
+  no hay páginas nativas; un sitio sin docs propios ya no necesita un `.gitkeep`. Una carpeta elegida con `content` que
   no existe sigue fallando.
 - **Un `README.md` puede hacer de portada.** Dentro del contenido hace de `index.md` de su carpeta si esta no
   tiene el suyo en ese idioma (como MkDocs), y un `external` con `slug: 'index'` (`slug: 'guia/index'` es
@@ -281,7 +280,7 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   Falla con la ruta si el archivo no existe, no es `.css` o es una URL. Nueva subruta `site-theme` en
   `exports` (CSS vacío por defecto).
 - **`Icon` admite `mail` y `linkedin`** (la segunda rellena, como `github`).
-- **`InlineList`, `Text` y `SectionHead`**, subidos desde el portfolio: `components/atoms/display/InlineList.astro`,
+- **`InlineList`, `Text` y `SectionHead`**, subidos desde un sitio que los usaba: `components/atoms/display/InlineList.astro`,
   `components/atoms/display/Text.astro` y `components/molecules/content/SectionHead.astro` (esta última sobre
   `Heading` y `Link`). Genéricas: sin datos ni textos propios. Ver «Piezas sueltas» en la documentación.
 - **Subrutas nuevas en `exports`** para no duplicar piezas: `client/theme`, `client/consent`,

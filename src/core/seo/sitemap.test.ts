@@ -140,7 +140,7 @@ function thrown(run: () => unknown): DocsError {
 }
 
 describe('sitemapIncludes', () => {
-  const portfolio = new URL('https://x.dev');
+  const rootSite = new URL('https://x.dev');
 
   it('las rutas se resuelven contra el origen del sitio, no contra su base', () => {
     expect(sitemapIncludes(['/lib/sitemap.xml'], new URL('https://x.dev/repo/'))).toEqual([
@@ -155,14 +155,14 @@ describe('sitemapIncludes', () => {
   });
 
   it('una URL completa del mismo dominio se acepta tal cual', () => {
-    expect(sitemapIncludes(['https://x.dev/lib/sitemap.xml'], portfolio)).toEqual([
+    expect(sitemapIncludes(['https://x.dev/lib/sitemap.xml'], rootSite)).toEqual([
       'https://x.dev/lib/sitemap.xml',
     ]);
   });
 
   it('una URL de otro dominio falla nombrando `sitemap.include[i]`', () => {
     function run() {
-      return sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], portfolio);
+      return sitemapIncludes(['/a.xml', 'https://otro.dev/sitemap.xml'], rootSite);
     }
     expect(run).toThrow(DocsError);
     expect(thrown(run).hint).toBeTruthy();
@@ -170,14 +170,14 @@ describe('sitemapIncludes', () => {
   });
 
   it('el propio índice o el de páginas no se pueden incluir: se apuntarían a sí mismos', () => {
-    expect(thrown(() => sitemapIncludes(['/sitemap.xml'], portfolio)).hint).toBeTruthy();
-    expect(() => sitemapIncludes(['/sitemap.xml'], portfolio)).toThrow(/sitemap\.include\[0\]/);
-    expect(() => sitemapIncludes([`/${SITEMAP_PAGES}`], portfolio)).toThrow(DocsError);
+    expect(thrown(() => sitemapIncludes(['/sitemap.xml'], rootSite)).hint).toBeTruthy();
+    expect(() => sitemapIncludes(['/sitemap.xml'], rootSite)).toThrow(/sitemap\.include\[0\]/);
+    expect(() => sitemapIncludes([`/${SITEMAP_PAGES}`], rootSite)).toThrow(DocsError);
   });
 });
 
 describe('clientSitemapEntries', () => {
-  const portfolio = new URL('https://x.dev');
+  const rootSite = new URL('https://x.dev');
   function client(path: string, head: Partial<HeadFacts> = {}): ClientPage {
     return {
       path,
@@ -192,13 +192,13 @@ describe('clientSitemapEntries', () => {
       { hreflang: 'es', href: 'https://x.dev/cv/' },
       { hreflang: 'en', href: 'https://x.dev/en/resume/' },
     ];
-    expect(clientSitemapEntries([client('/cv/', { alternates })], portfolio)).toEqual([
+    expect(clientSitemapEntries([client('/cv/', { alternates })], rootSite)).toEqual([
       { loc: 'https://x.dev/cv/', alternates },
     ]);
   });
 
   it('las noindex se quedan fuera', () => {
-    expect(clientSitemapEntries([client('/privacy/', { noindex: true })], portfolio)).toEqual([]);
+    expect(clientSitemapEntries([client('/privacy/', { noindex: true })], rootSite)).toEqual([]);
   });
 
   it('las que declaran como canónica otra URL también: el sitemap solo lleva canónicas', () => {
@@ -206,7 +206,7 @@ describe('clientSitemapEntries', () => {
       client('/a/', { canonical: 'https://x.dev/a/' }),
       client('/b/', { canonical: 'https://x.dev/a/' }),
     ];
-    expect(clientSitemapEntries(copies, portfolio).map(({ loc }) => loc)).toEqual([
+    expect(clientSitemapEntries(copies, rootSite).map(({ loc }) => loc)).toEqual([
       'https://x.dev/a/',
     ]);
   });

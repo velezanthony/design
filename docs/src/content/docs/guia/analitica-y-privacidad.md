@@ -73,8 +73,8 @@ stateDiagram-v2
 - Retirar el consentimiento es tan fácil como darlo: el botón del pie reabre el banner. Como un
   contenedor de GTM en marcha no se puede descargar, un rechazo posterior borra las cookies de
   analítica del dominio (`analyticsCookiesToDelete`) y recarga la página.
-- Las claves `consent` y `theme` viven en el mismo origen (`velezanthony.github.io`), así que el
-  portfolio y todos los sitios de docs **comparten** la elección del visitante.
+- Las claves `consent` y `theme` viven en el mismo origen (`usuario.github.io`), así que el
+  sitio de la raíz y todos los sitios de docs **comparten** la elección del visitante.
 
 Un sitio con su propio layout ([BaseLayout](./layout-propio.md)) pasa `gtmId` y `privacyUrl` al layout,
 pero no hace falta calcularlas: `@velezanthony/design/site` exporta `gtmId` y `privacyUrl(locale)`, ya

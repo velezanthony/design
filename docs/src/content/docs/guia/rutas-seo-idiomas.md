@@ -27,7 +27,7 @@ La pieza central es `/[...slug]` → `src/astro/routes/doc.astro`:
 ### La 404
 
 La librería **no genera ninguna 404**. GitHub Pages sirve un único `<base>/404.html` para todo el
-dominio, así que la pone el portfolio, una vez, en la raíz; un sitio de docs que cuelga de una
+dominio, así que la pone el sitio de la raíz del dominio, una vez; un sitio de docs que cuelga de una
 subcarpeta no puede tener la suya. Si el sitio quiere una propia, es una página más de su `src/pages/`.
 
 ### `sitemap.xml`
@@ -35,7 +35,7 @@ subcarpeta no puede tener la suya. Si el sitio quiere una propia, es una página
 `src/astro/routes/sitemap.xml.ts` → `sitemapXml` (`views/pages.ts`) → `buildSitemap`
 (`core/seo/sitemap.ts`). Solo entran páginas **reales e indexables**, con sus alternativas
 `hreflang`; ni rutas de reserva. No hay
-`robots.txt`: es del portfolio, que vive en la raíz del dominio.
+`robots.txt`: es del sitio que vive en la raíz del dominio.
 
 Las páginas que el sitio añade en `src/pages/` también entran, leídas de lo que publica su `<head>`
 (`clientSitemapEntries`): solo las indexables y canónicas de sí mismas, con los idiomas que

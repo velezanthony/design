@@ -42,8 +42,8 @@
     margin-top: 1.25em;
   }
 
-  /* En las docs el `# Título` del Markdown ES el título de la página (en el portfolio lo pintaba un
-     componente fuera de `prose`), así que lleva la escala display. */
+  /* En las docs el `# Título` del Markdown ES el título de la página (en una página propia del sitio lo
+     pinta un componente fuera de `prose`), así que lleva la escala display. */
   & h1 {
     font-size: var(--text-display);
     font-weight: 600;

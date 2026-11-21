@@ -727,7 +727,7 @@ el valor). Un valor vacío o en blanco cuenta como no definido.
   nombrando `privacyUrl` y `astro dev` avisa y arranca sin analítica. Sin analítica, `privacyUrl` solo
   pone el enlace en el pie. Un idioma sin URL resoluble rompe el build.
 
-En GitHub Actions pasa la variable al paso de build (el portfolio la guarda como secret; una variable
+En GitHub Actions pasa la variable al paso de build (puede ir como secret; una variable
 de repositorio también sirve, el id es público en la página de todos modos):
 
 ```yaml
@@ -740,8 +740,8 @@ Sin ella, los builds locales y de forks quedan sin rastreo y sin ningún camino 
 
 ### La política de privacidad y la 404 no son de la librería
 
-La librería no genera ninguna página de privacidad ni ninguna 404: las da el portfolio, una vez para
-todo el dominio (GitHub Pages sirve un único `/404.html` y la política es la misma para todos los
+La librería no genera ninguna página de privacidad ni ninguna 404: las da el sitio de la raíz del
+dominio, una vez para todos (GitHub Pages sirve un único `/404.html` y la política es la misma para todos los
 sitios). `privacy.page` y `privacy.controller` ya no existen; dejarlas en la config falla con «opción
 desconocida».
 
@@ -786,13 +786,13 @@ mal proporcionada, un lenguaje de Shiki desconocido y un bloque de código con f
 
 - `site` debe ser el origen del usuario y `base` la ruta del repo; el build es totalmente estático.
 - `sitemap.xml` (con alternativas `hreflang` y `<lastmod>`) se emite en `<base>/sitemap.xml`; no hay
-  `robots.txt` (el portfolio en el origen del usuario es el dueño). El `<lastmod>` de cada URL es el
+  `robots.txt` (es del sitio de la raíz del dominio, el origen del usuario). El `<lastmod>` de cada URL es el
   último commit del archivo del que sale (sin él, la fecha del archivo). Un clon superficial
   (`git clone --depth 1`, lo habitual en CI) no da ninguna fecha: usa `fetch-depth: 0` en
   `actions/checkout` si la quieres.
 - Con `sitemap: { include: ['/otro/sitemap.xml'] }` el sitio principal convierte `sitemap.xml` en un
   índice: `sitemap-pages.xml` con sus páginas y luego cada sitemap declarado (mismo origen que `site`).
-- La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el portfolio.
+- La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el sitio de su raíz.
 - El índice de búsqueda se construye tras `astro build` en `dist/pagefind/`; la búsqueda necesita un
   build de producción.
 - El tema y el consentimiento se guardan en `localStorage` bajo `theme` y `consent`, así que se

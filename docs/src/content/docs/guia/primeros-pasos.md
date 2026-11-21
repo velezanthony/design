@@ -291,7 +291,7 @@ jobs:
 ## Si el proyecto de Astro es la raíz del repo
 
 Todo lo anterior vale quitando el prefijo `docs/`, y las rutas relativas cambian (`../CHANGELOG.md`
-pasa a ser `./CHANGELOG.md`). Es el caso del portfolio.
+pasa a ser `./CHANGELOG.md`). Es el caso de un sitio que es solo documentación.
 
 ## Docs fuera del proyecto de Astro
 
