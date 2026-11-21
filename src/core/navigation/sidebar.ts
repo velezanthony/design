@@ -9,6 +9,7 @@ import {
   sourceLocale,
   type TranslationPolicies,
 } from '../i18n/translation-policy';
+import { folderLabel } from '../shared/text';
 import { resolveLabel } from './label';
 import { toSidebarSlug } from './sidebar-slugs';
 
@@ -23,6 +24,8 @@ export interface SidebarLeaf {
 /** Sección: enlaza su página índice si la hay y contiene hojas y otras secciones. */
 export interface SidebarGroup {
   label: string;
+  /** Solo en los grupos del árbol automático: la carpeta que agrupan (`guia/avanzado`). */
+  dir?: string;
   slug?: string;
   href?: string;
   badge?: Locale;
@@ -47,12 +50,6 @@ interface Entry {
 
 /** Secciones anidadas como máximo hasta aquí: sección → sección → hoja son tres niveles. */
 const MAX_SECTION_DEPTH = 2;
-
-/** Nombre legible de una carpeta: `getting-started` → `Getting started`. */
-export function humanize(segment: string): string {
-  const text = segment.replace(/[-_]+/g, ' ');
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
 
 function toEntries(
   pages: Page[],
@@ -164,8 +161,7 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
   function groupFor(path: string) {
     let found = groups.get(path);
     if (!found) {
-      const label = humanize(path.split('/').pop() ?? path);
-      found = { group: { label, items: [] }, sort: [] };
+      found = { group: { label: folderLabel(path), dir: path, items: [] }, sort: [] };
       groups.set(path, found);
     }
     return found;

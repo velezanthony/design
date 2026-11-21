@@ -1,9 +1,8 @@
 import type { Page } from '../content/discovery';
 import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
-import { urlSlugOf } from '../content/slug';
 import { staticExcluder, type StaticFolder } from '../content/static-folders';
 import { DocsError } from '../errors';
-import { pageUrl, type UrlPolicy } from '../i18n/availability';
+import { pageUrlOf, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { fenceMask } from './fences';
 
@@ -208,9 +207,7 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     locale: destination.locale,
     ...withAnchor,
   });
-  return (
-    pageUrl(urlSlugOf(destination), destination.locale, index.url) + (anchor ? `#${anchor}` : '')
-  );
+  return pageUrlOf(destination, index.url) + (anchor ? `#${anchor}` : '');
 }
 
 /** URL publicada de un archivo de `static` (base + `to` + el resto, con su query y su ancla), o un error si su `exclude` lo deja fuera. */

@@ -1,5 +1,5 @@
 import type { ResolvedLayout } from '../../core/config/layout';
-import { pageUrl } from '../../core/i18n/availability';
+import { localePrefix, pageUrl } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import { fallbackRoutes } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
@@ -43,7 +43,7 @@ export interface DocRoute {
 }
 
 function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
-  return [locale === defaultLocale ? '' : locale, slug].filter(Boolean).join('/') || undefined;
+  return [localePrefix(locale, defaultLocale), slug].filter(Boolean).join('/') || undefined;
 }
 
 /** Todas las rutas del sitio: las páginas reales y, con política `fallback`, las de reserva. */
@@ -58,7 +58,7 @@ export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
     locale: page.locale,
     contentLocale: page.locale,
   }));
-  const fallback = fallbackRoutes(availability, policies, config, url, pages).map(
+  const fallback = fallbackRoutes({ availability, policies, config, url, pages }).map(
     (spec): DocRoute => ({
       param: paramOf(spec.urlSlug, spec.locale, config.defaultLocale),
       kind: 'fallback',
@@ -213,7 +213,7 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
     ...paginationLinks(route, page, url, new URL(config.site)),
   ];
 
-  const navContext = navContextOf(site, route.locale, route.slug, route.urlSlug);
+  const navContext = navContextOf(site, route);
   const sidebar = buildScopedSidebar(navContext);
   const neighbours = prevNext(flatten(sidebar), route.slug);
   function link(leaf?: { label: string; href: string }) {
@@ -269,8 +269,5 @@ function paginationLinks(
 /** Los árboles de `::nav-tree` de la página, uno por posición de `nav`: textos en el idioma del contenido y URLs como las de su barra lateral. */
 export function docNavTrees({ route, config, data }: Omit<DocViewInput, 'sizes'>): NavTreeNode[][] {
   const site = siteContext(config, data);
-  return buildNavTrees(
-    navContextOf(site, route.locale, route.slug, route.urlSlug),
-    route.contentLocale,
-  );
+  return buildNavTrees(navContextOf(site, route), route.contentLocale);
 }

@@ -33,9 +33,7 @@ export function siteContext(config: VirtualConfig, data: DocData[]): SiteContext
 /** El contexto del núcleo para construir cabecera, pie y barra lateral de una página: `slug` es su identidad y `urlSlug` la URL de la ruta, si es otra. */
 export function navContextOf(
   site: SiteContext,
-  locale: Locale,
-  slug: string,
-  urlSlug?: string,
+  { locale, slug, urlSlug }: { locale: Locale; slug: string; urlSlug?: string },
 ): NavContext {
   const { config, pages, availability, policies, url } = site;
   return {

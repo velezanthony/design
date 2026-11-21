@@ -1,6 +1,5 @@
 import type { Page } from '../content/discovery';
-import { urlSlugOf } from '../content/slug';
-import { pageUrl, type UrlPolicy } from '../i18n/availability';
+import { pageUrlOf, type UrlPolicy } from '../i18n/availability';
 
 /** Separador de commits en el formato de `git log`; no puede aparecer en un nombre de archivo. */
 export const COMMIT_MARK = '\u001e';
@@ -48,7 +47,7 @@ export function pageLastmods(
       dates.get(page.sourcePath),
       ...inFolder.map((other) => dates.get(other.sourcePath)),
     ]);
-    if (date) lastmods.set(pageUrl(urlSlugOf(page), page.locale, url), date);
+    if (date) lastmods.set(pageUrlOf(page, url), date);
   }
   return lastmods;
 }

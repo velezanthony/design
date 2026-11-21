@@ -89,12 +89,13 @@ describe('buildSitemap', () => {
       { slug: 'changelog', locale: 'en', title: 'c', kind: 'native', body: '', sourcePath: 'c.md' },
     ];
     const real = buildAvailability(pages, url);
-    const routes = fallbackRoutes(
-      real,
-      new Map([['changelog', 'fallback']]),
-      { locales: ['en', 'es'], defaultLocale: 'en' },
+    const routes = fallbackRoutes({
+      availability: real,
+      policies: new Map([['changelog', 'fallback']]),
+      config: { locales: ['en', 'es'], defaultLocale: 'en' },
       url,
-    );
+      pages,
+    });
     expect(routes).toHaveLength(1);
     const xml = buildSitemap(real, site);
     expect(xml).not.toContain('/repo/es/changelog/');

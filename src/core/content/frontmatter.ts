@@ -8,6 +8,7 @@ import {
 } from '../config/schema';
 import { DocsError, formatPath } from '../errors';
 import type { Frontmatter } from './discovery';
+import { isListingFile } from './slug';
 
 const FRONTMATTER_OPEN = /^---[ \t]*\r?\n/;
 const FRONTMATTER_CLOSE = /^(---|\.\.\.)[ \t]*$/;
@@ -56,14 +57,6 @@ const FrontmatterSchema = z.object({
   translations: MissingTranslationSchema.optional(),
   index: PageIndexSchema.optional(),
 });
-
-/** `_index.md`, `_index.en.md`…: la fuente del índice generado de su carpeta (convención de Hugo). */
-const LISTING_FILE = /(^|\/)_index(\.[^/.]+)?\.md$/;
-
-/** ¿Es `file` el `_index.md` de una carpeta (en cualquier idioma)? */
-export function isListingFile(file: string): boolean {
-  return LISTING_FILE.test(file);
-}
 
 /** Una ruta de imagen local: relativa al `.md` o absoluta de `public/`; nada de URLs ni esquemas. */
 function isLocalImage(image: string): boolean {

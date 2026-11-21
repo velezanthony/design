@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { DocsError } from '../errors';
-import { findSlugCollisions, findUrlCollisions, slugProblem, toSlug, urlSlugOf } from './slug';
+import {
+  findSlugCollisions,
+  findUrlCollisions,
+  isListingFile,
+  listingFolder,
+  LISTING_STEM,
+  slugProblem,
+  toSlug,
+  urlSlugOf,
+} from './slug';
 
 describe('toSlug', () => {
   it('conserva la ruta sin extensión', () => {
@@ -177,5 +186,44 @@ describe('findUrlCollisions', () => {
         { slug: 'x', locale: 'es', file: 'x.md', explicit: false },
       ]),
     ).toEqual([]);
+  });
+});
+
+describe('listingFolder', () => {
+  it('el nombre del archivo de un listado es `_index`', () => {
+    expect(LISTING_STEM).toBe('_index');
+  });
+
+  it('`tutoriales/_index` es el listado de `tutoriales`', () => {
+    expect(listingFolder('tutoriales/_index')).toBe('tutoriales');
+    expect(listingFolder('guia/avanzado/_index')).toBe('guia/avanzado');
+  });
+
+  it('`_index` en la raíz es el de la portada (carpeta vacía)', () => {
+    expect(listingFolder('_index')).toBe('');
+  });
+
+  it('lo que no es un `_index` no tiene carpeta', () => {
+    expect(listingFolder('tutoriales/index')).toBeUndefined();
+    expect(listingFolder('tutoriales/mi_index')).toBeUndefined();
+    expect(listingFolder('tutoriales')).toBeUndefined();
+  });
+});
+
+describe('isListingFile', () => {
+  it('reconoce el `_index.md` de una carpeta y el de la raíz', () => {
+    expect(isListingFile('tutoriales/_index.md')).toBe(true);
+    expect(isListingFile('_index.md')).toBe(true);
+  });
+
+  it('reconoce sus traducciones (`_index.en.md`)', () => {
+    expect(isListingFile('tutoriales/_index.en.md')).toBe(true);
+    expect(isListingFile('_index.en.md')).toBe(true);
+  });
+
+  it('no confunde un `index.md` ni un archivo que solo acaba en `_index`', () => {
+    expect(isListingFile('tutoriales/index.md')).toBe(false);
+    expect(isListingFile('tutoriales/mi_index.md')).toBe(false);
+    expect(isListingFile('tutoriales/_index/otra.md')).toBe(false);
   });
 });

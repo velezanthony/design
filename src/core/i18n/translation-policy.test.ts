@@ -178,7 +178,7 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(availability, policies, config, url)).toEqual([
+    expect(fallbackRoutes({ availability, policies, config, url, pages: [] })).toEqual([
       {
         slug: 'changelog',
         urlSlug: 'changelog',
@@ -196,23 +196,30 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(availability, policies, config, url)).toEqual([]);
+    expect(fallbackRoutes({ availability, policies, config, url, pages: [] })).toEqual([]);
   });
 
   it('no cambia Availability: las rutas de reserva no son traducciones', () => {
     const before = structuredClone([...availability]);
-    fallbackRoutes(availability, new Map([['changelog', 'fallback']]), config, url);
+    fallbackRoutes({
+      availability,
+      policies: new Map([['changelog', 'fallback']]),
+      config,
+      url,
+      pages: [],
+    });
     expect([...availability]).toEqual(before);
   });
 
   it('con tres idiomas genera una ruta por cada idioma ausente', () => {
     const three = { locales: ['en', 'es', 'fr'], defaultLocale: 'en' };
-    const routes = fallbackRoutes(
-      new Map([['a', { en: '/repo/a/' }]]),
-      new Map([['a', 'fallback']]),
-      three,
+    const routes = fallbackRoutes({
+      availability: new Map([['a', { en: '/repo/a/' }]]),
+      policies: new Map([['a', 'fallback']]),
+      config: three,
       url,
-    );
+      pages: [],
+    });
     expect(routes.map((route) => route.locale)).toEqual(['es', 'fr']);
   });
 });
@@ -220,13 +227,13 @@ describe('fallbackRoutes', () => {
 describe('fallbackRoutes: `slug` propio', () => {
   it('la ruta de reserva usa la URL del original: el prefijo del idioma y el `slug` del original', () => {
     const pages = [{ ...page('a', 'en'), urlSlug: 'guide/a' }];
-    const [route] = fallbackRoutes(
-      new Map([['a', { en: '/repo/guide/a/' }]]),
-      new Map([['a', 'fallback']]),
+    const [route] = fallbackRoutes({
+      availability: new Map([['a', { en: '/repo/guide/a/' }]]),
+      policies: new Map([['a', 'fallback']]),
       config,
       url,
       pages,
-    );
+    });
     expect(route).toMatchObject({
       slug: 'a',
       urlSlug: 'guide/a',

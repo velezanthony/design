@@ -6,7 +6,7 @@ import { resolveLabel } from './label';
 import type { NavContext } from './nav-entries';
 import { slugInDir } from './nav-sections';
 import { buildSectionSidebar } from './nav-sidebar';
-import { flatten, humanize, isSidebarGroup, type SidebarNode } from './sidebar';
+import { flatten, isSidebarGroup, type SidebarGroup, type SidebarNode } from './sidebar';
 
 /* El listado de un índice generado: las páginas de una carpeta que están en la navegación, con la
    misma resolución que la barra lateral y `::nav-tree` (orden, URLs, insignias y políticas de
@@ -101,15 +101,9 @@ function summaryOf(context: NavContext, slug: string, locale: Locale): string | 
   return resolveLabel(description, locale, context.config.defaultLocale) || undefined;
 }
 
-/** ¿Es `group` el de la propia carpeta (el que arma el árbol automático)? No aporta nada al camino. */
-function isFolderGroup(group: SidebarNode & { items: SidebarNode[] }, folder: string): boolean {
-  if (group.slug !== undefined) return group.slug === folder;
-  const leaves = flatten(group.items);
-  return (
-    leaves.length > 0 &&
-    leaves.every((leaf) => slugInDir(folder, leaf.slug)) &&
-    group.label === humanize(folder.split('/').pop() ?? folder)
-  );
+/** ¿Es `group` el de la propia carpeta (el que arma el árbol automático, o el que enlaza su página)? No aporta nada al camino. */
+function isFolderGroup(group: SidebarGroup, folder: string): boolean {
+  return group.dir === folder || group.slug === folder;
 }
 
 type Targets = Map<string, { href: string; badge?: Locale }>;

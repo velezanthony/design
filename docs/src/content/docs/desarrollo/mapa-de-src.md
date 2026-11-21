@@ -29,12 +29,12 @@ core/
 │   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
-│   ├── slug.ts            guia/index → guia, index → '' (portada)
+│   ├── slug.ts            guia/index → guia, index → '' (portada); qué es un _index y de qué carpeta
 │   ├── scrollable-tables.ts  Envuelve cada <table> del HTML en su .table-scroll (lo usa Article)
 │   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
 ├── i18n/
 │   ├── locale.ts          Idiomas, sufijos de archivo, idioma de una URL
-│   ├── availability.ts    pageUrl (LA función de URLs) y qué idiomas tiene cada página
+│   ├── availability.ts    pageUrl y pageUrlOf (LAS funciones de URLs), prefijo de idioma y qué idiomas tiene cada página
 │   ├── translation-policy.ts  MissingTranslation, políticas por grupo, rutas de reserva
 │   └── ui-strings.ts      Catálogo de textos de interfaz en/es, translate() e interpolación
 ├── links/
@@ -72,7 +72,7 @@ core/
 │   └── favicon.ts         Favicon por defecto (/_design/favicon.png) o el del consumidor
 ├── analytics/resolve.ts   PUBLIC_GTM_ID / gtmId → id validado y enlace de privacidad por idioma
 ├── shared/
-│   ├── text.ts            Plurales y listas legibles
+│   ├── text.ts            Plurales, listas legibles y el nombre legible de una carpeta
 │   ├── paginate.ts        La única matemática de páginas (trozo, páginas, rango): panel SEO e índices
 │   ├── urls.ts            Quita las barras finales de la base
 │   └── tones.ts           TagTone: los tonos de Tag y de las marcas del panel

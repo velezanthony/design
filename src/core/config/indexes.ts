@@ -2,13 +2,13 @@ import { DocsError, formatPath } from '../errors';
 import type { Page } from '../content/discovery';
 import type { Locale } from '../i18n/locale';
 import { resolveLabel } from '../navigation/label';
-import { humanize } from '../navigation/sidebar';
+import { folderLabel } from '../shared/text';
 import { isNavSection, type NavItem } from './nav';
 import type { Label } from './schema';
 
-/* Índices generados: el listado de las páginas de una carpeta. Lo pide un `index.md` con
-   `_index.md` (convención de Hugo) o, en una carpeta sin `index.md` ni `_index.md`, la sección
-   `indexes` de la config. Aquí vive lo que decide la config: qué carpetas, con qué disposición y con qué portadas. */
+/* Índices generados: el listado de las páginas de una carpeta. Lo pide su `_index.md` (convención
+   de Hugo) o, en una carpeta sin `index.md` ni `_index.md`, la sección `indexes` de la config. Aquí
+   vive lo que decide la config: qué carpetas, con qué disposición y con qué portadas. */
 
 /** Disposición del listado. Mismas cadenas en la config y en el frontmatter. */
 export const IndexLayout = { LIST: 'list', TABLE: 'table', CARDS: 'cards' } as const;
@@ -186,7 +186,7 @@ export function generatedTitle(
   if (title !== undefined) return resolveLabel(title, locale, defaultLocale);
   const section = (nav ?? []).find((item) => isNavSection(item) && item.dir === folder);
   if (section) return resolveLabel(section.label, locale, defaultLocale);
-  return humanize(folder.split('/').pop() ?? folder);
+  return folderLabel(folder);
 }
 
 /** Entradilla (y `seo.description`) de la página generada: solo la de `overrides`. */

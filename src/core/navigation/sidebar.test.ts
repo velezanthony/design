@@ -338,6 +338,29 @@ describe('buildSidebar: casos límite', () => {
   });
 });
 
+describe('buildSidebar: carpeta de los grupos automáticos', () => {
+  it('un grupo automático lleva `dir` con la ruta de su carpeta', () => {
+    const [group] = build([page('guide/api/a'), page('guide/b')]) as SidebarGroup[];
+    expect(group).toMatchObject({ label: 'Guide', dir: 'guide' });
+    const [inner] = group!.items as SidebarGroup[];
+    expect(inner).toMatchObject({ label: 'Api', dir: 'guide/api' });
+  });
+
+  it('también cuando una página índice le da otro título', () => {
+    const [group] = build([
+      page('guide', 'en', { title: 'Manual' }),
+      page('guide/a'),
+    ]) as SidebarGroup[];
+    expect(group).toMatchObject({ label: 'Manual', slug: 'guide', dir: 'guide' });
+  });
+
+  it('un grupo escrito en `sidebar` no lleva `dir`', () => {
+    const config: SidebarItem[] = [{ label: 'Guide', items: ['guide/a', 'guide/b'] }];
+    const [group] = build([page('guide/a'), page('guide/b')], 'en', config);
+    expect(group).not.toHaveProperty('dir');
+  });
+});
+
 describe('buildSidebar: `slug` propio', () => {
   const pages = [
     page('tutoriales/a', 'en'),
@@ -349,6 +372,7 @@ describe('buildSidebar: `slug` propio', () => {
     expect(build(pages, 'es')).toEqual([
       {
         label: 'Tutoriales',
+        dir: 'tutoriales',
         items: [
           { label: 'a', slug: 'tutoriales/a', href: '/repo/es/tutorials/a-es/' },
           { label: 'b', slug: 'tutoriales/b', href: '/repo/blog/b/', badge: 'en' },

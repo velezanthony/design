@@ -90,7 +90,7 @@ export function panelView({
   const strings = (config.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna
      sección de `nav`, así que la cabecera no marca nada como actual. */
-  const context = navContextOf(site, siteLang, SEO_ON_PAGE_DIR);
+  const context = navContextOf(site, { locale: siteLang, slug: SEO_ON_PAGE_DIR });
   const screens = {
     overview: { slug: SEO_ON_PAGE_DIR, href: hrefs.overview() },
     pages: { slug: `${SEO_ON_PAGE_DIR}/pages`, href: hrefs.pages() },

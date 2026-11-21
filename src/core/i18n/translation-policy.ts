@@ -91,14 +91,20 @@ export interface RouteSpec {
 }
 
 /** Rutas de reserva por idioma ausente en grupos `fallback`; no entran en `Availability` porque no son traducciones. */
-export function fallbackRoutes(
-  availability: Availability,
-  policies: TranslationPolicies,
-  config: LocaleConfig,
-  url: UrlPolicy,
+export function fallbackRoutes({
+  availability,
+  policies,
+  config,
+  url,
+  pages,
+}: {
+  availability: Availability;
+  policies: TranslationPolicies;
+  config: LocaleConfig;
+  url: UrlPolicy;
   /** Las páginas reales: de la del original sale el `slug` propio que la reserva reutiliza. */
-  pages: readonly Page[] = [],
-): RouteSpec[] {
+  pages: readonly Page[];
+}): RouteSpec[] {
   const routes: RouteSpec[] = [];
   for (const [slug, available] of availability) {
     if (policies.get(slug) !== MissingTranslation.FALLBACK) continue;

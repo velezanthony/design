@@ -173,6 +173,40 @@ describe('buildIndexListing: entradas', () => {
     expect(sections[0]!.label).toBeUndefined();
   });
 
+  it('un `index.md` que da otro título al grupo de la carpeta no añade ese grupo al camino', () => {
+    const renamed = pages.map((item) =>
+      item.slug === 'tutoriales' ? { ...item, title: 'Todo sobre tutoriales' } : item,
+    );
+    const { entries } = buildIndexListing(
+      { ...context('es', { nav: undefined, sidebar: undefined }), pages: renamed },
+      'es',
+      'tutoriales',
+      none,
+    );
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries.every((entry) => entry.path.length === 0)).toBe(true);
+  });
+
+  it('un grupo de `sidebar` con la etiqueta humanizada de la carpeta sí cuenta en el camino', () => {
+    const { entries } = buildIndexListing(
+      context('es', {
+        nav: undefined,
+        sidebar: [
+          { label: 'Tutoriales', items: ['tutoriales/instalacion', 'tutoriales/despliegue'] },
+        ],
+      }),
+      'es',
+      'tutoriales',
+      none,
+    );
+    function pathOf(slug: string) {
+      return entries.find((entry) => entry.slug === slug)?.path;
+    }
+    expect(pathOf('tutoriales/instalacion')).toEqual(['Tutoriales']);
+    expect(pathOf('tutoriales/despliegue')).toEqual(['Tutoriales']);
+    expect(pathOf('tutoriales/suelto')).toEqual([]);
+  });
+
   it('una carpeta sin páginas en la navegación da un listado vacío', () => {
     expect(buildIndexListing(context(), 'es', 'nada', none)).toEqual({
       sections: [],

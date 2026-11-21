@@ -98,7 +98,7 @@ function listingOf(
   takenIds: Iterable<string> = [],
 ): IndexListing {
   return buildIndexListing(
-    navContextOf(site, route.locale, route.slug, route.urlSlug),
+    navContextOf(site, route),
     route.contentLocale,
     options.folder,
     detailsOf(data, route.contentLocale, site.config.defaultLocale, dates),

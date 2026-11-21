@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { Page } from '../content/discovery';
-import { buildAvailability, pageUrl, type UrlPolicy } from './availability';
+import {
+  buildAvailability,
+  localePrefix,
+  pageUrl,
+  pageUrlOf,
+  type UrlPolicy,
+} from './availability';
 
 function policy(extra: Partial<UrlPolicy> = {}): UrlPolicy {
   return {
@@ -85,5 +91,34 @@ describe('buildAvailability: `slug` propio', () => {
       es: '/repo/tutoriales/instalacion/',
       en: '/repo/en/tutorials/installation/',
     });
+  });
+});
+
+describe('pageUrlOf', () => {
+  const url = policy({ defaultLocale: 'es', base: '/repo' });
+
+  it('sin `urlSlug`, la URL sale de la identidad', () => {
+    expect(pageUrlOf(page('tutoriales/instalacion', 'es'), url)).toBe(
+      '/repo/tutoriales/instalacion/',
+    );
+  });
+
+  it('con `urlSlug`, la URL es la suya con el prefijo de su idioma', () => {
+    expect(
+      pageUrlOf(
+        { ...page('tutoriales/instalacion', 'en'), urlSlug: 'tutorials/installation' },
+        url,
+      ),
+    ).toBe('/repo/en/tutorials/installation/');
+  });
+});
+
+describe('localePrefix', () => {
+  it('el idioma por defecto no lleva prefijo', () => {
+    expect(localePrefix('es', 'es')).toBe('');
+  });
+
+  it('los demás idiomas llevan su código', () => {
+    expect(localePrefix('en', 'es')).toBe('en');
   });
 });

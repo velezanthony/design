@@ -7,6 +7,23 @@ export function toSlug(stem: string): string {
   return stem.endsWith('/index') ? stem.slice(0, -'/index'.length) : stem;
 }
 
+/** Nombre (sin idioma ni extensión) del archivo que pide el listado de su carpeta (convención de Hugo). */
+export const LISTING_STEM = '_index';
+
+/** `tutoriales/_index` → `tutoriales`; `_index` → `` (portada); `undefined` si no es un `_index`. */
+export function listingFolder(stem: string): string | undefined {
+  if (stem === LISTING_STEM) return '';
+  return stem.endsWith(`/${LISTING_STEM}`) ? stem.slice(0, -LISTING_STEM.length - 1) : undefined;
+}
+
+/** `_index.md`, `_index.en.md`…: el archivo del listado de su carpeta, en cualquier idioma. */
+const LISTING_FILE = /(^|\/)_index(\.[^/.]+)?\.md$/;
+
+/** ¿Es `file` (ruta con extensión) el `_index.md` de una carpeta, en cualquier idioma? */
+export function isListingFile(file: string): boolean {
+  return LISTING_FILE.test(file);
+}
+
 export interface SlugOwner {
   slug: string;
   locale: Locale;

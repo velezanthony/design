@@ -4,10 +4,17 @@ import type { PageSeoOverride } from '../config/schema';
 import { collectErrors, DocsError } from '../errors';
 import { localizedPath, splitLocale, type Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
-import { findSlugCollisions, findUrlCollisions, slugProblem, toSlug, urlSlugOf } from './slug';
+import {
+  findSlugCollisions,
+  findUrlCollisions,
+  listingFolder,
+  slugProblem,
+  toSlug,
+  urlSlugOf,
+} from './slug';
 import { resolveTitle } from './title';
 
-/** Bloque `index` del frontmatter: cómo sale la página en un índice y, en un `index.md`, su listado. */
+/** Bloque `index` del frontmatter: cómo sale la página en un índice y, en un `_index.md`, su listado. */
 export interface PageIndex {
   /** Resumen en el listado; sin él, `seo.description`. */
   summary?: string;
@@ -135,15 +142,6 @@ function nativeIndexKeys(files: SourceFile[], config: DiscoveryConfig): Set<stri
   return new Set(keys);
 }
 
-/** `tutoriales/_index` → `tutoriales`; `_index` → `` (portada); `undefined` si no es un `_index`. */
-function listingFolder(stem: string): string | undefined {
-  if (stem === LISTING_STEM) return '';
-  return stem.endsWith(`/${LISTING_STEM}`) ? stem.slice(0, -LISTING_STEM.length - 1) : undefined;
-}
-
-/** Nombre (sin idioma ni extensión) del archivo fuente de un índice generado. */
-const LISTING_STEM = '_index';
-
 /** Carpetas con un `index` nativo en algún idioma: ahí un `_index.md` no cuenta. */
 function indexedFolders(indexKeys: ReadonlySet<string>): Set<string> {
   return new Set([...indexKeys].map((key) => toSlug(key.split('\0')[1] ?? '')));
@@ -179,23 +177,29 @@ function ownUrlSlug(
   return undefined;
 }
 
+/** Lo que todas las páginas nativas comparten: los `index` que existen y las carpetas que tienen uno. */
+interface NativeIndexes {
+  keys: ReadonlySet<string>;
+  folders: ReadonlySet<string>;
+}
+
 function nativePage(
   file: SourceFile,
   config: DiscoveryConfig,
   errors: DocsError[],
-  indexKeys: ReadonlySet<string>,
+  indexes: NativeIndexes,
 ): Page | undefined {
   const located = attempt(errors, () =>
     splitLocale(file.path, config.locales, config.defaultLocale),
   );
   if (!located) return undefined;
   const folder = listingFolder(located.stem);
-  if (folder !== undefined && indexedFolders(indexKeys).has(folder)) return undefined;
+  if (folder !== undefined && indexes.folders.has(folder)) return undefined;
   const title = attempt(errors, () => resolveTitle(file.body, file.frontmatter?.title, file.path));
   if (title === undefined) return undefined;
   const urlSlug = ownUrlSlug(file, config, errors);
   return {
-    slug: folder ?? toSlug(readmeAsIndex(located.stem, located.locale, indexKeys)),
+    slug: folder ?? toSlug(readmeAsIndex(located.stem, located.locale, indexes.keys)),
     ...(urlSlug !== undefined && { urlSlug }),
     ...(folder !== undefined && { listing: true as const }),
     locale: located.locale,
@@ -276,11 +280,12 @@ export function discoverPages(files: SourceFile[], config: DiscoveryConfig): Pag
   const externalFiles = new Map(
     files.filter((file) => file.kind === 'external').map((file) => [normalize(file.path), file]),
   );
-  const indexKeys = nativeIndexKeys(files, config);
+  const keys = nativeIndexKeys(files, config);
+  const indexes: NativeIndexes = { keys, folders: indexedFolders(keys) };
   const pages = [
     ...files
       .filter((file) => file.kind === 'native')
-      .flatMap((file) => nativePage(file, config, errors, indexKeys) ?? []),
+      .flatMap((file) => nativePage(file, config, errors, indexes) ?? []),
     ...config.external.flatMap((entry) => externalPages(entry, externalFiles, config, errors)),
   ];
   errors.push(...findLocalePrefixCollisions(pages, config));
