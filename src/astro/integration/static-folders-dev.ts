@@ -2,7 +2,11 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
-import { matchStaticRequest, type StaticFolder } from '../../core/content/static-folders';
+import {
+  matchStaticRequest,
+  staticExcluder,
+  type StaticFolder,
+} from '../../core/content/static-folders';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -53,6 +57,10 @@ export function staticFoldersMiddleware({ root, base, folders }: StaticFoldersDe
     const info = await stat(file).catch(() => undefined);
     if (info?.isDirectory()) file = path.join(file, 'index.html');
     if (!(await stat(file).catch(() => undefined))?.isFile()) return next();
+    // Lo excluido no llega a `dist/`: en dev tampoco existe.
+    if (staticExcluder(match.folder)(path.relative(source, file).split(path.sep).join('/'))) {
+      return next();
+    }
     response.setHeader(
       'Content-Type',
       CONTENT_TYPES[path.extname(file)] ?? 'application/octet-stream',

@@ -219,8 +219,16 @@ export const DocsConfigSchema = z
         'Debe ser la ruta local de un archivo CSS (src/styles/site.css).',
       )
       .optional(),
-    /** Carpetas que se publican tal cual (un informe de cobertura HTML): `from` desde la raíz del proyecto, `to` bajo el sitio. */
-    static: z.array(z.strictObject({ from: z.string().min(1), to: z.string().min(1) })).optional(),
+    /** Carpetas que se publican tal cual (un informe de cobertura HTML): `from` desde la raíz del proyecto, `to` bajo el sitio, `exclude` lo que no. */
+    static: z
+      .array(
+        z.strictObject({
+          from: z.string().min(1),
+          to: z.string().min(1),
+          exclude: z.array(z.string().min(1)).optional(),
+        }),
+      )
+      .optional(),
     /** Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican; equivale a `exclude_docs` de MkDocs. */
     exclude: z.array(z.string().min(1)).optional(),
     locales: z.array(z.string().min(1)).min(1).optional(),

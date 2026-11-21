@@ -24,7 +24,7 @@ core/
 │   └── footer.ts          Tipos del pie
 ├── content/
 │   ├── content-dir.ts     Carpeta de las páginas nativas por defecto y su validación
-│   ├── static-folders.ts  Carpetas de `static` (publicadas tal cual): validación y a qué carpeta casa una petición
+│   ├── static-folders.ts  Carpetas de `static` (publicadas tal cual): validación, a qué carpeta casa una petición y qué excluye
 │   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)

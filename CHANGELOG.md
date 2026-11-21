@@ -5,6 +5,13 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ## 0.2.0
 
+### Añadido
+
+- **`static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas del
+  `exclude` de la config pero relativas a `from`:
+  `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se
+  copia a `dist/` y `astro dev` responde 404.
+
 ### Arreglado
 
 - **Una política de traducción declarada en la config del sitio cuenta como declarada.** Con

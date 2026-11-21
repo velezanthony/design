@@ -470,6 +470,20 @@ describe('static de la config', () => {
     expect(out[0]).toContain('static[0]');
   });
 
+  it('cada carpeta acepta `exclude`: patrones relativos a `from`', () => {
+    const folders = [{ from: 'cov', to: 'coverage', exclude: ['assets/script/', '*.py'] }];
+    expect(resolveConfig({ ...base, static: folders }).static).toEqual(folders);
+  });
+
+  it('un patrón vacío o que no es una lista falla con su ruta', () => {
+    expect(messages({ ...base, static: [{ from: 'a', to: 'b', exclude: [''] }] })[0]).toContain(
+      'static[0].exclude[0]',
+    );
+    expect(
+      messages({ ...base, static: [{ from: 'a', to: 'b', exclude: '*.py' as never }] })[0],
+    ).toContain('static[0].exclude');
+  });
+
   it('una opción desconocida se nombra con su ruta', () => {
     expect(messages({ ...base, static: [{ from: 'a', to: 'b', copy: true }] })[0]).toContain(
       'static[0].copy',

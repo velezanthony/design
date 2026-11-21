@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { matchStaticRequest, staticFolderProblem } from './static-folders';
+import { matchStaticRequest, staticExcluder, staticFolderProblem } from './static-folders';
 
 const locales = ['en', 'es'];
 
@@ -63,5 +63,23 @@ describe('matchStaticRequest', () => {
     expect(matchStaticRequest('/coverage/../secret', '/', folders)).toBeUndefined();
     expect(matchStaticRequest('/coverage/%2e%2e/secret', '/', folders)).toBeUndefined();
     expect(matchStaticRequest('/coverage/%zz', '/', folders)).toBeUndefined();
+  });
+});
+
+describe('staticExcluder', () => {
+  it('juzga rutas relativas a `from` con las reglas de `exclude`', () => {
+    const excluded = staticExcluder({
+      from: 'cov',
+      to: 'coverage',
+      exclude: ['assets/script/', '*.py', '!keep.py'],
+    });
+    expect(excluded('assets/script/history.js')).toBe(true);
+    expect(excluded('deep/tool.py')).toBe(true);
+    expect(excluded('keep.py')).toBe(false);
+    expect(excluded('index.html')).toBe(false);
+  });
+
+  it('sin `exclude` se publica todo', () => {
+    expect(staticExcluder({ from: 'cov', to: 'coverage' })('history.py')).toBe(false);
   });
 });

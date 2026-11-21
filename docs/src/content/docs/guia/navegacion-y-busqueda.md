@@ -102,7 +102,17 @@ static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/
 
 `from` es relativa a la raíz del proyecto de Astro y debe existir al construir; si falta, el build
 falla con `static[0].from`. `to` no puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no
-pueden solaparse. El build la copia a `dist/` al final de `astro:build:done`
+pueden solaparse.
+
+`exclude` deja fuera archivos de la carpeta. Son patrones al estilo `.gitignore`, los mismos que el
+`exclude` de la config, pero relativos a `from`. Lo excluido no se copia a `dist/` y `astro dev`
+responde 404, igual que si no existiera. Las reglas se aplican a cada archivo:
+
+```js
+static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/', '*.py'] }],
+```
+
+El build la copia a `dist/` al final de `astro:build:done`
 (`astro/integration/build/copy-static-folders.ts`) y `astro dev` la sirve con un middleware
 (`astro/integration/static-folders-dev.ts`). La validación de forma vive en
 `core/content/static-folders.ts`.

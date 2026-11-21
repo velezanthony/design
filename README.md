@@ -185,7 +185,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
 | `ogLocales`     | `og:locale` con territorio por idioma: `{ es: 'es_ES', en: 'en_GB' }`; sin él, el idioma tal cual (`es`). Cada clave debe estar en `locales`. |
 | `sitemap`       | `{ include: [...] }`: otros sitemaps del mismo dominio; con él, `sitemap.xml` pasa a ser un índice y las páginas propias van en `sitemap-pages.xml`. Ver [Despliegue](#despliegue-en-github-pages). |
-| `static`        | Carpetas que se publican tal cual: `[{ from, to }]`. Ver [Carpetas estáticas](#carpetas-estáticas-static). |
+| `static`        | Carpetas que se publican tal cual: `[{ from, to, exclude? }]`. Ver [Carpetas estáticas](#carpetas-estáticas-static). |
 | `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
 | `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
 | `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/guia/primeros-pasos.md#css-propio-del-sitio-theme). |
@@ -453,6 +453,13 @@ falta, el build falla nombrando `static[0].from`); `to` es la ruta bajo el sitio
 extremos. No puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no pueden solaparse. Con
 `astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con su URL
 (`[Cobertura](/coverage/)`, con el `base` delante si lo hay).
+
+`exclude` deja fuera archivos de la carpeta con las mismas reglas que el [`exclude`](#excluir-archivos)
+de arriba, pero relativas a `from`: no se copian a `dist/` y `astro dev` responde 404.
+
+```js
+static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/', '*.py'] }],
+```
 
 ### Docs fuera del proyecto de Astro
 

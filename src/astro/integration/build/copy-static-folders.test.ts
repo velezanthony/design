@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -28,6 +28,22 @@ describe('copyStaticFolders', () => {
     });
     expect(readFileSync(path.join(dist, 'reports/cov/index.html'), 'utf8')).toBe('<h1>cov</h1>');
     expect(readFileSync(path.join(dist, 'reports/cov/assets/app.js'), 'utf8')).toBe('x');
+  });
+
+  it('no copia lo que casa con su `exclude`, relativo a `from`', async () => {
+    const { root, dist, dir } = project();
+    mkdirSync(path.join(root, 'htmlcov/assets/script'));
+    writeFileSync(path.join(root, 'htmlcov/assets/script/history.py'), 'print()');
+    writeFileSync(path.join(root, 'htmlcov/notes.py'), 'print()');
+    await copyStaticFolders({
+      root,
+      dir,
+      folders: [{ from: 'htmlcov', to: 'cov', exclude: ['assets/script/', '/notes.py'] }],
+      logger,
+    });
+    expect(existsSync(path.join(dist, 'cov/assets/script/history.py'))).toBe(false);
+    expect(existsSync(path.join(dist, 'cov/notes.py'))).toBe(false);
+    expect(readFileSync(path.join(dist, 'cov/assets/app.js'), 'utf8')).toBe('x');
   });
 
   it('una carpeta que no existe falla nombrando `from`', async () => {
