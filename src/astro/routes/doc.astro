@@ -3,7 +3,7 @@
 import Fonts from './Fonts.astro';
 import Footer from 'virtual:@velezanthony/design/components/Footer';
 import DocPage from '../../components/pages/DocPage.astro';
-import { docRoutes, docView, type DocRoute } from '../views/doc';
+import { docNavTrees, docRoutes, docView, type DocRoute } from '../views/doc';
 import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
 import { siteImageSizes } from '../data/image-sizes';
 import { siteConfig } from '../data/site-config';
@@ -25,15 +25,26 @@ if (!entry) throw new Error(`No hay contenido ${route.contentLocale}/${route.slu
 const { Content, headings } = await renderDoc(entry);
 // Solo la imagen de esta página: la de reserva usa la del idioma del contenido, que es `entry`.
 const sizes = await siteImageSizes(siteConfig, [entry.data.seo?.image?.src]);
+const data = entries.map((item) => item.data);
+/* Solo si la página usa `::nav-tree`: el resto no paga el cálculo de todas las secciones. */
+const navTrees = entry.body?.includes('::nav-tree')
+  ? docNavTrees({ route, config: siteConfig, data })
+  : undefined;
 const view = docView({
   route,
   config: siteConfig,
-  data: entries.map((item) => item.data),
+  data,
   sizes,
 });
 ---
 
-<DocPage {...view} headings={headings} year={new Date().getFullYear()} Footer={Footer}>
+<DocPage
+  {...view}
+  headings={headings}
+  year={new Date().getFullYear()}
+  Footer={Footer}
+  navTrees={navTrees}
+>
   <Fonts slot="head" />
   <Content />
 </DocPage>

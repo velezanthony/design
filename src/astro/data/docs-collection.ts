@@ -5,6 +5,8 @@ import type { DocEntryData } from '../loader/schema';
 export interface DocsEntry {
   id: string;
   data: DocEntryData;
+  /** El Markdown ya con los enlaces reescritos, tal como lo guarda el loader. */
+  body?: string;
 }
 
 /** La colección `docs` la declara el consumidor, así que `astro:content` no conoce su nombre; este es el único punto donde se asume. */

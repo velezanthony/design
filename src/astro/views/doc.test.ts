@@ -4,7 +4,7 @@ import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
-import { docRoutes, docView, type DocRoute } from './doc';
+import { docNavTrees, docRoutes, docView, type DocRoute } from './doc';
 import type { DocData } from '../loader/schema';
 
 function site(user: Partial<DocsUserConfig> = {}) {
@@ -357,5 +357,52 @@ describe('docView: analítica y privacidad', () => {
     const view = docView({ route: route(docRoutes(all, config), '', 'es'), data: all, config });
     expect(view.privacyUrl).toBe('/privacy/');
     expect(view.gtmId).toBeUndefined();
+  });
+});
+
+describe('docNavTrees: índice generado (`::nav-tree`)', () => {
+  const data = [
+    doc('', 'en'),
+    doc('guide', 'en', { seo: { description: 'How to start.' } }),
+    doc('guide', 'es', { seo: { description: 'Cómo empezar.' } }),
+    doc('api', 'en'),
+  ];
+  const config = site({
+    translations: { missing: 'fallback' },
+    nav: [
+      {
+        label: { en: 'Guides', es: 'Guías' },
+        sidebar: [{ label: 'Start', items: ['guide', 'api'] }],
+      },
+    ],
+  });
+  const routes = docRoutes(data, config);
+
+  it('el árbol de cada sección en el idioma de la página, con las descripciones', () => {
+    const [tree] = docNavTrees({ route: route(routes, '', 'en'), config, data });
+    expect(tree).toEqual([
+      {
+        label: 'Start',
+        items: [
+          { label: 'guide en', href: '/repo/guide/', description: 'How to start.' },
+          { label: 'api en', href: '/repo/api/' },
+        ],
+      },
+    ]);
+  });
+
+  it('en una ruta de reserva, los textos del contenido original y las URLs del idioma de la ruta', () => {
+    const fallback = route(routes, '', 'es');
+    expect(fallback.kind).toBe('fallback');
+    const [tree] = docNavTrees({ route: fallback, config, data });
+    expect(tree).toEqual([
+      {
+        label: 'Start',
+        items: [
+          { label: 'guide en', href: '/repo/es/guide/', description: 'How to start.' },
+          { label: 'api en', href: '/repo/es/api/' },
+        ],
+      },
+    ]);
   });
 });

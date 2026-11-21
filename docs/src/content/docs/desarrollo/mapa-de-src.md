@@ -46,6 +46,7 @@ core/
 │   ├── nav-sections.ts    Secciones por dir, validación de nav
 │   ├── nav-sidebar.ts     La barra lateral de la sección actual
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
+│   ├── nav-tree.ts        Árbol de cada sección para el índice de ::nav-tree, y los huecos que deja en el HTML
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
 │   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── toc-entries.ts     Encabezados de Astro → entradas del índice «En esta página»
@@ -195,7 +196,7 @@ components/
 │   └── display/     Heading, Icon, InlineList, Tag, Text
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
-│   ├── navigation/  EditLink, LocaleSwitch, NavList, Pagination, PrevNext, TableOfContents
+│   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents
 │   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
@@ -292,6 +293,7 @@ astro/
 │   ├── admonitions.ts       Directivas :::tipo
 │   ├── github-alerts.ts     Citas > [!NOTE] como admoniciones
 │   ├── tabs.ts              ::::tabs con :::tab[Etiqueta]
+│   ├── nav-tree.ts          ::nav-tree → un h2 por sección de nav y el hueco de su árbol
 │   ├── tables.ts            Envuelve cada tabla en un contenedor con scroll
 │   ├── images.ts            Marca los párrafos que mezclan texto e imágenes (no son capturas)
 │   ├── mermaid.ts           Bloques mermaid → .docs-mermaid

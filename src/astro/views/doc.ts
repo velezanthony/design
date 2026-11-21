@@ -6,6 +6,7 @@ import type { UiStrings } from '../../core/i18n/ui-strings';
 import { buildFooter, type FooterView } from '../../core/navigation/footer';
 import { buildNav, type NavEntry } from '../../core/navigation/nav-entries';
 import { buildScopedSidebar } from '../../core/navigation/nav-sidebar';
+import { buildNavTrees, type NavTreeNode } from '../../core/navigation/nav-tree';
 import { flatten, type SidebarNode } from '../../core/navigation/sidebar';
 import { prevNext } from '../../core/navigation/prev-next';
 import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
@@ -150,4 +151,10 @@ export function docView({ route, config, data, sizes = new Map() }: DocViewInput
       fallback: { originalLocale: route.contentLocale, href: route.canonical ?? '' },
     }),
   };
+}
+
+/** Los árboles de `::nav-tree` de la página, uno por posición de `nav`: textos en el idioma del contenido y URLs como las de su barra lateral. */
+export function docNavTrees({ route, config, data }: Omit<DocViewInput, 'sizes'>): NavTreeNode[][] {
+  const site = siteContext(config, data);
+  return buildNavTrees(navContextOf(site, route.locale, route.slug), route.contentLocale);
 }

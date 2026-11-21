@@ -1,13 +1,35 @@
 ---
 import type { ComponentProps } from 'astro/types';
+import { splitNavTrees, type NavTreeNode } from '../../core/navigation/nav-tree';
 import DocsLayout from '../layouts/DocsLayout.astro';
+import NavTree from '../molecules/navigation/NavTree.astro';
 
 /* Solo pinta: la ruta lee los datos, arma el modelo y renderiza el Markdown (su `Content` llega como slot). */
-type Props = ComponentProps<typeof DocsLayout>;
+type Props = ComponentProps<typeof DocsLayout> & {
+  /** Árboles de `::nav-tree`, uno por posición de `nav`: cada hueco del Markdown se rellena con el suyo. */
+  navTrees?: NavTreeNode[][];
+};
+
+const { navTrees, ...layout } = Astro.props;
+const segments = navTrees && splitNavTrees(await Astro.slots.render('default'));
 ---
 
-<DocsLayout {...Astro.props}>
+<DocsLayout {...layout}>
   <slot name="head" slot="head" />
   <slot name="scripts" slot="scripts" />
-  <slot />
+  {segments ? (
+    segments.map((segment) =>
+      segment.kind === 'html' ? (
+        <Fragment set:html={segment.html} />
+      ) : (
+        <NavTree
+          nodes={navTrees[segment.section] ?? []}
+          descriptions={segment.descriptions}
+          strings={layout.strings}
+        />
+      ),
+    )
+  ) : (
+    <slot />
+  )}
 </DocsLayout>

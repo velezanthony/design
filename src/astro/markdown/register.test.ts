@@ -42,6 +42,12 @@ describe('markdownPlugins: orden', () => {
     expect(names).toEqual(expect.arrayContaining(['github-alerts', 'admonitions', 'tabs']));
   });
 
+  it('navTree reclama `::nav-tree` antes de que restoreDirectives lo devuelva a texto', () => {
+    const names = markdownPlugins(env).map((entry) => resolveName(entry, docFileURL('a.md')));
+    expect(names.indexOf('nav-tree')).toBeGreaterThan(-1);
+    expect(names.indexOf('nav-tree')).toBeLessThan(names.indexOf('restore-directives'));
+  });
+
   it('mermaid va antes de codeLanguages: así este no avisa de un lenguaje que Shiki no conoce', () => {
     const names = markdownPlugins(env).map((entry) => resolveName(entry, docFileURL('a.md')));
     expect(names.indexOf('mermaid')).toBeGreaterThan(-1);

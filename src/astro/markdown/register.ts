@@ -5,6 +5,7 @@ import type { MarkdownEnv } from './env';
 import { githubAlerts } from './github-alerts';
 import { inlineImages } from './images';
 import { mermaid } from './mermaid';
+import { navTree } from './nav-tree';
 import { restoreDirectives } from './restore-directives';
 import { scrollableTables } from './tables';
 import { tabs } from './tabs';
@@ -18,6 +19,7 @@ export function markdownPlugins(
     githubAlerts(env),
     admonitions(env),
     tabs(env),
+    navTree(env),
     scrollableTables(env),
     inlineImages(env),
     mermaid(env),

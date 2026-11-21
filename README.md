@@ -581,6 +581,14 @@ pnpm add x
 ::::
 ```
 
+Índice generado: `::nav-tree`, sola en su línea, pinta por cada sección de `nav` un `##` con su
+etiqueta y debajo su árbol, el mismo de la barra lateral: grupos anidados en negrita y cada página
+con su título y su `seo.description`. `{section="Sistemas"}` deja una sola sección (por su etiqueta
+en cualquier idioma o su `dir`) y `{descriptions="false"}` quita las descripciones. En una ruta de
+reserva, el texto es el del original y las URLs las de la barra lateral de esa ruta. Una sección que
+no existe o un atributo desconocido rompen el build con el archivo y la línea. Detalle en
+[Índice generado](docs/src/content/docs/guia/navegacion-y-busqueda.md#índice-generado-nav-tree).
+
 Los bloques de código usan Shiki (`github-light-default` / `github-dark-default`); Shiki ya
 entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la
 librería añade alias: `django` y `htmldjango` se resaltan como `jinja`, `pycon` como `python`, `env`

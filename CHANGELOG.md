@@ -19,6 +19,14 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 - **`CookieSettingsButton`**, el botón «Preferencias de cookies» que reabre el aviso de consentimiento
   (`data-consent-open`), como átomo propio en `atoms/actions/`. Lo usa `DocsFooter` y puede usarlo un pie
   propio, con `strings` y una `class` opcional.
+- **Índice generado con `::nav-tree`.** La directiva, sola en su línea, pinta por cada sección de
+  `nav` un `##` con su etiqueta (con ancla y en «En esta página») y debajo su árbol, el de la barra
+  lateral: grupos anidados en negrita y cada página enlazada con su título y su `seo.description`. Una
+  página índice ya no copia a mano el árbol de la config ni hay que traducirlo.
+  `{section="Sistemas"}` deja una sola sección y `{descriptions="false"}` solo los títulos. En una
+  ruta de reserva el texto es el del original y las URLs, las de la barra lateral de esa ruta. Una
+  sección que no existe, un atributo desconocido o la directiva sin secciones en `nav` rompen el build
+  con el archivo y la línea.
 - **`static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas del
   `exclude` de la config pero relativas a `from`:
   `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se

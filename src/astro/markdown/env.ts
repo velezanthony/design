@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { MdastPluginDefinition, PluginFactoryContext } from 'satteri';
+import type { NavItem } from '../../core/config/nav';
 import type { ResolvedConfig } from '../../core/config/resolve';
 import { externalCandidates } from '../../core/content/discovery';
 import type { Locale } from '../../core/i18n/locale';
@@ -16,11 +17,16 @@ export interface MarkdownEnv {
   defaultLocale: Locale;
   /** Catálogo de UI por idioma, con los textos del consumidor ya fusionados. */
   strings: Record<Locale, UiStrings>;
+  /** Secciones de la cabecera: `::nav-tree` pinta sus árboles. */
+  nav: readonly NavItem[];
   /** Avisos que no rompen la build (lenguajes de código desconocidos…). */
   warn: (message: string) => void;
 }
 
-type EnvConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'ui' | 'external' | 'content'>;
+type EnvConfig = Pick<
+  ResolvedConfig,
+  'locales' | 'defaultLocale' | 'ui' | 'external' | 'content' | 'nav'
+>;
 
 export function createMarkdownEnv(
   config: EnvConfig,
@@ -33,6 +39,7 @@ export function createMarkdownEnv(
     locales: config.locales,
     defaultLocale: config.defaultLocale,
     strings: siteStrings(config.ui, config.locales),
+    nav: config.nav ?? [],
     warn,
   };
 }

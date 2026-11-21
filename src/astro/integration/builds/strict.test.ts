@@ -126,6 +126,24 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
     expect(output).toContain('GTM-XXXXXXX');
   });
 
+  it('`::nav-tree` con una sección que no existe: nombra archivo, línea y las secciones que hay', async () => {
+    const { code, output } = await buildFailingCase({
+      name: 'nav-tree-section',
+      config: {
+        name: 'Strict',
+        nav: [{ label: { en: 'Guides', es: 'Guías' }, sidebar: ['guide'] }],
+      },
+      docs: {
+        'index.md': page('Home', '::nav-tree{section="Blog"}'),
+        'guide.md': page('Guide'),
+      },
+    });
+    expect(code).not.toBe(0);
+    expect(output).toContain('index.md:3');
+    expect(output).toContain('«Blog»');
+    expect(output).toContain('Guides');
+  });
+
   /* Contenido fuera del proyecto de Astro (`site/` + `docs/`): lo mismo, con la ruta real. */
   it('`content` fuera del proyecto: una admonición desconocida nombra la ruta real y la línea', async () => {
     const { code, output } = await buildFailingCase({

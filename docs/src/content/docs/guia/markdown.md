@@ -33,7 +33,8 @@ flowchart TD
   cp --> ga["githubAlerts"]
   ga --> ad["admonitions"]
   ad --> tb["tabs"]
-  tb --> st["scrollableTables"]
+  tb --> nt["navTree"]
+  nt --> st["scrollableTables"]
   st --> ii["inlineImages"]
   ii --> mm["mermaid"]
   mm --> cl["codeLanguages"]
@@ -49,6 +50,7 @@ El orden lo fija `markdownPlugins` en `register.ts`, y no es arbitrario:
 | `githubAlerts` | `github-alerts.ts` | Convierte `> [!NOTE]` en la misma admonición que la directiva. `IMPORTANT` se pinta como `info` y `CAUTION` como `danger`. |
 | `admonitions` | `admonitions.ts` | `:::tip[Título]` → `<aside class="admonition" data-kind>`; con `{collapsed}`, un `<details>`. Un contenedor con nombre desconocido rompe el build. |
 | `tabs` | `tabs.ts` | `::::tabs` con `:::tab[Etiqueta]` dentro → pestañas. Sin JavaScript se ven apiladas con su etiqueta. |
+| `navTree` | `nav-tree.ts` | `::nav-tree` → un `##` por sección de `nav` y el hueco de su árbol, que rellena la ruta en el idioma que pinta. Ver [Índice generado](navegacion-y-busqueda.md#índice-generado-nav-tree). |
 | `scrollableTables` | `tables.ts` | Envuelve cada tabla en un `div.table-scroll` enfocable que se desplaza en horizontal. |
 | `inlineImages` | `images.ts` | Marca con `p.docs-inline-images` el párrafo que mezcla texto e imágenes: el CSS no ve el texto, y sin la marca una imagen única entre palabras se pintaría como captura. |
 | `mermaid` | `mermaid.ts` | Un bloque `mermaid` pasa a `.docs-mermaid[data-mermaid]` con el código dentro, sin Shiki. El cliente lo sustituye por el SVG; sin JavaScript se lee el código. |

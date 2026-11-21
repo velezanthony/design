@@ -66,6 +66,51 @@ aparecen en el menú móvil.
 - La barra recuerda su desplazamiento entre páginas en `sessionStorage` (`docs:sidebar-scroll`,
   `client/layout/sidebar-scroll.ts`); sin posición guardada, deja a la vista la página actual.
 
+### Índice generado (`::nav-tree`)
+
+Una página índice (la de un blog, la de una guía) no necesita copiar a mano el árbol de las
+secciones: la directiva `::nav-tree`, sola en su línea, lo pinta desde la config.
+
+```md
+# Artículos
+
+Notas técnicas, agrupadas por área.
+
+::nav-tree
+```
+
+Por cada sección de `nav` (las que tienen `sidebar` o `dir`, en su orden) escribe un `##` con la
+etiqueta de la sección y, debajo, su árbol: los grupos como listas anidadas con la etiqueta en
+negrita, y cada página como un enlace con su título seguido de la `seo.description` de su
+frontmatter, si la tiene. Las etiquetas salen de la config (ya traducidas), los títulos y las
+descripciones de cada página: no hay texto escrito a mano que mantener ni traducir, y una página
+nueva aparece en el índice en cuanto entra en un `sidebar`.
+
+| Atributo | Qué hace |
+| --- | --- |
+| `section="Sistemas"` | Solo esa sección. Se nombra por su etiqueta en cualquier idioma o por su `dir`. |
+| `descriptions="false"` | Solo los títulos, sin las descripciones. Sin él, salen. |
+
+```md
+::nav-tree{section="Sistemas" descriptions="false"}
+```
+
+- **El árbol es el de la barra lateral.** Lo calcula `buildSectionSidebar`, así que respeta el orden
+  declarado, `order` y la política de traducción: con `link`, la página sin traducción enlaza al
+  original con su insignia; con `omit`, no sale.
+- **En una ruta de reserva** (`/en/articulos/` sin traducción), el texto es el del contenido
+  original, como el resto de la página; las URLs son las de la barra lateral de esa ruta, así que
+  quien lee en `/en/` sigue en `/en/`.
+- **Los `##` son encabezados de verdad:** tienen ancla, salen en «En esta página» y otra página puede
+  enlazarlos (`[sistemas](articulos/index.md#sistemas)`), con la validación de anclas de siempre.
+- **Cómo funciona.** El plugin `navTree` (`astro/markdown/nav-tree.ts`) escribe los `##` y deja un
+  hueco por sección; la ruta de las páginas de docs calcula los árboles del idioma que pinta
+  (`docNavTrees`, `core/navigation/nav-tree.ts`) y `DocPage` pinta cada uno en su hueco con `NavTree`.
+  Todo en el HTML del build: sin JavaScript y dentro del índice de búsqueda.
+- **Rompe el build,** con el archivo y la línea: una `section` que no existe (el mensaje lista las
+  que hay), un atributo desconocido, un `descriptions` que no es `true` ni `false`, la directiva sin
+  secciones en `nav`, con texto (`::nav-tree[…]`) o como contenedor (`:::nav-tree`).
+
 ### Excluir archivos
 
 `exclude` deja fuera de la publicación los `.md` de la carpeta de contenido que casan con sus patrones (estilo
