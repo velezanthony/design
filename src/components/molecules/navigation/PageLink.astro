@@ -1,9 +1,11 @@
 ---
 import type { Locale } from '../../../core/i18n/locale';
 import { localeNames, translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import Tag from '../../atoms/display/Tag.astro';
 
-/* El enlace a una página desde un índice generado: su título y, si lleva al original de otro
-   idioma (política `link`), la insignia de ese idioma, como en la barra lateral. */
+/* El enlace a una página desde un listado o desde `::nav-tree`: su título y, si lleva al original de
+   otro idioma (política `link`), la insignia de ese idioma con el átomo `Tag`, como en la barra
+   lateral. */
 interface Props {
   href: string;
   title: string;
@@ -20,12 +22,8 @@ const badgeName =
 <a href={href} hreflang={badge} lang={badge} class={className}>
   {title}
   {badge && (
-    <span
-      role="img"
-      aria-label={badgeName}
-      class="label ml-2 border border-rule px-1 align-middle text-faint"
-    >
+    <Tag tone="faint" bordered role="img" aria-label={badgeName} class="ml-2 align-middle">
       {badge}
-    </span>
+    </Tag>
   )}
 </a>

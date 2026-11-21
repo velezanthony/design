@@ -4,6 +4,8 @@ import type { UiStrings } from '../../../core/i18n/ui-strings';
 import { isListingGroup, type ListingNode } from '../../../core/listing/entries';
 import { formatListingDate } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
+import DateLabel from '../../atoms/display/DateLabel.astro';
+import Text from '../../atoms/display/Text.astro';
 import PageLink from './PageLink.astro';
 
 /* Las páginas y los grupos de una sección del índice en lista: cada grupo con su etiqueta en negrita
@@ -48,12 +50,18 @@ const link = `font-medium ${linkVariants.inline}`;
             class={link}
           />
           {node.updated && (
-            <time datetime={node.updated} class="shrink-0 text-xs text-faint tabular-nums">
-              {formatListingDate(node.updated, lang)}
-            </time>
+            <DateLabel
+              iso={node.updated}
+              label={formatListingDate(node.updated, lang)}
+              class="shrink-0 text-xs text-faint tabular-nums"
+            />
           )}
         </div>
-        {node.summary && <p class="mt-0.5 text-sm leading-relaxed text-muted">{node.summary}</p>}
+        {node.summary && (
+          <Text size="sm" class="mt-0.5">
+            {node.summary}
+          </Text>
+        )}
       </li>
     ),
   )}

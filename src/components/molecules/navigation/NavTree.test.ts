@@ -67,4 +67,14 @@ describe('NavTree', () => {
     const document = await tree({ nodes: [] });
     expect(document.querySelector('ul')).toBeNull();
   });
+
+  it('una hoja con insignia pinta el marcado de PageLink (el átomo Tag)', async () => {
+    const document = await tree();
+    const install = [...document.querySelectorAll('a')].find(
+      (link) => link.getAttribute('href') === '/instalacion/',
+    )!;
+    const badge = install.querySelector('[role="img"]')!;
+    expect(badge.getAttribute('aria-label')).toBe('Disponible en English');
+    expect(badge.classList.contains('border-current')).toBe(true);
+  });
 });

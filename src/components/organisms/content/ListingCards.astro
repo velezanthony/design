@@ -1,15 +1,13 @@
 ---
 import type { Locale } from '../../../core/i18n/locale';
 import type { UiStrings } from '../../../core/i18n/ui-strings';
-import { coverPattern, type CoverView } from '../../../core/listing/covers';
+import type { CoverView } from '../../../core/listing/covers';
 import { formatListingDate, type IndexItem } from '../../../core/listing/view';
-import CoverPlaceholder from '../../atoms/display/CoverPlaceholder.astro';
-import PageLink from '../../molecules/navigation/PageLink.astro';
+import ListingCard from '../../molecules/content/ListingCard.astro';
 
-/* Índice en tarjetas (`layout: 'cards'`), al estilo de un blog: portada 16:9, camino (sección ›
-   grupos), título, resumen de tres líneas y fecha abajo. Las columnas dependen del ancho del
-   contenedor (1 en móvil, 2 y luego 3), no de la ventana: la columna de docs cambia con la barra
-   lateral. Toda la tarjeta lleva al artículo con el `::after` estirado del enlace del título. */
+/* Índice en tarjetas (`layout: 'cards'`): la rejilla que repite `ListingCard`. Las columnas dependen
+   del ancho del contenedor (1 en móvil, 2 y luego 3), no de la ventana: la columna de docs cambia con
+   la barra lateral. */
 interface Props {
   items: IndexItem<CoverView>[];
   strings: UiStrings;
@@ -24,56 +22,12 @@ const { items, strings, lang, visible } = Astro.props;
 <div class="@container">
   <ul class="grid gap-6 @lg:grid-cols-2 @3xl:grid-cols-3">
     {items.map((item, position) => (
-      <li
-        data-index-card
-        data-index-item
+      <ListingCard
+        item={item}
+        strings={strings}
+        dateLabel={item.updated && formatListingDate(item.updated, lang)}
         hidden={visible !== undefined && position >= visible}
-        class="group relative flex flex-col border border-rule bg-canvas transition-colors hover:border-accent"
-      >
-        {item.cover.kind !== 'none' && (
-          <div data-index-cover class="relative aspect-[16/9] overflow-hidden border-b border-rule">
-            {/* La de la librería siempre debajo: si la imagen no carga (alt vacío), se ve ella. */}
-            <CoverPlaceholder
-              pattern={coverPattern(item.slug)}
-              label={item.path.at(-1)}
-              class="absolute inset-0"
-            />
-            {item.cover.kind === 'image' && (
-              <img
-                src={item.cover.src}
-                alt={item.cover.alt}
-                loading="lazy"
-                decoding="async"
-                class="absolute inset-0 size-full object-cover"
-              />
-            )}
-          </div>
-        )}
-        <div class="flex flex-1 flex-col p-5">
-          {item.path.length > 0 && (
-            <p data-index-path class="label text-faint">
-              {item.path.join(' › ')}
-            </p>
-          )}
-          <h2 class="mt-2 text-lg leading-snug font-semibold text-ink">
-            <PageLink
-              href={item.href}
-              title={item.title}
-              badge={item.badge}
-              strings={strings}
-              class="group-hover:text-accent after:absolute after:inset-0 focus-visible:outline-none after:focus-visible:outline-2 after:focus-visible:outline-offset-2 after:focus-visible:outline-accent"
-            />
-          </h2>
-          {item.summary && (
-            <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">{item.summary}</p>
-          )}
-          {item.updated && (
-            <time datetime={item.updated} class="mt-auto pt-4 text-xs text-faint tabular-nums">
-              {formatListingDate(item.updated, lang)}
-            </time>
-          )}
-        </div>
-      </li>
+      />
     ))}
   </ul>
 </div>

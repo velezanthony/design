@@ -1,0 +1,77 @@
+---
+import type { UiStrings } from '../../../core/i18n/ui-strings';
+import { coverPattern, type CoverView } from '../../../core/listing/covers';
+import type { IndexItem } from '../../../core/listing/view';
+import CoverPlaceholder from '../../atoms/display/CoverPlaceholder.astro';
+import DateLabel from '../../atoms/display/DateLabel.astro';
+import Heading from '../../atoms/display/Heading.astro';
+import Text from '../../atoms/display/Text.astro';
+import PageLink from '../navigation/PageLink.astro';
+import SectionPath from '../navigation/SectionPath.astro';
+
+/* Una tarjeta del listado, al estilo de un blog: portada 16:9 (la imagen sobre la portada de la
+   librería), camino, título, resumen de tres líneas y fecha abajo. Toda la tarjeta lleva al
+   artículo con el `::after` estirado del enlace del título. */
+interface Props {
+  item: IndexItem<CoverView>;
+  strings: UiStrings;
+  /** La fecha ya formateada; sin ella (o sin `item.updated`) no hay fecha. */
+  dateLabel?: string;
+  /** Oculta sin JavaScript (la enseña el selector «Por página»). */
+  hidden?: boolean;
+}
+
+const { item, strings, dateLabel, hidden = false } = Astro.props;
+---
+
+{/* Un elemento de la rejilla de `ListingCards`: su raíz es el `<li>`. */}
+<li
+  data-index-card
+  data-index-item
+  hidden={hidden}
+  class="group relative flex flex-col border border-rule bg-canvas transition-colors hover:border-accent"
+>
+  {item.cover.kind !== 'none' && (
+    <div data-index-cover class="relative aspect-[16/9] overflow-hidden border-b border-rule">
+      {/* La de la librería siempre debajo: si la imagen no carga (alt vacío), se ve ella. */}
+      <CoverPlaceholder
+        pattern={coverPattern(item.slug)}
+        label={item.path.at(-1)}
+        class="absolute inset-0"
+      />
+      {item.cover.kind === 'image' && (
+        <img
+          src={item.cover.src}
+          alt={item.cover.alt}
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 size-full object-cover"
+        />
+      )}
+    </div>
+  )}
+  <div class="flex flex-1 flex-col p-5">
+    <SectionPath path={item.path} data-index-path="" class="label block text-faint" />
+    <Heading level={2} size="md" class="mt-2">
+      <PageLink
+        href={item.href}
+        title={item.title}
+        badge={item.badge}
+        strings={strings}
+        class="group-hover:text-accent after:absolute after:inset-0 focus-visible:outline-none after:focus-visible:outline-2 after:focus-visible:outline-offset-2 after:focus-visible:outline-accent"
+      />
+    </Heading>
+    {item.summary && (
+      <Text size="sm" class="mt-2 line-clamp-3">
+        {item.summary}
+      </Text>
+    )}
+    {item.updated && dateLabel !== undefined && (
+      <DateLabel
+        iso={item.updated}
+        label={dateLabel}
+        class="mt-auto pt-4 text-xs text-faint tabular-nums"
+      />
+    )}
+  </div>
+</li>

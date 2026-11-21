@@ -1,7 +1,7 @@
 ---
-import type { Locale } from '../../../core/i18n/locale';
-import { localeNames, translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import type { UiStrings } from '../../../core/i18n/ui-strings';
 import { isNavTreeGroup, type NavTreeNode } from '../../../core/navigation/nav-tree';
+import PageLink from './PageLink.astro';
 
 /* El índice que genera `::nav-tree`: listas anidadas dentro de `.prose`, con la etiqueta de cada
    grupo en negrita y cada página como enlace seguido de su descripción. Es el mismo marcado que una
@@ -16,10 +16,6 @@ interface Props {
 }
 
 const { nodes, descriptions, strings, nested = false } = Astro.props;
-
-function badgeName(locale: Locale) {
-  return translate(strings, 'translation.badgeLabel', { locale: localeNames[locale] ?? locale });
-}
 ---
 
 {nodes.length > 0 && (
@@ -27,18 +23,7 @@ function badgeName(locale: Locale) {
     {nodes.map((node) => {
       const group = isNavTreeGroup(node);
       const link = node.href && (
-        <a href={node.href} hreflang={node.badge} lang={node.badge}>
-          {node.label}
-          {node.badge && (
-            <span
-              role="img"
-              aria-label={badgeName(node.badge)}
-              class="label ml-2 border border-rule px-1 text-faint"
-            >
-              {node.badge}
-            </span>
-          )}
-        </a>
+        <PageLink href={node.href} title={node.label} badge={node.badge} strings={strings} />
       );
       return (
         <li>

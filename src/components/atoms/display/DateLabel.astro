@@ -1,0 +1,17 @@
+---
+/* Una fecha: `<time datetime>` con la etiqueta que llega ya formateada (el formato lo decide quien
+   prepara los datos, no el componente). */
+interface Props {
+  /** Fecha ISO para `datetime`. */
+  iso: string;
+  /** Lo que se lee: la fecha ya formateada en el idioma de la página. */
+  label: string;
+  class?: string;
+}
+
+const { iso, label, class: className } = Astro.props;
+---
+
+<time datetime={iso} class={className}>
+  {label}
+</time>

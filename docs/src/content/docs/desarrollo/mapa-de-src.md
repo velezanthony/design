@@ -204,13 +204,15 @@ components/
 │   ├── form/        Checkbox, FieldError, HelpText, Input, Label, Radio, Select, Switch, Textarea
 │   ├── actions/     Button, Link, CookieSettingsButton (reabre el aviso de consentimiento);
 │   │                variants.ts: las clases de cada variante de Link, que reutilizan el botón y los índices
-│   └── display/     Heading, Icon, InlineList, Tag, Text, CoverPlaceholder (portada de un índice)
+│   └── display/     Heading, Icon, InlineList, Tag, Text, CoverPlaceholder (portada de un índice),
+│                    DateLabel (<time> con la fecha ya formateada)
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
 │   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents,
-│   │                PageLink y ListingTree (enlace y árbol de un índice generado), PaginationBar
+│   │                PageLink (enlace con la insignia de idioma), SectionPath (camino «Sección › Grupo»),
+│   │                ListingTree (árbol de un índice generado), PaginationBar
 │   │                (fila de pie: por página a un lado, rango y paginador al otro)
-│   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
+│   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs, ListingCard (una tarjeta de un índice)
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
 │   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head

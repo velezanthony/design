@@ -4,7 +4,9 @@ import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
 import { type CoverView } from '../../../core/listing/covers';
 import { formatListingDate, type IndexItem } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
+import DateLabel from '../../atoms/display/DateLabel.astro';
 import PageLink from '../../molecules/navigation/PageLink.astro';
+import SectionPath from '../../molecules/navigation/SectionPath.astro';
 
 /* Índice en tabla (`layout: 'table'`): título, resumen, sección y fecha. En móvil cada fila es una
    tarjeta apilada (la utilidad `table-cards`), con el nombre de cada celda encima de su valor; una
@@ -74,7 +76,7 @@ const head = `${cell} border-b border-ink font-normal`;
           data-cell={columns.section}
           class:list={[cell, 'text-muted md:w-[18%]', item.path.length === 0 && 'max-md:hidden!']}
         >
-          {item.path.join(' › ')}
+          <SectionPath path={item.path} />
         </td>
         <td
           data-cell={columns.updated}
@@ -85,7 +87,7 @@ const head = `${cell} border-b border-ink font-normal`;
           ]}
         >
           {item.updated && (
-            <time datetime={item.updated}>{formatListingDate(item.updated, lang)}</time>
+            <DateLabel iso={item.updated} label={formatListingDate(item.updated, lang)} />
           )}
         </td>
       </tr>
