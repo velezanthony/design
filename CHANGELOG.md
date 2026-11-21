@@ -25,6 +25,11 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   un `<img width="300">` se ignoraba. Ahora las insignias, varias imágenes en un párrafo, una imagen
   en el texto o en un enlace y un `<img>` en HTML conservan su tamaño natural, en línea y sin borde;
   `<img align="right">` flota como en GitHub. Las capturas no cambian.
+- **Un enlace relativo a un archivo de `static` lleva a su URL publicada.** `[x](coverage/index.html)`
+  dentro de la carpeta `from` de una entrada de `static` fallaba con «no es una página ni un recurso
+  publicado… declara el recurso», y no había nada que declarar. Ahora se reescribe a `base` + `to` + el
+  resto. Un enlace a algo que su `exclude` deja fuera falla nombrando `static[n].exclude`, y la pista
+  de un enlace roto dice qué funciona de verdad.
 
 ## 0.1.0
 

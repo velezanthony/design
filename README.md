@@ -451,8 +451,9 @@ static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/index.h
 `from` es relativa a la raíz del proyecto de Astro y debe existir al construir (se genera antes; si
 falta, el build falla nombrando `static[0].from`); `to` es la ruta bajo el sitio, sin barras en los
 extremos. No puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no pueden solaparse. Con
-`astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con su URL
-(`[Cobertura](/coverage/)`, con el `base` delante si lo hay).
+`astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con una ruta relativa
+a su archivo, como en GitHub (`[Cobertura](../htmlcov/index.html)`): el enlace se reescribe a la URL
+publicada (`<base>/coverage/index.html`). También vale la URL absoluta, con el `base` delante si lo hay.
 
 `exclude` deja fuera archivos de la carpeta con las mismas reglas que el [`exclude`](#excluir-archivos)
 de arriba, pero relativas a `from`: no se copian a `dist/` y `astro dev` responde 404.

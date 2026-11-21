@@ -145,5 +145,10 @@ grande o mal proporcionada, un lenguaje que Shiki no conoce y un bloque con fenc
   enlazar de vuelta a una página nativa por su ruta real (`./docs/users/guia.md`).
 - Una imagen relativa sin `./` (`img/captura.png`) se trata como `./img/captura.png`: Astro importa
   las imágenes como módulos y una ruta sin prefijo no la encontraría.
+- Un enlace relativo a un archivo de una carpeta de `static` (`../htmlcov/index.html`) se reescribe a
+  su URL publicada: `base` + `to` + el resto, con su query y su ancla. Si el `exclude` de esa entrada
+  lo deja fuera, falla nombrando `static[n].exclude`. Cualquier otro archivo que no sea un `.md`
+  publicado es un enlace roto; la pista dice qué funciona: un `.md`, un archivo de `static` o una
+  URL absoluta con el `base`.
 - Los enlaces `https://` no se validan.
 - `core/links/fences.ts` evita tocar lo que hay dentro de bloques de código.

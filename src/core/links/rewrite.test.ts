@@ -53,6 +53,56 @@ describe('rewriteLinks: archivos excluidos', () => {
   });
 });
 
+describe('rewriteLinks: carpetas de `static`', () => {
+  // Como en SnakeORM: la carpeta estática vive dentro del contenido, junto a la página que la enlaza.
+  const viewer = page(
+    'contributors/coverage-history',
+    'en',
+    'contributors/coverage-history/index.md',
+  );
+  const withStatic: PageIndex = {
+    pages: [...pages, viewer],
+    url,
+    contentDir: '../docs',
+    staticFolders: [
+      { from: '../docs/contributors/coverage-history', to: 'coverage-history' },
+      { from: '../htmlcov', to: 'reports/cov', exclude: ['*.py'] },
+    ],
+  };
+
+  it('un enlace relativo dentro de su `from` pasa a la URL publicada: base + `to` + el resto', () => {
+    const result = rewriteLinks('[Viewer](coverage/index.html#top)', viewer, withStatic);
+    expect(result.body).toBe('[Viewer](/repo/coverage-history/coverage/index.html#top)');
+    expect(result.errors).toEqual([]);
+    expect(result.refs).toEqual([]);
+  });
+
+  it('vale desde fuera de la carpeta y conserva la barra final de una carpeta', () => {
+    const result = rewriteLinks('[c](../htmlcov/)', from('guide.md'), withStatic);
+    expect(result.body).toBe('[c](/repo/reports/cov/)');
+    expect(result.errors).toEqual([]);
+  });
+
+  it('un `.md` publicado como página sigue siendo la página, aunque viva en la carpeta', () => {
+    const result = rewriteLinks('[g](../../guide.md)', viewer, withStatic);
+    expect(result.body).toBe('[g](/repo/guide/)');
+  });
+
+  it('un archivo que su `exclude` deja fuera falla nombrando esa entrada de `static`', () => {
+    const result = rewriteLinks('[s](../htmlcov/run.py)', from('guide.md'), withStatic);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]?.describe()).toContain('static[1].exclude');
+  });
+
+  it('un recurso suelto que no es de ninguna carpeta dice qué funciona de verdad', () => {
+    const result = rewriteLinks('[p](./manual.pdf)', from('guide.md'), withStatic);
+    const message = result.errors[0]?.describe() ?? '';
+    expect(message).toContain('static');
+    expect(message).toContain('/repo/');
+    expect(message).not.toContain('declara el recurso');
+  });
+});
+
 describe('rewriteLinks', () => {
   it('reescribe un enlace a un hermano publicado por la URL de su página', () => {
     const result = rewriteLinks('Ver [cambios](./CHANGELOG.md).', from('../README.md'), index);

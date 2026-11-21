@@ -606,6 +606,16 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
     expect(all).toContain('[otra](/repo/es/users/otra/#paso)');
   });
 
+  it('un enlace relativo a un archivo de una carpeta de `static` pasa a su URL publicada', async () => {
+    await write('docs/index.md', '# Home\n');
+    await write('docs/history/index.md', '# History\n\n[viewer](coverage/index.html)\n');
+    const { rendered } = await load(
+      config({ static: [{ from: '../docs/history', to: 'coverage-history' }] }),
+      site(),
+    );
+    expect(rendered.join('\n')).toContain('[viewer](/repo/coverage-history/coverage/index.html)');
+  });
+
   it('un ancla rota se nombra con el archivo (relativo a la carpeta de contenido) y la línea', async () => {
     await write('docs/a.md', '# A\n\n[b](./b.md#no-hay)\n');
     await write('docs/b.md', '# B\n');

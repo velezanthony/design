@@ -112,6 +112,10 @@ responde 404, igual que si no existiera. Las reglas se aplican a cada archivo:
 static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/', '*.py'] }],
 ```
 
+Una página la enlaza con una ruta relativa a su archivo, como en GitHub
+(`[Cobertura](../htmlcov/index.html)`), y `rewriteLinks` la cambia por la URL publicada
+(`<base>/coverage/index.html`).
+
 El build la copia a `dist/` al final de `astro:build:done`
 (`astro/integration/build/copy-static-folders.ts`) y `astro dev` la sirve con un middleware
 (`astro/integration/static-folders-dev.ts`). La validación de forma vive en

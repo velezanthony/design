@@ -36,7 +36,7 @@ core/
 │   ├── translation-policy.ts  MissingTranslation, políticas por grupo, rutas de reserva
 │   └── ui-strings.ts      Catálogo de textos de interfaz en/es, translate() e interpolación
 ├── links/
-│   ├── rewrite.ts         Enlaces .md relativos → URLs del sitio, con referencias para validar
+│   ├── rewrite.ts         Enlaces relativos (.md y archivos de `static`) → URLs del sitio, con referencias para validar
 │   ├── anchors.ts         Índice de encabezados y validación de #anclas
 │   └── fences.ts          No tocar enlaces dentro de bloques de código
 ├── navigation/

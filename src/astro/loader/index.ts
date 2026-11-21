@@ -153,6 +153,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
     url: urlPolicyOf(context.config, config.defaultLocale),
     contentDir: config.content,
     excluded: read.excluded,
+    staticFolders: config.static,
   };
   const refs: LinkRef[] = [];
   const headings: { slug: string; locale: string; headings: { slug: string }[] }[] = [];
