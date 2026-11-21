@@ -115,3 +115,28 @@ describe('Article: columna lateral', () => {
     expect(doc.querySelector('[data-toc-column]')!.getAttribute('class')).toBe('hidden xl:block');
   });
 });
+
+describe('Article: tablas', () => {
+  const table = '<table><tr><td>a</td></tr></table>';
+
+  it('envuelve cada tabla en un .table-scroll enfocable, también fuera de los docs', async () => {
+    const doc = await article({}, { default: `<p>x</p>${table}${table}` });
+    const wrappers = doc.querySelectorAll('.prose > .table-scroll');
+    expect(wrappers).toHaveLength(2);
+    expect(wrappers[0]!.getAttribute('tabindex')).toBe('0');
+    expect(wrappers[0]!.querySelector(':scope > table')).not.toBeNull();
+  });
+
+  it('no envuelve otra vez una tabla que ya viene en su .table-scroll (Markdown de los docs)', async () => {
+    const doc = await article(
+      {},
+      { default: `<div class="table-scroll" tabindex="0">${table}</div>` },
+    );
+    expect(doc.querySelectorAll('.table-scroll')).toHaveLength(1);
+  });
+
+  it('con `prose={false}` el contenido queda tal cual', async () => {
+    const doc = await article({ prose: false }, { default: table });
+    expect(doc.querySelector('.table-scroll')).toBeNull();
+  });
+});

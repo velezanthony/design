@@ -23,6 +23,11 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Arreglado
 
+- **Las tablas hacen scroll en horizontal en cualquier página con `Article`.** Hasta ahora solo las
+  envolvía en su `.table-scroll` el plugin de Markdown de los docs, y una página propia que pinta su
+  Markdown con `Article` (una política de privacidad) sacaba la tabla del ancho en móvil. `Article`
+  envuelve cada `<table>` de su contenido y no repite el envoltorio de las que ya lo traen. Con
+  `prose={false}` el contenido queda tal cual.
 - **Una palabra larga ya no se sale de la página en móvil.** `prose` lleva
   `overflow-wrap: break-word`: un código de error, un identificador o una URL sin espacios en un
   título o un párrafo se parte cuando no cabe en la línea. Antes solo se partía el código en línea, y

@@ -29,6 +29,7 @@ core/
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
 │   ├── slug.ts            guia/index → guia, index → '' (portada)
+│   ├── scrollable-tables.ts  Envuelve cada <table> del HTML en su .table-scroll (lo usa Article)
 │   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
 ├── i18n/
 │   ├── locale.ts          Idiomas, sufijos de archivo, idioma de una URL
