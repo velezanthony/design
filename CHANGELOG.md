@@ -7,6 +7,16 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Añadido
 
+- **Pie propio en las páginas de docs (`components.Footer`).** Como los `components` de Starlight,
+  `components: { Footer: './src/components/DocsFooter.astro' }` sustituye el pie de la librería por un
+  `.astro` del sitio, que recibe las props de `DocsFooter` más el idioma de la página (el tipo
+  `FooterProps`, exportado por `@velezanthony/design/integration`). Llega por el módulo virtual
+  `virtual:@velezanthony/design/components/Footer`, y `DocsLayout` acepta el componente en su prop
+  `Footer`. Una ruta inexistente, un archivo que no es `.astro` o una clave desconocida en `components`
+  rompen el build con la ruta del campo. Sin `components`, el pie es el de siempre.
+- **`CookieSettingsButton`**, el botón «Preferencias de cookies» que reabre el aviso de consentimiento
+  (`data-consent-open`), como átomo propio en `atoms/actions/`. Lo usa `DocsFooter` y puede usarlo un pie
+  propio, con `strings` y una `class` opcional.
 - **`static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas del
   `exclude` de la config pero relativas a `from`:
   `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se

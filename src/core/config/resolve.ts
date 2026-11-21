@@ -9,6 +9,7 @@ import { resolveLayout, type ResolvedLayout } from './layout';
 import type { NavItem } from './nav';
 import {
   DocsConfigSchema,
+  type ComponentsConfig,
   type ExternalDoc,
   type JsonLd,
   type Label,
@@ -50,6 +51,8 @@ export interface ResolvedConfig {
   nav?: NavItem[];
   /** Footer del sitio; sin definir, solo el autor por defecto. */
   footer?: FooterConfig;
+  /** Componentes propios del sitio (rutas desde su raíz); sin definir, los de la librería. */
+  components?: ComponentsConfig;
   editUrl?: string;
   repoRoot?: string;
   /** Enlace de privacidad del pie: una URL o una por idioma. Con `gtmId` es obligatoria (el aviso de cookies enlaza a ella). */

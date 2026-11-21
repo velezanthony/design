@@ -543,3 +543,15 @@ describe('`theme`: el CSS del sitio entra en la misma compilación de Tailwind',
     expect(css.match(/--color-canvas:/g)).toHaveLength(1);
   });
 });
+
+describe('#22 pie por defecto (sin `components`)', () => {
+  it('las páginas de docs llevan el DocsFooter de la librería con el control de cookies', async () => {
+    for (const file of ['guide/index.html', 'es/guide/index.html']) {
+      const html = await site.read(file);
+      expect(html.match(/<footer\b/g)).toHaveLength(1);
+      expect(html).toContain('data-footer-meta');
+      expect(html).toContain('data-footer-legal');
+      expect(html).toMatch(/<button[^>]*data-consent-open/);
+    }
+  });
+});

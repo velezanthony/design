@@ -14,6 +14,7 @@ propios (lo que muestran llega por props o por la ranura) y usan los tokens de `
 
 | Pieza | Importación | Qué hace |
 | --- | --- | --- |
+| `CookieSettingsButton` | `@velezanthony/design/components/atoms/actions/CookieSettingsButton.astro` | El botón «Preferencias de cookies» del pie: reabre el aviso de consentimiento (`data-consent-open`). Recibe `strings` y una `class` opcional. Para un pie propio con analítica ([Pie propio](./navegacion-y-busqueda.md#pie-propio-componentsfooter)). |
 | `Icon` | `@velezanthony/design/components/atoms/display/Icon.astro` | Iconos `mail`, `github`, `linkedin`, `external` y `arrow`; `size` (16 por defecto). `github` y `linkedin` van rellenos y el resto de trazo. |
 | `InlineList` | `@velezanthony/design/components/atoms/display/InlineList.astro` | Elementos cortos (`items: string[]`) separados por un punto medio que nunca abre ni cierra una línea. |
 | `Text` | `@velezanthony/design/components/atoms/display/Text.astro` | Un párrafo con `tone` (`ink`, `muted`, `faint`), `size` (`lead`, `base`, `row`, `sm`), `as` (`p`, `span`, `div`) y `measure` para limitar la línea a la medida de lectura. El contenido va en la ranura. |

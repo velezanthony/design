@@ -285,6 +285,97 @@ describe('astro:config:setup: módulo virtual', () => {
     expect(filename).toMatch(/\.d\.ts$/);
     expect(content).toContain("declare module 'virtual:@velezanthony/design/config'");
     expect(content).toContain('buildFormat');
+    expect(content).toContain("declare module 'virtual:@velezanthony/design/components/Footer'");
+  });
+});
+
+describe('astro:config:setup: componentes propios (`components`)', () => {
+  type VitePlugin = {
+    name: string;
+    resolveId: { filter: { id: RegExp }; handler: () => string };
+    load: { filter: { id: RegExp }; handler: () => string };
+  };
+
+  /** El plugin de Vite del módulo virtual del pie que registra la integración. */
+  async function footerPlugin(userConfig: Parameters<typeof docs>[0], overrides = {}) {
+    const { updateConfig } = await runSetup(satteri(), {}, userConfig, overrides);
+    const plugins = updateConfig.mock.calls
+      .map(([update]) => update as { vite?: { plugins?: VitePlugin[] } })
+      .flatMap((update) => update.vite?.plugins ?? []);
+    const plugin = plugins.find((candidate) => candidate.name === 'velezanthony-design-footer');
+    if (!plugin) throw new Error('no se registró el plugin del pie');
+    return plugin;
+  }
+
+  /** Raíz de proyecto temporal con un pie propio en `src/SiteFooter.astro`. */
+  function projectWithFooter() {
+    const root = mkdtempSync(join(tmpdir(), 'footer-'));
+    mkdirSync(join(root, 'src'));
+    writeFileSync(join(root, 'src/SiteFooter.astro'), '<footer>Propio</footer>');
+    return root;
+  }
+
+  it('el id virtual del pie se resuelve a un id interno de Vite', async () => {
+    const plugin = await footerPlugin({ name: 'x' });
+    const id = 'virtual:@velezanthony/design/components/Footer';
+    expect(plugin.resolveId.filter.id.test(id)).toBe(true);
+    expect(plugin.resolveId.filter.id.test(`${id}/otro`)).toBe(false);
+    expect(plugin.load.filter.id.test(plugin.resolveId.handler())).toBe(true);
+  });
+
+  it('sin `components`, el módulo reexporta el DocsFooter del paquete', async () => {
+    const source = (await footerPlugin({ name: 'x' })).load.handler();
+    expect(source).toMatch(/^export \{ default \} from ".*DocsFooter\.astro";$/);
+  });
+
+  it('con `components.Footer`, reexporta el archivo del sitio', async () => {
+    const root = projectWithFooter();
+    const plugin = await footerPlugin(
+      { name: 'x', components: { Footer: './src/SiteFooter.astro' } },
+      { root: pathToFileURL(`${root}/`) },
+    );
+    expect(plugin.load.handler()).toBe(
+      `export { default } from ${JSON.stringify(join(root, 'src/SiteFooter.astro'))};`,
+    );
+  });
+
+  it('un `components.Footer` que no existe falla con un AstroError que lo nombra', async () => {
+    const root = projectWithFooter();
+    const error = await runSetup(
+      satteri(),
+      {},
+      { name: 'x', components: { Footer: './src/Nope.astro' } },
+      { root: pathToFileURL(`${root}/`) },
+    ).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(AstroError);
+    expect(error).toMatchObject({
+      message: expect.stringContaining('components.Footer'),
+      hint: expect.stringContaining(join(root, 'src/Nope.astro')),
+    });
+  });
+
+  it('un `components.Footer` que no es .astro falla al validar la config', () => {
+    function attempt() {
+      return docs({ name: 'x', components: { Footer: './src/Footer.tsx' } });
+    }
+    expect(attempt).toThrow(AstroError);
+    try {
+      attempt();
+    } catch (error) {
+      expect((error as AstroError).hint).toContain('components.Footer');
+    }
+  });
+
+  it('un componente desconocido en `components` falla al validar la config', () => {
+    function attempt() {
+      return docs({ name: 'x', components: { Header: './src/Header.astro' } } as never);
+    }
+    expect(attempt).toThrow(AstroError);
+    try {
+      attempt();
+    } catch (error) {
+      expect((error as AstroError).hint).toContain('components.Header: opción desconocida.');
+    }
   });
 });
 

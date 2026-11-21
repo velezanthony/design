@@ -56,6 +56,8 @@ interface Props {
   layout?: ResolvedLayout;
   /** `false` para una página con su propio marcado (herramientas, tablas): sin el estilo de `.prose`. */
   prose?: boolean;
+  /** Pie de la página; sin él, `DocsFooter`. Uno propio recibe las mismas props (`FooterProps`). */
+  Footer?: typeof DocsFooter;
 }
 
 const {
@@ -82,6 +84,7 @@ const {
   fallback,
   layout = DEFAULT_LAYOUT,
   prose = true,
+  Footer = DocsFooter,
 } = Astro.props;
 /* Con índice, tres columnas; sin él, el contenido ocupa también la de la derecha. */
 const hasToc = tocEntries(headings, layout.tocDepth).length > 0;
@@ -199,7 +202,8 @@ const layoutScript = layoutBootstrapScript(layout);
     </Article>
   </div>
 
-  <DocsFooter
+  <Footer
+    lang={lang}
     siteName={siteName}
     year={year}
     strings={strings}

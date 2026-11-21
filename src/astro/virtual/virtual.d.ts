@@ -34,6 +34,7 @@ declare module 'virtual:@velezanthony/design/config' {
     sidebar?: SidebarItem[];
     nav?: NavItem[];
     footer?: FooterConfig;
+    components?: { Footer?: string };
     editUrl?: string;
     repoRoot?: string;
     privacyUrl?: Label;
@@ -55,4 +56,12 @@ declare module 'virtual:@velezanthony/design/config' {
     root: string;
   };
   export default config;
+}
+
+/* El pie de las páginas de docs: el `.astro` de `components.Footer` o el `DocsFooter` del paquete.
+   Sus props son `FooterProps` (exportado por `@velezanthony/design/integration`). */
+declare module 'virtual:@velezanthony/design/components/Footer' {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- autocontenido: la firma de un componente Astro
+  const Footer: (props: any) => any;
+  export default Footer;
 }

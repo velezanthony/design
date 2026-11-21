@@ -13,10 +13,11 @@ import { extendMarkdownProcessor } from '../markdown/processor';
 import { mergeLangAlias } from '../markdown/register';
 import { routesFor } from '../routes/routes';
 import { createVirtualData } from '../virtual/data';
-import { createVirtualConfigPlugin } from '../virtual/plugin';
+import { createVirtualConfigPlugin, createVirtualFooterPlugin } from '../virtual/plugin';
 import { applyAnalyticsForCommand, readAnalyticsEnv } from './analytics-env';
 import { runBuildDone } from './build/build-done';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
+import { footerComponent } from './components';
 import { CONFIG_FILES } from './config';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
@@ -110,6 +111,11 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         const hasThemes = Object.keys(shikiConfig?.themes ?? {}).length > 0;
         // Una carpeta de contenido fuera del proyecto: Vite debe poder servir sus imágenes en dev.
         const allow = contentFsAllow(fileURLToPath(config.root), resolvedConfig.content);
+        // El pie de las páginas de docs: el del sitio (falla aquí si el archivo no existe) o el del paquete.
+        const footer = footerComponent(
+          fileURLToPath(config.root),
+          resolvedConfig.components?.Footer,
+        );
         updateConfig({
           markdown: { shikiConfig: { langAlias, ...(hasThemes ? {} : { themes: codeThemes }) } },
           fonts,
@@ -128,6 +134,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
                   root: config.root.href,
                 }),
               ),
+              createVirtualFooterPlugin(footer),
               // La librería es la dueña del CSS: el sitio no registra Tailwind.
               ...tailwindPlugins(config.vite?.plugins),
             ],

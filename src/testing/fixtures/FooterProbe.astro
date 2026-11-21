@@ -1,0 +1,21 @@
+---
+import type { FooterProps } from '../../core/navigation/footer';
+
+/* Pie propio de prueba: vuelca en atributos las props que recibe del layout. */
+type Props = FooterProps;
+
+const { lang, siteName, year, strings, privacyUrl, cookieControl, footer } = Astro.props;
+---
+
+<footer
+  data-footer-probe
+  data-lang={lang}
+  data-site-name={siteName}
+  data-year={year}
+  data-privacy-url={privacyUrl}
+  data-cookie-control={String(cookieControl)}
+  data-strings-locale-switch={strings['locale.switch']}
+  data-links={String(footer?.links.length ?? 0)}
+>
+  Pie propio
+</footer>

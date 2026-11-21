@@ -443,6 +443,37 @@ describe('theme de la config', () => {
   });
 });
 
+describe('components de la config', () => {
+  it('es opcional: sin él no hay componentes propios', () => {
+    expect(messages({ name: 'X' })).toEqual([]);
+    expect(resolveConfig({ name: 'X' }).components).toBeUndefined();
+  });
+
+  it('acepta la ruta de un .astro del proyecto como `Footer`', () => {
+    const config = resolveConfig({
+      name: 'X',
+      components: { Footer: './src/components/Footer.astro' },
+    });
+    expect(config.components).toEqual({ Footer: './src/components/Footer.astro' });
+  });
+
+  it.each([
+    ['vacío', ''],
+    ['que no es .astro', 'src/components/Footer.tsx'],
+    ['una URL', 'https://x.dev/Footer.astro'],
+  ])('rechaza un `Footer` %s con su ruta', (_name, Footer) => {
+    const [message] = messages({ name: 'X', components: { Footer } });
+    expect(message).toContain('components.Footer');
+    expect(message).toContain('.astro');
+  });
+
+  it('un componente desconocido falla con su ruta completa', () => {
+    expect(
+      messages({ name: 'X', components: { Header: './src/components/Header.astro' } }),
+    ).toEqual(['components.Header: opción desconocida.']);
+  });
+});
+
 describe('static de la config', () => {
   const base = { name: 'X', locales: ['en', 'es'] };
 

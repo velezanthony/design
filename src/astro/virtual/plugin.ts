@@ -18,3 +18,24 @@ export function createVirtualConfigPlugin(data: unknown): Plugin {
     load: { filter: { id: /^\0virtual:@velezanthony\/design\/config$/ }, handler: () => source },
   };
 }
+
+/** Id del pie de las páginas de docs: el del sitio (`components.Footer`) o `DocsFooter`. */
+export const VIRTUAL_FOOTER_ID = 'virtual:@velezanthony/design/components/Footer';
+
+const RESOLVED_FOOTER_ID = `\0${VIRTUAL_FOOTER_ID}`;
+
+/** Sirve el pie como módulo virtual que reexporta el `.astro` elegido; la ruta llega ya resuelta y comprobada. */
+export function createVirtualFooterPlugin(file: string): Plugin {
+  const source = `export { default } from ${JSON.stringify(file)};`;
+  return {
+    name: 'velezanthony-design-footer',
+    resolveId: {
+      filter: { id: /^virtual:@velezanthony\/design\/components\/Footer$/ },
+      handler: () => RESOLVED_FOOTER_ID,
+    },
+    load: {
+      filter: { id: /^\0virtual:@velezanthony\/design\/components\/Footer$/ },
+      handler: () => source,
+    },
+  };
+}

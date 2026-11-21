@@ -1,6 +1,7 @@
 ---
 /* Contenedor de una página de docs; `render(entry)` va AQUÍ y no en el layout, porque en dev rompe el `<head>` (astro#13724). */
 import Fonts from './Fonts.astro';
+import Footer from 'virtual:@velezanthony/design/components/Footer';
 import DocPage from '../../components/pages/DocPage.astro';
 import { docRoutes, docView, type DocRoute } from '../views/doc';
 import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
@@ -32,7 +33,7 @@ const view = docView({
 });
 ---
 
-<DocPage {...view} headings={headings} year={new Date().getFullYear()}>
+<DocPage {...view} headings={headings} year={new Date().getFullYear()} Footer={Footer}>
   <Fonts slot="head" />
   <Content />
 </DocPage>

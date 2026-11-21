@@ -1,0 +1,14 @@
+---
+import type { FooterProps } from '../../../../../../index.ts';
+
+/* Pie propio del sitio: lo elige `components.Footer` en `docs.config.mjs` y recibe `FooterProps`. */
+type Props = FooterProps;
+
+const { lang, siteName, year } = Astro.props;
+---
+
+<footer data-site-footer>
+  <p>
+    Pie de {siteName} ({lang}) · {year}
+  </p>
+</footer>

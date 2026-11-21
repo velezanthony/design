@@ -128,6 +128,62 @@ Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al
 cookies» (solo con analítica). Este sitio no declara licencia todavía. El año sale del reloj del
 visitante (`client/layout/year.ts`); el del build queda como respaldo sin JavaScript.
 
+#### Pie propio (`components.Footer`)
+
+Un sitio que ya tiene su pie (un portfolio con sus páginas propias) puede usarlo también en las páginas
+de docs, como los `components` de Starlight. Se declara en `docs.config.mjs` con la ruta de un `.astro`
+desde la raíz del proyecto:
+
+```js
+export default defineDocsConfig({
+  name: 'Mi sitio',
+  components: { Footer: './src/components/DocsFooter.astro' },
+});
+```
+
+```astro
+---
+// src/components/DocsFooter.astro
+import type { FooterProps } from '@velezanthony/design/integration';
+import CookieSettingsButton from '@velezanthony/design/components/atoms/actions/CookieSettingsButton.astro';
+
+type Props = FooterProps;
+
+const { siteName, year, strings, privacyUrl, cookieControl } = Astro.props;
+---
+
+<footer class="surface-inverse mt-auto px-6 py-8">
+  <p>© {year} {siteName}</p>
+  {privacyUrl && <a href={privacyUrl}>{strings['consent.privacy']}</a>}
+  {cookieControl && <CookieSettingsButton strings={strings} />}
+</footer>
+```
+
+El componente sustituye entero al pie de la librería y recibe estas props (`FooterProps`):
+
+| Prop | Tipo | Qué es |
+| --- | --- | --- |
+| `lang` | `string` | Idioma de la página. |
+| `siteName` | `string` | El `name` de la config. |
+| `year` | `number` | Año del build, para el copyright. |
+| `strings` | `UiStrings` | Textos de interfaz del idioma, ya fusionados con los de `ui`. |
+| `privacyUrl` | `string \| undefined` | La `privacyUrl` del idioma; sin ella, no hay enlace que pintar. |
+| `cookieControl` | `boolean` | `true` con analítica: hay una elección de cookies que reabrir. |
+| `footer` | `FooterView \| undefined` | Licencia, autor y enlaces de la opción `footer`, ya resueltos al idioma. |
+
+- **Cómo llega.** La integración comprueba la ruta y sirve el módulo virtual
+  `virtual:@velezanthony/design/components/Footer`, que reexporta ese archivo o, sin `components`,
+  `DocsFooter`. Lo importa la ruta de las páginas de docs (`astro/routes/doc.astro`) y se lo pasa a
+  `DocsLayout` por su prop `Footer`: los componentes no leen módulos virtuales. Un layout propio que use
+  `DocsLayout` puede pasarle su pie por esa misma prop.
+- **Con analítica,** el pie propio es quien da la forma de retirar el consentimiento:
+  `CookieSettingsButton` es el botón de «Preferencias de cookies» de `DocsFooter`, con el atributo
+  `data-consent-open` que escucha el script de consentimiento. Recibe `strings` y una `class` opcional.
+- **El `<body>` es una columna flexible:** `mt-auto` en el `<footer>` lo deja abajo en una página corta.
+- **Rompe el build:** una ruta que no existe (nombra `components.Footer` y dónde se buscó), una que no
+  es `.astro` o es una URL, y cualquier otra clave dentro de `components` (`components.Header: opción
+  desconocida.`). Las pantallas del panel SEO, solo de desarrollo, siguen con el pie de la librería.
+
 ## Búsqueda
 
 La búsqueda es **Pagefind**: un índice estático generado al final del build, sin servidor.

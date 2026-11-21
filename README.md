@@ -181,6 +181,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
 | `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
+| `components`    | Componentes propios que sustituyen a los de la librería: `{ Footer: './src/components/DocsFooter.astro' }` (un `.astro` desde la raíz del proyecto, debe existir). Ver abajo. |
 | `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
 | `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
 | `ogLocales`     | `og:locale` con territorio por idioma: `{ es: 'es_ES', en: 'en_GB' }`; sin él, el idioma tal cual (`es`). Cada clave debe estar en `locales`. |
@@ -372,6 +373,22 @@ footer: {
 - Rompe el build, con la ruta (`footer.links[1].slug`): un `slug` que no es una página, un enlace con
   ambos o ninguno de `slug` / `href`, y cualquier `href` que no sea https.
 - Textos de UI: `footer.label`, `footer.repository`, `footer.report`, `footer.by`.
+
+### `components`
+
+El pie de las páginas de docs puede ser el del sitio, como los `components` de Starlight:
+
+```js
+components: { Footer: './src/components/DocsFooter.astro' }, // desde la raíz del proyecto
+```
+
+El componente recibe `FooterProps` (`import type { FooterProps } from '@velezanthony/design/integration'`):
+`lang`, `siteName`, `year`, `strings`, `privacyUrl?`, `cookieControl` y `footer?` (la opción `footer` ya
+resuelta al idioma). Con analítica, `CookieSettingsButton`
+(`@velezanthony/design/components/atoms/actions/CookieSettingsButton.astro`, con `strings` y `class?`)
+es el botón que reabre el aviso de consentimiento. Rompe el build una ruta inexistente, una que no es
+`.astro` y cualquier otra clave en `components`. Detalle en
+[Pie propio](docs/src/content/docs/guia/navegacion-y-busqueda.md#pie-propio-componentsfooter).
 
 ### `layout`
 

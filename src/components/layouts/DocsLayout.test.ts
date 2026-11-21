@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import type { SidebarNode } from '../../core/navigation/sidebar';
 import type { HeadConfig } from '../../core/seo/head';
-import { renderDocument } from '../../testing/render';
+import FooterProbe from '../../testing/fixtures/FooterProbe.astro';
+import { renderDocument, text } from '../../testing/render';
 import { stringsFor } from '../../testing/strings';
 import DocsLayout from './DocsLayout.astro';
 
@@ -167,6 +168,45 @@ describe('DocsLayout: consentimiento (12.5)', () => {
 
   it('con gtmId y sin privacyUrl falla con un error claro', async () => {
     await expect(page({ gtmId: 'GTM-ABC' })).rejects.toThrow(/privacyUrl/);
+  });
+});
+
+describe('DocsLayout: pie (`Footer`)', () => {
+  it('sin `Footer` pinta el pie de la librería', async () => {
+    const htmlDocument = await page();
+    expect(htmlDocument.querySelector('footer [data-footer-meta]')).not.toBeNull();
+    expect(text(htmlDocument.querySelector('[data-footer-meta]'))).toContain('© 2026 Docs');
+  });
+
+  it('con `Footer` pinta ese componente en lugar del de la librería, uno solo', async () => {
+    const htmlDocument = await page({ Footer: FooterProbe });
+    expect(htmlDocument.querySelectorAll('footer')).toHaveLength(1);
+    expect(htmlDocument.querySelector('footer[data-footer-probe]')).not.toBeNull();
+    expect(htmlDocument.querySelector('[data-footer-meta]')).toBeNull();
+  });
+
+  it('el pie propio recibe las mismas props que el de la librería, más el idioma', async () => {
+    const htmlDocument = await page({
+      Footer: FooterProbe,
+      gtmId: 'GTM-ABC',
+      privacyUrl: 'https://x.dev/privacy',
+      footer: { links: [{ label: 'Blog', href: 'https://blog.dev', external: true }] },
+    });
+    const probe = htmlDocument.querySelector('[data-footer-probe]')!;
+    expect(probe.getAttribute('data-lang')).toBe('es');
+    expect(probe.getAttribute('data-site-name')).toBe('Docs');
+    expect(probe.getAttribute('data-year')).toBe('2026');
+    expect(probe.getAttribute('data-privacy-url')).toBe('https://x.dev/privacy');
+    expect(probe.getAttribute('data-cookie-control')).toBe('true');
+    expect(probe.getAttribute('data-strings-locale-switch')).toBe('Idioma');
+    expect(probe.getAttribute('data-links')).toBe('1');
+  });
+
+  it('sin analítica, el pie propio recibe `cookieControl` a false', async () => {
+    const htmlDocument = await page({ Footer: FooterProbe });
+    expect(
+      htmlDocument.querySelector('[data-footer-probe]')!.getAttribute('data-cookie-control'),
+    ).toBe('false');
   });
 });
 

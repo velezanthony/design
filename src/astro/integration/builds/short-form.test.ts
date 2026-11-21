@@ -30,3 +30,13 @@ describe('sitio monolingüe', () => {
     expect(await site.read('index.html')).not.toContain('ld+json');
   });
 });
+
+describe('pie propio (`components.Footer`)', () => {
+  it('las páginas de docs llevan el pie del sitio y no el de la librería', async () => {
+    const html = await site.read('index.html');
+    expect(html.match(/<footer\b/g)).toHaveLength(1);
+    expect(html).toContain('data-site-footer');
+    expect(html).toContain('Pie de Mono (en)');
+    expect(html).not.toContain('data-footer-meta');
+  });
+});

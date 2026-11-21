@@ -184,6 +184,19 @@ const ExternalDocSchema = z.strictObject({
 });
 export type ExternalDoc = z.infer<typeof ExternalDocSchema>;
 
+/* Componentes del sitio que sustituyen a los de la librería (como los `components` de Starlight): la
+   ruta de un `.astro` desde la raíz del proyecto. Estricto: un nombre que no se puede sustituir falla. */
+const ComponentsSchema = z.strictObject({
+  Footer: z
+    .string()
+    .refine(
+      (file) => file.endsWith('.astro') && !/^[a-z][a-z0-9+.-]*:\/\//i.test(file),
+      'Debe ser la ruta local de un componente .astro (./src/components/Footer.astro).',
+    )
+    .optional(),
+});
+export type ComponentsConfig = z.infer<typeof ComponentsSchema>;
+
 /** Esquema de la config pública y fuente de `DocsUserConfig`; los valores por defecto los pone `resolveConfig`. */
 export const DocsConfigSchema = z
   .strictObject({
@@ -239,6 +252,8 @@ export const DocsConfigSchema = z
     sidebar: z.array(SidebarItemSchema).optional(),
     nav: z.array(NavItemSchema).optional(),
     footer: FooterSchema.optional(),
+    /** Componentes propios que sustituyen a los de la librería: `{ Footer: './src/…/Footer.astro' }`. */
+    components: ComponentsSchema.optional(),
     editUrl: z.string().optional(),
     repoRoot: z.string().optional(),
     privacyUrl: z.union([PrivacyUrlSchema, z.record(z.string(), PrivacyUrlSchema)]).optional(),

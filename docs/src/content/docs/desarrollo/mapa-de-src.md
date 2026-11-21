@@ -191,7 +191,7 @@ textos (`strings: UiStrings`).
 components/
 ├── atoms/
 │   ├── form/        Checkbox, FieldError, HelpText, Input, Label, Radio, Select, Switch, Textarea
-│   ├── actions/     Button, Link
+│   ├── actions/     Button, Link, CookieSettingsButton (reabre el aviso de consentimiento)
 │   └── display/     Heading, Icon, InlineList, Tag, Text
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
@@ -262,6 +262,7 @@ astro/
 │   ├── client-pages.ts      Guarda las páginas del consumidor al resolver las rutas
 │   ├── fs-allow.ts          Carpetas que Vite debe servir si el contenido está fuera del proyecto
 │   ├── site-theme.ts        Alias de Vite al CSS propio del sitio (opción `theme`)
+│   ├── components.ts        El archivo del pie de las páginas de docs (opción `components.Footer`)
 │   ├── static-folders-dev.ts  Middleware de dev que sirve las carpetas de `static`
 │   ├── tailwind.ts          El plugin de Tailwind, salvo que el sitio ya lo registrase
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
@@ -327,7 +328,8 @@ astro/
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
 └── virtual/
-    ├── plugin.ts            Plugin de Vite de virtual:@velezanthony/design/config
+    ├── plugin.ts            Plugins de Vite de virtual:@velezanthony/design/config y del pie
+                             (virtual:@velezanthony/design/components/Footer)
     ├── data.ts              Qué viaja en el módulo virtual
     └── virtual.d.ts         Sus tipos, copiados al .astro/ del consumidor
 ```
