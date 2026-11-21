@@ -3,6 +3,7 @@ import type { Locale } from '../../core/i18n/locale';
 import { pickLocalized } from '../../core/i18n/translation-policy';
 import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import { coverFor } from '../../core/listing/covers';
+import type { Page } from '../../core/content/discovery';
 import { isPagedListing, resolveListing, type ListingOptions } from '../../core/listing/options';
 import {
   buildListing,
@@ -19,37 +20,20 @@ import {
 import { pageCount, paginate } from '../../core/shared/paginate';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
-import { navContextOf, siteContext, type SiteContext } from './chrome';
+import { navContextOf, type SiteContext } from './chrome';
+import type { DocRoute } from './doc';
 
 /* El índice generado de una página con listado (un `_index.md` o una carpeta que `indexes` activa):
-   qué rutas tiene (la tabla y las tarjetas se paginan) y lo que pinta cada una. Las portadas salen
-   como `EntryCover`; la ruta convierte las imágenes en URLs con `astro:assets`. */
+   sus opciones (que `docRoutes` resuelve una vez por ruta), cuántas páginas tiene y lo que pinta cada
+   una. Las portadas salen como `EntryCover`; la ruta convierte las imágenes en URLs con
+   `astro:assets`. */
 
-/** Lo que el índice necesita saber de la ruta que se pinta. */
-interface ListingRoute {
-  /** Identidad de la página del listado: su carpeta. */
-  slug: string;
-  /** URL del listado sin idioma ni base, si no es la de su identidad (un `_index.en.md` con `slug`). */
-  urlSlug?: string;
-  locale: Locale;
-  contentLocale: Locale;
-  /** Página del listado (desde 2); sin ella, la 1. */
-  page?: number;
-}
-
-/** La página que pone el contenido de la ruta. */
-function contentOf(route: Pick<ListingRoute, 'slug' | 'contentLocale'>, data: DocData[]) {
-  return data.find((item) => item.slug === route.slug && item.locale === route.contentLocale);
-}
-
-/** Opciones del listado de la ruta, o `undefined` si su página no lleva. */
-export function listingFor(
-  route: Pick<ListingRoute, 'slug' | 'contentLocale'>,
+/** Opciones del listado de una página, o `undefined` si no lista su carpeta. */
+export function listingOptionsOf(
+  page: Pick<Page, 'slug' | 'listing'>,
   config: Pick<VirtualConfig, 'indexes'>,
-  data: DocData[],
 ): ListingOptions | undefined {
-  const page = contentOf(route, data);
-  if (!page?.listing) return undefined;
+  if (!page.listing) return undefined;
   return resolveListing({ folder: page.slug, own: page.listing, indexes: config.indexes });
 }
 
@@ -90,37 +74,39 @@ function detailsOf(
 /** Fecha del último commit de cada archivo, por `sourcePath`; lo que no tiene commit no figura. */
 export type DatesBySource = ReadonlyMap<string, string>;
 
+/** Lo que el listado necesita saber de la ruta que se pinta. */
+type RouteFields = Pick<DocRoute, 'slug' | 'urlSlug' | 'locale' | 'contentLocale'>;
+
 function listingOf(
   site: SiteContext,
-  route: ListingRoute,
+  route: RouteFields,
   options: ListingOptions,
-  data: DocData[],
-  dates: DatesBySource = new Map(),
+  details: (slug: string) => EntryDetails | undefined,
   takenIds: Iterable<string> = [],
 ): Listing {
   return buildListing({
     context: navContextOf(site, route),
     contentLocale: route.contentLocale,
     folder: options.folder,
-    details: detailsOf(data, route.contentLocale, site.config, dates),
+    details,
     takenIds,
   });
 }
 
-/** Páginas del listado de una ruta, o `undefined` si no se pagina (no tiene listado o es una lista). */
-export function listingPages(
+/** Páginas de un listado paginado; solo cuenta entradas, sin fechas ni portadas. */
+export function listingPageCount(
   site: SiteContext,
-  route: Omit<ListingRoute, 'page'>,
-  data: DocData[],
-): number | undefined {
-  const options = listingFor(route, site.config, data);
-  if (!options || !isPagedListing(options)) return undefined;
-  return pageCount(listingOf(site, route, options, data).entries.length, options.pageSize);
+  route: RouteFields,
+  options: ListingOptions,
+): number {
+  if (!isPagedListing(options)) return 1;
+  const total = listingOf(site, route, options, () => undefined).entries.length;
+  return pageCount(total, options.pageSize);
 }
 
-interface IndexViewInput {
-  route: ListingRoute;
-  config: VirtualConfig;
+interface ListingViewInput {
+  route: DocRoute;
+  site: SiteContext;
   data: DocData[];
   dates?: DatesBySource;
   /** Encabezados del cuerpo de la página: sus ids no se repiten en el listado. */
@@ -128,25 +114,23 @@ interface IndexViewInput {
 }
 
 /** El índice de la ruta, o `undefined` si su página no lleva listado. */
-export function docIndexView({
+export function docListingView({
   route,
-  config,
+  site,
   data,
-  dates,
+  dates = new Map(),
   headings = [],
-}: IndexViewInput): IndexView | undefined {
-  const options = listingFor(route, config, data);
+}: ListingViewInput): IndexView | undefined {
+  const options = route.listing;
   if (!options) return undefined;
-  const site = siteContext(config, data);
   const listing = listingOf(
     site,
     route,
     options,
-    data,
-    dates,
+    detailsOf(data, route.contentLocale, site.config, dates),
     headings.map((heading) => heading.slug),
   );
-  const strings = config.strings[route.locale] as UiStrings;
+  const strings = site.config.strings[route.locale] as UiStrings;
   const paged = isPagedListing(options) ? options : undefined;
   const total = listing.entries.length;
   /* La lista no se pagina: todo cabe en su única página. */
@@ -163,7 +147,9 @@ export function docIndexView({
       cover: coverFor(cover, options.covers, imageAlt),
     }),
   );
-  const title = contentOf(route, data)?.title ?? '';
+  const title =
+    data.find((item) => item.slug === route.slug && item.locale === route.contentLocale)?.title ??
+    '';
   const hrefs = Array.from({ length: pages }, (_item, index) =>
     listingPageUrl(route.urlSlug ?? route.slug, route.locale, index + 1, site.url),
   );

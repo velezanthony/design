@@ -163,6 +163,20 @@ export default defineConfig(
     [],
     [
       {
+        regex: siblingOf(['routes', 'components', 'views']),
+        message:
+          '`data/` no depende de `routes/`, `views/` ni `components/`: solo `routes/` conoce los datos y la presentación.',
+      },
+    ],
+    ['src/astro/data/seo-on-page/**'],
+  ),
+  /* El adaptador del panel (solo dev) aún lee `views/pages` y `views/seo-on-page/hrefs`: se le acota la
+     regla de `views/` hasta que esas piezas salgan de `views/`. */
+  layer(
+    'astro/data/seo-on-page',
+    [],
+    [
+      {
         regex: siblingOf(['routes', 'components']),
         message: '`data/` no depende de `routes/` ni de `components/`.',
       },

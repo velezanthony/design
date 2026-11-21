@@ -8,6 +8,7 @@ import {
   buildNavTree,
   buildNavTrees,
   findNavSection,
+  hasNavTreeSlots,
   isNavTreeGroup,
   navSectionNames,
   splitNavTrees,
@@ -228,5 +229,23 @@ describe('splitNavTrees', () => {
 
   it('sin huecos devuelve el HTML entero en un solo trozo', () => {
     expect(splitNavTrees('<p>x</p>')).toEqual([{ kind: 'html', html: '<p>x</p>' }]);
+  });
+});
+
+describe('hasNavTreeSlots', () => {
+  it('verdadero si el HTML renderizado tiene un hueco de la directiva', () => {
+    expect(
+      hasNavTreeSlots(
+        '<p>x</p><div data-docs-nav-tree="1" data-docs-nav-tree-descriptions="true"></div>',
+      ),
+    ).toBe(true);
+  });
+
+  it('falso con `::nav-tree` dentro de un bloque de código: ahí no hay hueco', () => {
+    expect(hasNavTreeSlots('<pre><code>::nav-tree{section="Guía"}\n</code></pre>')).toBe(false);
+  });
+
+  it('falso sin ningún hueco', () => {
+    expect(hasNavTreeSlots('<p>x</p>')).toBe(false);
   });
 });

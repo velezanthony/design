@@ -13,13 +13,13 @@ import { buildHead, type HeadConfig, type PageData } from '../../core/seo/head';
 import { excludeNoindex, noindexUrls } from '../../core/seo/indexable';
 import { resolveMeta, withImageSize, type ImageSizes } from '../../core/seo/meta';
 import type { DocData } from '../loader/schema';
-import { consentOf, navContextOf, siteContext, type SiteContext } from './chrome';
-import type { VirtualConfig } from '../virtual/data';
+import { consentOf, navContextOf, type SiteContext } from './chrome';
 import { baseUrl } from '../../core/shared/urls';
 import { DocsError } from '../../core/errors';
 import { urlSlugOf } from '../../core/content/slug';
 import { translate } from '../../core/i18n/ui-strings';
-import { listingPages, listingPageUrl } from './doc-index';
+import type { ListingOptions } from '../../core/listing/options';
+import { listingOptionsOf, listingPageCount, listingPageUrl } from './doc-listing';
 
 /** Una ruta que sirve `doc.astro`: una página real o una ruta de reserva (`fallback`). */
 export interface DocRoute {
@@ -36,6 +36,8 @@ export interface DocRoute {
   contentLocale: Locale;
   /** Solo en `fallback`: URL (con base) del original. */
   canonical?: string;
+  /** Opciones del listado de su página, ya resueltas; solo en las rutas de una página con listado. */
+  listing?: ListingOptions;
   /** Solo en las páginas 2 y siguientes de un índice paginado: cuál es. */
   page?: number;
   /** En un índice paginado (más de una página): cuántas tiene. */
@@ -47,9 +49,8 @@ function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
 }
 
 /** Todas las rutas del sitio: las páginas reales y, con política `fallback`, las de reserva. */
-export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
-  const site = siteContext(config, data);
-  const { pages, url, availability, policies } = site;
+export function docRoutes(site: SiteContext): DocRoute[] {
+  const { pages, url, availability, policies, config } = site;
   const real = pages.map((page): DocRoute => ({
     param: paramOf(urlSlugOf(page), page.locale, config.defaultLocale),
     kind: 'page',
@@ -69,25 +70,31 @@ export function docRoutes(data: DocData[], config: VirtualConfig): DocRoute[] {
       canonical: spec.canonical,
     }),
   );
-  assertFreeFallbacks(real, fallback, site, data);
-  return withListingPages([...real, ...fallback], site, data);
+  assertFreeFallbacks(real, fallback, site);
+  return withListingPages(withListings([...real, ...fallback], site), site);
+}
+
+/** Cada ruta con las opciones del listado de la página que pinta, si lista su carpeta. */
+function withListings(routes: DocRoute[], site: SiteContext): DocRoute[] {
+  return routes.map((route) => {
+    const page = site.pages.find(
+      (item) => item.slug === route.slug && item.locale === route.contentLocale,
+    );
+    const listing = page && listingOptionsOf(page, site.config);
+    return listing ? { ...route, listing } : route;
+  });
 }
 
 /** Una reserva va en la URL del original con el prefijo de su idioma; si un `slug` propio ya la ocupa en ese idioma, la build se para. */
-function assertFreeFallbacks(
-  real: DocRoute[],
-  fallback: DocRoute[],
-  site: SiteContext,
-  data: DocData[],
-): void {
+function assertFreeFallbacks(real: DocRoute[], fallback: DocRoute[], site: SiteContext): void {
   const owners = new Map(real.map((route) => [route.param, route]));
   for (const route of fallback) {
     const owner = owners.get(route.param);
     if (!owner) continue;
     const file =
-      data.find((item) => item.slug === owner.slug && item.locale === owner.locale)?.sourcePath ??
-      owner.slug;
-    const original = data.find(
+      site.pages.find((item) => item.slug === owner.slug && item.locale === owner.locale)
+        ?.sourcePath ?? owner.slug;
+    const original = site.pages.find(
       (item) => item.slug === route.slug && item.locale === route.contentLocale,
     )?.sourcePath;
     throw new DocsError(
@@ -101,10 +108,10 @@ function assertFreeFallbacks(
 }
 
 /** Las rutas con un índice paginado saben cuántas páginas tiene y suman las suyas (`<carpeta>/2/`…); una página real en esa URL rompe el build. */
-function withListingPages(routes: DocRoute[], site: SiteContext, data: DocData[]): DocRoute[] {
+function withListingPages(routes: DocRoute[], site: SiteContext): DocRoute[] {
   const taken = new Set(routes.map((route) => route.param));
   return routes.flatMap((route) => {
-    const pages = listingPages(site, route, data) ?? 1;
+    const pages = route.listing ? listingPageCount(site, route, route.listing) : 1;
     if (pages === 1) return [route];
     const extra = Array.from({ length: pages - 1 }, (_item, index): DocRoute => {
       const page = index + 2;
@@ -163,15 +170,16 @@ export interface DocView {
 
 interface DocViewInput {
   route: DocRoute;
-  config: VirtualConfig;
+  /** El contexto del sitio, construido una vez por render en la ruta. */
+  site: SiteContext;
+  /** Los datos de la colección: de la entrada del contenido salen `editPath`, el `seo` y el título. */
   data: DocData[];
   sizes?: ImageSizes;
 }
 
 /** Datos de la página que se renderiza, para el layout. */
-export function docView({ route, config, data, sizes = new Map() }: DocViewInput): DocView {
-  const site = siteContext(config, data);
-  const { pages, url, availability } = site;
+export function docView({ route, site, data, sizes = new Map() }: DocViewInput): DocView {
+  const { pages, url, availability, config } = site;
   const original = data.find(
     (item) => item.slug === route.slug && item.locale === route.contentLocale,
   );
@@ -267,7 +275,9 @@ function paginationLinks(
 }
 
 /** Los árboles de `::nav-tree` de la página, uno por posición de `nav`: textos en el idioma del contenido y URLs como las de su barra lateral. */
-export function docNavTrees({ route, config, data }: Omit<DocViewInput, 'sizes'>): NavTreeNode[][] {
-  const site = siteContext(config, data);
+export function docNavTrees({
+  route,
+  site,
+}: Pick<DocViewInput, 'route' | 'site'>): NavTreeNode[][] {
   return buildNavTrees(navContextOf(site, route), route.contentLocale);
 }

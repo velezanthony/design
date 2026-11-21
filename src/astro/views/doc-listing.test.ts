@@ -4,7 +4,8 @@ import { resolveConfig } from '../../core/config/resolve';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
 import { docRoutes, docView, type DocRoute } from './doc';
-import { docIndexView, sizeHrefs } from './doc-index';
+import { siteContext } from './chrome';
+import { docListingView, sizeHrefs } from './doc-listing';
 import type { DocData } from '../loader/schema';
 
 function site(user: Partial<DocsUserConfig> = {}) {
@@ -54,7 +55,7 @@ function routeOf(routes: DocRoute[], param: string | undefined) {
 
 describe('docRoutes: índices paginados', () => {
   it('la página 1 en la URL de la carpeta y las demás en /2/, /3/…, también en la reserva', () => {
-    const params = docRoutes(data, site()).map((route) => route.param);
+    const params = docRoutes(siteContext(site(), data)).map((route) => route.param);
     expect(params).toEqual(
       expect.arrayContaining([
         'tutoriales',
@@ -69,7 +70,7 @@ describe('docRoutes: índices paginados', () => {
   });
 
   it('cada ruta sabe su página y el total', () => {
-    const routes = docRoutes(data, site());
+    const routes = docRoutes(siteContext(site(), data));
     expect(routeOf(routes, 'tutoriales')).toMatchObject({ slug: 'tutoriales', pages: 3 });
     expect(routeOf(routes, 'tutoriales').page).toBeUndefined();
     expect(routeOf(routes, 'tutoriales/2')).toMatchObject({
@@ -85,20 +86,26 @@ describe('docRoutes: índices paginados', () => {
     const list = data.map((item) =>
       item === listing ? { ...item, listing: { layout: 'list' as const, pageSize: 2 } } : item,
     );
-    const params = docRoutes(list, site()).map((route) => route.param);
+    const params = docRoutes(siteContext(site(), list)).map((route) => route.param);
     expect(params).not.toContain('tutoriales/2');
   });
 
   it('una página real que ocupa la URL de una página del listado rompe el build', () => {
-    expect(() => docRoutes([...data, doc('tutoriales/2')], site())).toThrow(/tutoriales\/2/);
+    expect(() => docRoutes(siteContext(site(), [...data, doc('tutoriales/2')]))).toThrow(
+      /tutoriales\/2/,
+    );
   });
 });
 
 describe('docView: páginas de un índice paginado', () => {
-  const routes = docRoutes(data, site());
+  const routes = docRoutes(siteContext(site(), data));
 
   it('la página 1: indexable, canonical a sí misma y `rel=next`', () => {
-    const view = docView({ route: routeOf(routes, 'tutoriales'), config: site(), data });
+    const view = docView({
+      route: routeOf(routes, 'tutoriales'),
+      site: siteContext(site(), data),
+      data,
+    });
     expect(view.indexable).toBe(true);
     const links = view.head.filter((tag) => tag.tag === 'link');
     expect(links).toContainEqual({
@@ -109,7 +116,11 @@ describe('docView: páginas de un índice paginado', () => {
   });
 
   it('la página 2: noindex, canonical a sí misma, título con la página y prev/next', () => {
-    const view = docView({ route: routeOf(routes, 'tutoriales/2'), config: site(), data });
+    const view = docView({
+      route: routeOf(routes, 'tutoriales/2'),
+      site: siteContext(site(), data),
+      data,
+    });
     expect(view.indexable).toBe(false);
     const attrs = view.head.map((tag) => tag.attrs);
     expect(attrs).toContainEqual({ name: 'robots', content: 'noindex' });
@@ -125,13 +136,17 @@ describe('docView: páginas de un índice paginado', () => {
   });
 
   it('la página 2 marca en la barra lateral la entrada del índice', () => {
-    const view = docView({ route: routeOf(routes, 'tutoriales/2'), config: site(), data });
+    const view = docView({
+      route: routeOf(routes, 'tutoriales/2'),
+      site: siteContext(site(), data),
+      data,
+    });
     expect(view.current).toBe('/repo/tutoriales/');
   });
 });
 
-describe('docIndexView', () => {
-  const routes = docRoutes(data, site());
+describe('docListingView', () => {
+  const routes = docRoutes(siteContext(site(), data));
   const dates = new Map([
     ['docs/tutoriales/a.md', '2026-01-01T00:00:00+00:00'],
     ['docs/tutoriales/b.md', '2026-03-01T00:00:00+00:00'],
@@ -141,9 +156,15 @@ describe('docIndexView', () => {
 
   function view(
     param: string | undefined,
-    extra: Partial<Parameters<typeof docIndexView>[0]> = {},
+    extra: Partial<Parameters<typeof docListingView>[0]> = {},
   ) {
-    return docIndexView({ route: routeOf(routes, param), config: site(), data, dates, ...extra });
+    return docListingView({
+      route: routeOf(routes, param),
+      site: siteContext(site(), data),
+      data,
+      dates,
+      ...extra,
+    });
   }
 
   it('una página sin listado no lleva índice', () => {
@@ -219,9 +240,9 @@ describe('docIndexView', () => {
         return { ...item, listing: { layout: 'cards' as const, covers: false } };
       return item;
     });
-    const items = docIndexView({
-      route: routeOf(docRoutes(covered, site()), 'tutoriales'),
-      config: site(),
+    const items = docListingView({
+      route: routeOf(docRoutes(siteContext(site(), covered)), 'tutoriales'),
+      site: siteContext(site(), covered),
       data: covered,
       dates,
     })!.items;
@@ -241,9 +262,9 @@ describe('docIndexView', () => {
     const list = data.map((item) =>
       item === listing ? { ...item, listing: { layout: 'list' as const } } : item,
     );
-    const result = docIndexView({
-      route: routeOf(docRoutes(list, site(user)), 'tutoriales'),
-      config: site(user),
+    const result = docListingView({
+      route: routeOf(docRoutes(siteContext(site(user), list)), 'tutoriales'),
+      site: siteContext(site(user), list),
       data: list,
       dates,
       headings: [{ depth: 2, slug: 'esenciales', text: 'Otra' }],
@@ -263,9 +284,9 @@ describe('docIndexView', () => {
     });
     const config = site({ indexes: { layout: 'table', pageSize: 10 } });
     const items = [doc(''), generated, ...tutorials];
-    const result = docIndexView({
-      route: routeOf(docRoutes(items, config), 'tutoriales'),
-      config,
+    const result = docListingView({
+      route: routeOf(docRoutes(siteContext(config, items)), 'tutoriales'),
+      site: siteContext(config, items),
       data: items,
       dates,
     })!;
@@ -273,7 +294,7 @@ describe('docIndexView', () => {
   });
 });
 
-describe('docIndexView: tres idiomas', () => {
+describe('docListingView: tres idiomas', () => {
   it('la portada y la fecha salen del original que elige `sourceLocale`, no del primero que aparece', () => {
     // El paquete solo trae textos de interfaz en es y en: el tercer idioma se añade a la config ya
     // resuelta, que es lo que reciben las vistas.
@@ -285,9 +306,9 @@ describe('docIndexView: tres idiomas', () => {
       doc('tutoriales/x', 'fr', { index: { cover: { src: '/fr.png' } } }),
       doc('tutoriales/x', 'en', { index: { cover: { src: '/en.png' } } }),
     ];
-    const result = docIndexView({
-      route: routeOf(docRoutes(items, config), 'tutoriales'),
-      config,
+    const result = docListingView({
+      route: routeOf(docRoutes(siteContext(config, items)), 'tutoriales'),
+      site: siteContext(config, items),
       data: items,
       dates: new Map([
         ['docs/tutoriales/x.fr.md', '2026-01-01T00:00:00+00:00'],
@@ -310,7 +331,7 @@ describe('sizeHrefs', () => {
   });
 });
 
-describe('docIndexView: `_index.en.md` con `slug` propio', () => {
+describe('docListingView: `_index.en.md` con `slug` propio', () => {
   const translated = [
     doc(''),
     listing,
@@ -323,12 +344,12 @@ describe('docIndexView: `_index.en.md` con `slug` propio', () => {
     ...tutorials,
     doc('tutoriales/a', 'en', { urlSlug: 'tutorials/a-in-english' }),
   ];
-  const routes = docRoutes(translated, site());
+  const routes = docRoutes(siteContext(site(), translated));
 
   it('sus páginas cuelgan de su URL y cada entrada enlaza su URL en inglés (o la reserva)', () => {
-    const view = docIndexView({
+    const view = docListingView({
       route: routeOf(routes, 'en/tutorials/2'),
-      config: site(),
+      site: siteContext(site(), translated),
       data: translated,
     });
     expect(view!.hrefs).toEqual([
@@ -336,9 +357,9 @@ describe('docIndexView: `_index.en.md` con `slug` propio', () => {
       '/repo/en/tutorials/2/',
       '/repo/en/tutorials/3/',
     ]);
-    const first = docIndexView({
+    const first = docListingView({
       route: routeOf(routes, 'en/tutorials'),
-      config: site(),
+      site: siteContext(site(), translated),
       data: translated,
     });
     const hrefs = first!.items.map((item) => item.href);
@@ -349,7 +370,7 @@ describe('docIndexView: `_index.en.md` con `slug` propio', () => {
   it('la página 2 del listado en inglés es canónica de sí misma bajo la URL traducida', () => {
     const view = docView({
       route: routeOf(routes, 'en/tutorials/2'),
-      config: site(),
+      site: siteContext(site(), translated),
       data: translated,
     });
     const canonical = view.head.find((tag) => tag.attrs['rel'] === 'canonical');

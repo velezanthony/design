@@ -327,8 +327,8 @@ astro/
 │   └── seo-on-page/         Panel SOLO de dev (ver Integración → SEO on page)
 │       └── overview.astro, pages.astro, page.astro
 ├── views/                   Lógica pura que prepara los datos de cada página (con sus tests)
-│   ├── doc.ts               docRoutes y docView: todo lo que necesita una página
-│   ├── doc-index.ts         El índice generado de una ruta: sus páginas, sus entradas y su paginación
+│   ├── doc.ts               docRoutes (con el listado de cada ruta ya resuelto), docView y docNavTrees
+│   ├── doc-listing.ts       El índice generado de una ruta: sus opciones, sus páginas, sus entradas y su paginación
 │   ├── index-covers.ts      Portadas del índice → URLs (con la base o con el `getImage` que pasa la ruta)
 │   ├── chrome.ts            Lo que cabecera y pie necesitan del sitio
 │   ├── pages.ts             DocData → Page y sitemap
@@ -344,7 +344,7 @@ astro/
 │   ├── page-head.ts         `pageHead`: el head de una página del sitio con la config del módulo virtual (subruta `seo`)
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
 │   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
-│   ├── doc-index.ts         `loadDocIndex`: el índice de una ruta con fechas de commit y portadas de astro:assets
+│   ├── covers.ts            `optimizeCover`: la URL de una portada con `getImage` de astro:assets
 │   ├── file-last-modified.ts  `fileLastModified`: la de un solo archivo, la subruta pública `last-modified`
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)

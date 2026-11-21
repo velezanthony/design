@@ -7,6 +7,8 @@ export interface DocsEntry {
   data: DocEntryData;
   /** El Markdown ya con los enlaces reescritos, tal como lo guarda el loader. */
   body?: string;
+  /** El HTML que renderizó el loader: dice si la página deja huecos de `::nav-tree`. */
+  rendered?: { html: string };
 }
 
 /** La colección `docs` la declara el consumidor, así que `astro:content` no conoce su nombre; este es el único punto donde se asume. */

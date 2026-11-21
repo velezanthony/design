@@ -1,16 +1,24 @@
 ---
-/* Contenedor de una página de docs; `render(entry)` va AQUÍ y no en el layout, porque en dev rompe el `<head>` (astro#13724). */
+/* Contenedor de una página de docs; `render(entry)` va AQUÍ y no en el layout, porque en dev rompe el `<head>` (astro#13724).
+   Es el único sitio que conoce a la vez los datos (`data/`) y la presentación (`views/`, componentes):
+   primero lee lo que hace falta, luego construye el contexto del sitio una vez y se lo pasa a cada vista. */
+import { fileURLToPath } from 'node:url';
 import Fonts from './Fonts.astro';
 import Footer from 'virtual:@velezanthony/design/components/Footer';
 import DocPage from '../../components/pages/DocPage.astro';
+import { hasNavTreeSlots } from '../../core/navigation/nav-tree';
+import { siteContext } from '../views/chrome';
 import { docNavTrees, docRoutes, docView, type DocRoute } from '../views/doc';
+import { docListingView } from '../views/doc-listing';
+import { resolveCovers } from '../views/index-covers';
+import { optimizeCover } from '../data/covers';
 import { getDocData, getDocs, renderDoc } from '../data/docs-collection';
-import { loadDocIndex } from '../data/doc-index';
 import { siteImageSizes } from '../data/image-sizes';
+import { lastModifiedDates } from '../data/last-modified';
 import { siteConfig } from '../data/site-config';
 
 export async function getStaticPaths() {
-  return docRoutes(await getDocData(), siteConfig).map((route) => ({
+  return docRoutes(siteContext(siteConfig, await getDocData())).map((route) => ({
     params: { slug: route.param },
     props: { route },
   }));
@@ -27,18 +35,24 @@ const { Content, headings } = await renderDoc(entry);
 // Solo la imagen de esta página: la de reserva usa la del idioma del contenido, que es `entry`.
 const sizes = await siteImageSizes(siteConfig, [entry.data.seo?.image?.src]);
 const data = entries.map((item) => item.data);
-/* Solo si la página usa `::nav-tree`: el resto no paga el cálculo de todas las secciones. */
-const navTrees = entry.body?.includes('::nav-tree')
-  ? docNavTrees({ route, config: siteConfig, data })
+/* Un listado necesita la fecha del último commit de cada página; lo que aún no está en git no lleva fecha (y va primero). */
+const dates = route.listing
+  ? await lastModifiedDates(
+      fileURLToPath(siteConfig.root),
+      data.map((item) => item.sourcePath),
+      { committedOnly: true },
+    )
+  : undefined;
+
+const site = siteContext(siteConfig, data);
+/* Solo si el HTML deja huecos de `::nav-tree`: el resto no paga el cálculo de todas las secciones. */
+const navTrees = hasNavTreeSlots(entry.rendered?.html ?? '')
+  ? docNavTrees({ route, site })
   : undefined;
 /* Un `_index.md` o una carpeta de `indexes`: su listado, debajo del cuerpo (o solo, desde la página 2). */
-const index = await loadDocIndex(route, data, headings);
-const view = docView({
-  route,
-  config: siteConfig,
-  data,
-  sizes,
-});
+const listing = docListingView({ route, site, data, ...(dates && { dates }), headings });
+const index = listing && (await resolveCovers(listing, siteConfig.base, optimizeCover));
+const view = docView({ route, site, data, sizes });
 ---
 
 <DocPage

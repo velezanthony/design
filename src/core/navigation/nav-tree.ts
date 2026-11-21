@@ -112,6 +112,11 @@ const SLOT = new RegExp(
   'g',
 );
 
+/** ¿Deja el HTML renderizado algún hueco de `::nav-tree`? Mira el HTML y no el Markdown: un `::nav-tree` dentro de un bloque de código no deja hueco. */
+export function hasNavTreeSlots(html: string): boolean {
+  return splitNavTrees(html).some((segment) => segment.kind === 'tree');
+}
+
 /** Parte el HTML renderizado en los huecos de `::nav-tree`, para pintar cada árbol en su sitio. */
 export function splitNavTrees(html: string): NavTreeSegment[] {
   const segments: NavTreeSegment[] = [];
