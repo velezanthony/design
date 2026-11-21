@@ -139,6 +139,18 @@ describe('astro:config:setup: fuentes y módulo virtual', () => {
   });
 });
 
+describe('astro:config:setup: mermaid en dev', () => {
+  /* Instalada en `node_modules`, Astro excluye la librería del pre-empaquetado de Vite (trae
+     `.astro`) y Vite no descubre `mermaid`: lo serviría sin convertir y su dayjs (CommonJS) no carga. */
+  it('pide a Vite que pre-empaquete mermaid a través de la librería', async () => {
+    const { updateConfig } = await runSetup(satteri());
+    const partial = updateConfig.mock.calls
+      .map(([update]) => update as { vite?: { optimizeDeps?: { include?: string[] } } })
+      .find((update) => update.vite);
+    expect(partial?.vite?.optimizeDeps?.include).toContain('@velezanthony/design > mermaid');
+  });
+});
+
 describe('astro:config:setup: Tailwind', () => {
   function pluginNames(update: { vite?: { plugins?: unknown[] } }): string[] {
     return (update.vite?.plugins ?? []).flat().map((plugin) => (plugin as { name: string }).name);

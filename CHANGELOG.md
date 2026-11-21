@@ -33,6 +33,11 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Arreglado
 
+- **Los diagramas mermaid se pintan en `astro dev` con la librería instalada.** Desde `node_modules`
+  (instalada desde GitHub o npm), Astro saca la librería del pre-empaquetado de Vite porque trae
+  `.astro`, y Vite no descubría `mermaid`: lo servía sin convertir y su dependencia dayjs, CommonJS,
+  fallaba en el navegador, así que el diagrama se quedaba como código. La integración pide ahora
+  `optimizeDeps.include: ['@velezanthony/design > mermaid']`. En el build no pasaba.
 - **Las tablas hacen scroll en horizontal en cualquier página con `Article`.** Hasta ahora solo las
   envolvía en su `.table-scroll` el plugin de Markdown de los docs, y una página propia que pinta su
   Markdown con `Article` (una política de privacidad) sacaba la tabla del ancho en móvil. `Article`

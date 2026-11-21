@@ -123,6 +123,10 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
             // `theme.css` importa este especificador al final: así el CSS del sitio entra en su misma compilación.
             resolve: { alias: [siteThemeAlias(fileURLToPath(config.root), resolvedConfig.theme)] },
             ...(allow.length > 0 && { server: { fs: { allow } } }),
+            /* Instalada en `node_modules`, Astro saca la librería del pre-empaquetado (trae `.astro`) y
+               Vite no ve el `import('mermaid')` de dentro: en dev lo serviría sin convertir y su dayjs,
+               CommonJS, no carga en el navegador. Con `paquete > dependencia` lo pre-empaqueta igual. */
+            optimizeDeps: { include: ['@velezanthony/design > mermaid'] },
             plugins: [
               createVirtualConfigPlugin(
                 createVirtualData(siteConfig, {
