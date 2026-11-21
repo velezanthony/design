@@ -72,9 +72,9 @@ Una página índice (la de un blog, la de una guía) no necesita copiar a mano e
 secciones: la directiva `::nav-tree`, sola en su línea, lo pinta desde la config.
 
 ```md
-# Artículos
+# Tutoriales
 
-Notas técnicas, agrupadas por área.
+Tutoriales paso a paso, agrupados por nivel.
 
 ::nav-tree
 ```
@@ -88,21 +88,21 @@ nueva aparece en el índice en cuanto entra en un `sidebar`.
 
 | Atributo | Qué hace |
 | --- | --- |
-| `section="Sistemas"` | Solo esa sección. Se nombra por su etiqueta en cualquier idioma o por su `dir`. |
+| `section="Avanzado"` | Solo esa sección. Se nombra por su etiqueta en cualquier idioma o por su `dir`. |
 | `descriptions="false"` | Solo los títulos, sin las descripciones. Sin él, salen. |
 
 ```md
-::nav-tree{section="Sistemas" descriptions="false"}
+::nav-tree{section="Avanzado" descriptions="false"}
 ```
 
 - **El árbol es el de la barra lateral.** Lo calcula `buildSectionSidebar`, así que respeta el orden
   declarado, `order` y la política de traducción: con `link`, la página sin traducción enlaza al
   original con su insignia; con `omit`, no sale.
-- **En una ruta de reserva** (`/en/articulos/` sin traducción), el texto es el del contenido
+- **En una ruta de reserva** (`/en/tutoriales/` sin traducción), el texto es el del contenido
   original, como el resto de la página; las URLs son las de la barra lateral de esa ruta, así que
   quien lee en `/en/` sigue en `/en/`.
 - **Los `##` son encabezados de verdad:** tienen ancla, salen en «En esta página» y otra página puede
-  enlazarlos (`[sistemas](articulos/index.md#sistemas)`), con la validación de anclas de siempre.
+  enlazarlos (`[avanzado](tutoriales/index.md#avanzado)`), con la validación de anclas de siempre.
 - **Cómo funciona.** El plugin `navTree` (`astro/markdown/nav-tree.ts`) escribe los `##` y deja un
   hueco por sección; la ruta de las páginas de docs calcula los árboles del idioma que pinta
   (`docNavTrees`, `core/navigation/nav-tree.ts`) y `DocPage` pinta cada uno en su hueco con `NavTree`.
@@ -117,10 +117,10 @@ Un blog o una guía necesitan una página que liste lo que cuelga de su carpeta.
 genera, como Hugo, a partir de un `_index.md` en esa carpeta o, sin él, de la opción `indexes`.
 
 ```md
-<!-- articulos/_index.md -->
+<!-- tutoriales/_index.md -->
 ---
 seo:
-  description: "Artículos técnicos sobre desarrollo y sistemas."
+  description: "Tutoriales paso a paso, agrupados por nivel."
 index:
   layout: cards # list (por defecto) | table | cards
   pageSize: 12 # por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
@@ -128,17 +128,17 @@ index:
   image: true # política de portadas: true (la de la librería) | false
 ---
 
-# Artículos
+# Tutoriales
 
-Notas técnicas sobre problemas que me he encontrado y cómo los resuelvo.
+Tutoriales paso a paso, desde la instalación hasta el despliegue.
 ```
 
-`/articulos/` pinta el cuerpo del `_index.md` (el `#` y la entradilla, con el estilo de siempre) y,
+`/tutoriales/` pinta el cuerpo del `_index.md` (el `#` y la entradilla, con el estilo de siempre) y,
 debajo, el listado de la carpeta. **El `_index.md` no es una página propia:** no tiene ruta
-(`/articulos/_index/` no existe), su página es la de la carpeta. Su slug es el de la carpeta, así que
-`sidebar: ['articulos']` o un `nav` con `slug: 'articulos'` lo enlazan, y un enlace del Markdown a
-`articulos/_index.md` lleva a `/articulos/`. Se traduce como cualquier página (`_index.en.md`), con la
-política de `translations` de siempre: sin traducción, `/en/articulos/` es una ruta de reserva con el
+(`/tutoriales/_index/` no existe), su página es la de la carpeta. Su slug es el de la carpeta, así que
+`sidebar: ['tutoriales']` o un `nav` con `slug: 'tutoriales'` lo enlazan, y un enlace del Markdown a
+`tutoriales/_index.md` lleva a `/tutoriales/`. Se traduce como cualquier página (`_index.en.md`), con
+la política de `translations` de siempre: sin traducción, `/en/tutoriales/` es una ruta de reserva con el
 texto original y las URLs de `/en/`. Cada traducción lleva su propio bloque `index`.
 
 **Es la forma recomendada de dar título y entradilla a un índice:** todo lo que se traduce vive en
@@ -168,12 +168,12 @@ insignia; `omit` no la lista). De cada página salen su título, su resumen (`in
   sitemap). Una página sin commit (un borrador aún sin publicar) no muestra fecha y, en la tabla y
   las tarjetas, va **delante**: es lo más nuevo. Sin git o en un clon superficial no hay fechas y el
   orden es el del árbol.
-- **Paginación** (tabla y tarjetas): la página 1 es la de la carpeta (`/articulos/`) y las demás,
-  `/articulos/2/`, `/articulos/3/`… con el `Pagination` de la librería. Desde la 2 se repite el
+- **Paginación** (tabla y tarjetas): la página 1 es la de la carpeta (`/tutoriales/`) y las demás,
+  `/tutoriales/2/`, `/tutoriales/3/`… con el `Pagination` de la librería. Desde la 2 se repite el
   título del `_index.md` con «Página 2 de 3» y **no** la entradilla (no duplica contenido). Son
   `noindex` con `canonical` a sí mismas, llevan `rel="prev"`/`rel="next"`, no entran en el sitemap ni
-  en la búsqueda: lo que se indexa es la página 1 y cada artículo. Una página real en
-  `articulos/2.md` choca con esa URL y rompe el build.
+  en la búsqueda: lo que se indexa es la página 1 y cada página de la carpeta. Una
+  página real en `tutoriales/2.md` choca con esa URL y rompe el build.
 - **Tamaño de página por defecto:** 12 en las tarjetas (con 12, 24 o 48 las filas quedan completas
   tanto a dos como a tres columnas) y 10 en la tabla (la medida redonda de una tabla).
 - **Sitemap.** La página de la carpeta entra con `lastmod` = la fecha más reciente entre su
@@ -192,14 +192,14 @@ entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción
 más pequeña.
 
 - **Mejora progresiva.** Sin JavaScript el selector no se ve y el índice es el de siempre: rutas
-  estáticas (`/articulos/`, `/articulos/2/`…) del `pageSize` configurado, la 1 indexable y canónica.
+  estáticas (`/tutoriales/`, `/tutoriales/2/`…) del `pageSize` configurado, la 1 indexable y canónica.
   Lo enseña el script del artículo (`client/content/index-pager.ts`).
 - **Sin marcado duplicado ni red.** La página 1 trae todas las entradas de su carpeta (las de más,
   `hidden`) y un paginador por cada tamaño y página, pintados por los mismos componentes del
   servidor; el script solo decide qué se ve. Con 200 entradas la página 1 pesa más (cada tarjeta
   son unos cientos de bytes comprimidos), pero no hay un JSON aparte que mantener ni plantillas que
   imiten a los componentes. El listado queda fuera de la búsqueda (`data-pagefind-ignore`): cada
-  artículo ya está indexado en su página.
+  entrada ya está indexada en su página.
 - **La URL manda:** `?por=18&pagina=2` (los mismos nombres en todos los idiomas), así que se puede
   compartir y sobrevive a recargar; atrás y adelante vuelven a cada estado. Cambiar el tamaño vuelve
   a la página 1. Con el tamaño de la config, el paginador enlaza las rutas estáticas: es lo que ven
@@ -251,7 +251,7 @@ indexes: {
   pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla
   perPageOptions: [12, 24, 48], // por defecto [12, 24, 48] en tarjetas y [10, 25, 50] en tabla
   image: true, // política de portadas por defecto
-  include: 'all', // 'all' (por defecto) o las carpetas exactas: ['articulos', 'guia/avanzado']
+  include: 'all', // 'all' (por defecto) o las carpetas exactas: ['tutoriales', 'guia/avanzado']
   exclude: ['borradores'], // carpetas que no, aunque `include` las abarque
   overrides: {
     guia: { layout: 'table', pageSize: 20, image: false, title: { es: 'Guía', en: 'Guide' }, description: { es: '…', en: '…' } },
@@ -260,8 +260,8 @@ indexes: {
 ```
 
 - **Todas:** `indexes: {}`. **Todas menos unas:** `exclude`. **Solo unas:** `include: [...]`.
-  Las carpetas se nombran por su ruta en el contenido, exactas (`articulos` no incluye
-  `articulos/viejos`); una que no existe rompe el build con su ruta (`indexes.include[1]`).
+  Las carpetas se nombran por su ruta en el contenido, exactas (`tutoriales` no incluye
+  `tutoriales/viejos`); una que no existe rompe el build con su ruta (`indexes.include[1]`).
 - La página generada de una carpeta sin `_index.md` se titula con el `title` de `overrides`, o con la
   etiqueta de la sección de `nav` con ese `dir` (ya traducida), o con el nombre de la carpeta
   (`notas-de-version` → «Notas de version»). Su entradilla y su `seo.description` son la
@@ -341,7 +341,7 @@ visitante (`client/layout/year.ts`); el del build queda como respaldo sin JavaSc
 
 #### Pie propio (`components.Footer`)
 
-Un sitio que ya tiene su pie (un portfolio con sus páginas propias) puede usarlo también en las páginas
+Un sitio que ya tiene su pie (un sitio con sus páginas propias) puede usarlo también en las páginas
 de docs, como los `components` de Starlight. Se declara en `docs.config.mjs` con la ruta de un `.astro`
 desde la raíz del proyecto:
 

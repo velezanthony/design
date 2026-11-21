@@ -1,10 +1,9 @@
 ---
-slug: articles
 index:
   layout: cards
   pageSize: 1
 ---
 
-# Articles
+# Tutoriales
 
-Technical notes.
+Tutoriales paso a paso.

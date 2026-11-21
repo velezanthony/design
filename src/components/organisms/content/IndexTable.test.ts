@@ -31,8 +31,10 @@ describe('IndexTable', () => {
       'Sección',
       'Actualizado',
     ]);
-    expect(cells[0]!.querySelector('a')!.getAttribute('href')).toBe('/repo/articulos/git/');
-    expect(text(cells[2]!)).toBe('Desarrollo › Herramientas');
+    expect(cells[0]!.querySelector('a')!.getAttribute('href')).toBe(
+      '/repo/tutoriales/instalacion/',
+    );
+    expect(text(cells[2]!)).toBe('Esenciales › Primeros pasos');
     expect(text(cells[3]!)).toBe('21 nov 2026');
   });
 

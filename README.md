@@ -408,10 +408,10 @@ indexes: {
   pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla (la lista no se pagina)
   perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
   image: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
-  include: 'all', // 'all' (por defecto) | ['articulos', 'guia/avanzado']: carpetas exactas
+  include: 'all', // 'all' (por defecto) | ['tutoriales', 'guia/avanzado']: carpetas exactas
   exclude: [], // carpetas que no, aunque `include` las abarque
   overrides: {
-    articulos: { layout: 'cards', pageSize: 12, perPageOptions: [12, 24, 48], image: true, title: { es: 'Artículos', en: 'Articles' }, description: { es: '…', en: '…' } },
+    tutoriales: { layout: 'cards', pageSize: 12, perPageOptions: [12, 24, 48], image: true, title: { es: 'Tutoriales', en: 'Tutorials' }, description: { es: '…', en: '…' } },
   },
 },
 ```
@@ -488,7 +488,7 @@ es `omit`.
 
 | Campo  | Significado |
 | ------ | ----------- |
-| `slug` | URL propia de la página, relativa a la raíz del contenido y sin idioma, `base` ni barras en los extremos: `slug: articles/n-plus-one-queries-django` en `consultas.en.md` la publica en `/en/articles/n-plus-one-queries-django/`. Las traducciones se siguen emparejando por nombre de archivo y la config las sigue nombrando por él. Vale también en el idioma por defecto y en un `_index.<idioma>.md` (mueve el listado de la carpeta). Un `slug` mal formado, una URL repetida en un idioma o una ruta de la librería o de `src/pages/` rompen el build. Ver [Rutas, SEO e idiomas](docs/src/content/docs/guia/rutas-seo-idiomas.md#url-traducida-slug). |
+| `slug` | URL propia de la página, relativa a la raíz del contenido y sin idioma, `base` ni barras en los extremos: `slug: tutorials/installation` en `instalacion.en.md` la publica en `/en/tutorials/installation/`. Las traducciones se siguen emparejando por nombre de archivo y la config las sigue nombrando por él. Vale también en el idioma por defecto y en un `_index.<idioma>.md` (mueve el listado de la carpeta). Un `slug` mal formado, una URL repetida en un idioma o una ruta de la librería o de `src/pages/` rompen el build. Ver [Rutas, SEO e idiomas](docs/src/content/docs/guia/rutas-seo-idiomas.md#url-traducida-slug). |
 
 ### Archivos externos
 
@@ -632,7 +632,7 @@ pnpm add x
 
 Índice generado: `::nav-tree`, sola en su línea, pinta por cada sección de `nav` un `##` con su
 etiqueta y debajo su árbol, el mismo de la barra lateral: grupos anidados en negrita y cada página
-con su título y su `seo.description`. `{section="Sistemas"}` deja una sola sección (por su etiqueta
+con su título y su `seo.description`. `{section="Avanzado"}` deja una sola sección (por su etiqueta
 en cualquier idioma o su `dir`) y `{descriptions="false"}` quita las descripciones. En una ruta de
 reserva, el texto es el del original y las URLs las de la barra lateral de esa ruta. Una sección que
 no existe o un atributo desconocido rompen el build con el archivo y la línea. Detalle en

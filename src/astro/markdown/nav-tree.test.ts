@@ -9,9 +9,9 @@ import { navTree } from './nav-tree';
 import { restoreDirectives } from './restore-directives';
 
 const nav: DocsUserConfig['nav'] = [
-  { label: { es: 'Desarrollo', en: 'Development' }, sidebar: ['git'] },
+  { label: { es: 'Esenciales', en: 'Essentials' }, sidebar: ['instalacion'] },
   { label: 'GitHub', href: 'https://github.com/x/y' },
-  { label: { es: 'Sistemas', en: 'Systems' }, sidebar: ['aws'] },
+  { label: { es: 'Avanzado', en: 'Advanced' }, sidebar: ['scripts'] },
 ];
 
 function envWith(user: Partial<DocsUserConfig> = {}) {
@@ -21,7 +21,7 @@ function envWith(user: Partial<DocsUserConfig> = {}) {
   );
 }
 
-function render(source: string, fileURL = docFileURL('articulos.md'), env = envWith()) {
+function render(source: string, fileURL = docFileURL('tutoriales.md'), env = envWith()) {
   return renderMarkdown(source, {
     fileURL,
     features: { directive: true },
@@ -30,7 +30,7 @@ function render(source: string, fileURL = docFileURL('articulos.md'), env = envW
 }
 
 async function failure(source: string, env = envWith()) {
-  const error = await render(source, docFileURL('articulos.md'), env).catch(
+  const error = await render(source, docFileURL('tutoriales.md'), env).catch(
     (caught: unknown) => caught as Error,
   );
   expect(error).toBeInstanceOf(AstroError);
@@ -39,26 +39,26 @@ async function failure(source: string, env = envWith()) {
 
 describe('navTree (`::nav-tree`)', () => {
   it('pone un h2 con la etiqueta de cada sección y, debajo, el hueco de su árbol', async () => {
-    const html = await render('# Artículos\n\n::nav-tree');
+    const html = await render('# Tutoriales\n\n::nav-tree');
     expect(splitNavTrees(html)).toEqual([
-      { kind: 'html', html: '<h1>Artículos</h1>\n<h2>Desarrollo</h2>\n' },
+      { kind: 'html', html: '<h1>Tutoriales</h1>\n<h2>Esenciales</h2>\n' },
       { kind: 'tree', section: 0, descriptions: true },
-      { kind: 'html', html: '\n<h2>Sistemas</h2>\n' },
+      { kind: 'html', html: '\n<h2>Avanzado</h2>\n' },
       { kind: 'tree', section: 2, descriptions: true },
       { kind: 'html', html: '\n' },
     ]);
   });
 
   it('las etiquetas van en el idioma del archivo', async () => {
-    const html = await render('::nav-tree', docFileURL('articulos.en.md'));
-    expect(html).toContain('<h2>Development</h2>');
-    expect(html).toContain('<h2>Systems</h2>');
+    const html = await render('::nav-tree', docFileURL('tutoriales.en.md'));
+    expect(html).toContain('<h2>Essentials</h2>');
+    expect(html).toContain('<h2>Advanced</h2>');
   });
 
   it('`section` deja solo una sección, nombrada por su etiqueta en cualquier idioma', async () => {
-    for (const name of ['Sistemas', 'Systems']) {
+    for (const name of ['Avanzado', 'Advanced']) {
       const html = await render(`::nav-tree{section="${name}"}`);
-      expect(html).not.toContain('Desarrollo');
+      expect(html).not.toContain('Esenciales');
       expect(splitNavTrees(html)).toContainEqual({ kind: 'tree', section: 2, descriptions: true });
     }
   });
@@ -71,9 +71,9 @@ describe('navTree (`::nav-tree`)', () => {
   it('una sección que no existe rompe el build con el archivo, la línea y las que hay', async () => {
     const error = await failure('# A\n\n::nav-tree{section="Blog"}');
     expect(error.message).toContain('«Blog»');
-    expect(error.message).toContain('src/content/docs/articulos.md:3');
-    expect(error.hint).toContain('Desarrollo');
-    expect(error.hint).toContain('Sistemas');
+    expect(error.message).toContain('src/content/docs/tutoriales.md:3');
+    expect(error.hint).toContain('Esenciales');
+    expect(error.hint).toContain('Avanzado');
   });
 
   it('un atributo desconocido o un valor de `descriptions` que no es true/false rompen el build', async () => {

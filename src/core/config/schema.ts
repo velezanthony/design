@@ -62,7 +62,7 @@ const IndexFolderSchema = z
   .min(1)
   .refine(
     (folder) => !folder.startsWith('/') && !folder.endsWith('/'),
-    'Carpeta sin barras al principio ni al final (articulos, no /articulos/).',
+    'Carpeta sin barras al principio ni al final (tutoriales, no /tutoriales/).',
   );
 
 const IndexOverrideSchema = z.strictObject({
@@ -83,7 +83,7 @@ const IndexesSchema = z.strictObject({
   image: z.boolean().optional(),
   include: z
     .union([z.literal(ALL_FOLDERS), z.array(IndexFolderSchema)], {
-      error: `Debe ser '${ALL_FOLDERS}' o una lista de carpetas (['articulos']).`,
+      error: `Debe ser '${ALL_FOLDERS}' o una lista de carpetas (['tutoriales']).`,
     })
     .optional(),
   exclude: z.array(IndexFolderSchema).optional(),

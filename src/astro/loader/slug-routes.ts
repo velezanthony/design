@@ -15,7 +15,7 @@ interface SlugRouteOptions {
   srcDir: URL;
 }
 
-/** Ruta de fichero de una página (sin base): `articles/x` o `en/articles/x`. */
+/** Ruta de fichero de una página (sin base): `tutorials/x` o `en/tutorials/x`. */
 function routePath(page: Page & { urlSlug: string }, defaultLocale: Locale): string {
   return page.locale === defaultLocale ? page.urlSlug : `${page.locale}/${page.urlSlug}`;
 }

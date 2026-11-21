@@ -1,7 +1,7 @@
 import { defineDocsConfig, MissingTranslation } from '../../../../index.ts';
 
 /* Índices generados en un sitio real, español por defecto e inglés con reserva:
-   - `articulos/_index.md` (con `_index.en.md`): tarjetas de dos en dos y portadas de cada tipo;
+   - `tutoriales/_index.md` (con `_index.en.md`): tarjetas de dos en dos y portadas de cada tipo;
    - `guia/`: sin `_index.md`, la genera `indexes` (tabla de dos en dos, título de su sección);
    - `recetas/_index.md`: lista;
    - `notas/`: su `index.md` gana a su `_index.md`, que se ignora con un aviso;
@@ -13,21 +13,27 @@ export default defineDocsConfig({
   translations: { missing: MissingTranslation.FALLBACK },
   nav: [
     {
-      label: { es: 'Desarrollo', en: 'Development' },
+      label: { es: 'Esenciales', en: 'Essentials' },
       sidebar: [
-        { label: { es: 'Herramientas', en: 'Tools' }, items: ['articulos/git', 'articulos/make'] },
-        { label: 'Python', items: [{ label: 'Django', items: ['articulos/django'] }] },
+        {
+          label: { es: 'Primeros pasos', en: 'Getting started' },
+          items: ['tutoriales/instalacion', 'tutoriales/primer-proyecto'],
+        },
+        { label: 'Astro', items: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
       ],
     },
     {
-      label: { es: 'Sistemas', en: 'Systems' },
+      label: { es: 'Avanzado', en: 'Advanced' },
       sidebar: [
-        { label: { es: 'Redes', en: 'Networking' }, items: ['articulos/dns', 'articulos/nginx'] },
+        {
+          label: { es: 'Despliegue', en: 'Deployment' },
+          items: ['tutoriales/despliegue', 'tutoriales/errores-comunes'],
+        },
       ],
     },
     { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
   ],
-  sidebar: ['index', 'articulos', 'recetas', 'notas'],
+  sidebar: ['index', 'tutoriales', 'recetas', 'notas'],
   indexes: {
     include: ['guia'],
     overrides: {

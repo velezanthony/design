@@ -233,17 +233,17 @@ describe('resolveConfig: indexes', () => {
         layout: 'cards',
         pageSize: 6,
         image: false,
-        include: ['articulos'],
+        include: ['tutoriales'],
         overrides: {
-          articulos: {
+          tutoriales: {
             layout: 'table',
-            title: { es: 'Artículos', en: 'Articles' },
+            title: { es: 'Tutoriales', en: 'Tutorials' },
             description: 'Notas.',
           },
         },
       },
     });
-    expect(config.indexes?.overrides.articulos?.layout).toBe('table');
+    expect(config.indexes?.overrides.tutoriales?.layout).toBe('table');
   });
 
   it.each([
@@ -252,7 +252,7 @@ describe('resolveConfig: indexes', () => {
     [{ pageSize: 2.5 }, 'indexes.pageSize'],
     [{ image: 'yes' }, 'indexes.image'],
     [{ include: 'todas' }, 'indexes.include'],
-    [{ include: ['/articulos/'] }, 'indexes.include[0]'],
+    [{ include: ['/tutoriales/'] }, 'indexes.include[0]'],
     [{ exclude: [''] }, 'indexes.exclude[0]'],
     [{ overrides: { a: { layaut: 'list' } } }, 'indexes.overrides.a.layaut'],
     [{ colums: 3 }, 'indexes.colums'],

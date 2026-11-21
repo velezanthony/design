@@ -26,25 +26,25 @@ describe('resolveIndexes', () => {
       layout: 'cards',
       pageSize: 6,
       image: false,
-      include: ['articulos'],
+      include: ['tutoriales'],
       exclude: ['borradores'],
-      overrides: { articulos: { layout: 'table' } },
+      overrides: { tutoriales: { layout: 'table' } },
     });
     expect(resolved).toMatchObject({
       layout: 'cards',
       pageSize: 6,
       image: false,
-      include: ['articulos'],
+      include: ['tutoriales'],
       exclude: ['borradores'],
-      overrides: { articulos: { layout: 'table' } },
+      overrides: { tutoriales: { layout: 'table' } },
     });
   });
 });
 
 describe('contentFolders', () => {
   it('cada carpeta de la que cuelga alguna página, también las intermedias', () => {
-    expect(contentFolders(['', 'guia', 'articulos/git', 'a/b/c'])).toEqual([
-      'articulos',
+    expect(contentFolders(['', 'guia', 'tutoriales/instalacion', 'a/b/c'])).toEqual([
+      'tutoriales',
       'a',
       'a/b',
     ]);
@@ -73,11 +73,11 @@ describe('generatesIndex', () => {
 describe('validateIndexFolders', () => {
   it('una carpeta de include, exclude u overrides que no existe es un error con su ruta', () => {
     const indexes = resolveIndexes({
-      include: ['articulos', 'articles'],
+      include: ['tutoriales', 'tutorials'],
       exclude: ['nada'],
       overrides: { otra: { layout: 'cards' } },
     });
-    const messages = validateIndexFolders(indexes, new Set(['articulos'])).map(
+    const messages = validateIndexFolders(indexes, new Set(['tutoriales'])).map(
       (error) => error.message,
     );
     expect(messages).toEqual([
@@ -85,7 +85,7 @@ describe('validateIndexFolders', () => {
       expect.stringContaining('indexes.exclude[0]'),
       expect.stringContaining('indexes.overrides.otra'),
     ]);
-    expect(messages[0]).toContain('«articles»');
+    expect(messages[0]).toContain('«tutorials»');
   });
 
   it('carpetas que existen: sin errores', () => {
@@ -99,16 +99,16 @@ describe('listingOptions', () => {
     layout: 'table',
     pageSize: 20,
     image: false,
-    overrides: { articulos: { layout: 'cards', pageSize: 6, image: true } },
+    overrides: { tutoriales: { layout: 'cards', pageSize: 6, image: true } },
   });
 
   it('una página normal no tiene listado', () => {
-    expect(listingOptions({ slug: 'articulos/git' }, indexes)).toBeUndefined();
+    expect(listingOptions({ slug: 'tutoriales/instalacion' }, indexes)).toBeUndefined();
   });
 
   it('sin `index` propio: la carpeta, luego `indexes`, luego los valores por defecto', () => {
-    expect(listingOptions({ slug: 'articulos', listing: true }, indexes)).toEqual({
-      folder: 'articulos',
+    expect(listingOptions({ slug: 'tutoriales', listing: true }, indexes)).toEqual({
+      folder: 'tutoriales',
       layout: 'cards',
       pageSize: 6,
       perPageOptions: [6, 12, 24, 48],
@@ -132,12 +132,12 @@ describe('listingOptions', () => {
 
   it('el `index` de un _index.md manda sobre la carpeta y sobre `indexes`', () => {
     const page = {
-      slug: 'articulos',
+      slug: 'tutoriales',
       listing: true as const,
       index: { layout: 'list' as const, image: false },
     };
     expect(listingOptions(page, indexes)).toEqual({
-      folder: 'articulos',
+      folder: 'tutoriales',
       layout: 'list',
       pageSize: 6,
       perPageOptions: [],

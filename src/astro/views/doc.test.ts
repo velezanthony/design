@@ -475,25 +475,25 @@ describe('`slug` propio (URL traducida)', () => {
     });
   });
 
-  it('un listado con `slug` propio pagina bajo su URL (`en/articles/2`)', () => {
+  it('un listado con `slug` propio pagina bajo su URL (`en/tutorials/2`)', () => {
     const listing = [
       doc('', 'es'),
-      doc('articulos', 'es', { listing: true, index: { layout: 'cards', pageSize: 1 } }),
-      doc('articulos', 'en', {
+      doc('tutoriales', 'es', { listing: true, index: { layout: 'cards', pageSize: 1 } }),
+      doc('tutoriales', 'en', {
         listing: true,
-        urlSlug: 'articles',
+        urlSlug: 'tutorials',
         index: { layout: 'cards', pageSize: 1 },
       }),
-      doc('articulos/a', 'es'),
-      doc('articulos/a', 'en', { urlSlug: 'articles/a' }),
-      doc('articulos/b', 'es'),
-      doc('articulos/b', 'en'),
+      doc('tutoriales/a', 'es'),
+      doc('tutoriales/a', 'en', { urlSlug: 'tutorials/a' }),
+      doc('tutoriales/b', 'es'),
+      doc('tutoriales/b', 'en'),
     ];
     const config = site({ locales: ['es', 'en'], defaultLocale: 'es' });
     const params = docRoutes(listing, config).map((docRoute) => docRoute.param);
-    expect(params).toContain('en/articles');
-    expect(params).toContain('en/articles/2');
-    expect(params).toContain('articulos/2');
-    expect(params).not.toContain('en/articulos/2');
+    expect(params).toContain('en/tutorials');
+    expect(params).toContain('en/tutorials/2');
+    expect(params).toContain('tutoriales/2');
+    expect(params).not.toContain('en/tutoriales/2');
   });
 });

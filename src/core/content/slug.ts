@@ -45,14 +45,14 @@ export interface SlugProblem {
 /** Un segmento de URL: letras y números de cualquier alfabeto, `-`, `_` y `.`. */
 const SEGMENT = /^[\p{L}\p{N}_.-]+$/u;
 const SHAPE_HINT =
-  'Escribe la ruta completa relativa a la raíz del contenido, sin idioma, base ni barras en los extremos: `articles/mi-pagina`.';
+  'Escribe la ruta completa relativa a la raíz del contenido, sin idioma, base ni barras en los extremos: `tutorials/mi-pagina`.';
 
 /** `undefined` si `slug` vale como URL de una página; si no, la razón y la pista. */
 export function slugProblem(slug: string, locales: readonly Locale[]): SlugProblem | undefined {
   if (slug.trim() === '') {
     return {
       message: 'está vacío',
-      hint: 'Quita `slug` para usar la URL que sale del nombre del archivo, o escribe la ruta completa (`articles/mi-pagina`).',
+      hint: 'Quita `slug` para usar la URL que sale del nombre del archivo, o escribe la ruta completa (`tutorials/mi-pagina`).',
     };
   }
   if (slug.startsWith('/') || slug.endsWith('/')) {
@@ -82,7 +82,7 @@ export function slugProblem(slug: string, locales: readonly Locale[]): SlugProbl
   if (first !== undefined && locales.includes(first)) {
     return {
       message: `empieza por el código de idioma «${first}»`,
-      hint: 'El prefijo de idioma lo añade la librería según el archivo (`x.en.md` → `/en/…`): escribe `articles/x`, no `en/articles/x`.',
+      hint: 'El prefijo de idioma lo añade la librería según el archivo (`x.en.md` → `/en/…`): escribe `tutorials/x`, no `en/tutorials/x`.',
     };
   }
   if (segments.at(-1) === 'index') {

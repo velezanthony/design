@@ -71,19 +71,19 @@ describe('buildAvailability: `slug` propio', () => {
   it('agrupa por identidad (el archivo) y da a cada idioma su URL traducida', () => {
     const availability = buildAvailability(
       [
-        { ...page('articulos/consultas', 'es'), sourcePath: 'articulos/consultas.md' },
+        { ...page('tutoriales/instalacion', 'es'), sourcePath: 'tutoriales/instalacion.md' },
         {
-          ...page('articulos/consultas', 'en'),
-          sourcePath: 'articulos/consultas.en.md',
-          urlSlug: 'articles/queries',
+          ...page('tutoriales/instalacion', 'en'),
+          sourcePath: 'tutoriales/instalacion.en.md',
+          urlSlug: 'tutorials/installation',
         },
       ],
       policy({ defaultLocale: 'es', base: '/repo' }),
     );
-    expect([...availability.keys()]).toEqual(['articulos/consultas']);
-    expect(availability.get('articulos/consultas')).toEqual({
-      es: '/repo/articulos/consultas/',
-      en: '/repo/en/articles/queries/',
+    expect([...availability.keys()]).toEqual(['tutoriales/instalacion']);
+    expect(availability.get('tutoriales/instalacion')).toEqual({
+      es: '/repo/tutoriales/instalacion/',
+      en: '/repo/en/tutorials/installation/',
     });
   });
 });

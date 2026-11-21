@@ -40,47 +40,45 @@ async function exists(file: string) {
 
 describe('_index.md: título, entradilla y disposición (tarjetas)', () => {
   it('su cuerpo va en `.prose` y debajo, fuera de `.prose`, las tarjetas de su carpeta', async () => {
-    const document = await page('articulos/index.html');
+    const document = await page('tutoriales/index.html');
     const prose = document.querySelector('main .prose')!;
-    expect(text(prose.querySelector('h1'))).toBe('Artículos');
-    expect(text(prose)).toContain('Notas técnicas sobre problemas reales.');
+    expect(text(prose.querySelector('h1'))).toBe('Tutoriales');
+    expect(text(prose)).toContain('Tutoriales paso a paso.');
     expect(listing(document)!.closest('.prose')).toBeNull();
     // Sin JavaScript se ven las dos primeras; las demás van ocultas para el selector «Por página».
     expect(cards(document).filter((card) => !card.hasAttribute('hidden'))).toHaveLength(2);
   });
 
   it('su seo: título y descripción del _index.md, indexable y canónica de sí misma', async () => {
-    const document = await page('articulos/index.html');
-    expect(text(document.querySelector('title'))).toBe('Artículos | Indexes');
+    const document = await page('tutoriales/index.html');
+    expect(text(document.querySelector('title'))).toBe('Tutoriales | Indexes');
     expect(document.querySelector('meta[name="description"]')!.getAttribute('content')).toBe(
-      'Notas técnicas sobre desarrollo y sistemas, agrupadas por área.',
+      'Tutoriales paso a paso, agrupados por nivel.',
     );
     expect(document.querySelector('meta[name="robots"]')).toBeNull();
     expect(document.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
-      'https://example.dev/idx/articulos/',
+      'https://example.dev/idx/tutoriales/',
     );
   });
 
   it('su traducción (_index.en.md) pone el título y la entradilla en inglés', async () => {
-    const document = await page('en/articulos/index.html');
-    expect(text(document.querySelector('main .prose h1'))).toBe('Articles');
-    expect(text(document.querySelector('main .prose'))).toContain(
-      'Technical notes on real problems.',
-    );
+    const document = await page('en/tutoriales/index.html');
+    expect(text(document.querySelector('main .prose h1'))).toBe('Tutorials');
+    expect(text(document.querySelector('main .prose'))).toContain('Step-by-step tutorials.');
     expect(text(document.querySelector('[data-index-card] [data-index-path]'))).toBe(
-      'Development › Tools',
+      'Essentials › Getting started',
     );
     expect(document.querySelector('[data-index-card] h2 a')!.getAttribute('href')).toBe(
-      '/idx/en/articulos/git/',
+      '/idx/en/tutoriales/instalacion/',
     );
   });
 
   it('nunca es una página propia: ni ruta `_index`, ni en el sitemap, ni en la barra lateral', async () => {
-    expect(await exists('articulos/_index/index.html')).toBe(false);
+    expect(await exists('tutoriales/_index/index.html')).toBe(false);
     const sitemap = await site.read('sitemap.xml');
     expect(sitemap).not.toContain('_index');
-    expect(sitemap).toContain('<loc>https://example.dev/idx/articulos/</loc>');
-    const document = await page('articulos/git/index.html');
+    expect(sitemap).toContain('<loc>https://example.dev/idx/tutoriales/</loc>');
+    const document = await page('tutoriales/instalacion/index.html');
     const sidebar = [...document.querySelectorAll('aside a')].map((link) =>
       link.getAttribute('href'),
     );
@@ -92,63 +90,63 @@ describe('_index.md: título, entradilla y disposición (tarjetas)', () => {
     const links = [...document.querySelectorAll('main .prose a')].map((link) =>
       link.getAttribute('href'),
     );
-    expect(links).toContain('/idx/articulos/');
+    expect(links).toContain('/idx/tutoriales/');
   });
 });
 
 describe('paginación', () => {
   it('la página 1 en la carpeta y las demás en /2/ y /3/, también en inglés', async () => {
     for (const file of [
-      'articulos/2/index.html',
-      'articulos/3/index.html',
-      'en/articulos/3/index.html',
+      'tutoriales/2/index.html',
+      'tutoriales/3/index.html',
+      'en/tutoriales/3/index.html',
       'guia/2/index.html',
     ]) {
       expect(await exists(file)).toBe(true);
     }
-    expect(await exists('articulos/4/index.html')).toBe(false);
+    expect(await exists('tutoriales/4/index.html')).toBe(false);
     expect(await exists('recetas/2/index.html')).toBe(false);
   });
 
   it('desde la página 2: el título y «Página 2 de 3», sin la entradilla, y noindex', async () => {
-    const document = await page('articulos/2/index.html');
+    const document = await page('tutoriales/2/index.html');
     const prose = document.querySelector('main .prose')!;
-    expect(text(prose.querySelector('h1'))).toBe('Artículos');
+    expect(text(prose.querySelector('h1'))).toBe('Tutoriales');
     expect(text(prose)).toContain('Página 2 de 3');
-    expect(text(prose)).not.toContain('Notas técnicas sobre problemas reales.');
-    expect(text(document.querySelector('title'))).toBe('Artículos · Página 2 de 3 | Indexes');
+    expect(text(prose)).not.toContain('Tutoriales paso a paso.');
+    expect(text(document.querySelector('title'))).toBe('Tutoriales · Página 2 de 3 | Indexes');
     expect(document.querySelector('meta[name="robots"]')!.getAttribute('content')).toBe('noindex');
     expect(document.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
-      'https://example.dev/idx/articulos/2/',
+      'https://example.dev/idx/tutoriales/2/',
     );
     expect(document.querySelector('link[rel="prev"]')!.getAttribute('href')).toBe(
-      'https://example.dev/idx/articulos/',
+      'https://example.dev/idx/tutoriales/',
     );
     expect(document.querySelector('link[rel="next"]')!.getAttribute('href')).toBe(
-      'https://example.dev/idx/articulos/3/',
+      'https://example.dev/idx/tutoriales/3/',
     );
     expect(document.querySelector('[data-pagefind-body]')).toBeNull();
   });
 
   it('el paginador enlaza cada página y las de 2 en adelante no están en el sitemap', async () => {
-    const document = await page('articulos/index.html');
+    const document = await page('tutoriales/index.html');
     const pager = [...listing(document)!.querySelectorAll('nav a')].map((link) =>
       link.getAttribute('href'),
     );
-    expect(pager).toEqual(expect.arrayContaining(['/idx/articulos/2/', '/idx/articulos/3/']));
-    expect(await site.read('sitemap.xml')).not.toContain('/idx/articulos/2/');
+    expect(pager).toEqual(expect.arrayContaining(['/idx/tutoriales/2/', '/idx/tutoriales/3/']));
+    expect(await site.read('sitemap.xml')).not.toContain('/idx/tutoriales/2/');
   });
 });
 
 describe('portadas', () => {
   async function coverOf(slug: string) {
     for (const file of [
-      'articulos/index.html',
-      'articulos/2/index.html',
-      'articulos/3/index.html',
+      'tutoriales/index.html',
+      'tutoriales/2/index.html',
+      'tutoriales/3/index.html',
     ]) {
       const card = cards(await page(file)).find(
-        (item) => item.querySelector('h2 a')!.getAttribute('href') === `/idx/articulos/${slug}/`,
+        (item) => item.querySelector('h2 a')!.getAttribute('href') === `/idx/tutoriales/${slug}/`,
       );
       if (card) return card;
     }
@@ -156,34 +154,36 @@ describe('portadas', () => {
   }
 
   it('una imagen relativa pasa por astro:assets, con su alt y la de la librería debajo', async () => {
-    const card = await coverOf('git');
+    const card = await coverOf('instalacion');
     const image = card.querySelector('img')!;
-    expect(image.getAttribute('src')).toMatch(/^\/idx\/_astro\/git\..+\.webp$/);
-    expect(image.getAttribute('alt')).toBe('Logo de Git');
+    expect(image.getAttribute('src')).toMatch(/^\/idx\/_astro\/instalacion\..+\.webp$/);
+    expect(image.getAttribute('alt')).toBe('Terminal con la instalación');
     expect(card.querySelector('[data-cover-placeholder]')!.getAttribute('aria-hidden')).toBe(
       'true',
     );
   });
 
   it('una imagen de public/ se sirve con la base y es decorativa sin `imageAlt`', async () => {
-    const image = (await coverOf('make')).querySelector('img')!;
-    expect(image.getAttribute('src')).toBe('/idx/portadas/make.png');
+    const image = (await coverOf('primer-proyecto')).querySelector('img')!;
+    expect(image.getAttribute('src')).toBe('/idx/portadas/primer-proyecto.png');
     expect(image.getAttribute('alt')).toBe('');
   });
 
   it('`image: false`: sin portada', async () => {
-    expect((await coverOf('django')).querySelector('[data-index-cover]')).toBeNull();
+    expect((await coverOf('configuracion')).querySelector('[data-index-cover]')).toBeNull();
   });
 
   it('una imagen que no existe: aviso en el build y la portada de la librería', async () => {
-    const card = await coverOf('dns');
+    const card = await coverOf('despliegue');
     expect(card.querySelector('img')).toBeNull();
     expect(card.querySelector('[data-cover-placeholder]')).not.toBeNull();
-    expect(site.output).toContain('articulos/dns.md: index.image «./nada.png» no existe');
+    expect(site.output).toContain('tutoriales/despliegue.md: index.image «./nada.png» no existe');
   });
 
   it('sin nada en la página manda la política (por defecto, la de la librería)', async () => {
-    expect((await coverOf('nginx')).querySelector('[data-cover-placeholder]')).not.toBeNull();
+    expect(
+      (await coverOf('errores-comunes')).querySelector('[data-cover-placeholder]'),
+    ).not.toBeNull();
   });
 });
 
@@ -237,7 +237,7 @@ describe('index.md gana a _index.md', () => {
 
 describe('selector «Por página»', () => {
   it('página 1: oculto sin JavaScript, con las opciones del _index.md y todas las entradas', async () => {
-    const document = await page('articulos/index.html');
+    const document = await page('tutoriales/index.html');
     const root = document.querySelector('[data-index-pager]')!;
     expect(root.getAttribute('data-options')).toBe('2,4');
     expect(root.getAttribute('data-per-page')).toBe('2');
@@ -249,22 +249,22 @@ describe('selector «Por página»', () => {
   });
 
   it('un paginador por tamaño: el de la config con las rutas estáticas, el otro con la query', async () => {
-    const document = await page('articulos/index.html');
+    const document = await page('tutoriales/index.html');
     const visible = [...document.querySelectorAll('[data-index-pagination]')].filter(
       (pager) => !pager.hasAttribute('hidden'),
     );
     expect(visible.map((pager) => pager.getAttribute('data-per'))).toEqual(['2']);
     expect(visible[0]!.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/idx/articulos/2/',
+      '/idx/tutoriales/2/',
     );
     const other = document.querySelector('[data-index-pagination][data-per="4"][data-page="1"]')!;
     expect(other.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/idx/articulos/?por=4&pagina=2',
+      '/idx/tutoriales/?por=4&pagina=2',
     );
   });
 
   it('las rutas estáticas no cambian: /2/ trae solo sus dos entradas y su paginador', async () => {
-    const document = await page('articulos/2/index.html');
+    const document = await page('tutoriales/2/index.html');
     const root = document.querySelector('[data-index-pager]')!;
     expect(root.getAttribute('data-all')).toBe('false');
     expect(root.querySelectorAll('[data-index-item]')).toHaveLength(2);

@@ -79,11 +79,11 @@ describe('findSlugCollisions', () => {
 
 describe('urlSlugOf', () => {
   it('sin `slug` propio, la URL sale de la identidad (el nombre del archivo)', () => {
-    expect(urlSlugOf({ slug: 'articulos/x' })).toBe('articulos/x');
+    expect(urlSlugOf({ slug: 'tutoriales/x' })).toBe('tutoriales/x');
   });
 
   it('con `slug` propio, la URL es la suya', () => {
-    expect(urlSlugOf({ slug: 'articulos/x', urlSlug: 'articles/y' })).toBe('articles/y');
+    expect(urlSlugOf({ slug: 'tutoriales/x', urlSlug: 'tutorials/y' })).toBe('tutorials/y');
   });
 });
 
@@ -91,10 +91,10 @@ describe('slugProblem', () => {
   const locales = ['es', 'en'];
 
   it('una ruta relativa al contenido, con o sin carpetas, es válida', () => {
-    expect(slugProblem('articles/n-plus-one-queries-django', locales)).toBeUndefined();
+    expect(slugProblem('tutorials/installation', locales)).toBeUndefined();
     expect(slugProblem('guide', locales)).toBeUndefined();
     expect(slugProblem('notas/v1.2_final', locales)).toBeUndefined();
-    expect(slugProblem('artículos/año', locales)).toBeUndefined();
+    expect(slugProblem('guías/año', locales)).toBeUndefined();
   });
 
   it('vacío: pide quitarlo o escribir la ruta', () => {
@@ -103,18 +103,18 @@ describe('slugProblem', () => {
   });
 
   it('absoluto o con barra final: pide la ruta sin barras en los extremos', () => {
-    expect(slugProblem('/articles/x', locales)?.message).toContain('`/`');
-    expect(slugProblem('articles/x/', locales)?.message).toContain('`/`');
-    expect(slugProblem('/articles/x', locales)?.hint).toContain('articles/');
+    expect(slugProblem('/tutorials/x', locales)?.message).toContain('`/`');
+    expect(slugProblem('tutorials/x/', locales)?.message).toContain('`/`');
+    expect(slugProblem('/tutorials/x', locales)?.hint).toContain('tutorials/');
   });
 
   it('`..` o `.` como segmento', () => {
-    expect(slugProblem('articles/../x', locales)?.message).toContain('`..`');
+    expect(slugProblem('tutorials/../x', locales)?.message).toContain('`..`');
     expect(slugProblem('./x', locales)?.message).toContain('`..`');
   });
 
   it('con prefijo de idioma: lo añade la librería', () => {
-    const problem = slugProblem('en/articles/x', locales);
+    const problem = slugProblem('en/tutorials/x', locales);
     expect(problem?.message).toContain('«en»');
     expect(problem?.hint).toContain('prefijo');
     // El idioma por defecto también: su prefijo está reservado a la otra forma de escribir la URL.
@@ -129,11 +129,11 @@ describe('slugProblem', () => {
   });
 
   it('caracteres no válidos: los nombra', () => {
-    const problem = slugProblem('articles/n+1 queries?', locales);
+    const problem = slugProblem('tutorials/c++ setup?', locales);
     expect(problem?.message).toContain('+');
     expect(problem?.message).toContain('?');
-    expect(slugProblem('articles//x', locales)?.message).toContain('segmento vacío');
-    expect(slugProblem('articles\\x', locales)?.message).toContain('\\');
+    expect(slugProblem('tutorials//x', locales)?.message).toContain('segmento vacío');
+    expect(slugProblem('tutorials\\x', locales)?.message).toContain('\\');
   });
 });
 

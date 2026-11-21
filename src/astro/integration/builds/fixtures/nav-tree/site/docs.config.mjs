@@ -1,8 +1,8 @@
 import { defineDocsConfig, MissingTranslation } from '../../../../index.ts';
 
-/* Un blog como el del portfolio: los artículos viven planos en `articulos/` y el árbol lo forman solo
-   los `sidebar` de las secciones. El índice (`articulos/index.md`) solo existe en español, así que
-   `/en/articulos/` es una ruta de reserva. */
+/* Un sitio de tutoriales: las páginas viven planas en `tutoriales/` y el árbol lo forman solo los
+   `sidebar` de las secciones. El índice (`tutoriales/index.md`) solo existe en español, así que
+   `/en/tutoriales/` es una ruta de reserva. */
 export default defineDocsConfig({
   name: 'Tree',
   locales: ['es', 'en'],
@@ -10,16 +10,21 @@ export default defineDocsConfig({
   translations: { missing: MissingTranslation.FALLBACK },
   nav: [
     {
-      label: { es: 'Desarrollo', en: 'Development' },
+      label: { es: 'Esenciales', en: 'Essentials' },
       sidebar: [
-        { label: { es: 'Herramientas', en: 'Tools' }, items: ['articulos/git'] },
-        { label: 'Python', items: [{ label: 'Django', items: ['articulos/django'] }] },
+        {
+          label: { es: 'Primeros pasos', en: 'Getting started' },
+          items: ['tutoriales/instalacion'],
+        },
+        { label: 'Astro', items: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
       ],
     },
     {
-      label: { es: 'Sistemas', en: 'Systems' },
-      sidebar: [{ label: { es: 'Contenedores', en: 'Containers' }, items: ['articulos/docker'] }],
+      label: { es: 'Avanzado', en: 'Advanced' },
+      sidebar: [
+        { label: { es: 'Despliegue', en: 'Deployment' }, items: ['tutoriales/despliegue'] },
+      ],
     },
   ],
-  sidebar: ['index', 'articulos'],
+  sidebar: ['index', 'tutoriales'],
 });

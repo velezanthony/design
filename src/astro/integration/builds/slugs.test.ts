@@ -50,79 +50,75 @@ function alternates(document: Document) {
   );
 }
 
-const QUERIES_ES = 'articulos/consultas-n-mas-1-django/index.html';
-const QUERIES_EN = 'en/articles/n-plus-one-queries-django/index.html';
+const INSTALL_ES = 'tutoriales/instalacion/index.html';
+const INSTALL_EN = 'en/tutorials/installation/index.html';
 
 describe('una pareja con `slug` en inglés', () => {
   it('la traducción vive en su URL y no en la del archivo; el original no cambia', async () => {
-    expect(await exists(QUERIES_EN)).toBe(true);
-    expect(await exists('en/articulos/consultas-n-mas-1-django/index.html')).toBe(false);
-    expect(await exists(QUERIES_ES)).toBe(true);
+    expect(await exists(INSTALL_EN)).toBe(true);
+    expect(await exists('en/tutoriales/instalacion/index.html')).toBe(false);
+    expect(await exists(INSTALL_ES)).toBe(true);
   });
 
   it('el selector de idioma enlaza las dos URLs desde cada lado', async () => {
     const expected = {
-      es: '/sl/articulos/consultas-n-mas-1-django/',
-      en: '/sl/en/articles/n-plus-one-queries-django/',
+      es: '/sl/tutoriales/instalacion/',
+      en: '/sl/en/tutorials/installation/',
     };
-    expect(switcher(await page(QUERIES_EN))).toEqual(expected);
-    expect(switcher(await page(QUERIES_ES))).toEqual(expected);
+    expect(switcher(await page(INSTALL_EN))).toEqual(expected);
+    expect(switcher(await page(INSTALL_ES))).toEqual(expected);
   });
 
   it('canonical y hreflang recíprocos con las URLs traducidas', async () => {
-    const english = await page(QUERIES_EN);
+    const english = await page(INSTALL_EN);
     expect(english.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
-      'https://example.dev/sl/en/articles/n-plus-one-queries-django/',
+      'https://example.dev/sl/en/tutorials/installation/',
     );
     const expected = {
-      es: 'https://example.dev/sl/articulos/consultas-n-mas-1-django/',
-      en: 'https://example.dev/sl/en/articles/n-plus-one-queries-django/',
-      'x-default': 'https://example.dev/sl/articulos/consultas-n-mas-1-django/',
+      es: 'https://example.dev/sl/tutoriales/instalacion/',
+      en: 'https://example.dev/sl/en/tutorials/installation/',
+      'x-default': 'https://example.dev/sl/tutoriales/instalacion/',
     };
     expect(alternates(english)).toEqual(expected);
-    expect(alternates(await page(QUERIES_ES))).toEqual(expected);
+    expect(alternates(await page(INSTALL_ES))).toEqual(expected);
   });
 
   it('el sitemap lista la URL traducida con sus alternates', async () => {
     const xml = await site.read('sitemap.xml');
-    expect(xml).toContain(
-      '<loc>https://example.dev/sl/en/articles/n-plus-one-queries-django/</loc>',
-    );
-    expect(xml).toContain(
-      'hreflang="en" href="https://example.dev/sl/en/articles/n-plus-one-queries-django/"',
-    );
-    expect(xml).not.toContain('/sl/en/articulos/consultas-n-mas-1-django/');
+    expect(xml).toContain('<loc>https://example.dev/sl/en/tutorials/installation/</loc>');
+    expect(xml).toContain('hreflang="en" href="https://example.dev/sl/en/tutorials/installation/"');
+    expect(xml).not.toContain('/sl/en/tutoriales/instalacion/');
   });
 
   it('la barra lateral de /en/ enlaza las URLs traducidas que la config nombra por su archivo', async () => {
     const links = hrefs((await page('en/index.html')).querySelectorAll('aside a'));
     expect(links).toEqual(
       expect.arrayContaining([
-        '/sl/en/articles/',
-        '/sl/en/articles/n-plus-one-queries-django/',
-        '/sl/en/articles/dns-change/',
-        '/sl/en/articulos/nginx/',
+        '/sl/en/tutorials/',
+        '/sl/en/tutorials/installation/',
+        '/sl/en/tutorials/deploy/',
+        '/sl/en/tutoriales/errores-comunes/',
         '/sl/en/guia/a/',
       ]),
     );
   });
 
   it('anterior y siguiente siguen el orden de la barra lateral con las URLs en inglés', async () => {
-    const english = await page(QUERIES_EN);
-    expect(english.querySelector('a[rel="prev"]')!.getAttribute('href')).toBe('/sl/en/articles/');
+    const english = await page(INSTALL_EN);
+    expect(english.querySelector('a[rel="prev"]')!.getAttribute('href')).toBe('/sl/en/tutorials/');
     expect(english.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/sl/en/articles/dns-change/',
+      '/sl/en/tutorials/deploy/',
     );
   });
 
-  it('un enlace relativo (`dns.md#ttl` o `dns.en.md`) lleva a la URL traducida de la gemela', async () => {
-    const links = hrefs((await page(QUERIES_EN)).querySelectorAll('main .prose a'));
-    expect(links).toContain('/sl/en/articles/dns-change/#ttl');
-    expect(links).toContain('/sl/en/articles/dns-change/');
-    const spanish = hrefs((await page(QUERIES_ES)).querySelectorAll('main .prose a'));
-    expect(spanish).toContain('/sl/articulos/dns/#ttl');
+  it('un enlace relativo (`despliegue.md#docker` o `despliegue.en.md`) lleva a la URL traducida de la gemela', async () => {
+    const links = hrefs((await page(INSTALL_EN)).querySelectorAll('main .prose a'));
+    expect(links).toContain('/sl/en/tutorials/deploy/#docker');
+    expect(links).toContain('/sl/en/tutorials/deploy/');
+    const spanish = hrefs((await page(INSTALL_ES)).querySelectorAll('main .prose a'));
+    expect(spanish).toContain('/sl/tutoriales/despliegue/#docker');
     const home = hrefs((await page('en/index.html')).querySelectorAll('main .prose a'));
-    expect(home).toContain('/sl/en/articles/n-plus-one-queries-django/');
+    expect(home).toContain('/sl/en/tutorials/installation/');
   });
 
   it('Pagefind indexa las páginas en sus URLs traducidas', async () => {
@@ -133,45 +129,45 @@ describe('una pareja con `slug` en inglés', () => {
         return (JSON.parse(text.slice(text.indexOf('{'))) as { url: string }).url;
       }),
     );
-    expect(urls).toContain('/en/articles/n-plus-one-queries-django/');
-    expect(urls).toContain('/en/articles/');
-    expect(urls.some((url) => url.startsWith('/en/articulos/consultas'))).toBe(false);
+    expect(urls).toContain('/en/tutorials/installation/');
+    expect(urls).toContain('/en/tutorials/');
+    expect(urls.some((url) => url.startsWith('/en/tutoriales/instalacion'))).toBe(false);
   });
 });
 
 describe('`_index.en.md` con `slug`', () => {
-  it('el listado de la carpeta vive en /en/articles/ y pagina debajo', async () => {
+  it('el listado de la carpeta vive en /en/tutorials/ y pagina debajo', async () => {
     for (const file of [
-      'en/articles/index.html',
-      'en/articles/2/index.html',
-      'en/articles/3/index.html',
+      'en/tutorials/index.html',
+      'en/tutorials/2/index.html',
+      'en/tutorials/3/index.html',
     ]) {
       expect(await exists(file)).toBe(true);
     }
-    expect(await exists('en/articulos/index.html')).toBe(false);
-    expect(await exists('articulos/2/index.html')).toBe(true);
+    expect(await exists('en/tutoriales/index.html')).toBe(false);
+    expect(await exists('tutoriales/2/index.html')).toBe(true);
   });
 
   it('sus entradas enlazan las URLs en inglés y la reserva de la que falta', async () => {
-    const document = await page('en/articles/index.html');
+    const document = await page('en/tutorials/index.html');
     const links = hrefs(document.querySelectorAll('[data-index-card] h2 a'));
     expect(links).toEqual(
       expect.arrayContaining([
-        '/sl/en/articles/n-plus-one-queries-django/',
-        '/sl/en/articles/dns-change/',
-        '/sl/en/articulos/nginx/',
+        '/sl/en/tutorials/installation/',
+        '/sl/en/tutorials/deploy/',
+        '/sl/en/tutoriales/errores-comunes/',
       ]),
     );
-    expect(switcher(document)).toEqual({ es: '/sl/articulos/', en: '/sl/en/articles/' });
+    expect(switcher(document)).toEqual({ es: '/sl/tutoriales/', en: '/sl/en/tutorials/' });
   });
 });
 
 describe('una traducción que falta', () => {
   it('la reserva sigue en el prefijo del idioma más la URL del original, como siempre', async () => {
-    const document = await page('en/articulos/nginx/index.html');
+    const document = await page('en/tutoriales/errores-comunes/index.html');
     expect(document.querySelector('html')!.getAttribute('lang')).toBe('en');
     expect(document.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
-      'https://example.dev/sl/articulos/nginx/',
+      'https://example.dev/sl/tutoriales/errores-comunes/',
     );
     expect(document.querySelector('meta[name="robots"]')!.getAttribute('content')).toBe('noindex');
   });

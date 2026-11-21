@@ -326,35 +326,39 @@ describe('discoverPages: _index.md', () => {
     const index = { layout: 'cards' as const, pageSize: 6 };
     const pages = discoverPages(
       [
-        native('articulos/_index.md', '# Artículos', { index }),
-        native('articulos/_index.en.md', '# Articles'),
-        native('articulos/git.md'),
+        native('tutoriales/_index.md', '# Tutoriales', { index }),
+        native('tutoriales/_index.en.md', '# Tutorials'),
+        native('tutoriales/instalacion.md'),
       ],
       config({ locales: ['es', 'en'], defaultLocale: 'es' }),
     );
     const listings = pages.filter((page) => page.listing);
     expect(listings.map((page) => [page.slug, page.locale, page.title])).toEqual([
-      ['articulos', 'es', 'Artículos'],
-      ['articulos', 'en', 'Articles'],
+      ['tutoriales', 'es', 'Tutoriales'],
+      ['tutoriales', 'en', 'Tutorials'],
     ]);
-    expect(listings[0]).toMatchObject({ kind: 'native', index, sourcePath: 'articulos/_index.md' });
+    expect(listings[0]).toMatchObject({
+      kind: 'native',
+      index,
+      sourcePath: 'tutoriales/_index.md',
+    });
     expect(pages.some((page) => page.slug.includes('_index'))).toBe(false);
   });
 
   it('un index.md de la carpeta gana: se ignoran todos sus _index.md', () => {
     const files = [
-      native('articulos/index.md', '# Portada'),
-      native('articulos/_index.md', '# Artículos'),
-      native('articulos/_index.en.md', '# Articles'),
+      native('tutoriales/index.md', '# Portada'),
+      native('tutoriales/_index.md', '# Tutoriales'),
+      native('tutoriales/_index.en.md', '# Tutorials'),
     ];
     const settings = config({ locales: ['es', 'en'], defaultLocale: 'es' });
     const pages = discoverPages(files, settings);
     expect(pages.map((page) => [page.slug, page.title, page.listing])).toEqual([
-      ['articulos', 'Portada', undefined],
+      ['tutoriales', 'Portada', undefined],
     ]);
     expect(ignoredListings(files, settings)).toEqual([
-      'articulos/_index.md',
-      'articulos/_index.en.md',
+      'tutoriales/_index.md',
+      'tutoriales/_index.en.md',
     ]);
   });
 
@@ -372,36 +376,38 @@ describe('discoverPages: `slug` propio (URL traducida)', () => {
   it('la traducción con `slug` conserva la identidad del archivo y guarda su URL aparte', () => {
     const pages = discoverPages(
       [
-        native('articulos/consultas.md'),
-        native('articulos/consultas.en.md', '# Queries', { slug: 'articles/queries' }),
+        native('tutoriales/instalacion.md'),
+        native('tutoriales/instalacion.en.md', '# Installation', {
+          slug: 'tutorials/installation',
+        }),
       ],
       bilingual(),
     );
     expect(pages.map((page) => [page.slug, page.locale, page.urlSlug])).toEqual([
-      ['articulos/consultas', 'es', undefined],
-      ['articulos/consultas', 'en', 'articles/queries'],
+      ['tutoriales/instalacion', 'es', undefined],
+      ['tutoriales/instalacion', 'en', 'tutorials/installation'],
     ]);
   });
 
   it('el archivo del idioma por defecto también puede fijar su `slug`', () => {
     const [page] = discoverPages(
-      [native('articulos/consultas.md', '# Consultas', { slug: 'blog/consultas' })],
+      [native('tutoriales/instalacion.md', '# Instalación', { slug: 'blog/instalacion' })],
       bilingual(),
     );
-    expect(page).toMatchObject({ slug: 'articulos/consultas', urlSlug: 'blog/consultas' });
+    expect(page).toMatchObject({ slug: 'tutoriales/instalacion', urlSlug: 'blog/instalacion' });
   });
 
   it('un `_index.en.md` con `slug` mueve el listado de su carpeta, que sigue siendo la misma', () => {
     const pages = discoverPages(
       [
-        native('articulos/_index.md', '# Artículos'),
-        native('articulos/_index.en.md', '# Articles', { slug: 'articles' }),
+        native('tutoriales/_index.md', '# Tutoriales'),
+        native('tutoriales/_index.en.md', '# Tutorials', { slug: 'tutorials' }),
       ],
       bilingual(),
     );
     expect(pages.map((page) => [page.slug, page.locale, page.urlSlug, page.listing])).toEqual([
-      ['articulos', 'es', undefined, true],
-      ['articulos', 'en', 'articles', true],
+      ['tutoriales', 'es', undefined, true],
+      ['tutoriales', 'en', 'tutorials', true],
     ]);
   });
 

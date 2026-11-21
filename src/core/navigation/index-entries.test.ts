@@ -31,32 +31,36 @@ function page(slug: string, locale = 'es', extra: Partial<Page> = {}): Page {
   };
 }
 
-/* El blog del portfolio: artículos planos en `articulos/`, el árbol lo forman los `sidebar`. */
+/* Un sitio de tutoriales: páginas planas en `tutoriales/`, el árbol lo forman los `sidebar`. */
 const pages = [
-  page('articulos', 'es', { index: { layout: 'cards' } }),
-  page('articulos/django', 'es', { seo: { description: 'Consultas N+1.' } }),
-  page('articulos/django', 'en', { seo: { description: 'N+1 queries.' } }),
-  page('articulos/git', 'es', {
+  page('tutoriales', 'es', { index: { layout: 'cards' } }),
+  page('tutoriales/configuracion', 'es', {
+    seo: { description: 'Las opciones del archivo de configuración.' },
+  }),
+  page('tutoriales/configuracion', 'en', {
+    seo: { description: 'The options in the config file.' },
+  }),
+  page('tutoriales/instalacion', 'es', {
     index: { summary: 'Resumen propio.' },
     seo: { description: 'Descripción SEO.' },
   }),
-  page('articulos/docker'),
-  page('articulos/suelto'),
+  page('tutoriales/despliegue'),
+  page('tutoriales/suelto'),
   page('guia/intro'),
 ];
 
 const nav: NavItem[] = [
   {
-    label: { es: 'Desarrollo', en: 'Development' },
+    label: { es: 'Esenciales', en: 'Essentials' },
     sidebar: [
-      { label: { es: 'Herramientas', en: 'Tools' }, items: ['articulos/git'] },
-      { label: 'Python', items: [{ label: 'Django', items: ['articulos/django'] }] },
+      { label: { es: 'Primeros pasos', en: 'Getting started' }, items: ['tutoriales/instalacion'] },
+      { label: 'Astro', items: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
     ],
   },
   { label: 'GitHub', href: 'https://github.com/x/y' },
   {
-    label: { es: 'Sistemas', en: 'Systems' },
-    sidebar: [{ label: { es: 'Contenedores', en: 'Containers' }, items: ['articulos/docker'] }],
+    label: { es: 'Avanzado', en: 'Advanced' },
+    sidebar: [{ label: { es: 'Despliegue', en: 'Deployment' }, items: ['tutoriales/despliegue'] }],
   },
 ];
 
@@ -65,10 +69,10 @@ function context(locale = 'es', extra: Partial<NavContext['config']> = {}): NavC
     pages,
     availability: buildAvailability(pages, url),
     locale,
-    config: { locales: ['es', 'en'], defaultLocale: 'es', nav, sidebar: ['articulos'], ...extra },
+    config: { locales: ['es', 'en'], defaultLocale: 'es', nav, sidebar: ['tutoriales'], ...extra },
     policies: resolvePolicies(pages, MissingTranslation.FALLBACK).policies,
     url,
-    slug: 'articulos',
+    slug: 'tutoriales',
   };
 }
 
@@ -82,61 +86,73 @@ function titles(entries: IndexEntry[]) {
 
 describe('buildIndexListing: entradas', () => {
   it('las páginas de la carpeta que están en la navegación, en el orden del árbol', () => {
-    const { entries } = buildIndexListing(context(), 'es', 'articulos', none);
-    expect(titles(entries)).toEqual(['git (es)', 'django (es)', 'docker (es)', 'suelto (es)']);
+    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    expect(titles(entries)).toEqual([
+      'instalacion (es)',
+      'configuracion (es)',
+      'despliegue (es)',
+      'suelto (es)',
+    ]);
     expect(entries.map((entry) => entry.href)).toEqual([
-      '/repo/articulos/git/',
-      '/repo/articulos/django/',
-      '/repo/articulos/docker/',
-      '/repo/articulos/suelto/',
+      '/repo/tutoriales/instalacion/',
+      '/repo/tutoriales/configuracion/',
+      '/repo/tutoriales/despliegue/',
+      '/repo/tutoriales/suelto/',
     ]);
   });
 
   it('el camino es la sección y cada grupo; lo que no está en ninguna sección no lleva', () => {
-    const { entries } = buildIndexListing(context(), 'es', 'articulos', none);
+    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', none);
     expect(entries.map((entry) => entry.path)).toEqual([
-      ['Desarrollo', 'Herramientas'],
-      ['Desarrollo', 'Python', 'Django'],
-      ['Sistemas', 'Contenedores'],
+      ['Esenciales', 'Primeros pasos'],
+      ['Esenciales', 'Astro', 'Vite'],
+      ['Avanzado', 'Despliegue'],
       [],
     ]);
   });
 
   it('el resumen es `index.summary` y, sin él, `seo.description`', () => {
-    const { entries } = buildIndexListing(context(), 'es', 'articulos', none);
+    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', none);
     expect(entries.map((entry) => entry.summary)).toEqual([
       'Resumen propio.',
-      'Consultas N+1.',
+      'Las opciones del archivo de configuración.',
       undefined,
       undefined,
     ]);
   });
 
   it('en inglés: URLs de la ruta y textos del contenido inglés si la traducción existe', () => {
-    const { entries } = buildIndexListing(context('en'), 'en', 'articulos', none);
-    const django = entries.find((entry) => entry.slug === 'articulos/django')!;
-    expect(django).toMatchObject({
-      title: 'django (en)',
-      href: '/repo/en/articulos/django/',
-      summary: 'N+1 queries.',
-      path: ['Development', 'Python', 'Django'],
+    const { entries } = buildIndexListing(context('en'), 'en', 'tutoriales', none);
+    const configuration = entries.find((entry) => entry.slug === 'tutoriales/configuracion')!;
+    expect(configuration).toMatchObject({
+      title: 'configuracion (en)',
+      href: '/repo/en/tutoriales/configuracion/',
+      summary: 'The options in the config file.',
+      path: ['Essentials', 'Astro', 'Vite'],
     });
     // Sin traducción: el texto del original bajo la URL de reserva.
-    const git = entries.find((entry) => entry.slug === 'articulos/git')!;
-    expect(git).toMatchObject({ title: 'git (es)', href: '/repo/en/articulos/git/' });
+    const install = entries.find((entry) => entry.slug === 'tutoriales/instalacion')!;
+    expect(install).toMatchObject({
+      title: 'instalacion (es)',
+      href: '/repo/en/tutoriales/instalacion/',
+    });
   });
 
   it('la fecha y la portada vienen de los detalles de cada página', () => {
     function details(slug: string): EntryDetails | undefined {
-      return slug === 'articulos/git'
-        ? { updated: '2026-01-02T00:00:00+00:00', cover: { src: '/git.png' }, imageAlt: 'Git' }
+      return slug === 'tutoriales/instalacion'
+        ? {
+            updated: '2026-01-02T00:00:00+00:00',
+            cover: { src: '/instalacion.png' },
+            imageAlt: 'Terminal con la instalación',
+          }
         : undefined;
     }
-    const { entries } = buildIndexListing(context(), 'es', 'articulos', details);
+    const { entries } = buildIndexListing(context(), 'es', 'tutoriales', details);
     expect(entries[0]).toMatchObject({
       updated: '2026-01-02T00:00:00+00:00',
-      cover: { src: '/git.png' },
-      imageAlt: 'Git',
+      cover: { src: '/instalacion.png' },
+      imageAlt: 'Terminal con la instalación',
     });
     expect(entries[1]!.updated).toBeUndefined();
   });
@@ -145,10 +161,15 @@ describe('buildIndexListing: entradas', () => {
     const { entries, sections } = buildIndexListing(
       context('es', { nav: undefined, sidebar: undefined }),
       'es',
-      'articulos',
+      'tutoriales',
       none,
     );
-    expect(titles(entries)).toEqual(['django (es)', 'docker (es)', 'git (es)', 'suelto (es)']);
+    expect(titles(entries)).toEqual([
+      'configuracion (es)',
+      'despliegue (es)',
+      'instalacion (es)',
+      'suelto (es)',
+    ]);
     expect(entries.every((entry) => entry.path.length === 0)).toBe(true);
     expect(sections).toHaveLength(1);
     expect(sections[0]!.label).toBeUndefined();
@@ -164,27 +185,27 @@ describe('buildIndexListing: entradas', () => {
 
 describe('buildIndexListing: secciones (disposición lista)', () => {
   it('una por sección de `nav` con entradas, con su etiqueta y un id', () => {
-    const { sections } = buildIndexListing(context(), 'es', 'articulos', none);
+    const { sections } = buildIndexListing(context(), 'es', 'tutoriales', none);
     expect(sections.map((section) => [section.label, section.id])).toEqual([
-      ['Desarrollo', 'desarrollo'],
-      ['Sistemas', 'sistemas'],
+      ['Esenciales', 'esenciales'],
+      ['Avanzado', 'avanzado'],
       [undefined, undefined],
     ]);
   });
 
   it('los grupos anidados conservan su etiqueta y sus entradas', () => {
-    const { sections } = buildIndexListing(context(), 'es', 'articulos', none);
-    const [tools, python] = sections[0]!.nodes;
-    expect(isIndexGroup(tools!) && tools.label).toBe('Herramientas');
+    const { sections } = buildIndexListing(context(), 'es', 'tutoriales', none);
+    const [gettingStarted, astro] = sections[0]!.nodes;
+    expect(isIndexGroup(gettingStarted!) && gettingStarted.label).toBe('Primeros pasos');
     expect(
-      isIndexGroup(python!) &&
-        python.items.map((node) => (isIndexGroup(node) ? node.label : node.title)),
-    ).toEqual(['Django']);
+      isIndexGroup(astro!) &&
+        astro.items.map((node) => (isIndexGroup(node) ? node.label : node.title)),
+    ).toEqual(['Vite']);
   });
 
   it('un id que ya existe en la página se desambigua', () => {
-    const { sections } = buildIndexListing(context(), 'es', 'articulos', none, ['desarrollo']);
-    expect(sections[0]!.id).toBe('desarrollo-1');
+    const { sections } = buildIndexListing(context(), 'es', 'tutoriales', none, ['esenciales']);
+    expect(sections[0]!.id).toBe('esenciales-1');
   });
 });
 
@@ -254,7 +275,7 @@ describe('coverFor', () => {
 
 describe('coverPattern', () => {
   it('estable por slug y entre los tres dibujos', () => {
-    expect(coverPattern('articulos/git')).toBe(coverPattern('articulos/git'));
+    expect(coverPattern('tutoriales/instalacion')).toBe(coverPattern('tutoriales/instalacion'));
     const patterns = new Set(['a', 'b', 'c', 'd', 'e', 'f'].map(coverPattern));
     expect([...patterns].every((pattern) => ['grid', 'diagonal', 'dots'].includes(pattern))).toBe(
       true,

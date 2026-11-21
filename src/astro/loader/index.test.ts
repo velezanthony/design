@@ -685,55 +685,55 @@ describe('docsLoader: índices generados', () => {
 
   it('un _index.md es la página de su carpeta, con listado y su frontmatter `index`', async () => {
     await write(
-      'src/content/docs/articulos/_index.md',
-      '---\nindex:\n  layout: cards\n  pageSize: 6\n---\n# Artículos\n\nNotas.\n',
+      'src/content/docs/tutoriales/_index.md',
+      '---\nindex:\n  layout: cards\n  pageSize: 6\n---\n# Tutoriales\n\nNotas.\n',
     );
-    await write('src/content/docs/articulos/git.md', '# Git\n');
+    await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({ name: 'T', ...bilingual });
-    expect(entries.has('es/articulos/_index')).toBe(false);
-    const entry = entries.get('es/articulos')!;
+    expect(entries.has('es/tutoriales/_index')).toBe(false);
+    const entry = entries.get('es/tutoriales')!;
     expect(entry.data).toMatchObject({
-      slug: 'articulos',
-      title: 'Artículos',
+      slug: 'tutoriales',
+      title: 'Tutoriales',
       kind: 'native',
       listing: true,
       index: { layout: 'cards', pageSize: 6 },
-      sourcePath: path.join('src/content/docs', 'articulos/_index.md'),
+      sourcePath: path.join('src/content/docs', 'tutoriales/_index.md'),
     });
   });
 
   it('un index.md gana a su _index.md, que se ignora con un aviso', async () => {
-    await write('src/content/docs/articulos/index.md', '# Portada\n');
-    await write('src/content/docs/articulos/_index.md', '# Artículos\n');
-    await write('src/content/docs/articulos/git.md', '# Git\n');
+    await write('src/content/docs/tutoriales/index.md', '# Portada\n');
+    await write('src/content/docs/tutoriales/_index.md', '# Tutoriales\n');
+    await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries, warnings } = await load({ name: 'T', ...bilingual });
-    expect(entries.get('es/articulos')!.data).toMatchObject({ title: 'Portada' });
-    expect(entries.get('es/articulos')!.data.listing).toBeUndefined();
-    expect(warnings.join('\n')).toContain('articulos/_index.md');
+    expect(entries.get('es/tutoriales')!.data).toMatchObject({ title: 'Portada' });
+    expect(entries.get('es/tutoriales')!.data.listing).toBeUndefined();
+    expect(warnings.join('\n')).toContain('tutoriales/_index.md');
   });
 
   it('con `indexes`, una carpeta sin index.md ni _index.md recibe una página por idioma', async () => {
-    await write('src/content/docs/articulos/git.md', '# Git\n');
+    await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     await write('src/content/docs/notas-varias/a.md', '# A\n');
     const { entries, rendered } = await load({
       name: 'T',
       ...bilingual,
-      nav: [{ label: { es: 'Artículos', en: 'Articles' }, dir: 'articulos' }],
-      indexes: { overrides: { articulos: { description: { es: 'Todo.', en: 'All.' } } } },
+      nav: [{ label: { es: 'Tutoriales', en: 'Tutorials' }, dir: 'tutoriales' }],
+      indexes: { overrides: { tutoriales: { description: { es: 'Todo.', en: 'All.' } } } },
       editUrl: 'https://github.com/x/y/edit/main/',
       repoRoot: '.',
     });
-    expect(entries.get('en/articulos')!.data).toMatchObject({
-      slug: 'articulos',
+    expect(entries.get('en/tutoriales')!.data).toMatchObject({
+      slug: 'tutoriales',
       locale: 'en',
-      title: 'Articles',
+      title: 'Tutorials',
       kind: 'generated',
       listing: true,
       seo: { description: 'All.' },
     });
-    expect(entries.get('en/articulos')!.data.editPath).toBeUndefined();
+    expect(entries.get('en/tutoriales')!.data.editPath).toBeUndefined();
     expect(entries.get('es/notas-varias')!.data.title).toBe('Notas varias');
-    expect(rendered).toContain('# Articles\n\nAll.\n');
+    expect(rendered).toContain('# Tutorials\n\nAll.\n');
   });
 
   it('el título y la entradilla generados no se leen como Markdown', async () => {
@@ -746,9 +746,9 @@ describe('docsLoader: índices generados', () => {
   });
 
   it('sin `indexes` no se genera nada', async () => {
-    await write('src/content/docs/articulos/git.md', '# Git\n');
+    await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({ name: 'T' });
-    expect([...entries.keys()]).toEqual(['en/articulos/git']);
+    expect([...entries.keys()]).toEqual(['en/tutoriales/instalacion']);
   });
 
   it('`include` limita las carpetas y una carpeta que no existe es un error', async () => {
@@ -763,14 +763,14 @@ describe('docsLoader: índices generados', () => {
   });
 
   it('el slug de un índice generado vale en `sidebar` y en `nav`', async () => {
-    await write('src/content/docs/articulos/git.md', '# Git\n');
+    await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({
       name: 'T',
       indexes: {},
-      sidebar: ['articulos'],
-      nav: [{ label: 'Artículos', slug: 'articulos' }],
+      sidebar: ['tutoriales'],
+      nav: [{ label: 'Tutoriales', slug: 'tutoriales' }],
     });
-    expect(entries.has('en/articulos')).toBe(true);
+    expect(entries.has('en/tutoriales')).toBe(true);
   });
 
   it('la portada de una página: relativa, de public/, false, o la de la librería si falta', async () => {
@@ -803,11 +803,11 @@ describe('docsLoader: `slug` propio', () => {
     await write('src/content/docs/a.md', '# A\n\n[b](./b.md#uso)\n');
     await write('src/content/docs/a.en.md', '# A\n\n[b](./b.md#use)\n');
     await write('src/content/docs/b.md', '# B\n\n## Uso\n');
-    await write('src/content/docs/b.en.md', '---\nslug: articles/b\n---\n# B\n\n## Use\n');
+    await write('src/content/docs/b.en.md', '---\nslug: tutorials/b\n---\n# B\n\n## Use\n');
     const { entries, rendered } = await load(bilingual, makeContext({ base: '/repo' }));
-    expect(entries.get('en/b')?.data).toMatchObject({ slug: 'b', urlSlug: 'articles/b' });
+    expect(entries.get('en/b')?.data).toMatchObject({ slug: 'b', urlSlug: 'tutorials/b' });
     expect(entries.get('es/b')?.data).not.toHaveProperty('urlSlug');
-    expect(rendered.join('\n')).toContain('[b](/repo/en/articles/b/#use)');
+    expect(rendered.join('\n')).toContain('[b](/repo/en/tutorials/b/#use)');
     expect(rendered.join('\n')).toContain('[b](/repo/b/#uso)');
   });
 

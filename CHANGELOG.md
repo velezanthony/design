@@ -23,17 +23,17 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   `nav` un `##` con su etiqueta (con ancla y en «En esta página») y debajo su árbol, el de la barra
   lateral: grupos anidados en negrita y cada página enlazada con su título y su `seo.description`. Una
   página índice ya no copia a mano el árbol de la config ni hay que traducirlo.
-  `{section="Sistemas"}` deja una sola sección y `{descriptions="false"}` solo los títulos. En una
+  `{section="Avanzado"}` deja una sola sección y `{descriptions="false"}` solo los títulos. En una
   ruta de reserva el texto es el del original y las URLs, las de la barra lateral de esa ruta. Una
   sección que no existe, un atributo desconocido o la directiva sin secciones en `nav` rompen el build
   con el archivo y la línea.
 - **Índices de carpeta generados (`_index.md` e `indexes`).** Como en Hugo, un `_index.md` en una
-  carpeta es la fuente de su página: `/articulos/` pinta su cuerpo (título y entradilla) y debajo el
+  carpeta es la fuente de su página: `/tutoriales/` pinta su cuerpo (título y entradilla) y debajo el
   listado de lo que cuelga de la carpeta, con la resolución de la barra lateral. Tres disposiciones:
   `list` (el árbol por secciones de `nav`), `table` (título, resumen, sección y fecha; tarjetas
   apiladas en móvil) y `cards` (tarjetas de blog con portada 16:9). La tabla y las tarjetas van de la
   más reciente a la más antigua por fecha de commit (lo no publicado, primero y sin fecha) y se
-  paginan en `/articulos/2/`… (`noindex`, canónicas de sí mismas, con `rel=prev/next` y fuera del
+  paginan en `/tutoriales/2/`… (`noindex`, canónicas de sí mismas, con `rel=prev/next` y fuera del
   sitemap). El `_index.md` no es una página propia y se traduce con `_index.en.md`; un `index.md` en
   la misma carpeta gana y el `_index.md` se ignora con un aviso. La opción `indexes` (`layout`,
   `pageSize`, `image`, `include`, `exclude`, `overrides`) pone los valores por defecto y genera la
@@ -67,14 +67,13 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   llega a ejecutarse, el CSS retira la caja a los 10 s. Mermaid empieza a descargarse a la par que el
   código que lo dibuja, no después.
 
-- **URLs traducidas con `slug` en el frontmatter.** `slug: articles/n-plus-one-queries-django` en
-  `articulos/consultas-n-mas-1-django.en.md` publica la traducción en
-  `/en/articles/n-plus-one-queries-django/`, mientras la española sigue en su URL. Las traducciones se
-  siguen emparejando por nombre de archivo: el selector de idioma, `hreflang`, el sitemap, el
-  canonical, anterior/siguiente, la barra lateral, la cabecera, `::nav-tree`, los índices generados,
-  el panel SEO, Pagefind y los enlaces relativos entre `.md` usan la URL de cada idioma, y `sidebar`,
-  `nav` y `footer` siguen nombrando la página por su archivo. Un `_index.en.md` con `slug: articles`
-  mueve el listado de su carpeta (y su paginación) a `/en/articles/`. También vale en el idioma por
+- **URLs traducidas con `slug` en el frontmatter.** `slug: tutorials/installation` en
+  `tutoriales/instalacion.en.md` publica la traducción en `/en/tutorials/installation/`, mientras la
+  española sigue en su URL. Las traducciones se siguen emparejando por nombre de archivo: el selector
+  de idioma, `hreflang`, el sitemap, el canonical, anterior/siguiente, la barra lateral, la cabecera,
+  `::nav-tree`, los índices generados, el panel SEO, Pagefind y los enlaces relativos entre `.md` usan
+  la URL de cada idioma, y `sidebar`, `nav` y `footer` siguen nombrando la página por su archivo. Un `_index.en.md` con `slug: tutorials`
+  mueve el listado de su carpeta (y su paginación) a `/en/tutorials/`. También vale en el idioma por
   defecto. Las rutas de reserva no cambian. Rompen el build un `slug` mal formado (vacío, absoluto,
   con `..`, prefijo de idioma, `/index` final o caracteres no válidos), dos archivos con la misma URL
   en un idioma, un `slug` en una ruta de la librería o de `src/pages/` y una reserva que cae en una
@@ -95,13 +94,13 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   `optimizeDeps.include: ['@velezanthony/design > mermaid']`. En el build no pasaba.
 - **Las tablas hacen scroll en horizontal en cualquier página con `Article`.** Hasta ahora solo las
   envolvía en su `.table-scroll` el plugin de Markdown de los docs, y una página propia que pinta su
-  Markdown con `Article` (una política de privacidad) sacaba la tabla del ancho en móvil. `Article`
-  envuelve cada `<table>` de su contenido y no repite el envoltorio de las que ya lo traen. Con
-  `prose={false}` el contenido queda tal cual.
+  Markdown con `Article` sacaba la tabla del ancho en móvil. `Article` envuelve cada `<table>` de su
+  contenido y no repite el envoltorio de las que ya lo traen. Con `prose={false}` el contenido queda
+  tal cual.
 - **Una palabra larga ya no se sale de la página en móvil.** `prose` lleva
   `overflow-wrap: break-word`: un código de error, un identificador o una URL sin espacios en un
   título o un párrafo se parte cuando no cabe en la línea. Antes solo se partía el código en línea, y
-  un `# ERR_TOO_MANY_REDIRECTS` a tamaño display empujaba la página en horizontal.
+  un `# ERR_CONNECTION_TIMED_OUT` a tamaño display empujaba la página en horizontal.
 - **Una política de traducción declarada en la config del sitio cuenta como declarada.** Con
   `translations: { missing: … }` en `docs.config.mjs`, una página sin traducción ya no avisa «Declara
   `translations`» al arrancar ni resta salud en el panel SEO: el aviso solo miraba el frontmatter de

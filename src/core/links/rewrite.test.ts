@@ -475,10 +475,10 @@ describe('rewriteLinks: casos límite de lo que cuenta como enlace', () => {
 
 describe('rewriteLinks: `slug` propio', () => {
   const translated = [
-    { ...page('articulos/a', 'en', 'articulos/a.md'), urlSlug: 'articles/a' },
-    { ...page('articulos/a', 'es', 'articulos/a.es.md'), urlSlug: 'articulos/a-es' },
-    page('articulos/b', 'en', 'articulos/b.md'),
-    { ...page('articulos/b', 'es', 'articulos/b.es.md'), urlSlug: 'blog/b' },
+    { ...page('tutoriales/a', 'en', 'tutoriales/a.md'), urlSlug: 'tutorials/a' },
+    { ...page('tutoriales/a', 'es', 'tutoriales/a.es.md'), urlSlug: 'tutoriales/a-es' },
+    page('tutoriales/b', 'en', 'tutoriales/b.md'),
+    { ...page('tutoriales/b', 'es', 'tutoriales/b.es.md'), urlSlug: 'blog/b' },
   ];
   const site: PageIndex = { pages: translated, url };
   function at(sourcePath: string) {
@@ -486,20 +486,20 @@ describe('rewriteLinks: `slug` propio', () => {
   }
 
   it('`[x](b.md)` desde la traducción lleva a la URL traducida de la gemela, y el ancla se valida en ella', () => {
-    const result = rewriteLinks('[b](./b.md#uso)', at('articulos/a.es.md'), site);
+    const result = rewriteLinks('[b](./b.md#uso)', at('tutoriales/a.es.md'), site);
     expect(result.body).toBe('[b](/repo/es/blog/b/#uso)');
     expect(result.refs).toEqual([
-      { file: 'articulos/a.es.md', line: 1, slug: 'articulos/b', locale: 'es', anchor: 'uso' },
+      { file: 'tutoriales/a.es.md', line: 1, slug: 'tutoriales/b', locale: 'es', anchor: 'uso' },
     ]);
   });
 
   it('`[x](b.es.md)` también: el archivo del otro idioma resuelve a la misma gemela', () => {
-    const result = rewriteLinks('[b](./b.es.md)', at('articulos/a.es.md'), site);
+    const result = rewriteLinks('[b](./b.es.md)', at('tutoriales/a.es.md'), site);
     expect(result.body).toBe('[b](/repo/es/blog/b/)');
   });
 
   it('desde el idioma por defecto, la página con `slug` propio enlaza su URL', () => {
-    const result = rewriteLinks('[a](./a.md)', at('articulos/b.md'), site);
-    expect(result.body).toBe('[a](/repo/articles/a/)');
+    const result = rewriteLinks('[a](./a.md)', at('tutoriales/b.md'), site);
+    expect(result.body).toBe('[a](/repo/tutorials/a/)');
   });
 });

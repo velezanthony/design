@@ -28,37 +28,41 @@ function page(slug: string, locale = 'es', extra: Partial<Page> = {}): Page {
   };
 }
 
-/* Como un blog: los artículos viven planos y el árbol lo forma solo el `sidebar` de cada sección. */
+/* Como un sitio de tutoriales: las páginas viven planas y el árbol lo forma solo el `sidebar` de cada sección. */
 const pages = [
-  page('articulos'),
-  page('articulos/django', 'es', { seo: { description: 'Consultas N+1.' } }),
-  page('articulos/django', 'en', { seo: { description: 'N+1 queries.' } }),
-  page('articulos/angular', 'es', {
+  page('tutoriales'),
+  page('tutoriales/configuracion', 'es', {
+    seo: { description: 'Las opciones del archivo de configuración.' },
+  }),
+  page('tutoriales/configuracion', 'en', {
+    seo: { description: 'The options in the config file.' },
+  }),
+  page('tutoriales/angular', 'es', {
     seo: { description: { es: 'El elemento host.', en: 'The host element.' } },
   }),
-  page('articulos/git'),
-  page('articulos/docker', 'es', { seo: { description: 'Multietapa.' } }),
-  page('articulos/aws'),
+  page('tutoriales/instalacion'),
+  page('tutoriales/despliegue', 'es', { seo: { description: 'Sin caída.' } }),
+  page('tutoriales/scripts'),
 ];
 
 const nav: NavItem[] = [
   {
-    label: { es: 'Desarrollo', en: 'Development' },
+    label: { es: 'Esenciales', en: 'Essentials' },
     sidebar: [
-      { label: { es: 'Herramientas', en: 'Tools' }, items: ['articulos/git'] },
+      { label: { es: 'Primeros pasos', en: 'Getting started' }, items: ['tutoriales/instalacion'] },
       {
-        label: 'Python',
-        items: [{ label: 'Django', items: ['articulos/django'] }],
+        label: 'Astro',
+        items: [{ label: 'Vite', items: ['tutoriales/configuracion'] }],
       },
-      { label: 'Angular', slug: 'articulos/angular', items: [] },
+      { label: 'Angular', slug: 'tutoriales/angular', items: [] },
     ],
   },
   { label: 'GitHub', href: 'https://github.com/x/y' },
   {
-    label: { es: 'Sistemas', en: 'Systems' },
+    label: { es: 'Avanzado', en: 'Advanced' },
     sidebar: [
-      { label: { es: 'Contenedores', en: 'Containers' }, items: ['articulos/docker'] },
-      { label: 'Cloud', items: [{ label: 'AWS', items: ['articulos/aws'] }] },
+      { label: { es: 'Despliegue', en: 'Deployment' }, items: ['tutoriales/despliegue'] },
+      { label: 'CLI', items: [{ label: 'Scripts', items: ['tutoriales/scripts'] }] },
     ],
   },
 ];
@@ -71,10 +75,10 @@ function context(
     pages,
     availability: buildAvailability(pages, url),
     locale,
-    config: { locales: ['es', 'en'], defaultLocale: 'es', nav, sidebar: ['articulos'] },
+    config: { locales: ['es', 'en'], defaultLocale: 'es', nav, sidebar: ['tutoriales'] },
     policies: resolvePolicies(pages, missing).policies,
     url,
-    slug: 'articulos',
+    slug: 'tutoriales',
   };
 }
 
@@ -97,14 +101,14 @@ function find(nodes: NavTreeNode[], label: string) {
 
 describe('findNavSection', () => {
   it('encuentra la sección por su etiqueta en cualquier idioma', () => {
-    expect(findNavSection(nav, 'Desarrollo')).toBe(0);
-    expect(findNavSection(nav, 'Systems')).toBe(2);
+    expect(findNavSection(nav, 'Esenciales')).toBe(0);
+    expect(findNavSection(nav, 'Advanced')).toBe(2);
   });
 
   it('un enlace de `nav` o un nombre que no existe no son una sección', () => {
     expect(findNavSection(nav, 'GitHub')).toBe(-1);
     expect(findNavSection(nav, 'Blog')).toBe(-1);
-    expect(findNavSection(undefined, 'Desarrollo')).toBe(-1);
+    expect(findNavSection(undefined, 'Esenciales')).toBe(-1);
   });
 
   it('también por su carpeta `dir`', () => {
@@ -114,37 +118,37 @@ describe('findNavSection', () => {
 
 describe('navSectionNames', () => {
   it('lista los nombres de las secciones en el idioma pedido, para el mensaje de error', () => {
-    expect(navSectionNames(nav, 'es', 'es')).toEqual(['Desarrollo', 'Sistemas']);
+    expect(navSectionNames(nav, 'es', 'es')).toEqual(['Esenciales', 'Avanzado']);
   });
 });
 
 describe('buildNavTree', () => {
   it('sigue los grupos anidados del `sidebar` de la sección, en el idioma del contenido', () => {
     expect(shape(buildNavTree(context(), 'es', 0))).toEqual([
-      { Herramientas: ['git (es)'] },
-      { Python: [{ Django: ['django (es)'] }] },
+      { 'Primeros pasos': ['instalacion (es)'] },
+      { Astro: [{ Vite: ['configuracion (es)'] }] },
       'Angular',
     ]);
     expect(shape(buildNavTree(context(), 'es', 2))).toEqual([
-      { Contenedores: ['docker (es)'] },
-      { Cloud: [{ AWS: ['aws (es)'] }] },
+      { Despliegue: ['despliegue (es)'] },
+      { CLI: [{ Scripts: ['scripts (es)'] }] },
     ]);
   });
 
   it('cada página lleva su título, su URL y la descripción de su `seo`', () => {
     const tree = buildNavTree(context(), 'es', 2);
-    expect(find(tree, 'docker (es)')).toEqual({
-      label: 'docker (es)',
-      href: '/repo/articulos/docker/',
-      description: 'Multietapa.',
+    expect(find(tree, 'despliegue (es)')).toEqual({
+      label: 'despliegue (es)',
+      href: '/repo/tutoriales/despliegue/',
+      description: 'Sin caída.',
     });
-    expect(find(tree, 'aws (es)')).not.toHaveProperty('description');
+    expect(find(tree, 'scripts (es)')).not.toHaveProperty('description');
   });
 
   it('un grupo con página propia la enlaza y lleva su descripción, en el idioma del contenido', () => {
     const angular = find(buildNavTree(context(), 'es', 0), 'Angular');
     expect(angular).toMatchObject({
-      href: '/repo/articulos/angular/',
+      href: '/repo/tutoriales/angular/',
       description: 'El elemento host.',
     });
   });
@@ -152,40 +156,45 @@ describe('buildNavTree', () => {
   it('en el idioma de la página que lo pinta, la traducción que existe da título y descripción', () => {
     const tree = buildNavTree(context('en'), 'en', 0);
     expect(shape(tree)).toEqual([
-      { Tools: ['git (es)'] },
-      { Python: [{ Django: ['django (en)'] }] },
+      { 'Getting started': ['instalacion (es)'] },
+      { Astro: [{ Vite: ['configuracion (en)'] }] },
       'Angular',
     ]);
-    expect(find(tree, 'django (en)')).toMatchObject({
-      href: '/repo/en/articulos/django/',
-      description: 'N+1 queries.',
+    expect(find(tree, 'configuracion (en)')).toMatchObject({
+      href: '/repo/en/tutoriales/configuracion/',
+      description: 'The options in the config file.',
     });
   });
 
   it('en una ruta de reserva el texto es el del contenido y las URLs, las de la barra lateral', () => {
-    // `/en/articulos/` sin traducción: el contenido es el español, pero se navega dentro de `/en/`.
+    // `/en/tutoriales/` sin traducción: el contenido es el español, pero se navega dentro de `/en/`.
     const tree = buildNavTree(context('en'), 'es', 0);
     expect(shape(tree)).toEqual([
-      { Herramientas: ['git (es)'] },
-      { Python: [{ Django: ['django (es)'] }] },
+      { 'Primeros pasos': ['instalacion (es)'] },
+      { Astro: [{ Vite: ['configuracion (es)'] }] },
       'Angular',
     ]);
-    expect(find(tree, 'git (es)')).toMatchObject({ href: '/repo/en/articulos/git/' });
-    expect(find(tree, 'django (es)')).toMatchObject({
-      href: '/repo/en/articulos/django/',
-      description: 'Consultas N+1.',
+    expect(find(tree, 'instalacion (es)')).toMatchObject({
+      href: '/repo/en/tutoriales/instalacion/',
     });
-    expect(find(tree, 'Angular')).toMatchObject({ href: '/repo/en/articulos/angular/' });
+    expect(find(tree, 'configuracion (es)')).toMatchObject({
+      href: '/repo/en/tutoriales/configuracion/',
+      description: 'Las opciones del archivo de configuración.',
+    });
+    expect(find(tree, 'Angular')).toMatchObject({ href: '/repo/en/tutoriales/angular/' });
   });
 
   it('con la política `link`, la página sin traducción enlaza al original con su insignia', () => {
     const tree = buildNavTree(context('en', MissingTranslation.LINK), 'en', 0);
-    expect(find(tree, 'git (es)')).toMatchObject({ href: '/repo/articulos/git/', badge: 'es' });
+    expect(find(tree, 'instalacion (es)')).toMatchObject({
+      href: '/repo/tutoriales/instalacion/',
+      badge: 'es',
+    });
   });
 
   it('con la política `omit`, la página sin traducción no sale, ni su grupo si queda vacío', () => {
     const tree = buildNavTree(context('en', MissingTranslation.OMIT), 'en', 0);
-    expect(shape(tree)).toEqual([{ Python: [{ Django: ['django (en)'] }] }]);
+    expect(shape(tree)).toEqual([{ Astro: [{ Vite: ['configuracion (en)'] }] }]);
   });
 
   it('una posición que no es una sección da un árbol vacío', () => {
@@ -199,7 +208,7 @@ describe('buildNavTrees', () => {
     const trees = buildNavTrees(context(), 'es');
     expect(trees).toHaveLength(3);
     expect(trees[1]).toEqual([]);
-    expect(shape(trees[2]!)[0]).toEqual({ Contenedores: ['docker (es)'] });
+    expect(shape(trees[2]!)[0]).toEqual({ Despliegue: ['despliegue (es)'] });
   });
 });
 

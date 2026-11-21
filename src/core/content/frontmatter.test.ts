@@ -101,14 +101,14 @@ describe('parseFrontmatter', () => {
 });
 
 describe('parseFrontmatter: index', () => {
-  function messages(index: unknown, file = 'articulos/git.md') {
+  function messages(index: unknown, file = 'tutoriales/instalacion.md') {
     return parseFrontmatter({ index }, file).errors.map((error) => error.message);
   }
 
   it('una página normal: resumen, imagen (ruta o false) y texto alternativo', () => {
     const { frontmatter, errors } = parseFrontmatter(
       { index: { summary: 'Corto.', image: './portada.png', imageAlt: 'Un gato' } },
-      'articulos/git.md',
+      'tutoriales/instalacion.md',
     );
     expect(errors).toEqual([]);
     expect(frontmatter.index).toEqual({
@@ -117,19 +117,21 @@ describe('parseFrontmatter: index', () => {
       imageAlt: 'Un gato',
     });
     expect(messages({ image: false })).toEqual([]);
-    expect(messages({ image: '/portadas/git.png' })).toEqual([]);
+    expect(messages({ image: '/portadas/instalacion.png' })).toEqual([]);
     expect(messages({ image: 'portada.png' })).toEqual([]);
   });
 
   it('un _index.md: disposición, tamaño de página, opciones por página y política de portadas', () => {
     const index = { layout: 'cards', pageSize: 6, perPageOptions: [6, 12], image: false };
-    for (const file of ['articulos/_index.md', 'articulos/_index.en.md', '_index.md']) {
+    for (const file of ['tutoriales/_index.md', 'tutoriales/_index.en.md', '_index.md']) {
       expect(parseFrontmatter({ index }, file)).toEqual({ frontmatter: { index }, errors: [] });
     }
   });
 
   it('`layout` y `pageSize` solo en un _index.md: un index.md es una página normal', () => {
-    expect(messages({ layout: 'list' }, 'articulos/index.md').join('\n')).toContain('index.layout');
+    expect(messages({ layout: 'list' }, 'tutoriales/index.md').join('\n')).toContain(
+      'index.layout',
+    );
     expect(messages({ pageSize: 4 }).join('\n')).toContain('index.pageSize');
     expect(messages({ perPageOptions: [4] }).join('\n')).toContain('index.perPageOptions');
   });
@@ -167,12 +169,9 @@ describe('parseFrontmatter: index', () => {
 
 describe('parseFrontmatter: slug', () => {
   it('acepta `slug`, la URL propia de la página', () => {
-    const { frontmatter, errors } = parseFrontmatter(
-      { slug: 'articles/n-plus-one-queries-django' },
-      'a.en.md',
-    );
+    const { frontmatter, errors } = parseFrontmatter({ slug: 'tutorials/installation' }, 'a.en.md');
     expect(errors).toEqual([]);
-    expect(frontmatter.slug).toBe('articles/n-plus-one-queries-django');
+    expect(frontmatter.slug).toBe('tutorials/installation');
   });
 
   it('un `slug` que no es texto nombra archivo y campo', () => {

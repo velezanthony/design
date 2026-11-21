@@ -1,3 +1,3 @@
 # Inicio
 
-Los [artículos de sistemas](articulos/index.md#sistemas).
+Los [tutoriales avanzados](tutoriales/index.md#avanzado).

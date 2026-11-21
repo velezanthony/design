@@ -103,32 +103,32 @@ describe('pageLastmods: `slug` propio', () => {
     const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
     const pages: Page[] = [
       {
-        slug: 'articulos',
+        slug: 'tutoriales',
         locale: 'es',
         title: 'A',
         kind: 'native',
-        sourcePath: 'articulos/_index.es.md',
+        sourcePath: 'tutoriales/_index.es.md',
         body: '',
         listing: true,
-        urlSlug: 'articles-es',
+        urlSlug: 'tutorials-es',
       },
       {
-        slug: 'articulos/x',
+        slug: 'tutoriales/x',
         locale: 'es',
         title: 'X',
         kind: 'native',
-        sourcePath: 'articulos/x.es.md',
+        sourcePath: 'tutoriales/x.es.md',
         body: '',
         urlSlug: 'blog/x',
       },
     ];
     const dates = new Map([
-      ['articulos/_index.es.md', '2026-01-01T00:00:00+00:00'],
-      ['articulos/x.es.md', '2026-03-01T00:00:00+00:00'],
+      ['tutoriales/_index.es.md', '2026-01-01T00:00:00+00:00'],
+      ['tutoriales/x.es.md', '2026-03-01T00:00:00+00:00'],
     ]);
     expect(pageLastmods(pages, url, dates)).toEqual(
       new Map([
-        ['/repo/es/articles-es/', '2026-03-01T00:00:00+00:00'],
+        ['/repo/es/tutorials-es/', '2026-03-01T00:00:00+00:00'],
         ['/repo/es/blog/x/', '2026-03-01T00:00:00+00:00'],
       ]),
     );

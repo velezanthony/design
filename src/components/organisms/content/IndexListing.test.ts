@@ -14,7 +14,7 @@ function view(extra: Partial<IndexView<CoverView>> = {}): IndexView<CoverView> {
     page: 2,
     pages: 3,
     total: 7,
-    hrefs: ['/repo/articulos/', '/repo/articulos/2/', '/repo/articulos/3/'],
+    hrefs: ['/repo/tutoriales/', '/repo/tutoriales/2/', '/repo/tutoriales/3/'],
     headings: [],
     all: false,
     perPage: 1,
@@ -40,17 +40,17 @@ describe('IndexListing', () => {
     const document = await listing();
     const nav = document.querySelector('nav')!;
     expect(nav.getAttribute('aria-label')).toBe('Navegación entre páginas');
-    expect(nav.querySelector('a[rel="prev"]')!.getAttribute('href')).toBe('/repo/articulos/');
-    expect(nav.querySelector('a[rel="next"]')!.getAttribute('href')).toBe('/repo/articulos/3/');
+    expect(nav.querySelector('a[rel="prev"]')!.getAttribute('href')).toBe('/repo/tutoriales/');
+    expect(nav.querySelector('a[rel="next"]')!.getAttribute('href')).toBe('/repo/tutoriales/3/');
     expect(nav.querySelector('[aria-current="page"]')!.getAttribute('href')).toBe(
-      '/repo/articulos/2/',
+      '/repo/tutoriales/2/',
     );
     expect(nav.querySelector('a[aria-label="Página 3"]')).not.toBeNull();
     expect(text(nav)).toContain('Anterior');
   });
 
   it('con una sola página no hay paginador', async () => {
-    const document = await listing({ page: 1, pages: 1, hrefs: ['/repo/articulos/'] });
+    const document = await listing({ page: 1, pages: 1, hrefs: ['/repo/tutoriales/'] });
     expect(document.querySelector('nav')).toBeNull();
   });
 
@@ -73,12 +73,12 @@ describe('IndexListing: selector «Por página»', () => {
       {
         perPage: 1,
         pages: 3,
-        hrefs: ['/repo/articulos/', '/repo/articulos/2/', '/repo/articulos/3/'],
+        hrefs: ['/repo/tutoriales/', '/repo/tutoriales/2/', '/repo/tutoriales/3/'],
       },
       {
         perPage: 2,
         pages: 2,
-        hrefs: ['/repo/articulos/?por=2', '/repo/articulos/?por=2&pagina=2'],
+        hrefs: ['/repo/tutoriales/?por=2', '/repo/tutoriales/?por=2&pagina=2'],
       },
     ],
   };
@@ -101,7 +101,7 @@ describe('IndexListing: selector «Por página»', () => {
     expect(root.getAttribute('data-options')).toBe('1,2');
     expect(root.getAttribute('data-total')).toBe('3');
     expect(root.getAttribute('data-all')).toBe('true');
-    expect(root.getAttribute('data-folder')).toBe('/repo/articulos/');
+    expect(root.getAttribute('data-folder')).toBe('/repo/tutoriales/');
     expect(root.getAttribute('data-showing')).toBe('Mostrando {from}–{to} de {total}');
     expect(root.getAttribute('tabindex')).toBe('-1');
     const status = root.querySelector('[data-index-status]')!;
@@ -132,10 +132,10 @@ describe('IndexListing: selector «Por página»', () => {
       true,
     ]);
     const secondSize = pagers[3]!.querySelector('a[rel="next"]')!;
-    expect(secondSize.getAttribute('href')).toBe('/repo/articulos/?por=2&pagina=2');
+    expect(secondSize.getAttribute('href')).toBe('/repo/tutoriales/?por=2&pagina=2');
     // El del tamaño de la config enlaza las rutas estáticas, para quien no tiene JavaScript.
     expect(pagers[0]!.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/repo/articulos/2/',
+      '/repo/tutoriales/2/',
     );
   });
 
@@ -175,12 +175,12 @@ describe('IndexListing: fila de pie', () => {
       {
         perPage: 1,
         pages: 3,
-        hrefs: ['/repo/articulos/', '/repo/articulos/2/', '/repo/articulos/3/'],
+        hrefs: ['/repo/tutoriales/', '/repo/tutoriales/2/', '/repo/tutoriales/3/'],
       },
       {
         perPage: 2,
         pages: 2,
-        hrefs: ['/repo/articulos/?por=2', '/repo/articulos/?por=2&pagina=2'],
+        hrefs: ['/repo/tutoriales/?por=2', '/repo/tutoriales/?por=2&pagina=2'],
       },
     ],
   };
@@ -209,7 +209,9 @@ describe('IndexListing: fila de pie', () => {
     const bar = document.querySelector('[data-pagination-bar]')!;
     expect(bar.querySelector('select')).toBeNull();
     expect(text(bar.querySelector('[data-index-status]'))).toBe('Mostrando 1–1 de 3');
-    expect(bar.querySelector('nav a[rel="next"]')!.getAttribute('href')).toBe('/repo/articulos/2/');
+    expect(bar.querySelector('nav a[rel="next"]')!.getAttribute('href')).toBe(
+      '/repo/tutoriales/2/',
+    );
   });
 
   it('sin selector y con una sola página no hay fila', async () => {

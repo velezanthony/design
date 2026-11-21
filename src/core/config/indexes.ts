@@ -119,7 +119,7 @@ export function validateIndexFolders(
     .map(
       ({ path, folder }) =>
         new DocsError(`${formatPath(path)}: no hay ninguna carpeta «${folder}» con páginas.`, {
-          hint: 'Es la ruta de la carpeta dentro del contenido, sin barras (articulos, guia/avanzado).',
+          hint: 'Es la ruta de la carpeta dentro del contenido, sin barras (tutoriales, guia/avanzado).',
         }),
     );
 }

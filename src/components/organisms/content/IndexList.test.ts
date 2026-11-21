@@ -11,16 +11,16 @@ function entry(title: string, slug: string, extra = {}) {
 
 const sections: IndexSection[] = [
   {
-    label: 'Desarrollo',
-    id: 'desarrollo',
+    label: 'Esenciales',
+    id: 'esenciales',
     nodes: [
       {
-        label: 'Python',
+        label: 'Astro',
         items: [
           entry('Tipado', 'tipado', { summary: 'Sin generar código.' }),
           {
-            label: 'Django',
-            items: [entry('N+1', 'n1', { updated: '2026-03-02T00:00:00+00:00' })],
+            label: 'Vite',
+            items: [entry('Plugins', 'plugins', { updated: '2026-03-02T00:00:00+00:00' })],
           },
         ],
       },
@@ -34,7 +34,7 @@ describe('IndexList', () => {
     const document = await render(IndexList, { sections, strings: stringsFor('es'), lang: 'es' });
     const headings = [...document.querySelectorAll('h2')];
     expect(headings.map((heading) => [heading.id, text(heading)])).toEqual([
-      ['desarrollo', 'Desarrollo'],
+      ['esenciales', 'Esenciales'],
     ]);
     expect(document.querySelectorAll('section')).toHaveLength(2);
   });
@@ -44,11 +44,11 @@ describe('IndexList', () => {
     const groups = [...document.querySelectorAll('[data-index-group]')].map((group) =>
       text(group.querySelector(':scope > p')),
     );
-    expect(groups).toEqual(['Python', 'Django']);
+    expect(groups).toEqual(['Astro', 'Vite']);
     const tipado = document.querySelector('a[href="/repo/tipado/"]')!.closest('li')!;
     expect(text(tipado.querySelector('a'))).toBe('Tipado');
     expect(text(tipado.querySelector('p'))).toBe('Sin generar código.');
-    const n1 = document.querySelector('a[href="/repo/n1/"]')!.closest('li')!;
-    expect(text(n1.querySelector('time'))).toBe('2 mar 2026');
+    const plugins = document.querySelector('a[href="/repo/plugins/"]')!.closest('li')!;
+    expect(text(plugins.querySelector('time'))).toBe('2 mar 2026');
   });
 });

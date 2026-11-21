@@ -52,7 +52,7 @@ const {
 } = Astro.props;
 
 /* Las tablas del contenido hacen scroll en horizontal en cualquier página, no solo en los docs: el
-   Markdown de una página propia (una política de privacidad) no pasa por el plugin de los docs. */
+   Markdown de una página propia del sitio que lo pinta con `Article` no pasa por el plugin de los docs. */
 const content = prose ? wrapScrollableTables(await Astro.slots.render('default')) : undefined;
 const hasToc = toc && tocEntries(headings, depth).length > 0;
 /* Sin índice ni aside no se reserva columna: el contenido usa ese ancho. */

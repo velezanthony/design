@@ -135,7 +135,7 @@ function nativeIndexKeys(files: SourceFile[], config: DiscoveryConfig): Set<stri
   return new Set(keys);
 }
 
-/** `articulos/_index` → `articulos`; `_index` → `` (portada); `undefined` si no es un `_index`. */
+/** `tutoriales/_index` → `tutoriales`; `_index` → `` (portada); `undefined` si no es un `_index`. */
 function listingFolder(stem: string): string | undefined {
   if (stem === LISTING_STEM) return '';
   return stem.endsWith(`/${LISTING_STEM}`) ? stem.slice(0, -LISTING_STEM.length - 1) : undefined;
