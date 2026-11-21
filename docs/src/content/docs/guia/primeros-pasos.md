@@ -38,12 +38,12 @@ Borra después lo que el scaffold trae y la librería ya resuelve:
 ## 2. Instalar la librería y sus _peer dependencies_
 
 ```sh
-npm install --prefix docs github:velezanthony/design#v0.1.0
+npm install --prefix docs github:velezanthony/design#v0.2.0
 npm install --prefix docs astro @astrojs/markdown-satteri
 npm install --prefix docs -D @astrojs/check typescript
 ```
 
-La etiqueta (`#v0.1.0`) fija la versión: el `package-lock.json` guarda el commit exacto. Para
+La etiqueta (`#v0.2.0`) fija la versión: el `package-lock.json` guarda el commit exacto. Para
 actualizar se cambia la etiqueta y se vuelve a instalar (ver
 [Publicar una versión](../desarrollo/versiones.md)).
 

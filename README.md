@@ -27,7 +27,7 @@ Los dos son peer dependencies: instálalos en el consumidor. Tailwind CSS (`tail
 No está publicado en npm. Instálalo desde GitHub, fijado a una etiqueta de release:
 
 ```sh
-npm install github:velezanthony/design#v0.1.0
+npm install github:velezanthony/design#v0.2.0
 npm install astro @astrojs/markdown-satteri
 ```
 

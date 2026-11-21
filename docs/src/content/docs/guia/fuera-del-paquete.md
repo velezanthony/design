@@ -15,7 +15,7 @@ Este repo aloja tres cosas a la vez:
 
 Las tres comparten `node_modules` porque `playground/` y `docs/` son **workspaces de npm** (campo
 `"workspaces"` del `package.json` de la raíz). La pregunta lógica es: si un consumidor instala
-`github:velezanthony/design#v0.1.0`, ¿no se lleva también el playground, este sitio y sus
+`github:velezanthony/design#v0.2.0`, ¿no se lleva también el playground, este sitio y sus
 dependencias? **No**, y no por casualidad: hay seis barreras independientes, y cualquiera de ellas
 basta para la mayoría de los casos.
 
@@ -80,7 +80,7 @@ npm añade siempre `package.json` (y un `README`/`LICENSE` si existen), con o si
 
 ### 2. Una dependencia de git también se empaqueta
 
-Podría parecer que `npm install github:velezanthony/design#v0.1.0` copia el repo clonado tal cual.
+Podría parecer que `npm install github:velezanthony/design#v0.2.0` copia el repo clonado tal cual.
 No es así: npm clona el repo en una carpeta temporal, ejecuta su script `prepare` si existe (aquí no
 hay ninguno) y después lo **empaqueta con las mismas reglas que `npm pack`**. Lo que se instala en
 `node_modules/@velezanthony/design` es el contenido de ese tarball. Por eso la lista `"files"` es la
