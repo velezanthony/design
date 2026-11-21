@@ -24,6 +24,14 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 - **El migrador de MkDocs sugiere `site` y `base` desde `site_url`.** Como van en `astro.config.mjs`,
   otro archivo, salen en una línea de comentario sobre la config sugerida:
   `https://o.github.io/repo/` → `defineDocsSite(docsConfig, { site: 'https://o.github.io', base: '/repo' })`.
+- **Indicador de carga en los diagramas de Mermaid.** Hasta que llega el SVG, cada bloque muestra
+  una caja «Cargando diagrama…» (clave nueva `diagram.loading`, en `data-loading-label` del `pre`) en
+  vez del código fuente, desde el primer pintado y solo con JavaScript activo
+  (`@media (scripting: enabled)`). El bloque lleva `aria-busy="true"` mientras carga y el brillo se
+  apaga con `prefers-reduced-motion`. Nunca se queda atascado: si el trozo de los diagramas o Mermaid
+  no se descargan, el bloque pasa a `data-state="error"` y se ve el código; si el JavaScript no
+  llega a ejecutarse, el CSS retira la caja a los 10 s. Mermaid empieza a descargarse a la par que el
+  código que lo dibuja, no después.
 
 ### Cambiado
 

@@ -309,6 +309,61 @@
     }
   }
 
+  /* Mientras llega el dibujo (aún sin `data-state`) el código no salta a la vista: una caja con el
+     texto de `data-loading-label` lo tapa desde el primer pintado, antes de cualquier JS. Solo con
+     JavaScript activo: sin él el código se lee como siempre. El `pre` conserva su franja (etiqueta y
+     copiar); su rejilla pone la caja en la misma celda que el código, encima. */
+  @media (scripting: enabled) {
+    & .docs-mermaid:not([data-state]) pre.astro-code {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+
+      & code {
+        grid-area: 2 / 1;
+        min-height: 12rem;
+        visibility: hidden;
+        /* Red de seguridad si el JS no llega a correr (bundle roto, script bloqueado): a los 10 s
+           el código vuelve a verse aunque nadie ponga `data-state`. Ese margen cubre la descarga de
+           Mermaid en una conexión lenta; con `data-state` esta regla deja de aplicarse antes. */
+        animation: docs-mermaid-reveal 0s 10s forwards;
+      }
+
+      &::after {
+        content: attr(data-loading-label);
+        grid-area: 2 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--color-rule);
+        border-radius: 4px;
+        background-color: var(--color-canvas);
+        padding: 1rem;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        white-space: normal;
+        text-align: center;
+        animation: docs-mermaid-dismiss 0s 10s forwards;
+      }
+    }
+
+    /* El brillo es decoración: con movimiento reducido la caja queda quieta, pero el plazo de 10 s
+       sigue en pie. */
+    @media (prefers-reduced-motion: no-preference) {
+      & .docs-mermaid:not([data-state]) pre.astro-code::after {
+        background-image: linear-gradient(
+          100deg,
+          transparent 30%,
+          color-mix(in oklab, var(--color-ink) 7%, transparent) 50%,
+          transparent 70%
+        );
+        background-size: 200% 100%;
+        animation:
+          docs-mermaid-shimmer 1.6s linear infinite,
+          docs-mermaid-dismiss 0s 10s forwards;
+      }
+    }
+  }
+
   /* El panel ya es la caja: un `pre` con su propio borde dentro sería caja dentro de caja. */
   & .docs-tab-panel pre {
     border: 0;
@@ -354,5 +409,29 @@
     & .docs-code pre {
       padding-top: 2.75rem;
     }
+  }
+}
+
+/* El plazo del indicador de carga de los diagramas (ver `.docs-mermaid:not([data-state])`): el
+   código recupera su sitio y la caja se retira. */
+@keyframes docs-mermaid-reveal {
+  to {
+    min-height: 0;
+    visibility: visible;
+  }
+}
+
+@keyframes docs-mermaid-dismiss {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes docs-mermaid-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
   }
 }

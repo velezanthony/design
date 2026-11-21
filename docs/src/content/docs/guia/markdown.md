@@ -114,6 +114,17 @@ Un bloque con lenguaje `mermaid` se renderiza como diagrama en el navegador. Est
 en casi todas las páginas. El código fuente del diagrama viaja en el HTML, así que sin JavaScript
 sigue siendo legible.
 
+Mientras Mermaid se descarga y dibuja, el bloque muestra una caja «Cargando diagrama…» (el texto
+`diagram.loading` del catálogo, en el idioma de la página) en lugar del código, desde el primer
+pintado y solo si el navegador tiene JavaScript activo. El bloque se anuncia ocupado (`aria-busy`)
+hasta que termina. Nunca se queda ahí:
+
+- si Mermaid o el diagrama fallan, el bloque pasa a `data-state="error"` y se ve el código;
+- si el JavaScript no llega a ejecutarse, el CSS retira la caja a los **10 segundos** y deja el
+  código a la vista.
+
+Con movimiento reducido la caja no tiene brillo, pero el plazo se mantiene.
+
 ## Reglas estrictas
 
 El build **falla** (con archivo y línea, todos los errores a la vez) por:

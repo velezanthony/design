@@ -188,8 +188,10 @@ describe('initMermaid', () => {
     expect(warn).toHaveBeenCalledTimes(1);
   });
 
-  it('si mermaid no se puede cargar avisa y deja las páginas intactas', async () => {
-    const { document } = parseHTML(`<html><body>${block('A')}</body></html>`);
+  it('si mermaid no se puede cargar avisa y marca todos los bloques como error: se lee el código, no se queda cargando', async () => {
+    const { document } = parseHTML(
+      `<html><body>${block('A').replace('data-mermaid', 'data-mermaid aria-busy="true"')}${block('B')}</body></html>`,
+    );
     const warn = vi.fn();
     const importer = vi.fn(async () => {
       throw new Error('offline');
@@ -203,7 +205,31 @@ describe('initMermaid', () => {
       }),
     ).resolves.toBeUndefined();
     expect(warn).toHaveBeenCalledTimes(1);
-    expect(document.querySelector('.docs-mermaid')!.hasAttribute('data-state')).toBe(false);
+    for (const box of document.querySelectorAll('.docs-mermaid')) {
+      expect(box.getAttribute('data-state')).toBe('error');
+      expect(box.hasAttribute('aria-busy')).toBe(false);
+    }
+  });
+
+  it('al dibujarse deja de estar ocupado (aria-busy)', async () => {
+    const { box, ready } = setup(
+      block('A--&gt;B').replace('data-mermaid', 'data-mermaid aria-busy="true"'),
+    );
+    await ready;
+    expect(box().getAttribute('data-state')).toBe('rendered');
+    expect(box().hasAttribute('aria-busy')).toBe(false);
+  });
+
+  it('un diagrama que no se puede dibujar también deja de estar ocupado', async () => {
+    const { box, ready } = setup(
+      block('roto').replace('data-mermaid', 'data-mermaid aria-busy="true"'),
+      async () => {
+        throw new Error('Parse error');
+      },
+    );
+    await ready;
+    expect(box().getAttribute('data-state')).toBe('error');
+    expect(box().hasAttribute('aria-busy')).toBe(false);
   });
 
   it('vuelve a dibujar con el código original cuando cambia data-theme', async () => {
