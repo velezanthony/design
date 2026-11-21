@@ -4,7 +4,7 @@ import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
 import { type CoverView } from '../../../core/listing/covers';
 import { formatListingDate, type IndexItem } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
-import IndexLink from '../../molecules/navigation/IndexLink.astro';
+import PageLink from '../../molecules/navigation/PageLink.astro';
 
 /* Índice en tabla (`layout: 'table'`): título, resumen, sección y fecha. En móvil cada fila es una
    tarjeta apilada (la utilidad `table-cards`), con el nombre de cada celda encima de su valor; una
@@ -20,17 +20,17 @@ interface Props {
 
 const { items, strings, lang, visible } = Astro.props;
 const columns = {
-  title: translate(strings, 'index.title'),
-  summary: translate(strings, 'index.summary'),
-  section: translate(strings, 'index.section'),
-  updated: translate(strings, 'index.updated'),
+  title: translate(strings, 'listing.title'),
+  summary: translate(strings, 'listing.summary'),
+  section: translate(strings, 'listing.section'),
+  updated: translate(strings, 'listing.updated'),
 };
 const cell = 'px-3 py-3 align-top max-md:px-4 max-md:py-2';
 const head = `${cell} border-b border-ink font-normal`;
 ---
 
 <table class="table-cards w-full border-collapse text-left text-sm">
-  <caption class="sr-only">{translate(strings, 'index.caption')}</caption>
+  <caption class="sr-only">{translate(strings, 'listing.caption')}</caption>
   <thead>
     <tr class="label text-muted">
       <th scope="col" class={head}>
@@ -56,7 +56,7 @@ const head = `${cell} border-b border-ink font-normal`;
         class="md:border-b md:border-rule md:hover:bg-raised"
       >
         <td data-cell={columns.title} class:list={[cell, 'md:w-[26%]']}>
-          <IndexLink
+          <PageLink
             href={item.href}
             title={item.title}
             badge={item.badge}

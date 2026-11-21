@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
-import { items } from '../../../testing/index-items';
-import IndexCards from './IndexCards.astro';
+import { items } from '../../../testing/listing-items';
+import ListingCards from './ListingCards.astro';
 
 async function cards() {
-  const document = await render(IndexCards, { items, strings: stringsFor('es'), lang: 'es' });
+  const document = await render(ListingCards, { items, strings: stringsFor('es'), lang: 'es' });
   return [...document.querySelectorAll('[data-index-card]')];
 }
 
-describe('IndexCards', () => {
+describe('ListingCards', () => {
   it('una tarjeta por entrada: camino, título enlazado, resumen y fecha', async () => {
     const [deploy, install] = await cards();
     expect(text(deploy!.querySelector('[data-index-path]'))).toBe('Avanzado › Despliegue');
@@ -56,7 +56,7 @@ describe('IndexCards', () => {
   });
 
   it('con `visible`, las entradas de más van ocultas (las enseña el selector «Por página»)', async () => {
-    const document = await render(IndexCards, {
+    const document = await render(ListingCards, {
       items,
       strings: stringsFor('es'),
       lang: 'es',

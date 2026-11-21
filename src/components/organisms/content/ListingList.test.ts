@@ -4,7 +4,7 @@ import type { ListingSection } from '../../../core/listing/entries';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
 import { linkVariants } from '../../atoms/actions/variants';
-import IndexList from './IndexList.astro';
+import ListingList from './ListingList.astro';
 
 /** ¿Lleva `element` todas las clases de la variante? */
 function hasVariant(element: Element, variant: string) {
@@ -35,9 +35,9 @@ const sections: ListingSection[] = [
   { nodes: [entry('Suelto', 'suelto')] },
 ];
 
-describe('IndexList', () => {
+describe('ListingList', () => {
   it('cada sección es un h2 con su id; las páginas sin sección van sin encabezado', async () => {
-    const document = await render(IndexList, { sections, strings: stringsFor('es'), lang: 'es' });
+    const document = await render(ListingList, { sections, strings: stringsFor('es'), lang: 'es' });
     const headings = [...document.querySelectorAll('h2')];
     expect(headings.map((heading) => [heading.id, text(heading)])).toEqual([
       ['esenciales', 'Esenciales'],
@@ -46,7 +46,7 @@ describe('IndexList', () => {
   });
 
   it('grupos anidados en negrita y cada página con su enlace, su resumen y su fecha', async () => {
-    const document = await render(IndexList, { sections, strings: stringsFor('es'), lang: 'es' });
+    const document = await render(ListingList, { sections, strings: stringsFor('es'), lang: 'es' });
     const groups = [...document.querySelectorAll('[data-index-group]')].map((group) =>
       text(group.querySelector(':scope > p')),
     );
@@ -59,7 +59,7 @@ describe('IndexList', () => {
   });
 
   it('el enlace de cada página usa la variante `inline` de Link', async () => {
-    const document = await render(IndexList, { sections, strings: stringsFor('es'), lang: 'es' });
+    const document = await render(ListingList, { sections, strings: stringsFor('es'), lang: 'es' });
     const anchor = [...document.querySelectorAll('a')].find((link) => text(link) === 'Plugins')!;
     expect(hasVariant(anchor, linkVariants.inline)).toBe(true);
     expect(anchor.classList.contains('font-medium')).toBe(true);

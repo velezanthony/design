@@ -208,14 +208,14 @@ components/
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
 │   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents,
-│   │                IndexLink e IndexTree (enlace y árbol de un índice generado), PaginationBar
+│   │                PageLink y ListingTree (enlace y árbol de un índice generado), PaginationBar
 │   │                (fila de pie: por página a un lado, rango y paginador al otro)
 │   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
 │   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
 │   └── content/     Article (contenido con diagramas y anclas, y la columna del índice y un aside);
-│                    IndexListing con IndexList, IndexTable e IndexCards (las disposiciones de un índice generado)
+│                    Listing con ListingList, ListingTable y ListingCards (las disposiciones de un índice generado)
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag, LengthMeter, LocaleBadge,
 │   │                Note, StateMark
@@ -365,7 +365,7 @@ astro/
 - `testing/markdown.ts`: renderiza Markdown con los plugins de la librería.
 - `testing/search.ts`: busca en el índice de Pagefind de un `dist/`.
 - `testing/seo-page.ts`: una página del árbol del panel con valores razonables.
-- `testing/index-items.ts`: entradas de un índice generado para los tests de sus disposiciones.
+- `testing/listing-items.ts`: entradas de un índice generado para los tests de sus disposiciones.
 - `testing/build.ts` y `testing/case.ts`: construyen proyectos consumidores mínimos descritos como
   datos, para los tests de integración (con un entorno limpio de variables de Vitest).
 - `testing/contrast.ts`: luminancia y contraste WCAG para los tests de la paleta.

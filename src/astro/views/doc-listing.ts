@@ -183,7 +183,7 @@ export function docListingView({
     ...(page > 1 && {
       heading: {
         title,
-        page: translate(strings, 'index.pageOf', { page: String(page), pages: String(pages) }),
+        page: translate(strings, 'listing.pageOf', { page: String(page), pages: String(pages) }),
       },
     }),
   };

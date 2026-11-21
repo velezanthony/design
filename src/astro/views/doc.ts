@@ -197,7 +197,7 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
     page > 1
       ? {
           ...resolved,
-          title: `${resolved.title} · ${translate(strings, 'index.pageOf', { page: String(page), pages: String(route.pages ?? page) })}`,
+          title: `${resolved.title} · ${translate(strings, 'listing.pageOf', { page: String(page), pages: String(route.pages ?? page) })}`,
           noindex: true,
         }
       : resolved;

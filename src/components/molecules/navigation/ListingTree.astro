@@ -4,7 +4,7 @@ import type { UiStrings } from '../../../core/i18n/ui-strings';
 import { isListingGroup, type ListingNode } from '../../../core/listing/entries';
 import { formatListingDate } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
-import IndexLink from './IndexLink.astro';
+import PageLink from './PageLink.astro';
 
 /* Las páginas y los grupos de una sección del índice en lista: cada grupo con su etiqueta en negrita
    y lo suyo dentro; cada página con su enlace, su fecha discreta a la derecha y su resumen. */
@@ -40,7 +40,7 @@ const link = `font-medium ${linkVariants.inline}`;
     ) : (
       <li>
         <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
-          <IndexLink
+          <PageLink
             href={node.href}
             title={node.title}
             badge={node.badge}

@@ -6,9 +6,9 @@ import { PAGE_PARAM, PER_PAGE_PARAM, type IndexView } from '../../../core/listin
 import Select from '../../atoms/form/Select.astro';
 import Pagination from '../../molecules/navigation/Pagination.astro';
 import PaginationBar from '../../molecules/navigation/PaginationBar.astro';
-import IndexCards from './IndexCards.astro';
-import IndexList from './IndexList.astro';
-import IndexTable from './IndexTable.astro';
+import ListingCards from './ListingCards.astro';
+import ListingList from './ListingList.astro';
+import ListingTable from './ListingTable.astro';
 
 /* El listado de un índice generado en su disposición y, si tiene varias páginas, el paginador de la
    librería con enlaces de verdad (`/carpeta/`, `/carpeta/2/`…).
@@ -33,7 +33,7 @@ const labels = {
   nav: translate(strings, 'pagination.label'),
   previous: `← ${translate(strings, 'pagination.prev')}`,
   next: `${translate(strings, 'pagination.next')} →`,
-  page: (page: number) => translate(strings, 'index.page', { page: String(page) }),
+  page: (page: number) => translate(strings, 'listing.page', { page: String(page) }),
 };
 /* Con una sola opción, o si todo cabe en la más pequeña, elegir no cambia nada. */
 const [smallest] = index.perPageOptions;
@@ -57,7 +57,7 @@ const pagers = index.all
 /* El rango que se ve: el de la página estática; el script lo cambia y la región lo anuncia. */
 const first = index.total === 0 ? 0 : (index.page - 1) * index.perPage + 1;
 const last = Math.min(index.page * index.perPage, index.total);
-const range = translate(strings, 'index.showing', {
+const range = translate(strings, 'listing.showing', {
   from: String(first),
   to: String(last),
   total: String(index.total),
@@ -75,7 +75,7 @@ const pager = selector
       'data-key': index.hrefs[0],
       'data-param-per': PER_PAGE_PARAM,
       'data-param-page': PAGE_PARAM,
-      'data-showing': translate(strings, 'index.showing'),
+      'data-showing': translate(strings, 'listing.showing'),
     }
   : {};
 ---
@@ -83,13 +83,13 @@ const pager = selector
 {/* Fuera de la búsqueda: cada entrada ya está indexada en su página y aquí se repetiría. */}
 <div data-index-listing data-pagefind-ignore {...pager} class="outline-none">
   {empty ? (
-    <p class="text-muted">{translate(strings, 'index.empty')}</p>
+    <p class="text-muted">{translate(strings, 'listing.empty')}</p>
   ) : index.layout === 'list' ? (
-    <IndexList sections={index.sections} strings={strings} lang={lang} />
+    <ListingList sections={index.sections} strings={strings} lang={lang} />
   ) : index.layout === 'table' ? (
-    <IndexTable items={index.items} strings={strings} lang={lang} visible={visible} />
+    <ListingTable items={index.items} strings={strings} lang={lang} visible={visible} />
   ) : (
-    <IndexCards items={index.items} strings={strings} lang={lang} visible={visible} />
+    <ListingCards items={index.items} strings={strings} lang={lang} visible={visible} />
   )}
   {bar && (
     <PaginationBar class="mt-10">
@@ -98,7 +98,7 @@ const pager = selector
           <Select
             id="index-per-page"
             name="por"
-            label={translate(strings, 'index.perPage')}
+            label={translate(strings, 'listing.perPage')}
             options={index.perPageOptions.map((option) => ({
               value: String(option),
               label: String(option),

@@ -42,7 +42,7 @@ describe('visibleRange', () => {
   });
 });
 
-/* Un listado como el que pinta `IndexListing` en la página 1: 20 entradas, de 9 en 9 sin JavaScript. */
+/* Un listado como el que pinta `Listing` en la página 1: 20 entradas, de 9 en 9 sin JavaScript. */
 function pageOne(total = 20) {
   const items = Array.from(
     { length: total },

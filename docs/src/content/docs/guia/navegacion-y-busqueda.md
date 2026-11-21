@@ -279,8 +279,8 @@ indexes: {
   (`core/content/discovery.ts`) y el loader añade las generadas (`generatedListingPages`,
   `core/content/generated-listings.ts`); la ruta de las páginas de docs resuelve el listado
   (`resolveListing`) y lo calcula (`buildListing`), los dos en `core/listing/`, con `docListingView`, y `DocPage` lo pinta
-  debajo del contenido, fuera de `.prose`, con `IndexListing` (`IndexList`, `IndexTable`,
-  `IndexCards` y el átomo `CoverPlaceholder`). Los textos de la interfaz son las claves `index.*`.
+  debajo del contenido, fuera de `.prose`, con `Listing` (`ListingList`, `ListingTable`,
+  `ListingCards` y el átomo `CoverPlaceholder`). Los textos de la interfaz son las claves `listing.*`.
 - **Forma explícita del loader:** las portadas relativas necesitan el `image()` de Astro:
   `schema: ({ image }) => docsSchema(image)`. Con `docsSchema()` a secas, una portada relativa cae a
   la de la librería.

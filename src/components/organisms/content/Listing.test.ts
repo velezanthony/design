@@ -4,8 +4,8 @@ import type { CoverView } from '../../../core/listing/covers';
 import type { IndexView } from '../../../core/listing/view';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
-import { items } from '../../../testing/index-items';
-import IndexListing from './IndexListing.astro';
+import { items } from '../../../testing/listing-items';
+import Listing from './Listing.astro';
 
 function view(extra: Partial<IndexView<CoverView>> = {}): IndexView<CoverView> {
   return {
@@ -26,10 +26,10 @@ function view(extra: Partial<IndexView<CoverView>> = {}): IndexView<CoverView> {
 }
 
 async function listing(extra: Partial<IndexView<CoverView>> = {}) {
-  return render(IndexListing, { index: view(extra), strings: stringsFor('es'), lang: 'es' });
+  return render(Listing, { index: view(extra), strings: stringsFor('es'), lang: 'es' });
 }
 
-describe('IndexListing', () => {
+describe('Listing', () => {
   it('pinta la disposición pedida', async () => {
     expect((await listing()).querySelector('[data-index-card]')).not.toBeNull();
     expect((await listing({ layout: 'table' })).querySelector('table')).not.toBeNull();
@@ -61,7 +61,7 @@ describe('IndexListing', () => {
   });
 });
 
-describe('IndexListing: selector «Por página»', () => {
+describe('Listing: selector «Por página»', () => {
   /* Página 1 con las tres entradas de 1 en 1 (rutas estáticas) y la opción de 2 en 2. */
   const pageOne: Partial<IndexView<CoverView>> = {
     page: 1,
@@ -164,7 +164,7 @@ describe('IndexListing: selector «Por página»', () => {
   });
 });
 
-describe('IndexListing: fila de pie', () => {
+describe('Listing: fila de pie', () => {
   const pageOne: Partial<IndexView<CoverView>> = {
     page: 1,
     pages: 3,
