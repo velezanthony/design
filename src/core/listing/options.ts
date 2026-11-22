@@ -1,4 +1,5 @@
-import { ListingView, type ResolvedIndexes } from '../config/indexes';
+import { ListingView } from '../config/folders';
+import type { ResolvedIndexes } from '../config/indexes';
 import type { ListingFrontmatter } from '../config/schema';
 
 /* El listado ya resuelto de una página: de qué carpeta, con qué disposición, cuántas entradas por

@@ -227,8 +227,8 @@ describe('docsLoader: frontmatter, seo y translations', () => {
       name: 'T',
       sidebarDepth: { overrides: { 'articulos/python': 1, 'articulos/pyton': 1 } },
     });
-    expect(message).toContain('sidebarDepth.overrides.articulos/pyton');
-    expect(message).not.toContain('sidebarDepth.overrides.articulos/python');
+    expect(message).toContain("sidebarDepth.overrides['articulos/pyton']");
+    expect(message).not.toContain("sidebarDepth.overrides['articulos/python']");
   });
 });
 

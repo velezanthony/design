@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { generatesIndex, ListingView, resolveIndexes, validateIndexFolders } from './indexes';
+import { ListingView } from './folders';
+import { generatesIndex, resolveIndexes, validateIndexFolders } from './indexes';
 
 describe('resolveIndexes', () => {
   it('sin nada declarado: lista, con portadas y todas las carpetas (el tamaño depende de la disposición)', () => {

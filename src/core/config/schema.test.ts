@@ -677,7 +677,7 @@ describe('sidebarDepth de la config', () => {
       'sidebarDepth.defualt: opción desconocida',
     );
     expect(messages({ name: 'X', sidebarDepth: { overrides: { '/a/': 2 } } })[0]).toContain(
-      'sidebarDepth.overrides./a/',
+      "sidebarDepth.overrides['/a/']",
     );
   });
 
@@ -692,5 +692,34 @@ describe('sidebarDepth de la config', () => {
       'nav[0].sidebarDepth',
     );
     expect(nav({ label: 'G', dir: 'guia', sidebarDepth: 0 })[0]).toContain('nav[0].sidebarDepth');
+  });
+});
+
+describe('folders de la config', () => {
+  it('una vista fuera de las opciones falla con su ruta y lista las válidas', () => {
+    const [problem] = messages({ name: 'X', folders: { '*': { listing: { view: 'grid' } } } });
+    expect(problem).toContain("folders['*'].listing.view");
+    for (const view of ['list', 'table', 'cards']) expect(problem).toContain(view);
+  });
+
+  it('una clave desconocida en `tree` falla con su ruta', () => {
+    expect(messages({ name: 'X', folders: { guia: { tree: { levels: 2 } } } })).toEqual([
+      expect.stringContaining('folders.guia.tree.levels: opción desconocida'),
+    ]);
+  });
+
+  it('una clave desconocida en una carpeta falla con su ruta', () => {
+    expect(messages({ name: 'X', folders: { guia: { title: 'Guía' } } })).toEqual([
+      expect.stringContaining('folders.guia.title: opción desconocida'),
+    ]);
+  });
+
+  it('sin `folders`, la config resuelta lleva un mapa vacío', () => {
+    expect(resolveConfig({ name: 'X' }).folders).toEqual({ declared: {} });
+  });
+
+  it('la config resuelta conserva lo declarado', () => {
+    const folders = { '*': { listing: { view: 'cards' as const } }, guia: { tree: { depth: 1 } } };
+    expect(resolveConfig({ name: 'X', folders }).folders).toEqual({ declared: folders });
   });
 });

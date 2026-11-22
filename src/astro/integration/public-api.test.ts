@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ALL_FOLDERS,
   defineDocsConfig,
   defineDocsSite,
   docs,
@@ -8,8 +9,9 @@ import {
   MissingTranslation,
   NavIcon,
   PanelState,
+  TreeShow,
 } from './index';
-import { ListingViewSchema } from '../../core/config/indexes';
+import { ListingViewSchema, TreeShowSchema } from '../../core/config/folders';
 import {
   LayoutWidthSchema,
   MissingTranslationSchema,
@@ -22,6 +24,7 @@ import {
 describe('API pública de ./integration: constantes de las opciones cerradas', () => {
   it.each([
     ['ListingView', ListingView, ListingViewSchema.options],
+    ['TreeShow', TreeShow, TreeShowSchema.options],
     ['PanelState', PanelState, PanelStateSchema.options],
     ['LayoutWidth', LayoutWidth, LayoutWidthSchema.options],
     ['MissingTranslation', MissingTranslation, MissingTranslationSchema.options],
@@ -35,6 +38,22 @@ describe('API pública de ./integration: constantes de las opciones cerradas', (
 
   it('exporta ListingView como objeto de valores', () => {
     expect(ListingView).toEqual({ LIST: 'list', TABLE: 'table', CARDS: 'cards' });
+  });
+
+  it('exporta TreeShow como objeto de valores', () => {
+    expect(TreeShow).toEqual({ SECTION: 'section', ALL: 'all' });
+  });
+
+  it("exporta ALL_FOLDERS, la clave de `folders` para todo el sitio: '*'", () => {
+    expect(ALL_FOLDERS).toBe('*');
+  });
+
+  it('una config con folders escrita con las constantes llega resuelta', () => {
+    const folders = {
+      [ALL_FOLDERS]: { listing: { view: ListingView.CARDS }, tree: { show: TreeShow.SECTION } },
+    };
+    const config = defineDocsConfig({ name: 'T', folders });
+    expect(docs(config).resolvedConfig.folders.declared).toEqual(folders);
   });
 });
 

@@ -11,5 +11,5 @@ export { MissingTranslation } from '../../core/i18n/translation-policy';
 export { LayoutWidth, PanelState } from '../../core/config/layout';
 /** Valores cerrados de los iconos de `nav` (`NavIcon.GITHUB`). */
 export { NavIcon } from '../../core/config/nav';
-/** Valores cerrados de la disposición de un listado (`ListingView.CARDS`); en el frontmatter son las mismas cadenas. */
-export { ListingView } from '../../core/config/indexes';
+/** Valores cerrados de `folders` (`ListingView.CARDS`, `TreeShow.ALL`) y su clave para todo el sitio (`ALL_FOLDERS`). */
+export { ALL_FOLDERS, ListingView, TreeShow } from '../../core/config/folders';

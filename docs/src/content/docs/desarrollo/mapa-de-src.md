@@ -20,7 +20,8 @@ core/
 │   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
-│   ├── indexes.ts         `indexes`: ListingView (y su esquema), sus valores por defecto, qué carpetas y su validación
+│   ├── folders.ts         `folders`: ListingView, TreeShow, ALL_FOLDERS, su esquema y la herencia por carpeta (folderSettings, con declaredAt); valida sus claves
+│   ├── indexes.ts         `indexes`: sus valores por defecto, qué carpetas y su validación
 │   ├── sidebar-depth.ts   `sidebarDepth`: límites del árbol automático por defecto y por carpeta, y su validación
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie

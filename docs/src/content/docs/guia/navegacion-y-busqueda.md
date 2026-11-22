@@ -99,7 +99,7 @@ nav: [
   (`{ label, items }`) no cambian.
 - Solo enteros positivos. Una carpeta de `overrides` debe ser una carpeta del contenido, sin barras
   al principio ni al final; si no tiene páginas, el build falla con su ruta
-  (`sidebarDepth.overrides.articulos/pyton`). `sidebarDepth` en un elemento de `nav` que no es una
+  (`sidebarDepth.overrides['articulos/pyton']`). `sidebarDepth` en un elemento de `nav` que no es una
   sección también falla.
 ### Índice generado (`::nav-tree`)
 

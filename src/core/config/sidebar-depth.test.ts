@@ -25,7 +25,9 @@ describe('validateSidebarDepthFolders', () => {
       depth!,
       new Set(['articulos', 'articulos/python']),
     ).map((error) => error.message);
-    expect(messages).toEqual([expect.stringContaining('sidebarDepth.overrides.articulos/pyton')]);
+    expect(messages).toEqual([
+      expect.stringContaining("sidebarDepth.overrides['articulos/pyton']"),
+    ]);
     expect(messages[0]).toContain('«articulos/pyton»');
   });
 

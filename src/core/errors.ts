@@ -45,8 +45,9 @@ export function collectErrors(errors: DocsError[]): void {
 export function formatPath(path: readonly PropertyKey[]): string {
   return path.reduce<string>((text, key, index) => {
     if (typeof key === 'number') return `${text}[${key}]`;
-    // `@type` no es un identificador: va entre corchetes, como se escribiría en el objeto.
-    if (String(key).startsWith('@')) return `${text}['${String(key)}']`;
+    // `@type`, una carpeta (`guia/avanzado`) o `'*'` no son identificadores: van entre corchetes,
+    // como se escribirían en el objeto.
+    if (/^@|[/*]|^$/.test(String(key))) return `${text}['${String(key)}']`;
     return index === 0 ? String(key) : `${text}.${String(key)}`;
   }, '');
 }

@@ -1,16 +1,10 @@
-import { z } from 'astro/zod';
 import { DocsError, formatPath } from '../errors';
+import { ListingView } from './folders';
 import type { IndexesUserConfig, IndexOverride } from './schema';
 
 /* La opción `indexes` de la config: el listado por defecto y qué carpetas sin `index.md` ni
    `_index.md` reciben una página generada. Resolver el listado de una página es de `core/listing/`;
    fabricar las páginas generadas, de `core/content/generated-listings.ts`. */
-
-/** Cómo se pinta el listado de una carpeta. Mismas cadenas en la config y en el frontmatter. */
-export const ListingView = { LIST: 'list', TABLE: 'table', CARDS: 'cards' } as const;
-export type ListingView = (typeof ListingView)[keyof typeof ListingView];
-/** Valores permitidos de `ListingView` como esquema: zod los lista en el mensaje de error. */
-export const ListingViewSchema = z.enum(Object.values(ListingView));
 
 /** `include: 'all'`: todas las carpetas sin `index.md`. */
 export const ALL_FOLDERS = 'all';

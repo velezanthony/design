@@ -6,7 +6,8 @@ import {
   type StaticFolder,
 } from '../content/static-folders';
 import { MissingTranslation } from '../i18n/translation-policy';
-import { ALL_FOLDERS, ListingViewSchema } from './indexes';
+import { ALL_FOLDERS } from './indexes';
+import { FoldersSchema, ListingViewSchema, PageSizeSchema } from './folders';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
 import { NavIcon, type NavItem } from './nav';
@@ -48,7 +49,7 @@ export const PanelStateSchema = z.enum(Object.values(PanelState));
 export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 
 /** Páginas por página de un índice paginado: un entero positivo. */
-export const IndexPageSizeSchema = z.number().int().min(1).max(500);
+export const IndexPageSizeSchema = PageSizeSchema;
 
 /** Opciones del selector «Por página»: al menos una, todas enteros positivos. */
 export const IndexPerPageOptionsSchema = z.array(IndexPageSizeSchema).min(1);
@@ -336,6 +337,8 @@ export const DocsConfigSchema = z
     footer: FooterSchema.optional(),
     /** Índices generados: valores por defecto de los listados y carpetas sin `index.md` que reciben uno. */
     indexes: IndexesSchema.optional(),
+    /** Ajustes por carpeta (listado, árbol) heredados de padre a hijo; `'*'` lleva los de todo el sitio. */
+    folders: FoldersSchema.optional(),
     /** Componentes propios que sustituyen a los de la librería: `{ Footer: './src/…/Footer.astro' }`. */
     components: ComponentsSchema.optional(),
     /** URL base del enlace «Editar esta página». */
