@@ -30,7 +30,7 @@ export function validateNav(nav: readonly NavItem[], pageSlugs: ReadonlySet<stri
     if (isNavSection(item)) errors.push(...validateSection(item, index, pageSlugs, indexed));
     else if (isNavPage(item)) {
       const slug = toSidebarSlug(item.slug);
-      const at = formatPath(['nav', index, 'slug']);
+      const at = formatPath(['content', 'nav', index, 'slug']);
       if (!pageSlugs.has(slug)) {
         errors.push(
           new DocsError(`${at}: no hay ninguna página con el slug «${item.slug}».`, {
@@ -43,7 +43,9 @@ export function validateNav(nav: readonly NavItem[], pageSlugs: ReadonlySet<stri
           errors.push(
             new DocsError(
               `${at}: «${item.slug}» pertenece a la sección «${sectionName(owner)}»; una página suelta no puede vivir dentro de una sección.`,
-              { hint: 'Quítala del `nav` y deja que la sección la enlace desde su sidebar.' },
+              {
+                hint: 'Quítala de `content.nav` y deja que la sección la enlace desde su sidebar.',
+              },
             ),
           );
         }
@@ -73,12 +75,17 @@ function validateSection(
   if (section.dir !== undefined && ![...pageSlugs].some((slug) => slugInDir(section.dir!, slug))) {
     errors.push(
       new DocsError(
-        `${formatPath(['nav', index, 'dir'])}: no hay ninguna página en «${section.dir}».`,
+        `${formatPath(['content', 'nav', index, 'dir'])}: no hay ninguna página en «${section.dir}».`,
         { hint: 'Revisa el nombre de la carpeta: es el prefijo del slug de sus páginas.' },
       ),
     );
   }
-  for (const { slug, path } of sidebarSlugRefs(section.sidebar ?? [], ['nav', index, 'sidebar'])) {
+  for (const { slug, path } of sidebarSlugRefs(section.sidebar ?? [], [
+    'content',
+    'nav',
+    index,
+    'sidebar',
+  ])) {
     const at = formatPath(path);
     const internal = toSidebarSlug(slug);
     if (slug === '' || !pageSlugs.has(internal)) {

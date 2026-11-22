@@ -6,31 +6,37 @@ import { createVirtualData } from './data';
 describe('createVirtualData', () => {
   it('la config resuelta sobrevive intacta al viaje por JSON del módulo virtual', () => {
     const resolved = resolveConfig({
-      name: 'Completo',
-      locales: ['en', 'es'],
-      seo: {
-        titleSuffix: { en: 'Docs', es: 'Documentación' },
-        description: 'Descripción',
-        image: { src: '/og.png', alt: 'Tarjeta' },
-      },
-      translations: { missing: 'omit' },
-      external: [
-        {
-          slug: 'changelog',
-          file: '../CHANGELOG.md',
-          seo: { noindex: true },
-          translations: 'link',
+      site: {
+        name: 'Completo',
+        footer: { license: 'MIT', author: { name: 'A', href: 'https://a.dev' } },
+        social: { github: 'https://github.com/o/r' },
+        seo: {
+          titleSuffix: { en: 'Docs', es: 'Documentación' },
+          description: 'Descripción',
+          image: { src: '/og.png', alt: 'Tarjeta' },
         },
-      ],
-      sidebar: ['index', { label: 'Guía', items: ['guide'] }],
-      nav: [
-        { label: 'Guía', dir: 'guide' },
-        { label: 'GitHub', href: 'https://github.com/o/r', icon: 'github' },
-      ],
-      footer: { license: 'MIT', author: { name: 'A', href: 'https://a.dev' } },
-      editUrl: 'https://github.com/o/r/edit/main',
-      social: { github: 'https://github.com/o/r' },
-      ui: { es: { 'search.placeholder': 'Buscar' } },
+      },
+      i18n: {
+        locales: ['en', 'es'],
+        missing: 'omit',
+        ui: { es: { 'search.placeholder': 'Buscar' } },
+      },
+      content: {
+        external: [
+          {
+            slug: 'changelog',
+            file: '../CHANGELOG.md',
+            seo: { noindex: true },
+            translations: 'link',
+          },
+        ],
+        sidebar: ['index', { label: 'Guía', items: ['guide'] }],
+        nav: [
+          { label: 'Guía', dir: 'guide' },
+          { label: 'GitHub', href: 'https://github.com/o/r', icon: 'github' },
+        ],
+        editUrl: 'https://github.com/o/r/edit/main',
+      },
     });
     const data = createVirtualData(resolved, {
       base: '/r',

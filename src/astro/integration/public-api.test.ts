@@ -52,7 +52,7 @@ describe('API pública de ./integration: constantes de las opciones cerradas', (
     const folders = {
       [ALL_FOLDERS]: { listing: { view: ListingView.CARDS }, tree: { show: TreeShow.SECTION } },
     };
-    const config = defineDocsConfig({ name: 'T', folders });
+    const config = defineDocsConfig({ site: { name: 'T' }, content: { folders } });
     expect(docs(config).resolvedConfig.folders.declared).toEqual(folders);
   });
 });
@@ -64,8 +64,8 @@ describe('API pública de ./integration', () => {
 
   it('una config con MissingTranslation.LINK valida', () => {
     const config = defineDocsConfig({
-      name: 'T',
-      translations: { missing: MissingTranslation.LINK },
+      site: { name: 'T' },
+      i18n: { missing: MissingTranslation.LINK },
     });
     expect(docs(config).resolvedConfig.translations.missing).toBe('link');
   });
@@ -84,8 +84,10 @@ describe('API pública de ./integration: layout', () => {
 
   it('una config con los valores exportados valida y llega resuelta', () => {
     const config = defineDocsConfig({
-      name: 'T',
-      layout: { sidebar: PanelState.COLLAPSED, toc: PanelState.OPEN, width: LayoutWidth.FULL },
+      site: {
+        name: 'T',
+        layout: { sidebar: PanelState.COLLAPSED, toc: PanelState.OPEN, width: LayoutWidth.FULL },
+      },
     });
     expect(docs(config).resolvedConfig.layout).toEqual({
       sidebar: 'collapsed',
@@ -99,7 +101,7 @@ describe('API pública de ./integration: layout', () => {
 
 describe('API pública de ./integration: defineDocsSite', () => {
   it('se exporta y devuelve la config de Astro con la integración', () => {
-    const config = defineDocsSite(defineDocsConfig({ name: 'T' }), { base: '/t' });
+    const config = defineDocsSite(defineDocsConfig({ site: { name: 'T' } }), { base: '/t' });
     expect(config.base).toBe('/t');
     expect(config.integrations).toHaveLength(1);
   });
@@ -112,11 +114,13 @@ describe('API pública de ./integration: nav', () => {
 
   it('una config con nav llega resuelta', () => {
     const config = defineDocsConfig({
-      name: 'T',
-      nav: [
-        { label: 'Guide', dir: 'users' },
-        { label: 'Code', href: 'https://github.com/x/y', icon: NavIcon.GITHUB },
-      ],
+      site: { name: 'T' },
+      content: {
+        nav: [
+          { label: 'Guide', dir: 'users' },
+          { label: 'Code', href: 'https://github.com/x/y', icon: NavIcon.GITHUB },
+        ],
+      },
     });
     expect(docs(config).resolvedConfig.nav).toHaveLength(2);
   });

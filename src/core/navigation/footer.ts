@@ -116,7 +116,7 @@ export function validateFooter(
     if (!isFooterPage(link) || pageSlugs.has(toSidebarSlug(link.slug))) return [];
     return [
       new DocsError(
-        `${formatPath(['footer', 'links', index, 'slug'])}: no hay ninguna página con el slug «${link.slug}».`,
+        `${formatPath(['site', 'footer', 'links', index, 'slug'])}: no hay ninguna página con el slug «${link.slug}».`,
         { hint: `Revisa el slug o créala. La portada se escribe '${HOME_SIDEBAR_SLUG}'.` },
       ),
     ];

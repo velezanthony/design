@@ -29,8 +29,10 @@ describe('keyOf', () => {
 
   it('en una página externa la clave vive en `external[]` de docs.config.mjs', () => {
     const external = seoPage({ kind: 'external' });
-    expect(keyOf(IssueKind.TITLE_TOO_SHORT, external)).toBe('external[].seo.title');
-    expect(keyOf(IssueKind.TRANSLATION_POLICY_CONFLICT, external)).toBe('external[].translations');
+    expect(keyOf(IssueKind.TITLE_TOO_SHORT, external)).toBe('content.external[].seo.title');
+    expect(keyOf(IssueKind.TRANSLATION_POLICY_CONFLICT, external)).toBe(
+      'content.external[].translations',
+    );
   });
 
   it('los problemas del cuerpo (H1, saltos) y la traducción ausente no tienen clave', () => {

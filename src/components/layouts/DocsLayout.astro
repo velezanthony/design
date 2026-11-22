@@ -90,7 +90,9 @@ const {
 const hasToc = tocEntries(headings, layout.tocDepth).length > 0;
 
 if (gtmId && !privacyUrl) {
-  throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+  throw new Error(
+    'DocsLayout: `site.analytics.privacyUrl` es obligatoria cuando se define `site.analytics.gtmId`.',
+  );
 }
 
 /* El estado inicial va en `<html>` desde el servidor (así la config manda también sin JavaScript);

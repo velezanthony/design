@@ -31,9 +31,12 @@ export async function resolveRepoRoot(
   if (config.repoRoot !== undefined) return path.resolve(projectRoot, config.repoRoot);
   const found = await findRepoRoot(projectRoot, markers);
   if (!found) {
-    throw new DocsError('`editUrl` está definida pero no se encuentra la raíz del repositorio.', {
-      hint: 'Inicializa git en el proyecto o indica `repoRoot` en la config de docs.',
-    });
+    throw new DocsError(
+      '`content.editUrl` está definida pero no se encuentra la raíz del repositorio.',
+      {
+        hint: 'Inicializa git en el proyecto o indica `content.repoRoot` en la config de docs.',
+      },
+    );
   }
   return found;
 }

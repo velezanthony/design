@@ -65,7 +65,7 @@ async function hasContentDir(directory: string, config: Pick<LoaderConfig, 'cont
   if (info?.isDirectory()) return true;
   if (config.content === DEFAULT_CONTENT_DIR && info === undefined) return false;
   throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${directory}.`, {
-    hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
+    hint: `Se resolvió desde \`content.dir: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
   });
 }
 
@@ -200,7 +200,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
     config.translations.declared,
   )) {
     context.logger.warn(
-      `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`translations\` para elegir qué ve quien no tiene traducción.`,
+      `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`i18n.missing\` para elegir qué ve quien no tiene traducción.`,
     );
   }
   const repoRoot = await resolveRepoRoot(config, root).catch((error: unknown) => {

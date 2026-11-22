@@ -203,7 +203,7 @@ function externalPages(
         errors.push(
           new DocsError(`Falta el archivo externo «${entry.slug}»: ${path}.`, {
             file: path,
-            hint: 'Comprueba `external[].file` o declara `locales` sin ese idioma.',
+            hint: 'Comprueba `content.external[].file` o declara `locales` sin ese idioma.',
           }),
         );
       }

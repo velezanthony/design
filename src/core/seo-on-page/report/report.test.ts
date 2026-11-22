@@ -280,7 +280,7 @@ describe('buildReport: detalle de un tipo', () => {
     };
     const text = reportMarkdown(siteScope(external), external);
     expect(text).toContain(
-      '(`changelog`, en, externa) — `external[].seo.title` en docs.config.mjs',
+      '(`changelog`, en, externa) — `content.external[].seo.title` en docs.config.mjs',
     );
   });
 });
@@ -348,7 +348,7 @@ describe('buildReport: lo común se agrupa una vez', () => {
       ],
     };
     expect(reportMarkdown(siteScope(mixed), mixed)).toContain(
-      'Las externas (`changelog`) no tienen frontmatter: `external[].seo.description` en su entrada de docs.config.mjs',
+      'Las externas (`changelog`) no tienen frontmatter: `content.external[].seo.description` en su entrada de docs.config.mjs',
     );
   });
 
@@ -469,7 +469,7 @@ describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
       ],
     };
     expect(have('view=have&lacks=desc', external).markdown).toContain(
-      '`external[].seo.description` en docs.config.mjs — sin descripción',
+      '`content.external[].seo.description` en docs.config.mjs — sin descripción',
     );
   });
 
@@ -544,7 +544,7 @@ describe('buildReport: «Qué tiene» filtrado por lo que falta', () => {
     const parsed = JSON.parse(
       have('view=have&lacks=desc', external).json.replace(/^```json\n|\n```$/g, ''),
     );
-    expect(parsed.pages[0].key).toBe('external[].seo.description');
+    expect(parsed.pages[0].key).toBe('content.external[].seo.description');
   });
 
   it('si todas la tienen lo dice', () => {

@@ -10,6 +10,7 @@ import { resolveConfigOrThrow } from '../config';
 import { docsLoader, docsLoaderFromResolved } from './index';
 import { CONTENT_METADATA_KEY } from '../../core/seo-on-page/nodes/content';
 import { docsSchema } from './schema';
+import { withConfig, type ConfigPart } from '../../testing/config';
 
 let root: string;
 
@@ -141,7 +142,7 @@ describe('docsLoader: frontmatter, seo y translations', () => {
       'src/content/docs/guide.md',
       '---\ntitle: Guía\norder: 2\nseo:\n  noindex: true\ntranslations: omit\n---\n# Otro\n',
     );
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     const entry = entries.get('en/guide')!;
     expect(entry.data).toMatchObject({
       slug: 'guide',
@@ -157,7 +158,7 @@ describe('docsLoader: frontmatter, seo y translations', () => {
 
   it('el frontmatter no llega al renderizado y las líneas se conservan', async () => {
     await write('src/content/docs/guide.md', '---\ntitle: G\n---\n# G\n');
-    const { rendered } = await load({ name: 'T' });
+    const { rendered } = await load({ site: { name: 'T' } });
     expect(rendered[0]).not.toContain('title: G');
     expect(rendered[0]?.split('\n')[3]).toBe('# G');
   });
@@ -168,16 +169,18 @@ describe('docsLoader: frontmatter, seo y translations', () => {
     await write('CHANGELOG.md', '# Changelog\n');
     await write('CHANGELOG.es.md', '# Cambios\n');
     const { entries } = await load({
-      name: 'T',
-      locales: ['en', 'es'],
-      external: [
-        {
-          slug: 'changelog',
-          file: './CHANGELOG.md',
-          seo: { title: 'Cambios', noindex: true },
-          translations: 'fallback',
-        },
-      ],
+      site: { name: 'T' },
+      i18n: { locales: ['en', 'es'] },
+      content: {
+        external: [
+          {
+            slug: 'changelog',
+            file: './CHANGELOG.md',
+            seo: { title: 'Cambios', noindex: true },
+            translations: 'fallback',
+          },
+        ],
+      },
     });
     for (const id of ['en/changelog', 'es/changelog']) {
       expect(entries.get(id)!.data).toMatchObject({
@@ -191,8 +194,8 @@ describe('docsLoader: frontmatter, seo y translations', () => {
     await write('src/content/docs/index.md', '# Home\n');
     await write('CHANGELOG.md', '# Changelog\n');
     const { entries } = await load({
-      name: 'T',
-      external: [{ slug: 'changelog', file: './CHANGELOG.md' }],
+      site: { name: 'T' },
+      content: { external: [{ slug: 'changelog', file: './CHANGELOG.md' }] },
     });
     expect(entries.get('en/index')!.data.kind).toBe('native');
     expect(entries.get('en/changelog')!.data.kind).toBe('external');
@@ -202,22 +205,26 @@ describe('docsLoader: frontmatter, seo y translations', () => {
     await write('src/content/docs/index.md', '# Home\n');
     await write('CHANGELOG.md', '# Changelog\n');
     const message = await failure({
-      name: 'T',
-      external: [{ slug: 'changelog', file: './CHANGELOG.md', seo: { image: { src: 'og.png' } } }],
+      site: { name: 'T' },
+      content: {
+        external: [
+          { slug: 'changelog', file: './CHANGELOG.md', seo: { image: { src: 'og.png' } } },
+        ],
+      },
     });
     expect(message).toContain('external[0].seo.image.src');
   });
 
   it('seo inválido en el frontmatter rompe con archivo y campo', async () => {
     await write('src/content/docs/guide.md', '---\nseo:\n  image:\n    src: og.png\n---\n# G\n');
-    const message = await failure({ name: 'T' });
+    const message = await failure({ site: { name: 'T' } });
     expect(message).toContain('guide.md');
     expect(message).toContain('seo.image.src');
   });
 
   it('translations inválido en el frontmatter rompe con archivo y campo', async () => {
     await write('src/content/docs/guide.md', '---\ntranslations: ocultar\n---\n# G\n');
-    const message = await failure({ name: 'T' });
+    const message = await failure({ site: { name: 'T' } });
     expect(message).toContain('guide.md');
     expect(message).toContain('translations');
   });
@@ -225,10 +232,12 @@ describe('docsLoader: frontmatter, seo y translations', () => {
   it('una carpeta de `folders` con `tree.depth` y sin páginas rompe con su ruta', async () => {
     await write('src/content/docs/articulos/python/x.md', '# X\n');
     const message = await failure({
-      name: 'T',
-      folders: {
-        'articulos/python': { tree: { depth: 1 } },
-        'articulos/pyton': { tree: { depth: 1 } },
+      site: { name: 'T' },
+      content: {
+        folders: {
+          'articulos/python': { tree: { depth: 1 } },
+          'articulos/pyton': { tree: { depth: 1 } },
+        },
       },
     });
     expect(message).toContain("folders['articulos/pyton']");
@@ -240,26 +249,26 @@ describe('docsLoader: enlaces y anclas', () => {
   it('reescribe los enlaces relativos a la URL de la página, también bajo base', async () => {
     await write('src/content/docs/a.md', '# A\n\nVer [b](./b.md#seccion).\n');
     await write('src/content/docs/b.md', '# B\n\n## Seccion\n');
-    const { rendered } = await load({ name: 'T' }, makeContext({ base: '/repo' }));
+    const { rendered } = await load({ site: { name: 'T' } }, makeContext({ base: '/repo' }));
     expect(rendered.join('\n')).toContain('[b](/repo/b/#seccion)');
   });
 
   it('un enlace roto rompe la carga con archivo y línea', async () => {
     await write('src/content/docs/a.md', '# A\n\nTexto\n\n[x](./no-existe.md)\n');
-    const message = await failure({ name: 'T' });
+    const message = await failure({ site: { name: 'T' } });
     expect(message).toContain('a.md:5');
     expect(message).toContain('no-existe.md');
   });
 
   it('un enlace en un archivo con frontmatter señala la línea real', async () => {
     await write('src/content/docs/a.md', '---\ntitle: A\n---\n# A\n\n[x](./nada.md)\n');
-    expect(await failure({ name: 'T' })).toContain('a.md:6');
+    expect(await failure({ site: { name: 'T' } })).toContain('a.md:6');
   });
 
   it('un ancla rota rompe la carga con archivo y línea', async () => {
     await write('src/content/docs/a.md', '# A\n\n[b](./b.md#no-hay)\n');
     await write('src/content/docs/b.md', '# B\n');
-    const message = await failure({ name: 'T' });
+    const message = await failure({ site: { name: 'T' } });
     expect(message).toContain('a.md:3');
     expect(message).toContain('no-hay');
   });
@@ -267,8 +276,8 @@ describe('docsLoader: enlaces y anclas', () => {
   it('un archivo externo ausente rompe la carga', async () => {
     await write('src/content/docs/index.md', '# Home\n');
     const message = await failure({
-      name: 'T',
-      external: [{ slug: 'changelog', file: './CHANGELOG.md' }],
+      site: { name: 'T' },
+      content: { external: [{ slug: 'changelog', file: './CHANGELOG.md' }] },
     });
     expect(message).toContain('CHANGELOG.md');
   });
@@ -276,7 +285,7 @@ describe('docsLoader: enlaces y anclas', () => {
   it('todos los fallos de carga llegan juntos en un solo error', async () => {
     await write('src/content/docs/a.md', '# A\n\n[x](./no.md)\n\n[y](./b.md#nada)\n');
     await write('src/content/docs/b.md', '---\nseo:\n  image:\n    src: /falta.png\n---\n# B\n');
-    const message = await failure({ name: 'T' });
+    const message = await failure({ site: { name: 'T' } });
     expect(message).toContain('a.md:3');
     expect(message).toContain('a.md:5');
     expect(message).toContain('/falta.png');
@@ -285,7 +294,10 @@ describe('docsLoader: enlaces y anclas', () => {
   it('un conflicto de política en el grupo se agrega con el resto de errores', async () => {
     await write('src/content/docs/a.md', '---\ntranslations: omit\n---\n# A\n\n[x](./no.md)\n');
     await write('src/content/docs/a.es.md', '---\ntranslations: link\n---\n# A\n');
-    const message = await failure({ name: 'T', locales: ['en', 'es'] });
+    const message = await failure({
+      site: { name: 'T' },
+      i18n: { locales: ['en', 'es'] },
+    });
     expect(message).toContain('políticas de traducción distintas');
     expect(message).toContain('no.md');
   });
@@ -305,7 +317,7 @@ describe('docsLoader: lo que el cuerpo enlaza y muestra (para el panel SEO)', ()
       '# A\n\nVer [b](./b.md) y ![](img/x.png), ![logo](https://x.dev/l.png).\n',
     );
     await write('src/content/docs/b.md', '# B\n');
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     const entry = entries.get('en/a');
     expect(contentOf(entry)).toEqual({
       links: [{ slug: 'b', locale: 'en' }],
@@ -319,7 +331,7 @@ describe('docsLoader: lo que el cuerpo enlaza y muestra (para el panel SEO)', ()
 
   it('una página sin enlaces ni imágenes guarda listas vacías, no «sin dato»', async () => {
     await write('src/content/docs/a.md', '# A\n');
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     expect(contentOf(entries.get('en/a'))).toEqual({ links: [], images: [] });
   });
 });
@@ -328,8 +340,7 @@ describe('docsLoader: imágenes SEO', () => {
   it('una imagen de la base o de una página que no existe rompe con página y campo', async () => {
     await write('src/content/docs/a.md', '---\nseo:\n  image:\n    src: /a.png\n---\n# A\n');
     const message = await failure({
-      name: 'T',
-      seo: { image: { src: '/base.png', alt: 'base' } },
+      site: { name: 'T', seo: { image: { src: '/base.png', alt: 'base' } } },
     });
     expect(message).toContain('/base.png');
     expect(message).toContain('a.md');
@@ -344,8 +355,7 @@ describe('docsLoader: imágenes SEO', () => {
       '---\nseo:\n  image:\n    src: https://cdn.dev/x.png\n---\n# A\n',
     );
     const { warnings } = await load({
-      name: 'T',
-      seo: { image: { src: '/og.png', alt: 'base' } },
+      site: { name: 'T', seo: { image: { src: '/og.png', alt: 'base' } } },
     });
     expect(warnings).toEqual([]);
   });
@@ -354,7 +364,9 @@ describe('docsLoader: imágenes SEO', () => {
     await write('public/sq.png', '');
     await writeFile(path.join(root, 'public/sq.png'), png(800, 800));
     await write('src/content/docs/a.md', '# A\n');
-    const { warnings } = await load({ name: 'T', seo: { image: { src: '/sq.png', alt: 'b' } } });
+    const { warnings } = await load({
+      site: { name: 'T', seo: { image: { src: '/sq.png', alt: 'b' } } },
+    });
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain('800×800');
   });
@@ -369,7 +381,10 @@ describe('docsLoader: traducciones no declaradas', () => {
 
   it('avisa una vez por página con idioma que falta, sin romper la carga', async () => {
     await pages();
-    const { warnings, entries } = await load({ name: 'T', locales: ['en', 'es'] });
+    const { warnings, entries } = await load({
+      site: { name: 'T' },
+      i18n: { locales: ['en', 'es'] },
+    });
     expect(entries.has('en/install')).toBe(true);
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain('install: falta es');
@@ -377,13 +392,16 @@ describe('docsLoader: traducciones no declaradas', () => {
 
   it('con `translations` declarada no avisa', async () => {
     await pages('---\ntranslations: link\n---\n');
-    const { warnings } = await load({ name: 'T', locales: ['en', 'es'] });
+    const { warnings } = await load({
+      site: { name: 'T' },
+      i18n: { locales: ['en', 'es'] },
+    });
     expect(warnings).toEqual([]);
   });
 
   it('un sitio de un solo idioma no avisa', async () => {
     await write('src/content/docs/install.md', '# Install\n');
-    const { warnings } = await load({ name: 'T' });
+    const { warnings } = await load({ site: { name: 'T' } });
     expect(warnings).toEqual([]);
   });
 });
@@ -392,8 +410,8 @@ describe('docsLoader: slugs del sidebar', () => {
   it('falla con todos los slugs desconocidos y su ruta en la config', async () => {
     await write('src/content/docs/a.md', '# A\n');
     const message = await failure({
-      name: 'T',
-      sidebar: ['a', 'nope', { label: 'G', items: ['ghost'] }],
+      site: { name: 'T' },
+      content: { sidebar: ['a', 'nope', { label: 'G', items: ['ghost'] }] },
     });
     expect(message).toContain('sidebar[1]');
     expect(message).toContain('nope');
@@ -404,7 +422,10 @@ describe('docsLoader: slugs del sidebar', () => {
   it("acepta 'index' para la portada", async () => {
     await write('src/content/docs/index.md', '# Home\n');
     await write('src/content/docs/a.md', '# A\n');
-    const { entries } = await load({ name: 'T', sidebar: ['a', 'index'] });
+    const { entries } = await load({
+      site: { name: 'T' },
+      content: { sidebar: ['a', 'index'] },
+    });
     expect(entries.has('en/index')).toBe(true);
   });
 });
@@ -414,19 +435,25 @@ describe('docsLoader: raíz del repositorio', () => {
     await write('src/content/docs/a.md', '# A\n');
     const made = makeContext();
     // Raíz de proyecto fuera de cualquier repo: el directorio temporal no tiene .git arriba.
-    const message = await failure({ name: 'T', editUrl: 'https://x/edit/main' }, made);
+    const message = await failure(
+      { site: { name: 'T' }, content: { editUrl: 'https://x/edit/main' } },
+      made,
+    );
     expect(message).toContain('repoRoot');
   });
 
   it('con repoRoot, cada entrada lleva su ruta relativa al repositorio para «Editar»', async () => {
     await write('src/content/docs/a.md', '# A\n');
-    const { entries } = await load({ name: 'T', editUrl: 'https://x/edit/main', repoRoot: '.' });
+    const { entries } = await load({
+      site: { name: 'T' },
+      content: { editUrl: 'https://x/edit/main', repoRoot: '.' },
+    });
     expect(entries.get('en/a')!.data.editPath).toBe(path.join('src/content/docs', 'a.md'));
   });
 
   it('sin editUrl no hay editPath', async () => {
     await write('src/content/docs/a.md', '# A\n');
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     expect(entries.get('en/a')!.data.editPath).toBeUndefined();
   });
 });
@@ -436,7 +463,7 @@ describe('docsLoader: dev (watcher)', () => {
     await write('src/content/docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
     const made = makeContext({ watcher });
-    await load({ name: 'T' }, made);
+    await load({ site: { name: 'T' } }, made);
     expect(made.entries.size).toBe(1);
 
     await write('src/content/docs/b.md', '# B\n');
@@ -453,7 +480,10 @@ describe('docsLoader: dev (watcher)', () => {
     await write('CHANGELOG.md', '# Changelog\n');
     const watcher = new FakeWatcher();
     await load(
-      { name: 'T', external: [{ slug: 'changelog', file: './CHANGELOG.md' }] },
+      {
+        site: { name: 'T' },
+        content: { external: [{ slug: 'changelog', file: './CHANGELOG.md' }] },
+      },
       makeContext({ watcher }),
     );
     expect(watcher.added).toEqual([
@@ -466,7 +496,7 @@ describe('docsLoader: dev (watcher)', () => {
     await write('src/content/docs/a.md', '# A\n');
     const watcher = new FakeWatcher();
     const made = makeContext({ watcher });
-    await load({ name: 'T' }, made);
+    await load({ site: { name: 'T' } }, made);
 
     await write('src/content/docs/a.md', '# A\n\n[x](./no.md)\n');
     watcher.emit('change', path.join(root, 'src/content/docs/a.md'));
@@ -482,20 +512,20 @@ describe('docsLoader: dev (watcher)', () => {
 describe('docsLoader: portada y carpeta de contenido opcionales', () => {
   it('sin index.md no hay portada y la carga no falla', async () => {
     await write('src/content/docs/guide.md', '# Guía\n');
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     expect([...entries.keys()]).toEqual(['en/guide']);
   });
 
   it('sin la carpeta de contenido por defecto, el sitio carga sin páginas nativas', async () => {
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     expect(entries.size).toBe(0);
   });
 
   it('sin la carpeta por defecto siguen entrando los externos', async () => {
     await write('CHANGELOG.md', '# Cambios\n');
     const { entries } = await load({
-      name: 'T',
-      external: [{ slug: 'changelog', file: 'CHANGELOG.md' }],
+      site: { name: 'T' },
+      content: { external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
     });
     expect([...entries.keys()]).toEqual(['en/changelog']);
   });
@@ -503,8 +533,8 @@ describe('docsLoader: portada y carpeta de contenido opcionales', () => {
   it('un README externo con `slug: index` es la portada', async () => {
     await write('README.md', '# Mi proyecto\n');
     const { entries } = await load({
-      name: 'T',
-      external: [{ slug: 'index', file: 'README.md' }],
+      site: { name: 'T' },
+      content: { external: [{ slug: 'index', file: 'README.md' }] },
     });
     expect(entries.get('en/index')!.data).toMatchObject({ slug: '', kind: 'external' });
   });
@@ -512,7 +542,7 @@ describe('docsLoader: portada y carpeta de contenido opcionales', () => {
   it('vigila la carpeta por defecto aunque aún no exista: crearla recarga', async () => {
     const watcher = new FakeWatcher();
     const made = makeContext({ watcher });
-    await load({ name: 'T' }, made);
+    await load({ site: { name: 'T' } }, made);
     expect(watcher.added).toContain(path.join(root, 'src/content/docs'));
 
     await write('src/content/docs/a.md', '# A\n');
@@ -526,21 +556,30 @@ describe('docsLoader: exclude', () => {
     await write('src/content/docs/index.md', '# Home\n');
     await write('src/content/docs/drafts/a.md', '# A\n');
     await write('src/content/docs/guia/b.borrador.md', '# B\n');
-    const { entries } = await load({ name: 'T', exclude: ['drafts/', '*.borrador.md'] });
+    const { entries } = await load({
+      site: { name: 'T' },
+      content: { exclude: ['drafts/', '*.borrador.md'] },
+    });
     expect([...entries.keys()]).toEqual(['en/index']);
   });
 
   it('un archivo excluido no se lee: su frontmatter roto no falla la carga', async () => {
     await write('src/content/docs/index.md', '# Home\n');
     await write('src/content/docs/drafts/a.md', '---\norder: nope\n---\n# A\n');
-    const { entries } = await load({ name: 'T', exclude: ['drafts/'] });
+    const { entries } = await load({
+      site: { name: 'T' },
+      content: { exclude: ['drafts/'] },
+    });
     expect(entries.has('en/index')).toBe(true);
   });
 
   it('un enlace a un archivo excluido rompe con un mensaje que nombra `exclude`', async () => {
     await write('src/content/docs/index.md', '# Home\n\n[a](./drafts/a.md)\n');
     await write('src/content/docs/drafts/a.md', '# A\n');
-    const message = await failure({ name: 'T', exclude: ['drafts/'] });
+    const message = await failure({
+      site: { name: 'T' },
+      content: { exclude: ['drafts/'] },
+    });
     expect(message).toContain('drafts/a.md');
     expect(message).toContain('exclude');
   });
@@ -550,9 +589,8 @@ describe('docsLoader: exclude', () => {
     await write('src/content/docs/drafts/a.md', '# A\n');
     await write('README.md', '# Leeme\n\n[a](./src/content/docs/drafts/a.md)\n');
     const message = await failure({
-      name: 'T',
-      exclude: ['drafts/'],
-      external: [{ slug: 'readme', file: 'README.md' }],
+      site: { name: 'T' },
+      content: { exclude: ['drafts/'], external: [{ slug: 'readme', file: 'README.md' }] },
     });
     expect(message).toContain('exclude');
   });
@@ -562,13 +600,15 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   function site() {
     return makeContext({ project: 'site', base: '/repo' });
   }
-  function config(extra: Partial<DocsUserConfig> = {}): DocsUserConfig {
-    return {
-      name: 'T',
-      locales: ['en', 'es'],
-      content: '../docs',
-      ...extra,
-    };
+  function config(extra: ConfigPart = {}): DocsUserConfig {
+    return withConfig(
+      {
+        site: { name: 'T' },
+        i18n: { locales: ['en', 'es'] },
+        content: { dir: '../docs' },
+      },
+      extra,
+    );
   }
 
   it('lee las páginas de ../docs sin mirar src/content/docs, y solo los .md', async () => {
@@ -625,7 +665,7 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
     await write('docs/index.md', '# Home\n');
     await write('docs/history/index.md', '# History\n\n[viewer](coverage/index.html)\n');
     const { rendered } = await load(
-      config({ static: [{ from: '../docs/history', to: 'coverage-history' }] }),
+      config({ content: { static: [{ from: '../docs/history', to: 'coverage-history' }] } }),
       site(),
     );
     expect(rendered.join('\n')).toContain('[viewer](/repo/coverage-history/coverage/index.html)');
@@ -643,7 +683,10 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
     await write('docs/users/guia.md', '# Guía\n\n[c](../../CHANGELOG.md#v1)\n');
     await write('CHANGELOG.md', '# Changelog\n\n## v1\n\n[g](./docs/users/guia.md)\n');
     const { rendered } = await load(
-      config({ locales: ['en'], external: [{ slug: 'changelog', file: '../CHANGELOG.md' }] }),
+      config({
+        i18n: { locales: ['en'] },
+        content: { external: [{ slug: 'changelog', file: '../CHANGELOG.md' }] },
+      }),
       site(),
     );
     const all = rendered.join('\n');
@@ -654,7 +697,7 @@ describe('docsLoader: `content` fuera del proyecto (site/ + docs/)', () => {
   it('«Editar esta página» apunta a la ruta real del repositorio (docs/users/guia.md)', async () => {
     await write('docs/users/guia.md', '# Guía\n');
     const { entries } = await load(
-      config({ editUrl: 'https://x/edit/main', repoRoot: '..' }),
+      config({ content: { editUrl: 'https://x/edit/main', repoRoot: '..' } }),
       site(),
     );
     expect(entries.get('en/users/guia')!.data.editPath).toBe(path.join('docs', 'users/guia.md'));
@@ -689,13 +732,15 @@ describe('docsLoaderFromResolved', () => {
   it('carga con una config ya resuelta, igual que docsLoader(config)', async () => {
     await write('src/content/docs/index.md', '# Home\n');
     const made = makeContext();
-    await docsLoaderFromResolved(resolveConfigOrThrow({ name: 'Resuelta' })).load(made.context);
+    await docsLoaderFromResolved(resolveConfigOrThrow({ site: { name: 'Resuelta' } })).load(
+      made.context,
+    );
     expect([...made.entries.keys()]).toEqual(['en/index']);
   });
 });
 
 describe('docsLoader: índices generados', () => {
-  const bilingual = { locales: ['es', 'en'], defaultLocale: 'es' };
+  const bilingual = { i18n: { locales: ['es', 'en'], defaultLocale: 'es' } };
   const tutorials = { tutoriales: { listing: { generate: true } } };
 
   it('con `generate`, un _index.md es la página de su carpeta, con su ficha `index`', async () => {
@@ -704,7 +749,9 @@ describe('docsLoader: índices generados', () => {
       '---\nindex:\n  summary: Todos.\n---\n# Tutoriales\n\nNotas.\n',
     );
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
-    const { entries } = await load({ name: 'T', ...bilingual, folders: tutorials });
+    const { entries } = await load(
+      withConfig(bilingual, { site: { name: 'T' }, content: { folders: tutorials } }),
+    );
     expect(entries.has('es/tutoriales/_index')).toBe(false);
     const entry = entries.get('es/tutoriales')!;
     expect(entry.data).toMatchObject({
@@ -720,7 +767,7 @@ describe('docsLoader: índices generados', () => {
   it('un _index.md con `generate` apagado rompe la carga con su archivo y la clave que lo enciende', async () => {
     await write('src/content/docs/tutoriales/_index.md', '# Tutoriales\n');
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
-    const message = await failure({ name: 'T' });
+    const message = await failure({ site: { name: 'T' } });
     expect(message).toContain('tutoriales/_index.md');
     expect(message).toContain('folders.tutoriales.listing.generate: true');
   });
@@ -731,7 +778,10 @@ describe('docsLoader: índices generados', () => {
       '---\nlisting:\n  layout: cards\n---\n# T\n',
     );
     await write('src/content/docs/tutoriales/a.md', '# A\n');
-    const message = await failure({ name: 'T', folders: tutorials });
+    const message = await failure({
+      site: { name: 'T' },
+      content: { folders: tutorials },
+    });
     expect(message).toContain('listing: opción desconocida');
     expect(message).toContain('folders.tutoriales.listing');
   });
@@ -740,7 +790,7 @@ describe('docsLoader: índices generados', () => {
     await write('src/content/docs/tutoriales/index.md', '# Portada\n');
     await write('src/content/docs/tutoriales/_index.md', '# Tutoriales\n');
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
-    const { entries, warnings } = await load({ name: 'T', ...bilingual });
+    const { entries, warnings } = await load(withConfig(bilingual, { site: { name: 'T' } }));
     expect(entries.get('es/tutoriales')!.data).toMatchObject({ title: 'Portada' });
     expect(warnings.join('\n')).toContain('tutoriales/_index.md');
   });
@@ -751,11 +801,12 @@ describe('docsLoader: índices generados', () => {
     await write('src/content/docs/guia/index.md', '# Mi guía\n');
     await write('src/content/docs/guia/index.en.md', '# My guide\n');
     await write('src/content/docs/guia/a.md', '# A\n');
-    const { entries, infos, warnings } = await load({
-      name: 'T',
-      ...bilingual,
-      folders: { '*': { listing: { generate: true } } },
-    });
+    const { entries, infos, warnings } = await load(
+      withConfig(bilingual, {
+        site: { name: 'T' },
+        content: { folders: { '*': { listing: { generate: true } } } },
+      }),
+    );
     const lines = infos.filter((line) => line.includes('guia'));
     expect(lines).toEqual(['guia/index.md sustituye al índice generado de la carpeta guia.']);
     expect(warnings.join('\n')).not.toContain('guia/index.md');
@@ -768,21 +819,24 @@ describe('docsLoader: índices generados', () => {
   it('sin `generate`, un index.md no informa de nada', async () => {
     await write('src/content/docs/guia/index.md', '# Mi guía\n');
     await write('src/content/docs/guia/a.md', '# A\n');
-    const { infos } = await load({ name: 'T' });
+    const { infos } = await load({ site: { name: 'T' } });
     expect(infos).toEqual([]);
   });
 
   it('con `generate`, una carpeta sin index.md ni _index.md recibe una página por idioma', async () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     await write('src/content/docs/notas-varias/a.md', '# A\n');
-    const { entries, rendered } = await load({
-      name: 'T',
-      ...bilingual,
-      nav: [{ label: { es: 'Tutoriales', en: 'Tutorials' }, dir: 'tutoriales' }],
-      folders: { '*': { listing: { generate: true } } },
-      editUrl: 'https://github.com/x/y/edit/main/',
-      repoRoot: '.',
-    });
+    const { entries, rendered } = await load(
+      withConfig(bilingual, {
+        site: { name: 'T' },
+        content: {
+          nav: [{ label: { es: 'Tutoriales', en: 'Tutorials' }, dir: 'tutoriales' }],
+          folders: { '*': { listing: { generate: true } } },
+          editUrl: 'https://github.com/x/y/edit/main/',
+          repoRoot: '.',
+        },
+      }),
+    );
     expect(entries.get('en/tutoriales')!.data).toMatchObject({
       slug: 'tutoriales',
       locale: 'en',
@@ -801,9 +855,9 @@ describe('docsLoader: índices generados', () => {
   it('la descripción por defecto se sobrescribe con `ui`', async () => {
     await write('src/content/docs/a/x.md', '# X\n');
     const { entries } = await load({
-      name: 'T',
-      ui: { en: { 'listing.description': 'Everything about {title}.' } },
-      folders: { a: { listing: { generate: true } } },
+      site: { name: 'T' },
+      i18n: { ui: { en: { 'listing.description': 'Everything about {title}.' } } },
+      content: { folders: { a: { listing: { generate: true } } } },
     });
     expect(entries.get('en/a')!.data).toMatchObject({
       seo: { description: 'Everything about A.' },
@@ -813,37 +867,47 @@ describe('docsLoader: índices generados', () => {
   it('el título generado no se lee como Markdown', async () => {
     await write('src/content/docs/a/x.md', '# X\n');
     const { rendered } = await load({
-      name: 'T',
-      nav: [{ label: '*Uno* [dos]', dir: 'a' }],
-      folders: { a: { listing: { generate: true } } },
+      site: { name: 'T' },
+      content: {
+        nav: [{ label: '*Uno* [dos]', dir: 'a' }],
+        folders: { a: { listing: { generate: true } } },
+      },
     });
     expect(rendered).toContain('# \\*Uno\\* \\[dos\\]\n');
   });
 
   it('sin `folders` no se genera nada', async () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
-    const { entries } = await load({ name: 'T' });
+    const { entries } = await load({ site: { name: 'T' } });
     expect([...entries.keys()]).toEqual(['en/tutoriales/instalacion']);
   });
 
   it('`generate` por carpeta limita las páginas y una carpeta que no existe es un error', async () => {
     await write('src/content/docs/a/x.md', '# X\n');
     await write('src/content/docs/b/y.md', '# Y\n');
-    const { entries } = await load({ name: 'T', folders: { a: { listing: { generate: true } } } });
+    const { entries } = await load({
+      site: { name: 'T' },
+      content: { folders: { a: { listing: { generate: true } } } },
+    });
     expect(entries.has('en/a')).toBe(true);
     expect(entries.has('en/b')).toBe(false);
-    expect(await failure({ name: 'T', folders: { c: { listing: { generate: true } } } })).toContain(
-      'folders.c: no hay ninguna carpeta «c» con páginas',
-    );
+    expect(
+      await failure({
+        site: { name: 'T' },
+        content: { folders: { c: { listing: { generate: true } } } },
+      }),
+    ).toContain('folders.c: no hay ninguna carpeta «c» con páginas');
   });
 
   it('el slug de un índice generado vale en `sidebar` y en `nav`', async () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({
-      name: 'T',
-      folders: tutorials,
-      sidebar: ['tutoriales'],
-      nav: [{ label: 'Tutoriales', slug: 'tutoriales' }],
+      site: { name: 'T' },
+      content: {
+        folders: tutorials,
+        sidebar: ['tutoriales'],
+        nav: [{ label: 'Tutoriales', slug: 'tutoriales' }],
+      },
     });
     expect(entries.has('en/tutoriales')).toBe(true);
   });
@@ -858,7 +922,7 @@ describe('docsLoader: índices generados', () => {
       'src/content/docs/a/w.md',
       '---\nindex:\n  image: ./nada.png\n  imageAlt: Nada\n  summary: Corto.\n---\n# W\n',
     );
-    const { entries, warnings } = await load({ name: 'T' });
+    const { entries, warnings } = await load({ site: { name: 'T' } });
     expect(entries.get('en/a/x')!.data.index).toEqual({ cover: { asset: './img/x.png' } });
     expect(entries.get('en/a/y')!.data.index).toEqual({ cover: { src: '/portadas/y.png' } });
     expect(entries.get('en/a/z')!.data.index).toEqual({ cover: false });
@@ -877,13 +941,19 @@ describe('docsLoader: índices generados', () => {
       '---\nindex:\n  image: /portadas/t.png\n---\n# Tutoriales\n',
     );
     await write('src/content/docs/tutoriales/a.md', '# A\n');
-    const { entries } = await load({ name: 'T', folders: tutorials });
+    const { entries } = await load({
+      site: { name: 'T' },
+      content: { folders: tutorials },
+    });
     expect(entries.get('en/tutoriales')!.data.index).toEqual({ cover: { src: '/portadas/t.png' } });
   });
 });
 
 describe('docsLoader: `slug` propio', () => {
-  const bilingual: DocsUserConfig = { name: 'T', locales: ['es', 'en'], defaultLocale: 'es' };
+  const bilingual: DocsUserConfig = {
+    site: { name: 'T' },
+    i18n: { locales: ['es', 'en'], defaultLocale: 'es' },
+  };
 
   it('la entrada guarda su URL propia y conserva la identidad; los enlaces van a la URL traducida', async () => {
     await write('src/content/docs/a.md', '# A\n\n[b](./b.md#uso)\n');
@@ -918,10 +988,11 @@ describe('docsLoader: `slug` propio', () => {
   it('un `slug` que coincide con la URL de un índice generado rompe la carga', async () => {
     await write('src/content/docs/guia/a.md', '# A\n');
     await write('src/content/docs/otra.en.md', '---\nslug: guia\n---\n# Otra\n');
-    const message = await failure({
-      ...bilingual,
-      folders: { guia: { listing: { generate: true } } },
-    });
+    const message = await failure(
+      withConfig(bilingual, {
+        content: { folders: { guia: { listing: { generate: true } } } },
+      }),
+    );
     expect(message).toContain('otra.en.md (slug)');
     expect(message).toContain('guia/_index.md');
   });

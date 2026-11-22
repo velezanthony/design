@@ -7,16 +7,19 @@ import { docFileURL, nonDocFileURL, project, renderMarkdown } from '../../testin
 import { createMarkdownEnv } from './env';
 import { navTree } from './nav-tree';
 import { restoreDirectives } from './restore-directives';
+import { withConfig, type ConfigPart } from '../../testing/config';
 
-const nav: DocsUserConfig['nav'] = [
+const nav: NonNullable<DocsUserConfig['content']>['nav'] = [
   { label: { es: 'Esenciales', en: 'Essentials' }, sidebar: ['instalacion'] },
   { label: 'GitHub', href: 'https://github.com/x/y' },
   { label: { es: 'Avanzado', en: 'Advanced' }, sidebar: ['scripts'] },
 ];
 
-function envWith(user: Partial<DocsUserConfig> = {}) {
+function envWith(user: ConfigPart = {}) {
   return createMarkdownEnv(
-    resolveConfig({ name: 'x', locales: ['es', 'en'], nav, ...user }),
+    resolveConfig(
+      withConfig({ site: { name: 'x' }, i18n: { locales: ['es', 'en'] }, content: { nav } }, user),
+    ),
     project,
   );
 }
@@ -82,7 +85,7 @@ describe('navTree (`::nav-tree`)', () => {
   });
 
   it('sin secciones en `nav` rompe el build: no hay árbol que pintar', async () => {
-    const error = await failure('::nav-tree', envWith({ nav: undefined }));
+    const error = await failure('::nav-tree', envWith({ content: { nav: undefined } }));
     expect(error.message).toContain('nav');
   });
 

@@ -7,23 +7,25 @@ import { docRoutes, docView, type DocRoute } from './doc';
 import { siteContext } from './chrome';
 import { docListingView } from './doc-listing';
 import type { DocData } from '../loader/schema';
+import { withConfig, type ConfigPart } from '../../testing/config';
 
-type ListingSettings = NonNullable<NonNullable<DocsUserConfig['folders']>[string]['listing']>;
+type ListingSettings = NonNullable<
+  NonNullable<NonNullable<DocsUserConfig['content']>['folders']>[string]['listing']
+>;
 
 /** El sitio, con el listado de `tutoriales` encendido: tarjetas de dos en dos salvo que se diga otra cosa. */
-function site(
-  user: Partial<DocsUserConfig> = {},
-  listing: ListingSettings = { view: 'cards', pageSize: 2 },
-) {
+function site(user: ConfigPart = {}, listing: ListingSettings = { view: 'cards', pageSize: 2 }) {
   return createVirtualData(
-    resolveConfig({
-      name: 'Blog',
-      locales: ['es', 'en'],
-      defaultLocale: 'es',
-      translations: { missing: 'fallback' },
-      folders: { tutoriales: { listing: { generate: true, ...listing } } },
-      ...user,
-    }),
+    resolveConfig(
+      withConfig(
+        {
+          site: { name: 'Blog' },
+          i18n: { locales: ['es', 'en'], defaultLocale: 'es', missing: 'fallback' },
+          content: { folders: { tutoriales: { listing: { generate: true, ...listing } } } },
+        },
+        user,
+      ),
+    ),
     {
       base: '/repo',
       site: 'https://x.dev',
@@ -317,8 +319,10 @@ describe('docListingView', () => {
   });
 
   it('lista: las secciones en orden del árbol y sus encabezados para el índice de la página', () => {
-    const user: Partial<DocsUserConfig> = {
-      nav: [{ label: { es: 'Esenciales', en: 'Essentials' }, sidebar: ['tutoriales/a'] }],
+    const user: ConfigPart = {
+      content: {
+        nav: [{ label: { es: 'Esenciales', en: 'Essentials' }, sidebar: ['tutoriales/a'] }],
+      },
     };
     const config = site(user, { view: 'list' });
     const result = docListingView({
@@ -340,9 +344,11 @@ describe('docListingView', () => {
       sourcePath: 'docs/tutoriales/_index.md',
     });
     const config = site({
-      folders: {
-        '*': { listing: { view: 'table', pageSize: 10 } },
-        tutoriales: { listing: { generate: true } },
+      content: {
+        folders: {
+          '*': { listing: { view: 'table', pageSize: 10 } },
+          tutoriales: { listing: { generate: true } },
+        },
       },
     });
     const items = [doc(''), generated, ...tutorials];
@@ -361,7 +367,7 @@ describe('docListingView: tres idiomas', () => {
   it('la portada y la fecha salen del original que elige `sourceLocale`, no del primero que aparece', () => {
     // El paquete solo trae textos de interfaz en es y en: el tercer idioma se añade a la config ya
     // resuelta, que es lo que reciben las vistas.
-    const config = { ...site({ translations: { missing: 'link' } }), locales: ['es', 'en', 'fr'] };
+    const config = { ...site({ i18n: { missing: 'link' } }), locales: ['es', 'en', 'fr'] };
     const items = [
       doc(''),
       doc('tutoriales', 'es', { sourcePath: 'docs/tutoriales/_index.md' }),

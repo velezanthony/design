@@ -5,10 +5,9 @@ import { createMarkdownEnv, fileLabel, localeOf, stringsOf } from './env';
 
 const env = createMarkdownEnv(
   resolveConfig({
-    name: 'x',
-    locales: ['en', 'es'],
-    external: [{ slug: 'changelog', file: 'CHANGELOG.md' }],
-    ui: { es: { 'admonition.note': 'Ojo' } },
+    site: { name: 'x' },
+    i18n: { locales: ['en', 'es'], ui: { es: { 'admonition.note': 'Ojo' } } },
+    content: { external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
   }),
   project,
 );
@@ -35,7 +34,10 @@ describe('stringsOf', () => {
 });
 
 describe('con `content` fuera del proyecto', () => {
-  const outside = createMarkdownEnv(resolveConfig({ name: 'x', content: '../docs' }), project);
+  const outside = createMarkdownEnv(
+    resolveConfig({ site: { name: 'x' }, content: { dir: '../docs' } }),
+    project,
+  );
 
   it('el ámbito de los plugins es esa carpeta', () => {
     expect(outside.scope.docsPrefix).toBe('file:///docs/');

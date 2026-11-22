@@ -7,7 +7,10 @@ import { resolveMeta, type ResolvedMeta } from './meta';
 
 const site = new URL('https://x.dev');
 const url = { base: '/repo' };
-const config: ResolvedConfig = resolveConfig({ name: 'Design', locales: ['en', 'es'] });
+const config: ResolvedConfig = resolveConfig({
+  site: { name: 'Design' },
+  i18n: { locales: ['en', 'es'] },
+});
 
 function meta(extra: Partial<ResolvedMeta> = {}): ResolvedMeta {
   return {

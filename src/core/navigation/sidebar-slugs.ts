@@ -18,7 +18,7 @@ export interface SidebarSlugRef {
 /** Todos los slugs que nombra un `sidebar`, en orden de lectura y con su ruta. */
 export function sidebarSlugRefs(
   items: readonly SidebarItem[],
-  path: readonly PropertyKey[] = ['sidebar'],
+  path: readonly PropertyKey[] = ['content', 'sidebar'],
 ): SidebarSlugRef[] {
   return items.flatMap((item, index): SidebarSlugRef[] => {
     const here = [...path, index];
@@ -34,7 +34,7 @@ export function sidebarSlugRefs(
 export function validateSidebarSlugs(
   items: readonly SidebarItem[],
   pageSlugs: ReadonlySet<string>,
-  path: readonly PropertyKey[] = ['sidebar'],
+  path: readonly PropertyKey[] = ['content', 'sidebar'],
 ): DocsError[] {
   return sidebarSlugRefs(items, path)
     .filter(({ slug }) => slug === '' || !pageSlugs.has(toSidebarSlug(slug)))

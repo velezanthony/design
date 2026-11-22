@@ -17,8 +17,12 @@ core/
 ├── author.ts              Quien mantiene la librería: firma por defecto de sus docs
 ├── errors.ts              DocsError (archivo, línea, pista) y DocsErrors (varios a la vez)
 ├── config/
-│   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
-│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
+│   ├── schema.ts          Esquema zod de la config pública (compone `site`, `i18n`, `content` y valida lo que cruza grupos); de aquí sale DocsUserConfig
+│   ├── site.ts            Esquema de `site`: nombre, favicon, tema, componentes, pie, disposición, `seo` y `analytics`
+│   ├── i18n.ts            Esquema de `i18n`: idiomas, `missing` y textos de interfaz
+│   ├── content.ts         Esquema de `content`: carpeta, exclusiones, externas, estáticas, edición, `nav`, `sidebar` y `folders`
+│   ├── shared-schemas.ts  Piezas de esquema compartidas: textos traducibles, imágenes, JSON-LD y el `seo` de una página
+│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig (hasta C8, plana: un adaptador traduce la forma agrupada)
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
 │   ├── folders.ts         `folders`: ListingView, TreeShow, ALL_FOLDERS, su esquema y la herencia por carpeta (folderSettings, con declaredAt); valida sus claves
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
@@ -375,6 +379,8 @@ astro/
 - `testing/build.ts` y `testing/case.ts`: construyen proyectos consumidores mínimos descritos como
   datos, para los tests de integración (con un entorno limpio de variables de Vitest).
 - `testing/contrast.ts`: luminancia y contraste WCAG para los tests de la paleta.
+- `testing/config.ts`: `withConfig(...trozos)` junta trozos de config de prueba grupo a grupo (`site`,
+  `i18n`, `content`).
 - `testing/config-types.ts`: test de tipos de `defineDocsConfig` (un caso válido con las constantes y
   `@ts-expect-error` en lo que debe rechazar); no se ejecuta, lo comprueba `npm run check`.
 - `testing/boundaries.test.ts`: la regla de capas (ver [Capas](./index.md#cómo-lo-hace-cumplir-eslint)).

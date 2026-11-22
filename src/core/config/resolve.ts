@@ -1,4 +1,6 @@
+import type { z } from 'astro/zod';
 import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
+import { DEFAULT_LOCALES } from './i18n';
 import type { StaticFolder } from '../content/static-folders';
 import { DocsError, DocsErrors, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
@@ -68,8 +70,31 @@ export interface ResolvedConfig {
   folders: ResolvedFolders;
 }
 
-const DEFAULT_LOCALES = ['en'];
 const DEFAULT_MISSING_TRANSLATION: MissingTranslation = 'link';
+
+/* TEMPORAL (C7 → C8): la config pública está agrupada (`site`, `i18n`, `content`) y la resuelta sigue
+   plana. `flatten` traduce una a otra con la tabla antigua → nueva; en C8 la resuelta pasa a tener la
+   misma forma que la pública y este adaptador desaparece. */
+type ParsedConfig = z.output<typeof DocsConfigSchema>;
+
+/** La config ya validada, con la forma plana de antes. */
+function flatten({ site, i18n = {}, content = {} }: ParsedConfig) {
+  const { seo, analytics, ...siteRest } = site;
+  const { ogLocales, sitemap, ...seoRest } = seo ?? {};
+  const { missing, ...i18nRest } = i18n;
+  const { dir, ...contentRest } = content;
+  return {
+    ...siteRest,
+    ...(seo && { seo: seoRest }),
+    ...(ogLocales && { ogLocales }),
+    ...(sitemap && { sitemap }),
+    ...analytics,
+    ...i18nRest,
+    ...(missing !== undefined && { translations: { missing } }),
+    ...(dir !== undefined && { content: dir }),
+    ...contentRest,
+  };
+}
 
 /** Valida la config y aplica los valores por defecto; si es inválida lanza `DocsErrors` con la ruta de cada campo. */
 export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
@@ -87,7 +112,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
       }),
     );
   }
-  const { folders, ...config } = result.data;
+  const { folders, ...config } = flatten(result.data);
   const locales = config.locales ?? DEFAULT_LOCALES;
   return {
     ...config,

@@ -94,7 +94,7 @@ describe('faviconErrors', () => {
 describe('`favicon` en la config', () => {
   function messages(favicon: unknown): string[] {
     try {
-      resolveConfig({ name: 'X', favicon } as never);
+      resolveConfig({ site: { name: 'X', favicon } } as never);
     } catch (error) {
       if (error instanceof DocsErrors) return error.errors.map((problem) => problem.describe());
       throw error;
@@ -106,7 +106,7 @@ describe('`favicon` en la config', () => {
     expect(messages('favicon.svg')).toEqual([]);
     expect(messages('/favicon.svg')).toEqual([]);
     expect(messages('https://x.dev/i.png')).toEqual([]);
-    expect(resolveConfig({ name: 'X', favicon: 'a.svg' }).favicon).toBe('a.svg');
+    expect(resolveConfig({ site: { name: 'X', favicon: 'a.svg' } }).favicon).toBe('a.svg');
   });
 
   it('rechaza http:// y otros esquemas, con la ruta `favicon`', () => {

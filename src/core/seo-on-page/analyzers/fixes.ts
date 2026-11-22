@@ -118,15 +118,15 @@ export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): 
       const locale = detail.missingLocale ?? '';
       const twin = `\`${siblingPath(page.sourcePath, page.locale, locale, defaultLocale)}\``;
       return page.kind === 'external'
-        ? `Crea ${twin} o declara \`external[].translations\` en la entrada «${entryName(page)}» de docs.config.mjs.`
+        ? `Crea ${twin} o declara \`content.external[].translations\` en la entrada «${entryName(page)}» de docs.config.mjs.`
         : `Crea ${twin} o declara \`translations: omit\` en el frontmatter de ${file}.`;
     }
     case IssueKind.CANONICAL_MISMATCH:
-      return `El canonical sale del slug y el idioma de ${file}; no lo apuntes a otro idioma. Revisa \`locales\` y \`defaultLocale\` en docs.config.mjs.`;
+      return `El canonical sale del slug y el idioma de ${file}; no lo apuntes a otro idioma. Revisa \`i18n.locales\` e \`i18n.defaultLocale\` en docs.config.mjs.`;
     case IssueKind.LINK_TO_NOINDEX:
       return `Quita de ${file} el enlace a ${slugs(detail.related)} o, si debe indexarse, quita \`seo.noindex\` de esa página.`;
     case IssueKind.ORPHAN_PAGE:
-      return `Enlaza «${entryName(page)}» desde el cuerpo de otra página de su idioma (\`[texto](./${basename(page.sourcePath)})\`) o declárala en \`nav\` o \`sidebar\` de docs.config.mjs.`;
+      return `Enlaza «${entryName(page)}» desde el cuerpo de otra página de su idioma (\`[texto](./${basename(page.sourcePath)})\`) o declárala en \`content.nav\` o \`content.sidebar\` de docs.config.mjs.`;
     case IssueKind.IMAGE_ALT_MISSING: {
       const images = (detail.images ?? []).map((src) => `\`${src}\``).join(', ');
       return `Describe en ${file} ${images ? `las imágenes ${images}` : 'las imágenes sin texto'}: \`![qué se ve](ruta)\`. Si una es decorativa, escríbela como \`<img alt="">\`.`;
@@ -135,11 +135,11 @@ export function fixFor(kind: IssueKind, page: FixPage, detail: FixDetail = {}): 
       const size = `${THRESHOLDS.ogWidth}×${THRESHOLDS.ogHeight}`;
       return detail.og?.source === 'page'
         ? `Sustituye la imagen por una de ${size} px: ${where(page, 'seo.image.src')}.`
-        : `Sustituye la imagen del sitio por una de ${size} px: \`seo.image.src\` en docs.config.mjs.`;
+        : `Sustituye la imagen del sitio por una de ${size} px: \`site.seo.image.src\` en docs.config.mjs.`;
     }
     case IssueKind.TRANSLATION_POLICY_CONFLICT: {
       if (page.kind === 'external') {
-        return `Declara una sola \`external[].translations\` en la entrada «${entryName(page)}» de docs.config.mjs.`;
+        return `Declara una sola \`content.external[].translations\` en la entrada «${entryName(page)}» de docs.config.mjs.`;
       }
       const files = (detail.groupLocales ?? [page.locale])
         .map((locale) => `\`${siblingPath(page.sourcePath, page.locale, locale, defaultLocale)}\``)

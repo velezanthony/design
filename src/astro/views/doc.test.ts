@@ -2,21 +2,24 @@ import { describe, expect, it } from 'vitest';
 
 import { applyAnalytics } from '../../core/analytics/resolve';
 import { resolveConfig } from '../../core/config/resolve';
-import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
 import { siteContext } from './chrome';
 import { docNavTrees, docRoutes, docView, type DocRoute } from './doc';
 import type { DocData } from '../loader/schema';
+import { withConfig, type ConfigPart } from '../../testing/config';
 
-function site(user: Partial<DocsUserConfig> = {}) {
-  return createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
-    base: '/repo',
-    site: 'https://x.dev',
-    trailingSlash: 'always',
-    buildFormat: 'directory',
-    publicDir: 'file:///site/public/',
-    root: 'file:///site/',
-  });
+function site(user: ConfigPart = {}) {
+  return createVirtualData(
+    resolveConfig(withConfig({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } }, user)),
+    {
+      base: '/repo',
+      site: 'https://x.dev',
+      trailingSlash: 'always',
+      buildFormat: 'directory',
+      publicDir: 'file:///site/public/',
+      root: 'file:///site/',
+    },
+  );
 }
 
 function doc(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
@@ -59,14 +62,14 @@ describe('docRoutes', () => {
       docRoutes(siteContext(site(), all)).filter((docRoute) => docRoute.kind === 'fallback'),
     ).toHaveLength(0);
     expect(
-      docRoutes(siteContext(site({ translations: { missing: 'omit' } }), all)).filter(
+      docRoutes(siteContext(site({ i18n: { missing: 'omit' } }), all)).filter(
         (docRoute) => docRoute.kind === 'fallback',
       ),
     ).toHaveLength(0);
   });
 
   it('con política fallback: una ruta de reserva por idioma ausente, del contenido original', () => {
-    const routes = docRoutes(siteContext(site({ translations: { missing: 'fallback' } }), all));
+    const routes = docRoutes(siteContext(site({ i18n: { missing: 'fallback' } }), all));
     const fallback = routes.filter((docRoute) => docRoute.kind === 'fallback');
     expect(fallback).toHaveLength(1);
     expect(fallback[0]).toMatchObject({
@@ -79,7 +82,7 @@ describe('docRoutes', () => {
   });
 
   it('sitio monolingüe: sin prefijos ni reservas', () => {
-    const mono = site({ locales: ['en'] });
+    const mono = site({ i18n: { locales: ['en'] } });
     expect(
       docRoutes(siteContext(mono, [doc('guide', 'en')])).map((docRoute) => docRoute.param),
     ).toEqual(['guide']);
@@ -87,7 +90,9 @@ describe('docRoutes', () => {
 });
 
 describe('docView: página real', () => {
-  const config = site({ editUrl: 'https://github.com/o/r/edit/main', repoRoot: '.' });
+  const config = site({
+    content: { editUrl: 'https://github.com/o/r/edit/main', repoRoot: '.' },
+  });
   const view = docView({
     route: route(docRoutes(siteContext(config, all)), 'guide', 'es'),
     site: siteContext(config, all),
@@ -127,7 +132,7 @@ describe('docView: página real', () => {
 
 describe('docView: edición', () => {
   it('editFile es el editPath de la entrada; sin editUrl no hay enlace', () => {
-    const config = site({ editUrl: 'https://github.com/o/r/edit/main' });
+    const config = site({ content: { editUrl: 'https://github.com/o/r/edit/main' } });
     const data = [doc('guide', 'en', { editPath: 'docs/guide.md' })];
     const pageView = docView({
       route: docRoutes(siteContext(config, data))[0]!,
@@ -147,7 +152,7 @@ describe('docView: edición', () => {
   });
 
   it('sin editPath no se ofrece edición aunque haya editUrl', () => {
-    const config = site({ editUrl: 'https://github.com/o/r/edit/main' });
+    const config = site({ content: { editUrl: 'https://github.com/o/r/edit/main' } });
     const data = [doc('guide', 'en')];
     expect(
       docView({
@@ -181,8 +186,8 @@ describe('docView: noindex', () => {
 
 describe('docView: ruta de reserva', () => {
   const config = site({
-    translations: { missing: 'fallback' },
-    editUrl: 'https://github.com/o/r/edit/main',
+    i18n: { missing: 'fallback' },
+    content: { editUrl: 'https://github.com/o/r/edit/main' },
   });
   const data = [doc('', 'en'), doc('only-en', 'en', { editPath: 'docs/only-en.md' })];
   const view = docView({
@@ -217,7 +222,7 @@ describe('docView: ruta de reserva', () => {
 });
 
 describe('docView: dimensiones de la imagen', () => {
-  const config = site({ seo: { image: { src: '/og.png', alt: 'Card' } } });
+  const config = site({ site: { seo: { image: { src: '/og.png', alt: 'Card' } } } });
   function head(sizes?: Map<string, { width: number; height: number }>) {
     return docView({
       route: route(docRoutes(siteContext(config, all)), 'guide', 'es'),
@@ -255,12 +260,14 @@ describe('docView: nav con secciones', () => {
     doc('contributors/x', 'en'),
   ];
   const config = site({
-    locales: ['en'],
-    nav: [
-      { label: 'Guide', dir: 'users' },
-      { label: 'Contributing', dir: 'contributors' },
-    ],
-    sidebar: ['index', 'showcase'],
+    i18n: { locales: ['en'] },
+    content: {
+      nav: [
+        { label: 'Guide', dir: 'users' },
+        { label: 'Contributing', dir: 'contributors' },
+      ],
+      sidebar: ['index', 'showcase'],
+    },
   });
   function view(slug: string) {
     return docView({
@@ -296,7 +303,7 @@ describe('docView: nav con secciones', () => {
   });
 
   it('sin `nav` la lista es vacía y la barra lateral es la entera', () => {
-    const plain = site({ locales: ['en'] });
+    const plain = site({ i18n: { locales: ['en'] } });
     const pageView = docView({
       route: route(docRoutes(siteContext(plain, pages)), 'users/b', 'en'),
       site: siteContext(plain, pages),
@@ -310,10 +317,12 @@ describe('docView: nav con secciones', () => {
 describe('docView: footer', () => {
   const pages = [doc('', 'en'), doc('', 'es'), doc('changelog', 'en'), doc('changelog', 'es')];
   const config = site({
-    social: { github: 'https://github.com/x/y' },
-    footer: {
-      license: 'MIT',
-      links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }],
+    site: {
+      social: { github: 'https://github.com/x/y' },
+      footer: {
+        license: 'MIT',
+        links: [{ label: { en: 'Changes', es: 'Cambios' }, slug: 'changelog' }],
+      },
     },
   });
   function footerOf(locale: string) {
@@ -350,9 +359,14 @@ describe('docView: footer', () => {
 });
 
 describe('docView: analítica y privacidad', () => {
-  function withEnv(envValue: string | undefined, user: Partial<DocsUserConfig> = {}) {
+  function withEnv(envValue: string | undefined, user: ConfigPart = {}) {
     return createVirtualData(
-      applyAnalytics(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), envValue),
+      applyAnalytics(
+        resolveConfig(
+          withConfig({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } }, user),
+        ),
+        envValue,
+      ),
       {
         base: '/repo',
         site: 'https://x.dev',
@@ -376,7 +390,11 @@ describe('docView: analítica y privacidad', () => {
 
   it('con analítica cada idioma enlaza la política de su idioma', () => {
     const config = withEnv('GTM-ENV0001', {
-      privacyUrl: { en: 'https://x.dev/en/privacy/', es: 'https://x.dev/privacidad/' },
+      site: {
+        analytics: {
+          privacyUrl: { en: 'https://x.dev/en/privacy/', es: 'https://x.dev/privacidad/' },
+        },
+      },
     });
     const routes = docRoutes(siteContext(config, all));
     const en = docView({
@@ -395,7 +413,7 @@ describe('docView: analítica y privacidad', () => {
   });
 
   it('una privacyUrl explícita sin analítica se enlaza sin gtmId', () => {
-    const config = withEnv(undefined, { privacyUrl: '/privacy/' });
+    const config = withEnv(undefined, { site: { analytics: { privacyUrl: '/privacy/' } } });
     const view = docView({
       route: route(docRoutes(siteContext(config, all)), '', 'es'),
       site: siteContext(config, all),
@@ -414,13 +432,15 @@ describe('docNavTrees: índice generado (`::nav-tree`)', () => {
     doc('api', 'en'),
   ];
   const config = site({
-    translations: { missing: 'fallback' },
-    nav: [
-      {
-        label: { en: 'Guides', es: 'Guías' },
-        sidebar: [{ label: 'Start', items: ['guide', 'api'] }],
-      },
-    ],
+    i18n: { missing: 'fallback' },
+    content: {
+      nav: [
+        {
+          label: { en: 'Guides', es: 'Guías' },
+          sidebar: [{ label: 'Start', items: ['guide', 'api'] }],
+        },
+      ],
+    },
   });
   const routes = docRoutes(siteContext(config, data));
 
@@ -472,7 +492,7 @@ describe('`slug` propio (URL traducida)', () => {
   });
 
   it('la reserva de una traducción ausente: prefijo del idioma y `slug` del original, como hoy', () => {
-    const routes = docRoutes(siteContext(site({ translations: { missing: 'fallback' } }), data));
+    const routes = docRoutes(siteContext(site({ i18n: { missing: 'fallback' } }), data));
     expect(route(routes, 'only-en', 'es')).toMatchObject({
       kind: 'fallback',
       param: 'es/just-english',
@@ -488,9 +508,9 @@ describe('`slug` propio (URL traducida)', () => {
       doc('b', 'en'),
       doc('b', 'es', { urlSlug: 'a', sourcePath: 'b.es.md' }),
     ];
-    expect(() =>
-      docRoutes(siteContext(site({ translations: { missing: 'fallback' } }), clash)),
-    ).toThrow(/\/es\/a\/.*b\.es\.md/s);
+    expect(() => docRoutes(siteContext(site({ i18n: { missing: 'fallback' } }), clash))).toThrow(
+      /\/es\/a\/.*b\.es\.md/s,
+    );
   });
 
   describe('docView de la traducción con `slug`', () => {
@@ -529,7 +549,9 @@ describe('`slug` propio (URL traducida)', () => {
       doc('tutorials/b', 'en'),
     ];
     const config = site({
-      folders: { tutorials: { listing: { generate: true, view: 'cards', pageSize: 1 } } },
+      content: {
+        folders: { tutorials: { listing: { generate: true, view: 'cards', pageSize: 1 } } },
+      },
     });
     const routes = docRoutes(siteContext(config, items));
     const listing = {
@@ -558,9 +580,10 @@ describe('`slug` propio (URL traducida)', () => {
       doc('tutoriales/b', 'en'),
     ];
     const config = site({
-      locales: ['es', 'en'],
-      defaultLocale: 'es',
-      folders: { tutoriales: { listing: { generate: true, view: 'cards', pageSize: 1 } } },
+      i18n: { locales: ['es', 'en'], defaultLocale: 'es' },
+      content: {
+        folders: { tutoriales: { listing: { generate: true, view: 'cards', pageSize: 1 } } },
+      },
     });
     const params = docRoutes(siteContext(config, listing)).map((docRoute) => docRoute.param);
     expect(params).toContain('en/tutorials');

@@ -21,8 +21,8 @@ export function siteThemeAlias(
   const file = path.resolve(projectRoot, theme);
   if (!existsSync(file)) {
     throw new AstroError(
-      `La opción \`theme\` apunta a un archivo que no existe: ${theme}`,
-      `Se buscó en ${file}. Es la ruta de un CSS desde la raíz del proyecto (\`theme: 'src/styles/site.css'\`).`,
+      `La opción \`site.theme\` apunta a un archivo que no existe: ${theme}`,
+      `Se buscó en ${file}. Es la ruta de un CSS desde la raíz del proyecto (\`site: { theme: 'src/styles/site.css' }\`).`,
     );
   }
   return { find, replacement: file };

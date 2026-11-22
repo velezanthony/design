@@ -8,18 +8,18 @@ import { defineDocsConfig, ListingView, MissingTranslation } from '../../../../i
    - `guia/a.md` y `guia/a.en.md`, sin `slug`, se publican como siempre.
    La config nombra las páginas por su archivo (`tutoriales/despliegue`), nunca por su URL traducida. */
 export default defineDocsConfig({
-  name: 'Slugs',
-  locales: ['es', 'en'],
-  defaultLocale: 'es',
-  translations: { missing: MissingTranslation.FALLBACK },
-  sidebar: [
-    'index',
-    {
-      label: { es: 'Tutoriales', en: 'Tutorials' },
-      slug: 'tutoriales',
-      items: ['tutoriales/instalacion', 'tutoriales/despliegue', 'tutoriales/errores-comunes'],
-    },
-    'guia/a',
-  ],
-  folders: { tutoriales: { listing: { generate: true, view: ListingView.CARDS, pageSize: 1 } } },
+  site: { name: 'Slugs' },
+  i18n: { locales: ['es', 'en'], defaultLocale: 'es', missing: MissingTranslation.FALLBACK },
+  content: {
+    sidebar: [
+      'index',
+      {
+        label: { es: 'Tutoriales', en: 'Tutorials' },
+        slug: 'tutoriales',
+        items: ['tutoriales/instalacion', 'tutoriales/despliegue', 'tutoriales/errores-comunes'],
+      },
+      'guia/a',
+    ],
+    folders: { tutoriales: { listing: { generate: true, view: ListingView.CARDS, pageSize: 1 } } },
+  },
 });

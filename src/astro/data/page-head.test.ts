@@ -16,9 +16,11 @@ writeFileSync(join(publicDir, 'og.png'), png);
 vi.mock('virtual:@velezanthony/design/config', () => ({
   default: {
     ...resolveConfig({
-      name: 'Sitio',
-      locales: ['es', 'en'],
-      seo: { titleSuffix: 'Sitio', image: { src: '/og.png', alt: 'Sitio' } },
+      site: {
+        name: 'Sitio',
+        seo: { titleSuffix: 'Sitio', image: { src: '/og.png', alt: 'Sitio' } },
+      },
+      i18n: { locales: ['es', 'en'] },
     }),
     base: '/',
     site: 'https://x.dev',

@@ -187,7 +187,7 @@ describe('un `slug` que choca con otra URL', { timeout: 120_000 }, () => {
   it('rompe la build nombrando los dos archivos', async () => {
     const { code, output } = await buildFailingCase({
       name: 'slug-collision',
-      config: { name: 'Slugs', locales: ['es', 'en'], defaultLocale: 'es' },
+      config: { site: { name: 'Slugs' }, i18n: { locales: ['es', 'en'], defaultLocale: 'es' } },
       docs: {
         'index.md': '# Inicio\n',
         'a.md': '# A\n',

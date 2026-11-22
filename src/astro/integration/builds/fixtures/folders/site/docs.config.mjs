@@ -11,47 +11,47 @@ import { defineDocsConfig, ListingView, MissingTranslation, TreeShow } from '../
    - `guia` enciende `generate`, pero su `index.md` gana (aviso informativo en el build);
    - `articulos/notas` tiene `index.md`: su grupo enlaza esa página. */
 export default defineDocsConfig({
-  name: 'Folders',
-  locales: ['es', 'en'],
-  defaultLocale: 'es',
-  translations: { missing: MissingTranslation.FALLBACK },
-  nav: [
-    {
-      label: { es: 'Desarrollo', en: 'Development' },
-      sidebar: [
-        {
-          label: 'Python',
-          items: ['articulos/desarrollo/python/x', 'articulos/desarrollo/python/y'],
-        },
-      ],
+  site: { name: 'Folders' },
+  i18n: { locales: ['es', 'en'], defaultLocale: 'es', missing: MissingTranslation.FALLBACK },
+  content: {
+    nav: [
+      {
+        label: { es: 'Desarrollo', en: 'Development' },
+        sidebar: [
+          {
+            label: 'Python',
+            items: ['articulos/desarrollo/python/x', 'articulos/desarrollo/python/y'],
+          },
+        ],
+      },
+      {
+        label: { es: 'Sistemas', en: 'Systems' },
+        sidebar: [
+          { label: 'CI/CD', items: ['articulos/sistemas/ci-cd/github'] },
+          {
+            label: 'Cloud',
+            items: [{ label: 'AWS', items: ['articulos/sistemas/cloud/aws/basica'] }],
+          },
+          {
+            label: { es: 'Contenedores', en: 'Containers' },
+            items: [
+              'articulos/sistemas/contenedores/docker',
+              'articulos/sistemas/contenedores/nginx',
+            ],
+          },
+        ],
+      },
+      { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
+    ],
+    sidebar: ['index', 'articulos'],
+    folders: {
+      articulos: {
+        listing: { generate: true, view: ListingView.CARDS },
+        tree: { show: TreeShow.ALL },
+      },
+      'articulos/borradores': { listing: { generate: false } },
+      'articulos/privado': { listing: { view: ListingView.TABLE, pageSize: 1 } },
+      guia: { listing: { generate: true } },
     },
-    {
-      label: { es: 'Sistemas', en: 'Systems' },
-      sidebar: [
-        { label: 'CI/CD', items: ['articulos/sistemas/ci-cd/github'] },
-        {
-          label: 'Cloud',
-          items: [{ label: 'AWS', items: ['articulos/sistemas/cloud/aws/basica'] }],
-        },
-        {
-          label: { es: 'Contenedores', en: 'Containers' },
-          items: [
-            'articulos/sistemas/contenedores/docker',
-            'articulos/sistemas/contenedores/nginx',
-          ],
-        },
-      ],
-    },
-    { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
-  ],
-  sidebar: ['index', 'articulos'],
-  folders: {
-    articulos: {
-      listing: { generate: true, view: ListingView.CARDS },
-      tree: { show: TreeShow.ALL },
-    },
-    'articulos/borradores': { listing: { generate: false } },
-    'articulos/privado': { listing: { view: ListingView.TABLE, pageSize: 1 } },
-    guia: { listing: { generate: true } },
   },
 });

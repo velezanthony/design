@@ -186,7 +186,7 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
           {
             file: from.sourcePath,
             line,
-            hint: 'Quita el enlace o saca ese archivo de `exclude` en la config.',
+            hint: 'Quita el enlace o saca ese archivo de `content.exclude` en la config.',
           },
         ),
       );
@@ -222,11 +222,11 @@ function staticUrl(
   if (inside && staticExcluder(folder)(inside)) {
     errors.push(
       new DocsError(
-        `El enlace «${rawTarget}» apunta a «${inside}», que \`static[${position}].exclude\` deja fuera de la publicación.`,
+        `El enlace «${rawTarget}» apunta a «${inside}», que \`content.static[${position}].exclude\` deja fuera de la publicación.`,
         {
           file: from.sourcePath,
           line,
-          hint: `Quita el enlace o el patrón de \`static[${position}].exclude\`.`,
+          hint: `Quita el enlace o el patrón de \`content.static[${position}].exclude\`.`,
         },
       ),
     );
@@ -248,7 +248,7 @@ function brokenLink(
   return new DocsError(`El enlace «${target}» ${reason}.`, {
     file: from.sourcePath,
     line,
-    hint: `Apunta a un .md publicado o a un archivo de una carpeta de \`static\` (se reescribe a su URL), o usa una URL absoluta con el base (\`${base}/…\`).`,
+    hint: `Apunta a un .md publicado o a un archivo de una carpeta de \`content.static\` (se reescribe a su URL), o usa una URL absoluta con el base (\`${base}/…\`).`,
   });
 }
 

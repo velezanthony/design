@@ -93,7 +93,7 @@ describe('issuePrompt', () => {
   it('una página externa nombra su clave bajo `external[]`', () => {
     const external = seoPage({ slug: 'changelog', kind: 'external', sourcePath: 'CHANGELOG.md' });
     expect(prompt(issue(IssueKind.TITLE_TOO_SHORT), external)).toContain(
-      'Clave: `external[].seo.title`',
+      'Clave: `content.external[].seo.title`',
     );
   });
 });

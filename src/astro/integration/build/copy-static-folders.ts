@@ -30,7 +30,7 @@ export async function copyStaticFolders({
     );
     if (!exists) {
       throw new AstroError(
-        `static[${index}].from: no existe la carpeta «${from}».`,
+        `content.static[${index}].from: no existe la carpeta «${from}».`,
         'Genérala antes del build (el informe de cobertura, por ejemplo) o quita la entrada.',
       );
     }

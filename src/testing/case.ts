@@ -24,7 +24,7 @@ function importPath(directory: string, target: string): string {
 /** Escribe el caso en `fixtures/strict/.cases/<name>/`, lo construye esperando que FALLE y lo borra. */
 export async function buildFailingCase(buildCase: BuildCase): Promise<FailedBuild> {
   const caseDirectory = resolve(casesDir, buildCase.name);
-  const contentDir = buildCase.config.content ?? 'src/content/docs';
+  const contentDir = buildCase.config.content?.dir ?? 'src/content/docs';
   // Con contenido fuera del proyecto, este vive en `site/` y `..` cae dentro de la carpeta del caso.
   const root = contentDir.startsWith('..') ? resolve(caseDirectory, 'site') : caseDirectory;
   async function write(relativePath: string, content: string | Uint8Array) {

@@ -73,9 +73,9 @@ export function navTree(env: MarkdownEnv) {
         }
         if (names.length === 0) {
           fail(
-            '«::nav-tree» necesita secciones en `nav` y la config no tiene ninguna',
+            '«::nav-tree» necesita secciones en `content.nav` y la config no tiene ninguna',
             line,
-            'Declara en `nav` secciones con `sidebar` o `dir`, o quita la directiva.',
+            'Declara en `content.nav` secciones con `sidebar` o `dir`, o quita la directiva.',
           );
         }
         let indexes = env.nav.flatMap((item, index) => (isNavSection(item) ? [index] : []));

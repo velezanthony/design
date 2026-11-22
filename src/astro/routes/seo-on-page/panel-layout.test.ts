@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from '../../../core/config/resolve';
-import type { DocsUserConfig } from '../../../core/config/schema';
 import { renderDocument, text } from '../../../testing/render';
 import DocsLayout from '../../../components/layouts/DocsLayout.astro';
 import { createVirtualData } from '../../virtual/data';
@@ -15,16 +14,20 @@ import OverviewPage from '../../../components/seo-on-page/pages/OverviewPage.ast
 import PagesPage from '../../../components/seo-on-page/pages/PagesPage.astro';
 import FooterProbe from '../../../testing/fixtures/FooterProbe.astro';
 import { seoPage } from '../../../testing/seo-page';
+import { withConfig, type ConfigPart } from '../../../testing/config';
 
-function site(user: Partial<DocsUserConfig> = {}) {
-  return createVirtualData(resolveConfig({ name: 'Docs', locales: ['en', 'es'], ...user }), {
-    base: '/repo',
-    site: 'https://x.dev',
-    trailingSlash: 'always',
-    buildFormat: 'directory',
-    publicDir: 'file:///site/public/',
-    root: 'file:///site/',
-  });
+function site(user: ConfigPart = {}) {
+  return createVirtualData(
+    resolveConfig(withConfig({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } }, user)),
+    {
+      base: '/repo',
+      site: 'https://x.dev',
+      trailingSlash: 'always',
+      buildFormat: 'directory',
+      publicDir: 'file:///site/public/',
+      root: 'file:///site/',
+    },
+  );
 }
 
 function doc(slug: string, locale: string): DocData {
@@ -52,7 +55,9 @@ function view(extra: Partial<Parameters<typeof panelView>[0]> = {}) {
 /* Aquí y no en `views/`: ver el panel dentro del layout junta presentación (`components/`) y datos, y eso solo lo hace `routes/`. */
 describe('DocsLayout alimentado por panelView', () => {
   function page() {
-    const config = site({ gtmId: 'GTM-ABC123', privacyUrl: '/repo/privacy/' });
+    const config = site({
+      site: { analytics: { gtmId: 'GTM-ABC123', privacyUrl: '/repo/privacy/' } },
+    });
     return renderDocument(
       DocsLayout,
       {

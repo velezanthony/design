@@ -18,7 +18,7 @@ export function clientTag(key: string): string {
 /** Una clave tal como se escribe para un tipo de página: en `external[]`, o la etiqueta en un `.astro`. */
 export function scopedKey(key: string, kind: SeoPageKind): string {
   if (kind === 'client') return clientTag(key);
-  return kind === 'external' ? `external[].${key}` : key;
+  return kind === 'external' ? `content.external[].${key}` : key;
 }
 
 /** Dónde vive esa clave cuando la página no es un `.md` de la carpeta de contenido. */

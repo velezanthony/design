@@ -7,7 +7,11 @@ import { mermaid } from './mermaid';
 import { SHIKI_LANG_ALIAS } from './code-languages';
 
 const warn = vi.fn();
-const env = createMarkdownEnv(resolveConfig({ name: 'x', locales: ['en', 'es'] }), project, warn);
+const env = createMarkdownEnv(
+  resolveConfig({ site: { name: 'x' }, i18n: { locales: ['en', 'es'] } }),
+  project,
+  warn,
+);
 function render(source: string, fileURL = docFileURL('a.md')) {
   return renderMarkdown(source, {
     fileURL,
@@ -39,7 +43,10 @@ describe('mermaid', () => {
 
   it('el texto de carga respeta el que el sitio haya personalizado, escapado', async () => {
     const custom = createMarkdownEnv(
-      resolveConfig({ name: 'x', ui: { en: { 'diagram.loading': 'Wait "here"' } } }),
+      resolveConfig({
+        site: { name: 'x' },
+        i18n: { ui: { en: { 'diagram.loading': 'Wait "here"' } } },
+      }),
       project,
     );
     const html = await renderMarkdown(diagram, {

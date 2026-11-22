@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { buildFailingCase } from '../../../testing/case';
+import { withConfig } from '../../../testing/config';
 
 /* Reglas estrictas: cada caso es un proyecto mínimo cuya build DEBE fallar con código distinto de 0
    y un mensaje que diga qué archivo o campo arreglar. Comparten un esqueleto (`testing/case.ts`). */
 
-const bilingual = { name: 'Strict', locales: ['en', 'es'] };
+const bilingual = { site: { name: 'Strict' }, i18n: { locales: ['en', 'es'] } };
 function page(title: string, body = 'Texto.') {
   return `# ${title}\n\n${body}\n`;
 }
@@ -49,7 +50,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('ui con clave desconocida: nombra la clave', async () => {
     const { code, output } = await buildFailingCase({
       name: 'ui-unknown-key',
-      config: { ...bilingual, ui: { es: { 'search.placeholdr': 'x' } } } as never,
+      config: withConfig(bilingual, { i18n: { ui: { es: { 'search.placeholdr': 'x' } } } }),
       docs: { 'index.md': page('Home') },
     });
     expect(code).not.toBe(0);
@@ -59,7 +60,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('enlace roto: nombra archivo y línea', async () => {
     const { code, output } = await buildFailingCase({
       name: 'broken-link',
-      config: { name: 'Strict' },
+      config: { site: { name: 'Strict' } },
       docs: { 'index.md': page('Home', '[roto](./no-existe.md)') },
     });
     expect(code).not.toBe(0);
@@ -70,7 +71,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('id personalizado `{ #id }` no soportado: enlazarlo es un ancla rota', async () => {
     const { code, output } = await buildFailingCase({
       name: 'stale-custom-id',
-      config: { name: 'Strict' },
+      config: { site: { name: 'Strict' } },
       docs: {
         'index.md': page('Home', '## Uso { #usage }\n\nVer [uso](#usage).'),
       },
@@ -83,7 +84,10 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('enlace relativo a un external con ancla inexistente: nombra archivo y ancla', async () => {
     const { code, output } = await buildFailingCase({
       name: 'external-broken-anchor',
-      config: { name: 'Strict', external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
+      config: {
+        site: { name: 'Strict' },
+        content: { external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
+      },
       docs: { 'index.md': page('Home', '[c](../../../CHANGELOG.md#no-existe)') },
       extra: { 'CHANGELOG.md': '# Changelog\n\n## Uno\n' },
     });
@@ -95,7 +99,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('imagen SEO inexistente: nombra la página y el campo', async () => {
     const { code, output } = await buildFailingCase({
       name: 'missing-image',
-      config: { name: 'Strict' },
+      config: { site: { name: 'Strict' } },
       docs: { 'index.md': `---\nseo:\n  image:\n    src: /no-esta.png\n---\n\n${page('Home')}` },
     });
     expect(code).not.toBe(0);
@@ -107,7 +111,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('favicon de public/ inexistente: nombra el campo y el archivo', async () => {
     const { code, output } = await buildFailingCase({
       name: 'missing-favicon',
-      config: { name: 'Strict', favicon: '/no-esta.svg' },
+      config: { site: { name: 'Strict', favicon: '/no-esta.svg' } },
       docs: { 'index.md': page('Home') },
     });
     expect(code).not.toBe(0);
@@ -118,7 +122,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('un fallo de integración (analítica inválida) se propaga: gtmId con formato imposible', async () => {
     const { code, output } = await buildFailingCase({
       name: 'integration-failure',
-      config: { name: 'Strict', gtmId: 'nope' },
+      config: { site: { name: 'Strict', analytics: { gtmId: 'nope' } } },
       docs: { 'index.md': page('Home') },
     });
     expect(code).not.toBe(0);
@@ -130,8 +134,8 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
     const { code, output } = await buildFailingCase({
       name: 'nav-tree-section',
       config: {
-        name: 'Strict',
-        nav: [{ label: { en: 'Guides', es: 'Guías' }, sidebar: ['guide'] }],
+        site: { name: 'Strict' },
+        content: { nav: [{ label: { en: 'Guides', es: 'Guías' }, sidebar: ['guide'] }] },
       },
       docs: {
         'index.md': page('Home', '::nav-tree{section="Blog"}'),
@@ -148,7 +152,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('`content` fuera del proyecto: una admonición desconocida nombra la ruta real y la línea', async () => {
     const { code, output } = await buildFailingCase({
       name: 'outside-admonition',
-      config: { name: 'Strict', content: '../docs' },
+      config: { site: { name: 'Strict' }, content: { dir: '../docs' } },
       docs: {
         'index.md': page('Home'),
         'users/guia.md': page('Guía', ':::peligro\nNo existe.\n:::'),
@@ -162,7 +166,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('`content` fuera del proyecto: un enlace roto nombra archivo y línea', async () => {
     const { code, output } = await buildFailingCase({
       name: 'outside-broken-link',
-      config: { name: 'Strict', content: '../docs' },
+      config: { site: { name: 'Strict' }, content: { dir: '../docs' } },
       docs: { 'index.md': page('Home'), 'users/guia.md': page('Guía', '[x](../no-existe.md)') },
     });
     expect(code).not.toBe(0);
@@ -173,7 +177,7 @@ describe('reglas estrictas de la build', { timeout: 120_000 }, () => {
   it('`content` apuntando a una carpeta que no existe: nombra la ruta resuelta', async () => {
     const { code, output } = await buildFailingCase({
       name: 'outside-missing-dir',
-      config: { name: 'Strict', content: '../no-hay' },
+      config: { site: { name: 'Strict' }, content: { dir: '../no-hay' } },
       docs: {},
     });
     expect(code).not.toBe(0);

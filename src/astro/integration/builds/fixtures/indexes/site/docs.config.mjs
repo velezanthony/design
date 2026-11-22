@@ -8,39 +8,39 @@ import { defineDocsConfig, ListingView, MissingTranslation } from '../../../../i
    - `notas/`: su `index.md` gana al índice (aviso informativo) y a su `_index.md` (aviso);
    - `sueltos/`: nada la activa, así que no tiene página. */
 export default defineDocsConfig({
-  name: 'Indexes',
-  locales: ['es', 'en'],
-  defaultLocale: 'es',
-  translations: { missing: MissingTranslation.FALLBACK },
-  nav: [
-    {
-      label: { es: 'Esenciales', en: 'Essentials' },
-      sidebar: [
-        {
-          label: { es: 'Primeros pasos', en: 'Getting started' },
-          items: ['tutoriales/instalacion', 'tutoriales/primer-proyecto'],
-        },
-        { label: 'Astro', items: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
-      ],
+  site: { name: 'Indexes' },
+  i18n: { locales: ['es', 'en'], defaultLocale: 'es', missing: MissingTranslation.FALLBACK },
+  content: {
+    nav: [
+      {
+        label: { es: 'Esenciales', en: 'Essentials' },
+        sidebar: [
+          {
+            label: { es: 'Primeros pasos', en: 'Getting started' },
+            items: ['tutoriales/instalacion', 'tutoriales/primer-proyecto'],
+          },
+          { label: 'Astro', items: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
+        ],
+      },
+      {
+        label: { es: 'Avanzado', en: 'Advanced' },
+        sidebar: [
+          {
+            label: { es: 'Despliegue', en: 'Deployment' },
+            items: ['tutoriales/despliegue', 'tutoriales/errores-comunes'],
+          },
+        ],
+      },
+      { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
+    ],
+    sidebar: ['index', 'tutoriales', 'recetas', 'notas'],
+    folders: {
+      tutoriales: {
+        listing: { generate: true, view: ListingView.CARDS, pageSize: 2, perPageOptions: [2, 4] },
+      },
+      guia: { listing: { generate: true, view: ListingView.TABLE, pageSize: 2 } },
+      recetas: { listing: { generate: true } },
+      notas: { listing: { generate: true, view: ListingView.CARDS } },
     },
-    {
-      label: { es: 'Avanzado', en: 'Advanced' },
-      sidebar: [
-        {
-          label: { es: 'Despliegue', en: 'Deployment' },
-          items: ['tutoriales/despliegue', 'tutoriales/errores-comunes'],
-        },
-      ],
-    },
-    { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
-  ],
-  sidebar: ['index', 'tutoriales', 'recetas', 'notas'],
-  folders: {
-    tutoriales: {
-      listing: { generate: true, view: ListingView.CARDS, pageSize: 2, perPageOptions: [2, 4] },
-    },
-    guia: { listing: { generate: true, view: ListingView.TABLE, pageSize: 2 } },
-    recetas: { listing: { generate: true } },
-    notas: { listing: { generate: true, view: ListingView.CARDS } },
   },
 });

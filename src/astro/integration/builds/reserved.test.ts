@@ -9,9 +9,9 @@ describe('nombres reservados de un listado', { timeout: 120_000 }, () => {
     const { code, output } = await buildFailingCase({
       name: 'reserved-page',
       config: {
-        name: 'Reserved',
-        locales: ['es'],
-        folders: { tutoriales: { listing: { generate: true, view: 'cards' } } },
+        site: { name: 'Reserved' },
+        i18n: { locales: ['es'] },
+        content: { folders: { tutoriales: { listing: { generate: true, view: 'cards' } } } },
       },
       docs: {
         'index.md': '# Inicio\n',

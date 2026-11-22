@@ -7,9 +7,9 @@ import { githubAlerts } from './github-alerts';
 
 const env = createMarkdownEnv(
   resolveConfig({
-    name: 'x',
-    locales: ['en', 'es'],
-    external: [{ slug: 'changelog', file: 'CHANGELOG.md' }],
+    site: { name: 'x' },
+    i18n: { locales: ['en', 'es'] },
+    content: { external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
   }),
   project,
 );

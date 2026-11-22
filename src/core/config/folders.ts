@@ -136,9 +136,9 @@ export function folderSettings(folders: ResolvedFolders, folder: string): Folder
   };
 }
 
-/** Ruta de los ajustes de una carpeta en los mensajes (`folders['articulos/python']`); los de la raíz del contenido son los de `'*'`. */
+/** Ruta de los ajustes de una carpeta en los mensajes (`content.folders['articulos/python']`); los de la raíz del contenido son los de `'*'`. */
 export function folderKeyPath(folder: string, ...rest: string[]): string {
-  return formatPath(['folders', folder === '' ? ALL_FOLDERS : folder, ...rest]);
+  return formatPath(['content', 'folders', folder === '' ? ALL_FOLDERS : folder, ...rest]);
 }
 
 /** Un error por cada clave de `folders` que no es `'*'` ni una carpeta con páginas. */
@@ -151,14 +151,14 @@ export function validateFolderKeys(
     .map((folder) => {
       if (folder === '' || folder.startsWith('/') || folder.endsWith('/')) {
         return new DocsError(
-          `${formatPath(['folders', folder])}: carpeta sin barras al principio ni al final.`,
+          `${formatPath(['content', 'folders', folder])}: carpeta sin barras al principio ni al final.`,
           {
             hint: `Escribe la ruta dentro del contenido (articulos/python), o '${ALL_FOLDERS}' para todo el sitio.`,
           },
         );
       }
       return new DocsError(
-        `${formatPath(['folders', folder])}: no hay ninguna carpeta «${folder}» con páginas.`,
+        `${formatPath(['content', 'folders', folder])}: no hay ninguna carpeta «${folder}» con páginas.`,
         {
           hint: `Es la ruta de la carpeta dentro del contenido, sin barras (articulos, articulos/python), o '${ALL_FOLDERS}' para todo el sitio.`,
         },
