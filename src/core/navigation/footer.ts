@@ -1,8 +1,9 @@
 import { AUTHOR } from '../author';
 import { isFooterPage, type FooterLink, type FooterPage } from '../config/footer';
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { Label } from '../config/schema';
 import { DocsError, formatPath } from '../errors';
+import type { Locale } from '../i18n/locale';
 import type { UiStrings } from '../i18n/ui-strings';
 import { resolveLabel } from './label';
 import { buildSidebarFor, type NavContext } from './nav-sidebar';
@@ -30,8 +31,25 @@ export interface FooterView {
   links: FooterEntry[];
 }
 
+/** Props del pie de una página de docs: las de `DocsFooter` y las de un pie propio (`components.Footer`). */
+export interface FooterProps {
+  /** Idioma de la página. */
+  lang: Locale;
+  siteName: string;
+  /** Año del copyright. Va por props para que el pie salga igual cuando se renderice. */
+  year: number;
+  /** Textos de interfaz del idioma de la página, ya fusionados con los del sitio. */
+  strings: UiStrings;
+  /** Página de privacidad del idioma; sin ella no se pinta el enlace. */
+  privacyUrl?: string;
+  /** Si el sitio pide consentimiento, hay una elección que reabrir (`CookieSettingsButton`). */
+  cookieControl: boolean;
+  /** Licencia, autor y enlaces propios o derivados de la config; ya resueltos al idioma. */
+  footer?: FooterView;
+}
+
 /** Lo que el footer necesita de la config. */
-export type FooterSource = Pick<ResolvedConfig, 'footer' | 'social'>;
+export type FooterSource = ConfigPick<'footer' | 'social'>;
 
 /** Destino de un enlace del footer a una página en el idioma de `context`; `undefined` si no tiene (política `omit`). */
 function footerPageHref(link: FooterPage, context: NavContext): string | undefined {
@@ -53,9 +71,9 @@ export function buildFooter(
   context: NavContext,
   strings: UiStrings,
 ): FooterView {
-  const { footer, social } = source;
+  const { footer, social } = source.site;
   const { locale } = context;
-  const defaultLocale = context.config.defaultLocale;
+  const defaultLocale = context.config.i18n.defaultLocale;
   function label(value: Label) {
     return resolveLabel(value, locale, defaultLocale);
   }
@@ -98,7 +116,7 @@ export function validateFooter(
     if (!isFooterPage(link) || pageSlugs.has(toSidebarSlug(link.slug))) return [];
     return [
       new DocsError(
-        `${formatPath(['footer', 'links', index, 'slug'])}: no hay ninguna página con el slug «${link.slug}».`,
+        `${formatPath(['site', 'footer', 'links', index, 'slug'])}: no hay ninguna página con el slug «${link.slug}».`,
         { hint: `Revisa el slug o créala. La portada se escribe '${HOME_SIDEBAR_SLUG}'.` },
       ),
     ];

@@ -53,3 +53,14 @@ describe('formatPath: claves de JSON-LD', () => {
     expect(formatPath(['seo', 'schema', 1, '@type'])).toBe("seo.schema[1]['@type']");
   });
 });
+
+describe('formatPath: claves de carpeta', () => {
+  it("una carpeta con barras o '*' va entre corchetes: folders['guia/avanzado']", () => {
+    expect(formatPath(['folders', 'guia/avanzado', 'tree'])).toBe("folders['guia/avanzado'].tree");
+    expect(formatPath(['folders', '*', 'listing'])).toBe("folders['*'].listing");
+  });
+
+  it('una carpeta de un segmento sigue con punto', () => {
+    expect(formatPath(['folders', 'guia'])).toBe('folders.guia');
+  });
+});

@@ -2,13 +2,31 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Loader, LoaderContext } from 'astro/loaders';
-import type { ResolvedConfig } from '../../core/config/resolve';
+import type { ConfigWithoutUi } from '../../core/config/resolve';
 import {
   discoverPages,
   externalCandidates,
+  ignoredListings,
+  urlCollisions,
   type Page,
   type SourceFile,
 } from '../../core/content/discovery';
+import { validateFolderKeys } from '../../core/config/folders';
+import {
+  contentFolders,
+  generatedListingPages,
+  listingSourceErrors,
+  replacedListings,
+} from '../../core/content/generated-listings';
+import {
+  siteStrings,
+  translate,
+  type UiOverrides,
+  type UiStrings,
+} from '../../core/i18n/ui-strings';
+import type { Locale } from '../../core/i18n/locale';
+import { folderTitles } from '../../core/navigation/folder-labels';
+import { reservedSegmentErrors } from '../../core/listing/urls';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
 import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
 import { excluder } from '../../core/content/exclude';
@@ -19,6 +37,7 @@ import { resolvePolicies, undeclaredMissing } from '../../core/i18n/translation-
 import { buildHeadingIndex, validateAnchors } from '../../core/links/anchors';
 import { rewriteLinks, type LinkRef } from '../../core/links/rewrite';
 import { collectImageRefs } from '../../core/seo/image-refs';
+import type { StoredCover } from '../../core/listing/covers';
 import { CONTENT_METADATA_KEY, contentFacts } from '../../core/seo-on-page/nodes/content';
 import type { DocsUserConfig } from '../../core/config/schema';
 import { resolveConfigOrThrow } from '../config';
@@ -26,25 +45,27 @@ import { urlPolicyOf } from '../config';
 import { toAstroError } from '../errors';
 import { readFrontmatter } from './frontmatter';
 import { checkFavicon } from './favicon';
+import { resolveCover } from './covers';
 import { checkSeoImages } from './images';
 import { resolveRepoRoot } from './repo-root';
 import { docsSchema } from './schema';
 import { createReloader, watchSources } from './watch';
+import { slugRouteCollisions } from './slug-routes';
 
 const LOAD_ERROR = 'No se puede cargar el contenido de docs.';
 
 /** Carpeta de las páginas nativas, absoluta: `content` está resuelta contra la raíz del proyecto. */
 function contentDir(root: string, config: Pick<LoaderConfig, 'content'>) {
-  return path.resolve(root, config.content);
+  return path.resolve(root, config.content.dir);
 }
 
 /** Si la carpeta de contenido existe y es carpeta; la de por defecto puede faltar (el sitio solo con `external` o con su propia portada), la que se eligió no. */
 async function hasContentDir(directory: string, config: Pick<LoaderConfig, 'content'>) {
   const info = await stat(directory).catch(() => undefined);
   if (info?.isDirectory()) return true;
-  if (config.content === DEFAULT_CONTENT_DIR && info === undefined) return false;
+  if (config.content.dir === DEFAULT_CONTENT_DIR && info === undefined) return false;
   throw new DocsError(`La carpeta de contenido no existe o no es una carpeta: ${directory}.`, {
-    hint: `Se resolvió desde \`content: '${config.content}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
+    hint: `Se resolvió desde \`content.dir: '${config.content.dir}'\`, relativa a la raíz del proyecto de Astro. Corrige la ruta o crea la carpeta.`,
   });
 }
 
@@ -67,7 +88,7 @@ async function readSources(
   const errors: DocsError[] = [];
   const found = (await hasContentDir(nativeDir, config)) ? await walk(nativeDir) : [];
   // Lo excluido ni se lee: ni se publica ni se valida su frontmatter.
-  const isExcluded = excluder(config.exclude);
+  const isExcluded = excluder(config.content.exclude);
   const nativeFiles = found.filter((file) => !isExcluded(file));
   const excluded = new Set(found.filter((file) => isExcluded(file)));
   const native = await Promise.all(
@@ -91,9 +112,9 @@ async function readSources(
   };
 }
 
-/** Archivo absoluto de una página: las nativas cuelgan del directorio de contenido. */
+/** Archivo absoluto de una página: las nativas (y las generadas, con el `_index.md` que tendría su carpeta) cuelgan del directorio de contenido. */
 function absolutePath(root: string, config: LoaderConfig, page: Page) {
-  return page.kind === 'native'
+  return page.kind !== 'external'
     ? path.join(contentDir(root, config), page.sourcePath)
     : path.resolve(root, page.sourcePath);
 }
@@ -104,11 +125,36 @@ function discoverOrErrors(
   config: LoaderConfig,
 ): { pages: Page[]; errors: DocsError[] } {
   try {
-    return { pages: discoverPages(files, config), errors: [] };
+    const pages = discoverPages(files, config);
+    const strings = loaderStrings(config);
+    const all = [
+      ...pages,
+      ...generatedListingPages(pages, {
+        folders: config.content.folders,
+        locales: config.i18n.locales,
+        labelOf: folderTitles(config),
+        describe: (title, locale) => translate(strings[locale]!, 'listing.description', { title }),
+      }),
+    ];
+    // Las descubiertas ya no chocan entre sí: lo que choque ahora es con un índice generado, o con
+    // los segmentos que reserva la paginación de un listado.
+    const clashes = [...urlCollisions(all), ...reservedSegmentErrors(all)];
+    return clashes.length > 0 ? { pages: [], errors: clashes } : { pages: all, errors: [] };
   } catch (error) {
     if (error instanceof DocsErrors) return { pages: [], errors: error.errors };
     throw error;
   }
+}
+
+/** El bloque `index` que se guarda: el resumen, el texto alternativo y la portada ya comprobada. */
+function indexDataOf(page: Page, cover: StoredCover | undefined) {
+  const { summary, imageAlt } = page.index ?? {};
+  const data = {
+    ...(summary !== undefined && { summary }),
+    ...(imageAlt !== undefined && { imageAlt }),
+    ...(cover !== undefined && { cover }),
+  };
+  return Object.keys(data).length > 0 ? data : undefined;
 }
 
 /** Carga en tres pasadas (descubrir, reescribir y renderizar, validar anclas e imágenes); los fallos se acumulan en un solo error. */
@@ -119,21 +165,42 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
   const discovered = discoverOrErrors(read.files, config);
   errors.push(...discovered.errors);
   const { pages } = discovered;
+  errors.push(
+    ...slugRouteCollisions(pages, {
+      defaultLocale: config.i18n.defaultLocale,
+      srcDir: context.config.srcDir,
+    }),
+  );
+  for (const file of ignoredListings(read.files, config)) {
+    context.logger.warn(
+      `${file}: se ignora porque su carpeta tiene un index.md, que es una página normal y gana al índice generado.`,
+    );
+  }
+  for (const { folder, file } of replacedListings(pages, config.content.folders)) {
+    context.logger.info(`${file} sustituye al índice generado de la carpeta ${folder}.`);
+  }
+  errors.push(...listingSourceErrors(pages, config.content.folders));
 
-  const policy = resolvePolicies(pages, config.translations.missing);
+  const policy = resolvePolicies(pages, config.i18n.missing);
   errors.push(...policy.errors);
   // Si el descubrimiento falló no hay páginas fiables: el sidebar se juzgaría contra una lista vacía.
   if (discovered.errors.length === 0) {
     const pageSlugs = new Set(pages.map((page) => page.slug));
+    const folders = new Set(contentFolders(pageSlugs));
     errors.push(
-      ...validateSidebarSlugs(config.sidebar ?? [], pageSlugs),
-      ...validateNav(config.nav ?? [], pageSlugs),
-      ...validateFooter(config.footer?.links ?? [], pageSlugs),
+      ...validateSidebarSlugs(config.content.sidebar ?? [], pageSlugs),
+      ...validateNav(config.content.nav ?? [], pageSlugs),
+      ...validateFooter(config.site.footer?.links ?? [], pageSlugs),
+      ...validateFolderKeys(config.content.folders, folders),
     );
   }
-  for (const { slug, missing } of undeclaredMissing(pages, config.locales)) {
+  for (const { slug, missing } of undeclaredMissing(
+    pages,
+    config.i18n.locales,
+    config.i18n.missingDeclared,
+  )) {
     context.logger.warn(
-      `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`translations\` para elegir qué ve quien no tiene traducción.`,
+      `${slug || '(portada)'}: falta ${missing.join(', ')}. Declara \`i18n.missing\` para elegir qué ve quien no tiene traducción.`,
     );
   }
   const repoRoot = await resolveRepoRoot(config, root).catch((error: unknown) => {
@@ -146,9 +213,10 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
   context.store.clear();
   const index = {
     pages,
-    url: urlPolicyOf(context.config, config.defaultLocale),
-    contentDir: config.content,
+    url: urlPolicyOf(context.config, config.i18n.defaultLocale),
+    contentDir: config.content.dir,
     excluded: read.excluded,
+    staticFolders: config.content.static,
   };
   const refs: LinkRef[] = [];
   const headings: { slug: string; locale: string; headings: { slug: string }[] }[] = [];
@@ -158,11 +226,20 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
     const rewritten = rewriteLinks(page.body, page, index);
     errors.push(...rewritten.errors);
     refs.push(...rewritten.refs);
+    const resolved = await resolveCover(
+      page.index?.image,
+      file,
+      context.config.publicDir,
+      page.sourcePath,
+    );
+    if (resolved.warning) context.logger.warn(resolved.warning);
+    const indexData = indexDataOf(page, resolved.cover);
 
     const data = await context.parseData({
       id,
       data: {
         slug: page.slug,
+        ...(page.urlSlug !== undefined && { urlSlug: page.urlSlug }),
         locale: page.locale,
         title: page.title,
         kind: page.kind,
@@ -170,8 +247,11 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
         ...(page.order !== undefined && { order: page.order }),
         ...(page.seo && { seo: page.seo }),
         ...(page.translations && { translations: page.translations }),
-        ...(repoRoot !== undefined && { editPath: path.relative(repoRoot, file) }),
+        ...(repoRoot !== undefined &&
+          page.kind !== 'generated' && { editPath: path.relative(repoRoot, file) }),
+        ...(indexData && { index: indexData }),
       },
+      filePath: path.relative(root, file),
     });
     const markdown = await context.renderMarkdown(rewritten.body, { fileURL: pathToFileURL(file) });
     // Los enlaces y las imágenes ya los detectó `rewriteLinks`: se guardan junto a los encabezados
@@ -200,18 +280,29 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
 
   errors.push(...validateAnchors(refs, buildHeadingIndex(headings)));
   const images = await checkSeoImages(
-    collectImageRefs(config.seo.image, pages),
+    collectImageRefs(config.site.seo.image, pages),
     context.config.publicDir,
   );
-  errors.push(...images.errors, ...(await checkFavicon(config.favicon, context.config.publicDir)));
+  errors.push(
+    ...images.errors,
+    ...(await checkFavicon(config.site.favicon, context.config.publicDir)),
+  );
   for (const warning of images.warnings) context.logger.warn(warning);
   collectErrors(errors);
 }
 
 export { docsSchema } from './schema';
 
-/** Lo que el loader necesita de la config resuelta, sin los overrides de `ui` (ya viajan fusionados en `strings`). */
-export type LoaderConfig = Omit<ResolvedConfig, 'ui'>;
+/** Lo que el loader necesita de la config resuelta: los textos de interfaz llegan fusionados en `strings` (módulo virtual) o como `ui` (config resuelta a mano). */
+export type LoaderConfig = ConfigWithoutUi & {
+  i18n: { ui?: UiOverrides };
+  strings?: Record<Locale, UiStrings>;
+};
+
+/** Textos de interfaz de cada idioma del sitio: los del módulo virtual o, si no, los del paquete con los `ui` de la config. */
+function loaderStrings(config: LoaderConfig): Record<Locale, UiStrings> {
+  return config.strings ?? siteStrings(config.i18n.ui, config.i18n.locales);
+}
 
 /** Loader a partir de una config YA resuelta (la del módulo virtual): una sola carga, sin segunda lectura. */
 export function docsLoaderFromResolved(docsConfig: LoaderConfig): Loader {

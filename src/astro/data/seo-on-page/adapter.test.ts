@@ -53,15 +53,21 @@ import { getDocData, getDocs } from '../docs-collection';
 import { loadPanel, loadSeoTree, loadSiteFiles, seoInputOf } from './adapter';
 
 const config = {
-  name: 'Site',
-  seo: { titleSuffix: 'Site' as const },
-  locales: ['en', 'es'],
-  defaultLocale: 'en',
-  translations: { missing: 'link' as const },
-  external: [],
-  layout: { sidebar: 'open', toc: 'open', width: 'reading', toggles: true },
+  site: {
+    name: 'Site',
+    seo: { titleSuffix: 'Site' as const, sitemap: { include: [] } },
+    layout: { sidebar: 'open', toc: 'open', width: 'reading', toggles: true },
+    analytics: {},
+  },
+  i18n: {
+    locales: ['en', 'es'],
+    defaultLocale: 'en',
+    missing: 'link' as const,
+    missingDeclared: false,
+  },
+  content: { dir: 'src/content/docs', exclude: [], external: [], folders: { declared: {} } },
   base: '/repo',
-  site: 'https://x.dev',
+  siteUrl: 'https://x.dev',
   trailingSlash: 'always' as const,
   buildFormat: 'directory' as const,
   publicDir: 'file:///site/public/',
@@ -287,6 +293,7 @@ describe('loadPanel', () => {
     expect(collectionReads.count).toBe(1);
     expect(panel.docs.map((doc) => doc.slug)).toEqual(['', 'guide']);
     expect(panel.tree.pages).toHaveLength(2);
-    expect(panel.hrefs.overview).toBeDefined();
+    // Los enlaces del panel los arma la ruta (`views/seo-on-page/hrefs`): `data/` no conoce `views/`.
+    expect(panel).not.toHaveProperty('hrefs');
   });
 });

@@ -1,5 +1,5 @@
 import type { Locale } from '../../../i18n/locale';
-import { paginate, type Paginated } from '../../queries/paginate';
+import { paginate, type Paginated } from '../../../shared/paginate';
 import {
   EMPTY_FILTERS,
   parsePage,

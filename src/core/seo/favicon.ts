@@ -50,7 +50,7 @@ export function faviconErrors(favicon: string | undefined, exists: boolean): Doc
   if (favicon === undefined || !isLocalFavicon(favicon) || exists) return [];
   return [
     new DocsError(`favicon: el archivo «${favicon}» no existe en \`public/\`.`, {
-      hint: 'Coloca el archivo en `public/`, usa una URL https o quita `favicon` para usar el del paquete.',
+      hint: 'Coloca el archivo en `public/`, usa una URL https o quita `site.favicon` para usar el del paquete.',
     }),
   ];
 }

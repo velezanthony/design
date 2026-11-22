@@ -56,6 +56,8 @@ interface Props {
   layout?: ResolvedLayout;
   /** `false` para una página con su propio marcado (herramientas, tablas): sin el estilo de `.prose`. */
   prose?: boolean;
+  /** Pie de la página; sin él, `DocsFooter`. Uno propio recibe las mismas props (`FooterProps`). */
+  Footer?: typeof DocsFooter;
 }
 
 const {
@@ -82,12 +84,15 @@ const {
   fallback,
   layout = DEFAULT_LAYOUT,
   prose = true,
+  Footer = DocsFooter,
 } = Astro.props;
 /* Con índice, tres columnas; sin él, el contenido ocupa también la de la derecha. */
 const hasToc = tocEntries(headings, layout.tocDepth).length > 0;
 
 if (gtmId && !privacyUrl) {
-  throw new Error('DocsLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+  throw new Error(
+    'DocsLayout: `site.analytics.privacyUrl` es obligatoria cuando se define `site.analytics.gtmId`.',
+  );
 }
 
 /* El estado inicial va en `<html>` desde el servidor (así la config manda también sin JavaScript);
@@ -192,6 +197,8 @@ const layoutScript = layoutBootstrapScript(layout);
         />
       )}
       <slot />
+      {/* Lo que va tras el contenido y fuera de `.prose`: el listado de un índice generado. */}
+      <slot name="below" slot="after" />
       <div slot="after" data-pagefind-ignore>
         {editUrl && editFile && <EditLink href={editHref(editUrl, editFile)} strings={strings} />}
         <PrevNext prev={prev} next={next} strings={strings} />
@@ -199,7 +206,8 @@ const layoutScript = layoutBootstrapScript(layout);
     </Article>
   </div>
 
-  <DocsFooter
+  <Footer
+    lang={lang}
     siteName={siteName}
     year={year}
     strings={strings}

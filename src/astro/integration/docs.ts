@@ -13,10 +13,11 @@ import { extendMarkdownProcessor } from '../markdown/processor';
 import { mergeLangAlias } from '../markdown/register';
 import { routesFor } from '../routes/routes';
 import { createVirtualData } from '../virtual/data';
-import { createVirtualConfigPlugin } from '../virtual/plugin';
+import { createVirtualConfigPlugin, createVirtualFooterPlugin } from '../virtual/plugin';
 import { applyAnalyticsForCommand, readAnalyticsEnv } from './analytics-env';
 import { runBuildDone } from './build/build-done';
 import { rememberClientRoutes, watchClientPages } from './client-pages';
+import { footerComponent } from './components';
 import { CONFIG_FILES } from './config';
 import { assertNoFontConflict, designFonts } from './fonts';
 import { contentFsAllow } from './fs-allow';
@@ -45,7 +46,7 @@ function virtualTypes() {
 
 export function docs(userConfig: DocsUserConfig): DocsIntegration {
   const resolvedConfig = resolveConfigOrThrow(userConfig);
-  const sitemap = sitemapFiles(resolvedConfig.sitemap.include);
+  const sitemap = sitemapFiles(resolvedConfig.site.seo.sitemap.include);
   // Dónde se publica, para el sitemap del build; lo fija `astro:config:setup`.
   let published = { site: '', base: '/', root: '' };
   // Si el sitio sustituye el sitemap, el build no le añade nada: ese fichero ya no es nuestro.
@@ -83,8 +84,8 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         // El sitio puede sustituir páginas de la librería con las suyas: se avisa, y las rutas
         // exactas que ya son suyas no se inyectan (Astro no registra dos para la misma URL).
         const routeOptions = {
-          locales: resolvedConfig.locales,
-          defaultLocale: resolvedConfig.defaultLocale,
+          locales: resolvedConfig.i18n.locales,
+          defaultLocale: resolvedConfig.i18n.defaultLocale,
           seoOnPage: command === 'dev',
           sitemapIndex: sitemap.index,
         };
@@ -109,25 +110,37 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
         // Solo si el consumidor no eligió temas: los de la documentación van emparejados con los tokens.
         const hasThemes = Object.keys(shikiConfig?.themes ?? {}).length > 0;
         // Una carpeta de contenido fuera del proyecto: Vite debe poder servir sus imágenes en dev.
-        const allow = contentFsAllow(fileURLToPath(config.root), resolvedConfig.content);
+        const allow = contentFsAllow(fileURLToPath(config.root), resolvedConfig.content.dir);
+        // El pie de las páginas de docs: el del sitio (falla aquí si el archivo no existe) o el del paquete.
+        const footer = footerComponent(
+          fileURLToPath(config.root),
+          resolvedConfig.site.components?.Footer,
+        );
         updateConfig({
           markdown: { shikiConfig: { langAlias, ...(hasThemes ? {} : { themes: codeThemes }) } },
           fonts,
           vite: {
             // `theme.css` importa este especificador al final: así el CSS del sitio entra en su misma compilación.
-            resolve: { alias: [siteThemeAlias(fileURLToPath(config.root), resolvedConfig.theme)] },
+            resolve: {
+              alias: [siteThemeAlias(fileURLToPath(config.root), resolvedConfig.site.theme)],
+            },
             ...(allow.length > 0 && { server: { fs: { allow } } }),
+            /* Instalada en `node_modules`, Astro saca la librería del pre-empaquetado (trae `.astro`) y
+               Vite no ve el `import('mermaid')` de dentro: en dev lo serviría sin convertir y su dayjs,
+               CommonJS, no carga en el navegador. Con `paquete > dependencia` lo pre-empaqueta igual. */
+            optimizeDeps: { include: ['@velezanthony/design > mermaid'] },
             plugins: [
               createVirtualConfigPlugin(
                 createVirtualData(siteConfig, {
                   base: config.base,
-                  site: config.site,
+                  siteUrl: config.site,
                   trailingSlash: config.trailingSlash,
                   buildFormat: config.build.format,
                   publicDir: config.publicDir.href,
                   root: config.root.href,
                 }),
               ),
+              createVirtualFooterPlugin(footer),
               // La librería es la dueña del CSS: el sitio no registra Tailwind.
               ...tailwindPlugins(config.vite?.plugins),
             ],
@@ -141,7 +154,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
       'astro:routes:resolved': ({ routes }) => rememberClientRoutes(routes),
       'astro:server:setup': ({ server }) => {
         watchClientPages(server);
-        const folders = resolvedConfig.static ?? [];
+        const folders = resolvedConfig.content.static ?? [];
         if (folders.length > 0)
           server.middlewares.use(staticFoldersMiddleware({ ...published, folders }));
       },
@@ -157,7 +170,7 @@ export function docs(userConfig: DocsUserConfig): DocsIntegration {
           ...published,
           pagesFile: sitemap.pages,
           ownSitemap,
-          staticFolders: resolvedConfig.static ?? [],
+          staticFolders: resolvedConfig.content.static ?? [],
         }),
     },
   };

@@ -27,7 +27,7 @@ Los dos son peer dependencies: instálalos en el consumidor. Tailwind CSS (`tail
 No está publicado en npm. Instálalo desde GitHub, fijado a una etiqueta de release:
 
 ```sh
-npm install github:velezanthony/design#v0.1.0
+npm install github:velezanthony/design#v0.2.0
 npm install astro @astrojs/markdown-satteri
 ```
 
@@ -57,10 +57,9 @@ una única carga de la config y integración y loader no pueden usar configs dis
 import { defineDocsConfig, MissingTranslation } from '@velezanthony/design/integration';
 
 export default defineDocsConfig({
-  name: 'My repo',
-  locales: ['en', 'es'],
-  translations: { missing: MissingTranslation.LINK },
-  external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+  site: { name: 'My repo' },
+  i18n: { locales: ['en', 'es'], missing: MissingTranslation.LINK },
+  content: { external: [{ slug: 'changelog', file: '../CHANGELOG.md' }] },
 });
 ```
 
@@ -123,11 +122,15 @@ import { docsLoader, docsSchema } from '@velezanthony/design/loader';
 import docsConfig from '../docs.config.mjs';
 
 export const collections = {
-  docs: defineCollection({ loader: docsLoader(docsConfig), schema: docsSchema() }),
+  // `image` deja que las portadas relativas de los índices pasen por astro:assets.
+  docs: defineCollection({
+    loader: docsLoader(docsConfig),
+    schema: ({ image }) => docsSchema(image),
+  }),
 };
 ```
 
-Pon las páginas nativas en `docs/src/content/docs/` (o en otra carpeta con la opción `content`, ver
+Pon las páginas nativas en `docs/src/content/docs/` (o en otra carpeta con la opción `content.dir`, ver
 [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro)). La librería inyecta todas las rutas (páginas y
 `sitemap.xml`), el tema, las fuentes (IBM Plex) y el índice de búsqueda; el consumidor no
 escribe ningún layout, ningún import de CSS ni ningún `@source`.
@@ -139,19 +142,21 @@ frontmatter); una página sin ninguno de los dos rompe el build.
 La home y la carpeta de contenido son **opcionales**. Sin `index.md` (ni `README.md`, ver abajo) no se genera
 portada y el sitio pone la suya en `src/pages/index.astro`. Si la carpeta de contenido por defecto
 (`src/content/docs/`) no existe, no hay páginas nativas y no falla (un sitio solo con `external`, o solo con
-páginas propias); una carpeta elegida con `content` que no existe sí falla, para cazar la errata.
+páginas propias); una carpeta elegida con `content.dir` que no existe sí falla, para cazar la errata.
 
-Un `README.md` hace de `index.md` de su carpeta (el de la raíz de `content` es la home) cuando esa carpeta no tiene
+Un `README.md` hace de `index.md` de su carpeta (el de la raíz de `content.dir` es la home) cuando esa carpeta no tiene
 `index.md` en el mismo idioma, como en MkDocs. Un archivo de fuera (el `README.md` de la raíz del repo) también
-puede ser la home con `external: [{ slug: 'index', file: '../README.md' }]`; `slug: 'guia/index'` es `guia`.
+puede ser la home con `content.external: [{ slug: 'index', file: '../README.md' }]`; `slug: 'guia/index'` es `guia`.
 
 ## Excluir archivos
 
-`exclude` es la lista de patrones de los `.md` de la carpeta de contenido que no se publican, el equivalente de
+`content.exclude` es la lista de patrones de los `.md` de la carpeta de contenido que no se publican, el equivalente de
 `exclude_docs` de MkDocs. Son relativos a esa carpeta y siguen las reglas de `.gitignore`:
 
 ```js
-exclude: ['drafts/', '*.borrador.md', '/notas.md', 'guia/**/interno.md', '!drafts/listo.md'],
+content: {
+  exclude: ['drafts/', '*.borrador.md', '/notas.md', 'guia/**/interno.md', '!drafts/listo.md'],
+},
 ```
 
 - Un nombre sin `/` vale a cualquier profundidad; con `/` al principio o en medio, cuelga de la carpeta de contenido.
@@ -161,59 +166,125 @@ exclude: ['drafts/', '*.borrador.md', '/notas.md', 'guia/**/interno.md', '!draft
 - El sufijo de idioma cuenta como parte del nombre (`*.es.md` excluye solo las traducciones al español).
 
 Lo excluido ni se lee (su frontmatter no se valida), ni se publica, ni cuenta para los enlaces. Un enlace a un
-archivo excluido falla nombrando `exclude`: quita el enlace o el patrón. Los `external` no se ven afectados.
+archivo excluido falla nombrando `content.exclude`: quita el enlace o el patrón. Los `external` no se ven afectados.
 
 ## Referencia de configuración
 
-Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.search.placeholdr`).
-
-| Opción          | Significado                                                                                                                                              |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`          | Nombre del sitio (cabecera, pie, plantilla de título por defecto). Obligatorio.                                                                          |
-| `content`       | Carpeta de las páginas nativas, relativa a la raíz del proyecto de Astro; puede estar fuera (`'../docs'`). Por defecto `'src/content/docs'`. Ver [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro). |
-| `exclude`       | Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican, relativos a esa carpeta. Ver [Excluir archivos](#excluir-archivos). |
-| `locales`       | Idiomas; `en` y `es` tienen textos de UI incluidos. Por defecto `['en']`.                                                                                |
-| `defaultLocale` | Archivos sin sufijo y `/`. Por defecto: el primer idioma.                                                                                                |
-| `seo`           | Base SEO de todo el sitio, ver abajo.                                                                                                                    |
-| `translations`  | `{ missing: MissingTranslation.LINK }` (`LINK`, `OMIT`, `FALLBACK`), por defecto `LINK`. Ver abajo.                                                      |
-| `ui`            | Sobrescritura de textos de UI por idioma, combinada clave a clave: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Las claves desconocidas rompen.     |
-| `external`      | Archivos fuera de la carpeta de contenido (`content`) publicados como páginas: `{ slug, file, locales?, seo?, translations? }`.                                          |
-| `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
-| `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
-| `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
-| `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
-| `repoRoot`      | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`.            |
-| `ogLocales`     | `og:locale` con territorio por idioma: `{ es: 'es_ES', en: 'en_GB' }`; sin él, el idioma tal cual (`es`). Cada clave debe estar en `locales`. |
-| `sitemap`       | `{ include: [...] }`: otros sitemaps del mismo dominio; con él, `sitemap.xml` pasa a ser un índice y las páginas propias van en `sitemap-pages.xml`. Ver [Despliegue](#despliegue-en-github-pages). |
-| `static`        | Carpetas que se publican tal cual: `[{ from, to }]`. Ver [Carpetas estáticas](#carpetas-estáticas-static). |
-| `favicon`       | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver abajo. |
-| `gtmId`         | Id de Google Tag Manager. Sobrescritura opcional de `PUBLIC_GTM_ID` (la configuración gana al entorno). Ver [Analítica](#analítica).                     |
-| `theme`         | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/guia/primeros-pasos.md#css-propio-del-sitio-theme). |
-| `privacyUrl`    | URL de tu política de privacidad: una URL o una por idioma. Obligatoria con analítica (el banner enlaza a ella); sin analítica, es solo el enlace del pie. Ver [Analítica](#analítica). |
-| `layout`        | Barras laterales plegables, ancho de lectura / completo y el índice: `{ sidebar?, toc?, width?, toggles?, tocDepth?, tocMaxHeight? }`. Ver abajo.       |
-| `social`        | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie.                                                                      |
-
-### `seo`
+La config tiene tres grupos: **`site`** (cómo se ve y se presenta el sitio), **`i18n`** (idiomas y
+textos) y **`content`** (qué páginas hay y cómo se navega). Solo `site.name` es obligatorio. Las
+opciones de valores cerrados son constantes exportadas por `@velezanthony/design/integration`
+(`ListingView`, `TreeShow`, `ALL_FOLDERS`, `MissingTranslation`, `PanelState`, `LayoutWidth`,
+`NavIcon`); las cadenas literales siguen valiendo. Las claves desconocidas rompen el build indicando
+la ruta de la clave (`i18n.ui.es.search.placeholdr`).
 
 ```js
-seo: {
-  titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto, el `name` del sitio
-  description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string o por idioma
-  image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // bajo public/ o https absoluta
-}
+import { defineDocsConfig, ListingView, TreeShow, MissingTranslation, PanelState, LayoutWidth, NavIcon, ALL_FOLDERS } from '@velezanthony/design/integration';
+
+export default defineDocsConfig({
+  site: {
+    name, favicon, theme, social, components, footer,
+    layout: { sidebar: PanelState.OPEN, toc, width: LayoutWidth.READING, toggles, tocDepth, tocMaxHeight },
+    seo: { titleSuffix, description, image, schema, ogLocales, sitemap },
+    analytics: { gtmId, privacyUrl },
+  },
+  i18n: { locales, defaultLocale, missing: MissingTranslation.FALLBACK, ui },
+  content: {
+    dir, exclude, external, static, editUrl, repoRoot, nav, sidebar,
+    folders: {
+      [ALL_FOLDERS]: { listing: { view: ListingView.LIST }, tree: { show: TreeShow.SECTION } },
+      articulos: { listing: { generate: true, view: ListingView.CARDS }, tree: { show: TreeShow.ALL } },
+    },
+  },
+});
+```
+
+#### `site`
+
+| Opción | Significado |
+| --- | --- |
+| `site.name` | Nombre del sitio (cabecera, pie, sufijo del título por defecto). Obligatorio. |
+| `site.favicon` | Icono de la pestaña: un archivo en `public/` (`'favicon.svg'` o `'/favicon.svg'`, debe existir) o una URL `https://`. Por defecto: el icono del paquete. Ver [`site.favicon`](#sitefavicon). |
+| `site.theme` | CSS propio del sitio, ruta desde la raíz del proyecto (`'src/styles/site.css'`, debe existir): tokens `@theme` y estilos que se compilan junto a `theme.css`. Ver [CSS propio](docs/src/content/docs/guia/primeros-pasos.md#css-propio-del-sitio-sitetheme). |
+| `site.social` | `{ github }`. También alimenta los enlaces de repositorio y "Report a bug" del pie. |
+| `site.components` | Componentes propios que sustituyen a los de la librería: `{ Footer: './src/components/DocsFooter.astro' }`. Ver [`site.components`](#sitecomponents). |
+| `site.footer` | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver [`site.footer`](#sitefooter). |
+| `site.layout` | Barras laterales plegables (`PanelState`), ancho de lectura / completo (`LayoutWidth`) y el índice: `{ sidebar?, toc?, width?, toggles?, tocDepth?, tocMaxHeight? }`. Ver [`site.layout`](#sitelayout). |
+| `site.seo` | Base SEO de todo el sitio: `{ titleSuffix?, description?, image?, schema?, ogLocales?, sitemap? }`. `ogLocales` da el `og:locale` con territorio por idioma (`{ es: 'es_ES' }`); `sitemap: { include: [...] }` convierte `sitemap.xml` en un índice con otros sitemaps del dominio. Ver [`site.seo`](#siteseo). |
+| `site.analytics` | `{ gtmId?, privacyUrl? }`. `gtmId` sobrescribe `PUBLIC_GTM_ID`; `privacyUrl` (una URL o una por idioma) es obligatoria con analítica y, sin ella, es solo el enlace del pie. Ver [Analítica](#analítica). |
+
+#### `i18n`
+
+| Opción | Significado |
+| --- | --- |
+| `i18n.locales` | Idiomas; `en` y `es` tienen textos de UI incluidos. Por defecto `['en']`. |
+| `i18n.defaultLocale` | Archivos sin sufijo y `/`. Por defecto: el primer idioma. |
+| `i18n.missing` | Qué ve quien navega en un idioma sin traducción: `MissingTranslation.LINK` (por defecto), `OMIT` o `FALLBACK`. Ver [`i18n.missing`](#i18nmissing). |
+| `i18n.ui` | Sobrescritura de textos de UI por idioma, combinada clave a clave: `{ es: { 'search.placeholder': 'Buscar' } }`. Las claves desconocidas rompen. |
+
+#### `content`
+
+| Opción | Significado |
+| --- | --- |
+| `content.dir` | Carpeta de las páginas nativas, relativa a la raíz del proyecto de Astro; puede estar fuera (`'../docs'`). Por defecto `'src/content/docs'`. Ver [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro). |
+| `content.exclude` | Patrones (estilo `.gitignore`) de los `.md` de `content.dir` que no se publican. Ver [Excluir archivos](#excluir-archivos). |
+| `content.external` | Archivos fuera de la carpeta de contenido publicados como páginas: `{ slug, file, locales?, seo?, translations? }`. |
+| `content.static` | Carpetas que se publican tal cual: `[{ from, to, exclude? }]`. Ver [Carpetas estáticas](#carpetas-estáticas-contentstatic). |
+| `content.editUrl` | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real. |
+| `content.repoRoot` | Raíz del repo relativa al proyecto de Astro (por defecto: el ancestro más cercano con `.git`). Necesario para `editUrl` cuando no hay `.git`. |
+| `content.nav` | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver [`content.nav`](#contentnav). |
+| `content.sidebar` | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
+| `content.folders` | Ajustes por carpeta, heredados de padre a hijo; `'*'` (`ALL_FOLDERS`) para todo el sitio: índices generados (`listing`) y árbol de la barra lateral (`tree`). Ver [`content.folders`](#contentfolders). |
+
+#### Tabla antigua → nueva
+
+Hasta la 0.1 la config era plana. Así se reparte cada clave:
+
+| Antes (primer nivel) | Ahora |
+| --- | --- |
+| `name`, `favicon`, `theme`, `social`, `components`, `footer` | `site.name`, `site.favicon`, `site.theme`, `site.social`, `site.components`, `site.footer` |
+| `layout` | `site.layout` (igual por dentro) |
+| `seo` (`titleSuffix`, `description`, `image`, `schema`) | `site.seo` |
+| `ogLocales` | `site.seo.ogLocales` |
+| `sitemap` | `site.seo.sitemap` |
+| `gtmId`, `privacyUrl` | `site.analytics.gtmId`, `site.analytics.privacyUrl` |
+| `locales`, `defaultLocale`, `ui` | `i18n.locales`, `i18n.defaultLocale`, `i18n.ui` |
+| `translations.missing` | `i18n.missing` |
+| `content` (la carpeta) | `content.dir` |
+| `exclude`, `external`, `static`, `editUrl`, `repoRoot`, `nav`, `sidebar` | `content.exclude`, `content.external`, `content.static`, `content.editUrl`, `content.repoRoot`, `content.nav`, `content.sidebar` |
+| `indexes.layout` / `pageSize` / `perPageOptions` / `covers` | `content.folders['*'].listing.view` / `pageSize` / `perPageOptions` / `covers` |
+| `indexes.include: 'all'` | `content.folders['*'].listing.generate: true` |
+| `indexes.include: ['a']` / `indexes.exclude: ['a']` | `content.folders.a.listing.generate: true` / `false` |
+| `indexes.overrides[x].layout` (y el resto de ajustes) | `content.folders[x].listing.*` |
+| `indexes.overrides[x].title` / `description` | El `_index.md` de `x` |
+| `sidebarDepth: n` / `sidebarDepth.default` | `content.folders['*'].tree.depth` |
+| `sidebarDepth.overrides[x]` / `nav[n].sidebarDepth` | `content.folders[x].tree.depth` (con `x` el `dir` de la sección) |
+| `listing:` en el frontmatter de un `_index.md` | `content.folders[<carpeta>].listing` |
+| — | `content.folders[x].tree.show` (nuevo, `TreeShow`) |
+
+### `site.seo`
+
+```js
+site: {
+  seo: {
+    titleSuffix: 'My repo', // texto, uno por idioma, o false; por defecto, `site.name`
+    description: { en: 'My repo docs', es: 'Documentación de mi repo' }, // string o por idioma
+    image: { src: '/og.png', alt: { en: 'Card', es: 'Tarjeta' } }, // bajo public/ o https absoluta
+    ogLocales: { en: 'en_GB', es: 'es_ES' }, // opcional: og:locale con territorio
+  },
+},
 ```
 
 Una página sobrescribe la base campo a campo: `seo` en el frontmatter en las páginas nativas,
-`external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex?, schema? }`.
+`content.external[].seo` en las externas. Forma: `{ title?, titleSuffix?, description?, image?: { src, alt? }, noindex?, schema? }`.
 
 El `<title>` tiene dos partes, título y sufijo, y se forma `título | sufijo` (separador fijo). Cada
-parte se resuelve por separado: página > sitio > `name`. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
+parte se resuelve por separado: página > sitio > `site.name`. `seo.title` (texto o uno por idioma, útil en un `external`, que no tiene un archivo por idioma) cambia el título solo en el
 head (el H1 no se toca; sin el idioma de la página, vale el título de la página) y `titleSuffix` acepta texto, uno por idioma o `false` (sin sufijo, y gana
 también a un sufijo del sitio). Si el título es igual al sufijo no se repite, y `og:title` /
 `twitter:title` llevan el mismo título completo que el `<title>`, sufijo incluido.
 
 ```md
-<!-- docs.config.mjs: seo: { titleSuffix: 'My repo' } -->
+<!-- docs.config.mjs: site: { seo: { titleSuffix: 'My repo' } } -->
 ---
 seo:
   title: Instalar en cualquier sistema # <title>: «Instalar en cualquier sistema | My repo»
@@ -224,12 +295,12 @@ seo:
 ---
 ```
 
-Sin `titleSuffix` en el sitio ni en la página, el sufijo es el `name` del sitio.
+Sin `titleSuffix` en el sitio ni en la página, el sufijo es `site.name`.
 `titleTemplate` ya no existe: dejarlo en la config falla el build.
 La imagen OG debería medir unos 1,91:1 y pesar menos de 300 KB (si no, avisa). Las páginas
 `noindex` salen de `sitemap.xml` y de la búsqueda.
 
-### JSON-LD (`seo.schema`)
+### JSON-LD (`site.seo.schema`)
 
 La librería **no inyecta ningún JSON-LD por su cuenta**: es un puente. Cada sitio declara sus
 schemas y la librería los valida y los pinta en el `<head>`, un
@@ -237,9 +308,11 @@ schemas y la librería los valida y los pinta en el `<head>`, un
 
 ```js
 // docs.config.mjs: schemas de TODAS las páginas
-seo: {
-  schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }],
-}
+site: {
+  seo: {
+    schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }],
+  },
+},
 ```
 
 ```yaml
@@ -257,7 +330,7 @@ seo:
 
 - Un schema es un objeto con `@type` (un string o una lista no vacía de strings); el resto de
   claves son libres (schema.org es abierto). Si falta `@context`, se añade `https://schema.org`; si
-  lo declaras tú, se respeta. Un error se nombra con su ruta: `seo.schema[1]['@type']`.
+  lo declaras tú, se respeta. Un error se nombra con su ruta: `site.seo.schema[1]['@type']`.
 - La config viaja al sitio como JSON: nada de funciones. Pero `docs.config.mjs` es JavaScript, así
   que **calcula los objetos al construir** y pásalos ya hechos:
 
@@ -265,7 +338,7 @@ seo:
 import { author } from './src/data/author.mjs';
 
 const person = { '@type': 'Person', name: author.name, url: author.url, sameAs: author.profiles };
-export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
+export default defineDocsConfig({ site: { name: 'My repo', seo: { schema: [person] } } });
 ```
 
 - El JSON se serializa escapando `<`, `>`, `&`, U+2028 y U+2029 (`\u003c`…): un valor como
@@ -274,31 +347,31 @@ export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
 - Con `astro dev`, el panel [SEO on page](#seo-on-page-solo-en-desarrollo) enseña los schemas de
   cada página y su origen (sitio o página).
 
-### `favicon`
+### `site.favicon`
 
 Todas las páginas (docs y rutas de respaldo) emiten `<link rel="icon" href type>`. Por defecto
 el paquete sirve su propio icono en `<base>/_design/favicon.png`, una ruta con espacio de nombres que
-nunca choca con tu `public/`. Define `favicon` para usar el tuyo:
+nunca choca con tu `public/`. Define `site.favicon` para usar el tuyo:
 
 ```js
-favicon: 'favicon.svg', // un archivo en public/ (con o sin barra inicial), el href recibe el base
-favicon: 'https://cdn.example.dev/icon.png', // se usa tal cual, sin comprobar (http:// se rechaza)
+site: { favicon: 'favicon.svg' }, // un archivo en public/ (con o sin barra inicial), el href recibe el base
+site: { favicon: 'https://cdn.example.dev/icon.png' }, // se usa tal cual, sin comprobar (http:// se rechaza)
 ```
 
 `type` se infiere de la extensión (`svg`, `png`, `ico`; cualquier otra lo omite). Un archivo de
 `public/` que no exista rompe el build indicando el campo y el archivo. El `public/favicon.svg` y el
-`public/favicon.ico` que trae el scaffold de Astro NO se usan salvo que apuntes `favicon` a uno de
+`public/favicon.ico` que trae el scaffold de Astro NO se usan salvo que apuntes `site.favicon` a uno de
 ellos; bórralos si te quedas con el valor por defecto.
 
-### `sidebar`
+### `content.sidebar`
 
 Las entradas son slugs (`'guide/install'`) o grupos `{ label, slug?, items }`. La página home se
 escribe `'index'` (su slug interno está vacío). Un slug que no coincide con ninguna página, en
 ningún idioma, rompe el build con un único error agregado que nombra cada uno de ellos y su ruta
-(`sidebar[2].items[0]`). Las páginas no listadas van después de las declaradas, por `order` del
+(`content.sidebar[2].items[0]`). Las páginas no listadas van después de las declaradas, por `order` del
 frontmatter y luego por slug.
 
-### `nav`
+### `content.nav`
 
 Elementos de la cabecera tras el nombre del sitio (desde `lg`; por debajo abren el Menu móvil, por
 encima de la barra lateral). Sin `nav` no cambia nada: una única `sidebar` de primer nivel para todo
@@ -307,11 +380,14 @@ el sitio.
 ```js
 import { NavIcon } from '@velezanthony/design/integration';
 
-nav: [
-  { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // sección
-  { label: 'Changelog', slug: 'changelog' }, // una sola página
-  { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // externo, solo https
-],
+content: {
+  nav: [
+    { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // sección
+    { label: 'Artículos', dir: 'articulos' }, // sección; su profundidad, en `content.folders.articulos.tree.depth`
+    { label: 'Changelog', slug: 'changelog' }, // una sola página
+    { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // externo, solo https
+  ],
+},
 ```
 
 - **Sección** `{ label, dir?, sidebar? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
@@ -321,7 +397,8 @@ nav: [
   siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer nivel); lo
   de `dir` que no nombra sigue por `order` y luego por slug, agrupado bajo `dir` (la carpeta en sí no
   es un nivel), y **sin `sidebar` el orden es alfabético por slug**. Sin `dir`, la sección la forma
-  solo su `sidebar`. El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
+  solo su `sidebar`. Los niveles de grupos de carpeta de su árbol automático los limita
+  `content.folders[dir].tree.depth`, contando desde `dir` (ver [`content.folders`](#contentfolders)). El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
   página de la sección. Una página no puede ser de dos secciones.
 - **Página** `{ label, slug }`: un enlace a una sola página. Esa página no pertenece a ninguna
   sección.
@@ -334,58 +411,142 @@ nav: [
 - La sección o página actual lleva `aria-current` (`page` en su propia página, `true` en una sección
   cuando estás dentro). `label` puede ser un string o uno por idioma; un idioma ausente recurre al
   idioma por defecto, como cualquier otro label. Un elemento de página cuya página no está traducida
-  sigue `translations.missing` (`link`/`fallback` apuntan al original, `omit` oculta el elemento).
-- Rompe el build, de forma agregada y con la ruta de configuración (`nav[1].dir`): un `dir` sin
+  sigue `i18n.missing` (`link`/`fallback` apuntan al original, `omit` oculta el elemento).
+- Rompe el build, de forma agregada y con la ruta de configuración (`content.nav[1].dir`): un `dir` sin
   páginas, `dir` solapados (iguales, o uno dentro de otro), un slug de `sidebar` de sección que no es
   una página o que ya es de otra sección, un `slug` de página que no es una página o que es de una
   sección, y un `href` que no es https.
 - Textos de UI: `nav.label` (el landmark de navegación) y `nav.external` (el marcador para lectores
   de pantalla).
 
-### `footer`
+### `site.footer`
 
 Dos filas, iguales en todas las páginas. Todo es opcional.
 
 ```js
-footer: {
-  license: { label: 'MIT', href: 'https://github.com/o/r/blob/main/LICENSE' }, // o solo 'MIT'
-  author: { name: 'Ana', href: 'https://ana.dev' }, // por defecto: Anthony Velez; false lo oculta
-  links: [
-    { label: { en: 'Changelog', es: 'Cambios' }, slug: 'changelog' }, // una página
-    { label: 'Blog', href: 'https://blog.dev' }, // externo, solo https
-  ],
+site: {
+  footer: {
+    license: { label: 'MIT', href: 'https://github.com/o/r/blob/main/LICENSE' }, // o solo 'MIT'
+    author: { name: 'Ana', href: 'https://ana.dev' }, // por defecto: Anthony Velez; false lo oculta
+    links: [
+      { label: { en: 'Changelog', es: 'Cambios' }, slug: 'changelog' }, // una página
+      { label: 'Blog', href: 'https://blog.dev' }, // externo, solo https
+    ],
+  },
 },
 ```
 
 - **Fila 1, izquierda**: `© <año> <name> by <author>` como una sola frase. El año sale del
   reloj del visitante; el del build queda como respaldo sin JavaScript.
 - **Fila 1, derecha** (un `<nav>`): primero tus `links`, y después repositorio y "Report a bug"
-  (`<repo>/issues/new`) a partir de `social.github`.
+  (`<repo>/issues/new`) a partir de `site.social.github`.
 - **Fila 2** (más pequeña y tenue, una lista): la licencia, la política de privacidad (se muestra
-  cuando la analítica está activada, o cuando defines `privacyUrl`) y, solo con la analítica
+  cuando la analítica está activada, o cuando defines `site.analytics.privacyUrl`) y, solo con la analítica
   activada, un botón "Cookie preferences" que reabre el banner de consentimiento (retirar el
   consentimiento es tan fácil como darlo). Da solo el nombre de la licencia (`'MIT'`,
   `'Apache-2.0'`): la página muestra "MIT License" / "Licencia MIT" (un enlace cuando das `href`).
   Solo muestra lo que existe; sin nada, la fila no se pinta.
 - `label` y el label de la licencia pueden ser un string o uno por idioma, con el recurso habitual.
-  Un enlace `slug` sigue `translations.missing`; `omit` lo oculta donde la página no está traducida.
-- Rompe el build, con la ruta (`footer.links[1].slug`): un `slug` que no es una página, un enlace con
+  Un enlace `slug` sigue `i18n.missing`; `omit` lo oculta donde la página no está traducida.
+- Rompe el build, con la ruta (`site.footer.links[1].slug`): un `slug` que no es una página, un enlace con
   ambos o ninguno de `slug` / `href`, y cualquier `href` que no sea https.
 - Textos de UI: `footer.label`, `footer.repository`, `footer.report`, `footer.by`.
 
-### `layout`
+### `site.components`
+
+El pie de las páginas de docs puede ser el del sitio, como los `components` de Starlight:
+
+```js
+site: { components: { Footer: './src/components/DocsFooter.astro' } }, // desde la raíz del proyecto
+```
+
+El componente recibe `FooterProps` (`import type { FooterProps } from '@velezanthony/design/integration'`):
+`lang`, `siteName`, `year`, `strings`, `privacyUrl?`, `cookieControl` y `footer?` (la opción `site.footer` ya
+resuelta al idioma). Con analítica, `CookieSettingsButton`
+(`@velezanthony/design/components/atoms/actions/CookieSettingsButton.astro`, con `strings` y `class?`)
+es el botón que reabre el aviso de consentimiento. Rompe el build una ruta inexistente, una que no es
+`.astro` y cualquier otra clave en `site.components`. Detalle en
+[Pie propio](docs/src/content/docs/guia/navegacion-y-busqueda.md#pie-propio-sitecomponentsfooter).
+
+### `content.folders`
+
+Ajustes por carpeta. Cada clave es la ruta de una carpeta del contenido (`articulos/python`, sin
+barras) o `'*'` (`ALL_FOLDERS`) para todo el sitio; cada ajuste se hereda por separado de la carpeta
+declarada más cercana, luego de `'*'`, luego del valor por defecto. Lleva `listing` (si la carpeta
+tiene índice generado, la página que lista lo que cuelga de ella, y cómo se pinta) y `tree`:
+
+- `tree.depth`: cuántos niveles de grupos de carpeta tiene el árbol automático de la barra lateral,
+  contados desde la carpeta que lo declara (`'*'`, desde la raíz del árbol que se pinta); lo más hondo
+  va plano al último grupo permitido y los grupos escritos en `sidebar` no cambian. Ver
+  [Navegación](docs/src/content/docs/guia/navegacion-y-busqueda.md#profundidad-del-árbol-automático-treedepth).
+- `tree.show` (`TreeShow.SECTION`, por defecto, o `TreeShow.ALL`): con `ALL`, la barra de todas las
+  páginas de la carpeta es su árbol completo (la página de la carpeta arriba, cada sección de `nav`
+  como grupo y las páginas sin sección), y anterior / siguiente lo recorren entero. Ver
+  [Árbol completo](docs/src/content/docs/guia/navegacion-y-busqueda.md#árbol-completo-de-una-carpeta-treeshow).
+- Toda etiqueta de grupo cuya carpeta tiene página índice (generada, `_index.md` o `index.md`) es un
+  enlace a ella; un grupo que solo envuelve a otro enlaza la carpeta de encima.
+
+```js
+import { ALL_FOLDERS, ListingView, TreeShow } from '@velezanthony/design/integration';
+
+content: {
+  folders: {
+    [ALL_FOLDERS]: { listing: { view: ListingView.LIST } },
+    articulos: {
+      listing: {
+        generate: true, // índice generado aquí y en sus subcarpetas; por defecto false
+        view: ListingView.CARDS, // LIST (por defecto) | TABLE | CARDS
+        pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla (la lista no se pagina)
+        perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
+        covers: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
+      },
+      tree: { show: TreeShow.ALL, depth: 3 },
+    },
+    'articulos/borradores': { listing: { generate: false } }, // apaga una rama
+  },
+},
+```
+
+- Con `generate`, la página de la carpeta toma el título, la entradilla y el `seo` de su `_index.md`
+  (que se traduce con `_index.en.md`). Sin `_index.md`, solo lleva el título (el de su sección o grupo
+  declarado, o el nombre de la carpeta) y el listado, con la descripción «Todas las páginas de
+  {title}.» (`listing.description` en `i18n.ui`).
+- Un `index.md` gana siempre a la generación: se pinta como página normal y el build lo informa. Un
+  `_index.md` en una carpeta sin `generate` rompe el build con la clave que lo enciende. `listing:` en
+  el frontmatter ya no existe: el frontmatter solo lleva el contenido de la página.
+- Las páginas de carpeta son indexables; `seo.noindex` en su `_index.md` las saca, con sus rutas de
+  paginación. No salen como hoja suelta en la barra lateral ni como entrada de un listado: las enlaza
+  el grupo de su carpeta.
+
+Cada página (también un `_index.md`, para su ficha en el listado padre) puede llevar en el frontmatter
+`index: { summary, image, imageAlt }`: `summary` sustituye a `seo.description` en el listado e
+`image` es una ruta relativa al `.md` (pasa por astro:assets), de `public/` o `false`. Precedencia de
+la portada: la página → `listing.covers` de `folders` → la de la librería. Una imagen que no existe
+avisa y deja la de la librería. Las portadas son decorativas (`alt=""`) salvo con `imageAlt`.
+
+La tabla y las tarjetas van de la más reciente a la más antigua (fecha del último commit; lo que no
+tiene commit va primero y sin fecha) y se paginan en `/carpeta/page/2/`, `/carpeta/page/3/`… (`page` y `per-page` quedan reservados dentro de la carpeta), que son
+`noindex`, canónicas de sí mismas y fuera del sitemap. El selector «Por página» (`perPageOptions`; el
+`pageSize` se añade si falta) navega entre rutas estáticas: cada otro tamaño vive en
+`/carpeta/per-page/<n>/` (y sus páginas debajo), también `noindex`; sin JavaScript sus tamaños salen
+como enlaces. Sin `folders`, nada cambia.
+Una carpeta de `folders` que no existe, una vista desconocida o una clave de más rompen el build con
+su ruta (`content.folders['articulos/pyton']`). Detalle en
+[Índices de carpeta](docs/src/content/docs/guia/navegacion-y-busqueda.md#índices-de-carpeta-contentfolders-y-_indexmd).
+
+### `site.layout`
 
 ```js
 import { LayoutWidth, PanelState } from '@velezanthony/design/integration';
 
-layout: {
-  sidebar: PanelState.OPEN, // 'open' (por defecto) | 'collapsed': estado inicial de la navegación (lg y superior)
+site: { layout: {
+  sidebar: PanelState.OPEN, // OPEN (por defecto) | COLLAPSED: estado inicial de la navegación (lg y superior)
   toc: PanelState.OPEN, // igual para "On this page" (xl y superior)
-  width: LayoutWidth.READING, // 'reading' (por defecto) | 'full'
+  width: LayoutWidth.READING, // READING (por defecto) | FULL
   toggles: true, // false elimina todos los controles e ignora lo que guardó un visitante
   tocDepth: 3, // último nivel que lista «On this page»: 2 (solo h2) a 6; por defecto 3
   tocMaxHeight: '60vh', // opcional: longitud CSS (px, rem, em, vh, dvh, svh); la lista hace scroll por dentro
-}
+} },
 ```
 
 Cada columna lateral tiene un botón con chevron que la pliega en un raíl de 44px (una etiqueta
@@ -406,32 +567,38 @@ La barra lateral recuerda su posición de scroll entre páginas (`sessionStorage
 `docs:sidebar-scroll`, solo desde `lg`); sin posición guardada, deja a la vista el enlace de la
 página actual.
 
-### `translations`
+### `i18n.missing`
 
 `MissingTranslation` se exporta desde `@velezanthony/design/integration` (valor y tipo), así que la
 configuración se lee `MissingTranslation.LINK`. En el YAML del frontmatter los mismos valores son
 strings simples: `translations: link | omit | fallback`.
 
-Cuando una página existe en un idioma y no en otro, `translations.missing` decide qué muestra el otro
+Cuando una página existe en un idioma y no en otro, `i18n.missing` decide qué muestra el otro
 idioma: `link` (la barra lateral enlaza al original, con una insignia de su idioma), `omit` (nada) o
 `fallback` (el original se renderiza bajo la URL del otro idioma con un aviso, `noindex` y un
 canonical al original). Una página sobrescribe la base: `translations: omit` en el frontmatter de las
-páginas nativas, `external[].translations` en las externas. Los archivos de una misma página que no
+páginas nativas, `content.external[].translations` en las externas. Los archivos de una misma página que no
 coinciden rompen el build; una gemela ausente sin política declarada solo avisa.
 
 **Si vienes de MkDocs**, su `fallback_to_default: true` (servir la página sin traducir en el idioma por
-defecto bajo la URL del otro) es `translations: { missing: MissingTranslation.FALLBACK }`. El valor por
+defecto bajo la URL del otro) es `i18n: { missing: MissingTranslation.FALLBACK }`. El valor por
 defecto sigue siendo `link`, que no duplica contenido; con `fallback_to_default: false` lo más cercano
 es `omit`.
 
+### URL traducida (`slug` en el frontmatter)
+
+| Campo  | Significado |
+| ------ | ----------- |
+| `slug` | URL propia de la página, relativa a la raíz del contenido y sin idioma, `base` ni barras en los extremos: `slug: tutorials/installation` en `instalacion.en.md` la publica en `/en/tutorials/installation/`. Las traducciones se siguen emparejando por nombre de archivo y la config las sigue nombrando por él. Vale también en el idioma por defecto y en un `_index.<idioma>.md` (mueve el listado de la carpeta). Un `slug` mal formado, una URL repetida en un idioma o una ruta de la librería o de `src/pages/` rompen el build. Ver [Rutas, SEO e idiomas](docs/src/content/docs/guia/rutas-seo-idiomas.md#url-traducida-slug). |
+
 ### Archivos externos
 
-`external[].file` es relativo al proyecto de Astro (`../CHANGELOG.md`). `CHANGELOG.es.md` es su
-gemela en español. El archivo del idioma por defecto es obligatorio; `locales` hace obligatorios
+`content.external[].file` es relativo al proyecto de Astro (`../CHANGELOG.md`). `CHANGELOG.es.md` es su
+gemela en español. El archivo del idioma por defecto es obligatorio; su `locales` hace obligatorios
 también los demás. Los enlaces e imágenes relativos que contienen se resuelven contra su ubicación
 real, así que siguen funcionando en GitHub. Las páginas nativas se enlazan entre sí con rutas `.md`
 relativas (`./guide.md`), y a un archivo externo con su ruta relativa real
-(`../../../../CHANGELOG.md#anchor` desde `src/content/docs/`; con `content: '../docs'` es
+(`../../../../CHANGELOG.md#anchor` desde `src/content/docs/`; con `content.dir: '../docs'` es
 `../../CHANGELOG.md#anchor` desde `docs/users/`). Un archivo externo también enlaza de vuelta a las
 páginas nativas por su ruta real (`./docs/users/guia.md`). Los enlaces relativos a archivos
 nativos o externos se resuelven a la URL de la página en el idioma de la página que enlaza (con
@@ -439,25 +606,33 @@ recurso como en la barra lateral) y se validan, `#anchor` incluido; una ruta rel
 que no es ni una página ni un asset declarado rompe el build. Los enlaces `https://` se permiten
 pero no se validan.
 
-### Carpetas estáticas (`static`)
+### Carpetas estáticas (`content.static`)
 
-`static` publica una carpeta **tal cual**, sin Markdown, sin optimizar y fuera del índice de búsqueda y
+`content.static` publica una carpeta **tal cual**, sin Markdown, sin optimizar y fuera del índice de búsqueda y
 del sitemap: un informe de cobertura HTML, por ejemplo.
 
 ```js
-static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/index.html
+content: { static: [{ from: '../htmlcov', to: 'coverage' }] }, // → <base>/coverage/index.html
 ```
 
 `from` es relativa a la raíz del proyecto de Astro y debe existir al construir (se genera antes; si
-falta, el build falla nombrando `static[0].from`); `to` es la ruta bajo el sitio, sin barras en los
+falta, el build falla nombrando `content.static[0].from`); `to` es la ruta bajo el sitio, sin barras en los
 extremos. No puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no pueden solaparse. Con
-`astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con su URL
-(`[Cobertura](/coverage/)`, con el `base` delante si lo hay).
+`astro dev` la misma carpeta se sirve en esa ruta. Enlázala desde una página con una ruta relativa
+a su archivo, como en GitHub (`[Cobertura](../htmlcov/index.html)`): el enlace se reescribe a la URL
+publicada (`<base>/coverage/index.html`). También vale la URL absoluta, con el `base` delante si lo hay.
+
+`exclude` deja fuera archivos de la carpeta con las mismas reglas que el [`content.exclude`](#excluir-archivos)
+de arriba, pero relativas a `from`: no se copian a `dist/` y `astro dev` responde 404.
+
+```js
+content: { static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/', '*.py'] }] },
+```
 
 ### Docs fuera del proyecto de Astro
 
 Si el repo ya guarda sus docs como `.md` sueltos (por ejemplo los de un MkDocs), no hace falta
-moverlos: pon el proyecto de Astro en su propia carpeta (`docs-site/`) y apunta `content` a la carpeta de siempre.
+moverlos: pon el proyecto de Astro en su propia carpeta (`docs-site/`) y apunta `content.dir` a la carpeta de siempre.
 
 ```text
 repo/
@@ -469,20 +644,22 @@ repo/
 ```js
 // docs-site/docs.config.mjs
 export default defineDocsConfig({
-  name: 'Mi repo',
-  locales: ['en', 'es'],
-  content: '../docs',
-  external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
-  editUrl: 'https://github.com/o/r/edit/main',
-  repoRoot: '..',
+  site: { name: 'Mi repo' },
+  i18n: { locales: ['en', 'es'] },
+  content: {
+    dir: '../docs',
+    external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+    editUrl: 'https://github.com/o/r/edit/main',
+    repoRoot: '..',
+  },
 });
 ```
 
 > **No lo llames `site/`.** Es donde MkDocs escribe su salida (`site_dir`): choca con su `.gitignore`,
 > con `mkdocs build` y con lo que ya despliegue esa carpeta. Elige otro nombre (`docs-site/`, `astro/`…);
-> da igual cuál, siempre que `content` y las rutas de `external` sean relativas a él.
+> da igual cuál, siempre que `content.dir` y las rutas de `content.external` sean relativas a él.
 
-Reglas de `content`:
+Reglas de `content.dir`:
 
 - Es una ruta **relativa a la raíz del proyecto de Astro** (`../docs`), con `/`. Se rechazan las
   URLs, las rutas absolutas (no sobreviven a otra máquina ni a CI) y la propia raíz (recorrería
@@ -493,7 +670,7 @@ Reglas de `content`:
   amplían como siempre.
 - Todo se resuelve contra la ubicación real del archivo: enlaces entre páginas y a `external`
   (y de vuelta), anclas, imágenes y «Editar esta página» (`docs/users/guia.md`, con `repoRoot`).
-  Los sufijos de idioma, las sub-carpetas y `nav[].dir` funcionan igual; `dir` es relativo a la
+  Los sufijos de idioma, las sub-carpetas y `content.nav[].dir` funcionan igual; `dir` es relativo a la
   carpeta de contenido.
 - Los plugins de Markdown de la librería (admonitions, Mermaid, pestañas…) y las reglas estrictas se
   aplican a esa carpeta; los errores nombran el archivo con su ruta real (`../docs/users/guia.md:12`).
@@ -504,19 +681,21 @@ Reglas de `content`:
 
 #### El orden del menú por sección
 
-Un `nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
+Un `content.nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
 las páginas de la sección salen por `order` del frontmatter y después alfabéticamente por slug**, no en
 el orden en que MkDocs las tenía en `nav:`. Para conservarlo, escribe el `sidebar` de cada sección con
 las mismas páginas y en el mismo orden (el migrador lo genera desde `mkdocs.yml` con `--in-place`: ver
 «Config sugerida» en `scripts/migrate-mkdocs`):
 
 ```js
-nav: [
-  {
-    label: 'Guía',
-    sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
-  },
-],
+content: {
+  nav: [
+    {
+      label: 'Guía',
+      sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
+    },
+  ],
+},
 ```
 
 #### El slug de `carpeta/index.md`
@@ -556,6 +735,16 @@ pnpm add x
 ::::
 ```
 
+Índice generado: `::nav-tree`, sola en su línea, pinta por cada sección de `content.nav` un `##` con su
+etiqueta y debajo su árbol, el mismo de la barra lateral: grupos anidados en negrita y cada página
+con su título y su `seo.description`. `{section="Avanzado"}` deja una sola sección (por su etiqueta
+en cualquier idioma o su `dir`) y `{descriptions="false"}` quita las descripciones. En una ruta de
+reserva, el texto es el del original y las URLs las de la barra lateral de esa ruta. Una sección que
+no existe o un atributo desconocido rompen el build con el archivo y la línea. Detalle en
+[Índice generado](docs/src/content/docs/guia/navegacion-y-busqueda.md#índice-generado-nav-tree).
+Para una página que liste su carpeta con tarjetas o una tabla paginada, enciende su índice generado
+(ver [`content.folders`](#contentfolders)).
+
 Los bloques de código usan Shiki (`github-light-default` / `github-dark-default`); Shiki ya
 entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la
 librería añade alias: `django` y `htmldjango` se resaltan como `jinja`, `pycon` como `python`, `env`
@@ -586,6 +775,15 @@ flowchart LR
   A[Markdown] --> B[SVG]
 ```
 ````
+
+Imágenes: solo una imagen sola en su párrafo se pinta como captura (bloque, ancho de la columna,
+borde y esquinas). Las insignias, varias imágenes en un párrafo, una imagen dentro del texto o de un
+enlace y un `<img width="…">` en HTML conservan su tamaño natural, en línea y sin borde; un
+`<img align="right">` flota como en GitHub. La captura la marca `Article` (`p.docs-screenshot`), así que
+vale en cualquier página que lo use.
+
+Tablas: `Article` envuelve cada `<table>` en un `div.table-scroll` que se desplaza en horizontal (no
+repite uno escrito a mano).
 
 ## Páginas propias del sitio
 
@@ -631,14 +829,14 @@ el valor). Un valor vacío o en blanco cuenta como no definido.
 - La variable se lee con `loadEnv` de Vite para el comando actual (`dev` lee `.env.development`,
   `build` lee `.env.production`); las variables que ya están en el entorno del proceso (CI) ganan a
   los archivos.
-- `gtmId` en la configuración es una sobrescritura explícita y gana al entorno. Úsalo solo si un repo
+- `site.analytics.gtmId` en la configuración es una sobrescritura explícita y gana al entorno. Úsalo solo si un repo
   debe fijar un contenedor; déjalo fuera en caso contrario.
-- Política de privacidad: la analítica exige `privacyUrl` (un string, o `{ en: '...', es: '...' }`);
+- Política de privacidad: la analítica exige `site.analytics.privacyUrl` (un string, o `{ en: '...', es: '...' }`);
   el banner y el pie enlazan a ella y no hay ninguna por defecto. Sin ella, `astro build` falla
   nombrando `privacyUrl` y `astro dev` avisa y arranca sin analítica. Sin analítica, `privacyUrl` solo
   pone el enlace en el pie. Un idioma sin URL resoluble rompe el build.
 
-En GitHub Actions pasa la variable al paso de build (el portfolio la guarda como secret; una variable
+En GitHub Actions pasa la variable al paso de build (puede ir como secret; una variable
 de repositorio también sirve, el id es público en la página de todos modos):
 
 ```yaml
@@ -651,12 +849,12 @@ Sin ella, los builds locales y de forks quedan sin rastreo y sin ningún camino 
 
 ### La política de privacidad y la 404 no son de la librería
 
-La librería no genera ninguna página de privacidad ni ninguna 404: las da el portfolio, una vez para
-todo el dominio (GitHub Pages sirve un único `/404.html` y la política es la misma para todos los
+La librería no genera ninguna página de privacidad ni ninguna 404: las da el sitio de la raíz del
+dominio, una vez para todos (GitHub Pages sirve un único `/404.html` y la política es la misma para todos los
 sitios). `privacy.page` y `privacy.controller` ya no existen; dejarlas en la config falla con «opción
 desconocida».
 
-| Config                                 | Resultado                                         |
+| `site.analytics`                       | Resultado                                         |
 | -------------------------------------- | ------------------------------------------------- |
 | `gtmId` (o `PUBLIC_GTM_ID`) + `privacyUrl` | Analítica, banner de cookies y enlace en el pie |
 | Solo `privacyUrl`                      | Solo el enlace en el pie                          |
@@ -685,7 +883,7 @@ falla como con cualquier otra colisión. Más en la documentación: «SEO on pag
 
 ## Reglas estrictas de build
 
-El build falla por: un enlace relativo o `#anchor` roto, un sufijo de idioma que no está en `locales`
+El build falla por: un enlace relativo o `#anchor` roto, un sufijo de idioma que no está en `i18n.locales`
 (`x.fr.md`), una página sin `h1` ni `title`, una admonición desconocida, un archivo externo ausente,
 una imagen SEO o un favicon de `public/` ausentes, políticas de traducción en conflicto y un sitemap
 de más de 50 000 URLs. Avisos: traducciones ausentes sin declarar, una imagen OG demasiado grande o
@@ -697,13 +895,13 @@ mal proporcionada, un lenguaje de Shiki desconocido y un bloque de código con f
 
 - `site` debe ser el origen del usuario y `base` la ruta del repo; el build es totalmente estático.
 - `sitemap.xml` (con alternativas `hreflang` y `<lastmod>`) se emite en `<base>/sitemap.xml`; no hay
-  `robots.txt` (el portfolio en el origen del usuario es el dueño). El `<lastmod>` de cada URL es el
+  `robots.txt` (es del sitio de la raíz del dominio, el origen del usuario). El `<lastmod>` de cada URL es el
   último commit del archivo del que sale (sin él, la fecha del archivo). Un clon superficial
   (`git clone --depth 1`, lo habitual en CI) no da ninguna fecha: usa `fetch-depth: 0` en
   `actions/checkout` si la quieres.
 - Con `sitemap: { include: ['/otro/sitemap.xml'] }` el sitio principal convierte `sitemap.xml` en un
   índice: `sitemap-pages.xml` con sus páginas y luego cada sitemap declarado (mismo origen que `site`).
-- La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el portfolio.
+- La 404 no la genera la librería: GitHub Pages sirve un único `/404.html` para el dominio y lo pone el sitio de su raíz.
 - El índice de búsqueda se construye tras `astro build` en `dist/pagefind/`; la búsqueda necesita un
   build de producción.
 - El tema y el consentimiento se guardan en `localStorage` bajo `theme` y `consent`, así que se
@@ -736,7 +934,8 @@ convierte la sintaxis de MkDocs en `docs/` (solo los ficheros que cambian), rees
 ids de la librería, se niega a correr si el repo no es git o `docs/` tiene cambios sin confirmar
 (`--force` lo salta; se desaconseja) y termina con un resumen, los restos de sintaxis que no ha
 entendido, las páginas `--8<--` que conviene publicar con `external[]`, una **config sugerida** leída
-de `mkdocs.yml` (idiomas, `fallback`, `exclude` y `nav`; `--config-out <fichero>` la escribe) y la
+de `mkdocs.yml` (idiomas, `fallback`, `exclude`, `nav` con el `README.md` de la raíz como portada
+`index`, y `site`/`base` de `astro.config.mjs` sacados de `site_url`; `--config-out <fichero>` la escribe) y la
 lista de lo que ignora. `--api <api.json>` resuelve las directivas de mkdocstrings y `--dry-run` no
 escribe nada y solo imprime el plan. Luego: `git diff docs/` y commit, o `git checkout docs/` para
 descartarlo.

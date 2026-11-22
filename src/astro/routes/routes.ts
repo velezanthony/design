@@ -45,6 +45,22 @@ export const ROUTES: readonly Route[] = [
   },
 ];
 
+/** Carpeta del índice de búsqueda que la integración escribe en `dist/` al construir. */
+export const PAGEFIND_DIR = 'pagefind';
+
+/** Extensiones con las que Astro enruta un fichero de `src/pages/` (páginas y endpoints). */
+export const PAGE_EXTENSIONS = ['astro', 'md', 'mdx', 'html', 'ts', 'js', 'mts', 'mjs'];
+
+/** URLs (sin base ni barras) que la librería ocupa fuera de las páginas de docs: sus rutas, en cualquier modo, y la carpeta de la búsqueda. Una página no puede vivir en ellas ni debajo. */
+export function reservedPaths(): string[] {
+  return [
+    ...ROUTES.filter(({ pattern }) => pattern !== '/[...slug]').map(({ pattern }) =>
+      pattern.slice(1),
+    ),
+    PAGEFIND_DIR,
+  ];
+}
+
 /** Lo que decide qué rutas inyecta la librería. */
 export interface RouteOptions {
   locales: readonly string[];

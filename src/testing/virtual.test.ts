@@ -29,14 +29,14 @@ describe('módulo virtual de la config', { timeout: VITE_STARTUP_TIMEOUT }, () =
   });
 
   it('refleja otros datos (no es un valor fijo)', async () => {
-    expect(await loadVirtual({ name: 'y', locales: ['en', 'es'] })).toEqual({
-      name: 'y',
-      locales: ['en', 'es'],
+    expect(await loadVirtual({ site: { name: 'y' }, i18n: { locales: ['en', 'es'] } })).toEqual({
+      site: { name: 'y' },
+      i18n: { locales: ['en', 'es'] },
     });
   });
 
   it('defineVirtualViteConfig registra el plugin real en la config de Vite de Astro', async () => {
-    const config = await defineVirtualViteConfig({ name: 'x' })({
+    const config = await defineVirtualViteConfig({ site: { name: 'x' } })({
       command: 'serve',
       mode: 'test',
     });

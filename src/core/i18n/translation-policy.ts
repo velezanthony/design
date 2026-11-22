@@ -1,5 +1,6 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { Page } from '../content/discovery';
+import { urlSlugOf } from '../content/slug';
 import { DocsError } from '../errors';
 import { pageUrl, type Availability, type UrlPolicy } from './availability';
 import type { Locale } from './locale';
@@ -8,7 +9,7 @@ import type { Locale } from './locale';
 export const MissingTranslation = { LINK: 'link', OMIT: 'omit', FALLBACK: 'fallback' } as const;
 export type MissingTranslation = (typeof MissingTranslation)[keyof typeof MissingTranslation];
 
-/** Política efectiva por grupo de traducción (slug). */
+/** Política efectiva por grupo de traducción (la identidad de sus páginas, `Page.slug`). */
 export type TranslationPolicies = Map<string, MissingTranslation>;
 
 function groupBySlug(pages: Page[]): Map<string, Page[]> {
@@ -55,12 +56,28 @@ export function sourceLocale(
   return locales.find((locale) => locale in available) ?? defaultLocale;
 }
 
-/** Grupos incompletos sin `translations` declarado (traducciones quizá olvidadas); un sitio monolingüe no devuelve nada. */
+/** La versión de `slug` en `locale` o, sin esa traducción, la del original que elige `sourceLocale`. Vale para cualquier lista con identidad e idioma (páginas del núcleo o datos de la colección). */
+export function pickLocalized<T extends { slug: string; locale: Locale }>(
+  items: readonly T[],
+  slug: string,
+  locale: Locale,
+  config: LocaleConfig,
+): T | undefined {
+  const group = items.filter((item) => item.slug === slug);
+  const own = group.find((item) => item.locale === locale);
+  if (own) return own;
+  const available = Object.fromEntries(group.map((item) => [item.locale, item.locale]));
+  const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
+  return group.find((item) => item.locale === source);
+}
+
+/** Grupos incompletos sin `translations` declarado (traducciones quizá olvidadas); un sitio monolingüe, o uno con política en su config, no devuelve nada. */
 export function undeclaredMissing(
   pages: Page[],
   locales: Locale[],
+  siteDeclared = false,
 ): { slug: string; missing: Locale[] }[] {
-  if (locales.length <= 1) return [];
+  if (locales.length <= 1 || siteDeclared) return [];
   const result: { slug: string; missing: Locale[] }[] = [];
   for (const [slug, group] of groupBySlug(pages)) {
     if (group.some((page) => page.translations !== undefined)) continue;
@@ -72,11 +89,14 @@ export function undeclaredMissing(
 }
 
 /** Lo que las políticas necesitan de la config: los idiomas del sitio y el que va sin prefijo. */
-type LocaleConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale'>;
+type LocaleConfig = ConfigPick<never, 'locales' | 'defaultLocale'>;
 
 /** Ruta que sirve el contenido original en un idioma sin traducción (política `fallback`). */
 export interface RouteSpec {
+  /** Identidad del grupo. */
   slug: string;
+  /** URL de la reserva sin idioma ni base: la del original (su `slug` propio, si lo tiene). */
+  urlSlug: string;
   locale: Locale;
   isFallback: true;
   /** Idioma del contenido que se sirve (el de origen), distinto del de la ruta. */
@@ -86,24 +106,35 @@ export interface RouteSpec {
 }
 
 /** Rutas de reserva por idioma ausente en grupos `fallback`; no entran en `Availability` porque no son traducciones. */
-export function fallbackRoutes(
-  availability: Availability,
-  policies: TranslationPolicies,
-  config: LocaleConfig,
-  url: UrlPolicy,
-): RouteSpec[] {
+export function fallbackRoutes({
+  availability,
+  policies,
+  config,
+  url,
+  pages,
+}: {
+  availability: Availability;
+  policies: TranslationPolicies;
+  config: LocaleConfig;
+  url: UrlPolicy;
+  /** Las páginas reales: de la del original sale el `slug` propio que la reserva reutiliza. */
+  pages: readonly Page[];
+}): RouteSpec[] {
   const routes: RouteSpec[] = [];
   for (const [slug, available] of availability) {
     if (policies.get(slug) !== MissingTranslation.FALLBACK) continue;
-    const source = sourceLocale(available, config.locales, config.defaultLocale);
-    for (const locale of config.locales) {
+    const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
+    const original = pages.find((page) => page.slug === slug && page.locale === source);
+    const urlSlug = original ? urlSlugOf(original) : slug;
+    for (const locale of config.i18n.locales) {
       if (locale in available) continue;
       routes.push({
         slug,
+        urlSlug,
         locale,
         isFallback: true,
         entryMeta: { locale: source },
-        canonical: available[source] ?? pageUrl(slug, source, url),
+        canonical: available[source] ?? pageUrl(urlSlug, source, url),
       });
     }
   }

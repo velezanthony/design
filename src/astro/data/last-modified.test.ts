@@ -156,3 +156,25 @@ describe('con git de verdad', () => {
     expect(dates.has('docs/falta.md')).toBe(false);
   });
 });
+
+describe('createLastModified: solo commits', () => {
+  it('con `committedOnly`, un archivo sin commit no tiene fecha (no cae a la del archivo)', async () => {
+    const sources = fakeSources(
+      { toplevel: '/repo', log },
+      { '/repo/site/docs/nuevo.md': '2026-11-01' },
+    );
+    const lastModified = createLastModified(sources);
+    const dates = await lastModified(ROOT, ['docs/a.md', 'docs/nuevo.md'], {
+      committedOnly: true,
+    });
+    expect(dates).toEqual(new Map([['docs/a.md', '2026-09-07T00:06:43+02:00']]));
+    // Sin la opción, el mismo archivo toma la fecha del sistema de archivos.
+    expect((await lastModified(ROOT, ['docs/nuevo.md'])).has('docs/nuevo.md')).toBe(true);
+  });
+
+  it('con `committedOnly` y sin git no hay ninguna fecha', async () => {
+    const sources = fakeSources({}, { '/repo/site/docs/a.md': '2026-11-01' });
+    const dates = await createLastModified(sources)(ROOT, ['docs/a.md'], { committedOnly: true });
+    expect(dates.size).toBe(0);
+  });
+});

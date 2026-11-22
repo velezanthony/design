@@ -14,9 +14,9 @@ import { markdownPlugins, mergeLangAlias } from './register';
 
 const env = createMarkdownEnv(
   resolveConfig({
-    name: 'x',
-    locales: ['en', 'es'],
-    external: [{ slug: 'changelog', file: 'CHANGELOG.md' }],
+    site: { name: 'x' },
+    i18n: { locales: ['en', 'es'] },
+    content: { external: [{ slug: 'changelog', file: 'CHANGELOG.md' }] },
   }),
   project,
 );
@@ -40,6 +40,12 @@ describe('markdownPlugins: orden', () => {
     expect(names.indexOf('admonitions')).toBeLessThan(names.indexOf('tabs'));
     expect(names.at(-1)).toBe('restore-directives');
     expect(names).toEqual(expect.arrayContaining(['github-alerts', 'admonitions', 'tabs']));
+  });
+
+  it('navTree reclama `::nav-tree` antes de que restoreDirectives lo devuelva a texto', () => {
+    const names = markdownPlugins(env).map((entry) => resolveName(entry, docFileURL('a.md')));
+    expect(names.indexOf('nav-tree')).toBeGreaterThan(-1);
+    expect(names.indexOf('nav-tree')).toBeLessThan(names.indexOf('restore-directives'));
   });
 
   it('mermaid va antes de codeLanguages: así este no avisa de un lenguaje que Shiki no conoce', () => {
@@ -92,8 +98,16 @@ describe('markdownPlugins: integrados', () => {
     expect(html).toContain('<div align="center">x</div>');
   });
 
-  it('las tablas llevan contenedor desplazable', async () => {
-    expect(await full('| a |\n|---|\n| 1 |', docFileURL('a.md'))).toContain('table-scroll');
+  it('las tablas salen tal cual: el contenedor desplazable lo pone `Article`', async () => {
+    const html = await full('| a |\n|---|\n| 1 |', docFileURL('a.md'));
+    expect(html).toContain('<table>');
+    expect(html).not.toContain('table-scroll');
+  });
+
+  it('una imagen sola en su párrafo sale sin marcar: la captura la marca `Article`', async () => {
+    const html = await full('![c](https://x.test/c.png)', docFileURL('a.md'));
+    expect(html).toContain('<p><img');
+    expect(html).not.toContain('docs-screenshot');
   });
 
   it('un plugin del consumidor convive con los nuestros', async () => {

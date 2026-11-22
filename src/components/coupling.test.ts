@@ -2,8 +2,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-/* `components/` es del paquete: no puede arrastrar rutas, alias ni datos del portfolio (design-components,
-   «Sin acoplamiento al portfolio»). */
+/* `components/` es del paquete: no puede arrastrar rutas, alias ni datos del sitio que la usa (design-components,
+   «Sin acoplamiento al sitio»). */
 const sources = (readdirSync('src/components', { recursive: true }) as string[])
   .filter((file) => /\.(astro|ts)$/.test(file) && !file.endsWith('.test.ts'))
   .map((file) => join('src/components', file));
@@ -11,12 +11,12 @@ const sources = (readdirSync('src/components', { recursive: true }) as string[])
 const FORBIDDEN =
   /@i18n|@atoms|@molecules|@organisms|@styles|@\/(test|client|data|components)|\bprofile\b|\/ui['"]|Cambiar tema/;
 
-describe('ui/ sin acoplamiento al portfolio', () => {
+describe('ui/ sin acoplamiento al sitio', () => {
   it('encuentra fuentes que comprobar', () => {
     expect(sources.length).toBeGreaterThan(0);
   });
 
-  it.each(sources)('%s no referencia alias ni datos del portfolio', (file) => {
+  it.each(sources)('%s no referencia alias ni datos del sitio', (file) => {
     expect(readFileSync(file, 'utf8')).not.toMatch(FORBIDDEN);
   });
 });

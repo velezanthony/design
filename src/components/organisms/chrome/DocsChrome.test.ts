@@ -130,7 +130,7 @@ describe('DocsHeader', () => {
     expect(htmlDocument.querySelector('header #extra')).not.toBeNull();
   });
 
-  it('sin rutas ni textos del portfolio', async () => {
+  it('sin rutas ni textos de un sitio concreto', async () => {
     const html = (await header()).body.innerHTML;
     expect(html).not.toMatch(/Proyectos|Experiencia|\/cv|portfolio/i);
   });

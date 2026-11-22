@@ -10,10 +10,14 @@ mkdirSync(path.join(root, 'htmlcov/assets'), { recursive: true });
 writeFileSync(path.join(root, 'htmlcov/index.html'), '<h1>cov</h1>');
 writeFileSync(path.join(root, 'htmlcov/assets/app.js'), 'let x');
 writeFileSync(path.join(root, 'secret.txt'), 'no');
+mkdirSync(path.join(root, 'htmlcov/assets/script'));
+writeFileSync(path.join(root, 'htmlcov/assets/script/history.py'), 'print()');
+mkdirSync(path.join(root, 'htmlcov/drafts'));
+writeFileSync(path.join(root, 'htmlcov/drafts/index.html'), '<h1>draft</h1>');
 const serve = staticFoldersMiddleware({
   root,
   base: '/repo/',
-  folders: [{ from: 'htmlcov', to: 'coverage' }],
+  folders: [{ from: 'htmlcov', to: 'coverage', exclude: ['assets/script/', 'drafts/index.html'] }],
 });
 
 /** Responde y recoge lo escrito; resuelve cuando termina o cuando se pasó a `next`. */
@@ -62,6 +66,12 @@ describe('staticFoldersMiddleware', () => {
       '/repo/coverage/nope.html',
       '/repo/coverage/%2e%2e/secret.txt',
     ]) {
+      expect((await get(url)).next).toHaveBeenCalled();
+    }
+  });
+
+  it('lo que casa con `exclude` pasa al siguiente, como en el build, también el index.html de una carpeta', async () => {
+    for (const url of ['/repo/coverage/assets/script/history.py', '/repo/coverage/drafts/']) {
       expect((await get(url)).next).toHaveBeenCalled();
     }
   });

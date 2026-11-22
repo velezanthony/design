@@ -6,7 +6,7 @@ import { siteConfig } from '../data/site-config';
 
 /** La hoja con la que el navegador pinta `sitemap.xml`: la paleta del tema y los textos del idioma por defecto. */
 export function GET() {
-  const strings = siteConfig.strings[siteConfig.defaultLocale]!;
+  const strings = siteConfig.strings[siteConfig.i18n.defaultLocale]!;
   const css = sitemapCss(
     { title: translate(strings, 'sitemap.title'), note: translate(strings, 'sitemap.note') },
     themePalette(theme, SITEMAP_TOKENS),

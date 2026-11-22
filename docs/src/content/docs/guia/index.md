@@ -15,7 +15,7 @@ consumidor añade para tener documentación.
 ```mermaid
 flowchart TD
   repo["Repo consumidor<br/>(p. ej. snake-orm)"] --> sub["docs/<br/>subproyecto de Astro"]
-  sub -->|"npm install github:velezanthony/design#v0.1.0"| nm["node_modules/@velezanthony/design<br/>(solo src/ + README)"]
+  sub -->|"npm install github:velezanthony/design#v0.2.0"| nm["node_modules/@velezanthony/design<br/>(solo src/ + README)"]
   sub --> cfg["docs.config.mjs<br/>defineDocsConfig({...})"]
   cfg --> astrocfg["astro.config.mjs<br/>integrations: [docs(docsConfig)]"]
   astrocfg -. "módulo virtual" .-> cc["src/content.config.ts<br/>export { collections } from<br/>@velezanthony/design/content"]
@@ -29,7 +29,7 @@ flowchart TD
 ```
 
 1. El repo consumidor crea `docs/` con el scaffold de Astro.
-2. Instala la librería desde GitHub, **fijada a una etiqueta**: `github:velezanthony/design#v0.1.0`.
+2. Instala la librería desde GitHub, **fijada a una etiqueta**: `github:velezanthony/design#v0.2.0`.
    No está en el registro de npm.
 3. Escribe `docs.config.mjs` con `defineDocsConfig` y lo importa solo en `astro.config.mjs`, para
    `docs(docsConfig)`. `src/content.config.ts` es una línea que no lo importa.
@@ -63,7 +63,7 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 | Búsqueda (índice de Pagefind generado al terminar el build) | |
 | Idiomas: URLs por idioma, textos de interfaz, política de traducciones ausentes | |
 | Validación estricta: enlaces, anclas, títulos, lenguajes de código | |
-| Banner de consentimiento y carga diferida de Google Tag Manager | El workflow de despliegue y, si quiere analítica, `PUBLIC_GTM_ID` y `privacyUrl` |
+| Banner de consentimiento y carga diferida de Google Tag Manager | El workflow de despliegue y, si quiere analítica, `PUBLIC_GTM_ID` y `site.analytics.privacyUrl` |
 
 Lo que el consumidor **no** escribe nunca: un layout, un `import` de CSS, un `@source` de Tailwind o
 una página en `src/pages/`. Puede hacerlo: una página propia en `/` o `/sitemap.xml`

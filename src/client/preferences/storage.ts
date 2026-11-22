@@ -1,5 +1,6 @@
-/* Claves del almacenamiento del navegador, en un solo sitio. Son un contrato con el portfolio:
-   si cambian, los visitantes pierden el tema y el consentimiento al saltar de un sitio a otro. */
+/* Claves del almacenamiento del navegador, en un solo sitio. Las comparten todos los sitios del mismo
+   dominio que usan la librería: si cambian, los visitantes pierden el tema y el consentimiento al
+   saltar de uno a otro. */
 export const THEME_KEY = 'theme';
 /** Columnas plegadas y ancho elegidos en la página, un JSON `{ left, right, width }`. */
 export const LAYOUT_KEY = 'docs:layout';

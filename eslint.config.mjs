@@ -40,6 +40,22 @@ const noSeoOnPage = {
   message: 'Lo publicado no importa `seo-on-page`: el panel es solo de desarrollo.',
 };
 
+/* Lo que nadie en `core/` puede importar; `core/config` y `core/shared` le suman lo suyo. */
+const corePatterns = [
+  noAstroScheme,
+  {
+    /* `astro/zod` queda fuera de la lista negra con la negación del final. */
+    group: ['astro/*', '!astro/zod'],
+    message: 'El núcleo solo importa `astro/zod`.',
+  },
+  noVirtual,
+  { group: ['node:*'], message: 'El núcleo es puro: sin Node.' },
+  {
+    regex: relativeTo(['client', 'components', 'astro']),
+    message: 'El núcleo no depende de `client/`, `components/` ni `astro/`.',
+  },
+];
+
 const componentsPatterns = [noAstroScheme, noVirtual, noAstroFolder, noSeoOnPage];
 const lowerLevels = ['atoms', 'molecules', 'organisms'];
 
@@ -72,19 +88,21 @@ export default defineConfig(
   { languageOptions: { globals: { ...globals.node } } },
   { files: ['**/*.astro'], languageOptions: { globals: { ...globals.browser } } },
 
-  layer('core', astroPackage, [
-    noAstroScheme,
+  layer('core', astroPackage, corePatterns, ['src/core/config/**', 'src/core/shared/**']),
+  /* N4: la config no depende de los dominios que la usan; los tipos sí (con `import type`). */
+  layer('core/config', astroPackage, [
+    ...corePatterns,
     {
-      /* `astro/zod` queda fuera de la lista negra con la negación del final. */
-      group: ['astro/*', '!astro/zod'],
-      message: 'El núcleo solo importa `astro/zod`.',
+      regex: siblingOf(['navigation', 'listing', 'seo', 'seo-on-page']),
+      allowTypeImports: true,
+      message:
+        '`core/config` no importa valores de `navigation/`, `listing/`, `seo/` ni `seo-on-page/` (sí tipos, con `import type`).',
     },
-    noVirtual,
-    { group: ['node:*'], message: 'El núcleo es puro: sin Node.' },
-    {
-      regex: relativeTo(['client', 'components', 'astro']),
-      message: 'El núcleo no depende de `client/`, `components/` ni `astro/`.',
-    },
+  ]),
+  /* N4: lo compartido no conoce ningún dominio. */
+  layer('core/shared', astroPackage, [
+    ...corePatterns,
+    { regex: '^\\.\\./', message: '`core/shared` no importa ningún dominio de `core/`.' },
   ]),
   layer(
     'client',
@@ -163,8 +181,9 @@ export default defineConfig(
     [],
     [
       {
-        regex: siblingOf(['routes', 'components']),
-        message: '`data/` no depende de `routes/` ni de `components/`.',
+        regex: siblingOf(['routes', 'components', 'views']),
+        message:
+          '`data/` no depende de `routes/`, `views/` ni `components/`: solo `routes/` conoce los datos y la presentación.',
       },
     ],
   ),

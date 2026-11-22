@@ -17,7 +17,7 @@ export function isGtmId(value: string) {
 /** El error de un ID mal formado, con su origen (config o variable de entorno); el valor no se imprime: sigue siendo un dato del consumidor. */
 export function invalidGtmIdError(fromConfig: boolean) {
   const origin = fromConfig
-    ? 'La opción `gtmId` de la config'
+    ? 'La opción `site.analytics.gtmId` de la config'
     : `La variable ${GTM_ENV_VAR} (leída de .env, .env.production o del entorno de la CI)`;
   return new DocsError(`${origin} no tiene el formato de un ID de contenedor de GTM.`, {
     hint: `Debe ser GTM-XXXXXXX (letras mayúsculas y dígitos). Corrígela o déjala vacía para no cargar analítica.`,
@@ -40,9 +40,9 @@ export function resolveAnalytics(
 /** El error de una analítica sin política de privacidad: el aviso de consentimiento tiene que enlazarla. */
 export function missingPrivacyUrlError() {
   return new DocsError(
-    'La analítica (`gtmId` o la variable PUBLIC_GTM_ID) necesita `privacyUrl`: el aviso de consentimiento enlaza a la política.',
+    'La analítica (`site.analytics.gtmId` o la variable PUBLIC_GTM_ID) necesita `site.analytics.privacyUrl`: el aviso de consentimiento enlaza a la política.',
     {
-      hint: 'Define `privacyUrl` con la URL de tu política (una por idioma si es un objeto), o quita el ID para no cargar analítica.',
+      hint: 'Define `site.analytics.privacyUrl` con la URL de tu política (una por idioma si es un objeto), o quita el ID para no cargar analítica.',
     },
   );
 }
@@ -77,13 +77,18 @@ export function applyAnalytics(
   envValue: string | undefined,
   enabled = true,
 ): ResolvedConfig {
-  const { privacyUrl, gtmId: configGtmId, ...rest } = config;
+  const { privacyUrl, gtmId: configGtmId } = config.site.analytics;
   const gtmId = enabled ? resolveAnalytics(envValue, configGtmId) : undefined;
-  const urls = resolvePrivacyUrls(privacyUrl, config.locales, config.defaultLocale);
+  const urls = resolvePrivacyUrls(privacyUrl, config.i18n.locales, config.i18n.defaultLocale);
   if (gtmId !== undefined && urls === undefined) throw missingPrivacyUrlError();
   return {
-    ...rest,
-    ...(gtmId !== undefined && { gtmId }),
-    ...(urls !== undefined && { privacyUrl: urls }),
+    ...config,
+    site: {
+      ...config.site,
+      analytics: {
+        ...(gtmId !== undefined && { gtmId }),
+        ...(urls !== undefined && { privacyUrl: urls }),
+      },
+    },
   };
 }

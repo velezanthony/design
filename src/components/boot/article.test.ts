@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { bootArticle } from './article';
 import { content, env } from './fixtures/env';
@@ -89,6 +89,87 @@ describe('bootArticle', () => {
       expect(source).toContain("import('../../client/diagrams/mermaid')");
     });
 
+    it('mientras se carga, cada diagrama se anuncia ocupado (aria-busy)', () => {
+      const bootEnv = env(diagram, { mermaid: mermaid() });
+      bootArticle(bootEnv);
+      expect(bootEnv.htmlDocument.querySelector('.docs-mermaid')!.getAttribute('aria-busy')).toBe(
+        'true',
+      );
+    });
+
+    it('al terminar ya no está ocupado', async () => {
+      const bootEnv = env(diagram, { mermaid: mermaid() });
+      bootArticle(bootEnv);
+      const box = bootEnv.htmlDocument.querySelector('.docs-mermaid')!;
+      await vi.waitFor(() => expect(box.getAttribute('data-state')).toBe('rendered'));
+      expect(box.hasAttribute('aria-busy')).toBe(false);
+    });
+
+    it('sin forma de cargar Mermaid los diagramas pasan a error: se lee el código en vez del indicador de carga', () => {
+      const bootEnv = env(diagram);
+      bootArticle(bootEnv);
+      const box = bootEnv.htmlDocument.querySelector('.docs-mermaid')!;
+      expect(box.getAttribute('data-state')).toBe('error');
+      expect(box.hasAttribute('aria-busy')).toBe(false);
+    });
+
+    it('sin el contenedor con los textos los diagramas también pasan a error', () => {
+      const bootEnv = env(diagram.replace(/^<main[^>]*>/, '<div>').replace(/<\/main>$/, '</div>'), {
+        mermaid: mermaid(),
+      });
+      bootArticle(bootEnv);
+      expect(bootEnv.htmlDocument.querySelector('.docs-mermaid')!.getAttribute('data-state')).toBe(
+        'error',
+      );
+    });
+
+    describe('si el trozo de los diagramas no se puede descargar', () => {
+      afterEach(() => {
+        vi.doUnmock('../../client/diagrams/mermaid');
+        vi.resetModules();
+      });
+
+      it('marca como error todos los bloques pendientes y avisa, sin promesas sin capturar', async () => {
+        vi.resetModules();
+        vi.doMock('../../client/diagrams/mermaid', () => {
+          throw new Error('Failed to fetch dynamically imported module');
+        });
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const { bootArticle: boot } = await import('./article');
+        const bootEnv = env(
+          diagram.replace(
+            '</main>',
+            `${diagram.match(/<div class="docs-mermaid".*<\/div>/)![0]}</main>`,
+          ),
+          {
+            mermaid: mermaid(),
+          },
+        );
+        boot(bootEnv);
+        const boxes = [...bootEnv.htmlDocument.querySelectorAll('.docs-mermaid')];
+        expect(boxes).toHaveLength(2);
+        await vi.waitFor(() =>
+          expect(boxes.map((box) => box.getAttribute('data-state'))).toEqual(['error', 'error']),
+        );
+        expect(boxes.some((box) => box.hasAttribute('aria-busy'))).toBe(false);
+        expect(warn).toHaveBeenCalledTimes(1);
+        warn.mockRestore();
+      });
+    });
+
+    it('con diagramas empieza a descargar Mermaid ya, a la par que el código que lo dibuja, y una sola vez', async () => {
+      const fakeMermaid = mermaid();
+      const bootEnv = env(diagram, { mermaid: fakeMermaid });
+      bootArticle(bootEnv);
+      expect(fakeMermaid.importer).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() =>
+        expect(
+          bootEnv.htmlDocument.querySelector('.docs-mermaid')!.getAttribute('data-state'),
+        ).toBe('rendered'),
+      );
+      expect(fakeMermaid.importer).toHaveBeenCalledTimes(1);
+    });
+
     it('en una página sin diagramas no descarga mermaid', () => {
       const fakeMermaid = mermaid();
       bootArticle(env(content, { mermaid: fakeMermaid }));
@@ -114,5 +195,16 @@ describe('bootArticle', () => {
     const bootEnv = env(content, { clipboard: undefined });
     bootArticle(bootEnv);
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
+  });
+
+  it('cablea el selector «Por página» de un listado cuando hay `location`', () => {
+    const html = `<select data-auto-navigate><option value="/a/">12</option><option value="/a/per-page/24/" selected>24</option></select>`;
+    const location = { assign: vi.fn() };
+    const booted = env(html, { location });
+    bootArticle(booted);
+    const select = booted.htmlDocument.querySelector('select')!;
+    const { Event } = booted.htmlDocument.defaultView as unknown as typeof globalThis;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(location.assign).toHaveBeenCalledWith('/a/per-page/24/');
   });
 });

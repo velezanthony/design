@@ -1,4 +1,5 @@
-import { DEFAULT_TOC_DEPTH } from '../navigation/toc-entries';
+/** El H1 es el título de la página, así que el índice «En esta página» empieza en H2; por defecto llega hasta H3. */
+export const DEFAULT_TOC_DEPTH = 3;
 
 /** Estado de una columna lateral. Mismas cadenas en la config, en `<html data-left>` y en el almacenamiento. */
 export const PanelState = { OPEN: 'open', COLLAPSED: 'collapsed' } as const;

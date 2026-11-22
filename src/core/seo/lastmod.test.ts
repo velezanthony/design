@@ -71,4 +71,74 @@ describe('pageLastmods', () => {
   it('una página sin fecha se queda fuera: sin lastmod, no un lastmod inventado', () => {
     expect(pageLastmods([page('a', 'en', 'a.md')], url, new Map())).toEqual(new Map());
   });
+
+  it('un `index.md` (página normal, sin listado) solo lleva su propia fecha', () => {
+    const dates = new Map([
+      ['b/index.md', '2026-01-01T00:00:00+00:00'],
+      ['b/x.md', '2026-05-01T00:00:00+00:00'],
+    ]);
+    const pages = [page('b', 'en', 'b/index.md'), page('b/x', 'en', 'b/x.md')];
+    expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-01-01T00:00:00+00:00');
+  });
+
+  it('una página con listado cambia cuando cambia la página más reciente de su carpeta', () => {
+    const dates = new Map([
+      ['b/_index.md', '2026-01-01T00:00:00+00:00'],
+      ['b/x.md', '2026-05-01T00:00:00+00:00'],
+      ['b/y.md', '2026-03-01T00:00:00+00:00'],
+      ['c.md', '2026-09-01T00:00:00+00:00'],
+    ]);
+    const pages = [
+      page('b', 'en', 'b/_index.md'),
+      page('b/x', 'en', 'b/x.md'),
+      page('b/y', 'en', 'b/y.md'),
+      page('c', 'en', 'c.md'),
+    ];
+    expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-05-01T00:00:00+00:00');
+  });
+
+  it('un índice generado (sin archivo) toma la fecha de su página más reciente', () => {
+    const dates = new Map([['b/x.md', '2026-05-01T00:00:00+00:00']]);
+    const pages = [
+      { ...page('b', 'en', 'b/_index.md'), kind: 'generated' as const },
+      page('b/x', 'en', 'b/x.md'),
+    ];
+    expect(pageLastmods(pages, url, dates).get('/repo/b/')).toBe('2026-05-01T00:00:00+00:00');
+  });
+});
+
+describe('pageLastmods: `slug` propio', () => {
+  it('la fecha va a la URL traducida y el listado mira su carpeta por identidad', () => {
+    const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
+    const pages: Page[] = [
+      {
+        slug: 'tutoriales',
+        locale: 'es',
+        title: 'A',
+        kind: 'native',
+        sourcePath: 'tutoriales/_index.es.md',
+        body: '',
+        urlSlug: 'tutorials-es',
+      },
+      {
+        slug: 'tutoriales/x',
+        locale: 'es',
+        title: 'X',
+        kind: 'native',
+        sourcePath: 'tutoriales/x.es.md',
+        body: '',
+        urlSlug: 'blog/x',
+      },
+    ];
+    const dates = new Map([
+      ['tutoriales/_index.es.md', '2026-01-01T00:00:00+00:00'],
+      ['tutoriales/x.es.md', '2026-03-01T00:00:00+00:00'],
+    ]);
+    expect(pageLastmods(pages, url, dates)).toEqual(
+      new Map([
+        ['/repo/es/tutorials-es/', '2026-03-01T00:00:00+00:00'],
+        ['/repo/es/blog/x/', '2026-03-01T00:00:00+00:00'],
+      ]),
+    );
+  });
 });

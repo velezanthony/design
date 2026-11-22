@@ -66,6 +66,7 @@ export const DO_NOT_TOUCH = [
 const KIND_MARK: Record<SeoPage['kind'], string> = {
   native: '',
   external: ', externa',
+  generated: ', índice generado',
   client: ', página Astro',
 };
 

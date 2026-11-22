@@ -5,7 +5,8 @@ import { resolveSchemas } from './json-ld';
 import { resolveTitleSuffix } from './title';
 
 /** Base SEO del sitio: la de la config ya con los valores por defecto. */
-export type SeoBase = ResolvedConfig['seo'];
+/** Lo que el sitio aporta al `<head>` de cada página (sin `ogLocales` ni `sitemap`, que no son de una página). */
+export type SeoBase = Omit<ResolvedConfig['site']['seo'], 'ogLocales' | 'sitemap'>;
 
 /** Metadatos de una página tras la cascada. `width`/`height` los rellena el adaptador al leer la imagen. */
 export interface ResolvedMeta {

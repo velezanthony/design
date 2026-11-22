@@ -16,6 +16,7 @@
 - [ ] `npm test`
 - [ ] Cada test nuevo falla si se rompe el código que protege
 - [ ] `core/` sigue puro y cada regla vive en un solo sitio
+- [ ] El marcado repetido es un átomo o una molécula (un organismo solo compone)
 - [ ] La documentación cuenta lo que hace ahora
 - [ ] Visto en el playground o en `docs/` (si cambia algo visible)
 

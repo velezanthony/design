@@ -1,10 +1,7 @@
-import type { Page } from '../../core/content/discovery';
-import { buildAvailability } from '../../core/i18n/availability';
-import { noindexUrls } from '../../core/seo/indexable';
-import { pageLastmods } from '../../core/seo/lastmod';
+import { pagesOf } from '../../core/content/stored-page';
 import {
-  buildSitemap,
   buildSitemapIndex,
+  pagesSitemapXml,
   SITEMAP_PAGES,
   sitemapIncludes,
   type SitemapEntry,
@@ -14,54 +11,34 @@ import { orAstroError } from '../errors';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { withBase } from '../../core/shared/urls';
-
-/** `Page` del núcleo a partir de los datos de la colección; el cuerpo no se arrastra. */
-export function pageOf(item: DocData): Page {
-  return {
-    slug: item.slug,
-    locale: item.locale,
-    title: item.title,
-    kind: item.kind ?? 'native',
-    sourcePath: item.sourcePath,
-    body: '',
-    ...(item.order !== undefined && { order: item.order }),
-    ...(item.seo && { seo: item.seo }),
-    ...(item.translations && { translations: item.translations }),
-  };
-}
-
-export function pagesOf(data: DocData[]): Page[] {
-  return data.map(pageOf);
-}
+import type { ConfigPick } from '../../core/config/resolve';
 
 /** Único `sitemap.xml`: solo páginas REALES e indexables, con alternates; un fallo del núcleo sale como `AstroError`. */
 export function sitemapXml(
   data: DocData[],
-  config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'defaultLocale' | 'site'>,
+  config: Pick<VirtualConfig, 'base' | 'trailingSlash' | 'siteUrl'> &
+    ConfigPick<never, 'defaultLocale'>,
   /** Las páginas del cliente (`src/pages/`), ya decididas, que van después de las de la documentación. */
   extra: readonly SitemapEntry[] = [],
   /** Fecha de cada archivo de página por su `sourcePath`, para el `lastmod`. */
   dates: ReadonlyMap<string, string> = new Map(),
 ): string {
-  const pages = pagesOf(data);
-  const url = urlPolicyOf(config, config.defaultLocale);
-  const availability = buildAvailability(pages, url);
+  const url = urlPolicyOf(config, config.i18n.defaultLocale);
   return orAstroError('No se puede generar sitemap.xml.', () =>
-    buildSitemap(
-      availability,
-      new URL(config.site),
-      noindexUrls(pages, url),
-      extra,
-      pageLastmods(pages, url, dates),
-    ),
+    pagesSitemapXml(pagesOf(data), { url, site: new URL(config.siteUrl), extra, dates }),
   );
 }
 
 /** `sitemap.xml` como índice (con `sitemap.include`): el de las páginas propias y luego los demás del dominio. */
-export function sitemapIndexXml(config: Pick<VirtualConfig, 'base' | 'site' | 'sitemap'>): string {
-  const site = new URL(config.site);
+export function sitemapIndexXml(
+  config: Pick<VirtualConfig, 'base' | 'siteUrl'> & ConfigPick<'seo'>,
+): string {
+  const site = new URL(config.siteUrl);
   const pages = new URL(withBase(config.base, `/${SITEMAP_PAGES}`), site.origin).href;
   return orAstroError('No se puede generar el índice sitemap.xml.', () =>
-    buildSitemapIndex([pages, ...sitemapIncludes(config.sitemap.include, site, config.base)]),
+    buildSitemapIndex([
+      pages,
+      ...sitemapIncludes(config.site.seo.sitemap.include, site, config.base),
+    ]),
   );
 }

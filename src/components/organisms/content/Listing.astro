@@ -1,0 +1,70 @@
+---
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import type { CoverView } from '../../../core/listing/covers';
+import type { ListingView } from '../../../core/listing/view';
+import Pagination from '../../molecules/navigation/Pagination.astro';
+import PaginationBar from '../../molecules/navigation/PaginationBar.astro';
+import PerPageSelector from '../../molecules/navigation/PerPageSelector.astro';
+import ListingCards from './ListingCards.astro';
+import ListingList from './ListingList.astro';
+import ListingTable from './ListingTable.astro';
+
+/* El listado de un índice generado: elige la disposición y, en la tabla y las tarjetas, pinta la fila
+   de pie de `PaginationBar` con el selector «Por página», el rango y el paginador. Todo llega
+   derivado en el modelo (`core/listing/view.ts`): aquí no se calcula nada. */
+interface Props {
+  view: ListingView<CoverView>;
+  strings: UiStrings;
+}
+
+const { view, strings } = Astro.props;
+const labels = {
+  nav: translate(strings, 'pagination.label'),
+  previous: `← ${translate(strings, 'pagination.prev')}`,
+  next: `${translate(strings, 'pagination.next')} →`,
+  page: (page: number) => translate(strings, 'listing.page', { page: String(page) }),
+};
+---
+
+{/* Fuera de la búsqueda: cada entrada ya está indexada en su página y aquí se repetiría. */}
+<div data-listing data-pagefind-ignore>
+  {view.layout === 'list' ? (
+    view.empty ? (
+      <p class="text-muted">{translate(strings, 'listing.empty')}</p>
+    ) : (
+      <ListingList sections={view.sections} strings={strings} />
+    )
+  ) : view.total === 0 ? (
+    <p class="text-muted">{translate(strings, 'listing.empty')}</p>
+  ) : (
+    <Fragment>
+      {view.layout === 'table' ? (
+        <ListingTable items={view.items} strings={strings} />
+      ) : (
+        <ListingCards items={view.items} strings={strings} />
+      )}
+      {(view.pager || view.sizes) && (
+        <PaginationBar class="mt-10">
+          <div slot="start">
+            <PerPageSelector sizes={view.sizes} strings={strings} />
+          </div>
+          <p slot="status" class="text-sm text-muted">
+            {translate(strings, 'listing.showing', {
+              from: String(view.range.from),
+              to: String(view.range.to),
+              total: String(view.total),
+            })}
+          </p>
+          {view.pager && (
+            <Pagination
+              page={view.pager.page}
+              pages={view.pager.pages}
+              href={(page: number) => view.pager!.hrefs[page - 1] ?? view.pager!.hrefs[0]!}
+              labels={labels}
+            />
+          )}
+        </PaginationBar>
+      )}
+    </Fragment>
+  )}
+</div>

@@ -99,3 +99,101 @@ describe('parseFrontmatter', () => {
     expect(errors[0]?.file).toBe('a.md');
   });
 });
+
+describe('parseFrontmatter: index', () => {
+  function messages(index: unknown, file = 'tutoriales/instalacion.md') {
+    return parseFrontmatter({ index }, file).errors.map((error) => error.message);
+  }
+
+  it('una página normal: resumen, imagen (ruta o false) y texto alternativo', () => {
+    const { frontmatter, errors } = parseFrontmatter(
+      { index: { summary: 'Corto.', image: './portada.png', imageAlt: 'Un gato' } },
+      'tutoriales/instalacion.md',
+    );
+    expect(errors).toEqual([]);
+    expect(frontmatter.index).toEqual({
+      summary: 'Corto.',
+      image: './portada.png',
+      imageAlt: 'Un gato',
+    });
+    expect(messages({ image: false })).toEqual([]);
+    expect(messages({ image: '/portadas/instalacion.png' })).toEqual([]);
+    expect(messages({ image: 'portada.png' })).toEqual([]);
+  });
+
+  it('un _index.md admite `index:`: es su ficha en el listado de la carpeta padre', () => {
+    const index = { summary: 'Todos los tutoriales.', image: './portada.png' };
+    expect(parseFrontmatter({ index }, 'tutoriales/_index.md')).toEqual({
+      frontmatter: { index },
+      errors: [],
+    });
+  });
+
+  it('`index.image: true` es un error en cualquier archivo', () => {
+    expect(messages({ image: true }).join('\n')).toContain('index.image');
+    expect(messages({ image: true }, 'a/_index.md').join('\n')).toContain('index.image');
+  });
+
+  it('las opciones del listado no van en `index:`', () => {
+    for (const key of ['layout', 'pageSize', 'perPageOptions', 'covers']) {
+      expect(messages({ [key]: 'x' }, 'a/_index.md').join('\n')).toContain(`index.${key}`);
+    }
+  });
+
+  it.each(['https://x.dev/a.png', '//x.dev/a.png', 'data:image/png;base64,AA', ''])(
+    'una imagen «%s» que no es una ruta local falla',
+    (image) => {
+      expect(messages({ image }).join('\n')).toContain('index.image');
+    },
+  );
+
+  it('una clave desconocida falla con su ruta', () => {
+    expect(messages({ sumary: 'x' }).join('\n')).toContain('index.sumary');
+  });
+});
+
+/* El listado de una carpeta se configura en `folders`: `listing:` es una clave desconocida con su
+   propia pista (la del resto de claves ajenas se ignora: otras herramientas escriben las suyas). */
+describe('parseFrontmatter: listing', () => {
+  it('en un _index.md es una clave desconocida con la pista de `folders` de su carpeta', () => {
+    const { frontmatter, errors } = parseFrontmatter(
+      { title: 'T', listing: { layout: 'cards' } },
+      'articulos/python/_index.md',
+    );
+    expect(frontmatter).toEqual({});
+    expect(errors).toHaveLength(1);
+    expect(errors[0]!.file).toBe('articulos/python/_index.md');
+    expect(errors[0]!.message).toBe('listing: opción desconocida.');
+    expect(errors[0]!.hint).toContain("folders['articulos/python'].listing");
+  });
+
+  it('también en su traducción y en el de la portada', () => {
+    expect(parseFrontmatter({ listing: {} }, 'guia/_index.en.md').errors[0]!.hint).toContain(
+      'folders.guia.listing',
+    );
+    expect(parseFrontmatter({ listing: {} }, '_index.md').errors[0]!.hint).toContain(
+      "folders['*'].listing",
+    );
+  });
+
+  it('en una página normal, lo mismo: la carpeta es la suya', () => {
+    const [error] = parseFrontmatter({ listing: {} }, 'tutoriales/index.md').errors;
+    expect(error?.message).toBe('listing: opción desconocida.');
+    expect(error?.hint).toContain('folders.tutoriales.listing');
+  });
+});
+
+describe('parseFrontmatter: slug', () => {
+  it('acepta `slug`, la URL propia de la página', () => {
+    const { frontmatter, errors } = parseFrontmatter({ slug: 'tutorials/installation' }, 'a.en.md');
+    expect(errors).toEqual([]);
+    expect(frontmatter.slug).toBe('tutorials/installation');
+  });
+
+  it('un `slug` que no es texto nombra archivo y campo', () => {
+    const { errors } = parseFrontmatter({ slug: 3 }, 'a.en.md');
+    expect(errors).toHaveLength(1);
+    expect(errors[0]?.describe()).toContain('a.en.md');
+    expect(errors[0]?.describe()).toContain('slug');
+  });
+});

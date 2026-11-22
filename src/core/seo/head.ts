@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { resolveFavicon } from './favicon';
@@ -52,7 +52,7 @@ export function buildHead(
   page: PageData,
   availability: Availability,
   site: URL,
-  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'name' | 'favicon' | 'ogLocales'>,
+  config: ConfigPick<'name' | 'favicon' | 'seo', 'locales' | 'defaultLocale'>,
   url: Pick<UrlPolicy, 'base'>,
 ): HeadConfig[] {
   function absolute(path: string) {
@@ -63,12 +63,15 @@ export function buildHead(
   const canonical = canonicalPath === undefined ? undefined : absolute(canonicalPath);
   const noindex = resolved.noindex || !isPage;
   const available = isPage && !noindex ? (availability.get(page.slug) ?? {}) : {};
-  const languages = config.locales.filter((locale) => available[locale] !== undefined);
+  const languages = config.i18n.locales.filter((locale) => available[locale] !== undefined);
 
   // El mismo título completo en `<title>`, `og:title` y `twitter:title`.
   const fullTitle = composeTitle(resolved.title, resolved.titleSuffix);
   const tags: HeadConfig[] = [{ tag: 'title', attrs: {}, content: fullTitle }];
-  tags.push({ tag: 'link', attrs: { rel: 'icon', ...resolveFavicon(config.favicon, url.base) } });
+  tags.push({
+    tag: 'link',
+    attrs: { rel: 'icon', ...resolveFavicon(config.site.favicon, url.base) },
+  });
   if (resolved.description) tags.push(meta('name', 'description', resolved.description));
   if (canonical) tags.push({ tag: 'link', attrs: { rel: 'canonical', href: canonical } });
   if (noindex) tags.push(meta('name', 'robots', 'noindex'));
@@ -80,7 +83,7 @@ export function buildHead(
         attrs: { rel: 'alternate', hreflang: locale, href: absolute(available[locale] ?? '') },
       });
     }
-    const fallback = available[config.defaultLocale];
+    const fallback = available[config.i18n.defaultLocale];
     if (fallback) {
       tags.push({
         tag: 'link',
@@ -94,12 +97,14 @@ export function buildHead(
   if (canonical) tags.push(meta('property', 'og:url', canonical));
   tags.push(
     meta('property', 'og:type', page.ogType ?? 'article'),
-    meta('property', 'og:site_name', config.name),
-    meta('property', 'og:locale', ogLocale(page.locale, config.ogLocales)),
+    meta('property', 'og:site_name', config.site.name),
+    meta('property', 'og:locale', ogLocale(page.locale, config.site.seo.ogLocales)),
   );
   if (languages.length > 1) {
     for (const locale of languages.filter((candidate) => candidate !== page.locale)) {
-      tags.push(meta('property', 'og:locale:alternate', ogLocale(locale, config.ogLocales)));
+      tags.push(
+        meta('property', 'og:locale:alternate', ogLocale(locale, config.site.seo.ogLocales)),
+      );
     }
   }
 

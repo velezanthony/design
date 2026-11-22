@@ -1,11 +1,20 @@
 @utility prose {
+  /* Plazo del indicador de carga de los diagramas: pasado, el código vuelve a verse aunque el JS no
+     llegue (ver `.docs-mermaid:not([data-state])`). Un solo valor para sus tres animaciones. */
+  --docs-mermaid-timeout: 10s;
+
+  /* Una palabra larga sin espacios (un código de error, un identificador, una URL) en un título o
+     un párrafo se parte antes que empujar la página en horizontal en móvil. `break-word` solo
+     corta cuando la palabra no cabe en la línea: el texto normal no cambia. */
+  overflow-wrap: break-word;
+
   /* El texto conserva su medida; lo ancho (código, tablas, pestañas, capturas) la desborda hasta
      `--wide-max`. La caja de `prose` ocupa toda la columna: la medida va en los hijos. */
   & > * {
     max-width: var(--prose-measure);
   }
 
-  & > :is(pre, .docs-code, .docs-tabs, .docs-mermaid, p:has(> img, > .docs-zoom)) {
+  & > :is(pre, .docs-code, .docs-tabs, .docs-mermaid, .docs-screenshot) {
     max-width: var(--wide-max);
   }
 
@@ -30,8 +39,8 @@
     margin-top: 1.25em;
   }
 
-  /* En las docs el `# Título` del Markdown ES el título de la página (en el portfolio lo pintaba un
-     componente fuera de `prose`), así que lleva la escala display. */
+  /* En las docs el `# Título` del Markdown ES el título de la página (en una página propia del sitio lo
+     pinta un componente fuera de `prose`), así que lleva la escala display. */
   & h1 {
     font-size: var(--text-display);
     font-weight: 600;
@@ -224,40 +233,63 @@
     border-top: 1px solid var(--color-rule);
   }
 
-  /* En móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o todo el documento haría scroll lateral. */
+  /* Insignias, varias imágenes seguidas, una en el texto o un `<img width>`: tamaño natural y en línea
+     (el preflight de Tailwind las hace bloque). */
   & img {
-    display: block;
-    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
-    max-width: var(--img-max);
-    height: auto;
-    border: 1px solid var(--color-rule);
-    border-radius: 4px;
+    @apply inline h-auto max-w-full;
   }
 
-  & p:has(> img, > .docs-zoom) {
-    margin-top: 2em;
-  }
-
-  /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la captura y esta rellena el
-     botón, así que el foco rodea la imagen y no cambia nada de la maquetación. */
+  /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la imagen y esta lo rellena,
+     así que el foco rodea la imagen y no cambia nada de la maquetación. */
   & .docs-zoom {
-    @apply block cursor-zoom-in rounded-[4px] p-0;
-    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
-    max-width: var(--img-max);
+    @apply inline-block cursor-zoom-in p-0 align-middle;
   }
 
-  & .docs-zoom > img {
-    @apply w-full max-w-none;
+  /* `align` de HTML, como en GitHub: si el zoom envuelve la imagen, el que flota es el botón. */
+  & .docs-zoom:has(> img[align='right']) {
+    @apply float-right ml-4;
+  }
+
+  & .docs-zoom:has(> img[align='left']) {
+    @apply float-left mr-4;
+  }
+
+  /* Captura: una imagen sola en su párrafo, que marca `Article` (`p.docs-screenshot`, `core/content/screenshots.ts`)
+     porque el CSS no distingue un párrafo con texto de uno sin él. Sobresale de la medida del texto;
+     en móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o
+     todo el documento haría scroll lateral. */
+  & .docs-screenshot {
+    margin-top: 2em;
+
+    & > img,
+    & > .docs-zoom > img {
+      display: block;
+      width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+      max-width: var(--img-max);
+      border: 1px solid var(--color-rule);
+      border-radius: 4px;
+    }
+
+    /* Ampliable: el botón toma la medida de la captura y la imagen lo rellena. */
+    & > .docs-zoom {
+      @apply block rounded-[4px];
+      width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+      max-width: var(--img-max);
+    }
+
+    & > .docs-zoom > img {
+      @apply w-full max-w-none;
+    }
   }
 
   /* Dentro de una caja (pestaña, admonición) no hay margen al que sobresalir: la captura se ajusta
      a la caja o se sale de su borde. */
-  & :is(.docs-tab-panel, .admonition) :is(img, .docs-zoom) {
+  & :is(.docs-tab-panel, .admonition) .docs-screenshot > :is(img, .docs-zoom) {
     @apply w-full max-w-full;
   }
 
   /* El aire extra sobre una captura separa del texto corrido; dentro de una caja ya lo da su padding. */
-  & .docs-tab-panel p:has(> img, > .docs-zoom) {
+  & .docs-tab-panel .docs-screenshot {
     @apply mt-0;
   }
 
@@ -275,6 +307,61 @@
 
     & code {
       @apply hidden;
+    }
+  }
+
+  /* Mientras llega el dibujo (aún sin `data-state`) el código no salta a la vista: una caja con el
+     texto de `data-loading-label` lo tapa desde el primer pintado, antes de cualquier JS. Solo con
+     JavaScript activo: sin él el código se lee como siempre. El `pre` conserva su franja (etiqueta y
+     copiar); su rejilla pone la caja en la misma celda que el código, encima. */
+  @media (scripting: enabled) {
+    & .docs-mermaid:not([data-state]) pre.astro-code {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+
+      & code {
+        grid-area: 2 / 1;
+        min-height: 12rem;
+        visibility: hidden;
+        /* Red de seguridad si el JS no llega a correr (bundle roto, script bloqueado): pasado
+           `--docs-mermaid-timeout` el código vuelve a verse aunque nadie ponga `data-state`. Ese margen cubre la descarga de
+           Mermaid en una conexión lenta; con `data-state` esta regla deja de aplicarse antes. */
+        animation: docs-mermaid-reveal 0s var(--docs-mermaid-timeout) forwards;
+      }
+
+      &::after {
+        content: attr(data-loading-label);
+        grid-area: 2 / 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--color-rule);
+        border-radius: 4px;
+        background-color: var(--color-canvas);
+        padding: 1rem;
+        color: var(--color-muted);
+        font-family: var(--font-sans);
+        white-space: normal;
+        text-align: center;
+        animation: docs-mermaid-dismiss 0s var(--docs-mermaid-timeout) forwards;
+      }
+    }
+
+    /* El brillo es decoración: con movimiento reducido la caja queda quieta, pero el plazo de 10 s
+       sigue en pie. */
+    @media (prefers-reduced-motion: no-preference) {
+      & .docs-mermaid:not([data-state]) pre.astro-code::after {
+        background-image: linear-gradient(
+          100deg,
+          transparent 30%,
+          color-mix(in oklab, var(--color-ink) 7%, transparent) 50%,
+          transparent 70%
+        );
+        background-size: 200% 100%;
+        animation:
+          docs-mermaid-shimmer 1.6s linear infinite,
+          docs-mermaid-dismiss 0s var(--docs-mermaid-timeout) forwards;
+      }
     }
   }
 
@@ -323,5 +410,29 @@
     & .docs-code pre {
       padding-top: 2.75rem;
     }
+  }
+}
+
+/* El plazo del indicador de carga de los diagramas (ver `.docs-mermaid:not([data-state])`): el
+   código recupera su sitio y la caja se retira. */
+@keyframes docs-mermaid-reveal {
+  to {
+    min-height: 0;
+    visibility: visible;
+  }
+}
+
+@keyframes docs-mermaid-dismiss {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes docs-mermaid-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
   }
 }

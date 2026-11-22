@@ -11,9 +11,14 @@ import type { SeoInput, SeoPageInput } from './input';
 
 const url = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' } as const;
 const config = resolveConfig({
-  name: 'Design',
-  locales: ['en', 'es'],
-  seo: { titleSuffix: 'Design', description: 'Docs of the design system for the whole portfolio.' },
+  site: {
+    name: 'Design',
+    seo: {
+      titleSuffix: 'Design',
+      description: 'Docs of the design system for the whole portfolio.',
+    },
+  },
+  i18n: { locales: ['en', 'es'] },
 });
 function heading(depth: number, text: string) {
   return { depth, slug: text.toLowerCase(), text };
@@ -158,7 +163,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
       const base = pages.map((original) => ({ ...original, body: '' }));
       const availability = excludeNoindex(buildAvailability(base, url), noindexUrls(base, url));
       const resolved = withImageSize(
-        resolveMeta(config.seo, source.seo, source, source.locale),
+        resolveMeta(config.site.seo, source.seo, source, source.locale),
         imageSizes,
       );
       const data = {
@@ -192,7 +197,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
   describe('schemas', () => {
     const org = { '@type': 'Organization', name: 'Acme' };
     const person = { '@type': 'Person', name: 'Ada' };
-    const withSchemas = resolveConfig({ name: 'Design', seo: { schema: [org] } });
+    const withSchemas = resolveConfig({ site: { name: 'Design', seo: { schema: [org] } } });
     const schemaPages = [
       page({ slug: 'plain', locale: 'en' }),
       page({ slug: 'extra', locale: 'en', seo: { schema: [person] } }),
@@ -201,7 +206,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
     const schemaTree = buildSeoTree({ config: withSchemas, url, pages: schemaPages });
     function published(source: (typeof schemaPages)[number]) {
       const base = schemaPages.map((original) => ({ ...original, body: '' }));
-      const resolved = resolveMeta(withSchemas.seo, source.seo, source, source.locale);
+      const resolved = resolveMeta(withSchemas.site.seo, source.seo, source, source.locale);
       const data = {
         kind: 'page',
         slug: source.slug,
@@ -280,9 +285,8 @@ describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
     return tree.pages.find((treePage) => treePage.slug === slug)!.issues.map((issue) => issue.kind);
   }
   const social = resolveConfig({
-    name: 'Design',
-    locales: ['en'],
-    seo: { image: { src: '/og.png', alt: 'Card' } },
+    site: { name: 'Design', seo: { image: { src: '/og.png', alt: 'Card' } } },
+    i18n: { locales: ['en'] },
   });
   function solo(extra: Partial<SeoPageInput> & Pick<SeoPageInput, 'slug'>) {
     return page({ locale: 'en', seo: { description }, ...extra });
@@ -315,9 +319,9 @@ describe('buildSeoTree: enlaces, imágenes y tarjeta social', () => {
 
   it('sin enlace en el cuerpo ni en la navegación (sola, fuera de las secciones de `nav`), es huérfana', () => {
     const sections = resolveConfig({
-      name: 'Design',
-      locales: ['en'],
-      nav: [{ label: 'API', dir: 'api' }],
+      site: { name: 'Design' },
+      i18n: { locales: ['en'] },
+      content: { nav: [{ label: 'API', dir: 'api' }] },
     });
     const tree = buildSeoTree({
       config: sections,

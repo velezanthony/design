@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { listOf, plural } from './text';
+import { folderLabel, humanize, listOf, plural } from './text';
 
 describe('plural', () => {
   it('el número con la forma que le toca', () => {
@@ -14,5 +14,22 @@ describe('listOf', () => {
     expect(listOf(['en'])).toBe('en');
     expect(listOf(['en', 'es'])).toBe('en y es');
     expect(listOf(['en', 'es', 'fr'])).toBe('en, es y fr');
+  });
+});
+
+describe('humanize', () => {
+  it('cambia guiones y guiones bajos por espacios y pone la primera en mayúscula', () => {
+    expect(humanize('getting-started')).toBe('Getting started');
+    expect(humanize('primeros_pasos')).toBe('Primeros pasos');
+  });
+});
+
+describe('folderLabel', () => {
+  it('nombra la carpeta por su último segmento', () => {
+    expect(folderLabel('guia/primeros-pasos')).toBe('Primeros pasos');
+  });
+
+  it('una carpeta de primer nivel es su propio nombre', () => {
+    expect(folderLabel('tutoriales')).toBe('Tutoriales');
   });
 });

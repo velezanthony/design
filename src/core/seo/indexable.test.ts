@@ -43,3 +43,10 @@ describe('excludeNoindex', () => {
     expect(availability.get('a')).toEqual({ en: '/repo/a/', es: '/repo/es/a/' });
   });
 });
+
+describe('noindexUrls: `slug` propio', () => {
+  it('excluye la URL traducida, la que de verdad está en el sitemap', () => {
+    const pages = [{ ...page('a', 'es', true), urlSlug: 'b' }];
+    expect([...noindexUrls(pages, url)]).toEqual(['/repo/es/b/']);
+  });
+});

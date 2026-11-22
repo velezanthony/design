@@ -1,0 +1,25 @@
+---
+import type { UiStrings } from '../../../core/i18n/ui-strings';
+import type { CoverView } from '../../../core/listing/covers';
+import type { ListingItem } from '../../../core/listing/view';
+import ListingCard from '../../molecules/content/ListingCard.astro';
+
+/* Índice en tarjetas (`layout: 'cards'`): la rejilla que repite `ListingCard`. Las columnas dependen
+   del ancho del contenedor (1 en móvil, 2 y luego 3), no de la ventana: la columna de docs cambia con
+   la barra lateral. */
+interface Props {
+  /** Las entradas de esta página, ya en orden y con su fecha formateada. */
+  items: ListingItem<CoverView>[];
+  strings: UiStrings;
+}
+
+const { items, strings } = Astro.props;
+---
+
+<div class="@container">
+  <ul class="grid gap-6 @lg:grid-cols-2 @3xl:grid-cols-3">
+    {items.map((item) => (
+      <ListingCard item={item} strings={strings} />
+    ))}
+  </ul>
+</div>

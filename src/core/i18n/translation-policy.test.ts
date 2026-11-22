@@ -5,6 +5,7 @@ import type { UrlPolicy } from './availability';
 import {
   fallbackRoutes,
   MissingTranslation,
+  pickLocalized,
   resolvePolicies,
   sourceLocale,
   undeclaredMissing,
@@ -132,6 +133,10 @@ describe('undeclaredMissing', () => {
     expect(undeclaredMissing([page('i', 'en')], ['en'])).toEqual([]);
   });
 
+  it('con la política declarada en la config del sitio no avisa', () => {
+    expect(undeclaredMissing([page('install', 'en')], locales, true)).toEqual([]);
+  });
+
   it('varios grupos y varios idiomas ausentes, en orden', () => {
     expect(
       undeclaredMissing(
@@ -159,7 +164,7 @@ describe('DocsErrors se usa con resolvePolicies', () => {
 });
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const config = { locales: ['en', 'es'], defaultLocale: 'en' };
+const config = { i18n: { locales: ['en', 'es'], defaultLocale: 'en' } };
 
 describe('fallbackRoutes', () => {
   const availability = new Map([
@@ -174,9 +179,10 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(availability, policies, config, url)).toEqual([
+    expect(fallbackRoutes({ availability, policies, config, url, pages: [] })).toEqual([
       {
         slug: 'changelog',
+        urlSlug: 'changelog',
         locale: 'es',
         isFallback: true,
         entryMeta: { locale: 'en' },
@@ -191,23 +197,72 @@ describe('fallbackRoutes', () => {
       ['install', 'fallback'],
       ['faq', 'link'],
     ]);
-    expect(fallbackRoutes(availability, policies, config, url)).toEqual([]);
+    expect(fallbackRoutes({ availability, policies, config, url, pages: [] })).toEqual([]);
   });
 
   it('no cambia Availability: las rutas de reserva no son traducciones', () => {
     const before = structuredClone([...availability]);
-    fallbackRoutes(availability, new Map([['changelog', 'fallback']]), config, url);
+    fallbackRoutes({
+      availability,
+      policies: new Map([['changelog', 'fallback']]),
+      config,
+      url,
+      pages: [],
+    });
     expect([...availability]).toEqual(before);
   });
 
   it('con tres idiomas genera una ruta por cada idioma ausente', () => {
-    const three = { locales: ['en', 'es', 'fr'], defaultLocale: 'en' };
-    const routes = fallbackRoutes(
-      new Map([['a', { en: '/repo/a/' }]]),
-      new Map([['a', 'fallback']]),
-      three,
+    const three = { i18n: { locales: ['en', 'es', 'fr'], defaultLocale: 'en' } };
+    const routes = fallbackRoutes({
+      availability: new Map([['a', { en: '/repo/a/' }]]),
+      policies: new Map([['a', 'fallback']]),
+      config: three,
       url,
-    );
+      pages: [],
+    });
     expect(routes.map((route) => route.locale)).toEqual(['es', 'fr']);
+  });
+});
+
+describe('fallbackRoutes: `slug` propio', () => {
+  it('la ruta de reserva usa la URL del original: el prefijo del idioma y el `slug` del original', () => {
+    const pages = [{ ...page('a', 'en'), urlSlug: 'guide/a' }];
+    const [route] = fallbackRoutes({
+      availability: new Map([['a', { en: '/repo/guide/a/' }]]),
+      policies: new Map([['a', 'fallback']]),
+      config,
+      url,
+      pages,
+    });
+    expect(route).toMatchObject({
+      slug: 'a',
+      urlSlug: 'guide/a',
+      locale: 'es',
+      canonical: '/repo/guide/a/',
+    });
+  });
+});
+
+describe('pickLocalized', () => {
+  const config = { i18n: { locales: ['es', 'en', 'fr'], defaultLocale: 'es' } };
+
+  it('la página en el idioma pedido, si existe', () => {
+    const items = [page('a', 'es'), page('a', 'en')];
+    expect(pickLocalized(items, 'a', 'en', config)).toBe(items[1]);
+  });
+
+  it('sin esa traducción, la del idioma por defecto', () => {
+    const items = [page('a', 'en'), page('a', 'es')];
+    expect(pickLocalized(items, 'a', 'fr', config)).toBe(items[1]);
+  });
+
+  it('con tres idiomas y sin el por defecto, el primero de `locales` presente, no el primero que aparece', () => {
+    const items = [page('a', 'fr'), page('a', 'en')];
+    expect(pickLocalized(items, 'a', 'es', config)).toBe(items[1]);
+  });
+
+  it('sin ninguna página con esa identidad, nada', () => {
+    expect(pickLocalized([page('b', 'es')], 'a', 'es', config)).toBeUndefined();
   });
 });

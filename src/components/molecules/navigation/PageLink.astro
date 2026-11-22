@@ -1,0 +1,34 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import type { Locale } from '../../../core/i18n/locale';
+import { localeNames, translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import Tag from '../../atoms/display/Tag.astro';
+
+/* El enlace a una página desde la barra lateral, un listado o `::nav-tree`: su título y, si lleva al
+   original de otro idioma (política `link`), la insignia de ese idioma con el átomo `Tag`. Los demás
+   atributos (`aria-current`) van al enlace. */
+interface Props extends Omit<
+  HTMLAttributes<'a'>,
+  'href' | 'title' | 'class' | 'hreflang' | 'lang'
+> {
+  href: string;
+  title: string;
+  badge?: Locale;
+  strings: UiStrings;
+  /** Clases del enlace: una cadena o una lista, como `class:list`. */
+  class?: string | (string | false | undefined)[];
+}
+
+const { href, title, badge, strings, class: className, ...rest } = Astro.props;
+const badgeName =
+  badge && translate(strings, 'translation.badgeLabel', { locale: localeNames[badge] ?? badge });
+---
+
+<a href={href} {...rest} hreflang={badge} lang={badge} class:list={className}>
+  {title}
+  {badge && (
+    <Tag tone="faint" bordered role="img" aria-label={badgeName} class="ml-2 align-middle">
+      {badge}
+    </Tag>
+  )}
+</a>

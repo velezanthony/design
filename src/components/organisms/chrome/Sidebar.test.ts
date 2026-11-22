@@ -82,6 +82,24 @@ describe('Sidebar', () => {
     expect(text(badge)).toBe('en');
   });
 
+  it('la insignia es la misma pieza que en los listados (PageLink con el átomo Tag)', async () => {
+    const link = (await sidebar()).querySelector('a[href="/repo/en/changelog/"]')!;
+    const badge = link.querySelector('[role="img"]')!;
+    for (const name of ['label', 'text-faint', 'border', 'border-current']) {
+      expect(badge.classList.contains(name)).toBe(true);
+    }
+  });
+
+  it('el enlace de la página actual conserva aria-current y sus clases', async () => {
+    const htmlDocument = await sidebar({
+      nodes: [{ label: 'Changelog', href: '/repo/en/changelog/', slug: 'changelog', badge: 'en' }],
+      current: '/repo/en/changelog/',
+    });
+    const link = htmlDocument.querySelector('a[href="/repo/en/changelog/"]')!;
+    expect(link.getAttribute('aria-current')).toBe('page');
+    expect(link.classList.contains('rounded-md')).toBe(true);
+  });
+
   it('las hojas propias no llevan insignia ni hreflang', async () => {
     const link = (await sidebar()).querySelector('a[href="/repo/es/guide/install/"]')!;
     expect(link.hasAttribute('hreflang')).toBe(false);

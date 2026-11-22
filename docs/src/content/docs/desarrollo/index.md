@@ -48,13 +48,70 @@ Las flechas son las únicas direcciones permitidas. Fíjate en lo que **no** hay
   **rutas** de `astro/routes/` (contenedores), que le pasan el modelo a las páginas de
   `components/pages/` (presentacionales: solo pintan).
 
+### Dependencias dentro de `core/` (N4)
+
+Dentro del núcleo también hay direcciones:
+
+- **`core/config/`** no importa **valores** de `core/navigation/`, `core/listing/`, `core/seo/` ni
+  `core/seo-on-page/`: esos dominios leen la config, no al revés. Puede usar `core/content/`,
+  `core/i18n/` y `core/shared/`, y tipos de cualquiera con `import type`. Por eso
+  `DEFAULT_TOC_DEPTH` vive en `core/config/layout.ts` y `core/navigation/toc-entries.ts` lo importa
+  de ahí.
+- **`core/shared/`** no importa ningún dominio de `core/`: texto, paginación y URLs genéricas que
+  cualquiera puede usar (`paginate`, `humanize`, `folderLabel`, `withBase`).
+
+### Modelos de vista (N1)
+
+Un componente no deriva: recibe el modelo ya calculado. El modelo de vista de un organismo con
+lógica es una función pura en `core/<dominio>/view.ts`, y las URLs le llegan por un **puerto** que
+implementa `astro/views/`. El listado de un índice es el ejemplo: `core/listing/view.ts`
+(`buildListingView`) devuelve un `ListingView` (una unión por disposición) y recibe las URLs por
+`ListingHrefs`, que implementa `astro/views/doc-listing.ts` con la base, el idioma y la barra final
+del sitio. Los componentes `Listing*` solo pintan lo que reciben: ni formatean fechas ni calculan
+rangos.
+
+### La config en tres grupos (N13)
+
+La config pública y la resuelta tienen la misma forma: `site` (cómo se ve y se presenta), `i18n`
+(idiomas y textos) y `content` (qué páginas hay y cómo se navega). Cada grupo tiene su módulo en
+`core/config/` (`site.ts`, `i18n.ts`, `content.ts`) con su esquema, su tipo resuelto y su resolución;
+`schema.ts` los compone y valida lo que cruza grupos. Quien solo necesita una parte la pide con
+`ConfigPick` (`ConfigPick<'footer' | 'social'>` es `{ site: { footer, social } }`). Una opción nueva
+va en su grupo y en su módulo ([Recetas](./recetas.md#una-opción-de-configuración)).
+
+### Ajustes por carpeta (N11)
+
+Todo ajuste que cambia de una carpeta a otra vive en `content.folders`, se hereda **por hoja** con
+`folderSettings` (`core/config/folders.ts`: la carpeta declarada más cercana, luego `'*'`, luego el
+valor por defecto, con `declaredAt`) y nadie más resuelve precedencias por carpeta. El frontmatter solo
+lleva el contenido de la página (N14): el comportamiento de una carpeta no va en su `_index.md`.
+
+### Constantes de las opciones cerradas (N12)
+
+Toda opción de valores cerrados es un objeto `as const` exportado desde
+`@velezanthony/design/integration`, del que salen su tipo y su esquema; las guías la usan en los
+ejemplos (`ListingView.CARDS`, no `'cards'`). `public-api.test.ts` lo vigila.
+
+### Organismos que solo componen (N10)
+
+Un organismo compone moléculas y átomos. Un marcado repetido en dos organismos (o en un organismo y
+una molécula) pasa a ser una molécula o un átomo, con su test y su línea en el mapa: la insignia de
+idioma es `PageLink` (barra lateral, listados y `::nav-tree`), la fecha es `DateLabel` y el camino
+«Sección › Grupo» es `SectionPath`.
+
 ### Subcapas de `astro/`
 
 Dentro de `astro/` los datos y la presentación tampoco se importan entre sí: solo `routes/` conoce a los dos.
 
 - `views/` (modelos de vista) no importa `astro:*`, el paquete `astro` ni `data/`, y tampoco `components/`.
 - `loader/` no importa `integration/`.
-- `data/` no importa `routes/` ni `components/`.
+- `data/` no importa `routes/`, `views/` ni `components/` (tampoco sus tipos). Si una ruta necesita
+  datos y una vista, los lee de `data/` y se los pasa a `views/`: `routes/doc.astro` lee las fechas de
+  commit y optimiza las portadas (`data/covers.ts`) y llama a `docListingView`.
+  Sin excepciones: el adaptador del panel (`data/seo-on-page/`) tampoco; las rutas del panel arman
+  sus enlaces (`views/seo-on-page/hrefs`).
+- La ruta construye el contexto del sitio (`siteContext`) una vez por render y lo pasa a cada vista
+  (`docView`, `docListingView`, `docNavTrees`); `docRoutes` resuelve el listado de cada ruta una vez.
 
 ### Valla del panel de desarrollo
 
@@ -75,6 +132,10 @@ carpeta mediante una función `layer(folder, paths, patterns)`:
   `astro/zod`, y un patrón no puede volver a permitir algo que cuelga de una carpeta ya excluida.
 - Las subcapas de `astro/` usan `siblingOf([...])`, que solo atrapa la carpeta hermana (`../data`) y no
   `../virtual/data`; la valla del panel usa `relativeTo(['seo-on-page'])` con `ignores` para el propio panel.
+  N3 es `siblingOf(['routes', 'components', 'views'])` en `astro/data`.
+- `core/config` y `core/shared` tienen su propia capa (N4), que repite las reglas de todo `core/`
+  (`corePatterns`) y suma las suyas: en la config, `siblingOf([...])` con `allowTypeImports: true`;
+  en lo compartido, cualquier `../`.
 - En `client/`, la regla de `core/` lleva `allowTypeImports: true`: los `import type` pasan, los
   valores no.
 

@@ -111,6 +111,15 @@ describe('fixFor: páginas externas (docs.config.mjs)', () => {
     expect(fix).not.toContain('frontmatter');
   });
 
+  it('la portada externa se nombra como en la config, «index», no con su slug vacío', () => {
+    const home = { ...external, slug: '', sourcePath: 'README.md' };
+    for (const kind of [IssueKind.DESCRIPTION_MISSING, IssueKind.ORPHAN_PAGE]) {
+      const fix = fixFor(kind, home);
+      expect(fix).toContain('«index»');
+      expect(fix).not.toContain('«»');
+    }
+  });
+
   it('traducción ausente: crear el archivo gemelo o declarar external[].translations', () => {
     const fix = fixFor(IssueKind.TRANSLATION_MISSING, external, {
       missingLocale: 'es',

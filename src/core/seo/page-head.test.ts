@@ -6,16 +6,17 @@ import { buildPageHead, type PageHeadInput } from './page-head';
 const site = new URL('https://x.dev');
 const config = {
   ...resolveConfig({
-    name: 'Anthony',
-    locales: ['es', 'en'],
-    defaultLocale: 'es',
-    ogLocales: { es: 'es_ES', en: 'en_GB' },
-    seo: {
-      titleSuffix: 'Anthony',
-      image: { src: '/og.png', alt: 'Anthony' },
-      schema: [{ '@type': 'WebSite', name: 'Anthony' }],
+    site: {
+      name: 'Anthony',
+      favicon: '/favicon-32.png',
+      seo: {
+        ogLocales: { es: 'es_ES', en: 'en_GB' },
+        titleSuffix: 'Anthony',
+        image: { src: '/og.png', alt: 'Anthony' },
+        schema: [{ '@type': 'WebSite', name: 'Anthony' }],
+      },
     },
-    favicon: '/favicon-32.png',
+    i18n: { locales: ['es', 'en'], defaultLocale: 'es' },
   }),
   base: '/',
 };

@@ -57,7 +57,7 @@ describe('parseConsent', () => {
     expect(parseConsent(old)).toBeUndefined();
   });
 
-  /* Contrato compartido con el portfolio: otro sitio puede haber subido la versión. Aceptarla
+  /* Contrato compartido con los sitios del mismo dominio: otro sitio puede haber subido la versión. Aceptarla
      evita preguntar dos veces a quien ya respondió a una política más reciente. */
   it('acepta una versión guardada mayor o igual que la propia', () => {
     expect(parseConsent(serializeConsent('denied', CONSENT_VERSION))).toBe('denied');
@@ -72,7 +72,7 @@ describe('parseConsent', () => {
 });
 
 describe('serializeConsent', () => {
-  it('mantiene la forma del portfolio', () => {
+  it('mantiene la forma compartida', () => {
     expect(JSON.parse(serializeConsent('granted'))).toEqual({
       v: CONSENT_VERSION,
       choice: 'granted',
@@ -97,7 +97,7 @@ describe('readConsent / writeConsent', () => {
     expect(writeConsent(blocked, 'granted')).toBe(false);
   });
 
-  /* Guardar baja la versión si no se hace con cuidado: el portfolio, en v2, vería la elección
+  /* Guardar baja la versión si no se hace con cuidado: otro sitio del dominio, en v2, vería la elección
      como obsoleta y preguntaría otra vez. Se guarda el máximo. */
   it('guarda el máximo entre la versión almacenada y la propia', () => {
     const storage = memory({ consent: serializeConsent('granted', CONSENT_VERSION + 2) });

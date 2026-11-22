@@ -128,7 +128,7 @@ describe('themeBootstrapScript', () => {
     expect(run('throws').documentElement.dataset.theme).toBeUndefined();
   });
 
-  it('usa la clave compartida con el portfolio', () => {
+  it('usa la clave compartida con los sitios del mismo dominio', () => {
     expect(themeBootstrapScript(colors)).toContain('getItem("theme")');
   });
 });

@@ -1,9 +1,17 @@
 import { normalizePath } from './content-dir';
+import { excluder } from './exclude';
 
 /** Una carpeta que se publica tal cual: `from` desde la raíz del proyecto, `to` bajo la raíz del sitio. */
 export interface StaticFolder {
   from: string;
   to: string;
+  /** Patrones de `exclude` (estilo `.gitignore`) relativos a `from`: lo que no se publica. */
+  exclude?: string[];
+}
+
+/** Qué archivos de la carpeta (ruta relativa a `from`, con `/`) no se publican; lo comparten el build y dev. */
+export function staticExcluder(folder: StaticFolder): (inside: string) => boolean {
+  return excluder(folder.exclude ?? []);
 }
 
 /** Lo que la librería ya sirve en la raíz del sitio. */

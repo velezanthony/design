@@ -18,16 +18,18 @@ import ReportDialog from '../organisms/shared/ReportDialog.astro';
 interface Props {
   view: Omit<ComponentProps<typeof DocsLayout>, 'year'>;
   year: number;
+  /** Pie configurado (`components.Footer`), que pasa la ruta; sin él, el de la librería. */
+  Footer?: ComponentProps<typeof DocsLayout>['Footer'];
   model: ListingModel;
   failures: ComponentProps<typeof ClientPageFailures>['failures'];
   report: ComponentProps<typeof ReportDialog>;
 }
 
-const { view, year, model, failures, report } = Astro.props;
+const { view, year, Footer, model, failures, report } = Astro.props;
 const { footer } = model;
 ---
 
-<DocsLayout {...view} year={year}>
+<DocsLayout {...view} year={year} Footer={Footer}>
   <slot name="head" slot="head" />
   <PanelIntro
     title={SCREEN_LABELS.pages}

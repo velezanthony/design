@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { DocsError } from '../errors';
-import { findSlugCollisions, toSlug } from './slug';
+import {
+  findSlugCollisions,
+  findUrlCollisions,
+  isListingFile,
+  listingFolder,
+  LISTING_STEM,
+  slugProblem,
+  toSlug,
+  urlSlugOf,
+} from './slug';
 
 describe('toSlug', () => {
   it('conserva la ruta sin extensión', () => {
@@ -74,5 +83,147 @@ describe('findSlugCollisions', () => {
         { slug: 'a', locale: 'es', file: 'a.es.md' },
       ]),
     ).toEqual([]);
+  });
+});
+
+describe('urlSlugOf', () => {
+  it('sin `slug` propio, la URL sale de la identidad (el nombre del archivo)', () => {
+    expect(urlSlugOf({ slug: 'tutoriales/x' })).toBe('tutoriales/x');
+  });
+
+  it('con `slug` propio, la URL es la suya', () => {
+    expect(urlSlugOf({ slug: 'tutoriales/x', urlSlug: 'tutorials/y' })).toBe('tutorials/y');
+  });
+});
+
+describe('slugProblem', () => {
+  const locales = ['es', 'en'];
+
+  it('una ruta relativa al contenido, con o sin carpetas, es válida', () => {
+    expect(slugProblem('tutorials/installation', locales)).toBeUndefined();
+    expect(slugProblem('guide', locales)).toBeUndefined();
+    expect(slugProblem('notas/v1.2_final', locales)).toBeUndefined();
+    expect(slugProblem('guías/año', locales)).toBeUndefined();
+  });
+
+  it('vacío: pide quitarlo o escribir la ruta', () => {
+    expect(slugProblem('', locales)?.message).toContain('vacío');
+    expect(slugProblem('   ', locales)?.message).toContain('vacío');
+  });
+
+  it('absoluto o con barra final: pide la ruta sin barras en los extremos', () => {
+    expect(slugProblem('/tutorials/x', locales)?.message).toContain('`/`');
+    expect(slugProblem('tutorials/x/', locales)?.message).toContain('`/`');
+    expect(slugProblem('/tutorials/x', locales)?.hint).toContain('tutorials/');
+  });
+
+  it('`..` o `.` como segmento', () => {
+    expect(slugProblem('tutorials/../x', locales)?.message).toContain('`..`');
+    expect(slugProblem('./x', locales)?.message).toContain('`..`');
+  });
+
+  it('con prefijo de idioma: lo añade la librería', () => {
+    const problem = slugProblem('en/tutorials/x', locales);
+    expect(problem?.message).toContain('«en»');
+    expect(problem?.hint).toContain('prefijo');
+    // El idioma por defecto también: su prefijo está reservado a la otra forma de escribir la URL.
+    expect(slugProblem('es/x', locales)?.message).toContain('«es»');
+    expect(slugProblem('english/x', locales)).toBeUndefined();
+  });
+
+  it('terminado en `/index`: se escribe la carpeta', () => {
+    expect(slugProblem('guide/index', locales)?.message).toContain('/index');
+    expect(slugProblem('index', locales)?.message).toContain('/index');
+    expect(slugProblem('guide/reindex', locales)).toBeUndefined();
+  });
+
+  it('caracteres no válidos: los nombra', () => {
+    const problem = slugProblem('tutorials/c++ setup?', locales);
+    expect(problem?.message).toContain('+');
+    expect(problem?.message).toContain('?');
+    expect(slugProblem('tutorials//x', locales)?.message).toContain('segmento vacío');
+    expect(slugProblem('tutorials\\x', locales)?.message).toContain('\\');
+  });
+});
+
+describe('findUrlCollisions', () => {
+  it('un `slug` que coincide con la URL de otro archivo del mismo idioma nombra ambos', () => {
+    const [error, ...rest] = findUrlCollisions([
+      { slug: 'guide', locale: 'en', file: 'a.en.md', explicit: true },
+      { slug: 'guide', locale: 'en', file: 'guide.en.md', explicit: false },
+    ]);
+    expect(rest).toEqual([]);
+    expect(error).toBeInstanceOf(DocsError);
+    expect(error?.message).toContain('«guide» (en)');
+    expect(error?.message).toContain('a.en.md (slug)');
+    expect(error?.message).toContain('guide.en.md');
+    expect(error?.file).toBe('a.en.md');
+    expect(error?.hint).toContain('`slug`');
+  });
+
+  it('dos `slug` iguales en el mismo idioma también chocan', () => {
+    expect(
+      findUrlCollisions([
+        { slug: 'x', locale: 'en', file: 'a.en.md', explicit: true },
+        { slug: 'x', locale: 'en', file: 'b.en.md', explicit: true },
+      ]),
+    ).toHaveLength(1);
+  });
+
+  it('sin ningún `slug` no informa: ese choque ya lo cuenta `findSlugCollisions`', () => {
+    expect(
+      findUrlCollisions([
+        { slug: 'a', locale: 'en', file: 'a.md', explicit: false },
+        { slug: 'a', locale: 'en', file: 'a/index.md', explicit: false },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('la misma URL en otro idioma no choca', () => {
+    expect(
+      findUrlCollisions([
+        { slug: 'x', locale: 'en', file: 'a.en.md', explicit: true },
+        { slug: 'x', locale: 'es', file: 'x.md', explicit: false },
+      ]),
+    ).toEqual([]);
+  });
+});
+
+describe('listingFolder', () => {
+  it('el nombre del archivo de un listado es `_index`', () => {
+    expect(LISTING_STEM).toBe('_index');
+  });
+
+  it('`tutoriales/_index` es el listado de `tutoriales`', () => {
+    expect(listingFolder('tutoriales/_index')).toBe('tutoriales');
+    expect(listingFolder('guia/avanzado/_index')).toBe('guia/avanzado');
+  });
+
+  it('`_index` en la raíz es el de la portada (carpeta vacía)', () => {
+    expect(listingFolder('_index')).toBe('');
+  });
+
+  it('lo que no es un `_index` no tiene carpeta', () => {
+    expect(listingFolder('tutoriales/index')).toBeUndefined();
+    expect(listingFolder('tutoriales/mi_index')).toBeUndefined();
+    expect(listingFolder('tutoriales')).toBeUndefined();
+  });
+});
+
+describe('isListingFile', () => {
+  it('reconoce el `_index.md` de una carpeta y el de la raíz', () => {
+    expect(isListingFile('tutoriales/_index.md')).toBe(true);
+    expect(isListingFile('_index.md')).toBe(true);
+  });
+
+  it('reconoce sus traducciones (`_index.en.md`)', () => {
+    expect(isListingFile('tutoriales/_index.en.md')).toBe(true);
+    expect(isListingFile('_index.en.md')).toBe(true);
+  });
+
+  it('no confunde un `index.md` ni un archivo que solo acaba en `_index`', () => {
+    expect(isListingFile('tutoriales/index.md')).toBe(false);
+    expect(isListingFile('tutoriales/mi_index.md')).toBe(false);
+    expect(isListingFile('tutoriales/_index/otra.md')).toBe(false);
   });
 });

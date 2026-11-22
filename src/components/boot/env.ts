@@ -24,6 +24,8 @@ export interface BootEnv {
   clipboard: Pick<Clipboard, 'writeText'> | undefined;
   hostname: string;
   reload: () => void;
+  /** Para ir a otra ruta desde el selector «Por página» de un listado. Sin ella, no se cablea. */
+  location?: Pick<Location, 'assign'>;
 }
 
 /** El entorno real. Se lee al ejecutar el script, nunca al importar el módulo. */
@@ -44,5 +46,6 @@ export function browserEnv(): BootEnv {
     clipboard: navigator.clipboard,
     hostname: location.hostname,
     reload: () => location.reload(),
+    location,
   };
 }

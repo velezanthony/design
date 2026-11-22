@@ -115,3 +115,55 @@ describe('Article: columna lateral', () => {
     expect(doc.querySelector('[data-toc-column]')!.getAttribute('class')).toBe('hidden xl:block');
   });
 });
+
+describe('Article: capturas', () => {
+  const img = '<img src="/a.png" alt="A" width="10" height="10">';
+
+  it('marca con docs-screenshot el párrafo que solo tiene una imagen, también fuera de los docs', async () => {
+    const doc = await article({}, { default: `<p>${img}</p><p>Texto ${img}</p>` });
+    const marked = doc.querySelectorAll('.prose p.docs-screenshot');
+    expect(marked).toHaveLength(1);
+    expect(marked[0]!.querySelector('img')).not.toBeNull();
+  });
+
+  it('no marca dos veces un párrafo que ya viene marcado', async () => {
+    const doc = await article({}, { default: `<p class="docs-screenshot">${img}</p>` });
+    expect(doc.querySelector('p')!.getAttribute('class')).toBe('docs-screenshot');
+  });
+
+  it('con `prose={false}` el contenido queda tal cual', async () => {
+    const doc = await article({ prose: false }, { default: `<p>${img}</p>` });
+    expect(doc.querySelector('p.docs-screenshot')).toBeNull();
+  });
+});
+
+describe('Article: tablas', () => {
+  const table = '<table><tr><td>a</td></tr></table>';
+
+  it('envuelve cada tabla en un .table-scroll enfocable, también fuera de los docs', async () => {
+    const doc = await article({}, { default: `<p>x</p>${table}${table}` });
+    const wrappers = doc.querySelectorAll('.prose > .table-scroll');
+    expect(wrappers).toHaveLength(2);
+    expect(wrappers[0]!.getAttribute('tabindex')).toBe('0');
+    expect(wrappers[0]!.querySelector(':scope > table')).not.toBeNull();
+  });
+
+  it('una tabla del Markdown de docs (sin plugin de tablas) sale una sola vez envuelta', async () => {
+    const doc = await article({}, { default: `<h2>T</h2>\n${table}\n<p>x</p>` });
+    expect(doc.querySelectorAll('.table-scroll')).toHaveLength(1);
+    expect(doc.querySelectorAll('.table-scroll .table-scroll')).toHaveLength(0);
+  });
+
+  it('no envuelve otra vez una tabla que ya viene en su .table-scroll (a mano, como en el sitio del autor)', async () => {
+    const doc = await article(
+      {},
+      { default: `<div class="table-scroll" tabindex="0">${table}</div>` },
+    );
+    expect(doc.querySelectorAll('.table-scroll')).toHaveLength(1);
+  });
+
+  it('con `prose={false}` el contenido queda tal cual', async () => {
+    const doc = await article({ prose: false }, { default: table });
+    expect(doc.querySelector('.table-scroll')).toBeNull();
+  });
+});

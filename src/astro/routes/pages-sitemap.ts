@@ -10,7 +10,7 @@ export const XML_HEADERS = { 'Content-Type': 'application/xml; charset=utf-8' };
 /** Sitemap de las páginas propias; las de `src/pages/` solo en dev (en el build, `astro:build:done`). */
 export async function pagesSitemapResponse(url: URL): Promise<Response> {
   const data = await getDocData();
-  const where = { origin: url.origin, site: siteConfig.site, base: siteConfig.base };
+  const where = { origin: url.origin, site: siteConfig.siteUrl, base: siteConfig.base };
   const { pages } = await loadClientPages(where);
   // Un solo git log para todos los archivos: los de la documentación y los de las páginas del cliente.
   const dates = await lastModifiedDates(fileURLToPath(siteConfig.root), [

@@ -57,7 +57,7 @@ aviso de consentimiento.
 
 ### Las páginas que añade el sitio en `src/pages/`
 
-Un sitio puede tener páginas propias además de la documentación (el portfolio: portada, CV,
+Un sitio puede tener páginas propias además de la documentación (una portada, un CV, una lista de
 proyectos). De esas la librería no tiene frontmatter que leer, así que el panel las lee **como las
 ve un visitante**:
 

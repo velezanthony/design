@@ -1,6 +1,6 @@
 import { access } from 'node:fs/promises';
 import path from 'node:path';
-import type { ResolvedConfig } from '../../core/config/resolve';
+import type { ConfigPick } from '../../core/config/resolve';
 import { DocsError } from '../../core/errors';
 
 function exists(file: string) {
@@ -23,17 +23,21 @@ export async function findRepoRoot(
 
 /** Raíz del repo para los enlaces «editar»: `repoRoot` o el ancestro con `.git`; solo con `editUrl`, y sin raíz lanza `DocsError`. */
 export async function resolveRepoRoot(
-  config: Pick<ResolvedConfig, 'editUrl' | 'repoRoot'>,
+  config: ConfigPick<never, never, 'editUrl' | 'repoRoot'>,
   projectRoot: string,
   markers?: readonly string[],
 ): Promise<string | undefined> {
-  if (config.editUrl === undefined) return undefined;
-  if (config.repoRoot !== undefined) return path.resolve(projectRoot, config.repoRoot);
+  if (config.content.editUrl === undefined) return undefined;
+  if (config.content.repoRoot !== undefined)
+    return path.resolve(projectRoot, config.content.repoRoot);
   const found = await findRepoRoot(projectRoot, markers);
   if (!found) {
-    throw new DocsError('`editUrl` está definida pero no se encuentra la raíz del repositorio.', {
-      hint: 'Inicializa git en el proyecto o indica `repoRoot` en la config de docs.',
-    });
+    throw new DocsError(
+      '`content.editUrl` está definida pero no se encuentra la raíz del repositorio.',
+      {
+        hint: 'Inicializa git en el proyecto o indica `content.repoRoot` en la config de docs.',
+      },
+    );
   }
   return found;
 }

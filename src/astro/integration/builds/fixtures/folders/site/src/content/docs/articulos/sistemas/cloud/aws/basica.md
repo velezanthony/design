@@ -1,0 +1,1 @@
+# Arquitectura básica en AWS

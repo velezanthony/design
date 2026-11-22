@@ -1,7 +1,8 @@
 import type { Page } from '../content/discovery';
 import { DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
+import { staticExcluder, type StaticFolder } from '../content/static-folders';
 import { DocsError } from '../errors';
-import { pageUrl, type UrlPolicy } from '../i18n/availability';
+import { pageUrlOf, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import { fenceMask } from './fences';
 
@@ -15,6 +16,8 @@ export interface PageIndex {
   contentDir?: string;
   /** Los `.md` de `content` que `exclude` deja fuera, relativos a esa carpeta: un enlace a ellos tiene su propio error. */
   excluded?: ReadonlySet<string>;
+  /** Las carpetas de `static`: un enlace relativo a un archivo suyo se reescribe a su URL publicada. */
+  staticFolders?: readonly StaticFolder[];
 }
 
 /** Enlace interno ya resuelto a una página; `validateAnchors` comprueba su ancla. */
@@ -80,6 +83,23 @@ function findExcluded(resolved: string, from: Page, index: PageIndex): string | 
   return inside !== undefined && index.excluded.has(inside) ? inside : undefined;
 }
 
+/** La carpeta de `static` (y su posición en la config) que contiene `resolved`, con la ruta dentro de ella. */
+function findStatic(resolved: string, from: Page, index: PageIndex) {
+  // `from` cuelga de la raíz del proyecto, igual que los externos; las nativas, de `content`.
+  const fromRoot =
+    from.kind === 'native'
+      ? normalizePath(`${index.contentDir ?? DEFAULT_CONTENT_DIR}/${resolved}`)
+      : resolved;
+  for (const [position, folder] of (index.staticFolders ?? []).entries()) {
+    const source = normalizePath(folder.from);
+    if (fromRoot === source) return { position, folder, inside: '' };
+    if (fromRoot.startsWith(`${source}/`)) {
+      return { position, folder, inside: fromRoot.slice(source.length + 1) };
+    }
+  }
+  return undefined;
+}
+
 /** Rangos `[inicio, fin)` de los códigos en línea de una línea (backticks de igual longitud). */
 function codeSpans(line: string): [number, number][] {
   const spans: [number, number][] = [];
@@ -142,12 +162,21 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     // Una codificación inválida se busca tal cual: acabará como enlace roto.
   }
   const resolved = resolvePath(from.sourcePath, decoded);
+  const published = findStatic(resolved, from, index);
   if (!/\.md$/i.test(resolved)) {
     if (index.assets?.has(resolved)) return undefined;
-    errors.push(brokenLink(rawTarget, from, line, 'no es una página ni un recurso publicado'));
+    if (published)
+      return staticUrl(rawTarget, target.slice(path.length), decoded, published, line, context);
+    errors.push(
+      brokenLink(rawTarget, from, line, 'no es una página ni un recurso publicado', index),
+    );
     return undefined;
   }
   const found = findTarget(resolved, decoded, from, index);
+  // Un `.md` de la carpeta que no es página se publica tal cual, como el resto de la carpeta.
+  if (!found && published) {
+    return staticUrl(rawTarget, target.slice(path.length), decoded, published, line, context);
+  }
   if (!found) {
     const excluded = findExcluded(resolved, from, index);
     if (excluded !== undefined) {
@@ -157,16 +186,16 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
           {
             file: from.sourcePath,
             line,
-            hint: 'Quita el enlace o saca ese archivo de `exclude` en la config.',
+            hint: 'Quita el enlace o saca ese archivo de `content.exclude` en la config.',
           },
         ),
       );
       return undefined;
     }
-    errors.push(brokenLink(rawTarget, from, line, 'no es una página publicada'));
+    errors.push(brokenLink(rawTarget, from, line, 'no es una página publicada', index));
     return undefined;
   }
-  // La gemela del idioma de origen manda; si no existe, se enlaza la página que sí existe.
+  // La gemela del idioma de origen (misma identidad) manda; si no existe, se enlaza la página que sí existe. Su URL lleva su `slug` propio.
   const twin = index.pages.find(
     (page) => page.kind === found.kind && page.slug === found.slug && page.locale === from.locale,
   );
@@ -178,14 +207,48 @@ function rewriteTarget(rawTarget: string, line: number, context: Context): strin
     locale: destination.locale,
     ...withAnchor,
   });
-  return pageUrl(destination.slug, destination.locale, index.url) + (anchor ? `#${anchor}` : '');
+  return pageUrlOf(destination, index.url) + (anchor ? `#${anchor}` : '');
 }
 
-function brokenLink(target: string, from: Page, line: number, reason: string): DocsError {
+/** URL publicada de un archivo de `static` (base + `to` + el resto, con su query y su ancla), o un error si su `exclude` lo deja fuera. */
+function staticUrl(
+  rawTarget: string,
+  suffix: string,
+  decoded: string,
+  { position, folder, inside }: NonNullable<ReturnType<typeof findStatic>>,
+  line: number,
+  { from, index, errors }: Context,
+): string | undefined {
+  if (inside && staticExcluder(folder)(inside)) {
+    errors.push(
+      new DocsError(
+        `El enlace «${rawTarget}» apunta a «${inside}», que \`content.static[${position}].exclude\` deja fuera de la publicación.`,
+        {
+          file: from.sourcePath,
+          line,
+          hint: `Quita el enlace o el patrón de \`content.static[${position}].exclude\`.`,
+        },
+      ),
+    );
+    return undefined;
+  }
+  const segments = [...index.url.base.split('/'), ...folder.to.split('/'), ...inside.split('/')];
+  const slash = decoded.endsWith('/') ? '/' : '';
+  return `/${encodeURI(segments.filter(Boolean).join('/'))}${slash}${suffix}`;
+}
+
+function brokenLink(
+  target: string,
+  from: Page,
+  line: number,
+  reason: string,
+  index: PageIndex,
+): DocsError {
+  const base = index.url.base.replace(/\/+$/, '');
   return new DocsError(`El enlace «${target}» ${reason}.`, {
     file: from.sourcePath,
     line,
-    hint: 'Apunta a un archivo Markdown publicado o declara el recurso.',
+    hint: `Apunta a un .md publicado o a un archivo de una carpeta de \`content.static\` (se reescribe a su URL), o usa una URL absoluta con el base (\`${base}/…\`).`,
   });
 }
 

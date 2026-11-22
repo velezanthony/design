@@ -7,7 +7,11 @@ import { mermaid } from './mermaid';
 import { SHIKI_LANG_ALIAS } from './code-languages';
 
 const warn = vi.fn();
-const env = createMarkdownEnv(resolveConfig({ name: 'x' }), project, warn);
+const env = createMarkdownEnv(
+  resolveConfig({ site: { name: 'x' }, i18n: { locales: ['en', 'es'] } }),
+  project,
+  warn,
+);
 function render(source: string, fileURL = docFileURL('a.md')) {
   return renderMarkdown(source, {
     fileURL,
@@ -25,7 +29,31 @@ describe('mermaid', () => {
 
   it('el pre lleva el mismo marcado que un bloque de código: así recibe su etiqueta de lenguaje y el botón de copiar', async () => {
     const html = await render(diagram);
-    expect(html).toContain('<pre class="astro-code" data-language="mermaid" tabindex="0"><code>');
+    expect(html).toMatch(
+      /<pre class="astro-code" data-language="mermaid" [^>]*tabindex="0"><code>/,
+    );
+  });
+
+  it('el pre lleva el texto de carga en el idioma de la página, para que el CSS lo pinte mientras llega el dibujo', async () => {
+    expect(await render(diagram)).toContain('data-loading-label="Loading diagram…"');
+    expect(await render(diagram, docFileURL('a.es.md'))).toContain(
+      'data-loading-label="Cargando diagrama…"',
+    );
+  });
+
+  it('el texto de carga respeta el que el sitio haya personalizado, escapado', async () => {
+    const custom = createMarkdownEnv(
+      resolveConfig({
+        site: { name: 'x' },
+        i18n: { ui: { en: { 'diagram.loading': 'Wait "here"' } } },
+      }),
+      project,
+    );
+    const html = await renderMarkdown(diagram, {
+      fileURL: docFileURL('a.md'),
+      plugins: [mermaid(custom)],
+    });
+    expect(html).toContain('data-loading-label="Wait &quot;here&quot;"');
   });
 
   it('el lenguaje de la etiqueta es el que escribió el autor', async () => {

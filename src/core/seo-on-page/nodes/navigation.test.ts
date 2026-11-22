@@ -4,6 +4,7 @@ import type { Page } from '../../content/discovery';
 import { buildAvailability } from '../../i18n/availability';
 import { resolvePolicies } from '../../i18n/translation-policy';
 import { navigationLinks } from './navigation';
+import { withConfig, type ConfigPart } from '../../../testing/config';
 
 const url = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' } as const;
 function page(slug: string, locale = 'en'): Page {
@@ -16,10 +17,12 @@ function page(slug: string, locale = 'en'): Page {
     body: '',
   };
 }
-function links(pages: Page[], user: Partial<Parameters<typeof resolveConfig>[0]> = {}) {
-  const config = resolveConfig({ ...user, name: 'X', locales: ['en', 'es'] });
+function links(pages: Page[], user: ConfigPart = {}) {
+  const config = resolveConfig(
+    withConfig({ site: { name: 'X' }, i18n: { locales: ['en', 'es'] } }, user),
+  );
   const availability = buildAvailability(pages, url);
-  const { policies } = resolvePolicies(pages, config.translations.missing);
+  const { policies } = resolvePolicies(pages, config.i18n.missing);
   return navigationLinks(pages, config, { url, availability, policies });
 }
 function targets(map: ReturnType<typeof links>, slug: string, locale = 'en') {
@@ -46,7 +49,7 @@ describe('navigationLinks', () => {
 
   it('con secciones, una página solo ve la barra de la suya y la cabecera lleva al resto', () => {
     const map = links([page('guide'), page('api/a'), page('api/b'), page('faq')], {
-      nav: [{ label: 'API', dir: 'api' }],
+      content: { nav: [{ label: 'API', dir: 'api' }] },
     });
     // `guide` no está en la sección `api`: llega a `api/a` por la cabecera, no a `api/b`.
     expect(targets(map, 'guide')).toEqual(['api/a:en', 'faq:en']);
@@ -55,22 +58,22 @@ describe('navigationLinks', () => {
 
   it('una página del footer recibe enlace desde todas', () => {
     const map = links([page('guide'), page('legal'), page('api/a'), page('api/b')], {
-      nav: [{ label: 'API', dir: 'api' }],
-      footer: { links: [{ label: 'Legal', slug: 'legal' }] },
+      site: { footer: { links: [{ label: 'Legal', slug: 'legal' }] } },
+      content: { nav: [{ label: 'API', dir: 'api' }] },
     });
     expect(targets(map, 'api/b')).toContain('legal:en');
   });
 
   it('una página enlazada desde la barra lateral y el footer cuenta una vez', () => {
     const map = links([page('guide'), page('legal')], {
-      footer: { links: [{ label: 'Legal', slug: 'legal' }] },
+      site: { footer: { links: [{ label: 'Legal', slug: 'legal' }] } },
     });
     expect(targets(map, 'guide')).toEqual(['legal:en']);
   });
 
   it('un enlace https del footer no apunta a ninguna página', () => {
     const map = links([page('guide'), page('legal')], {
-      footer: { links: [{ label: 'Web', href: 'https://x.dev' }] },
+      site: { footer: { links: [{ label: 'Web', href: 'https://x.dev' }] } },
     });
     expect(targets(map, 'guide')).toEqual(['legal:en']);
   });

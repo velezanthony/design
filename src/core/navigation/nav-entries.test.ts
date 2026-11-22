@@ -56,10 +56,8 @@ function context(
     availability: buildAvailability(pages, url),
     locale,
     config: {
-      locales: ['en', 'es'],
-      defaultLocale: 'en',
-      sidebar: extra.sidebar,
-      nav: 'nav' in extra ? extra.nav : nav,
+      i18n: { locales: ['en', 'es'], defaultLocale: 'en' },
+      content: { sidebar: extra.sidebar, nav: 'nav' in extra ? extra.nav : nav },
     },
     policies,
     url,
@@ -266,9 +264,8 @@ describe('buildNav: destino de una sección con páginas sin traducir', () => {
       availability: buildAvailability(all, url),
       locale: 'es',
       config: {
-        locales: ['en', 'es'],
-        defaultLocale: 'en',
-        nav: [{ label: 'Docs', dir: 'docs', ...(sidebar && { sidebar }) }],
+        i18n: { locales: ['en', 'es'], defaultLocale: 'en' },
+        content: { nav: [{ label: 'Docs', dir: 'docs', ...(sidebar && { sidebar }) }] },
       },
       policies,
       url,
@@ -292,5 +289,28 @@ describe('buildNav: destino de una sección con páginas sin traducir', () => {
       ['docs/b'],
     );
     expect(entry.href).toBe('/repo/es/docs/');
+  });
+});
+
+describe('buildNav: `slug` propio', () => {
+  it('la sección es la página actual si su destino es la URL de la ruta (`urlSlug`), no la de la identidad', () => {
+    const translated = [
+      page('users/install'),
+      page('users/install', 'es', { urlSlug: 'usuarios/instalar' }),
+    ];
+    const { policies } = resolvePolicies(translated, MissingTranslation.LINK);
+    const entries = buildNav([{ label: 'Guía', dir: 'users' }], {
+      pages: translated,
+      availability: buildAvailability(translated, url),
+      locale: 'es',
+      config: { i18n: { locales: ['en', 'es'], defaultLocale: 'en' }, content: {} },
+      policies,
+      url,
+      slug: 'users/install',
+      urlSlug: 'usuarios/instalar',
+    });
+    expect(entries).toEqual([
+      { label: 'Guía', href: '/repo/es/usuarios/instalar/', kind: 'section', current: 'page' },
+    ]);
   });
 });

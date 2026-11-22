@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DocData } from '../loader/schema';
-import { pagesOf, sitemapIndexXml, sitemapXml } from './pages';
+import { sitemapIndexXml, sitemapXml } from './pages';
 
 const config = {
   base: '/repo',
-  site: 'https://x.dev',
+  siteUrl: 'https://x.dev',
   trailingSlash: 'always' as const,
-  defaultLocale: 'en',
-  locales: ['en', 'es'],
+  i18n: { defaultLocale: 'en', locales: ['en', 'es'] },
 };
+
+/** El `seo` del sitio con estos sitemaps incluidos. */
+function seoWith(include: string[]) {
+  return { site: { seo: { titleSuffix: false as const, sitemap: { include } } } };
+}
 
 function data(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
   return {
@@ -20,29 +24,6 @@ function data(slug: string, locale: string, extra: Partial<DocData> = {}): DocDa
     ...extra,
   };
 }
-
-describe('pagesOf', () => {
-  it('reconstruye Page desde los datos de la colección', () => {
-    const [page] = pagesOf([data('guide', 'es', { seo: { noindex: true }, translations: 'omit' })]);
-    expect(page).toMatchObject({
-      slug: 'guide',
-      locale: 'es',
-      seo: { noindex: true },
-      translations: 'omit',
-    });
-  });
-});
-
-describe('pagesOf: kind', () => {
-  it('conserva si la página es externa, y sin dato es nativa', () => {
-    const [external, native] = pagesOf([
-      data('changelog', 'en', { kind: 'external' }),
-      data('guide', 'en'),
-    ]);
-    expect(external!.kind).toBe('external');
-    expect(native!.kind).toBe('native');
-  });
-});
 
 describe('sitemapXml', () => {
   it('lista solo páginas reales, con alternates y base', () => {
@@ -107,7 +88,10 @@ describe('sitemapIndexXml', () => {
   }
 
   it('apunta primero a las páginas propias, bajo la base, y luego a los incluidos', () => {
-    const xml = sitemapIndexXml({ ...config, sitemap: { include: ['/lib/sitemap.xml'] } });
+    const xml = sitemapIndexXml({
+      ...config,
+      ...seoWith(['/lib/sitemap.xml']),
+    });
     expect(locs(xml)).toEqual([
       'https://x.dev/repo/sitemap-pages.xml',
       'https://x.dev/lib/sitemap.xml',
@@ -118,14 +102,29 @@ describe('sitemapIndexXml', () => {
     const xml = sitemapIndexXml({
       ...config,
       base: '/',
-      sitemap: { include: ['/lib/sitemap.xml'] },
+      ...seoWith(['/lib/sitemap.xml']),
     });
     expect(locs(xml)[0]).toBe('https://x.dev/sitemap-pages.xml');
   });
 
   it('un sitemap de otro dominio sale como error de Astro', () => {
     expect(() =>
-      sitemapIndexXml({ ...config, sitemap: { include: ['https://otro.dev/sitemap.xml'] } }),
+      sitemapIndexXml({
+        ...config,
+        ...seoWith(['https://otro.dev/sitemap.xml']),
+      }),
     ).toThrow(expect.objectContaining({ hint: expect.stringContaining('otro.dev') }));
+  });
+});
+
+describe('`slug` propio', () => {
+  it('el sitemap lista la URL traducida con sus alternates recíprocos', () => {
+    const xml = sitemapXml(
+      [data('guide', 'en'), data('guide', 'es', { sourcePath: 'guide.es.md', urlSlug: 'guia' })],
+      config,
+    );
+    expect(xml).toContain('<loc>https://x.dev/repo/es/guia/</loc>');
+    expect(xml).not.toContain('/repo/es/guide/');
+    expect(xml).toContain('hreflang="es" href="https://x.dev/repo/es/guia/"');
   });
 });

@@ -1,6 +1,6 @@
 import { parseDocument } from 'yaml';
 import { parseFrontmatter, splitFrontmatter } from '../../core/content/frontmatter';
-import type { Frontmatter } from '../../core/content/discovery';
+import type { Frontmatter } from '../../core/content/frontmatter';
 import { DocsError } from '../../core/errors';
 
 /** Separa y parsea con `yaml` el frontmatter de un archivo nativo y devuelve todos los fallos, con línea si el YAML no parsea. */

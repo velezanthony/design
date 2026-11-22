@@ -5,7 +5,7 @@ import { measured } from './format';
 
 /** En español porque el informe se pega en una conversación con la IA de quien mantiene un sitio en español. */
 
-/** Clave de frontmatter que lo arregla; en una externa vive en su entrada `external[]` de docs.config.mjs. */
+/** Clave de frontmatter que lo arregla; en una externa vive en su entrada `content.external[]` de docs.config.mjs. */
 export function keyOf(kind: IssueKind, entry: Pick<SeoPage, 'kind'>): string | undefined {
   const { key } = CATALOG[kind];
   return key === undefined ? undefined : scopedKey(key, entry.kind);

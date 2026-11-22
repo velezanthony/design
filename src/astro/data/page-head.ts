@@ -8,5 +8,5 @@ export type { PageHeadInput };
 /** `<head>` de una página del sitio con la config de la librería; devuelve lo que `BaseLayout` espera en `head`. Asíncrona: lee el tamaño de las imágenes sociales. */
 export async function pageHead(input: PageHeadInput): Promise<HeadConfig[]> {
   const sizes = await siteImageSizes(siteConfig, [input.seo?.image?.src]);
-  return buildPageHead(input, siteConfig, new URL(siteConfig.site), sizes);
+  return buildPageHead(input, siteConfig, new URL(siteConfig.siteUrl), sizes);
 }

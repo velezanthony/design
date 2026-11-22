@@ -1,4 +1,4 @@
-import { DIAGRAM_SELECTOR } from './selector';
+import { DIAGRAM_SELECTOR, failPendingDiagrams, settleDiagram } from './selector';
 import {
   createDiagramViewer,
   ICONS,
@@ -128,7 +128,7 @@ export function accessibleTitle(source: string): string | undefined {
   return /^\s*accTitle\s*:\s*(.+?)\s*$/m.exec(source)?.[1];
 }
 
-/** Dibuja los `.docs-mermaid[data-mermaid]` como SVG (Mermaid solo se importa si hay alguno); un fallo deja `data-state="error"` con el código visible. */
+/** Dibuja los `.docs-mermaid[data-mermaid]` como SVG (Mermaid solo se importa si hay alguno); un fallo, también al cargar Mermaid, deja `data-state="error"` con el código visible. */
 export async function initMermaid(
   htmlDocument: Document,
   { importer, readToken, system, label, viewerLabels, warn = console.warn }: MermaidOptions,
@@ -141,6 +141,7 @@ export async function initMermaid(
     mermaid = (await importer()).default;
   } catch (error) {
     warn('No se pudo cargar Mermaid: los diagramas se muestran como código.', error);
+    failPendingDiagrams(htmlDocument);
     return;
   }
 
@@ -173,10 +174,10 @@ export async function initMermaid(
         const drawn = figure.querySelector('svg');
         const minWidth = legibleMinWidth(drawn?.getAttribute('viewBox') ?? null);
         if (drawn && minWidth) drawn.style.minWidth = `${minWidth}px`;
-        block.setAttribute('data-state', 'rendered');
+        settleDiagram(block, 'rendered');
       } catch (error) {
         /* Si ya había un dibujo (cambio de tema) se conserva el anterior en vez de dejar un hueco. */
-        if (!block.querySelector('.docs-mermaid-figure')) block.setAttribute('data-state', 'error');
+        if (!block.querySelector('.docs-mermaid-figure')) settleDiagram(block, 'error');
         warn('No se pudo dibujar un diagrama de Mermaid; se deja su código.', error);
       }
     }

@@ -1,20 +1,11 @@
 ---
+import CookieSettingsButton from '../../atoms/actions/CookieSettingsButton.astro';
 import Link from '../../atoms/actions/Link.astro';
-import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
-import type { FooterView } from '../../../core/navigation/footer';
+import { translate } from '../../../core/i18n/ui-strings';
+import type { FooterProps } from '../../../core/navigation/footer';
 
-interface Props {
-  siteName: string;
-  /** Año del copyright. Va por props para que el pie salga igual cuando se renderice. */
-  year: number;
-  strings: UiStrings;
-  /** Página de privacidad; sin ella no se pinta el enlace. */
-  privacyUrl?: string;
-  /** Si el sitio pide consentimiento, hay una elección que reabrir. */
-  cookieControl?: boolean;
-  /** Licencia, autor y enlaces propios o derivados de la config; ya resueltos al idioma. */
-  footer?: FooterView;
-}
+/* Las props son el contrato de cualquier pie de docs: uno propio (`components.Footer`) recibe las mismas. */
+type Props = FooterProps;
 
 const { siteName, year, strings, privacyUrl, cookieControl = false, footer } = Astro.props;
 const { license, author, links = [] } = footer ?? {};
@@ -23,9 +14,6 @@ const hasLinks = links.length > 0;
    depende del idioma. */
 const hasLegal = Boolean(license) || Boolean(privacyUrl) || cookieControl;
 const licenseText = license && translate(strings, 'footer.license', { name: license.label });
-
-/* Una sola cadena para todo lo que se pinta como enlace del pie. */
-const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
 ---
 
 <footer class="surface-inverse mt-auto">
@@ -102,15 +90,7 @@ const quiet = 'min-h-6 text-muted hover:text-ink transition-colors';
                 ·
               </span>
             )}
-            {/* Un botón, no un enlace: actúa sobre la página, no lleva a ningún sitio. El
-                preflight de Tailwind pone `cursor: default` a los botones. */}
-            <button
-              type="button"
-              data-consent-open
-              class:list={['inline-flex cursor-pointer items-center', quiet]}
-            >
-              {translate(strings, 'consent.preferences')}
-            </button>
+            <CookieSettingsButton strings={strings} />
           </li>
         )}
       </ul>

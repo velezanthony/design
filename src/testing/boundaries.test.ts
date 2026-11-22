@@ -17,11 +17,14 @@ async function violations(filePath: string, code: string, rule = RULE): Promise<
 }
 
 const CORE = 'src/core/content/slug.ts';
+const CORE_CONFIG = 'src/core/config/x.ts';
+const CORE_SHARED = 'src/core/shared/x.ts';
 const CLIENT = 'src/client/theme.ts';
 const UI = 'src/components/organisms/Header.ts';
 const ASTRO = 'src/astro/loader/index.ts';
 const VIEWS = 'src/astro/views/doc.ts';
 const DATA = 'src/astro/data/site-config.ts';
+const PANEL_DATA = 'src/astro/data/seo-on-page/adapter.ts';
 const ROUTES = 'src/astro/routes/sitemap.xml.ts';
 const PANEL_ROUTES = 'src/astro/routes/seo-on-page/overview.ts';
 const PANEL_COMPONENTS = 'src/components/seo-on-page/molecules/Kpi.ts';
@@ -38,6 +41,34 @@ const forbidden: [string, string, string][] = [
   ['core/ no importa ../components', CORE, `import { x } from '../../components/atoms/Link';`],
   ['core/ no importa ../client', CORE, `import { x } from '../../client/theme';`],
   ['core/ no importa ../astro', CORE, `import { x } from '../../astro/loader';`],
+  [
+    'core/config no importa valores de core/navigation',
+    CORE_CONFIG,
+    `import { resolveLabel } from '../navigation/label';`,
+  ],
+  [
+    'core/config no importa valores de core/listing',
+    CORE_CONFIG,
+    `import { x } from '../listing/options';`,
+  ],
+  ['core/config no importa valores de core/seo', CORE_CONFIG, `import { x } from '../seo/meta';`],
+  [
+    'core/config no importa valores de core/seo-on-page',
+    CORE_CONFIG,
+    `import { x } from '../seo-on-page/labels';`,
+  ],
+  ['core/config sigue sin importar astro', CORE_CONFIG, `import { defineConfig } from 'astro';`],
+  [
+    'core/shared no importa ningún dominio',
+    CORE_SHARED,
+    `import { toSlug } from '../content/slug';`,
+  ],
+  ['core/shared no importa core/i18n', CORE_SHARED, `import { x } from '../i18n/locale';`],
+  [
+    'core/shared sigue sin importar node:*',
+    CORE_SHARED,
+    `import { readFile } from 'node:fs/promises';`,
+  ],
   ['client/ no importa valores de core/', CLIENT, `import { x } from '../core/i18n/locale';`],
   ['client/ no importa components/', CLIENT, `import { x } from '../components/atoms/Link';`],
   ['client/ no importa astro/ (carpeta)', CLIENT, `import { x } from '../astro/loader';`],
@@ -56,6 +87,10 @@ const forbidden: [string, string, string][] = [
   ['components/ no importa astro', UI, `import { defineConfig } from 'astro';`],
   ['components/ no importa ../astro (carpeta)', UI, `import { x } from '../../astro/routes/doc';`],
   /* Subcapas de `astro/`: datos y presentación no se importan entre sí. */
+  ['data/ no importa views/', DATA, `import { x } from '../views/doc';`],
+  ['data/ no importa tipos de views/', DATA, `import type { DocRoute } from '../views/doc';`],
+  ['data/seo-on-page no importa routes/', PANEL_DATA, `import { x } from '../../routes/doc';`],
+  ['data/seo-on-page no importa views/', PANEL_DATA, `import { x } from '../../views/pages';`],
   ['views/ no importa astro:content', VIEWS, `import { getCollection } from 'astro:content';`],
   ['views/ no importa astro', VIEWS, `import { defineConfig } from 'astro';`],
   ['views/ no importa data/', VIEWS, `import { x } from '../data/site-config';`],
@@ -118,6 +153,23 @@ const allowed: [string, string, string][] = [
   ['core/ sí importa astro/zod', CORE, `import { z } from 'astro/zod';`],
   ['core/ sí importa otro archivo de core/', CORE, `import { x } from '../i18n/locale';`],
   [
+    'core/config sí importa tipos de core/navigation',
+    CORE_CONFIG,
+    `import type { NavContext } from '../navigation/nav-sidebar';`,
+  ],
+  [
+    'core/config sí importa core/content e i18n',
+    CORE_CONFIG,
+    `import { x } from '../content/slug';
+import { y } from '../i18n/locale';`,
+  ],
+  ['core/config sí importa core/shared', CORE_CONFIG, `import { x } from '../shared/text';`],
+  [
+    'core/shared sí importa otro archivo de core/shared',
+    CORE_SHARED,
+    `import { x } from './text';`,
+  ],
+  [
     'client/ sí importa tipos de core/',
     CLIENT,
     `import type { Locale } from '../core/i18n/locale';`,
@@ -150,7 +202,6 @@ const allowed: [string, string, string][] = [
   ],
   ['views/ sí importa otra vista', VIEWS, `import { x } from './chrome';`],
   ['loader/ sí importa core/', ASTRO, `import { x } from '../../core/i18n/locale';`],
-  ['data/ sí importa views/', DATA, `import { x } from '../views/pages';`],
   ['data/ sí importa virtual/', DATA, `import { x } from '../virtual/data';`],
   [
     'routes/ sí importa data/, views/ y components/',

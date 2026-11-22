@@ -20,10 +20,10 @@ function memory(): Storage {
   } as Storage;
 }
 
-/* Contrato compartido con el portfolio: si cambian las claves, los visitantes pierden su tema y
+/* Contrato compartido con los sitios del mismo dominio: si cambian las claves, los visitantes pierden su tema y
    su consentimiento al saltar de un sitio al otro. */
 describe('claves', () => {
-  it('conservan los nombres del portfolio', () => {
+  it('conservan los nombres compartidos', () => {
     expect(THEME_KEY).toBe('theme');
     expect(CONSENT_KEY).toBe('consent');
   });

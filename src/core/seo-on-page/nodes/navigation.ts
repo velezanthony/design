@@ -1,19 +1,24 @@
-import type { ResolvedConfig } from '../../config/resolve';
+import type { ConfigPick } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
 import type { Availability, UrlPolicy } from '../../i18n/availability';
 import type { TranslationPolicies } from '../../i18n/translation-policy';
 import { footerPageHrefs } from '../../navigation/footer';
 import { buildNav } from '../../navigation/nav-entries';
-import { buildSectionSidebar, type NavContext } from '../../navigation/nav-sidebar';
-import { sectionIndexOf } from '../../navigation/nav-sections';
+import {
+  buildSectionSidebar,
+  navScopeOf,
+  type NavContext,
+  type NavScope,
+} from '../../navigation/nav-sidebar';
 import { flatten } from '../../navigation/sidebar';
 import type { PageLink } from '../tree/types';
 import { pageKey } from '../tree/keys';
 
 /** Lo que la navegación necesita de la config: la misma porción que usa el layout. */
-type NavigationConfig = Pick<
-  ResolvedConfig,
-  'locales' | 'defaultLocale' | 'sidebar' | 'nav' | 'footer' | 'translations'
+type NavigationConfig = ConfigPick<
+  'footer',
+  'locales' | 'defaultLocale',
+  'sidebar' | 'nav' | 'folders'
 >;
 
 /** Mismos árboles que pinta el layout; quedan fuera destinos no reales y la propia página. */
@@ -37,8 +42,8 @@ export function navigationLinks(
 
   // Dependen del idioma y de la sección, no de la página: se calculan una vez por par.
   const shared = new Map<string, string[]>();
-  function hrefsFor(page: Page, index: number): string[] {
-    const key = `${page.locale}\u0000${index}`;
+  function hrefsFor(page: Page, scope: NavScope): string[] {
+    const key = `${page.locale}\u0000${scope.kind === 'section' ? scope.position : ''}`;
     const cached = shared.get(key);
     if (cached) return cached;
     const context: NavContext = {
@@ -51,11 +56,11 @@ export function navigationLinks(
       slug: page.slug,
     };
     const hrefs = [
-      ...flatten(buildSectionSidebar(context, index)).map((leaf) => leaf.href),
-      ...buildNav(config.nav, context)
+      ...flatten(buildSectionSidebar(context, scope)).map((leaf) => leaf.href),
+      ...buildNav(config.content.nav, context)
         .filter((entry) => !entry.external)
         .map((entry) => entry.href),
-      ...footerPageHrefs(config.footer?.links, context),
+      ...footerPageHrefs(config.site.footer?.links, context),
     ];
     shared.set(key, hrefs);
     return hrefs;
@@ -65,7 +70,7 @@ export function navigationLinks(
   for (const page of pages) {
     const seen = new Set<string>();
     const targets: PageLink[] = [];
-    for (const href of hrefsFor(page, sectionIndexOf(config.nav, page.slug))) {
+    for (const href of hrefsFor(page, navScopeOf(config.content.nav, page.slug))) {
       const target = byHref.get(href);
       if (!target) continue;
       const key = pageKey({ slug: target.slug, locale: target.locale });

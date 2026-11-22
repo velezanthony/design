@@ -68,7 +68,7 @@ describe('tokens', () => {
   });
 });
 
-describe('lo exclusivo del portfolio', () => {
+describe('lo exclusivo de un sitio', () => {
   it('no declara tokens --cv-* ni --sheet-*', () => {
     expect(css).not.toMatch(/--(cv|sheet)-/);
   });
@@ -79,7 +79,7 @@ describe('lo exclusivo del portfolio', () => {
     expect(css).not.toMatch(/\.sheet\b|\.print-hidden|@utility cv-head/);
   });
 
-  it('no trae los colores de la nota de pendientes del portfolio', () => {
+  it('no trae los colores de la nota de pendientes de un sitio', () => {
     expect(css).not.toMatch(/--color-todo/);
   });
 });

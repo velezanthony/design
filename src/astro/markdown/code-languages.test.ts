@@ -8,7 +8,7 @@ import { codeLanguages, SHIKI_LANG_ALIAS } from './code-languages';
 
 function make(langAlias: Record<string, string> = SHIKI_LANG_ALIAS) {
   const warn = vi.fn();
-  const env = createMarkdownEnv(resolveConfig({ name: 'x' }), project, warn);
+  const env = createMarkdownEnv(resolveConfig({ site: { name: 'x' } }), project, warn);
   function render(source: string, fileURL = docFileURL('a.md')) {
     return renderMarkdown(source, { fileURL, plugins: [codeLanguages(env, langAlias)] });
   }

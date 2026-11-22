@@ -6,7 +6,10 @@ import { admonitions } from './admonitions';
 import { createMarkdownEnv } from './env';
 import { tabs } from './tabs';
 
-const env = createMarkdownEnv(resolveConfig({ name: 'x', locales: ['en', 'es'] }), project);
+const env = createMarkdownEnv(
+  resolveConfig({ site: { name: 'x' }, i18n: { locales: ['en', 'es'] } }),
+  project,
+);
 function render(source: string, fileURL = docFileURL('a.md')) {
   return renderMarkdown(source, {
     fileURL,

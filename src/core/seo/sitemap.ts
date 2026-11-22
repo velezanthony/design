@@ -1,7 +1,9 @@
 import { DocsError } from '../errors';
 import type { ClientPage } from './client-pages';
-import type { Availability } from '../i18n/availability';
-import { excludeNoindex } from './indexable';
+import type { Page } from '../content/discovery';
+import { buildAvailability, type Availability, type UrlPolicy } from '../i18n/availability';
+import { excludeNoindex, noindexUrls } from './indexable';
+import { pageLastmods } from './lastmod';
 import { baseUrl } from '../shared/urls';
 
 /** Hoja de estilo bajo `/_design/` para no chocar con `public/`; es CSS porque Chrome retira XSLT. */
@@ -142,6 +144,31 @@ function xmlDocument(open: string, entries: string[], close: string) {
     close,
     '',
   ].join('\n');
+}
+
+/** El sitemap de las páginas de la documentación: solo las reales e indexables, con sus alternates, su `lastmod` (`dates`, por `sourcePath`) y, detrás, las páginas del cliente (`extra`). */
+export function pagesSitemapXml(
+  pages: readonly Page[],
+  {
+    url,
+    site,
+    extra = [],
+    dates = new Map(),
+  }: {
+    url: UrlPolicy;
+    site: URL;
+    extra?: readonly SitemapEntry[];
+    dates?: ReadonlyMap<string, string>;
+  },
+): string {
+  const list = [...pages];
+  return buildSitemap(
+    buildAvailability(list, url),
+    site,
+    noindexUrls(list, url),
+    extra,
+    pageLastmods(list, url, dates),
+  );
 }
 
 /** El índice de sitemaps: un `<sitemap>` por URL absoluta, en el orden dado. */

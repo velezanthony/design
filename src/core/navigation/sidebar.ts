@@ -1,6 +1,9 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick, ResolvedContent, ResolvedI18n } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
+import { ALL_FOLDERS, folderSettings, type ResolvedFolders } from '../config/folders';
 import type { Page } from '../content/discovery';
+import { listsFolder } from '../content/generated-listings';
+import { urlSlugOf } from '../content/slug';
 import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
 import {
@@ -8,6 +11,8 @@ import {
   sourceLocale,
   type TranslationPolicies,
 } from '../i18n/translation-policy';
+import { folderLabel } from '../shared/text';
+import { groupFolders } from './folder-labels';
 import { resolveLabel } from './label';
 import { toSidebarSlug } from './sidebar-slugs';
 
@@ -22,6 +27,8 @@ export interface SidebarLeaf {
 /** Sección: enlaza su página índice si la hay y contiene hojas y otras secciones. */
 export interface SidebarGroup {
   label: string;
+  /** Solo en los grupos del árbol automático: la carpeta que agrupan (`guia/avanzado`). */
+  dir?: string;
   slug?: string;
   href?: string;
   badge?: Locale;
@@ -34,23 +41,42 @@ export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
   return 'items' in node;
 }
 
-/** Lo que el árbol necesita de la config: idiomas y el orden declarado. */
-type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'>;
+/** Lo que el árbol necesita de la config: idiomas, el orden declarado y el límite del árbol automático. `groupFolders` es la carpeta de cada grupo declarado que la enlaza (`folder-labels.ts`); sin él, se calcula solo con `sidebar`. */
+type SidebarConfig = {
+  i18n: Pick<ResolvedI18n, 'locales' | 'defaultLocale'>;
+  /** `folders`: de ellos sale `tree.depth`. Sin ellos, sin límite. */
+  content: Pick<ResolvedContent, 'sidebar'> & { folders?: ResolvedFolders };
+  groupFolders?: ReadonlyMap<object, string>;
+};
+
+/** Límite de niveles que rige a los grupos de debajo de `folder` y desde dónde cuenta (`undefined`: desde la raíz del árbol que se pinta, como `'*'`). */
+type DepthOf = (folder: string) => { limit: number; from: string | undefined } | undefined;
+
+/** `tree.depth` efectivo de una carpeta: la carpeta declarada más cercana (la propia incluida) o `'*'`. */
+function depthFrom(folders: ResolvedFolders | undefined): DepthOf {
+  return (folder) => {
+    if (!folders) return undefined;
+    const { value, declaredAt } = folderSettings(folders, folder).tree.depth;
+    if (value === undefined) return undefined;
+    return { limit: value, from: declaredAt === ALL_FOLDERS ? undefined : declaredAt };
+  };
+}
+
+/** El slug de la página que enlaza un grupo declarado: el que declara o, sin él, el de la carpeta de la que es dueño. */
+function groupSlug(
+  item: Exclude<SidebarItem, string>,
+  folders: ReadonlyMap<object, string>,
+): string | undefined {
+  return item.slug === undefined ? folders.get(item) : toSidebarSlug(item.slug);
+}
 
 /** Entrada de un slug en el idioma del árbol (`leaf` es `null` si la política la omite). */
 interface Entry {
   slug: string;
   leaf: SidebarLeaf;
   order?: number;
-}
-
-/** Secciones anidadas como máximo hasta aquí: sección → sección → hoja son tres niveles. */
-const MAX_SECTION_DEPTH = 2;
-
-/** `getting-started` → `Getting started`. */
-function humanize(segment: string): string {
-  const text = segment.replace(/[-_]+/g, ' ');
-  return text.charAt(0).toUpperCase() + text.slice(1);
+  /** Lista su carpeta (generada o de un `_index.md`): solo da título y destino al grupo de su carpeta. */
+  listing?: true;
 }
 
 function toEntries(
@@ -70,16 +96,31 @@ function toEntries(
         slug,
         leaf: { label: own.title, slug, href },
         ...(own.order !== undefined && { order: own.order }),
+        ...(listsFolder(own) && { listing: true }),
       });
       continue;
     }
-    const source = sourceLocale(available, config.locales, config.defaultLocale);
+    const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
     const original = pages.find((page) => page.slug === slug && page.locale === source);
     if (!original) continue;
     const policy = policies.get(slug) ?? MissingTranslation.LINK;
-    const leaf = missingEntry(slug, original.title, available, locale, policy, config, url);
+    const leaf = missingEntry(
+      slug,
+      original.title,
+      available,
+      locale,
+      policy,
+      config,
+      url,
+      urlSlugOf(original),
+    );
     if (leaf) {
-      entries.push({ slug, leaf, ...(original.order !== undefined && { order: original.order }) });
+      entries.push({
+        slug,
+        leaf,
+        ...(original.order !== undefined && { order: original.order }),
+        ...(listsFolder(original) && { listing: true }),
+      });
     }
   }
   return entries;
@@ -92,21 +133,23 @@ export function missingEntry(
   available: Partial<Record<Locale, string>>,
   locale: Locale,
   policy: MissingTranslation,
-  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
+  config: ConfigPick<never, 'locales' | 'defaultLocale'>,
   url: UrlPolicy,
+  /** URL del original sin idioma ni base (su `slug` propio): la reserva la reutiliza con el prefijo del idioma. */
+  sourceUrlSlug = slug,
 ): SidebarLeaf | null {
   switch (policy) {
     case MissingTranslation.LINK: {
-      const source = sourceLocale(available, config.locales, config.defaultLocale);
+      const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
       return {
         label: title,
         slug,
-        href: available[source] ?? pageUrl(slug, source, url),
+        href: available[source] ?? pageUrl(sourceUrlSlug, source, url),
         badge: source,
       };
     }
     case MissingTranslation.FALLBACK:
-      return { label: title, slug, href: pageUrl(slug, locale, url) };
+      return { label: title, slug, href: pageUrl(sourceUrlSlug, locale, url) };
     case MissingTranslation.OMIT:
       return null;
   }
@@ -128,12 +171,29 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
 }
 
 /** `base` es la carpeta raíz de una sección: no cuenta como nivel y sus páginas cuelgan de la raíz del árbol. */
-function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
+function autoTree(
+  entries: Entry[],
+  collator: Intl.Collator,
+  base = '',
+  depthOf: DepthOf = () => undefined,
+): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
+  /* ¿Cabe la carpeta `folder` como grupo? La rige el `tree.depth` de su padre (el de la carpeta
+     declarada más cercana por encima de ella, sin contarla: un ajuste no resucita su propia carpeta),
+     que cuenta desde la carpeta que lo declaró o, si viene de `'*'`, desde la raíz del árbol. */
+  function allowed(folder: string[]) {
+    const depth = depthOf(folder.slice(0, -1).join('/'));
+    if (!depth) return true;
+    const from = depth.from === undefined ? rootDepth : depth.from.split('/').length;
+    return folder.length - from <= depth.limit;
+  }
+  // La sección de una página es su carpeta, a cualquier profundidad: un grupo por nivel, hasta la
+  // primera carpeta que no cabe; lo de debajo cuelga, plano, del último grupo permitido.
   function sectionPath(slug: string) {
-    const segments = slug.split('/');
-    const path = segments.slice(0, Math.min(segments.length - 1, rootDepth + MAX_SECTION_DEPTH));
-    return path.length > rootDepth ? path : [];
+    const path = slug.split('/').slice(0, -1);
+    let length = rootDepth;
+    while (length < path.length && allowed(path.slice(0, length + 1))) length++;
+    return length > rootDepth ? path.slice(0, length) : [];
   }
   function parentOf(path: string) {
     const parent = path.split('/').slice(0, -1);
@@ -148,12 +208,14 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
     }
   }
 
-  const groups = new Map<string, { group: SidebarGroup; sort: Sortable[]; order?: number }>();
+  const groups = new Map<
+    string,
+    { group: SidebarGroup; sort: Sortable[]; order?: number; listing?: true }
+  >();
   function groupFor(path: string) {
     let found = groups.get(path);
     if (!found) {
-      const label = humanize(path.split('/').pop() ?? path);
-      found = { group: { label, items: [] }, sort: [] };
+      found = { group: { label: folderLabel(path), dir: path, items: [] }, sort: [] };
       groups.set(path, found);
     }
     return found;
@@ -168,8 +230,12 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
       Object.assign(found.group, { label: leaf.label, slug, href: leaf.href });
       if (leaf.badge) found.group.badge = leaf.badge;
       if (entry.order !== undefined) found.order = entry.order;
+      if (entry.listing) found.listing = true;
       continue;
     }
+    // Una página que lista su carpeta nunca sale como hoja suelta: sin grupo, no sale. Salvo la de la
+    // raíz del árbol (el `dir` de una sección), que no tiene grupo propio y es el destino de la sección.
+    if (entry.listing && slug !== base) continue;
     const parent = sectionPath(slug).join('/');
     const target = parent ? groupFor(parent).sort : root;
     target.push({
@@ -194,7 +260,9 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
   for (const path of paths) {
     const found = groupFor(path);
     found.group.items = found.sort.sort(compare).map(({ node }) => node);
-    const closed = closeGroup(found.group);
+    // Un grupo vacío cuya página lista su carpeta no se vuelve hoja: no queda nada que listar en él.
+    const closed =
+      found.listing && found.group.items.length === 0 ? undefined : closeGroup(found.group);
     if (!closed) continue;
     const parent = parentOf(path);
     const sortable: Sortable = {
@@ -207,10 +275,53 @@ function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): Sidebar
   return root.sort(compare).map(({ node }) => node);
 }
 
+/** Slugs que reclama el `sidebar` declarado (`used`) y, de ellos, los escritos como hoja (`leaves`). */
+function claimedSlugs(
+  items: SidebarItem[],
+  bySlug: Map<string, Entry>,
+  folders: ReadonlyMap<object, string>,
+  claimed = { used: new Set<string>(), leaves: new Set<string>() },
+): { used: Set<string>; leaves: Set<string> } {
+  for (const item of items) {
+    if (typeof item === 'string') {
+      const slug = toSidebarSlug(item);
+      if (!bySlug.has(slug)) continue;
+      claimed.used.add(slug);
+      claimed.leaves.add(slug);
+      continue;
+    }
+    const own = groupSlug(item, folders);
+    if (own !== undefined && bySlug.has(own)) claimed.used.add(own);
+    claimedSlugs(item.items ?? [], bySlug, folders, claimed);
+  }
+  return claimed;
+}
+
+/** Saca del árbol el nodo de `slug` (grupo o hoja); el grupo que lo contenía se cierra si queda vacío. */
+function detach(nodes: SidebarNode[], slug: string): { node?: SidebarNode; nodes: SidebarNode[] } {
+  for (const [index, node] of nodes.entries()) {
+    function without(replacement?: SidebarNode) {
+      return [
+        ...nodes.slice(0, index),
+        ...(replacement ? [replacement] : []),
+        ...nodes.slice(index + 1),
+      ];
+    }
+    if (node.slug === slug) return { node, nodes: without() };
+    if (!isSidebarGroup(node)) continue;
+    const inner = detach(node.items, slug);
+    if (!inner.node) continue;
+    return { node: inner.node, nodes: without(closeGroup({ ...node, items: inner.nodes })) };
+  }
+  return { nodes };
+}
+
+/** `merged`: el grupo automático que ocupa el sitio de un slug declarado que es la página de una carpeta. */
 function declaredTree(
   items: SidebarItem[],
   bySlug: Map<string, Entry>,
-  used: Set<string>,
+  merged: Map<string, SidebarNode>,
+  folders: ReadonlyMap<object, string>,
   locale: Locale,
   defaultLocale: Locale,
 ): SidebarNode[] {
@@ -220,15 +331,14 @@ function declaredTree(
       const slug = toSidebarSlug(item);
       const entry = bySlug.get(slug);
       if (!entry) continue;
-      used.add(slug);
-      nodes.push(entry.leaf);
+      nodes.push(merged.get(slug) ?? entry.leaf);
       continue;
     }
-    const own = item.slug === undefined ? undefined : bySlug.get(toSidebarSlug(item.slug));
-    if (own) used.add(own.slug);
+    const slug = groupSlug(item, folders);
+    const own = slug === undefined ? undefined : bySlug.get(slug);
     const group: SidebarGroup = {
       label: resolveLabel(item.label, locale, defaultLocale),
-      items: declaredTree(item.items ?? [], bySlug, used, locale, defaultLocale),
+      items: declaredTree(item.items ?? [], bySlug, merged, folders, locale, defaultLocale),
       ...(own && { slug: own.slug, href: own.leaf.href }),
       ...(own?.leaf.badge && { badge: own.leaf.badge }),
     };
@@ -238,7 +348,7 @@ function declaredTree(
   return nodes;
 }
 
-/** Árbol del sidebar de un idioma (hasta tres niveles): orden declarado, luego `order` y `Intl.Collator`; sin traducción aplica su política. */
+/** Árbol del sidebar de un idioma (un grupo por carpeta, a cualquier profundidad): orden declarado, luego `order` y `Intl.Collator`; sin traducción aplica su política. */
 export function buildSidebar(
   pages: Page[],
   availability: Availability,
@@ -251,13 +361,35 @@ export function buildSidebar(
   const collator = new Intl.Collator(locale, { numeric: true });
   const entries = toEntries(pages, availability, locale, config, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
-  const used = new Set<string>();
-  const declared = declaredTree(config.sidebar ?? [], bySlug, used, locale, config.defaultLocale);
-  const rest = autoTree(
-    entries.filter((entry) => !used.has(entry.slug)),
+  const items = config.content.sidebar ?? [];
+  const folders =
+    config.groupFolders ??
+    groupFolders({
+      i18n: { defaultLocale: config.i18n.defaultLocale },
+      content: { sidebar: items },
+    });
+  const { used, leaves } = claimedSlugs(items, bySlug, folders);
+  /* Un slug declarado como hoja que es la página de una carpeta con páginas sin declarar se fusiona
+     con el grupo automático de esa carpeta: el árbol automático lo monta con ella dentro y el grupo
+     pasa a la posición declarada. */
+  const folderPages = [...leaves].filter(
+    (slug) =>
+      slug !== '' &&
+      entries.some((entry) => !used.has(entry.slug) && entry.slug.startsWith(`${slug}/`)),
+  );
+  let rest = autoTree(
+    entries.filter((entry) => !used.has(entry.slug) || folderPages.includes(entry.slug)),
     collator,
     base,
+    depthFrom(config.content.folders),
   );
+  const merged = new Map<string, SidebarNode>();
+  for (const slug of folderPages) {
+    const detached = detach(rest, slug);
+    rest = detached.nodes;
+    if (detached.node) merged.set(slug, detached.node);
+  }
+  const declared = declaredTree(items, bySlug, merged, folders, locale, config.i18n.defaultLocale);
   return [...declared, ...rest];
 }
 

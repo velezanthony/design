@@ -23,12 +23,12 @@ export interface NavEntry {
 export function buildNav(nav: readonly NavItem[] | undefined, context: NavContext): NavEntry[] {
   if (!nav) return [];
   const { locale, config } = context;
-  const here = pageUrl(context.slug, locale, context.url);
+  const here = pageUrl(context.urlSlug ?? context.slug, locale, context.url);
   const currentSection = sectionIndexOf(nav, context.slug);
   const entries: NavEntry[] = [];
 
   nav.forEach((item, index) => {
-    const label = resolveLabel(item.label, locale, config.defaultLocale);
+    const label = resolveLabel(item.label, locale, config.i18n.defaultLocale);
     if (isNavLink(item)) {
       entries.push({
         label,
@@ -52,7 +52,7 @@ export function buildNav(nav: readonly NavItem[] | undefined, context: NavContex
       return;
     }
     if (!isNavSection(item)) return;
-    const leaves = flatten(buildSectionSidebar(context, index));
+    const leaves = flatten(buildSectionSidebar(context, { kind: 'section', position: index }));
     // Destino: la página índice del dir si existe; si no, la primera hoja que no sea un enlace a otro idioma.
     const landing =
       leaves.find((leaf) => leaf.slug === item.dir && !leaf.badge) ??

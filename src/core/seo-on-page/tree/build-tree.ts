@@ -44,17 +44,19 @@ export function buildSeoTree(input: SeoInput): SeoTree {
   const pages = sorted.map(asPage);
   const availability = buildAvailability(pages, url);
   // Los conflictos de política los reporta `buildSeoTree` como incidencia (policy sin definir).
-  const { policies } = resolvePolicies(pages, config.translations.missing);
+  const { policies } = resolvePolicies(pages, config.i18n.missing);
   const undeclared = new Map(
-    undeclaredMissing(pages, config.locales).map(({ slug, missing }) => [slug, new Set(missing)]),
+    undeclaredMissing(pages, config.i18n.locales, config.i18n.missingDeclared).map(
+      ({ slug, missing }) => [slug, new Set(missing)],
+    ),
   );
 
   const facts: SeoPageFacts[] = sorted.map((page) => {
     const policy: MissingTranslation | undefined = policies.get(page.slug);
     const entries = buildLocaleEntries(
       availability.get(page.slug) ?? {},
-      config.locales,
-      policy ?? config.translations.missing,
+      config.i18n.locales,
+      policy ?? config.i18n.missing,
       (locale) => !undeclared.get(page.slug)?.has(locale),
     );
     return {
@@ -67,16 +69,16 @@ export function buildSeoTree(input: SeoInput): SeoTree {
       headings: buildHeadingNodes(page.headings),
       ...(page.links && { links: page.links }),
       ...(page.images && { images: page.images }),
-      schemas: resolveSchemas(config.seo.schema, page.seo?.schema),
+      schemas: resolveSchemas(config.site.seo.schema, page.seo?.schema),
       locales: entries,
       ...(policy !== undefined && { policy }),
     };
   });
 
   const client = clientFacts(input.client ?? [], {
-    locales: config.locales,
-    defaultLocale: config.defaultLocale,
-    missing: config.translations.missing,
+    locales: config.i18n.locales,
+    defaultLocale: config.i18n.defaultLocale,
+    missing: config.i18n.missing,
     base: url.base,
   });
   // Una página del cliente en la URL de una de la librería la sustituye: Astro publica la suya, así
@@ -115,7 +117,7 @@ export function buildSeoTree(input: SeoInput): SeoTree {
         ...analyzeMetadata(page),
         ...(duplicates.get(pageKey(page)) ?? []),
         ...analyzeHeadings(page, page.headings),
-        ...analyzeMultilingual(page, page.locales, page.policy, config.defaultLocale),
+        ...analyzeMultilingual(page, page.locales, page.policy, config.i18n.defaultLocale),
         ...analyzeCanonical({ ...page, canonical: page.meta.canonical }, page.locales),
         ...analyzeAltText(page, page.images),
         ...analyzeOgImage(page, page.meta),

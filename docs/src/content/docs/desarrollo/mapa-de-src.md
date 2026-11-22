@@ -17,34 +17,53 @@ core/
 ├── author.ts              Quien mantiene la librería: firma por defecto de sus docs
 ├── errors.ts              DocsError (archivo, línea, pista) y DocsErrors (varios a la vez)
 ├── config/
-│   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
-│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
+│   ├── schema.ts          Esquema zod de la config pública (compone `site`, `i18n`, `content` y valida lo que cruza grupos); de aquí sale DocsUserConfig
+│   ├── site.ts            `site`: esquema, ResolvedSite y resolveSite (nombre, favicon, tema, componentes, pie, disposición, `seo` y `analytics`)
+│   ├── i18n.ts            `i18n`: esquema, ResolvedI18n y resolveI18n (idiomas, `missing` y textos de interfaz)
+│   ├── content.ts         `content`: esquema, ResolvedContent y resolveContent (carpeta, exclusiones, externas, estáticas, edición, `nav`, `sidebar` y `folders`)
+│   ├── shared-schemas.ts  Piezas de esquema compartidas: textos traducibles, imágenes, JSON-LD y el `seo` de una página
+│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig { site, i18n, content } (la misma forma que la pública); ConfigPick
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
+│   ├── folders.ts         `folders`: ListingView, TreeShow, ALL_FOLDERS, su esquema y la herencia por carpeta (folderSettings, con declaredAt); valida sus claves
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
 ├── content/
 │   ├── content-dir.ts     Carpeta de las páginas nativas por defecto y su validación
-│   ├── static-folders.ts  Carpetas de `static` (publicadas tal cual): validación y a qué carpeta casa una petición
+│   ├── static-folders.ts  Carpetas de `static` (publicadas tal cual): validación, a qué carpeta casa una petición y qué excluye
 │   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
-│   ├── slug.ts            guia/index → guia, index → '' (portada)
+│   ├── generated-listings.ts  Índices generados según `folders`: qué carpetas, qué página lista (listsFolder), las generadas, el `index.md` que gana y el error de un `_index.md` sin `generate`
+│   ├── stored-page.ts     Una entrada de la colección (su forma, sin Astro) → Page
+│   ├── slug.ts            guia/index → guia, index → '' (portada); qué es un _index y de qué carpeta
+│   ├── screenshots.ts     El único dueño de la marca de captura: un párrafo con una sola imagen → p.docs-screenshot (lo usa Article)
+│   ├── scrollable-tables.ts  El único dueño del .table-scroll: envuelve cada <table> (lo usa Article) sin repetir uno escrito a mano
 │   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
 ├── i18n/
 │   ├── locale.ts          Idiomas, sufijos de archivo, idioma de una URL
-│   ├── availability.ts    pageUrl (LA función de URLs) y qué idiomas tiene cada página
+│   ├── availability.ts    pageUrl y pageUrlOf (LAS funciones de URLs), prefijo de idioma y qué idiomas tiene cada página
 │   ├── translation-policy.ts  MissingTranslation, políticas por grupo, rutas de reserva
 │   └── ui-strings.ts      Catálogo de textos de interfaz en/es, translate() e interpolación
 ├── links/
-│   ├── rewrite.ts         Enlaces .md relativos → URLs del sitio, con referencias para validar
+│   ├── rewrite.ts         Enlaces relativos (.md y archivos de `static`) → URLs del sitio, con referencias para validar
 │   ├── anchors.ts         Índice de encabezados y validación de #anclas
 │   └── fences.ts          No tocar enlaces dentro de bloques de código
+├── listing/               El índice generado de una carpeta
+│   ├── options.ts         resolveListing: el listado resuelto (lista o paginado) desde los ajustes de `folders`
+│   ├── entries.ts         buildListing (visitante de nav-walk): entradas, secciones y orden por fecha
+│   ├── covers.ts          Portada guardada, la que se pinta y el dibujo de la librería
+│   ├── urls.ts            Dueño de las URLs de un listado: page/ y per-page/, posiciones y nombres reservados
+│   └── view.ts            ListingView (unión por disposición), el puerto ListingHrefs y buildListingView
 ├── navigation/
-│   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
+│   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas (profundidad: `tree.depth` de `folders`)
+│   ├── folder-labels.ts   Qué grupo declarado es dueño de cada carpeta (groupFolders: su etiqueta enlaza la página de la carpeta) y el título de una carpeta sin `_index.md`
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
 │   ├── nav-sections.ts    Secciones por dir, validación de nav
-│   ├── nav-sidebar.ts     La barra lateral de la sección actual
+│   ├── nav-sidebar.ts     La barra lateral de un ámbito (NavScope: una sección o las páginas sin sección) y la de una página (buildScopedSidebar, con `tree.show`)
+│   ├── folder-tree.ts     `tree.show: TreeShow.ALL`: el árbol completo de una carpeta (secciones como grupos, páginas sin sección) sobre nav-walk
+│   ├── nav-walk.ts        El único recorrido de la nav: ámbitos, árboles de contenido y de ruta, visitantes
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
+│   ├── nav-tree.ts        Árbol de cada sección para ::nav-tree (visitante de nav-walk) y los huecos que deja en el HTML
 │   ├── prev-next.ts       Anterior / siguiente en el orden aplanado
 │   ├── page-window.ts     Qué números de página enseñar en una paginación y dónde van los huecos
 │   ├── toc-entries.ts     Encabezados de Astro → entradas del índice «En esta página»
@@ -58,7 +77,7 @@ core/
 │   ├── page-head.ts       El head de una página del sitio que no es de docs: meta, alternates y JSON-LD extra
 │   ├── seo-schema.ts      El bloque `seo` del frontmatter como fragmento zod reutilizable
 │   ├── json-ld.ts         Schemas JSON-LD del sitio y de cada página
-│   ├── sitemap.ts         XML con alternates y lastmod; límite de 50 000 URLs
+│   ├── sitemap.ts         XML con alternates y lastmod (también el de las páginas de docs); límite de 50 000 URLs
 │   ├── lastmod.ts         Salida de git log → fecha por archivo; fecha de cada URL del sitemap
 │   ├── indexable.ts       Qué URLs son noindex
 │   ├── client-pages.ts    Las páginas que el consumidor tiene en src/pages/ y sus rutas dinámicas
@@ -68,7 +87,8 @@ core/
 │   └── favicon.ts         Favicon por defecto (/_design/favicon.png) o el del consumidor
 ├── analytics/resolve.ts   PUBLIC_GTM_ID / gtmId → id validado y enlace de privacidad por idioma
 ├── shared/
-│   ├── text.ts            Plurales y listas legibles
+│   ├── text.ts            Plurales, listas legibles y el nombre legible de una carpeta
+│   ├── paginate.ts        La única matemática de páginas (trozo, páginas, rango): panel SEO e índices
 │   ├── urls.ts            Quita las barras finales de la base
 │   └── tones.ts           TagTone: los tonos de Tag y de las marcas del panel
 └── seo-on-page/           La lógica del panel SOLO de dev (ver Integración → SEO on page)
@@ -110,7 +130,7 @@ core/seo-on-page/
 ├── queries/               Consultas puras sobre el árbol
 │   ├── url-filters.ts     Filtros de la tabla ↔ query de la URL
 │   ├── filter.ts          Qué problemas cumplen los filtros
-│   ├── paginate.ts        Paginación de las filas
+│   ├── page-sizes.ts      Tamaños de página de la tabla (por defecto y elegibles)
 │   ├── priorities.ts      Qué arreglar primero
 │   ├── summary.ts         Resumen de schemas
 │   ├── outline.ts         Esquema de encabezados con sus saltos
@@ -164,6 +184,7 @@ client/
 │   ├── anchors.ts        Enlace a cada encabezado
 │   ├── zoom.ts           Ampliación de imágenes en un <dialog>
 │   ├── copy-code.ts      Botón de copiar en los bloques de código
+│   ├── auto-navigate.ts  Un select[data-auto-navigate] lleva a la URL elegida (el «Por página» de un listado)
 │   └── tabs.ts           Pestañas accesibles con teclado
 ├── preferences/        Lo que elige el visitante y se guarda
 │   ├── theme.ts          Tema claro/oscuro, script previo al pintado, revelado circular
@@ -190,16 +211,23 @@ textos (`strings: UiStrings`).
 components/
 ├── atoms/
 │   ├── form/        Checkbox, FieldError, HelpText, Input, Label, Radio, Select, Switch, Textarea
-│   ├── actions/     Button, Link
-│   └── display/     Heading, Icon, InlineList, Tag, Text
+│   ├── actions/     Button, Link, CookieSettingsButton (reabre el aviso de consentimiento);
+│   │                variants.ts: las clases de cada variante de Link, que reutilizan el botón y los índices
+│   └── display/     Heading, Icon, InlineList, Tag, Text, CoverPlaceholder (portada de un índice),
+│                    DateLabel (<time> con la fecha ya formateada)
 ├── molecules/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
-│   ├── navigation/  EditLink, LocaleSwitch, NavList, Pagination, PrevNext, TableOfContents
-│   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs
+│   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents,
+│   │                PageLink (enlace con la insignia de idioma), SectionPath (camino «Sección › Grupo»),
+│   │                ListingTree (árbol de un índice generado), PerPageSelector (el «Por página» de un
+│   │                listado: navegación, con enlaces en <noscript>), PaginationBar
+│   │                (fila de pie: por página a un lado, rango y paginador al otro)
+│   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs, ListingCard (una tarjeta de un índice)
 │   └── controls/    PanelToggle, ThemeToggle
 ├── organisms/
 │   ├── chrome/      DocsHeader, DocsFooter, Sidebar, SidebarList, SearchBox, BackToTop, ConsentBanner, Head
-│   └── content/     Article (contenido con diagramas y anclas, y la columna del índice y un aside)
+│   └── content/     Article (contenido con diagramas y anclas, y la columna del índice y un aside);
+│                    Listing con ListingList, ListingTable y ListingCards (las disposiciones de un índice generado)
 ├── seo-on-page/ Lo propio del panel SOLO de dev, por nivel atómico (lo genérico va arriba)
 │   ├── atoms/       IssueBadge (sobre Tag), SeverityTag, CertaintyTag, LengthMeter, LocaleBadge,
 │   │                Note, StateMark
@@ -261,6 +289,7 @@ astro/
 │   ├── client-pages.ts      Guarda las páginas del consumidor al resolver las rutas
 │   ├── fs-allow.ts          Carpetas que Vite debe servir si el contenido está fuera del proyecto
 │   ├── site-theme.ts        Alias de Vite al CSS propio del sitio (opción `theme`)
+│   ├── components.ts        El archivo del pie de las páginas de docs (opción `components.Footer`)
 │   ├── static-folders-dev.ts  Middleware de dev que sirve las carpetas de `static`
 │   ├── tailwind.ts          El plugin de Tailwind, salvo que el sitio ya lo registrase
 │   ├── fonts.ts             IBM Plex y el choque de variables de fuente
@@ -277,7 +306,9 @@ astro/
 │   ├── frontmatter.ts       Lee y valida YAML con archivo y línea
 │   ├── repo-root.ts         repoRoot o el .git más cercano, para editPath
 │   ├── images.ts            Comprueba las imágenes de public/
+│   ├── covers.ts            Comprueba la portada (`index.image`) de cada página; si falta, avisa
 │   ├── favicon.ts           Comprueba el favicon local
+│   ├── slug-routes.ts       Un `slug` del frontmatter en una ruta de la librería o de src/pages/
 │   └── watch.ts             Recarga en astro dev
 ├── content/
 │   ├── index.ts             `collections`: la colección docs con la config del módulo virtual
@@ -290,7 +321,7 @@ astro/
 │   ├── admonitions.ts       Directivas :::tipo
 │   ├── github-alerts.ts     Citas > [!NOTE] como admoniciones
 │   ├── tabs.ts              ::::tabs con :::tab[Etiqueta]
-│   ├── tables.ts            Envuelve cada tabla en un contenedor con scroll
+│   ├── nav-tree.ts          ::nav-tree → un h2 por sección de nav y el hueco de su árbol
 │   ├── mermaid.ts           Bloques mermaid → .docs-mermaid
 │   ├── code-languages.ts    Alias de lenguajes que Shiki no trae
 │   └── restore-directives.ts  Devuelve a texto las directivas que nadie reclamó
@@ -306,9 +337,11 @@ astro/
 │   └── seo-on-page/         Panel SOLO de dev (ver Integración → SEO on page)
 │       └── overview.astro, pages.astro, page.astro
 ├── views/                   Lógica pura que prepara los datos de cada página (con sus tests)
-│   ├── doc.ts               docRoutes y docView: todo lo que necesita una página
+│   ├── doc.ts               docRoutes (con el listado de cada ruta ya resuelto), docView y docNavTrees
+│   ├── doc-listing.ts       El índice generado de una ruta: sus opciones, sus páginas, sus entradas y su paginación
+│   ├── index-covers.ts      Portadas del índice → URLs (con la base o con el `getImage` que pasa la ruta)
 │   ├── chrome.ts            Lo que cabecera y pie necesitan del sitio
-│   ├── pages.ts             DocData → Page y sitemap
+│   ├── pages.ts             El sitemap de las páginas y su índice, como error de Astro si falla
 │   └── seo-on-page/
 │       ├── hrefs.ts         Rutas del panel y enlaces entre pantallas
 │       ├── panel.ts         Lo que DocsLayout recibe en cada pantalla (como docView)
@@ -321,11 +354,13 @@ astro/
 │   ├── page-head.ts         `pageHead`: el head de una página del sitio con la config del módulo virtual (subruta `seo`)
 │   ├── client-pages.ts      Lee las páginas del consumidor y las que no se pudieron leer
 │   ├── last-modified.ts     Fecha de modificación por archivo: un git log para todos, o la fecha del archivo
+│   ├── covers.ts            `optimizeCover`: la URL de una portada con `getImage` de astro:assets
 │   ├── file-last-modified.ts  `fileLastModified`: la de un solo archivo, la subruta pública `last-modified`
 │   └── seo-on-page/
 │       └── adapter.ts       Colección + config → SeoInput → árbol (el único que lee astro:content)
 └── virtual/
-    ├── plugin.ts            Plugin de Vite de virtual:@velezanthony/design/config
+    ├── plugin.ts            Plugins de Vite de virtual:@velezanthony/design/config y del pie
+                             (virtual:@velezanthony/design/components/Footer)
     ├── data.ts              Qué viaja en el módulo virtual
     └── virtual.d.ts         Sus tipos, copiados al .astro/ del consumidor
 ```
@@ -340,9 +375,14 @@ astro/
 - `testing/markdown.ts`: renderiza Markdown con los plugins de la librería.
 - `testing/search.ts`: busca en el índice de Pagefind de un `dist/`.
 - `testing/seo-page.ts`: una página del árbol del panel con valores razonables.
+- `testing/listing-items.ts`: entradas de un índice generado para los tests de sus disposiciones.
 - `testing/build.ts` y `testing/case.ts`: construyen proyectos consumidores mínimos descritos como
   datos, para los tests de integración (con un entorno limpio de variables de Vitest).
 - `testing/contrast.ts`: luminancia y contraste WCAG para los tests de la paleta.
+- `testing/config.ts`: `withConfig(...trozos)` junta trozos de config de prueba grupo a grupo (`site`,
+  `i18n`, `content`).
+- `testing/config-types.ts`: test de tipos de `defineDocsConfig` (un caso válido con las constantes y
+  `@ts-expect-error` en lo que debe rechazar); no se ejecuta, lo comprueba `npm run check`.
 - `testing/boundaries.test.ts`: la regla de capas (ver [Capas](./index.md#cómo-lo-hace-cumplir-eslint)).
 - `testing/src-map.test.ts`: comprueba que este mapa nombra cada archivo y cada carpeta de `src/`.
 - `pages/index.astro`: la página mínima que sirve `npm run dev` en la raíz.

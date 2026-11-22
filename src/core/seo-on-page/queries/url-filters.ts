@@ -1,6 +1,6 @@
 import type { Locale } from '../../i18n/locale';
 import { IssueKind, IssueSeverity } from '../tree/types';
-import { PAGE_SIZE, PAGE_SIZES } from './paginate';
+import { PAGE_SIZE, PAGE_SIZES } from './page-sizes';
 import { ACTIONABLE_SEVERITIES } from '../severity';
 
 /** Filtros de la tabla. Vacío = sin restricción; los distintos campos se combinan con Y. */

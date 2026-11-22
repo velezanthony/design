@@ -68,6 +68,8 @@ export function createLastModified(sources: LastModifiedSources = realSources) {
   return async function lastModified(
     root: string,
     files: Iterable<string>,
+    /** `committedOnly`: sin commit no hay fecha (un índice muestra sin fecha lo que no está publicado). */
+    options: { committedOnly?: boolean } = {},
   ): Promise<Map<string, string>> {
     let pending = histories.get(root);
     if (!pending) {
@@ -83,7 +85,9 @@ export function createLastModified(sources: LastModifiedSources = realSources) {
         history === 'none'
           ? undefined
           : history.dates.get(path.relative(history.top, absolute).split(path.sep).join('/'));
-      const date = committed ?? (await sources.modified(absolute))?.toISOString();
+      const date =
+        committed ??
+        (options.committedOnly ? undefined : (await sources.modified(absolute))?.toISOString());
       if (date) dates.set(file, date);
     }
     return dates;

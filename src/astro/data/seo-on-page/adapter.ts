@@ -14,11 +14,12 @@ import type {
 } from '../../../core/seo-on-page/tree/types';
 import { readPublic } from '../../loader/images';
 import { urlPolicyOf } from '../../config';
-import { pageOf, sitemapXml } from '../../views/pages';
+import { pageOf, pagesOf } from '../../../core/content/stored-page';
+import { pagesSitemapXml } from '../../../core/seo/sitemap';
+import { orAstroError } from '../../errors';
 import type { DocData } from '../../loader/schema';
 import { getDocs, renderDoc, type DocsEntry } from '../docs-collection';
 import { siteImageSizes } from '../image-sizes';
-import { devHrefs, type DevHrefs } from '../../views/seo-on-page/hrefs';
 import type { VirtualConfig } from '../../virtual/data';
 
 /** Una entrada de la colección con sus encabezados ya resueltos. */
@@ -45,7 +46,7 @@ export function seoInputOf(
   });
   return {
     config: seoConfig,
-    url: urlPolicyOf(config, config.defaultLocale),
+    url: urlPolicyOf(config, config.i18n.defaultLocale),
     pages,
     ...(imageSizes && { imageSizes }),
   };
@@ -97,12 +98,11 @@ export async function loadPanel(
   failures: ClientPages['failures'];
   /** Los ficheros del sitio que sustituyen rutas de la librería, con la ruta tal como se visita. */
   overrides: { file: string; path: string }[];
-  hrefs: DevHrefs;
 }> {
   const entries = await getDocs();
   const { pages, failures } = await loadClientPages({
     origin,
-    site: config.site,
+    site: config.siteUrl,
     base: config.base,
   });
   return {
@@ -114,7 +114,6 @@ export async function loadPanel(
       file,
       path: routePath(route),
     })),
-    hrefs: devHrefs(urlPolicyOf(config, config.defaultLocale)),
   };
 }
 
@@ -128,12 +127,19 @@ export async function loadSiteFiles(
   async function exists(file: string) {
     return (await readPublic(publicDir, file)) !== undefined;
   }
-  const sitemap = sitemapXml(docs, config, clientSitemapEntries(client, new URL(config.site)));
+  const site = new URL(config.siteUrl);
+  const sitemap = orAstroError('No se puede generar sitemap.xml.', () =>
+    pagesSitemapXml(pagesOf(docs), {
+      url: urlPolicyOf(config, config.i18n.defaultLocale),
+      site,
+      extra: clientSitemapEntries(client, site),
+    }),
+  );
   return siteFiles({
-    url: urlPolicyOf(config, config.defaultLocale),
+    url: urlPolicyOf(config, config.i18n.defaultLocale),
     sitemapUrls: sitemap.split('<loc>').length - 1,
     robots: await exists('/robots.txt'),
     llms: await exists('/llms.txt'),
-    ...(config.favicon !== undefined && { favicon: config.favicon }),
+    ...(config.site.favicon !== undefined && { favicon: config.site.favicon }),
   });
 }

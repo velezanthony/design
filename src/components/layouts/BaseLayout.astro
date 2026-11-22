@@ -42,7 +42,9 @@ const {
 } = Astro.props;
 
 if (gtmId && !privacyUrl) {
-  throw new Error('BaseLayout: `privacyUrl` es obligatoria cuando se define `gtmId`.');
+  throw new Error(
+    'BaseLayout: `site.analytics.privacyUrl` es obligatoria cuando se define `site.analytics.gtmId`.',
+  );
 }
 ---
 

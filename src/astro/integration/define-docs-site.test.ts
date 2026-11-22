@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { defineDocsConfig, INTEGRATION_NAME } from './index';
 import { DEFAULT_SITE, defineDocsSite } from './define-docs-site';
 
-const docsConfig = defineDocsConfig({ name: 'T' });
+const docsConfig = defineDocsConfig({ site: { name: 'T' } });
 
 describe('defineDocsSite: valores por defecto', () => {
   const config = defineDocsSite(docsConfig, { base: '/repo' });

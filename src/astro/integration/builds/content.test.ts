@@ -10,7 +10,7 @@ describe('@velezanthony/design/content sin la integración', { timeout: 120_000 
   it('falla diciendo que falta docs(config) en astro.config.mjs', async () => {
     const { code, output } = await buildFailingCase({
       name: 'content-without-integration',
-      config: { name: 'Sin integración' },
+      config: { site: { name: 'Sin integración' } },
       docs: { 'index.md': '# Home\n' },
       extra: {
         'astro.config.mjs': `import { defineConfig } from 'astro/config';

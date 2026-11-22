@@ -1,0 +1,64 @@
+---
+import type { CoverPattern } from '../../../core/listing/covers';
+
+/* Portada de la librería para una página sin imagen: un dibujo (rejilla, diagonales o puntos) hecho
+   solo con los tokens del tema, así sigue al modo claro y oscuro. Es decorativa: el título de la
+   tarjeta ya dice de qué va, así que la etiqueta (su grupo) es solo visual. */
+interface Props {
+  pattern: CoverPattern;
+  /** Texto pequeño abajo a la izquierda: el grupo de la página. */
+  label?: string;
+  class?: string;
+}
+
+const { pattern, label, class: className } = Astro.props;
+---
+
+<div
+  data-cover-placeholder
+  data-pattern={pattern}
+  aria-hidden="true"
+  class:list={['cover', `cover--${pattern}`, className]}
+>
+  {label && <span class="label text-accent">{label}</span>}
+</div>
+
+<style>
+  .cover {
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem 1.25rem;
+    background-color: var(--color-accent-soft);
+  }
+  .cover--grid {
+    background-image:
+      linear-gradient(var(--color-accent-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-accent-line) 1px, transparent 1px),
+      linear-gradient(135deg, var(--color-accent-soft), var(--color-raised));
+    background-size:
+      24px 24px,
+      24px 24px,
+      100% 100%;
+    background-blend-mode: soft-light, soft-light, normal;
+  }
+  .cover--diagonal {
+    background-image:
+      repeating-linear-gradient(
+        -45deg,
+        color-mix(in oklab, var(--color-accent) 14%, transparent) 0 2px,
+        transparent 2px 12px
+      ),
+      linear-gradient(160deg, var(--color-raised), var(--color-accent-soft));
+  }
+  .cover--dots {
+    background-image:
+      radial-gradient(
+        color-mix(in oklab, var(--color-accent) 30%, transparent) 1.2px,
+        transparent 1.6px
+      ),
+      radial-gradient(circle at 80% 20%, var(--color-accent-soft), var(--color-raised) 70%);
+    background-size:
+      16px 16px,
+      100% 100%;
+  }
+</style>

@@ -440,6 +440,17 @@ describe('#19 tabla ancha', () => {
   it('una tabla Markdown sale dentro del contenedor desplazable `table-scroll`', async () => {
     const html = await site.read('guide/index.html');
     expect(html).toMatch(/<div class="table-scroll" tabindex="0"><table>[\s\S]*<\/table><\/div>/);
+    // La envuelve `Article` (ya no hay plugin de tablas): un solo nivel.
+    expect(html.match(/class="table-scroll"/g)).toHaveLength(1);
+    expect(html).not.toMatch(/table-scroll[^>]*>\s*<div class="table-scroll"/);
+  });
+});
+
+describe('#19b captura', () => {
+  it('una imagen sola en su párrafo sale marcada una sola vez como captura (la marca `Article`)', async () => {
+    const html = await site.read('changelog/index.html');
+    expect(html.match(/class="docs-screenshot"/g)).toHaveLength(1);
+    expect(html).toMatch(/<p class="docs-screenshot"><img[^>]*alt="logo"/);
   });
 });
 
@@ -541,5 +552,17 @@ describe('`theme`: el CSS del sitio entra en la misma compilación de Tailwind',
   it('la base de la librería sigue ahí, una sola vez', async () => {
     const css = (await stylesheets()).join('\n');
     expect(css.match(/--color-canvas:/g)).toHaveLength(1);
+  });
+});
+
+describe('#22 pie por defecto (sin `components`)', () => {
+  it('las páginas de docs llevan el DocsFooter de la librería con el control de cookies', async () => {
+    for (const file of ['guide/index.html', 'es/guide/index.html']) {
+      const html = await site.read(file);
+      expect(html.match(/<footer\b/g)).toHaveLength(1);
+      expect(html).toContain('data-footer-meta');
+      expect(html).toContain('data-footer-legal');
+      expect(html).toMatch(/<button[^>]*data-consent-open/);
+    }
   });
 });
