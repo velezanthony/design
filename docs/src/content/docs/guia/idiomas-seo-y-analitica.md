@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Idiomas, SEO y analítica de un sitio de docs"
-  description: "Cómo publicar en varios idiomas, ajustar el SEO de cada página y el sitemap, revisarlo con el panel SEO y activar la analítica con consentimiento."
+  title: "Idiomas, SEO y analítica con consentimiento"
+  description: "Publica tu documentación en varios idiomas con URLs traducidas, ajusta títulos, descripciones, Open Graph y sitemap, y añade Google Tag Manager con consentimiento."
 ---
 
 # Idiomas, SEO y analítica

@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Mantenimiento: comandos, convenciones, tests y recetas"
-  description: "Los comandos del repo, las convenciones de código y commits, la política de tests y dónde vive cada uno, y los pasos para añadir un componente, una opción, un texto o un idioma."
+  title: "Mantenimiento: comandos, convenciones y tests"
+  description: "Los comandos del repo, las convenciones de código y commits, la política de tests y los pasos para añadir un componente, una opción, un texto o un idioma."
 ---
 
 # Mantenimiento
@@ -45,8 +45,9 @@ pull request a `main`. `docs.yml` construye y despliega este sitio en cada push 
 
 ## Convenciones
 
-- **Código en inglés; comentarios, errores, tests y documentación en español.** Los comentarios
-  explican el **porqué**, y los `describe`/`it` se leen como frases.
+- **Código en inglés; comentarios, errores y tests en español.** Los comentarios explican el
+  **porqué**, y los `describe`/`it` se leen como frases. La documentación va en español y cada página
+  tiene su traducción al inglés (`x.en.md`).
 - **Commits convencionales** (`feat(nav): …`, `fix(theme): …`): el ámbito es la zona tocada y el
   asunto describe el comportamiento que cambia.
 - **Sin `enum`** (el paquete publica `.ts` sin compilar): objetos `as const` con su tipo derivado.

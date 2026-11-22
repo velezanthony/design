@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Cómo se genera el sitio: la integración de Astro paso a paso"
-  description: "Qué hace la integración en cada hook de Astro, el módulo virtual, las rutas inyectadas y el loader de contenido, siguiendo un astro build de principio a fin."
+  title: "Cómo se genera el sitio con la integración"
+  description: "Qué hace la integración de Astro en cada hook, el módulo virtual, las rutas inyectadas y el loader de contenido, siguiendo un astro build de principio a fin."
 ---
 
 # Cómo se genera el sitio

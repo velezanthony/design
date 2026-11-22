@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Personalizar: aspecto, páginas propias y componentes"
-  description: "Cómo ajustar la disposición, el tema, tu CSS y el favicon, montar páginas con tu cabecera y tu pie, cambiar el pie de las páginas de docs y qué piezas exporta la librería."
+  title: "Personalizar tema, diseño, páginas y pie"
+  description: "Ajusta la disposición, el tema, tus tokens CSS y el favicon, monta páginas con tu cabecera y pie sobre BaseLayout y usa los componentes de la librería."
 ---
 
 # Personalizar

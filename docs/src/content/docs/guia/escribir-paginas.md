@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Referencia de páginas: frontmatter, Markdown y reglas del build"
-  description: "Las claves del frontmatter, todo lo que puedes escribir en el cuerpo (cajas de aviso, pestañas, código, Mermaid, imágenes y enlaces) y lo que rompe el build o solo avisa."
+  title: "Escribir páginas: frontmatter, Markdown y reglas"
+  description: "Claves del frontmatter y el Markdown que entiende la librería: cajas de aviso, pestañas, código, diagramas Mermaid, imágenes, enlaces y qué rompe el build."
 ---
 
 # Escribir páginas
