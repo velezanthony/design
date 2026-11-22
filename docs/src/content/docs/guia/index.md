@@ -63,7 +63,7 @@ La frontera es deliberadamente gruesa: el consumidor decide **qué** se publica;
 | Búsqueda (índice de Pagefind generado al terminar el build) | |
 | Idiomas: URLs por idioma, textos de interfaz, política de traducciones ausentes | |
 | Validación estricta: enlaces, anclas, títulos, lenguajes de código | |
-| Banner de consentimiento y carga diferida de Google Tag Manager | El workflow de despliegue y, si quiere analítica, `PUBLIC_GTM_ID` y `privacyUrl` |
+| Banner de consentimiento y carga diferida de Google Tag Manager | El workflow de despliegue y, si quiere analítica, `PUBLIC_GTM_ID` y `site.analytics.privacyUrl` |
 
 Lo que el consumidor **no** escribe nunca: un layout, un `import` de CSS, un `@source` de Tailwind o
 una página en `src/pages/`. Puede hacerlo: una página propia en `/` o `/sitemap.xml`

@@ -48,33 +48,46 @@ un consumidor puede importar `@velezanthony/design/components/atoms/display/Tag.
 
 ```mermaid
 flowchart LR
-  s["1. schema.ts<br/>DocsConfigSchema"] --> r["2. resolve.ts<br/>ResolvedConfig + defecto"]
+  g["1. Su grupo<br/>site.ts · i18n.ts · content.ts · folders.ts"] --> r["2. Resolved*<br/>+ valor por defecto"]
   r --> v["3. virtual.d.ts<br/>(si la usan las rutas)"]
   v --> dv["4. views/doc.ts / loader<br/>usa el valor"]
   dv --> ui["5. Props del<br/>componente"]
   ui --> doc["6. README + este sitio"]
 ```
 
-1. **Esquema** (`src/core/config/schema.ts`). Añade el campo a `DocsConfigSchema`. Es un
-   `strictObject`: hasta que no lo añadas, la clave rompe el build como desconocida. Si tiene valores
-   cerrados, crea un objeto `as const` (como `PanelState` en `core/config/layout.ts`) y expórtalo en
-   `src/astro/integration/index.ts`. Las validaciones que cruzan campos van en el `superRefine`, con
-   su ruta (`issue(['privacyUrl', locale], …)`). Test en `schema.test.ts`. **Los tipos salen del
-   esquema** (N5): `export type X = z.infer<typeof XSchema>`, no una interfaz escrita a mano que
-   repita los campos (así `FoldersUserConfig`, `FolderSettingsUser`, `Frontmatter`). Si varios
-   bloques comparten campos, un esquema base y `.extend()`.
-2. **Resolución** (`src/core/config/resolve.ts`). Añádelo a `ResolvedConfig` y pon el valor por
-   defecto en `resolveConfig`: los valores por defecto viven aquí, **no** en el esquema. Test en
-   `resolve.test.ts`.
-3. **Módulo virtual.** `createVirtualData` copia la config resuelta entera, así que el valor ya viaja.
+1. **Su grupo y su módulo** (N13). Decide dónde va: `site` (cómo se ve y se presenta), `i18n`
+   (idiomas y textos) o `content` (qué se publica y cómo se navega); si cambia de una carpeta a otra,
+   es un ajuste de `content.folders` (`core/config/folders.ts`, N11), heredable por hoja con
+   `folderSettings`, y nadie más resuelve su precedencia. Añade el campo al esquema del grupo
+   (`SiteSchema`, `I18nSchema`, `ContentSchema` o `FolderSettingsSchema`). Es un `strictObject`: hasta
+   que no lo añadas, la clave rompe el build como desconocida. Las validaciones que cruzan grupos van
+   en el `superRefine` de `schema.ts`, con su ruta completa
+   (`issue(['site', 'analytics', 'privacyUrl', locale], …)`); las de un solo grupo, en el suyo, y zod
+   les pone la ruta del grupo. Test en `schema.test.ts`. **Los tipos salen del esquema** (N5):
+   `export type X = z.infer<typeof XSchema>`, no una interfaz escrita a mano que repita los campos (así
+   `FoldersUserConfig`, `FolderSettingsUser`, `Frontmatter`). Si varios bloques comparten campos, un
+   esquema base y `.extend()`.
+2. **Valores cerrados** (N12): un objeto `as const` en el módulo de la opción, su tipo derivado y su
+   esquema `z.enum(Object.values(X))`, exportado desde `src/astro/integration/index.ts` con su caso en
+   `public-api.test.ts` (que sus valores sean las opciones del esquema). Las guías lo usan en los
+   ejemplos.
+3. **Resolución.** Añádelo al tipo resuelto del grupo (`ResolvedSite`, `ResolvedI18n`,
+   `ResolvedContent`) y pon el valor por defecto en su `resolve*` (`resolveSite`…): los valores por
+   defecto viven ahí, **no** en el esquema. La config resuelta tiene la misma forma que la pública.
+   Test en `resolve.test.ts`.
+4. **Módulo virtual.** `createVirtualData` copia la config resuelta entera, así que el valor ya viaja.
    Pero `src/astro/virtual/virtual.d.ts` es autocontenido (se copia al `.astro/` del consumidor y no
    puede importar nada): añade ahí el tipo a mano.
-4. **Uso.** Si depende de las páginas (por ejemplo, un slug que debe existir), valídalo en el loader
-   con una función de `core/` que devuelva errores, como `validateFooter`. Si afecta a la vista,
-   calcúlalo en `docView` y pásalo como prop.
-5. **Documentación.** Añade la fila a la tabla «Referencia de configuración» del `README.md` y, si
-   cambia cómo se integra, a [Integración](../guia/primeros-pasos.md).
-6. **Pruébala de verdad** en `playground/docs.config.mjs` o en este sitio.
+5. **Uso.** Quien la lee pide solo su parte con `ConfigPick`. Si depende de las páginas (por ejemplo,
+   un slug que debe existir), valídalo en el loader con una función de `core/` que devuelva errores,
+   como `validateFooter`. Si afecta a la vista, calcúlalo en `docView` y pásalo como prop.
+6. **Frontmatter, no** (N14): el frontmatter solo lleva el contenido de la página (`title`, `slug`,
+   `order`, `seo`, `index`, `translations`). El comportamiento de una carpeta va en `content.folders`.
+7. **Tipos públicos** (N15): si cambia lo que acepta `defineDocsConfig`, añade su caso a
+   `src/testing/config-types.ts` (lo comprueba `npm run check`).
+8. **Documentación.** Añade la fila a la «Referencia de configuración» del `README.md`, en su grupo, y,
+   si cambia cómo se integra, a [Integración](../guia/primeros-pasos.md).
+9. **Pruébala de verdad** en `playground/docs.config.mjs` o en este sitio.
 
 ## Un texto de interfaz
 
@@ -87,8 +100,8 @@ flowchart LR
 4. Úsala en el componente con `translate(strings, 'clave')`.
 
 No hace falta tocar nada más: `UiKey` y `uiKeys` salen del catálogo `en`, y el esquema estricto de
-`ui` en la config se genera desde `uiKeys`, así que los consumidores ya pueden sobrescribir la clave
-nueva (`ui: { es: { 'footer.report': '…' } }`) y una errata en el nombre sigue rompiendo el build.
+`i18n.ui` en la config se genera desde `uiKeys`, así que los consumidores ya pueden sobrescribir la
+clave nueva (`i18n: { ui: { es: { 'footer.report': '…' } } }`) y una errata en el nombre sigue rompiendo el build.
 
 ## Un idioma nuevo
 

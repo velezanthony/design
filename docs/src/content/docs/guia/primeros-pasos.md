@@ -60,29 +60,40 @@ pasa a `docs()`:
 import { defineDocsConfig, MissingTranslation, NavIcon } from '@velezanthony/design/integration';
 
 export default defineDocsConfig({
-  name: 'Mi repo',
-  locales: ['es', 'en'],
-  seo: {
-    titleSuffix: 'Mi repo',
-    description: { es: 'Documentación de mi repo', en: 'My repo docs' },
+  // Cómo se ve y se presenta el sitio.
+  site: {
+    name: 'Mi repo',
+    social: { github: 'https://github.com/velezanthony/mi-repo' },
+    seo: {
+      titleSuffix: 'Mi repo',
+      description: { es: 'Documentación de mi repo', en: 'My repo docs' },
+    },
   },
-  translations: { missing: MissingTranslation.LINK },
-  external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
-  nav: [
-    { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
-    { label: 'Changelog', slug: 'changelog' },
-    { label: 'GitHub', href: 'https://github.com/velezanthony/mi-repo', icon: NavIcon.GITHUB },
-  ],
-  editUrl: 'https://github.com/velezanthony/mi-repo/edit/main',
-  social: { github: 'https://github.com/velezanthony/mi-repo' },
+  // Idiomas y textos.
+  i18n: { locales: ['es', 'en'], missing: MissingTranslation.LINK },
+  // Qué páginas hay y cómo se navega.
+  content: {
+    external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+    nav: [
+      { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
+      { label: 'Changelog', slug: 'changelog' },
+      { label: 'GitHub', href: 'https://github.com/velezanthony/mi-repo', icon: NavIcon.GITHUB },
+    ],
+    editUrl: 'https://github.com/velezanthony/mi-repo/edit/main',
+  },
 });
 ```
+
+La config tiene tres grupos: **`site`** (cómo se ve y se presenta: nombre, tema, pie, disposición,
+SEO y analítica), **`i18n`** (idiomas, qué hacer sin traducción y textos de interfaz) y
+**`content`** (qué páginas hay y cómo se navega: carpeta, cabecera, barra lateral y ajustes por
+carpeta). Solo `site.name` es obligatorio.
 
 `defineDocsConfig` es una función identidad: no hace nada en tiempo de ejecución, solo da
 autocompletado y tipos (`DocsUserConfig`, generado desde el esquema zod de
 `src/core/config/schema.ts`). La referencia completa de opciones está en el `README.md` de la
 librería; el esquema es estricto, así que una clave mal escrita rompe el build con su ruta
-(`seo.titleTemplat`).
+(`site.seo.titleTemplat`).
 
 ## 4. `docs/astro.config.mjs`
 
@@ -129,7 +140,7 @@ export default defineConfig({
   `docs()`: el sitio no lo declara en su `vite.plugins` (si ya lo hace, la integración no lo repite).
   La librería pone el CSS y la pasada de Tailwind.
 
-## CSS propio del sitio (`theme`)
+## CSS propio del sitio (`site.theme`)
 
 La librería es la dueña de Tailwind y de la base de estilos: el consumidor no tiene su propio
 `@import 'tailwindcss'`. Si el sitio necesita tokens (`@theme`) o estilos suyos, los escribe en un
@@ -137,8 +148,10 @@ CSS y lo declara en `docs.config.mjs`:
 
 ```js
 export default defineDocsConfig({
-  name: 'Mi sitio',
-  theme: 'src/styles/site.css', // desde la raíz del proyecto; el archivo debe existir
+  site: {
+    name: 'Mi sitio',
+    theme: 'src/styles/site.css', // desde la raíz del proyecto; el archivo debe existir
+  },
 });
 ```
 
@@ -155,13 +168,13 @@ export default defineDocsConfig({
 
 - **Una sola compilación.** `theme.css` de la librería importa `@velezanthony/design/site-theme` en
   último lugar, y la integración apunta ese especificador (con un alias de Vite, que Tailwind respeta al
-  resolver `@import`) al archivo del sitio; sin `theme`, apunta a un CSS vacío del paquete. Tokens y
+  resolver `@import`) al archivo del sitio; sin `site.theme`, apunta a un CSS vacío del paquete. Tokens y
   reglas del sitio comparten pasada con la paleta de la librería, así que `@theme` genera utilidades
   (`text-aviso`, `bg-aviso`) y el sitio puede extender o pisar lo anterior.
 - **Las clases de tus archivos** (`.astro`, `.ts`, `.md`) las detecta Tailwind solo: escanea la raíz del
   proyecto, y la librería añade su propio `src/` con `@source`. No hace falta ningún `@source`.
 - **No importes `theme.css` tú.** Lo carga `BaseLayout`; importarlo otra vez sirve el CSS por duplicado.
-- Un `theme` que apunta a un archivo inexistente, sin extensión `.css` o a una URL falla con la ruta
+- Un `site.theme` que apunta a un archivo inexistente, sin extensión `.css` o a una URL falla con la ruta
   del campo. Editar el CSS recarga en caliente; cambiar la ruta reinicia `astro dev`.
 
 ## 5. `docs/src/content.config.ts`
@@ -217,12 +230,12 @@ docs/src/content/docs/
 - Los enlaces entre páginas son rutas `.md` relativas (`./instalar.md#requisitos`): funcionan en
   GitHub y la librería los convierte en URLs del sitio, validando el archivo y el ancla.
 
-Para dejar archivos fuera de la publicación (borradores, notas), la opción `exclude` toma patrones
+Para dejar archivos fuera de la publicación (borradores, notas), la opción `content.exclude` toma patrones
 estilo `.gitignore` (ver [Navegación y búsqueda](./navegacion-y-busqueda.md#excluir-archivos)).
 
-Esa carpeta es la opción `content` (`'src/content/docs'` por defecto) y, si es la de por defecto, también es
+Esa carpeta es la opción `content.dir` (`'src/content/docs'` por defecto) y, si es la de por defecto, también es
 opcional: sin ella no hay páginas nativas y no falla (un sitio solo con `external`). Una carpeta elegida con
-`content` que no existe sí falla. Un `README.md` hace de `index.md` de su carpeta si esta no tiene el suyo en ese
+`content.dir` que no existe sí falla. Un `README.md` hace de `index.md` de su carpeta si esta no tiene el suyo en ese
 idioma. Si el repo ya tiene sus docs
 como `.md` sueltos en `docs/` (los de un MkDocs, por ejemplo), no los muevas: ver
 [Docs fuera del proyecto de Astro](#docs-fuera-del-proyecto-de-astro).
@@ -282,7 +295,7 @@ jobs:
 ```
 
 - `PUBLIC_GTM_ID` es opcional. Sin él no hay analítica de ningún tipo; con él, la config necesita
-  `privacyUrl` (ver [Analítica y privacidad](./analitica-y-privacidad.md)).
+  `site.analytics.privacyUrl` (ver [Analítica y privacidad](./analitica-y-privacidad.md)).
 - El repo de la librería es público, así que `npm ci` instala `github:velezanthony/design#…` sin
   token. Si algún día pasara a privado, el job necesitaría un token con acceso de lectura.
 - El workflow de ESTE sitio (`.github/workflows/docs.yml`) es igual salvo que, al ser un workspace,
@@ -296,7 +309,7 @@ pasa a ser `./CHANGELOG.md`). Es el caso de un sitio que es solo documentación.
 ## Docs fuera del proyecto de Astro
 
 Cuando el repo ya guarda sus páginas en `docs/` y no quieres moverlas, el proyecto de Astro va en
-su propia carpeta (`docs-site/`, nunca `site/`: es donde MkDocs escribe su salida) y `content` apunta a ellas:
+su propia carpeta (`docs-site/`, nunca `site/`: es donde MkDocs escribe su salida) y `content.dir` apunta a ellas:
 
 ```text
 repo/
@@ -308,15 +321,17 @@ repo/
 ```js
 // docs-site/docs.config.mjs
 export default defineDocsConfig({
-  name: 'Mi repo',
-  content: '../docs', // relativa a la raíz del proyecto de Astro (docs-site/)
-  external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
-  editUrl: 'https://github.com/velezanthony/mi-repo/edit/main',
-  repoRoot: '..',
+  site: { name: 'Mi repo' },
+  content: {
+    dir: '../docs', // relativa a la raíz del proyecto de Astro (docs-site/)
+    external: [{ slug: 'changelog', file: '../CHANGELOG.md' }],
+    editUrl: 'https://github.com/velezanthony/mi-repo/edit/main',
+    repoRoot: '..',
+  },
 });
 ```
 
-- `content` es una ruta relativa (no se admiten URLs ni rutas absolutas) y la carpeta debe existir:
+- `content.dir` es una ruta relativa (no se admiten URLs ni rutas absolutas) y la carpeta debe existir:
   si no, el build falla con la ruta ya resuelta.
 - Solo los `.md` son páginas. Un `requirements.txt` o las imágenes de la carpeta no lo son, pero las
   imágenes que una página referencia se publican y se amplían como siempre.
@@ -326,19 +341,21 @@ export default defineDocsConfig({
 
 #### El orden del menú por sección
 
-Un `nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
+Un `content.nav` con secciones (`{ label, dir?, sidebar? }`) ordena cada una por su `sidebar`. **Sin `sidebar`,
 las páginas de la sección salen por `order` del frontmatter y después alfabéticamente por slug**, no en
 el orden en que MkDocs las tenía en `nav:`. Para conservarlo, escribe el `sidebar` de cada sección con
 las mismas páginas y en el mismo orden (el migrador lo genera desde `mkdocs.yml` con `--in-place`: ver
 «Config sugerida» en `scripts/migrate-mkdocs`):
 
 ```js
-nav: [
-  {
-    label: 'Guía',
-    sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
-  },
-],
+content: {
+  nav: [
+    {
+      label: 'Guía',
+      sidebar: ['users/getting-started', 'users/features', 'users/configuration'],
+    },
+  ],
+},
 ```
 
 #### El slug de `carpeta/index.md`
@@ -354,6 +371,6 @@ Material, esa página es la de la sección: `dir: 'carpeta'` enlaza a ella.
 | --- | --- |
 | Páginas propias en `src/pages/` (portada, currículum) con el tema de la librería | [Cabecera y pie propios](./layout-propio.md) y [Piezas sueltas](./piezas-sueltas.md) |
 | El `<head>` SEO de una página que no es Markdown | [El `<head>` de una página propia](./piezas-sueltas.md#el-head-de-una-página-propia) |
-| Analítica con consentimiento (`gtmId` exige `privacyUrl`) | [Analítica y privacidad](./analitica-y-privacidad.md) |
+| Analítica con consentimiento (`site.analytics.gtmId` exige `privacyUrl`) | [Analítica y privacidad](./analitica-y-privacidad.md) |
 | Ancho, columnas plegables, índice y tema | [Disposición](./disposicion.md) |
 | Migrar un MkDocs | [Playground, este sitio y la migración](../desarrollo/herramientas.md#scriptsmigrate-mkdocs-de-mkdocs-a-la-librería) |

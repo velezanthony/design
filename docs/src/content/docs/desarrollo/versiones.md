@@ -94,7 +94,7 @@ afecte. `.github/workflows/docs.yml`:
 - Job `build`: checkout, Node 24 con caché de npm, `configure-pages`, `npm ci` en la raíz (instala
   el workspace `docs/` enlazado a `src/`), `npm run docs:build` y `upload-pages-artifact` con
   `docs/dist`. El paso de build recibe `PUBLIC_GTM_ID` del secreto del repo: con él hay analítica, y
-  `docs/docs.config.mjs` declara `privacyUrl` (la política del sitio de la raíz del dominio) porque la analítica la exige;
+  `docs/docs.config.mjs` declara `site.analytics.privacyUrl` (la política del sitio de la raíz del dominio) porque la analítica la exige;
   sin el secreto, el sitio sale sin rastreo.
 - Job `deploy`: `deploy-pages` en el entorno `github-pages`.
 

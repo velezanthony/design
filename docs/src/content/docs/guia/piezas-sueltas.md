@@ -14,7 +14,7 @@ propios (lo que muestran llega por props o por la ranura) y usan los tokens de `
 
 | Pieza | Importación | Qué hace |
 | --- | --- | --- |
-| `CookieSettingsButton` | `@velezanthony/design/components/atoms/actions/CookieSettingsButton.astro` | El botón «Preferencias de cookies» del pie: reabre el aviso de consentimiento (`data-consent-open`). Recibe `strings` y una `class` opcional. Para un pie propio con analítica ([Pie propio](./navegacion-y-busqueda.md#pie-propio-componentsfooter)). |
+| `CookieSettingsButton` | `@velezanthony/design/components/atoms/actions/CookieSettingsButton.astro` | El botón «Preferencias de cookies» del pie: reabre el aviso de consentimiento (`data-consent-open`). Recibe `strings` y una `class` opcional. Para un pie propio con analítica ([Pie propio](./navegacion-y-busqueda.md#pie-propio-sitecomponentsfooter)). |
 | `Icon` | `@velezanthony/design/components/atoms/display/Icon.astro` | Iconos `mail`, `github`, `linkedin`, `external` y `arrow`; `size` (16 por defecto). `github` y `linkedin` van rellenos y el resto de trazo. |
 | `InlineList` | `@velezanthony/design/components/atoms/display/InlineList.astro` | Elementos cortos (`items: string[]`) separados por un punto medio que nunca abre ni cierra una línea. |
 | `Text` | `@velezanthony/design/components/atoms/display/Text.astro` | Un párrafo con `tone` (`ink`, `muted`, `faint`), `size` (`lead`, `base`, `row`, `sm`), `as` (`p`, `span`, `div`) y `measure` para limitar la línea a la medida de lectura. El contenido va en la ranura. |
@@ -94,7 +94,7 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 | Importación | Qué da |
 | --- | --- |
 | `@velezanthony/design/theme.css` | La hoja de la librería (Tailwind, tokens y estilos). `BaseLayout` ya la carga: impórtala solo si montas un `<html>` sin él. |
-| `@velezanthony/design/site-theme` | El CSS vacío que `theme.css` importa en último lugar; la integración lo apunta al archivo de la opción `theme` ([CSS propio](./primeros-pasos.md#css-propio-del-sitio-theme)). No se importa a mano. |
+| `@velezanthony/design/site-theme` | El CSS vacío que `theme.css` importa en último lugar; la integración lo apunta al archivo de la opción `theme` ([CSS propio](./primeros-pasos.md#css-propio-del-sitio-sitetheme)). No se importa a mano. |
 | `@velezanthony/design/theme-colors` | `themeColors`: el `--color-canvas` de cada tema, para `<meta name="theme-color">` y `themeBootstrapScript`. |
 | `@velezanthony/design/client/theme` | Tema claro/oscuro: `initTheme`, `themeBootstrapScript` (el script previo al pintado) y los tipos `Theme` y `ThemeColors`. |
 | `@velezanthony/design/client/consent` | Consentimiento: `initConsent`, `readConsent`, `writeConsent` y `CONSENT_VERSION`. |
@@ -116,7 +116,7 @@ son estrechas y explícitas; ninguna arrastra el panel de dev (`seo-on-page`), y
 Una página del sitio (la portada, un caso de estudio, la 404) necesita el mismo `<head>` que una de
 docs: título con sufijo, descripción, `canonical`, `hreflang`, Open Graph, Twitter y JSON-LD.
 `pageHead` lo calcula con la config del sitio (sufijo del título, imagen social por defecto, JSON-LD
-del sitio, favicon, `ogLocales`) y devuelve exactamente lo que acepta la prop `head` de `BaseLayout`:
+del sitio, favicon, `site.seo.ogLocales`) y devuelve exactamente lo que acepta la prop `head` de `BaseLayout`:
 el sitio no interpreta nada.
 
 ```astro

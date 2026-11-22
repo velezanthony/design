@@ -70,6 +70,28 @@ implementa `astro/views/`. El listado de un índice es el ejemplo: `core/listing
 del sitio. Los componentes `Listing*` solo pintan lo que reciben: ni formatean fechas ni calculan
 rangos.
 
+### La config en tres grupos (N13)
+
+La config pública y la resuelta tienen la misma forma: `site` (cómo se ve y se presenta), `i18n`
+(idiomas y textos) y `content` (qué páginas hay y cómo se navega). Cada grupo tiene su módulo en
+`core/config/` (`site.ts`, `i18n.ts`, `content.ts`) con su esquema, su tipo resuelto y su resolución;
+`schema.ts` los compone y valida lo que cruza grupos. Quien solo necesita una parte la pide con
+`ConfigPick` (`ConfigPick<'footer' | 'social'>` es `{ site: { footer, social } }`). Una opción nueva
+va en su grupo y en su módulo ([Recetas](./recetas.md#una-opción-de-configuración)).
+
+### Ajustes por carpeta (N11)
+
+Todo ajuste que cambia de una carpeta a otra vive en `content.folders`, se hereda **por hoja** con
+`folderSettings` (`core/config/folders.ts`: la carpeta declarada más cercana, luego `'*'`, luego el
+valor por defecto, con `declaredAt`) y nadie más resuelve precedencias por carpeta. El frontmatter solo
+lleva el contenido de la página (N14): el comportamiento de una carpeta no va en su `_index.md`.
+
+### Constantes de las opciones cerradas (N12)
+
+Toda opción de valores cerrados es un objeto `as const` exportado desde
+`@velezanthony/design/integration`, del que salen su tipo y su esquema; las guías la usan en los
+ejemplos (`ListingView.CARDS`, no `'cards'`). `public-api.test.ts` lo vigila.
+
 ### Organismos que solo componen (N10)
 
 Un organismo compone moléculas y átomos. Un marcado repetido en dos organismos (o en un organismo y

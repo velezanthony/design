@@ -14,7 +14,9 @@ La integración tiene dos puertas de entrada, una por cada archivo que toca el c
 
 La config se carga UNA vez: `astro.config.mjs` importa `docs.config.mjs` y se lo pasa a `docs()`, que
 lo pasa por `resolveConfig` (`src/core/config/resolve.ts`: valida con el esquema zod y rellena los
-valores por defecto). Un error ahí sale como `AstroError` con la ruta de la clave (`toAstroError`, en
+valores por defecto). La config resuelta tiene la misma forma que la pública: `{ site, i18n, content }`,
+cada grupo con su esquema, su tipo y su resolución en su módulo (`site.ts`, `i18n.ts`, `content.ts`);
+una función que solo necesita una parte la pide con `ConfigPick` (`ConfigPick<'name', 'locales'>`). Un error ahí sale como `AstroError` con la ruta de la clave (`toAstroError`, en
 `src/astro/errors.ts`).
 
 El loader se evalúa fuera de la integración y Astro descarta las propiedades que esta le adjunte a
@@ -73,7 +75,7 @@ Es donde ocurre casi todo. En orden:
 
 1. **Exige `site`.** Sin origen absoluto no hay sitemap ni canonical.
 2. **Analítica.** `readAnalyticsEnv` lee `PUBLIC_GTM_ID` con `loadEnv` de Vite (en este hook los
-   `.env` aún no están en `process.env`) y `applyAnalyticsForCommand` decide si se activa (exige `privacyUrl`). Detalle en
+   `.env` aún no están en `process.env`) y `applyAnalyticsForCommand` decide si se activa (exige `site.analytics.privacyUrl`). Detalle en
    [Analítica y privacidad](../guia/analitica-y-privacidad.md).
 3. **Sustituciones y conflictos.** `routeOverrides` lista las rutas de la librería que el
    consumidor sustituye con un fichero de `src/pages/` (la portada, el sitemap, `/_design/`…):
@@ -143,9 +145,10 @@ Las páginas de `src/astro/routes/` necesitan la config resuelta, pero se ejecut
 Vite, lejos del hook que la conoce. El puente es un **módulo virtual** (el mismo patrón que usa
 Starlight):
 
-- `createVirtualData` (`src/astro/virtual/data.ts`) junta la config resuelta con lo que solo sabe
-  Astro (`base`, `site`, `trailingSlash`, `build.format`, `publicDir`, `root`) y fusiona los textos de
-  interfaz por idioma en `strings`.
+- `createVirtualData` (`src/astro/virtual/data.ts`) junta la config resuelta (`site`, `i18n` sin
+  `ui`, `content`) con lo que solo sabe Astro (`base`, `siteUrl` —el `site` de Astro, renombrado para
+  no chocar con el grupo `site`—, `trailingSlash`, `buildFormat`, `publicDir`, `root`) y fusiona los
+  textos de interfaz por idioma en `strings`.
 - `createVirtualConfigPlugin` (`src/astro/virtual/plugin.ts`) sirve ese objeto con
   `JSON.stringify` bajo el id `virtual:@velezanthony/design/config`. Solo datos: nada de funciones.
 - `src/astro/data/site-config.ts` importa el módulo y le pone su tipo completo.

@@ -71,11 +71,13 @@ en el móvil se ve con el ancho de escritorio.
 
 En GitHub Pages cada proyecto es una carpeta del mismo dominio y genera su propio sitemap
 (`/snake-orm/sitemap.xml`) sin tocar la raíz. El sitio de la raíz, el principal, puede declarar los
-demás con `sitemap.include`:
+demás con `site.seo.sitemap.include`:
 
 ```js
 // docs.config.mjs del sitio principal
-sitemap: { include: ['/snake-orm/sitemap.xml', '/cotton-props/sitemap.xml'] },
+site: {
+  seo: { sitemap: { include: ['/snake-orm/sitemap.xml', '/cotton-props/sitemap.xml'] } },
+},
 ```
 
 Con `include`, `sitemap.xml` pasa a ser un índice (`sitemapIndexXml` → `buildSitemapIndex`): primero
@@ -94,18 +96,18 @@ La cascada se resuelve **campo a campo** en `resolveMeta` (`src/core/seo/meta.ts
 ```mermaid
 flowchart LR
   fm["frontmatter seo<br/>(o external[].seo)"] -->|gana| r["meta resuelto"]
-  base["seo de docs.config.mjs"] -->|si la página no lo define| r
+  base["site.seo de docs.config.mjs"] -->|si la página no lo define| r
   der["derivado: el h1 como título"] -->|último recurso| r
   r --> head["buildHead<br/>core/seo/head.ts"]
 ```
 
 - **Título.** El `<title>` tiene dos partes, título y sufijo, y sale como `título | sufijo` (el
-  separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > `name`.
+  separador es fijo). Se resuelven por separado, con la misma prioridad: página > sitio > `site.name`.
   `seo.title` en el frontmatter cambia solo el título del head, no el `h1`, y acepta texto o uno por
   idioma (útil en un `external`, que no tiene un archivo por idioma; sin el idioma de la página, vale
   el título de la página). `seo.titleSuffix`
-  (en `docs.config.mjs` o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
-  ninguno de los dos, el sufijo es el `name` de la config. Con `false` en la
+  (`site.seo.titleSuffix` en `docs.config.mjs`, o en el frontmatter) acepta texto, uno por idioma o `false`; sin nada en
+  ninguno de los dos, el sufijo es el `site.name` de la config. Con `false` en la
   página no hay sufijo aunque el sitio defina uno, y un texto en la página gana a un `false` del
   sitio. Si el título es igual que el sufijo no se repite, y `og:title` / `twitter:title` llevan
   el mismo título completo que el `<title>`, sufijo incluido.
@@ -134,7 +136,11 @@ flowchart LR
 
   ```js
   // docs.config.mjs
-  seo: { schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }] }
+  site: {
+    seo: {
+      schema: [{ '@type': 'SoftwareSourceCode', name: 'My repo', programmingLanguage: 'Python' }],
+    },
+  },
   ```
 
   ```yaml
@@ -148,7 +154,7 @@ flowchart LR
 
   Cada schema es un objeto con `@type` (un string o una lista no vacía de strings) y las demás
   claves libres. Si falta `@context` se añade `https://schema.org`; si lo declaras, se respeta. Un
-  fallo se nombra con su ruta (`seo.schema[1]['@type']`).
+  fallo se nombra con su ruta (`site.seo.schema[1]['@type']`).
 
   La config viaja al sitio como JSON, así que no admite funciones. Como `docs.config.mjs` es
   JavaScript, calcula los objetos al construir y pásalos ya hechos:
@@ -157,7 +163,7 @@ flowchart LR
   import { author } from './src/data/author.mjs';
 
   const person = { '@type': 'Person', name: author.name, url: author.url, sameAs: author.profiles };
-  export default defineDocsConfig({ name: 'My repo', seo: { schema: [person] } });
+  export default defineDocsConfig({ site: { name: 'My repo', seo: { schema: [person] } } });
   ```
 
   El JSON sale escapando `<`, `>`, `&`, U+2028 y U+2029 (`\u003c`…): un valor con
@@ -188,19 +194,19 @@ translations: omit
 
 ## Idiomas
 
-`locales` lista los idiomas del sitio; `defaultLocale` (por defecto, el primero) es el que no lleva
+`i18n.locales` lista los idiomas del sitio; `i18n.defaultLocale` (por defecto, el primero) es el que no lleva
 sufijo ni prefijo. Solo `es` y `en` tienen textos de interfaz en el paquete
 (`src/core/i18n/ui-strings.ts`); otro idioma rompe la validación de la config hasta que se añadan
 sus textos.
 
-`ogLocales` (opcional) da el `og:locale` con territorio de cada idioma: `ogLocales: { es: 'es_ES', en:
+`site.seo.ogLocales` (opcional) da el `og:locale` con territorio de cada idioma: `ogLocales: { es: 'es_ES', en:
 'en_GB' }`. Sin él, `og:locale` lleva el propio idioma (`es`, `pt_BR` para `pt-BR`). Cada clave tiene
-que estar en `locales` y cada valor tiene la forma `idioma_TERRITORIO`.
+que estar en `i18n.locales` y cada valor tiene la forma `idioma_TERRITORIO`.
 
 ### Archivos y gemelos
 
 `guia.md` es la página en el idioma por defecto; `guia.en.md` es su gemela en inglés. Para un
-externo, `CHANGELOG.md` y `CHANGELOG.es.md`. Un sufijo que no está en `locales` rompe el build.
+externo, `CHANGELOG.md` y `CHANGELOG.es.md`. Un sufijo que no está en `i18n.locales` rompe el build.
 
 ### URL traducida (`slug`)
 
@@ -222,7 +228,7 @@ La página inglesa sale en `/en/tutorials/installation/`; la española sigue en
 | Emparejamiento | Sigue siendo por nombre de archivo: `x.md` y `x.en.md` son la misma página aunque sus URLs difieran. |
 | Forma | Ruta completa relativa a la raíz del contenido, sin idioma, `base` ni barras en los extremos. El prefijo de idioma y la `base` los pone `pageUrl`. |
 | Idioma por defecto | También puede llevar `slug`: cambia la URL de ese archivo y nada más. |
-| Config | `sidebar`, `nav` y `footer` nombran la página por su archivo (`'tutoriales/instalacion'`); un `slug` no obliga a cambiarla, y en `/en/` el enlace sale con la URL traducida. |
+| Config | `content.sidebar`, `content.nav` y `site.footer` nombran la página por su archivo (`'tutoriales/instalacion'`); un `slug` no obliga a cambiarla, y en `/en/` el enlace sale con la URL traducida. |
 | Lo que la usa | Selector de idioma, `hreflang`, sitemap, canonical, anterior/siguiente, barra lateral, cabecera, `::nav-tree`, índices generados, panel SEO y Pagefind. |
 | Enlaces | `[x](guia.md)` o `[x](guia.en.md)` desde la página inglesa llevan a la URL de su gemela inglesa, con su `slug`; las anclas se validan igual. |
 | `_index.en.md` | Con `slug: tutorials`, el listado de `tutoriales/` en inglés vive en `/en/tutorials/` y pagina en `/en/tutorials/page/2/`. Sus entradas enlazan sus URLs en inglés. |
@@ -244,7 +250,7 @@ propia; `urlSlugOf(page)` (`src/core/content/slug.ts`) devuelve la que toca.
 
 ### Cuando falta una traducción
 
-`translations.missing` decide qué ve quien navega en un idioma sin traducción. Los valores son
+`i18n.missing` decide qué ve quien navega en un idioma sin traducción. Los valores son
 `MissingTranslation.LINK`, `OMIT` y `FALLBACK` (en el frontmatter, `link`, `omit` y `fallback`):
 
 | Política | Barra lateral del otro idioma | URL en el otro idioma |
@@ -255,7 +261,7 @@ propia; `urlSlugOf(page)` (`src/core/content/slug.ts`) devuelve la que toca.
 
 La política se decide por **grupo de traducción** (todas las versiones de un slug) en
 `resolvePolicies` (`src/core/i18n/translation-policy.ts`): la declarada por alguna de sus páginas
-(frontmatter o `external[].translations`) o, si no, la base. Dos archivos del mismo grupo con valores
+(frontmatter o `content.external[].translations`) o, si no, la de `i18n.missing`. Dos archivos del mismo grupo con valores
 distintos rompen el build. Una gemela ausente **sin** política declarada, ni en sus páginas ni en la
 config del sitio, solo avisa.
 
@@ -267,7 +273,7 @@ librería es `link`, a propósito: `fallback` duplica el contenido bajo otra URL
 al original, para que no compita). Para conservar el comportamiento de MkDocs:
 
 ```js
-translations: { missing: MissingTranslation.FALLBACK },
+i18n: { missing: MissingTranslation.FALLBACK },
 ```
 
 Con `fallback_to_default: false`, `omit` es lo más cercano (la página no existe en ese idioma).
@@ -278,8 +284,8 @@ Las etiquetas de la interfaz («Editar esta página», «En esta página»…) s
 claves estables. El consumidor puede sobrescribir cualquiera por idioma:
 
 ```js
-ui: { es: { 'search.placeholder': 'Buscar en la guía' } },
+i18n: { ui: { es: { 'search.placeholder': 'Buscar en la guía' } } },
 ```
 
-El esquema de `ui` se genera desde las claves del catálogo, así que una clave mal escrita rompe el
+El esquema de `i18n.ui` se genera desde las claves del catálogo, así que una clave mal escrita rompe el
 build. Cómo añadir una clave nueva: [Recetas](../desarrollo/recetas.md#un-texto-de-interfaz).

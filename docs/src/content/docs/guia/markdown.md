@@ -151,7 +151,7 @@ entonces con el nombre genérico.
 El build **falla** (con archivo y línea, todos los errores a la vez) por:
 
 - un enlace relativo o un `#ancla` rotos;
-- un sufijo de idioma que no está en `locales` (`x.fr.md`);
+- un sufijo de idioma que no está en `i18n.locales` (`x.fr.md`);
 - una página sin `h1` ni `title`;
 - una admonición desconocida (`:::foo`);
 - un archivo externo ausente, o una imagen SEO o un favicon de `public/` ausentes;

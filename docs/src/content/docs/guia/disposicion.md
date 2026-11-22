@@ -6,24 +6,26 @@ seo:
 
 # Disposición, tema y transiciones
 
-## Modos de disposición (`layout`)
+## Modos de disposición (`site.layout`)
 
 ```js
 import { LayoutWidth, PanelState } from '@velezanthony/design/integration';
 
-layout: {
-  sidebar: PanelState.OPEN, // o COLLAPSED: estado inicial de la navegación (desde lg)
-  toc: PanelState.OPEN, // igual para «En esta página» (desde xl)
-  width: LayoutWidth.READING, // o FULL
-  toggles: true, // false quita los controles e ignora lo que guardó el visitante
-  tocDepth: 3, // último nivel que lista «En esta página»: 2 (solo h2) a 6; por defecto 3
-  tocMaxHeight: '60vh', // opcional: longitud CSS; pasada, la lista hace scroll por dentro
+site: {
+  layout: {
+    sidebar: PanelState.OPEN, // o COLLAPSED: estado inicial de la navegación (desde lg)
+    toc: PanelState.OPEN, // igual para «En esta página» (desde xl)
+    width: LayoutWidth.READING, // o FULL
+    toggles: true, // false quita los controles e ignora lo que guardó el visitante
+    tocDepth: 3, // último nivel que lista «En esta página»: 2 (solo h2) a 6; por defecto 3
+    tocMaxHeight: '60vh', // opcional: longitud CSS; pasada, la lista hace scroll por dentro
+  },
 },
 ```
 
-- **`reading`** (por defecto): la página va centrada (80rem) y la barra lateral es un plano que mide
+- **`LayoutWidth.READING`** (por defecto): la página va centrada (80rem) y la barra lateral es un plano que mide
   solo su columna.
-- **`full`**: el diseño se ancla. La barra lateral pega al borde izquierdo de la ventana, la cabecera
+- **`LayoutWidth.FULL`**: el diseño se ancla. La barra lateral pega al borde izquierdo de la ventana, la cabecera
   ocupa todo el ancho y el contenido llena el resto; la medida del texto crece un poco
   (`--container-measure-full`).
 - Cada columna lateral se **pliega** en un raíl de 44px (`--rail`) con una etiqueta vertical. El

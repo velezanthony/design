@@ -7,6 +7,32 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Cambios que rompen
 
+- **La config se agrupa en `site`, `i18n` y `content`.** Las claves de primer nivel de la 0.1 pasan a
+  uno de tres grupos: `site` (cómo se ve y se presenta el sitio), `i18n` (idiomas y textos) y
+  `content` (qué páginas hay y cómo se navega). Solo `site.name` es obligatorio. Una clave antigua de
+  primer nivel rompe el build como opción desconocida, y todos los mensajes de error nombran la ruta
+  nueva (`content.nav[1].dir`, `site.analytics.privacyUrl.fr`, `i18n.locales`). La config resuelta
+  (`resolveConfigOrThrow`, `docs(config).resolvedConfig`) tiene la misma forma.
+
+  | Antes (0.1) | Ahora |
+  | --- | --- |
+  | `name`, `favicon`, `theme`, `social`, `components`, `footer` | `site.name`, `site.favicon`, `site.theme`, `site.social`, `site.components`, `site.footer` |
+  | `layout` | `site.layout` (igual por dentro) |
+  | `seo` (`titleSuffix`, `description`, `image`, `schema`) | `site.seo` |
+  | `ogLocales` | `site.seo.ogLocales` |
+  | `sitemap` | `site.seo.sitemap` |
+  | `gtmId`, `privacyUrl` | `site.analytics.gtmId`, `site.analytics.privacyUrl` |
+  | `locales`, `defaultLocale`, `ui` | `i18n.locales`, `i18n.defaultLocale`, `i18n.ui` |
+  | `translations.missing` | `i18n.missing` |
+  | `content` (la carpeta) | `content.dir` |
+  | `exclude`, `external`, `static`, `editUrl`, `repoRoot`, `nav`, `sidebar` | `content.exclude`, `content.external`, `content.static`, `content.editUrl`, `content.repoRoot`, `content.nav`, `content.sidebar` |
+
+- **El `site` de Astro se llama `siteUrl` en el módulo virtual.** `virtual:@velezanthony/design/config`
+  lleva ahora la config resuelta agrupada (`site`, `i18n` sin `ui`, `content`) más lo que sabe Astro, y
+  el origen del sitio pasa de `site` a `siteUrl` para no chocar con el grupo `site`. Un layout propio
+  que leyera `config.site` como URL debe leer `config.siteUrl` (y `config.site.name` en vez de
+  `config.name`). Los tipos inyectados (`virtual.d.ts`) ya tienen la forma nueva.
+
 - **Las capturas las marca `Article`.** Al pintar el contenido, `Article` pone `docs-screenshot` en
   cada párrafo cuyo único contenido es una imagen (`core/content/screenshots.ts`, junto al
   `.table-scroll` de las tablas), en los docs y en cualquier página propia que lo use, y el CSS solo
@@ -20,47 +46,83 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Añadido
 
-- **`sidebarDepth` limita cuánto anida el árbol automático de la barra lateral.** Un número para todo
-  el sidebar (`sidebarDepth: 3`), un límite por sección (`nav[n].sidebarDepth`, contando desde su
-  `dir`) o por carpeta (`sidebarDepth: { default, overrides: { 'articulos/python': 1 } }`, contando
-  desde ella). Gana el más concreto: la carpeta más cercana, luego la sección, luego el global. Lo que
-  queda por debajo del límite va plano en el último grupo permitido, en el orden de siempre; nunca se
-  oculta. Por defecto no hay límite, y los grupos escritos a mano en `sidebar` no cambian. Una carpeta
-  de `overrides` sin páginas rompe el build con su ruta, y en `nav` solo una sección lo admite.
+- **Ajustes por carpeta (`content.folders`).** Un mapa de carpetas del contenido, con la clave `'*'`
+  (`ALL_FOLDERS`) para todo el sitio. Cada ajuste se hereda **por separado** de la carpeta declarada
+  más cercana (la propia, luego su padre…), luego de `'*'` y, si nadie lo declara, del valor por
+  defecto: declarar `pageSize` en una carpeta hija no anula la `view` de su padre. Una clave que no es
+  `'*'` ni una carpeta con páginas rompe el build con su ruta (`content.folders['articulos/pyton']`).
+  - **`listing`**: el índice generado de la carpeta y cómo se pinta (ver «Índices de carpeta
+    generados» abajo).
+  - **`tree.depth`** limita cuánto anida el árbol automático de la barra lateral, contando desde la
+    carpeta que lo declara (`'*'`, desde la raíz del árbol que se pinta: el contenido o el `dir` de una
+    sección). Lo que queda por debajo del límite va plano en el último grupo permitido, en el orden de
+    siempre; nunca se oculta. Un ajuste no vuelve a mostrar su propia carpeta si un límite de arriba
+    ya la aplana. Por defecto no hay límite, y los grupos escritos a mano en `sidebar` no cambian.
+  - **`tree.show`** (`TreeShow.SECTION`, por defecto, o `TreeShow.ALL`): con `ALL`, la barra lateral de
+    todas las páginas de la carpeta (la suya, las de cada sección y las de sus subcarpetas) es su árbol
+    completo: la página de la carpeta arriba, cada sección de `nav` con páginas dentro como grupo de
+    primer nivel (enlazado a la página de su carpeta) y las páginas sin sección con su árbol
+    automático. La cabecera sigue marcando la sección, y anterior / siguiente recorren el árbol
+    completo. Las páginas de fuera conservan su barra.
+- **Las etiquetas de grupo enlazan la página de su carpeta.** Las carpetas son categorías: un grupo de
+  la barra lateral o de `::nav-tree` lleva a la página índice de su carpeta si existe (generada, de un
+  `_index.md` o de un `index.md`), con el estilo de grupo y `aria-current` en esa página y en sus
+  páginas 2+. Un grupo escrito en `sidebar` sin `slug` la enlaza cuando es el dueño de una carpeta (la
+  carpeta común más profunda de sus páginas, sin otro grupo más interior que la reclame); uno que solo
+  envuelve a otro («Cloud» › «AWS») enlaza la carpeta de encima. Si dos grupos que no se envuelven
+  comparten carpeta, ninguno la enlaza. Un `slug` escrito a mano manda. La página destino no sale
+  además como hoja suelta. Sin página índice, la etiqueta sigue siendo texto.
+- **Constantes de todas las opciones cerradas.** `@velezanthony/design/integration` exporta
+  `ListingView`, `TreeShow` y `ALL_FOLDERS`, además de `MissingTranslation`, `PanelState`,
+  `LayoutWidth` y `NavIcon`; de cada una salen su tipo y su esquema, y las cadenas literales siguen
+  valiendo. `defineDocsConfig` tiene un test de tipos que comprueba su autocompletado.
 
-- **Pie propio en las páginas de docs (`components.Footer`).** Como los `components` de Starlight,
-  `components: { Footer: './src/components/DocsFooter.astro' }` sustituye el pie de la librería por un
+- **Pie propio en las páginas de docs (`site.components.Footer`).** Como los `components` de Starlight,
+  `site: { components: { Footer: './src/components/DocsFooter.astro' } }` sustituye el pie de la librería por un
   `.astro` del sitio, que recibe las props de `DocsFooter` más el idioma de la página (el tipo
   `FooterProps`, exportado por `@velezanthony/design/integration`). Llega por el módulo virtual
   `virtual:@velezanthony/design/components/Footer`, y `DocsLayout` acepta el componente en su prop
-  `Footer`. Una ruta inexistente, un archivo que no es `.astro` o una clave desconocida en `components`
-  rompen el build con la ruta del campo. Sin `components`, el pie es el de siempre. Las pantallas del
+  `Footer`. Una ruta inexistente, un archivo que no es `.astro` o una clave desconocida en `site.components`
+  rompen el build con la ruta del campo. Sin `site.components`, el pie es el de siempre. Las pantallas del
   panel SEO (`/seo-on-page/`, solo en `astro dev`) llevan el mismo pie: sus rutas lo pasan a cada
   pantalla, que lo reenvía a `DocsLayout`.
 - **`CookieSettingsButton`**, el botón «Preferencias de cookies» que reabre el aviso de consentimiento
   (`data-consent-open`), como átomo propio en `atoms/actions/`. Lo usa `DocsFooter` y puede usarlo un pie
   propio, con `strings` y una `class` opcional.
 - **Índice generado con `::nav-tree`.** La directiva, sola en su línea, pinta por cada sección de
-  `nav` un `##` con su etiqueta (con ancla y en «En esta página») y debajo su árbol, el de la barra
+  `content.nav` un `##` con su etiqueta (con ancla y en «En esta página») y debajo su árbol, el de la barra
   lateral: grupos anidados en negrita y cada página enlazada con su título y su `seo.description`. Una
   página índice ya no copia a mano el árbol de la config ni hay que traducirlo.
   `{section="Avanzado"}` deja una sola sección y `{descriptions="false"}` solo los títulos. En una
   ruta de reserva el texto es el del original y las URLs, las de la barra lateral de esa ruta. Una
   sección que no existe, un atributo desconocido o la directiva sin secciones en `nav` rompen el build
   con el archivo y la línea.
-- **Índices de carpeta generados (`_index.md` e `indexes`).** Como en Hugo, un `_index.md` en una
-  carpeta es la fuente de su página: `/tutoriales/` pinta su cuerpo (título y entradilla) y debajo el
-  listado de lo que cuelga de la carpeta, con la resolución de la barra lateral. El `_index.md` no es
-  una página propia y se traduce con `_index.en.md`; un `index.md` en la misma carpeta gana y el
-  `_index.md` se ignora con un aviso.
-  - **Dos bloques en el frontmatter.** `listing: { layout, pageSize, perPageOptions, covers }` dice cómo
-    es el listado y solo vale en un `_index.md` (en otro archivo rompe el build). `index: { summary,
-    image, imageAlt }` dice cómo sale una página en el listado de su carpeta y vale en cualquiera,
-    también en un `_index.md` (su ficha en el listado padre). `image` es una ruta relativa al `.md`
-    (pasa por `astro:assets`), de `public/` (con la base) o `false`; una que no existe avisa y deja la
-    portada de la librería, un dibujo hecho con los tokens del tema (`CoverPlaceholder`).
-  - **Tres disposiciones.** `list` (el árbol por secciones de `nav`), `table` (título, resumen, sección
-    y fecha; tarjetas apiladas en móvil) y `cards` (tarjetas de blog con portada 16:9). La tabla y las
+- **Índices de carpeta generados (`content.folders` y `_index.md`).** Si una carpeta tiene una página
+  que lista lo que cuelga de ella lo decide la config: `listing.generate` en `content.folders`
+  (heredable, apagado por defecto). Con `articulos: { listing: { generate: true } }`, también las
+  carpetas intermedias sin archivo propio (`articulos/sistemas`, `articulos/sistemas/cloud`…) reciben
+  su página, indexable y en el sitemap. Como en Hugo, el `_index.md` de la carpeta pone los textos de
+  esa página: `/tutoriales/` pinta su cuerpo (título y entradilla) y su `seo`, y debajo el listado,
+  con la resolución de la barra lateral. El `_index.md` no es una página propia y se traduce con
+  `_index.en.md`.
+  - **Sin `_index.md`**, la página lleva solo el título (la etiqueta de la sección de `nav` con ese
+    `dir`, la de la sección o el grupo declarado cuyas páginas comparten esa carpeta, o el nombre de la
+    carpeta) y el listado, con la descripción «Todas las páginas de {title}.» (clave nueva
+    `listing.description`, sobrescribible en `i18n.ui`).
+  - **Un `index.md`** en la carpeta gana a la generación: se pinta como página normal y el build lo
+    informa (una línea `info` por carpeta). Un `_index.md` al lado se ignora con un aviso.
+  - **Un `_index.md` sin `generate`** rompe el build con el archivo y la clave que lo enciende
+    (`content.folders['<carpeta>'].listing.generate: true`): casi seguro es un olvido.
+  - **`seo.noindex`** en el `_index.md` saca la carpeta del índice, con todas sus rutas de paginación.
+  - **Las páginas de carpeta no son entradas de la navegación:** el grupo de su carpeta las enlaza,
+    pero no salen como hoja suelta en la barra lateral ni como entrada del listado de la carpeta padre.
+  - **`index: { summary, image, imageAlt }`** en el frontmatter de cualquier página (también de un
+    `_index.md`, su ficha en el listado padre) dice cómo sale en el listado de su carpeta. `image` es una
+    ruta relativa al `.md` (pasa por `astro:assets`), de `public/` (con la base) o `false`; una que no
+    existe avisa y deja la portada de la librería, un dibujo hecho con los tokens del tema
+    (`CoverPlaceholder`). La política de portadas por carpeta es `listing.covers`.
+  - **Tres vistas** (`listing.view`, `ListingView`): `LIST` (el árbol por secciones de `nav`), `TABLE`
+    (título, resumen, sección y fecha; tarjetas apiladas en móvil) y `CARDS` (tarjetas de blog con portada 16:9). La tabla y las
     tarjetas van de la más reciente a la más antigua por fecha de commit (lo no publicado, primero y
     sin fecha), de 10 en 10 y de 12 en 12 por defecto.
   - **Rutas estáticas.** El tamaño por defecto vive en la carpeta y en `/tutoriales/page/2/`…; cada
@@ -73,16 +135,13 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   - **Selector «Por página».** En la fila de pie, junto al rango y el paginador (la molécula
     `PaginationBar`, que también usa ahora el pie de la tabla del panel SEO): un `<select>` que lleva a
     la ruta del tamaño elegido (`data-auto-navigate`) y, sin JavaScript, los tamaños como enlaces.
-  - **La opción `indexes`** (`layout`, `pageSize`, `perPageOptions`, `covers`, `include`, `exclude`,
-    `overrides`) pone los valores por defecto y genera la página de las carpetas sin `index.md` ni
-    `_index.md`, titulada con la etiqueta de su sección de `nav` o el nombre de la carpeta.
   - **Componentes nuevos:** los organismos `Listing`, `ListingList`, `ListingTable` y `ListingCards`;
     las moléculas `ListingCard`, `ListingTree`, `PageLink` (enlace con la insignia de idioma, también en
     la barra lateral y en `::nav-tree`), `SectionPath` y `PerPageSelector`; el átomo `DateLabel`.
     Textos nuevos `listing.*`. `docsSchema(image)` acepta el `image()` de Astro para las portadas en la
-    forma explícita del loader. Sin `_index.md` ni `indexes`, nada cambia.
-- **`static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas del
-  `exclude` de la config pero relativas a `from`:
+    forma explícita del loader. Sin `content.folders`, nada cambia.
+- **`content.static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas de
+  `content.exclude` pero relativas a `from`:
   `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se
   copia a `dist/` y `astro dev` responde 404.
 - **El migrador de MkDocs sugiere `site` y `base` desde `site_url`.** Como van en `astro.config.mjs`,
@@ -102,7 +161,7 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   española sigue en su URL. Las traducciones se siguen emparejando por nombre de archivo: el selector
   de idioma, `hreflang`, el sitemap, el canonical, anterior/siguiente, la barra lateral, la cabecera,
   `::nav-tree`, los índices generados, el panel SEO, Pagefind y los enlaces relativos entre `.md` usan
-  la URL de cada idioma, y `sidebar`, `nav` y `footer` siguen nombrando la página por su archivo. Un `_index.en.md` con `slug: tutorials`
+  la URL de cada idioma, y `content.sidebar`, `content.nav` y `site.footer` siguen nombrando la página por su archivo. Un `_index.en.md` con `slug: tutorials`
   mueve el listado de su carpeta (y su paginación, `/en/tutorials/page/2/`) a `/en/tutorials/`. También vale en el idioma por
   defecto. Las rutas de reserva no cambian. Rompen el build un `slug` mal formado (vacío, absoluto,
   con `..`, prefijo de idioma, `/index` final o caracteres no válidos), dos archivos con la misma URL
@@ -111,12 +170,19 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Cambiado
 
+- **El migrador de MkDocs sugiere la config en sus grupos.** La config sugerida (y la de
+  `--config-out`) va en `i18n` (`locales`, `defaultLocale`, `missing`) y `content` (`exclude`,
+  `external`, `nav`), con un aviso de que falta `site.name`.
 - **El migrador de MkDocs sugiere el `README.md` de la raíz de `docs_dir` como portada.** Con
   `docs_dir: .` o `Home: README.md` en el `nav`, el externo sale con `slug: 'index'` y no
   `'readme'`, así que el sitio tiene portada. Si el `nav` trae un `docs/index.md`, la portada es esa.
 
 ### Arreglado
 
+- **La página de una carpeta declarada en `sidebar` sale una vez.** `sidebar: ['articulos']` con
+  páginas en `articulos/…` pintaba la hoja «Artículos» y, al final, un grupo automático «Articulos» sin
+  enlace. Ahora el grupo de la carpeta ocupa la posición declarada, con el título y el enlace de la
+  página, a cualquier profundidad del `sidebar`.
 - **El árbol automático de la barra lateral anida todas las carpetas.** Pasaba de dos carpetas por
   debajo de la raíz del árbol y aplanaba el resto: con `articulos/desarrollo/python/django/x.md` y sin
   `nav`, `x` salía suelta en «Desarrollo» y los grupos «Python» y «Django» desaparecían. En una sección
@@ -139,8 +205,8 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   título o un párrafo se parte cuando no cabe en la línea. Antes solo se partía el código en línea, y
   un `# ERR_CONNECTION_TIMED_OUT` a tamaño display empujaba la página en horizontal.
 - **Una política de traducción declarada en la config del sitio cuenta como declarada.** Con
-  `translations: { missing: … }` en `docs.config.mjs`, una página sin traducción ya no avisa «Declara
-  `translations`» al arrancar ni resta salud en el panel SEO: el aviso solo miraba el frontmatter de
+  `i18n.missing` en `docs.config.mjs`, una página sin traducción ya no avisa «Declara `i18n.missing`»
+  al arrancar ni resta salud en el panel SEO: el aviso solo miraba el frontmatter de
   cada página. Es el caso de quien viene de MkDocs con `fallback`.
 - **El panel SEO nombra la portada externa como «index».** Las ayudas para arreglar una página
   externa usada como portada decían «la entrada «»», porque su slug interno es vacío.
@@ -153,7 +219,7 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 - **Un enlace relativo a un archivo de `static` lleva a su URL publicada.** `[x](coverage/index.html)`
   dentro de la carpeta `from` de una entrada de `static` fallaba con «no es una página ni un recurso
   publicado… declara el recurso», y no había nada que declarar. Ahora se reescribe a `base` + `to` + el
-  resto. Un enlace a algo que su `exclude` deja fuera falla nombrando `static[n].exclude`, y la pista
+  resto. Un enlace a algo que su `exclude` deja fuera falla nombrando `content.static[n].exclude`, y la pista
   de un enlace roto dice qué funciona de verdad.
 
 ## 0.1.0

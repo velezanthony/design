@@ -9,13 +9,14 @@ seo:
 La regla de diseño es simple: **sin consentimiento no se carga nada**, y sin un id de Google Tag
 Manager ni siquiera existe el mecanismo. Un build local o el de un fork queda sin rastreo sin
 necesitar un camino de código propio. La librería **no trae ninguna página de privacidad**: la política
-la publica el sitio (una vez para todo el dominio) y la librería solo la enlaza con `privacyUrl`.
+la publica el sitio (una vez para todo el dominio) y la librería solo la enlaza con
+`site.analytics.privacyUrl`.
 
 ## De dónde sale el id
 
 ```mermaid
 flowchart TD
-  cfg["gtmId en docs.config.mjs"] -->|gana si existe| res["resolveAnalytics<br/>core/analytics/resolve.ts"]
+  cfg["site.analytics.gtmId en docs.config.mjs"] -->|gana si existe| res["resolveAnalytics<br/>core/analytics/resolve.ts"]
   env["PUBLIC_GTM_ID<br/>.env · .env.production · entorno de la CI"] --> rd["readAnalyticsEnv<br/>loadEnv de Vite"]
   rd --> res
   res -->|vacío o ausente| off["Sin analítica:<br/>ni banner, ni GTM, ni botón de cookies"]
@@ -36,7 +37,7 @@ flowchart TD
 - Un id válido **exige `privacyUrl`**: el banner enlaza a la política y no hay otra por defecto.
   Sin ella, `astro build` falla con un error que nombra `privacyUrl`; `astro dev` avisa y arranca sin
   analítica (`applyAnalyticsForCommand`), igual que con un `PUBLIC_GTM_ID` mal formado.
-- `gtmId` en la config es una sobrescritura explícita. Úsalo solo si un repo debe fijar un
+- `site.analytics.gtmId` en la config es una sobrescritura explícita. Úsalo solo si un repo debe fijar un
   contenedor; lo normal es el entorno.
 
 En GitHub Actions el id se pasa al paso de build (como _secret_ o como variable de repositorio; el id
@@ -48,7 +49,8 @@ es público en la página de todos modos):
     PUBLIC_GTM_ID: ${{ secrets.PUBLIC_GTM_ID }}
 ```
 
-Este sitio lo usa así: no declara `gtmId` en su config (sí `privacyUrl`, que la analítica exige) y su
+Este sitio lo usa así: no declara `site.analytics.gtmId` en su config (sí `privacyUrl`, que la
+analítica exige) y su
 workflow pasa `PUBLIC_GTM_ID` desde el secreto del repo. Un build local o el de un fork sale sin
 rastreo, sin necesitar nada aparte.
 
@@ -84,21 +86,25 @@ un error que la nombra si recibe `gtmId` sin `privacyUrl`.
 ## Política de privacidad
 
 La librería no genera la página ni la ruta: la política es del sitio (o del dominio, si varios sitios
-comparten una). `privacyUrl` es la URL absoluta o la ruta del sitio donde está, y admite una por idioma:
+comparten una). `site.analytics.privacyUrl` es la URL absoluta o la ruta del sitio donde está, y admite una por idioma:
 
 ```js
 export default defineDocsConfig({
-  name: 'Mi proyecto',
-  locales: ['es', 'en'],
-  gtmId: 'GTM-XXXXXXX', // o PUBLIC_GTM_ID en el entorno
-  privacyUrl: {
-    es: 'https://mi-dominio.dev/privacidad/',
-    en: 'https://mi-dominio.dev/en/privacy/',
+  site: {
+    name: 'Mi proyecto',
+    analytics: {
+      gtmId: 'GTM-XXXXXXX', // o PUBLIC_GTM_ID en el entorno
+      privacyUrl: {
+        es: 'https://mi-dominio.dev/privacidad/',
+        en: 'https://mi-dominio.dev/en/privacy/',
+      },
+    },
   },
+  i18n: { locales: ['es', 'en'] },
 });
 ```
 
-| Config | Resultado |
+| `site.analytics` | Resultado |
 | --- | --- |
 | `gtmId` (o `PUBLIC_GTM_ID`) + `privacyUrl` | Analítica, banner de cookies y enlace en el pie |
 | Solo `privacyUrl` | Solo el enlace en el pie |
@@ -107,7 +113,7 @@ export default defineDocsConfig({
 
 Una cadena sirve para todos los idiomas. En un objeto, un idioma sin entrada usa la del idioma por
 defecto; si tampoco esa existe, la validación falla nombrando el idioma. Una clave de `privacyUrl` que
-no está en `locales` también falla.
+no está en `i18n.locales` también falla.
 
 > [!NOTE]
 > `privacy.page` y `privacy.controller` ya no existen: la config es estricta, así que dejarlas falla

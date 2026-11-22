@@ -60,7 +60,7 @@ core/
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
 │   ├── nav-sections.ts    Secciones por dir, validación de nav
 │   ├── nav-sidebar.ts     La barra lateral de un ámbito (NavScope: una sección o las páginas sin sección) y la de una página (buildScopedSidebar, con `tree.show`)
-│   ├── folder-tree.ts     `tree.show: 'all'`: el árbol completo de una carpeta (secciones como grupos, páginas sin sección) sobre nav-walk
+│   ├── folder-tree.ts     `tree.show: TreeShow.ALL`: el árbol completo de una carpeta (secciones como grupos, páginas sin sección) sobre nav-walk
 │   ├── nav-walk.ts        El único recorrido de la nav: ámbitos, árboles de contenido y de ruta, visitantes
 │   ├── nav-entries.ts     Elementos de la cabecera ya resueltos para una página
 │   ├── nav-tree.ts        Árbol de cada sección para ::nav-tree (visitante de nav-walk) y los huecos que deja en el HTML

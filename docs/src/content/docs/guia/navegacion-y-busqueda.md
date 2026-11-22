@@ -10,7 +10,7 @@ seo:
 
 ```mermaid
 flowchart TD
-  cfg["docs.config.mjs<br/>nav · sidebar · external · footer"] --> val["Validación contra los slugs reales<br/>(en el loader)"]
+  cfg["docs.config.mjs<br/>content.nav · content.sidebar · content.external · site.footer"] --> val["Validación contra los slugs reales<br/>(en el loader)"]
   pages["Páginas descubiertas<br/>order · slug · idioma"] --> val
   val --> nav["buildNav<br/>core/navigation/nav-entries.ts"]
   val --> sb["buildScopedSidebar<br/>core/navigation/nav-sidebar.ts"]
@@ -25,7 +25,7 @@ flowchart TD
 Todo el cálculo es puro y vive en `src/core/navigation/`; los componentes de `src/components/` solo pintan
 lo que reciben.
 
-### Cabecera (`nav`)
+### Cabecera (`content.nav`)
 
 Tres tipos de elemento, distinguidos por su forma:
 
@@ -36,10 +36,14 @@ Tres tipos de elemento, distinguidos por su forma:
   primera página. Es lo que usa este sitio: dos secciones, Guía (`guia/`) y Desarrollo (`desarrollo/`).
 
   ```js
-  // El README de la raíz y un REFERENCE.md suelto son «Para usuarios» sin vivir en `users/`.
-  { label: 'Para usuarios', dir: 'users', sidebar: ['readme', 'users/instalar', 'REFERENCE'] },
-  // Sin carpeta común: la sección es solo su sidebar.
-  { label: 'Referencia', sidebar: ['REFERENCE', 'changelog'] },
+  content: {
+    nav: [
+      // El README de la raíz y un REFERENCE.md suelto son «Para usuarios» sin vivir en `users/`.
+      { label: 'Para usuarios', dir: 'users', sidebar: ['readme', 'users/instalar', 'REFERENCE'] },
+      // Sin carpeta común: la sección es solo su sidebar.
+      { label: 'Referencia', sidebar: ['REFERENCE', 'changelog'] },
+    ],
+  },
   ```
 
   Sin `sidebar`, las páginas de la sección van ordenadas por `order` y luego **alfabéticamente por
@@ -54,7 +58,7 @@ páginas (un `dir` sin páginas, un `slug` que no existe) en el loader, con `val
 (`core/navigation/nav-sections.ts`). Desde `lg` los elementos están en la cabecera; por debajo
 aparecen en el menú móvil.
 
-### Barra lateral (`sidebar`)
+### Barra lateral (`content.sidebar`)
 
 - Entradas: slugs (`'guia/instalar'`) o grupos `{ label, slug?, items }`. La portada es `'index'`.
 - Lo que no declaras va **después**, ordenado por `order` del frontmatter y luego por slug, y
@@ -86,20 +90,22 @@ aparecen en el menú móvil.
 ### Profundidad del árbol automático (`tree.depth`)
 
 Sin límite, el árbol automático tiene un grupo por carpeta a cualquier profundidad. `tree.depth` en
-[`folders`](#ajustes-por-carpeta-folders) lo recorta, y cada límite cuenta desde la carpeta que lo
+[`content.folders`](#ajustes-por-carpeta-contentfolders) lo recorta, y cada límite cuenta desde la carpeta que lo
 declara:
 
 ```js
 import { ALL_FOLDERS } from '@velezanthony/design/integration';
 
-folders: {
-  // Todo el sitio: como mucho tres niveles de grupos desde la raíz de cada árbol que se pinta (el
-  // contenido o el `dir` de una sección).
-  [ALL_FOLDERS]: { tree: { depth: 3 } },
-  // Una sección: dos niveles contando desde su carpeta.
-  'articulos/sistemas': { tree: { depth: 2 } },
-  // `python` conserva sus carpetas hijas y aplana lo que haya más hondo dentro.
-  'articulos/desarrollo/python': { tree: { depth: 1 } },
+content: {
+  folders: {
+    // Todo el sitio: como mucho tres niveles de grupos desde la raíz de cada árbol que se pinta (el
+    // contenido o el `dir` de una sección).
+    [ALL_FOLDERS]: { tree: { depth: 3 } },
+    // Una sección: dos niveles contando desde su carpeta.
+    'articulos/sistemas': { tree: { depth: 2 } },
+    // `python` conserva sus carpetas hijas y aplana lo que haya más hondo dentro.
+    'articulos/desarrollo/python': { tree: { depth: 1 } },
+  },
 },
 ```
 
@@ -115,19 +121,20 @@ folders: {
 - Solo afecta a los **grupos automáticos de carpeta**: los grupos escritos a mano en `sidebar`
   (`{ label, items }`) no cambian.
 - Solo enteros positivos. Una carpeta que no tiene páginas rompe el build con su ruta
-  (`folders['articulos/pyton']`). `sidebarDepth` (global o en un elemento de `nav`) ya no existe: es
-  una opción desconocida.
+  (`content.folders['articulos/pyton']`).
 
 ### Árbol completo de una carpeta (`tree.show`)
 
-`tree.show` en [`folders`](#ajustes-por-carpeta-folders) dice qué árbol lleva la barra lateral de las
+`tree.show` en [`content.folders`](#ajustes-por-carpeta-contentfolders) dice qué árbol lleva la barra lateral de las
 páginas de una carpeta:
 
 ```js
 import { TreeShow } from '@velezanthony/design/integration';
 
-folders: {
-  articulos: { tree: { show: TreeShow.ALL } }, // SECTION (por defecto) | ALL
+content: {
+  folders: {
+    articulos: { tree: { show: TreeShow.ALL } }, // SECTION (por defecto) | ALL
+  },
 },
 ```
 
@@ -190,10 +197,10 @@ nueva aparece en el índice en cuanto entra en un `sidebar`.
   que hay), un atributo desconocido, un `descriptions` que no es `true` ni `false`, la directiva sin
   secciones en `nav`, con texto (`::nav-tree[…]`) o como contenedor (`:::nav-tree`).
 
-### Índices de carpeta (`folders` y `_index.md`)
+### Índices de carpeta (`content.folders` y `_index.md`)
 
 Un blog o una guía necesitan una página que liste lo que cuelga de su carpeta. **Si una carpeta tiene
-índice generado lo decide la config**, con `listing.generate` en `folders`; el `_index.md` de la
+índice generado lo decide la config**, con `listing.generate` en `content.folders`; el `_index.md` de la
 carpeta solo pone los textos.
 
 ```js
@@ -201,8 +208,10 @@ import { defineDocsConfig, ListingView } from '@velezanthony/design/integration'
 
 export default defineDocsConfig({
   // …
-  folders: {
-    tutoriales: { listing: { generate: true, view: ListingView.CARDS } },
+  content: {
+    folders: {
+      tutoriales: { listing: { generate: true, view: ListingView.CARDS } },
+    },
   },
 });
 ```
@@ -227,19 +236,19 @@ debajo, el listado de la carpeta. **El `_index.md` no es una página propia:** n
 la política de `translations` de siempre: sin traducción, `/en/tutoriales/` es una ruta de reserva con el
 texto original y las URLs de `/en/`.
 
-- **`listing.generate`** se hereda de la carpeta padre (ver [Ajustes por carpeta](#ajustes-por-carpeta-folders)):
+- **`listing.generate`** se hereda de la carpeta padre (ver [Ajustes por carpeta](#ajustes-por-carpeta-contentfolders)):
   con `articulos: { listing: { generate: true } }`, también `articulos/sistemas` y
   `articulos/sistemas/cloud` reciben su página, aunque no tengan ningún archivo propio.
 - **`index:`** (frontmatter) dice cómo sale una página en el listado de su carpeta (resumen y portada;
   ver [Portadas](#portadas-tarjetas)). Lo admite cualquier página, también un `_index.md`: es su ficha
   en el listado de la carpeta padre.
-- **`listing:` en el frontmatter ya no existe**: rompe el build con la pista de la clave de `folders`
-  que lo sustituye (`folders.tutoriales.listing`). El frontmatter solo lleva el contenido de la página.
+- **`listing:` en el frontmatter ya no existe**: rompe el build con la pista de la clave de
+  `content.folders` que lo sustituye (`content.folders.tutoriales.listing`). El frontmatter solo lleva el contenido de la página.
 
 | En la carpeta | `generate` encendido | `generate` apagado (por defecto) |
 | --- | --- | --- |
 | `index.md` | Esa página, normal: gana a la generación y el build lo **informa** (una línea `info` por carpeta). Un `_index.md` al lado se ignora con un aviso. | Esa página, normal. |
-| `_index.md` | El índice, con el título, la entradilla y el `seo` del `_index.md`. | **Error de build** con el archivo y la pista `folders['<carpeta>'].listing.generate: true`. |
+| `_index.md` | El índice, con el título, la entradilla y el `seo` del `_index.md`. | **Error de build** con el archivo y la pista `content.folders['<carpeta>'].listing.generate: true`. |
 | Ninguno | El índice: solo el título y el listado. | Nada. |
 
 - **Título de una carpeta sin `_index.md`:** la etiqueta de la sección de `nav` con ese `dir`; si no,
@@ -251,19 +260,21 @@ texto original y las URLs de `/en/`.
   carpeta de encima de la suya.
 
   ```js
-  nav: [
-    {
-      label: { es: 'Sistemas', en: 'Systems' },
-      sidebar: [
-        { label: 'CI/CD', items: ['articulos/sistemas/ci-cd/github-actions'] },
-        { label: 'Cloud', items: [{ label: 'AWS', items: ['articulos/sistemas/cloud/aws/basica'] }] },
-      ],
-    },
-  ],
+  content: {
+    nav: [
+      {
+        label: { es: 'Sistemas', en: 'Systems' },
+        sidebar: [
+          { label: 'CI/CD', items: ['articulos/sistemas/ci-cd/github-actions'] },
+          { label: 'Cloud', items: [{ label: 'AWS', items: ['articulos/sistemas/cloud/aws/basica'] }] },
+        ],
+      },
+    ],
+  },
   ```
 
 - **Descripción SEO de una carpeta sin `_index.md`:** «Todas las páginas de {title}.» (`listing.description`
-  de los textos de interfaz, sobrescribible en `ui`). Existe en todos los idiomas del sitio.
+  de los textos de interfaz, sobrescribible en `i18n.ui`). Existe en todos los idiomas del sitio.
 - **Indexables.** Las páginas de carpeta son páginas: entran en el sitemap y en la búsqueda. Para
   sacar una, `seo.noindex: true` en su `_index.md`, como en cualquier página; vale para la página y
   todas sus rutas de paginación. Para no tenerla, `generate: false` en esa rama.
@@ -312,7 +323,7 @@ Debajo del listado, una sola fila de pie lleva a la izquierda un `<select>` nati
 la fila se parte. Es la misma pieza que el pie de la tabla del panel SEO (`PaginationBar`). No hay
 copia arriba: con 12 entradas por página la fila queda cerca. El selector deja elegir cuántas
 entradas se ven: por defecto 12, 24 o 48 en las tarjetas y 10, 25 o 50 en la tabla. Las
-opciones salen de `perPageOptions` (en `folders`, heredado como cualquier ajuste) y deben ser enteros
+opciones salen de `perPageOptions` (en `content.folders`, heredado como cualquier ajuste) y deben ser enteros
 positivos; si el `pageSize` no está
 entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción ni si todo cabe en la
 más pequeña.
@@ -343,7 +354,7 @@ index:
   imageAlt: "Lo que muestra la imagen" # opcional
 ```
 
-Precedencia, de más a menos: `index.image` de la página → `listing.covers` de `folders` (heredado de
+Precedencia, de más a menos: `index.image` de la página → `listing.covers` de `content.folders` (heredado de
 la carpeta declarada más cercana o de `'*'`) → la portada de la librería. `false` quita la imagen salvo
 que la página ponga una real. `index.image` es siempre la portada de la página (una ruta o `false`); la
 **política** del listado (`true`/`false`) es `covers`.
@@ -357,7 +368,7 @@ que la página ponga una real. `index.image` es siempre la portada de la página
 - **Texto alternativo:** decorativa por defecto (`alt=""`), porque el título enlazado va al lado y
   se anunciaría dos veces; `imageAlt` le da un `alt` real. La de la librería es `aria-hidden`.
 
-#### Ajustes por carpeta (`folders`)
+#### Ajustes por carpeta (`content.folders`)
 
 Cada clave es la ruta de una carpeta del contenido (sin barras: `articulos/python`) o `'*'`
 (`ALL_FOLDERS`) para todo el sitio. Cada ajuste se hereda **por separado** de la carpeta declarada más
@@ -365,25 +376,28 @@ cercana (la propia, luego su padre…), luego de `'*'` y, sin nadie que lo decla
 defecto: declarar `pageSize` en una carpeta hija no anula la `view` de su padre.
 
 ```js
-import { ALL_FOLDERS, ListingView } from '@velezanthony/design/integration';
+import { ALL_FOLDERS, ListingView, TreeShow } from '@velezanthony/design/integration';
 
-folders: {
-  [ALL_FOLDERS]: { listing: { view: ListingView.LIST } },
-  articulos: {
-    listing: {
-      generate: true, // índice generado aquí y en todas sus subcarpetas (por defecto, false)
-      view: ListingView.CARDS, // LIST (por defecto) | TABLE | CARDS
-      pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
-      perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
-      covers: true, // política de portadas: true (por defecto, la de la librería) | false
+content: {
+  folders: {
+    [ALL_FOLDERS]: { listing: { view: ListingView.LIST } },
+    articulos: {
+      listing: {
+        generate: true, // índice generado aquí y en todas sus subcarpetas (por defecto, false)
+        view: ListingView.CARDS, // LIST (por defecto) | TABLE | CARDS
+        pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
+        perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
+        covers: true, // política de portadas: true (por defecto, la de la librería) | false
+      },
+      tree: { show: TreeShow.ALL, depth: 3 }, // ver «Árbol completo» y «Profundidad»
     },
+    'articulos/borradores': { listing: { generate: false } }, // apaga una rama
   },
-  'articulos/borradores': { listing: { generate: false } }, // apaga una rama
 },
 ```
 
 - Una clave que no es `'*'` ni una carpeta con páginas rompe el build con su ruta
-  (`folders['articulos/pyton']`).
+  (`content.folders['articulos/pyton']`).
 - Los textos de una carpeta (título, entradilla, `seo`) no van aquí: van en su `_index.md`, que se
   traduce.
 - **Cómo funciona.** `folderSettings` (`core/config/folders.ts`) resuelve la herencia; el loader añade
@@ -399,24 +413,26 @@ folders: {
 
 ### Excluir archivos
 
-`exclude` deja fuera de la publicación los `.md` de la carpeta de contenido que casan con sus patrones (estilo
+`content.exclude` deja fuera de la publicación los `.md` de la carpeta de contenido que casan con sus patrones (estilo
 `.gitignore`, relativos a esa carpeta), como `exclude_docs` de MkDocs: `exclude: ['drafts/', '*.borrador.md']`.
 Un nombre sin `/` vale a cualquier profundidad, `/` al final es una carpeta, `**` cruza carpetas y `!` vuelve a
 incluir (manda el último patrón que coincide). Lo excluido no se lee, ni se publica, ni cuenta para los enlaces;
-un enlace a un archivo excluido falla con un mensaje que nombra `exclude`. Los `external` no se ven afectados.
+un enlace a un archivo excluido falla con un mensaje que nombra `content.exclude`. Los `external` no se ven afectados.
 
 ### Archivos externos
 
-`external` publica archivos que viven fuera de la carpeta de contenido (`src/content/docs/` por defecto), típicamente el `CHANGELOG.md` o
+`content.external` publica archivos que viven fuera de la carpeta de contenido (`src/content/docs/` por defecto), típicamente el `CHANGELOG.md` o
 el `README.md` de la raíz del repo, para que GitHub y el sitio lean **la misma fuente**:
 
 ```js
-external: [{ slug: 'changelog', file: '../CHANGELOG.md', translations: MissingTranslation.LINK }],
+content: {
+  external: [{ slug: 'changelog', file: '../CHANGELOG.md', translations: MissingTranslation.LINK }],
+},
 ```
 
 `file` es relativo al proyecto de Astro. Sus enlaces relativos se resuelven contra su ubicación
 real, así que siguen funcionando en GitHub. El enlace «Editar esta página» apunta a ese archivo
-(`editPath` se calcula contra la raíz del repo: `repoRoot` o el `.git` más cercano).
+(`editPath` se calcula contra la raíz del repo: `content.repoRoot` o el `.git` más cercano).
 
 Con `slug: 'index'` el archivo es la **portada** (el `README.md` de la raíz, por ejemplo), y `slug: 'guia/index'`
 es `guia`, igual que un `index.md` nativo; si además hay un `index.md` en ese idioma, la build falla nombrando
@@ -424,23 +440,27 @@ los dos archivos.
 
 ### Carpetas estáticas
 
-`static` publica una carpeta tal cual, sin Markdown ni optimización, y la deja fuera del índice de
+`content.static` publica una carpeta tal cual, sin Markdown ni optimización, y la deja fuera del índice de
 búsqueda y del sitemap. Sirve para lo que ya viene generado, como un informe de cobertura HTML:
 
 ```js
-static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/
+content: {
+  static: [{ from: '../htmlcov', to: 'coverage' }], // → <base>/coverage/
+},
 ```
 
 `from` es relativa a la raíz del proyecto de Astro y debe existir al construir; si falta, el build
-falla con `static[0].from`. `to` no puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no
+falla con `content.static[0].from`. `to` no puede ser `_astro`, `pagefind` ni un idioma, y dos destinos no
 pueden solaparse.
 
 `exclude` deja fuera archivos de la carpeta. Son patrones al estilo `.gitignore`, los mismos que el
-`exclude` de la config, pero relativos a `from`. Lo excluido no se copia a `dist/` y `astro dev`
+`content.exclude` de la config, pero relativos a `from`. Lo excluido no se copia a `dist/` y `astro dev`
 responde 404, igual que si no existiera. Las reglas se aplican a cada archivo:
 
 ```js
-static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/', '*.py'] }],
+content: {
+  static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/', '*.py'] }],
+},
 ```
 
 Una página la enlaza con una ruta relativa a su archivo, como en GitHub
@@ -455,11 +475,11 @@ El build la copia a `dist/` al final de `astro:build:done`
 ### Pie
 
 Dos filas iguales en todas las páginas: copyright, tus `links` y los enlaces al repositorio y a
-«Informar de un error» (a partir de `social.github`); debajo, licencia, privacidad y «Preferencias de
+«Informar de un error» (a partir de `site.social.github`); debajo, licencia, privacidad y «Preferencias de
 cookies» (solo con analítica). Este sitio no declara licencia todavía. El año sale del reloj del
 visitante (`client/layout/year.ts`); el del build queda como respaldo sin JavaScript.
 
-#### Pie propio (`components.Footer`)
+#### Pie propio (`site.components.Footer`)
 
 Un sitio que ya tiene su pie (un sitio con sus páginas propias) puede usarlo también en las páginas
 de docs, como los `components` de Starlight. Se declara en `docs.config.mjs` con la ruta de un `.astro`
@@ -467,8 +487,10 @@ desde la raíz del proyecto:
 
 ```js
 export default defineDocsConfig({
-  name: 'Mi sitio',
-  components: { Footer: './src/components/DocsFooter.astro' },
+  site: {
+    name: 'Mi sitio',
+    components: { Footer: './src/components/DocsFooter.astro' },
+  },
 });
 ```
 
@@ -500,10 +522,10 @@ El componente sustituye entero al pie de la librería y recibe estas props (`Foo
 | `strings` | `UiStrings` | Textos de interfaz del idioma, ya fusionados con los de `ui`. |
 | `privacyUrl` | `string \| undefined` | La `privacyUrl` del idioma; sin ella, no hay enlace que pintar. |
 | `cookieControl` | `boolean` | `true` con analítica: hay una elección de cookies que reabrir. |
-| `footer` | `FooterView \| undefined` | Licencia, autor y enlaces de la opción `footer`, ya resueltos al idioma. |
+| `footer` | `FooterView \| undefined` | Licencia, autor y enlaces de la opción `site.footer`, ya resueltos al idioma. |
 
 - **Cómo llega.** La integración comprueba la ruta y sirve el módulo virtual
-  `virtual:@velezanthony/design/components/Footer`, que reexporta ese archivo o, sin `components`,
+  `virtual:@velezanthony/design/components/Footer`, que reexporta ese archivo o, sin `site.components`,
   `DocsFooter`. Lo importan la ruta de las páginas de docs (`astro/routes/doc.astro`) y las del panel
   SEO (`astro/routes/seo-on-page/`), que se lo pasan a `DocsLayout` por su prop `Footer`: los
   componentes no leen módulos virtuales. Así el panel, solo de desarrollo, lleva el mismo pie que el
@@ -513,8 +535,8 @@ El componente sustituye entero al pie de la librería y recibe estas props (`Foo
   `CookieSettingsButton` es el botón de «Preferencias de cookies» de `DocsFooter`, con el atributo
   `data-consent-open` que escucha el script de consentimiento. Recibe `strings` y una `class` opcional.
 - **El `<body>` es una columna flexible:** `mt-auto` en el `<footer>` lo deja abajo en una página corta.
-- **Rompe el build:** una ruta que no existe (nombra `components.Footer` y dónde se buscó), una que no
-  es `.astro` o es una URL, y cualquier otra clave dentro de `components` (`components.Header: opción
+- **Rompe el build:** una ruta que no existe (nombra `site.components.Footer` y dónde se buscó), una que no
+  es `.astro` o es una URL, y cualquier otra clave dentro de `components` (`site.components.Header: opción
   desconocida.`).
 
 ## Búsqueda
