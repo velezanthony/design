@@ -1,11 +1,12 @@
-import type { ResolvedConfig } from '../../core/config/resolve';
+import type { ResolvedConfig, ResolvedI18n } from '../../core/config/resolve';
 import { siteStrings, type UiStrings } from '../../core/i18n/ui-strings';
 import type { Locale } from '../../core/i18n/locale';
 
 /** Lo que Astro sabe y la integración no: viene de `astro.config`. */
 export interface AstroSiteConfig {
   base: string;
-  site: string;
+  /** El `site` de Astro (la URL del sitio); se llama así para no chocar con el grupo `site` de la config. */
+  siteUrl: string;
   trailingSlash: 'always' | 'never' | 'ignore';
   buildFormat: 'directory' | 'file' | 'preserve';
   /** `public/` del consumidor como URL `file://` con barra final (para leer imágenes SEO). */
@@ -14,13 +15,14 @@ export interface AstroSiteConfig {
   root: string;
 }
 
-/** Contenido del módulo virtual (sus tipos para el consumidor están en `virtual.d.ts`). */
-export interface VirtualConfig extends Omit<ResolvedConfig, 'ui'>, AstroSiteConfig {
+/** Contenido del módulo virtual (sus tipos para el consumidor están en `virtual.d.ts`): la config resuelta, sin `i18n.ui`, más lo que sabe Astro y los textos ya fusionados. */
+export interface VirtualConfig extends Omit<ResolvedConfig, 'i18n'>, AstroSiteConfig {
+  i18n: Omit<ResolvedI18n, 'ui'>;
   strings: Record<Locale, UiStrings>;
 }
 
-/** Datos serializables del módulo virtual; `ui` no viaja, va fusionado en `strings` solo para los idiomas del sitio. */
+/** Datos serializables del módulo virtual; `i18n.ui` no viaja, va fusionado en `strings` solo para los idiomas del sitio. */
 export function createVirtualData(config: ResolvedConfig, astro: AstroSiteConfig): VirtualConfig {
-  const { ui, ...rest } = config;
-  return { ...rest, ...astro, strings: siteStrings(ui, config.locales) };
+  const { ui, ...i18n } = config.i18n;
+  return { ...config, i18n, ...astro, strings: siteStrings(ui, i18n.locales) };
 }

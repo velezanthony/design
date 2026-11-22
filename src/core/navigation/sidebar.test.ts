@@ -38,7 +38,7 @@ function build(
     pages,
     buildAvailability(pages, url),
     locale,
-    { locales: ['en', 'es'], defaultLocale: 'en', sidebar },
+    { i18n: { locales: ['en', 'es'], defaultLocale: 'en' }, content: { sidebar } },
     policies,
     url,
   );
@@ -187,7 +187,12 @@ describe('buildSidebar: política de traducción ausente', () => {
   });
 
   it('la política de la página manda sobre la base', () => {
-    const own = [page('install'), page('changelog', 'en', { translations: 'omit' })];
+    const own = [
+      page('install'),
+      page('changelog', 'en', {
+        translations: 'omit',
+      }),
+    ];
     expect(shape(build(own, 'es', undefined, MissingTranslation.LINK))).toEqual(['install']);
   });
 
@@ -197,7 +202,14 @@ describe('buildSidebar: política de traducción ausente', () => {
   });
 
   it('una sección omitida entera desaparece', () => {
-    const tree = build([page('guide/a', 'en', { translations: 'omit' })], 'es');
+    const tree = build(
+      [
+        page('guide/a', 'en', {
+          translations: 'omit',
+        }),
+      ],
+      'es',
+    );
     expect(tree).toEqual([]);
   });
 });
@@ -334,7 +346,7 @@ describe('buildSidebar: páginas que listan su carpeta', () => {
       pages,
       buildAvailability(pages, url),
       'en',
-      { locales: ['en', 'es'], defaultLocale: 'en' },
+      { i18n: { locales: ['en', 'es'], defaultLocale: 'en' }, content: {} },
       policies,
       url,
       'guia',
@@ -470,7 +482,7 @@ describe('buildSidebar: portada en la config', () => {
   });
 });
 
-const localeConfig = { locales: ['en', 'es'], defaultLocale: 'en' };
+const localeConfig = { i18n: { locales: ['en', 'es'], defaultLocale: 'en' } };
 
 describe('missingEntry', () => {
   const available = { en: '/repo/changelog/' };
@@ -608,7 +620,7 @@ describe('buildSidebar: casos límite', () => {
 describe('buildSidebar: carpeta raíz de una sección (`base`)', () => {
   function buildIn(pages: Page[], base: string): SidebarNode[] {
     const { policies } = resolvePolicies(pages, MissingTranslation.LINK);
-    const config = { locales: ['en'], defaultLocale: 'en' };
+    const config = { i18n: { locales: ['en'], defaultLocale: 'en' }, content: {} };
     return buildSidebar(pages, buildAvailability(pages, url), 'en', config, policies, url, base);
   }
 
@@ -711,7 +723,10 @@ describe('buildSidebar: `tree.depth` de `folders`', () => {
     sidebar?: SidebarItem[],
   ): unknown[] {
     const { policies } = resolvePolicies(pages, MissingTranslation.LINK);
-    const config = { locales: ['en'], defaultLocale: 'en', sidebar, folders: resolveFolders(user) };
+    const config = {
+      i18n: { locales: ['en'], defaultLocale: 'en' },
+      content: { sidebar, folders: resolveFolders(user) },
+    };
     return shape(
       buildSidebar(pages, buildAvailability(pages, url), 'en', config, policies, url, base),
     );

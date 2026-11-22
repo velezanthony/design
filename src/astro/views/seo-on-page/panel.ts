@@ -86,7 +86,9 @@ export function panelView({
   const site = siteContext(config, data);
   const { url } = site;
   /* El panel va SIEMPRE en español: catálogo del sitio si lo tiene (respeta `ui`) o el de la librería; los enlaces de cabecera y pie van a su versión española si existe. */
-  const siteLang = config.locales.includes(PANEL_LOCALE) ? PANEL_LOCALE : config.defaultLocale;
+  const siteLang = config.i18n.locales.includes(PANEL_LOCALE)
+    ? PANEL_LOCALE
+    : config.i18n.defaultLocale;
   const strings = (config.strings[PANEL_LOCALE] ?? defaultStrings[PANEL_LOCALE]) as UiStrings;
   /* El panel no es una página de la colección: con su carpeta como slug no coincide con ninguna
      sección de `nav`, así que la cabecera no marca nada como actual. */
@@ -102,7 +104,7 @@ export function panelView({
       { tag: 'title', attrs: {}, content: `${title} · ${PANEL_NAME}` },
       { tag: 'meta', attrs: { name: 'robots', content: 'noindex' } },
     ],
-    siteName: config.name,
+    siteName: config.site.name,
     homeHref: pageUrl('', siteLang, url),
     hrefs: {},
     strings,
@@ -115,7 +117,7 @@ export function panelView({
         })),
       },
     ],
-    nav: buildNav(config.nav, context),
+    nav: buildNav(config.content.nav, context),
     footer: buildFooter(config, context, strings),
     current: screens[screen].href,
     headings,
@@ -123,7 +125,7 @@ export function panelView({
     baseUrl: baseUrl(config.base),
     /* A ancho completo: la tabla y las vistas previas no caben en la columna de lectura. El resto
        de la disposición es la del sitio, y el conmutador sigue permitiendo cambiarla. */
-    layout: { ...config.layout, width: LayoutWidth.FULL },
+    layout: { ...config.site.layout, width: LayoutWidth.FULL },
     prose: false,
   };
 }

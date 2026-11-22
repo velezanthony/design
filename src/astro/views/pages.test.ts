@@ -5,11 +5,15 @@ import { sitemapIndexXml, sitemapXml } from './pages';
 
 const config = {
   base: '/repo',
-  site: 'https://x.dev',
+  siteUrl: 'https://x.dev',
   trailingSlash: 'always' as const,
-  defaultLocale: 'en',
-  locales: ['en', 'es'],
+  i18n: { defaultLocale: 'en', locales: ['en', 'es'] },
 };
+
+/** El `seo` del sitio con estos sitemaps incluidos. */
+function seoWith(include: string[]) {
+  return { site: { seo: { titleSuffix: false as const, sitemap: { include } } } };
+}
 
 function data(slug: string, locale: string, extra: Partial<DocData> = {}): DocData {
   return {
@@ -84,7 +88,10 @@ describe('sitemapIndexXml', () => {
   }
 
   it('apunta primero a las páginas propias, bajo la base, y luego a los incluidos', () => {
-    const xml = sitemapIndexXml({ ...config, sitemap: { include: ['/lib/sitemap.xml'] } });
+    const xml = sitemapIndexXml({
+      ...config,
+      ...seoWith(['/lib/sitemap.xml']),
+    });
     expect(locs(xml)).toEqual([
       'https://x.dev/repo/sitemap-pages.xml',
       'https://x.dev/lib/sitemap.xml',
@@ -95,14 +102,17 @@ describe('sitemapIndexXml', () => {
     const xml = sitemapIndexXml({
       ...config,
       base: '/',
-      sitemap: { include: ['/lib/sitemap.xml'] },
+      ...seoWith(['/lib/sitemap.xml']),
     });
     expect(locs(xml)[0]).toBe('https://x.dev/sitemap-pages.xml');
   });
 
   it('un sitemap de otro dominio sale como error de Astro', () => {
     expect(() =>
-      sitemapIndexXml({ ...config, sitemap: { include: ['https://otro.dev/sitemap.xml'] } }),
+      sitemapIndexXml({
+        ...config,
+        ...seoWith(['https://otro.dev/sitemap.xml']),
+      }),
     ).toThrow(expect.objectContaining({ hint: expect.stringContaining('otro.dev') }));
   });
 });

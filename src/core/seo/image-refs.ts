@@ -13,7 +13,7 @@ const FIELD = 'seo.image.src';
 
 /** Imágenes SEO de la config base y de los overrides de cada página (frontmatter o `external`). */
 export function collectImageRefs(
-  base: ResolvedConfig['seo']['image'],
+  base: ResolvedConfig['site']['seo']['image'],
   pages: readonly Page[],
 ): ImageRef[] {
   return [

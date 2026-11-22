@@ -13,7 +13,7 @@ function site(user: ConfigPart = {}) {
     resolveConfig(withConfig({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } }, user)),
     {
       base: '/repo',
-      site: 'https://x.dev',
+      siteUrl: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
@@ -37,7 +37,7 @@ function view(extra: Partial<Parameters<typeof panelView>[0]> = {}) {
   return panelView({
     config,
     data,
-    hrefs: devHrefs(config),
+    hrefs: devHrefs({ ...config, defaultLocale: config.i18n.defaultLocale }),
     screen: 'overview',
     title: 'Resumen',
     ...extra,
@@ -92,7 +92,7 @@ describe('panelView', () => {
       }),
       {
         base: '/repo',
-        site: 'https://x.dev',
+        siteUrl: 'https://x.dev',
         trailingSlash: 'always',
         buildFormat: 'directory',
         publicDir: 'file:///site/public/',
@@ -123,7 +123,7 @@ describe('panelView', () => {
     const built = view({ config });
     expect(built.layout.width).toBe('full');
     // El resto de la disposición (barras plegables, conmutadores) sigue siendo la del sitio.
-    expect({ ...built.layout, width: config.layout.width }).toEqual(config.layout);
+    expect({ ...built.layout, width: config.site.layout.width }).toEqual(config.site.layout);
   });
 
   it('el contenido va sin prosa: el panel trae su propio marcado', () => {

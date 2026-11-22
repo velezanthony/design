@@ -1,6 +1,7 @@
 import { z } from 'astro/zod';
-import { contentDirProblem } from '../content/content-dir';
-import { FoldersSchema } from './folders';
+import { contentDirProblem, DEFAULT_CONTENT_DIR, normalizePath } from '../content/content-dir';
+import type { StaticFolder } from '../content/static-folders';
+import { FoldersSchema, resolveFolders, type ResolvedFolders } from './folders';
 import { NavIcon, type NavItem } from './nav';
 import {
   LabelSchema,
@@ -102,6 +103,36 @@ export const ContentSchema = z
       context.addIssue({ code: 'custom', path, message }),
     );
   });
+
+/** `content` resuelto. */
+export interface ResolvedContent {
+  /** Carpeta de las páginas nativas, relativa a la raíz del proyecto y ya normalizada (`../docs`). */
+  dir: string;
+  /** Patrones de `.md` de `dir` que no se publican (relativos a esa carpeta). */
+  exclude: string[];
+  external: ExternalDoc[];
+  /** Carpetas que se publican tal cual (informe de cobertura): `from` desde la raíz del proyecto, `to` bajo el sitio. */
+  static?: StaticFolder[];
+  editUrl?: string;
+  repoRoot?: string;
+  /** Items de la cabecera; sin definir, el sitio usa solo `sidebar`. */
+  nav?: NavItem[];
+  sidebar?: SidebarItem[];
+  /** Ajustes por carpeta tal como se declararon; `folderSettings` (`./folders`) resuelve la herencia. */
+  folders: ResolvedFolders;
+}
+
+/** Completa `content` con los valores por defecto. */
+export function resolveContent(content: z.output<typeof ContentSchema> = {}): ResolvedContent {
+  const { dir, exclude, external, folders, ...rest } = content;
+  return {
+    ...rest,
+    dir: normalizePath(dir ?? DEFAULT_CONTENT_DIR),
+    exclude: exclude ?? [],
+    external: external ?? [],
+    folders: resolveFolders(folders),
+  };
+}
 
 /** Lo que se puede juzgar de `nav` sin conocer las páginas: forma de cada item, https y solape de dirs. */
 function validateNavShape(

@@ -163,7 +163,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
       const base = pages.map((original) => ({ ...original, body: '' }));
       const availability = excludeNoindex(buildAvailability(base, url), noindexUrls(base, url));
       const resolved = withImageSize(
-        resolveMeta(config.seo, source.seo, source, source.locale),
+        resolveMeta(config.site.seo, source.seo, source, source.locale),
         imageSizes,
       );
       const data = {
@@ -206,7 +206,7 @@ describe('buildSeoTree usa las mismas funciones que el sitio', () => {
     const schemaTree = buildSeoTree({ config: withSchemas, url, pages: schemaPages });
     function published(source: (typeof schemaPages)[number]) {
       const base = schemaPages.map((original) => ({ ...original, body: '' }));
-      const resolved = resolveMeta(withSchemas.seo, source.seo, source, source.locale);
+      const resolved = resolveMeta(withSchemas.site.seo, source.seo, source, source.locale);
       const data = {
         kind: 'page',
         slug: source.slug,

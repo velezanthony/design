@@ -67,7 +67,7 @@ export function buildNavTree(
   contentLocale: Locale,
   index: number,
 ): NavTreeNode[] {
-  const item = context.config.nav?.[index];
+  const item = context.config.content.nav?.[index];
   if (!item || !isNavSection(item)) return [];
   const { pages, config } = context;
   const trees = scopeTrees(context, contentLocale, { kind: 'section', position: index });
@@ -78,7 +78,7 @@ export function buildNavTree(
         const description = pageBlurb(
           pickLocalized(pages, node.slug!, contentLocale, config),
           contentLocale,
-          { defaultLocale: config.defaultLocale },
+          { defaultLocale: config.i18n.defaultLocale },
         );
         return {
           label: node.label,
@@ -98,7 +98,7 @@ export function buildNavTree(
 
 /** El árbol de cada posición de `nav` (vacío en lo que no es una sección). */
 export function buildNavTrees(context: NavContext, contentLocale: Locale): NavTreeNode[][] {
-  return (context.config.nav ?? []).map((_item, index) =>
+  return (context.config.content.nav ?? []).map((_item, index) =>
     buildNavTree(context, contentLocale, index),
   );
 }

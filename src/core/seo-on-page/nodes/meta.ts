@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../../config/resolve';
+import type { ConfigPick } from '../../config/resolve';
 import { pageUrlOf, type UrlPolicy } from '../../i18n/availability';
 import { resolveMeta, withImageSize, type ImageSizes, type SeoBase } from '../../seo/meta';
 import { composeTitle } from '../../seo/title';
@@ -29,18 +29,21 @@ function ogImageSource(page: SeoPageInput, image: MetaNode['ogImage']): OgImageS
 /** Mismas funciones que `buildHead`, para que el panel enseñe lo que sale en el `<head>`. */
 export function buildMetaNode(
   page: SeoPageInput,
-  config: Pick<ResolvedConfig, 'seo'>,
+  config: ConfigPick<'seo'>,
   url: UrlPolicy,
   imageSizes: ImageSizes = new Map(),
 ): MetaNode {
-  const resolved = withImageSize(resolveMeta(config.seo, page.seo, page, page.locale), imageSizes);
+  const resolved = withImageSize(
+    resolveMeta(config.site.seo, page.seo, page, page.locale),
+    imageSizes,
+  );
   const title = composeTitle(resolved.title, resolved.titleSuffix);
   const { description, image } = resolved;
   return {
     title,
     titleLength: title.length,
     ...(description !== undefined && { description, descriptionLength: description.length }),
-    descriptionSource: descriptionSource(config.seo, page, description),
+    descriptionSource: descriptionSource(config.site.seo, page, description),
     ogTitle: title,
     ...(description !== undefined && { ogDescription: description }),
     ...(image && { ogImage: image }),

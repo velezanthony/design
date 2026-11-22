@@ -14,10 +14,11 @@ import { panelView } from '../../views/seo-on-page/panel';
 
 const { docs, tree, client, failures, overrides } = await loadPanel(siteConfig, Astro.url.origin);
 /* Los enlaces del panel los arma la ruta: `data/` no conoce `views/`. */
-const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.defaultLocale));
+const reportSite = { name: siteConfig.site.name, locales: siteConfig.i18n.locales };
+const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.i18n.defaultLocale));
 const model = overviewModel(tree, {
-  locales: siteConfig.locales,
-  defaultLocale: siteConfig.defaultLocale,
+  locales: siteConfig.i18n.locales,
+  defaultLocale: siteConfig.i18n.defaultLocale,
   links: hrefs,
   siteFiles: await loadSiteFiles(siteConfig, docs, client),
 });
@@ -28,7 +29,7 @@ const view = panelView({
   screen: 'overview',
   title: SCREEN_LABELS.overview,
 });
-const report = overviewReport(tree, siteConfig);
+const report = overviewReport(tree, reportSite);
 ---
 
 <OverviewPage
@@ -36,7 +37,7 @@ const report = overviewReport(tree, siteConfig);
   year={new Date().getFullYear()}
   Footer={Footer}
   model={model}
-  locales={siteConfig.locales}
+  locales={siteConfig.i18n.locales}
   failures={failures}
   overrides={overrides}
   report={report}

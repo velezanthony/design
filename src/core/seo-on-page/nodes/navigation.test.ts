@@ -22,7 +22,7 @@ function links(pages: Page[], user: ConfigPart = {}) {
     withConfig({ site: { name: 'X' }, i18n: { locales: ['en', 'es'] } }, user),
   );
   const availability = buildAvailability(pages, url);
-  const { policies } = resolvePolicies(pages, config.translations.missing);
+  const { policies } = resolvePolicies(pages, config.i18n.missing);
   return navigationLinks(pages, config, { url, availability, policies });
 }
 function targets(map: ReturnType<typeof links>, slug: string, locale = 'en') {

@@ -60,9 +60,11 @@ export function applyAnalyticsForCommand(
   envValue: string | undefined,
   warn: (message: string) => void,
 ) {
-  const value = envValueForCommand(command, envValue, config.gtmId, warn);
-  if (command === 'dev' && config.privacyUrl === undefined) {
-    const id = orAstroError(ANALYTICS_ERROR, () => resolveAnalytics(value, config.gtmId));
+  const value = envValueForCommand(command, envValue, config.site.analytics.gtmId, warn);
+  if (command === 'dev' && config.site.analytics.privacyUrl === undefined) {
+    const id = orAstroError(ANALYTICS_ERROR, () =>
+      resolveAnalytics(value, config.site.analytics.gtmId),
+    );
     if (id !== undefined) {
       warn(`${missingPrivacyUrlError().describe()} Se ignora: sin analítica en este servidor.`);
       return applyAnalyticsOrThrow(config, value, false);

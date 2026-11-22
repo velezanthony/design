@@ -16,10 +16,11 @@ import { inspectorHeadings, panelView } from '../../views/seo-on-page/panel';
 
 const { searchParams } = Astro.url;
 const slug = searchParams.get('slug') ?? '';
-const locale = searchParams.get('locale') ?? siteConfig.defaultLocale;
+const locale = searchParams.get('locale') ?? siteConfig.i18n.defaultLocale;
 const { docs, tree, failures } = await loadPanel(siteConfig, Astro.url.origin);
 /* Los enlaces del panel los arma la ruta: `data/` no conoce `views/`. */
-const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.defaultLocale));
+const reportSite = { name: siteConfig.site.name, locales: siteConfig.i18n.locales };
+const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.i18n.defaultLocale));
 /* El enlace de edición, como el de las páginas de docs: `editUrl` de la config más la ruta del archivo
    respecto a la raíz del repo, que solo conoce el loader. */
 const editPath = docs.find((doc) => doc.slug === slug && doc.locale === locale)?.editPath;
@@ -28,19 +29,22 @@ const model = inspectorModel({
   slug,
   locale,
   links: hrefs,
-  site: siteConfig.site,
+  site: siteConfig.siteUrl,
   asset: (src) => assetHref(siteConfig.base, src),
-  edit: siteConfig.editUrl && editPath ? { url: siteConfig.editUrl, path: editPath } : undefined,
+  edit:
+    siteConfig.content.editUrl && editPath
+      ? { url: siteConfig.content.editUrl, path: editPath }
+      : undefined,
 });
 if (!model) Astro.response.status = 404;
 /* Los informes y los prompts se generan aquí, una vez: el navegador solo elige entre ellos. */
 const entry = findEntry(tree.pages, slug, locale);
-const report = model && inspectorReport(tree, slug, siteConfig);
+const report = model && inspectorReport(tree, slug, reportSite);
 const prompts =
   model && entry
     ? fixPrompts(
         tree,
-        siteConfig,
+        reportSite,
         entry,
         model.fixes.map((fix) => fix.issue),
       )

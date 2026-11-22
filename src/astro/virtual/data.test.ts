@@ -40,16 +40,17 @@ describe('createVirtualData', () => {
     });
     const data = createVirtualData(resolved, {
       base: '/r',
-      site: 'https://o.dev',
+      siteUrl: 'https://o.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
       root: 'file:///site/',
     });
-    /* Todo lo que recibe el loader: la config resuelta sin `ui`, que no viaja. */
-    const loaderConfig = Object.fromEntries(
-      Object.entries(resolved).filter(([key]) => key !== 'ui'),
-    );
-    expect(JSON.parse(JSON.stringify(data))).toMatchObject(loaderConfig);
+    /* Todo lo que recibe el loader: la config resuelta sin `i18n.ui`, que no viaja. */
+    const { ui, ...i18n } = resolved.i18n;
+    const travelled = JSON.parse(JSON.stringify(data));
+    expect(travelled).toMatchObject({ ...resolved, i18n });
+    expect(travelled.i18n).not.toHaveProperty('ui');
+    expect(ui).toEqual({ es: { 'search.placeholder': 'Buscar' } });
   });
 });

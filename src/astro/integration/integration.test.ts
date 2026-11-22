@@ -84,12 +84,14 @@ describe('docs(): identidad y config', () => {
       content: { external: [{ slug: 'changelog', file: '../C.md' }] },
     });
     expect(integration.name).toBe(INTEGRATION_NAME);
-    expect(integration.resolvedConfig.external).toEqual([{ slug: 'changelog', file: '../C.md' }]);
+    expect(integration.resolvedConfig.content.external).toEqual([
+      { slug: 'changelog', file: '../C.md' },
+    ]);
   });
 
   it('cada llamada devuelve su propia config', () => {
-    expect(docs({ site: { name: 'a' } }).resolvedConfig.name).toBe('a');
-    expect(docs({ site: { name: 'b' } }).resolvedConfig.name).toBe('b');
+    expect(docs({ site: { name: 'a' } }).resolvedConfig.site.name).toBe('a');
+    expect(docs({ site: { name: 'b' } }).resolvedConfig.site.name).toBe('b');
   });
 });
 
@@ -258,17 +260,16 @@ describe('astro:config:setup: módulo virtual', () => {
   it('serializa la config validada con base, site, trailingSlash y build.format', async () => {
     const data = await virtualData({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } });
     expect(data).toMatchObject({
-      name: 'Docs',
-      locales: ['en', 'es'],
-      defaultLocale: 'en',
+      site: { name: 'Docs' },
+      i18n: { locales: ['en', 'es'], defaultLocale: 'en' },
       base: '/repo',
-      site: 'https://x.dev',
+      siteUrl: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
       root: 'file:///site/',
     });
-    expect(data.translations).toEqual({ missing: MissingTranslation.LINK, declared: false });
+    expect(data.i18n).toMatchObject({ missing: MissingTranslation.LINK, missingDeclared: false });
   });
 
   it('lleva el catálogo fusionado por idioma, con los textos del consumidor encima', async () => {
@@ -288,7 +289,7 @@ describe('astro:config:setup: módulo virtual', () => {
       i18n: { missing: MissingTranslation.FALLBACK },
     });
     expect(Object.keys(data.strings)).toEqual(['en']);
-    expect(data.translations.missing).toBe('fallback');
+    expect(data.i18n.missing).toBe('fallback');
   });
 
   it('inyecta los tipos del módulo virtual con injectTypes', async () => {
@@ -580,22 +581,22 @@ describe('astro:config:setup: analítica desde el entorno', () => {
   it('sin PUBLIC_GTM_ID ni privacyUrl no hay gtmId ni enlace de privacidad', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', '');
     const data = await virtualData(two);
-    expect(data.gtmId).toBeUndefined();
-    expect(data.privacyUrl).toBeUndefined();
+    expect(data.site.analytics.gtmId).toBeUndefined();
+    expect(data.site.analytics.privacyUrl).toBeUndefined();
   });
 
   it('con PUBLIC_GTM_ID y privacyUrl activa la analítica y el enlace de cada idioma', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', ' GTM-ENV0001 ');
     const data = await virtualData(withPrivacy);
-    expect(data.gtmId).toBe('GTM-ENV0001');
-    expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+    expect(data.site.analytics.gtmId).toBe('GTM-ENV0001');
+    expect(data.site.analytics.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
   });
 
   it('solo privacyUrl: el enlace del pie, sin analítica', async () => {
     vi.stubEnv('PUBLIC_GTM_ID', '');
     const data = await virtualData(withPrivacy);
-    expect(data.gtmId).toBeUndefined();
-    expect(data.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+    expect(data.site.analytics.gtmId).toBeUndefined();
+    expect(data.site.analytics.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
   });
 
   it('el gtmId de la config gana al entorno', async () => {
@@ -603,7 +604,7 @@ describe('astro:config:setup: analítica desde el entorno', () => {
     const data = await virtualData(
       withConfig(withPrivacy, { site: { analytics: { gtmId: 'GTM-CONF001' } } }),
     );
-    expect(data.gtmId).toBe('GTM-CONF001');
+    expect(data.site.analytics.gtmId).toBe('GTM-CONF001');
   });
 
   it('un ID con formato inválido rompe la construcción con un AstroError', async () => {

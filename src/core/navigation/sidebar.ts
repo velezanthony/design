@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick, ResolvedContent, ResolvedI18n } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
 import { ALL_FOLDERS, folderSettings, type ResolvedFolders } from '../config/folders';
 import type { Page } from '../content/discovery';
@@ -42,9 +42,10 @@ export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
 }
 
 /** Lo que el árbol necesita de la config: idiomas, el orden declarado y el límite del árbol automático. `groupFolders` es la carpeta de cada grupo declarado que la enlaza (`folder-labels.ts`); sin él, se calcula solo con `sidebar`. */
-type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'> & {
-  /** Ajustes por carpeta: de ellos sale `tree.depth`. Sin ellos, sin límite. */
-  folders?: ResolvedFolders;
+type SidebarConfig = {
+  i18n: Pick<ResolvedI18n, 'locales' | 'defaultLocale'>;
+  /** `folders`: de ellos sale `tree.depth`. Sin ellos, sin límite. */
+  content: Pick<ResolvedContent, 'sidebar'> & { folders?: ResolvedFolders };
   groupFolders?: ReadonlyMap<object, string>;
 };
 
@@ -99,7 +100,7 @@ function toEntries(
       });
       continue;
     }
-    const source = sourceLocale(available, config.locales, config.defaultLocale);
+    const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
     const original = pages.find((page) => page.slug === slug && page.locale === source);
     if (!original) continue;
     const policy = policies.get(slug) ?? MissingTranslation.LINK;
@@ -132,14 +133,14 @@ export function missingEntry(
   available: Partial<Record<Locale, string>>,
   locale: Locale,
   policy: MissingTranslation,
-  config: Pick<ResolvedConfig, 'locales' | 'defaultLocale'>,
+  config: ConfigPick<never, 'locales' | 'defaultLocale'>,
   url: UrlPolicy,
   /** URL del original sin idioma ni base (su `slug` propio): la reserva la reutiliza con el prefijo del idioma. */
   sourceUrlSlug = slug,
 ): SidebarLeaf | null {
   switch (policy) {
     case MissingTranslation.LINK: {
-      const source = sourceLocale(available, config.locales, config.defaultLocale);
+      const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
       return {
         label: title,
         slug,
@@ -360,9 +361,13 @@ export function buildSidebar(
   const collator = new Intl.Collator(locale, { numeric: true });
   const entries = toEntries(pages, availability, locale, config, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
-  const items = config.sidebar ?? [];
+  const items = config.content.sidebar ?? [];
   const folders =
-    config.groupFolders ?? groupFolders({ sidebar: items, defaultLocale: config.defaultLocale });
+    config.groupFolders ??
+    groupFolders({
+      i18n: { defaultLocale: config.i18n.defaultLocale },
+      content: { sidebar: items },
+    });
   const { used, leaves } = claimedSlugs(items, bySlug, folders);
   /* Un slug declarado como hoja que es la página de una carpeta con páginas sin declarar se fusiona
      con el grupo automático de esa carpeta: el árbol automático lo monta con ella dentro y el grupo
@@ -376,7 +381,7 @@ export function buildSidebar(
     entries.filter((entry) => !used.has(entry.slug) || folderPages.includes(entry.slug)),
     collator,
     base,
-    depthFrom(config.folders),
+    depthFrom(config.content.folders),
   );
   const merged = new Map<string, SidebarNode>();
   for (const slug of folderPages) {
@@ -384,7 +389,7 @@ export function buildSidebar(
     rest = detached.nodes;
     if (detached.node) merged.set(slug, detached.node);
   }
-  const declared = declaredTree(items, bySlug, merged, folders, locale, config.defaultLocale);
+  const declared = declaredTree(items, bySlug, merged, folders, locale, config.i18n.defaultLocale);
   return [...declared, ...rest];
 }
 

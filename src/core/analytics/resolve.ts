@@ -77,13 +77,18 @@ export function applyAnalytics(
   envValue: string | undefined,
   enabled = true,
 ): ResolvedConfig {
-  const { privacyUrl, gtmId: configGtmId, ...rest } = config;
+  const { privacyUrl, gtmId: configGtmId } = config.site.analytics;
   const gtmId = enabled ? resolveAnalytics(envValue, configGtmId) : undefined;
-  const urls = resolvePrivacyUrls(privacyUrl, config.locales, config.defaultLocale);
+  const urls = resolvePrivacyUrls(privacyUrl, config.i18n.locales, config.i18n.defaultLocale);
   if (gtmId !== undefined && urls === undefined) throw missingPrivacyUrlError();
   return {
-    ...rest,
-    ...(gtmId !== undefined && { gtmId }),
-    ...(urls !== undefined && { privacyUrl: urls }),
+    ...config,
+    site: {
+      ...config.site,
+      analytics: {
+        ...(gtmId !== undefined && { gtmId }),
+        ...(urls !== undefined && { privacyUrl: urls }),
+      },
+    },
   };
 }

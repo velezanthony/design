@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../../config/resolve';
+import type { ConfigWithoutUi } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
 import type { UrlPolicy } from '../../i18n/availability';
 import type { ClientPage } from '../../seo/client-pages';
@@ -15,7 +15,7 @@ export interface SeoPageInput extends Omit<Page, 'body' | 'order'> {
 
 export interface SeoInput {
   /** La config resuelta; sin `ui`, que no interviene en el SEO. */
-  config: Omit<ResolvedConfig, 'ui'>;
+  config: ConfigWithoutUi;
   url: UrlPolicy;
   pages: SeoPageInput[];
   /** Dimensiones de las imágenes locales, si el adaptador las leyó (completan `og:image:*`). */

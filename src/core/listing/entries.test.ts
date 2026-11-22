@@ -64,7 +64,10 @@ function context(locale = 'es', extra: Partial<NavContext['config']> = {}): NavC
     pages,
     availability: buildAvailability(pages, url),
     locale,
-    config: { locales: ['es', 'en'], defaultLocale: 'es', nav, sidebar: ['tutoriales'], ...extra },
+    config: {
+      i18n: { locales: ['es', 'en'], defaultLocale: 'es', ...extra.i18n },
+      content: { nav, sidebar: ['tutoriales'], ...extra.content },
+    },
     policies: resolvePolicies(pages, MissingTranslation.FALLBACK).policies,
     url,
     slug: 'tutoriales',
@@ -179,7 +182,7 @@ describe('buildListing: entradas', () => {
 
   it('sin `nav`: el árbol de la barra lateral, sin el grupo de la propia carpeta', () => {
     const { entries, sections } = buildListing({
-      context: context('es', { nav: undefined, sidebar: undefined }),
+      context: context('es', { content: { nav: undefined, sidebar: undefined } }),
       contentLocale: 'es',
       folder: 'tutoriales',
       details: none,
@@ -200,7 +203,10 @@ describe('buildListing: entradas', () => {
       item.slug === 'tutoriales' ? { ...item, title: 'Todo sobre tutoriales' } : item,
     );
     const { entries } = buildListing({
-      context: { ...context('es', { nav: undefined, sidebar: undefined }), pages: renamed },
+      context: {
+        ...context('es', { content: { nav: undefined, sidebar: undefined } }),
+        pages: renamed,
+      },
       contentLocale: 'es',
       folder: 'tutoriales',
       details: none,
@@ -214,11 +220,13 @@ describe('buildListing: entradas', () => {
     // normales aunque uno se llame como ella.
     const { entries } = buildListing({
       context: context('es', {
-        nav: undefined,
-        sidebar: [
-          { label: 'Tutoriales', items: ['tutoriales/instalacion'] },
-          { label: 'Otros', items: ['tutoriales/despliegue'] },
-        ],
+        content: {
+          nav: undefined,
+          sidebar: [
+            { label: 'Tutoriales', items: ['tutoriales/instalacion'] },
+            { label: 'Otros', items: ['tutoriales/despliegue'] },
+          ],
+        },
       }),
       contentLocale: 'es',
       folder: 'tutoriales',
@@ -235,10 +243,12 @@ describe('buildListing: entradas', () => {
   it('un grupo de `sidebar` dueño de la carpeta del listado la enlaza y no añade nada al camino', () => {
     const { entries } = buildListing({
       context: context('es', {
-        nav: undefined,
-        sidebar: [
-          { label: 'Tutoriales', items: ['tutoriales/instalacion', 'tutoriales/despliegue'] },
-        ],
+        content: {
+          nav: undefined,
+          sidebar: [
+            { label: 'Tutoriales', items: ['tutoriales/instalacion', 'tutoriales/despliegue'] },
+          ],
+        },
       }),
       contentLocale: 'es',
       folder: 'tutoriales',
@@ -251,7 +261,7 @@ describe('buildListing: entradas', () => {
     const deep = [page('blog/a/y'), page('blog/a/b/c/x'), page('blog/a/b/z')];
     const { entries } = buildListing({
       context: {
-        ...context('es', { nav: undefined, sidebar: undefined }),
+        ...context('es', { content: { nav: undefined, sidebar: undefined } }),
         pages: deep,
         availability: buildAvailability(deep, url),
         policies: resolvePolicies(deep, MissingTranslation.FALLBACK).policies,
@@ -280,7 +290,7 @@ describe('buildListing: entradas', () => {
     ];
     const { entries, sections } = buildListing({
       context: {
-        ...context('es', { nav: undefined, sidebar: undefined }),
+        ...context('es', { content: { nav: undefined, sidebar: undefined } }),
         pages: deep,
         availability: buildAvailability(deep, url),
         policies: resolvePolicies(deep, MissingTranslation.FALLBACK).policies,

@@ -53,7 +53,7 @@ describe('API pública de ./integration: constantes de las opciones cerradas', (
       [ALL_FOLDERS]: { listing: { view: ListingView.CARDS }, tree: { show: TreeShow.SECTION } },
     };
     const config = defineDocsConfig({ site: { name: 'T' }, content: { folders } });
-    expect(docs(config).resolvedConfig.folders.declared).toEqual(folders);
+    expect(docs(config).resolvedConfig.content.folders.declared).toEqual(folders);
   });
 });
 
@@ -67,7 +67,7 @@ describe('API pública de ./integration', () => {
       site: { name: 'T' },
       i18n: { missing: MissingTranslation.LINK },
     });
-    expect(docs(config).resolvedConfig.translations.missing).toBe('link');
+    expect(docs(config).resolvedConfig.i18n.missing).toBe('link');
   });
 
   it('el tipo derivado acepta los valores', () => {
@@ -89,7 +89,7 @@ describe('API pública de ./integration: layout', () => {
         layout: { sidebar: PanelState.COLLAPSED, toc: PanelState.OPEN, width: LayoutWidth.FULL },
       },
     });
-    expect(docs(config).resolvedConfig.layout).toEqual({
+    expect(docs(config).resolvedConfig.site.layout).toEqual({
       sidebar: 'collapsed',
       toc: 'open',
       width: 'full',
@@ -122,7 +122,7 @@ describe('API pública de ./integration: nav', () => {
         ],
       },
     });
-    expect(docs(config).resolvedConfig.nav).toHaveLength(2);
+    expect(docs(config).resolvedConfig.content.nav).toHaveLength(2);
   });
 });
 

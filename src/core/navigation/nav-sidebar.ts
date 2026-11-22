@@ -1,6 +1,6 @@
 import type { NavItem } from '../config/nav';
 import { isNavSection } from '../config/nav';
-import type { ResolvedConfig } from '../config/resolve';
+import type { ResolvedContent, ResolvedI18n } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
 import { ALL_FOLDERS, folderSettings, TreeShow, type ResolvedFolders } from '../config/folders';
 import { buildFolderTree } from './folder-tree';
@@ -13,11 +13,11 @@ import { sectionIndexOf, sectionOwns } from './nav-sections';
 import { buildSidebar, type SidebarNode } from './sidebar';
 
 /** Lo que el árbol y la cabecera necesitan de la config. */
-export type NavConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'> & {
-  nav?: NavItem[];
-  /** Ajustes por carpeta (`tree.depth`); sin ellos, sin límite. */
-  folders?: ResolvedFolders;
-};
+export interface NavConfig {
+  i18n: Pick<ResolvedI18n, 'locales' | 'defaultLocale'>;
+  /** `folders` (`tree.depth`, `tree.show`); sin ellos, sin límite y el árbol de la sección. */
+  content: Pick<ResolvedContent, 'sidebar' | 'nav'> & { folders?: ResolvedFolders };
+}
 
 /** Todo lo que hace falta para construir árboles y entradas de cabecera de una página. */
 export interface NavContext {
@@ -37,7 +37,7 @@ export interface NavContext {
 export function buildSidebarFor(
   context: NavContext,
   keep: (slug: string) => boolean,
-  sidebar?: NavConfig['sidebar'],
+  sidebar?: NavConfig['content']['sidebar'],
   base = '',
 ): SidebarNode[] {
   // La carpeta de cada grupo declarado sale de toda la config (`nav` y `sidebar`), no solo de este
@@ -55,7 +55,7 @@ export function buildSidebarFor(
     pages,
     availability,
     context.locale,
-    { ...context.config, sidebar, groupFolders: folders },
+    { ...context.config, content: { ...context.config.content, sidebar }, groupFolders: folders },
     context.policies,
     context.url,
     base,
@@ -84,7 +84,7 @@ export function buildSectionSidebar(
   scope: NavScope,
   base = '',
 ): SidebarNode[] {
-  const nav = context.config.nav;
+  const nav = context.config.content.nav;
   const item = scope.kind === 'section' ? nav?.[scope.position] : undefined;
   if (item && isNavSection(item)) {
     return buildSidebarFor(
@@ -97,19 +97,19 @@ export function buildSectionSidebar(
   return buildSidebarFor(
     context,
     (slug) => sectionIndexOf(nav, slug) === -1,
-    context.config.sidebar,
+    context.config.content.sidebar,
     base,
   );
 }
 
 /** Barra lateral de `context.slug`: el árbol completo de la carpeta que declara `tree.show: 'all'` si rige en la página; si no, con `nav`, la de su sección o la de las páginas sin sección. */
 export function buildScopedSidebar(context: NavContext): SidebarNode[] {
-  const { folders } = context.config;
+  const { folders } = context.config.content;
   const show = folders && folderSettings(folders, context.slug).tree.show;
   if (show?.value === TreeShow.ALL && show.declaredAt !== undefined) {
     return buildFolderTree(context, show.declaredAt === ALL_FOLDERS ? '' : show.declaredAt);
   }
-  if (!context.config.nav) {
+  if (!context.config.content.nav) {
     return buildSidebar(
       context.pages,
       context.availability,
@@ -119,5 +119,5 @@ export function buildScopedSidebar(context: NavContext): SidebarNode[] {
       context.url,
     );
   }
-  return buildSectionSidebar(context, navScopeOf(context.config.nav, context.slug));
+  return buildSectionSidebar(context, navScopeOf(context.config.content.nav, context.slug));
 }

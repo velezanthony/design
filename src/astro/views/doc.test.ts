@@ -13,7 +13,7 @@ function site(user: ConfigPart = {}) {
     resolveConfig(withConfig({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } }, user)),
     {
       base: '/repo',
-      site: 'https://x.dev',
+      siteUrl: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
@@ -369,7 +369,7 @@ describe('docView: analítica y privacidad', () => {
       ),
       {
         base: '/repo',
-        site: 'https://x.dev',
+        siteUrl: 'https://x.dev',
         trailingSlash: 'always',
         buildFormat: 'directory',
         publicDir: 'file:///site/public/',

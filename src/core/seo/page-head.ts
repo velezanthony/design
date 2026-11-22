@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { JsonLd, PageSeoOverride } from '../config/schema';
 import type { Locale } from '../i18n/locale';
 import { buildHead, type HeadConfig, type OgType } from './head';
@@ -24,10 +24,9 @@ export interface PageHeadInput {
 }
 
 /** Lo que el `<head>` toma de la config del sitio. */
-export type PageHeadConfig = Pick<
-  ResolvedConfig,
-  'seo' | 'locales' | 'defaultLocale' | 'name' | 'favicon' | 'ogLocales'
-> & { base: string };
+export type PageHeadConfig = ConfigPick<'seo' | 'name' | 'favicon', 'locales' | 'defaultLocale'> & {
+  base: string;
+};
 
 /** `<head>` de una página de sitio con la config de la librería: sufijo del título, imagen y JSON-LD del sitio, idiomas y tema, sin que el consumidor interprete nada. */
 export function buildPageHead(
@@ -37,7 +36,7 @@ export function buildPageHead(
   sizes: ImageSizes = new Map(),
 ): HeadConfig[] {
   const resolved = withImageSize(
-    resolveMeta(config.seo, input.seo, { title: input.title }, input.locale),
+    resolveMeta(config.site.seo, input.seo, { title: input.title }, input.locale),
     sizes,
   );
   const schemas = [...resolved.schemas, ...(input.schema ?? []).map(withContext)];

@@ -122,7 +122,7 @@ export function buildListing({
       seen.add(slug);
       const own = pickLocalized(pages, slug, contentLocale, config);
       const summary = pageBlurb(own, contentLocale, {
-        defaultLocale: config.defaultLocale,
+        defaultLocale: config.i18n.defaultLocale,
         preferSummary: true,
       });
       const extra = details(slug);
@@ -152,9 +152,9 @@ export function buildListing({
   };
 
   const sections: ListingSection[] = [];
-  for (const scope of navScopes(config.nav)) {
-    const item = scope.kind === 'section' ? config.nav?.[scope.position] : undefined;
-    const label = item && resolveLabel(item.label, contentLocale, config.defaultLocale);
+  for (const scope of navScopes(config.content.nav)) {
+    const item = scope.kind === 'section' ? config.content.nav?.[scope.position] : undefined;
+    const label = item && resolveLabel(item.label, contentLocale, config.i18n.defaultLocale);
     const trees = scopeTrees(context, contentLocale, scope);
     const nodes = walkScope(trees, visitor, label === undefined ? [] : [label]);
     if (nodes.length === 0) continue;

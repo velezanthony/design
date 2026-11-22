@@ -164,7 +164,7 @@ describe('DocsErrors se usa con resolvePolicies', () => {
 });
 
 const url: UrlPolicy = { base: '/repo', trailingSlash: 'always', defaultLocale: 'en' };
-const config = { locales: ['en', 'es'], defaultLocale: 'en' };
+const config = { i18n: { locales: ['en', 'es'], defaultLocale: 'en' } };
 
 describe('fallbackRoutes', () => {
   const availability = new Map([
@@ -213,7 +213,7 @@ describe('fallbackRoutes', () => {
   });
 
   it('con tres idiomas genera una ruta por cada idioma ausente', () => {
-    const three = { locales: ['en', 'es', 'fr'], defaultLocale: 'en' };
+    const three = { i18n: { locales: ['en', 'es', 'fr'], defaultLocale: 'en' } };
     const routes = fallbackRoutes({
       availability: new Map([['a', { en: '/repo/a/' }]]),
       policies: new Map([['a', 'fallback']]),
@@ -245,7 +245,7 @@ describe('fallbackRoutes: `slug` propio', () => {
 });
 
 describe('pickLocalized', () => {
-  const config = { locales: ['es', 'en', 'fr'], defaultLocale: 'es' };
+  const config = { i18n: { locales: ['es', 'en', 'fr'], defaultLocale: 'es' } };
 
   it('la página en el idioma pedido, si existe', () => {
     const items = [page('a', 'es'), page('a', 'en')];

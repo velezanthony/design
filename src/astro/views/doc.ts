@@ -57,7 +57,7 @@ function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
 export function docRoutes(site: SiteContext): DocRoute[] {
   const { pages, url, availability, policies, config } = site;
   const real = pages.map((page): DocRoute => ({
-    param: paramOf(urlSlugOf(page), page.locale, config.defaultLocale),
+    param: paramOf(urlSlugOf(page), page.locale, config.i18n.defaultLocale),
     kind: 'page',
     slug: page.slug,
     urlSlug: urlSlugOf(page),
@@ -66,7 +66,7 @@ export function docRoutes(site: SiteContext): DocRoute[] {
   }));
   const fallback = fallbackRoutes({ availability, policies, config, url, pages }).map(
     (spec): DocRoute => ({
-      param: paramOf(spec.urlSlug, spec.locale, config.defaultLocale),
+      param: paramOf(spec.urlSlug, spec.locale, config.i18n.defaultLocale),
       kind: 'fallback',
       slug: spec.slug,
       urlSlug: spec.urlSlug,
@@ -127,7 +127,7 @@ function withListingPages(routes: DocRoute[], site: SiteContext): DocRoute[] {
       const param = paramOf(
         listingPageSlug(route.urlSlug, position, listing.pageSize),
         route.locale,
-        site.config.defaultLocale,
+        site.config.i18n.defaultLocale,
       );
       if (taken.has(param)) {
         throw new DocsError(
@@ -215,7 +215,7 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
     isPagedListing(route.listing) &&
     (page > 1 || position.perPage !== route.listing.pageSize);
   const resolved = withImageSize(
-    resolveMeta(config.seo, original.seo, { title: original.title }, route.locale),
+    resolveMeta(config.site.seo, original.seo, { title: original.title }, route.locale),
     sizes,
   );
   /* Desde la página 2 de un listado, su propio título; fuera de la página 1 del tamaño por defecto, fuera del índice. */
@@ -240,11 +240,11 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
       meta,
       pageData,
       excludeNoindex(availability, noindexUrls(pages, url)),
-      new URL(config.site),
+      new URL(config.siteUrl),
       config,
       url,
     ),
-    ...paginationLinks(route, url, new URL(config.site)),
+    ...paginationLinks(route, url, new URL(config.siteUrl)),
   ];
 
   const navContext = navContextOf(site, route);
@@ -253,27 +253,27 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
   function link(leaf?: { label: string; href: string }) {
     return leaf && { label: leaf.label, href: leaf.href };
   }
-  const editable = config.editUrl !== undefined && original.editPath !== undefined;
+  const editable = config.content.editUrl !== undefined && original.editPath !== undefined;
   const { prev, next } = { prev: link(neighbours.prev), next: link(neighbours.next) };
 
   return {
     lang: route.locale,
     head,
-    siteName: config.name,
+    siteName: config.site.name,
     homeHref: pageUrl('', route.locale, url),
     hrefs: availability.get(route.slug) ?? {},
     strings,
     sidebar,
-    nav: buildNav(config.nav, navContext),
+    nav: buildNav(config.content.nav, navContext),
     footer: buildFooter(config, navContext, config.strings[route.locale] as UiStrings),
     current: pageUrlOfRoute,
     ...(prev && { prev }),
     ...(next && { next }),
-    ...(editable && { editUrl: config.editUrl, editFile: original.editPath }),
+    ...(editable && { editUrl: config.content.editUrl, editFile: original.editPath }),
     ...consentOf(config, route.locale),
     indexable: !isFallback && !meta.noindex,
     baseUrl: baseUrl(config.base),
-    layout: config.layout,
+    layout: config.site.layout,
     ...(isFallback && {
       fallback: { originalLocale: route.contentLocale, href: route.canonical ?? '' },
     }),

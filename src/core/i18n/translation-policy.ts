@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { Page } from '../content/discovery';
 import { urlSlugOf } from '../content/slug';
 import { DocsError } from '../errors';
@@ -61,13 +61,13 @@ export function pickLocalized<T extends { slug: string; locale: Locale }>(
   items: readonly T[],
   slug: string,
   locale: Locale,
-  config: { locales: Locale[]; defaultLocale: Locale },
+  config: LocaleConfig,
 ): T | undefined {
   const group = items.filter((item) => item.slug === slug);
   const own = group.find((item) => item.locale === locale);
   if (own) return own;
   const available = Object.fromEntries(group.map((item) => [item.locale, item.locale]));
-  const source = sourceLocale(available, config.locales, config.defaultLocale);
+  const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
   return group.find((item) => item.locale === source);
 }
 
@@ -89,7 +89,7 @@ export function undeclaredMissing(
 }
 
 /** Lo que las políticas necesitan de la config: los idiomas del sitio y el que va sin prefijo. */
-type LocaleConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale'>;
+type LocaleConfig = ConfigPick<never, 'locales' | 'defaultLocale'>;
 
 /** Ruta que sirve el contenido original en un idioma sin traducción (política `fallback`). */
 export interface RouteSpec {
@@ -123,10 +123,10 @@ export function fallbackRoutes({
   const routes: RouteSpec[] = [];
   for (const [slug, available] of availability) {
     if (policies.get(slug) !== MissingTranslation.FALLBACK) continue;
-    const source = sourceLocale(available, config.locales, config.defaultLocale);
+    const source = sourceLocale(available, config.i18n.locales, config.i18n.defaultLocale);
     const original = pages.find((page) => page.slug === slug && page.locale === source);
     const urlSlug = original ? urlSlugOf(original) : slug;
-    for (const locale of config.locales) {
+    for (const locale of config.i18n.locales) {
       if (locale in available) continue;
       routes.push({
         slug,

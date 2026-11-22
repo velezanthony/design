@@ -8,6 +8,7 @@ import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { urlPolicyOf } from '../config';
 import { pagesOf } from '../../core/content/stored-page';
+import type { ConfigPick } from '../../core/config/resolve';
 
 /** Lo que cabecera y pie necesitan del sitio, calculado una sola vez por vista. */
 export interface SiteContext {
@@ -20,13 +21,13 @@ export interface SiteContext {
 
 export function siteContext(config: VirtualConfig, data: DocData[]): SiteContext {
   const pages = pagesOf(data);
-  const url = urlPolicyOf(config, config.defaultLocale);
+  const url = urlPolicyOf(config, config.i18n.defaultLocale);
   return {
     config,
     pages,
     url,
     availability: buildAvailability(pages, url),
-    policies: resolvePolicies(pages, config.translations.missing).policies,
+    policies: resolvePolicies(pages, config.i18n.missing).policies,
   };
 }
 
@@ -50,13 +51,13 @@ export function navContextOf(
 
 /** Enlace a la política de privacidad y ID de analítica; cada clave solo está si existe. */
 export function consentOf(
-  config: Pick<VirtualConfig, 'privacyUrl' | 'gtmId' | 'defaultLocale'>,
+  config: ConfigPick<'analytics', 'defaultLocale'>,
   locale: Locale,
 ): { privacyUrl?: string; gtmId?: string } {
   return {
-    ...(config.privacyUrl !== undefined && {
-      privacyUrl: resolveLabel(config.privacyUrl, locale, config.defaultLocale),
+    ...(config.site.analytics.privacyUrl !== undefined && {
+      privacyUrl: resolveLabel(config.site.analytics.privacyUrl, locale, config.i18n.defaultLocale),
     }),
-    ...(config.gtmId !== undefined && { gtmId: config.gtmId }),
+    ...(config.site.analytics.gtmId !== undefined && { gtmId: config.site.analytics.gtmId }),
   };
 }

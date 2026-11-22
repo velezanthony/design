@@ -23,7 +23,7 @@ vi.mock('virtual:@velezanthony/design/config', () => ({
       i18n: { locales: ['es', 'en'] },
     }),
     base: '/',
-    site: 'https://x.dev',
+    siteUrl: 'https://x.dev',
     publicDir: pathToFileURL(`${publicDir}/`).href,
   },
 }));

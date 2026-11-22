@@ -11,10 +11,11 @@ export function designStrings(locale: Locale): UiStrings {
 }
 
 /** Ya resuelto por la librería desde `PUBLIC_GTM_ID` o la config, con el formato validado. */
-export const gtmId: string | undefined = siteConfig.gtmId;
+export const gtmId: string | undefined = siteConfig.site.analytics.gtmId;
 
 /** La URL de privacidad ya resuelta para ese idioma (cae al idioma por defecto); `undefined` si el sitio no declara `privacyUrl`. */
 export function privacyUrl(locale: Locale): string | undefined {
-  const { privacyUrl: label, defaultLocale } = siteConfig;
+  const label = siteConfig.site.analytics.privacyUrl;
+  const { defaultLocale } = siteConfig.i18n;
   return label === undefined ? undefined : resolveLabel(label, locale, defaultLocale);
 }

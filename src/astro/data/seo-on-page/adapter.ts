@@ -46,7 +46,7 @@ export function seoInputOf(
   });
   return {
     config: seoConfig,
-    url: urlPolicyOf(config, config.defaultLocale),
+    url: urlPolicyOf(config, config.i18n.defaultLocale),
     pages,
     ...(imageSizes && { imageSizes }),
   };
@@ -102,7 +102,7 @@ export async function loadPanel(
   const entries = await getDocs();
   const { pages, failures } = await loadClientPages({
     origin,
-    site: config.site,
+    site: config.siteUrl,
     base: config.base,
   });
   return {
@@ -127,19 +127,19 @@ export async function loadSiteFiles(
   async function exists(file: string) {
     return (await readPublic(publicDir, file)) !== undefined;
   }
-  const site = new URL(config.site);
+  const site = new URL(config.siteUrl);
   const sitemap = orAstroError('No se puede generar sitemap.xml.', () =>
     pagesSitemapXml(pagesOf(docs), {
-      url: urlPolicyOf(config, config.defaultLocale),
+      url: urlPolicyOf(config, config.i18n.defaultLocale),
       site,
       extra: clientSitemapEntries(client, site),
     }),
   );
   return siteFiles({
-    url: urlPolicyOf(config, config.defaultLocale),
+    url: urlPolicyOf(config, config.i18n.defaultLocale),
     sitemapUrls: sitemap.split('<loc>').length - 1,
     robots: await exists('/robots.txt'),
     llms: await exists('/llms.txt'),
-    ...(config.favicon !== undefined && { favicon: config.favicon }),
+    ...(config.site.favicon !== undefined && { favicon: config.site.favicon }),
   });
 }

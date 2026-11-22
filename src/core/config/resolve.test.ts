@@ -18,14 +18,14 @@ function messages(input: unknown): string[] {
 
 describe('resolveConfig: content', () => {
   it('por defecto la carpeta de contenido es `src/content/docs`', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).content).toBe('src/content/docs');
+    expect(resolveConfig({ site: { name: 'X' } }).content.dir).toBe('src/content/docs');
   });
 
   it('se normaliza lo declarado: `../docs/` -> `../docs`', () => {
-    expect(resolveConfig({ site: { name: 'X' }, content: { dir: '../docs/' } }).content).toBe(
+    expect(resolveConfig({ site: { name: 'X' }, content: { dir: '../docs/' } }).content.dir).toBe(
       '../docs',
     );
-    expect(resolveConfig({ site: { name: 'X' }, content: { dir: './docs//' } }).content).toBe(
+    expect(resolveConfig({ site: { name: 'X' }, content: { dir: './docs//' } }).content.dir).toBe(
       'docs',
     );
   });
@@ -43,20 +43,20 @@ describe('resolveConfig: content', () => {
 describe('resolveConfig: valores por defecto', () => {
   it('config mínima: solo nombre', () => {
     const config = resolveConfig({ site: { name: 'Design' } });
-    expect(config.name).toBe('Design');
-    expect(config.locales).toEqual(['en']);
-    expect(config.defaultLocale).toBe('en');
-    expect(config.translations.missing).toBe(MissingTranslation.LINK);
-    expect(config.translations.declared).toBe(false);
-    expect(config.external).toEqual([]);
-    expect(config.seo.titleSuffix).toBe('Design');
-    expect(config.sitemap).toEqual({ include: [] });
+    expect(config.site.name).toBe('Design');
+    expect(config.i18n.locales).toEqual(['en']);
+    expect(config.i18n.defaultLocale).toBe('en');
+    expect(config.i18n.missing).toBe(MissingTranslation.LINK);
+    expect(config.i18n.missingDeclared).toBe(false);
+    expect(config.content.external).toEqual([]);
+    expect(config.site.seo.titleSuffix).toBe('Design');
+    expect(config.site.seo.sitemap).toEqual({ include: [] });
   });
 
   it('`exclude` vale una lista vacía por defecto y se conserva si se declara', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).exclude).toEqual([]);
+    expect(resolveConfig({ site: { name: 'X' } }).content.exclude).toEqual([]);
     expect(
-      resolveConfig({ site: { name: 'X' }, content: { exclude: ['drafts/'] } }).exclude,
+      resolveConfig({ site: { name: 'X' }, content: { exclude: ['drafts/'] } }).content.exclude,
     ).toEqual(['drafts/']);
   });
 
@@ -64,12 +64,12 @@ describe('resolveConfig: valores por defecto', () => {
     const config = resolveConfig({
       site: { name: 'X', seo: { sitemap: { include: ['/lib/sitemap.xml'] } } },
     });
-    expect(config.sitemap.include).toEqual(['/lib/sitemap.xml']);
+    expect(config.site.seo.sitemap.include).toEqual(['/lib/sitemap.xml']);
   });
 
   it('el idioma por defecto es el primero de `locales`', () => {
     expect(
-      resolveConfig({ site: { name: 'X' }, i18n: { locales: ['es', 'en'] } }).defaultLocale,
+      resolveConfig({ site: { name: 'X' }, i18n: { locales: ['es', 'en'] } }).i18n.defaultLocale,
     ).toBe('es');
   });
 
@@ -81,11 +81,11 @@ describe('resolveConfig: valores por defecto', () => {
       },
       i18n: { locales: ['en', 'es'], defaultLocale: 'es', missing: 'omit' },
     });
-    expect(config.defaultLocale).toBe('es');
-    expect(config.translations.missing).toBe('omit');
-    expect(config.translations.declared).toBe(true);
-    expect(config.seo.titleSuffix).toBe('X');
-    expect(config.seo.description).toEqual({ en: 'Docs', es: 'Documentación' });
+    expect(config.i18n.defaultLocale).toBe('es');
+    expect(config.i18n.missing).toBe('omit');
+    expect(config.i18n.missingDeclared).toBe(true);
+    expect(config.site.seo.titleSuffix).toBe('X');
+    expect(config.site.seo.description).toEqual({ en: 'Docs', es: 'Documentación' });
   });
 
   it('no muta la entrada', () => {
@@ -195,7 +195,7 @@ describe('resolveConfig: `ui`', () => {
       site: { name: 'X' },
       i18n: { locales: ['en', 'es'], ui: { es: { 'search.placeholder': 'Buscar en Design' } } },
     });
-    expect(config.ui).toEqual({ es: { 'search.placeholder': 'Buscar en Design' } });
+    expect(config.i18n.ui).toEqual({ es: { 'search.placeholder': 'Buscar en Design' } });
   });
 
   it('clave desconocida: ruta completa `ui.es.<clave>`', () => {
@@ -224,7 +224,8 @@ describe('resolveConfig: privacidad', () => {
 
   it('privacyUrl acepta una URL o una por idioma, y rechaza un idioma que no está en `locales`', () => {
     expect(
-      resolveConfig({ site: { name: 'X', analytics: { privacyUrl: '/privacy/' } } }).privacyUrl,
+      resolveConfig({ site: { name: 'X', analytics: { privacyUrl: '/privacy/' } } }).site.analytics
+        .privacyUrl,
     ).toBe('/privacy/');
     expect(
       messages({ site: { name: 'X', analytics: { privacyUrl: { es: '/privacidad/' } } } })[0],
@@ -234,7 +235,7 @@ describe('resolveConfig: privacidad', () => {
 
 describe('resolveConfig: folders', () => {
   it('sin `folders`, un mapa vacío: ninguna carpeta tiene índice generado', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).folders).toEqual({ declared: {} });
+    expect(resolveConfig({ site: { name: 'X' } }).content.folders).toEqual({ declared: {} });
   });
 
   it.each([
@@ -252,160 +253,160 @@ describe('resolveConfig: folders', () => {
   });
 });
 
-/* Adaptador temporal (hasta C8): la config pública agrupada da la misma config resuelta plana de antes.
-   Una fila por fila de la tabla antigua → nueva de la arquitectura. */
-describe('resolveConfig: config agrupada → resuelta plana', () => {
+/* La config resuelta tiene la misma forma que la pública (`site`, `i18n`, `content`), con los valores
+   por defecto puestos. Una fila por fila de la tabla antigua → nueva de la arquitectura. */
+describe('resolveConfig: misma forma que la config pública', () => {
   const base = { site: { name: 'Sitio' } };
   it.each([
-    ['site.name', base, (config: ResolvedConfig) => config.name, 'Sitio'],
+    ['site.name', base, (config: ResolvedConfig) => config.site.name, 'Sitio'],
     [
       'site.favicon',
       { site: { name: 'S', favicon: 'f.svg' } },
-      (config: ResolvedConfig) => config.favicon,
+      (config: ResolvedConfig) => config.site.favicon,
       'f.svg',
     ],
     [
       'site.theme',
       { site: { name: 'S', theme: 'a.css' } },
-      (config: ResolvedConfig) => config.theme,
+      (config: ResolvedConfig) => config.site.theme,
       'a.css',
     ],
     [
       'site.social',
       { site: { name: 'S', social: { github: 'g' } } },
-      (config: ResolvedConfig) => config.social,
+      (config: ResolvedConfig) => config.site.social,
       { github: 'g' },
     ],
     [
       'site.components',
       { site: { name: 'S', components: { Footer: './F.astro' } } },
-      (config: ResolvedConfig) => config.components,
+      (config: ResolvedConfig) => config.site.components,
       { Footer: './F.astro' },
     ],
     [
       'site.footer',
       { site: { name: 'S', footer: { author: false } } },
-      (config: ResolvedConfig) => config.footer,
+      (config: ResolvedConfig) => config.site.footer,
       { author: false },
     ],
     [
       'site.layout',
       { site: { name: 'S', layout: { width: 'full' } } },
-      (config: ResolvedConfig) => config.layout.width,
+      (config: ResolvedConfig) => config.site.layout.width,
       'full',
     ],
     [
       'site.seo.titleSuffix',
       { site: { name: 'S', seo: { titleSuffix: false } } },
-      (config: ResolvedConfig) => config.seo.titleSuffix,
+      (config: ResolvedConfig) => config.site.seo.titleSuffix,
       false,
     ],
     [
       'site.seo.description',
       { site: { name: 'S', seo: { description: 'D' } } },
-      (config: ResolvedConfig) => config.seo.description,
+      (config: ResolvedConfig) => config.site.seo.description,
       'D',
     ],
     [
       'site.seo.ogLocales',
       { site: { name: 'S', seo: { ogLocales: { en: 'en_GB' } } } },
-      (config: ResolvedConfig) => config.ogLocales,
+      (config: ResolvedConfig) => config.site.seo.ogLocales,
       { en: 'en_GB' },
     ],
     [
       'site.seo.sitemap',
       { site: { name: 'S', seo: { sitemap: { include: ['/x.xml'] } } } },
-      (config: ResolvedConfig) => config.sitemap,
+      (config: ResolvedConfig) => config.site.seo.sitemap,
       { include: ['/x.xml'] },
     ],
     [
       'site.analytics.gtmId',
       { site: { name: 'S', analytics: { gtmId: 'GTM-1', privacyUrl: '/p' } } },
-      (config: ResolvedConfig) => config.gtmId,
+      (config: ResolvedConfig) => config.site.analytics.gtmId,
       'GTM-1',
     ],
     [
       'site.analytics.privacyUrl',
       { site: { name: 'S', analytics: { privacyUrl: '/p' } } },
-      (config: ResolvedConfig) => config.privacyUrl,
+      (config: ResolvedConfig) => config.site.analytics.privacyUrl,
       '/p',
     ],
     [
       'i18n.locales',
       withConfig(base, { i18n: { locales: ['es', 'en'] } }),
-      (config: ResolvedConfig) => config.locales,
+      (config: ResolvedConfig) => config.i18n.locales,
       ['es', 'en'],
     ],
     [
       'i18n.defaultLocale',
       withConfig(base, { i18n: { locales: ['es', 'en'], defaultLocale: 'en' } }),
-      (config: ResolvedConfig) => config.defaultLocale,
+      (config: ResolvedConfig) => config.i18n.defaultLocale,
       'en',
     ],
     [
       'i18n.missing',
       withConfig(base, { i18n: { missing: 'omit' } }),
-      (config: ResolvedConfig) => config.translations,
-      { missing: 'omit', declared: true },
+      (config: ResolvedConfig) => [config.i18n.missing, config.i18n.missingDeclared],
+      ['omit', true],
     ],
     [
       'i18n.ui',
       withConfig(base, { i18n: { ui: { en: { 'search.placeholder': 'Go' } } } }),
-      (config: ResolvedConfig) => config.ui,
+      (config: ResolvedConfig) => config.i18n.ui,
       { en: { 'search.placeholder': 'Go' } },
     ],
     [
       'content.dir',
       withConfig(base, { content: { dir: './docs/' } }),
-      (config: ResolvedConfig) => config.content,
+      (config: ResolvedConfig) => config.content.dir,
       'docs',
     ],
     [
       'content.exclude',
       withConfig(base, { content: { exclude: ['x/'] } }),
-      (config: ResolvedConfig) => config.exclude,
+      (config: ResolvedConfig) => config.content.exclude,
       ['x/'],
     ],
     [
       'content.external',
       withConfig(base, { content: { external: [{ slug: 'a', file: 'a.md' }] } }),
-      (config: ResolvedConfig) => config.external,
+      (config: ResolvedConfig) => config.content.external,
       [{ slug: 'a', file: 'a.md' }],
     ],
     [
       'content.static',
       withConfig(base, { content: { static: [{ from: 'c', to: 'cov' }] } }),
-      (config: ResolvedConfig) => config.static,
+      (config: ResolvedConfig) => config.content.static,
       [{ from: 'c', to: 'cov' }],
     ],
     [
       'content.editUrl',
       withConfig(base, { content: { editUrl: 'https://e' } }),
-      (config: ResolvedConfig) => config.editUrl,
+      (config: ResolvedConfig) => config.content.editUrl,
       'https://e',
     ],
     [
       'content.repoRoot',
       withConfig(base, { content: { repoRoot: '..' } }),
-      (config: ResolvedConfig) => config.repoRoot,
+      (config: ResolvedConfig) => config.content.repoRoot,
       '..',
     ],
     [
       'content.nav',
       withConfig(base, { content: { nav: [{ label: 'G', dir: 'g' }] } }),
-      (config: ResolvedConfig) => config.nav,
+      (config: ResolvedConfig) => config.content.nav,
       [{ label: 'G', dir: 'g' }],
     ],
     [
       'content.sidebar',
       withConfig(base, { content: { sidebar: ['a'] } }),
-      (config: ResolvedConfig) => config.sidebar,
+      (config: ResolvedConfig) => config.content.sidebar,
       ['a'],
     ],
     [
       'content.folders',
       withConfig(base, { content: { folders: { '*': { tree: { depth: 2 } } } } }),
-      (config: ResolvedConfig) => config.folders,
+      (config: ResolvedConfig) => config.content.folders,
       { declared: { '*': { tree: { depth: 2 } } } },
     ],
   ])('%s', (_row, input, read, expected) => {
@@ -414,15 +415,26 @@ describe('resolveConfig: config agrupada → resuelta plana', () => {
 
   it('sin `i18n` ni `content`, los valores por defecto de siempre', () => {
     const config = resolveConfig(base);
-    expect(config).toMatchObject({
-      locales: ['en'],
-      defaultLocale: 'en',
-      translations: { missing: 'link', declared: false },
-      content: 'src/content/docs',
-      exclude: [],
-      external: [],
-      sitemap: { include: [] },
-      seo: { titleSuffix: 'Sitio' },
+    expect(config).toEqual({
+      site: {
+        name: 'Sitio',
+        layout: { sidebar: 'open', toc: 'open', width: 'reading', toggles: true, tocDepth: 3 },
+        seo: { titleSuffix: 'Sitio', sitemap: { include: [] } },
+        analytics: {},
+      },
+      i18n: {
+        locales: ['en'],
+        defaultLocale: 'en',
+        missing: 'link',
+        missingDeclared: false,
+        ui: {},
+      },
+      content: {
+        dir: 'src/content/docs',
+        exclude: [],
+        external: [],
+        folders: { declared: {} },
+      },
     });
   });
 });

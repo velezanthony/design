@@ -1,5 +1,7 @@
 import { z } from 'astro/zod';
-import { defaultStrings, uiKeys, type UiKey } from '../i18n/ui-strings';
+import type { Locale } from '../i18n/locale';
+import { MissingTranslation } from '../i18n/translation-policy';
+import { defaultStrings, uiKeys, type UiKey, type UiOverrides } from '../i18n/ui-strings';
 import { MissingTranslationSchema } from './shared-schemas';
 
 /* `i18n`: los idiomas del sitio, qué hacer sin traducción y los textos de interfaz. */
@@ -51,4 +53,25 @@ export const I18nSchema = z
 /** El mensaje de un idioma que no está en `i18n.locales`. */
 export function notInLocales(locale: string, locales: readonly string[]): string {
   return `«${locale}» no está en \`i18n.locales\` (${locales.join(', ')}).`;
+}
+
+/** `i18n` resuelto. `missingDeclared`: el sitio eligió la política; entonces una traducción ausente no es un olvido. */
+export interface ResolvedI18n {
+  locales: Locale[];
+  defaultLocale: Locale;
+  missing: MissingTranslation;
+  missingDeclared: boolean;
+  ui: UiOverrides;
+}
+
+/** Completa `i18n` con los valores por defecto (el idioma por defecto es el primero). */
+export function resolveI18n(i18n: z.output<typeof I18nSchema> = {}): ResolvedI18n {
+  const locales = i18n.locales ?? DEFAULT_LOCALES;
+  return {
+    locales,
+    defaultLocale: i18n.defaultLocale ?? locales[0]!, // el esquema exige al menos un idioma
+    missing: i18n.missing ?? MissingTranslation.LINK,
+    missingDeclared: i18n.missing !== undefined,
+    ui: i18n.ui ?? {},
+  };
 }

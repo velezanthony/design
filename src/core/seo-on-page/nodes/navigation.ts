@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../../config/resolve';
+import type { ConfigPick } from '../../config/resolve';
 import type { Page } from '../../content/discovery';
 import type { Availability, UrlPolicy } from '../../i18n/availability';
 import type { TranslationPolicies } from '../../i18n/translation-policy';
@@ -15,9 +15,10 @@ import type { PageLink } from '../tree/types';
 import { pageKey } from '../tree/keys';
 
 /** Lo que la navegación necesita de la config: la misma porción que usa el layout. */
-type NavigationConfig = Pick<
-  ResolvedConfig,
-  'locales' | 'defaultLocale' | 'sidebar' | 'nav' | 'footer' | 'translations'
+type NavigationConfig = ConfigPick<
+  'footer',
+  'locales' | 'defaultLocale',
+  'sidebar' | 'nav' | 'folders'
 >;
 
 /** Mismos árboles que pinta el layout; quedan fuera destinos no reales y la propia página. */
@@ -56,10 +57,10 @@ export function navigationLinks(
     };
     const hrefs = [
       ...flatten(buildSectionSidebar(context, scope)).map((leaf) => leaf.href),
-      ...buildNav(config.nav, context)
+      ...buildNav(config.content.nav, context)
         .filter((entry) => !entry.external)
         .map((entry) => entry.href),
-      ...footerPageHrefs(config.footer?.links, context),
+      ...footerPageHrefs(config.site.footer?.links, context),
     ];
     shared.set(key, hrefs);
     return hrefs;
@@ -69,7 +70,7 @@ export function navigationLinks(
   for (const page of pages) {
     const seen = new Set<string>();
     const targets: PageLink[] = [];
-    for (const href of hrefsFor(page, navScopeOf(config.nav, page.slug))) {
+    for (const href of hrefsFor(page, navScopeOf(config.content.nav, page.slug))) {
       const target = byHref.get(href);
       if (!target) continue;
       const key = pageKey({ slug: target.slug, locale: target.locale });

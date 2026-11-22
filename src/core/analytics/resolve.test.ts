@@ -101,8 +101,8 @@ describe('applyAnalytics', () => {
 
   it('sin ID ni privacyUrl: nada', () => {
     const config = applyAnalytics(resolveConfig(site), undefined);
-    expect(config.gtmId).toBeUndefined();
-    expect(config.privacyUrl).toBeUndefined();
+    expect(config.site.analytics.gtmId).toBeUndefined();
+    expect(config.site.analytics.privacyUrl).toBeUndefined();
   });
 
   it('sin ID ni enlace las claves no existen, no valen `undefined`', () => {
@@ -116,8 +116,8 @@ describe('applyAnalytics', () => {
       resolveConfig(withConfig(site, { site: { analytics: { privacyUrl: '/privacy/' } } })),
       'GTM-ENV1',
     );
-    expect(config.gtmId).toBe('GTM-ENV1');
-    expect(config.privacyUrl).toEqual({ en: '/privacy/', es: '/privacy/' });
+    expect(config.site.analytics.gtmId).toBe('GTM-ENV1');
+    expect(config.site.analytics.privacyUrl).toEqual({ en: '/privacy/', es: '/privacy/' });
   });
 
   it('ID de la config y privacyUrl por idioma: analítica y enlace de cada idioma', () => {
@@ -131,8 +131,8 @@ describe('applyAnalytics', () => {
       ),
       undefined,
     );
-    expect(config.gtmId).toBe('GTM-CONF1');
-    expect(config.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
+    expect(config.site.analytics.gtmId).toBe('GTM-CONF1');
+    expect(config.site.analytics.privacyUrl).toEqual({ en: '/privacy/', es: '/privacidad/' });
   });
 
   it('solo privacyUrl: el enlace del pie, sin analítica', () => {
@@ -140,8 +140,8 @@ describe('applyAnalytics', () => {
       resolveConfig({ site: { name: 'X', analytics: { privacyUrl: '/privacy/' } } }),
       undefined,
     );
-    expect(config.gtmId).toBeUndefined();
-    expect(config.privacyUrl).toEqual({ en: '/privacy/' });
+    expect(config.site.analytics.gtmId).toBeUndefined();
+    expect(config.site.analytics.privacyUrl).toEqual({ en: '/privacy/' });
   });
 
   it('solo ID (de la config o del entorno): falla nombrando `privacyUrl`', () => {
@@ -161,7 +161,7 @@ describe('applyAnalytics', () => {
       resolveConfig({ site: { name: 'X', analytics: { gtmId: 'GTM-CONF1', privacyUrl: '/p/' } } }),
       'GTM-ENV1',
     );
-    expect(config.gtmId).toBe('GTM-CONF1');
+    expect(config.site.analytics.gtmId).toBe('GTM-CONF1');
   });
 
   it('con la analítica apagada quita el ID, pero conserva el enlace del pie', () => {
@@ -170,7 +170,7 @@ describe('applyAnalytics', () => {
       'GTM-ENV1',
       false,
     );
-    expect(config.gtmId).toBeUndefined();
-    expect(config.privacyUrl).toEqual({ en: '/p/' });
+    expect(config.site.analytics.gtmId).toBeUndefined();
+    expect(config.site.analytics.privacyUrl).toEqual({ en: '/p/' });
   });
 });

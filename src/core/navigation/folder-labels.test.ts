@@ -18,7 +18,7 @@ const nav: NavItem[] = [
   { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
   { label: 'GitHub', href: 'https://github.com/x/y' },
 ];
-const config = { nav, defaultLocale: 'es' };
+const config = { i18n: { defaultLocale: 'es' }, content: { nav } };
 
 describe('folderOfGroup', () => {
   it('la carpeta común más profunda de las hojas del grupo, a cualquier profundidad', () => {
@@ -68,8 +68,10 @@ describe('folderLabels', () => {
   it('la sección con `dir` gana a un grupo de su `sidebar` con la misma carpeta', () => {
     const labels = folderLabels(
       {
-        nav: [{ label: 'Guía', dir: 'guia', sidebar: [{ label: 'Todo', items: ['guia/a'] }] }],
-        defaultLocale: 'es',
+        i18n: { defaultLocale: 'es' },
+        content: {
+          nav: [{ label: 'Guía', dir: 'guia', sidebar: [{ label: 'Todo', items: ['guia/a'] }] }],
+        },
       },
       'es',
     );
@@ -78,7 +80,10 @@ describe('folderLabels', () => {
 
   it('los grupos del `sidebar` de primer nivel también cuentan', () => {
     const labels = folderLabels(
-      { sidebar: [{ label: 'Recetas', items: ['cocina/recetas/pan'] }], defaultLocale: 'es' },
+      {
+        i18n: { defaultLocale: 'es' },
+        content: { sidebar: [{ label: 'Recetas', items: ['cocina/recetas/pan'] }] },
+      },
       'es',
     );
     expect(labels.get('cocina/recetas')).toBe('Recetas');
@@ -86,11 +91,16 @@ describe('folderLabels', () => {
   it('varios grupos que no se envuelven entre sí y casan con la misma carpeta: ninguno la titula', () => {
     // Un sitio plano: todas las páginas en `tutoriales/`, el árbol lo forman los `sidebar`.
     const flat = {
-      nav: [
-        { label: 'Esenciales', sidebar: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
-        { label: 'Avanzado', sidebar: [{ label: 'Scripts', items: ['tutoriales/scripts'] }] },
-      ],
-      defaultLocale: 'es',
+      i18n: { defaultLocale: 'es' },
+      content: {
+        nav: [
+          {
+            label: 'Esenciales',
+            sidebar: [{ label: 'Vite', items: ['tutoriales/configuracion'] }],
+          },
+          { label: 'Avanzado', sidebar: [{ label: 'Scripts', items: ['tutoriales/scripts'] }] },
+        ],
+      },
     };
     expect(folderLabels(flat, 'es').has('tutoriales')).toBe(false);
   });
@@ -110,16 +120,18 @@ describe('groupFolders', () => {
   it('el grupo que envuelve sube solo hasta una carpeta libre: no le quita la suya a quien lo envuelve', () => {
     // «Todo» envuelve a «Uno»; subir desde `a/b/c` daría `a/b`, que ya es de «Exterior», que envuelve a ambos.
     const nested = {
-      sidebar: [
-        {
-          label: 'Exterior',
-          items: ['a/b/x', { label: 'Todo', items: [{ label: 'Uno', items: ['a/b/c/y'] }] }],
-        },
-      ],
-      defaultLocale: 'es',
+      i18n: { defaultLocale: 'es' },
+      content: {
+        sidebar: [
+          {
+            label: 'Exterior',
+            items: ['a/b/x', { label: 'Todo', items: [{ label: 'Uno', items: ['a/b/c/y'] }] }],
+          },
+        ],
+      },
     };
     const owned = groupFolders(nested);
-    const [outer] = nested.sidebar as Exclude<SidebarItem, string>[];
+    const [outer] = nested.content.sidebar as Exclude<SidebarItem, string>[];
     const all = outer!.items![1] as Exclude<SidebarItem, string>;
     expect(owned.get(outer!)).toBe('a/b');
     expect(owned.has(all)).toBe(false);

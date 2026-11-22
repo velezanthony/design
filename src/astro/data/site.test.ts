@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('virtual:@velezanthony/design/config', () => ({
   default: {
-    gtmId: 'GTM-TEST123',
-    defaultLocale: 'es',
-    privacyUrl: { es: '/privacidad/', en: '/en/privacy/' },
+    site: {
+      analytics: { gtmId: 'GTM-TEST123', privacyUrl: { es: '/privacidad/', en: '/en/privacy/' } },
+    },
+    i18n: { defaultLocale: 'es' },
     strings: { en: { backToTop: 'Back to top' }, es: { backToTop: 'Volver arriba' } },
   },
 }));

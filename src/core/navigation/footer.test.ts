@@ -27,7 +27,7 @@ function context(locale = 'en'): NavContext {
     pages,
     availability: buildAvailability(pages, url),
     locale,
-    config: { locales: ['en', 'es'], defaultLocale: 'en' },
+    config: { i18n: { locales: ['en', 'es'], defaultLocale: 'en' }, content: {} },
     policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
     url,
     slug: '',
@@ -37,7 +37,10 @@ function context(locale = 'en'): NavContext {
 function strings(locale: string) {
   return defaultStrings[locale] as UiStrings;
 }
-function view(config: { footer?: FooterConfig; social?: { github?: string } } = {}, locale = 'en') {
+function view(
+  config: { site: { footer?: FooterConfig; social?: { github?: string } } } = { site: {} },
+  locale = 'en',
+) {
   return buildFooter(config, context(locale), strings(locale));
 }
 
@@ -51,7 +54,7 @@ describe('buildFooter: derivaciones', () => {
   });
 
   it('repositorio y «informar de un error» salen de `social.github`', () => {
-    const { links } = view({ social: { github: 'https://github.com/x/y' } });
+    const { links } = view({ site: { social: { github: 'https://github.com/x/y' } } });
     expect(links).toEqual([
       { label: 'Repository', href: 'https://github.com/x/y', external: true },
       { label: 'Report a bug', href: 'https://github.com/x/y/issues/new', external: true },
@@ -59,12 +62,12 @@ describe('buildFooter: derivaciones', () => {
   });
 
   it('una barra final en `social.github` no duplica la barra', () => {
-    const { links } = view({ social: { github: 'https://github.com/x/y/' } });
+    const { links } = view({ site: { social: { github: 'https://github.com/x/y/' } } });
     expect(links[1]?.href).toBe('https://github.com/x/y/issues/new');
   });
 
   it('varias barras finales en `social.github` tampoco', () => {
-    const { links } = view({ social: { github: 'https://github.com/x/y//' } });
+    const { links } = view({ site: { social: { github: 'https://github.com/x/y//' } } });
     expect(links[0]?.href).toBe('https://github.com/x/y');
   });
 
@@ -73,20 +76,20 @@ describe('buildFooter: derivaciones', () => {
   });
 
   it('los textos derivados siguen el idioma', () => {
-    const { links } = view({ social: { github: 'https://github.com/x/y' } }, 'es');
+    const { links } = view({ site: { social: { github: 'https://github.com/x/y' } } }, 'es');
     expect(links.map((link) => link.label)).toEqual(['Repositorio', 'Informar de un error']);
   });
 
   it('`author: false` lo oculta; un autor propio sustituye al de por defecto', () => {
-    expect(view({ footer: { author: false } }).author).toBeUndefined();
+    expect(view({ site: { footer: { author: false } } }).author).toBeUndefined();
     const own = { name: 'Ana', href: 'https://ana.dev' };
-    expect(view({ footer: { author: own } }).author).toEqual(own);
+    expect(view({ site: { footer: { author: own } } }).author).toEqual(own);
   });
 
   it('la licencia en texto no lleva enlace; con objeto sí, y su etiqueta se localiza', () => {
-    expect(view({ footer: { license: 'MIT' } }).license).toEqual({ label: 'MIT' });
+    expect(view({ site: { footer: { license: 'MIT' } } }).license).toEqual({ label: 'MIT' });
     const license = { label: { en: 'MIT', es: 'MIT (es)' }, href: 'https://x.dev/LICENSE' };
-    expect(view({ footer: { license } }, 'es').license).toEqual({
+    expect(view({ site: { footer: { license } } }, 'es').license).toEqual({
       label: 'MIT (es)',
       href: 'https://x.dev/LICENSE',
     });
@@ -101,7 +104,7 @@ describe('buildFooter: enlaces propios', () => {
 
   it('van antes de los derivados, con la etiqueta del idioma', () => {
     const out = view(
-      { footer: { links }, social: { github: 'https://github.com/x/y' } },
+      { site: { footer: { links }, social: { github: 'https://github.com/x/y' } } },
       'es',
     ).links;
     expect(out.map((link) => link.label)).toEqual([
@@ -116,7 +119,7 @@ describe('buildFooter: enlaces propios', () => {
 
   it('una página sin destino en este idioma se quita en vez de dejar un enlace roto', () => {
     const omitted = buildFooter(
-      { footer: { links: [{ label: 'Solo', slug: 'only-en' }] } },
+      { site: { footer: { links: [{ label: 'Solo', slug: 'only-en' }] } } },
       {
         ...context('es'),
         policies: resolvePolicies(pages, MissingTranslation.OMIT).policies,

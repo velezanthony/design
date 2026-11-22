@@ -21,11 +21,11 @@ describe('ogLocales de la config', () => {
       site: { name: 'X', seo: { ogLocales: { es: 'es_ES', en: 'en_GB' } } },
       i18n: { locales: ['es', 'en'] },
     });
-    expect(config.ogLocales).toEqual({ es: 'es_ES', en: 'en_GB' });
+    expect(config.site.seo.ogLocales).toEqual({ es: 'es_ES', en: 'en_GB' });
   });
 
   it('sin definir, no hay mapa', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).ogLocales).toBeUndefined();
+    expect(resolveConfig({ site: { name: 'X' } }).site.seo.ogLocales).toBeUndefined();
   });
 
   it('un idioma que no está en `locales` falla con su ruta', () => {
@@ -49,14 +49,14 @@ describe('ogLocales de la config', () => {
 
 describe('seo de la config', () => {
   it('sufijo por defecto: el `name` del sitio', () => {
-    expect(resolveConfig({ site: { name: 'Design' } }).seo.titleSuffix).toBe('Design');
+    expect(resolveConfig({ site: { name: 'Design' } }).site.seo.titleSuffix).toBe('Design');
   });
 
   it('el sufijo acepta texto, un Label por idioma o `false`', () => {
     for (const titleSuffix of ['Docs', { en: 'Docs', es: 'Documentación' }, false as const]) {
-      expect(resolveConfig({ site: { name: 'X', seo: { titleSuffix } } }).seo.titleSuffix).toEqual(
-        titleSuffix,
-      );
+      expect(
+        resolveConfig({ site: { name: 'X', seo: { titleSuffix } } }).site.seo.titleSuffix,
+      ).toEqual(titleSuffix);
     }
   });
 
@@ -84,7 +84,7 @@ describe('seo de la config', () => {
         site: { name: 'X', seo: { image: { src, alt: { en: 'Logo', es: 'Logotipo' } } } },
         i18n: { locales: ['en', 'es'] },
       });
-      expect(config.seo.image?.src).toBe(src);
+      expect(config.site.seo.image?.src).toBe(src);
     }
   });
 
@@ -96,7 +96,7 @@ describe('seo de la config', () => {
 
   it('la descripción es un Label: cadena o por idioma', () => {
     expect(
-      resolveConfig({ site: { name: 'X', seo: { description: 'Docs' } } }).seo.description,
+      resolveConfig({ site: { name: 'X', seo: { description: 'Docs' } } }).site.seo.description,
     ).toBe('Docs');
   });
 });
@@ -146,7 +146,7 @@ describe('external[].seo', () => {
       site: { name: 'X' },
       content: { external: [{ slug: 'a', file: 'a.md', seo: { noindex: true } }] },
     });
-    expect(config.external[0]?.seo).toEqual({ noindex: true });
+    expect(config.content.external[0]?.seo).toEqual({ noindex: true });
   });
 
   it('el título SEO de un externo puede ir por idioma', () => {
@@ -155,7 +155,7 @@ describe('external[].seo', () => {
       site: { name: 'X' },
       content: { external: [{ slug: 'a', file: 'a.md', seo }] },
     });
-    expect(config.external[0]?.seo).toEqual(seo);
+    expect(config.content.external[0]?.seo).toEqual(seo);
   });
 });
 
@@ -167,7 +167,7 @@ describe('DocsConfigSchema', () => {
 
 describe('layout de la config', () => {
   it('sin `layout` todo queda abierto, en lectura y con conmutadores', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).layout).toEqual({
+    expect(resolveConfig({ site: { name: 'X' } }).site.layout).toEqual({
       sidebar: 'open',
       toc: 'open',
       width: 'reading',
@@ -178,17 +178,19 @@ describe('layout de la config', () => {
 
   it('acepta cada campo y completa el resto con los valores por defecto', () => {
     expect(
-      resolveConfig({ site: { name: 'X', layout: { sidebar: 'collapsed', width: 'full' } } })
+      resolveConfig({ site: { name: 'X', layout: { sidebar: 'collapsed', width: 'full' } } }).site
         .layout,
     ).toEqual({ sidebar: 'collapsed', toc: 'open', width: 'full', toggles: true, tocDepth: 3 });
     expect(
-      resolveConfig({ site: { name: 'X', layout: { toc: 'collapsed', toggles: false } } }).layout,
+      resolveConfig({ site: { name: 'X', layout: { toc: 'collapsed', toggles: false } } }).site
+        .layout,
     ).toEqual({ sidebar: 'open', toc: 'collapsed', width: 'reading', toggles: false, tocDepth: 3 });
   });
 
   it('`tocDepth` y `tocMaxHeight` ajustan el índice', () => {
     expect(
-      resolveConfig({ site: { name: 'X', layout: { tocDepth: 4, tocMaxHeight: '60vh' } } }).layout,
+      resolveConfig({ site: { name: 'X', layout: { tocDepth: 4, tocMaxHeight: '60vh' } } }).site
+        .layout,
     ).toMatchObject({ tocDepth: 4, tocMaxHeight: '60vh' });
   });
 
@@ -226,7 +228,7 @@ describe('nav', () => {
   const base = { site: { name: 'X' }, i18n: { locales: ['en', 'es'] } };
 
   it('sin `nav` no cambia nada: queda sin definir', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).nav).toBeUndefined();
+    expect(resolveConfig({ site: { name: 'X' } }).content.nav).toBeUndefined();
   });
 
   it('acepta una sección, una página y un enlace con icono', () => {
@@ -235,7 +237,7 @@ describe('nav', () => {
       { label: 'Changelog', slug: 'changelog' },
       { label: 'GitHub', href: 'https://github.com/x/y', icon: NavIcon.GITHUB },
     ];
-    expect(resolveConfig(withConfig(base, { content: { nav } })).nav).toEqual(nav);
+    expect(resolveConfig(withConfig(base, { content: { nav } })).content.nav).toEqual(nav);
   });
 
   it('NavIcon es un objeto `as const` con el icono de GitHub', () => {
@@ -346,7 +348,7 @@ describe('footer', () => {
   const base = { site: { name: 'X' }, i18n: { locales: ['en', 'es'] } };
 
   it('sin `footer` queda sin definir', () => {
-    expect(resolveConfig(base).footer).toBeUndefined();
+    expect(resolveConfig(base).site.footer).toBeUndefined();
   });
 
   it('acepta licencia en texto o con enlace, autor y enlaces de página o externos', () => {
@@ -358,20 +360,20 @@ describe('footer', () => {
         { label: { en: 'Blog', es: 'Bitácora' }, href: 'https://blog.dev' },
       ],
     };
-    expect(resolveConfig(withConfig(base, { site: { footer } })).footer).toEqual(footer);
+    expect(resolveConfig(withConfig(base, { site: { footer } })).site.footer).toEqual(footer);
     expect(
-      resolveConfig(withConfig(base, { site: { footer: { license: 'MIT' } } })).footer,
+      resolveConfig(withConfig(base, { site: { footer: { license: 'MIT' } } })).site.footer,
     ).toEqual({
       license: 'MIT',
     });
   });
 
   it('`author: false` es válido y oculta el autor', () => {
-    expect(resolveConfig(withConfig(base, { site: { footer: { author: false } } })).footer).toEqual(
-      {
-        author: false,
-      },
-    );
+    expect(
+      resolveConfig(withConfig(base, { site: { footer: { author: false } } })).site.footer,
+    ).toEqual({
+      author: false,
+    });
   });
 
   it('solo https: licencia, autor y enlaces, cada uno con su ruta', () => {
@@ -444,11 +446,11 @@ describe('seo.schema (JSON-LD)', () => {
     const config = resolveConfig({
       site: { name: 'X', seo: { schema: [org, { '@type': ['Person', 'Thing'] }] } },
     });
-    expect(config.seo.schema?.[0]).toEqual(org);
+    expect(config.site.seo.schema?.[0]).toEqual(org);
   });
 
   it('sin schema declarado no hay nada: la librería no inventa ninguno', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).seo).not.toHaveProperty('schema');
+    expect(resolveConfig({ site: { name: 'X' } }).site.seo).not.toHaveProperty('schema');
   });
 
   it('la página acepta una lista o `false`', () => {
@@ -496,11 +498,11 @@ describe('seo.schema (JSON-LD)', () => {
 describe('theme de la config', () => {
   it('es opcional', () => {
     expect(messages({ site: { name: 'X' } })).toEqual([]);
-    expect(resolveConfig({ site: { name: 'X' } }).theme).toBeUndefined();
+    expect(resolveConfig({ site: { name: 'X' } }).site.theme).toBeUndefined();
   });
 
   it('acepta la ruta de un .css del proyecto', () => {
-    expect(resolveConfig({ site: { name: 'X', theme: 'src/styles/site.css' } }).theme).toBe(
+    expect(resolveConfig({ site: { name: 'X', theme: 'src/styles/site.css' } }).site.theme).toBe(
       'src/styles/site.css',
     );
   });
@@ -517,14 +519,14 @@ describe('theme de la config', () => {
 describe('components de la config', () => {
   it('es opcional: sin él no hay componentes propios', () => {
     expect(messages({ site: { name: 'X' } })).toEqual([]);
-    expect(resolveConfig({ site: { name: 'X' } }).components).toBeUndefined();
+    expect(resolveConfig({ site: { name: 'X' } }).site.components).toBeUndefined();
   });
 
   it('acepta la ruta de un .astro del proyecto como `Footer`', () => {
     const config = resolveConfig({
       site: { name: 'X', components: { Footer: './src/components/Footer.astro' } },
     });
-    expect(config.components).toEqual({ Footer: './src/components/Footer.astro' });
+    expect(config.site.components).toEqual({ Footer: './src/components/Footer.astro' });
   });
 
   it.each([
@@ -549,10 +551,10 @@ describe('static de la config', () => {
 
   it('acepta carpetas con su destino y sin `static` no hay ninguna', () => {
     const folders = [{ from: '../htmlcov', to: 'coverage' }];
-    expect(resolveConfig(withConfig(base, { content: { static: folders } })).static).toEqual(
-      folders,
-    );
-    expect(resolveConfig(base).static).toBeUndefined();
+    expect(
+      resolveConfig(withConfig(base, { content: { static: folders } })).content.static,
+    ).toEqual(folders);
+    expect(resolveConfig(base).content.static).toBeUndefined();
   });
 
   it('una carpeta inválida falla con su ruta', () => {
@@ -582,9 +584,9 @@ describe('static de la config', () => {
 
   it('cada carpeta acepta `exclude`: patrones relativos a `from`', () => {
     const folders = [{ from: 'cov', to: 'coverage', exclude: ['assets/script/', '*.py'] }];
-    expect(resolveConfig(withConfig(base, { content: { static: folders } })).static).toEqual(
-      folders,
-    );
+    expect(
+      resolveConfig(withConfig(base, { content: { static: folders } })).content.static,
+    ).toEqual(folders);
   });
 
   it('un patrón vacío o que no es una lista falla con su ruta', () => {
@@ -754,12 +756,12 @@ describe('folders de la config', () => {
   });
 
   it('sin `folders`, la config resuelta lleva un mapa vacío', () => {
-    expect(resolveConfig({ site: { name: 'X' } }).folders).toEqual({ declared: {} });
+    expect(resolveConfig({ site: { name: 'X' } }).content.folders).toEqual({ declared: {} });
   });
 
   it('la config resuelta conserva lo declarado', () => {
     const folders = { '*': { listing: { view: 'cards' as const } }, guia: { tree: { depth: 1 } } };
-    expect(resolveConfig({ site: { name: 'X' }, content: { folders } }).folders).toEqual({
+    expect(resolveConfig({ site: { name: 'X' }, content: { folders } }).content.folders).toEqual({
       declared: folders,
     });
   });

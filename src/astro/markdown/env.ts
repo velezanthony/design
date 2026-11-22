@@ -2,7 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { MdastPluginDefinition, PluginFactoryContext } from 'satteri';
 import type { NavItem } from '../../core/config/nav';
-import type { ResolvedConfig } from '../../core/config/resolve';
+import type { ConfigPick } from '../../core/config/resolve';
 import { externalCandidates } from '../../core/content/discovery';
 import type { Locale } from '../../core/i18n/locale';
 import { splitLocale } from '../../core/i18n/locale';
@@ -23,10 +23,7 @@ export interface MarkdownEnv {
   warn: (message: string) => void;
 }
 
-type EnvConfig = Pick<
-  ResolvedConfig,
-  'locales' | 'defaultLocale' | 'ui' | 'external' | 'content' | 'nav'
->;
+type EnvConfig = ConfigPick<never, 'locales' | 'defaultLocale' | 'ui', 'external' | 'dir' | 'nav'>;
 
 export function createMarkdownEnv(
   config: EnvConfig,
@@ -35,11 +32,11 @@ export function createMarkdownEnv(
 ): MarkdownEnv {
   return {
     root,
-    scope: createScope(root, externalCandidates(config), config.content),
-    locales: config.locales,
-    defaultLocale: config.defaultLocale,
-    strings: siteStrings(config.ui, config.locales),
-    nav: config.nav ?? [],
+    scope: createScope(root, externalCandidates(config), config.content.dir),
+    locales: config.i18n.locales,
+    defaultLocale: config.i18n.defaultLocale,
+    strings: siteStrings(config.i18n.ui, config.i18n.locales),
+    nav: config.content.nav ?? [],
     warn,
   };
 }

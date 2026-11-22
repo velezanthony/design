@@ -7,9 +7,9 @@ import { isPagedListing, resolveListing, type ListingOptions } from '../../core/
 import { listingPageUrl } from '../../core/listing/urls';
 import { buildListingView, type ListingHrefs, type ListingView } from '../../core/listing/view';
 import type { DocData } from '../loader/schema';
-import type { VirtualConfig } from '../virtual/data';
 import { navContextOf, type SiteContext } from './chrome';
 import type { DocRoute } from './doc';
+import type { ConfigPick } from '../../core/config/resolve';
 
 /* El índice generado de una página con listado (un `_index.md` o una carpeta que `folders` activa):
    sus opciones (que `docRoutes` resuelve una vez por ruta), cuántas entradas tiene y su modelo de
@@ -19,17 +19,17 @@ import type { DocRoute } from './doc';
 /** Opciones del listado de una página, o `undefined` si no lista su carpeta. */
 export function listingOptionsOf(
   page: Pick<DocData, 'slug' | 'kind' | 'sourcePath'>,
-  config: Pick<VirtualConfig, 'folders'>,
+  config: ConfigPick<never, never, 'folders'>,
 ): ListingOptions | undefined {
   if (!listsFolder(page)) return undefined;
-  return resolveListing({ folder: page.slug, folders: config.folders });
+  return resolveListing({ folder: page.slug, folders: config.content.folders });
 }
 
 /** La portada y la fecha de cada página, de su entrada en el idioma del contenido o, sin ella, la del original (`pickLocalized`). */
 function detailsOf(
   data: DocData[],
   locale: Locale,
-  config: Pick<VirtualConfig, 'locales' | 'defaultLocale'>,
+  config: ConfigPick<never, 'locales' | 'defaultLocale'>,
   dates: DatesBySource,
 ) {
   return (slug: string): EntryDetails | undefined => {

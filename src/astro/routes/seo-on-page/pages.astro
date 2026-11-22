@@ -15,7 +15,8 @@ import { panelView } from '../../views/seo-on-page/panel';
 
 const { docs, tree, failures } = await loadPanel(siteConfig, Astro.url.origin);
 /* Los enlaces del panel los arma la ruta: `data/` no conoce `views/`. */
-const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.defaultLocale));
+const reportSite = { name: siteConfig.site.name, locales: siteConfig.i18n.locales };
+const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.i18n.defaultLocale));
 const view = panelView({
   config: siteConfig,
   data: docs,
@@ -26,11 +27,11 @@ const view = panelView({
 const model = listingModel({
   tree,
   params: Astro.url.searchParams,
-  locales: siteConfig.locales,
-  defaultLocale: siteConfig.defaultLocale,
+  locales: siteConfig.i18n.locales,
+  defaultLocale: siteConfig.i18n.defaultLocale,
   links: hrefs,
 });
-const report = listingReport(tree, Astro.url.searchParams, siteConfig);
+const report = listingReport(tree, Astro.url.searchParams, reportSite);
 ---
 
 <PagesPage

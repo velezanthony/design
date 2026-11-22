@@ -106,7 +106,7 @@ describe('`favicon` en la config', () => {
     expect(messages('favicon.svg')).toEqual([]);
     expect(messages('/favicon.svg')).toEqual([]);
     expect(messages('https://x.dev/i.png')).toEqual([]);
-    expect(resolveConfig({ site: { name: 'X', favicon: 'a.svg' } }).favicon).toBe('a.svg');
+    expect(resolveConfig({ site: { name: 'X', favicon: 'a.svg' } }).site.favicon).toBe('a.svg');
   });
 
   it('rechaza http:// y otros esquemas, con la ruta `favicon`', () => {

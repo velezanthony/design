@@ -93,7 +93,7 @@ describe('buildSitemap', () => {
     const routes = fallbackRoutes({
       availability: real,
       policies: new Map([['changelog', 'fallback']]),
-      config: { locales: ['en', 'es'], defaultLocale: 'en' },
+      config: { i18n: { locales: ['en', 'es'], defaultLocale: 'en' } },
       url,
       pages,
     });

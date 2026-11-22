@@ -18,11 +18,11 @@ core/
 ├── errors.ts              DocsError (archivo, línea, pista) y DocsErrors (varios a la vez)
 ├── config/
 │   ├── schema.ts          Esquema zod de la config pública (compone `site`, `i18n`, `content` y valida lo que cruza grupos); de aquí sale DocsUserConfig
-│   ├── site.ts            Esquema de `site`: nombre, favicon, tema, componentes, pie, disposición, `seo` y `analytics`
-│   ├── i18n.ts            Esquema de `i18n`: idiomas, `missing` y textos de interfaz
-│   ├── content.ts         Esquema de `content`: carpeta, exclusiones, externas, estáticas, edición, `nav`, `sidebar` y `folders`
+│   ├── site.ts            `site`: esquema, ResolvedSite y resolveSite (nombre, favicon, tema, componentes, pie, disposición, `seo` y `analytics`)
+│   ├── i18n.ts            `i18n`: esquema, ResolvedI18n y resolveI18n (idiomas, `missing` y textos de interfaz)
+│   ├── content.ts         `content`: esquema, ResolvedContent y resolveContent (carpeta, exclusiones, externas, estáticas, edición, `nav`, `sidebar` y `folders`)
 │   ├── shared-schemas.ts  Piezas de esquema compartidas: textos traducibles, imágenes, JSON-LD y el `seo` de una página
-│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig (hasta C8, plana: un adaptador traduce la forma agrupada)
+│   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig { site, i18n, content } (la misma forma que la pública); ConfigPick
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
 │   ├── folders.ts         `folders`: ListingView, TreeShow, ALL_FOLDERS, su esquema y la herencia por carpeta (folderSettings, con declaredAt); valida sus claves
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav

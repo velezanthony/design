@@ -28,7 +28,7 @@ export function buildNav(nav: readonly NavItem[] | undefined, context: NavContex
   const entries: NavEntry[] = [];
 
   nav.forEach((item, index) => {
-    const label = resolveLabel(item.label, locale, config.defaultLocale);
+    const label = resolveLabel(item.label, locale, config.i18n.defaultLocale);
     if (isNavLink(item)) {
       entries.push({
         label,

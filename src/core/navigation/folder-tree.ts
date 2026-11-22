@@ -68,12 +68,12 @@ export function buildFolderTree(
       return [node];
     },
   };
-  const nav = context.config.nav ?? [];
+  const nav = context.config.content.nav ?? [];
   const ownFolders = sectionFolders(context.config);
   const tree: SidebarNode[] = [];
   const top = pageLeaf(context, folder, contentLocale);
   if (top) tree.push(top);
-  for (const scope of navScopes(context.config.nav)) {
+  for (const scope of navScopes(context.config.content.nav)) {
     const item = scope.kind === 'section' ? nav[scope.position] : undefined;
     // Sin `dir`, el árbol de la sección (y el de las páginas sin sección) cuenta desde la carpeta.
     const trees = scopeTrees(context, contentLocale, scope, folder);
@@ -89,7 +89,7 @@ export function buildFolderTree(
         ? pageLeaf(context, sectionFolder, contentLocale)
         : undefined;
     tree.push({
-      label: resolveLabel(item.label, contentLocale, context.config.defaultLocale),
+      label: resolveLabel(item.label, contentLocale, context.config.i18n.defaultLocale),
       ...(own && { slug: own.slug, href: own.href }),
       ...(own?.badge && { badge: own.badge }),
       items: nodes,

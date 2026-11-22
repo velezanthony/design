@@ -28,7 +28,7 @@ function site(user: ConfigPart = {}, listing: ListingSettings = { view: 'cards',
     ),
     {
       base: '/repo',
-      site: 'https://x.dev',
+      siteUrl: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',

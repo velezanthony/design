@@ -1,6 +1,6 @@
 import { AUTHOR } from '../author';
 import { isFooterPage, type FooterLink, type FooterPage } from '../config/footer';
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { Label } from '../config/schema';
 import { DocsError, formatPath } from '../errors';
 import type { Locale } from '../i18n/locale';
@@ -49,7 +49,7 @@ export interface FooterProps {
 }
 
 /** Lo que el footer necesita de la config. */
-export type FooterSource = Pick<ResolvedConfig, 'footer' | 'social'>;
+export type FooterSource = ConfigPick<'footer' | 'social'>;
 
 /** Destino de un enlace del footer a una página en el idioma de `context`; `undefined` si no tiene (política `omit`). */
 function footerPageHref(link: FooterPage, context: NavContext): string | undefined {
@@ -71,9 +71,9 @@ export function buildFooter(
   context: NavContext,
   strings: UiStrings,
 ): FooterView {
-  const { footer, social } = source;
+  const { footer, social } = source.site;
   const { locale } = context;
-  const defaultLocale = context.config.defaultLocale;
+  const defaultLocale = context.config.i18n.defaultLocale;
   function label(value: Label) {
     return resolveLabel(value, locale, defaultLocale);
   }

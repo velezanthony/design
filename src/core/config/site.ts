@@ -1,7 +1,15 @@
 import { z } from 'astro/zod';
 import type { FooterConfig, FooterLink } from './footer';
-import { LayoutWidth, PanelState } from './layout';
-import { ImageSrcSchema, JsonLdSchema, LabelSchema, TitleSuffixSchema } from './shared-schemas';
+import { LayoutWidth, PanelState, resolveLayout, type ResolvedLayout } from './layout';
+import type { Locale } from '../i18n/locale';
+import {
+  ImageSrcSchema,
+  JsonLdSchema,
+  LabelSchema,
+  TitleSuffixSchema,
+  type JsonLd,
+  type Label,
+} from './shared-schemas';
 
 /* `site`: cómo se ve y se presenta el sitio (nombre, tema, pie, disposición, SEO y analítica). */
 
@@ -133,6 +141,54 @@ export const SiteSchema = z
       context.addIssue({ code: 'custom', path, message }),
     );
   });
+
+/** `site` resuelto: lo declarado con los valores por defecto puestos. */
+export interface ResolvedSite {
+  name: string;
+  /** Favicon de `public/` o URL https; sin definir, el del paquete. */
+  favicon?: string;
+  /** CSS propio del proyecto, relativo a su raíz; la integración lo compila con el tema de la librería. */
+  theme?: string;
+  social?: { github?: string };
+  /** Componentes propios del sitio (rutas desde su raíz); sin definir, los de la librería. */
+  components?: ComponentsConfig;
+  /** Footer del sitio; sin definir, solo el autor por defecto. */
+  footer?: FooterConfig;
+  layout: ResolvedLayout;
+  seo: {
+    /** Sufijo del `<title>` del sitio, ya con el `name` del sitio si la config no dice nada. */
+    titleSuffix: Label | false;
+    description?: Label;
+    image?: { src: string; alt: Label };
+    /** JSON-LD que lleva TODA página (salvo `schema: false`); la librería no pone ninguno por su cuenta. */
+    schema?: JsonLd[];
+    /** `og:locale` de cada idioma con territorio (`es_ES`); sin él, el propio idioma. */
+    ogLocales?: Record<Locale, string>;
+    /** Con `include`, `sitemap.xml` es un índice: las páginas propias y estos sitemaps del dominio. */
+    sitemap: { include: string[] };
+  };
+  analytics: {
+    /** ID del contenedor de GTM de la config (anula al del entorno); la integración fija el efectivo. */
+    gtmId?: string;
+    /** Enlace de privacidad del pie: una URL o una por idioma. Con `gtmId` es obligatoria (el aviso de cookies enlaza a ella). */
+    privacyUrl?: Label;
+  };
+}
+
+/** Completa `site` con los valores por defecto. */
+export function resolveSite(site: z.output<typeof SiteSchema>): ResolvedSite {
+  const { seo = {}, analytics = {}, layout, ...rest } = site;
+  return {
+    ...rest,
+    layout: resolveLayout(layout),
+    seo: {
+      ...seo,
+      titleSuffix: seo.titleSuffix ?? site.name,
+      sitemap: { include: seo.sitemap?.include ?? [] },
+    },
+    analytics,
+  };
+}
 
 const HTTPS = 'Debe ser una URL https (https://…).';
 

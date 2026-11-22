@@ -133,7 +133,13 @@ describe('buildHead: og:type y og:locale', () => {
   });
 
   it('og:locale sale del mapa `ogLocales` y, sin él, del idioma', () => {
-    const withMap = { ...config, ogLocales: { en: 'en_GB', es: 'es_ES' } };
+    const withMap = {
+      ...config,
+      site: {
+        ...config.site,
+        seo: { ...config.site.seo, ogLocales: { en: 'en_GB', es: 'es_ES' } },
+      },
+    };
     const tags = buildHead(meta(), enPage, pair, site, withMap, url);
     expect(value(tags, 'property', 'og:locale')).toBe('en_GB');
     expect(
@@ -143,7 +149,10 @@ describe('buildHead: og:type y og:locale', () => {
   });
 
   it('un idioma ausente del mapa cae al formato del idioma', () => {
-    const partial = { ...config, ogLocales: { en: 'en_GB' } };
+    const partial = {
+      ...config,
+      site: { ...config.site, seo: { ...config.site.seo, ogLocales: { en: 'en_GB' } } },
+    };
     const tags = buildHead(meta(), esPage, pair, site, partial, url);
     expect(value(tags, 'property', 'og:locale')).toBe('es');
   });
@@ -250,21 +259,21 @@ describe('buildHead: favicon', () => {
   });
 
   it('el favicon de la config manda: ruta con base o https tal cual', () => {
-    const local = { ...config, favicon: 'favicon.svg' };
+    const local = { ...config, site: { ...config.site, favicon: 'favicon.svg' } };
     const tags = buildHead(meta(), enPage, single, site, local, url);
     expect(icons(tags)[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/favicon.svg',
       type: 'image/svg+xml',
     });
-    const remote = { ...config, favicon: 'https://cdn.dev/i.ico' };
+    const remote = { ...config, site: { ...config.site, favicon: 'https://cdn.dev/i.ico' } };
     expect(icons(buildHead(meta(), enPage, single, site, remote, url))[0]?.attrs.href).toBe(
       'https://cdn.dev/i.ico',
     );
   });
 
   it('extensión desconocida: sin atributo type', () => {
-    const odd = { ...config, favicon: '/i.webp' };
+    const odd = { ...config, site: { ...config.site, favicon: '/i.webp' } };
     expect(icons(buildHead(meta(), enPage, single, site, odd, url))[0]?.attrs).toEqual({
       rel: 'icon',
       href: '/repo/i.webp',

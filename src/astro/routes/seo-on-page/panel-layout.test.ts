@@ -21,7 +21,7 @@ function site(user: ConfigPart = {}) {
     resolveConfig(withConfig({ site: { name: 'Docs' }, i18n: { locales: ['en', 'es'] } }, user)),
     {
       base: '/repo',
-      site: 'https://x.dev',
+      siteUrl: 'https://x.dev',
       trailingSlash: 'always',
       buildFormat: 'directory',
       publicDir: 'file:///site/public/',
@@ -45,7 +45,7 @@ function view(extra: Partial<Parameters<typeof panelView>[0]> = {}) {
   return panelView({
     config,
     data,
-    hrefs: devHrefs(config),
+    hrefs: devHrefs({ ...config, defaultLocale: config.i18n.defaultLocale }),
     screen: 'overview',
     title: 'Resumen',
     ...extra,
@@ -98,9 +98,9 @@ describe('DocsLayout alimentado por panelView', () => {
    virtual solo lo importa `routes/`, y la pantalla lo reenvía al layout. */
 describe('pantallas del panel con un pie propio (`Footer`)', () => {
   const config = site();
-  const hrefs = devHrefs(config);
+  const hrefs = devHrefs({ ...config, defaultLocale: config.i18n.defaultLocale });
   const tree = { pages: [seoPage({ slug: 'guide' })] };
-  const reportSite = { name: config.name, locales: config.locales };
+  const reportSite = { name: config.site.name, locales: config.i18n.locales };
 
   function expectProbeFooter(htmlDocument: Document) {
     expect(htmlDocument.querySelectorAll('footer')).toHaveLength(1);
@@ -113,12 +113,12 @@ describe('pantallas del panel con un pie propio (`Footer`)', () => {
       view: view({ config }),
       year: 2026,
       model: overviewModel(tree, {
-        locales: config.locales,
-        defaultLocale: config.defaultLocale,
+        locales: config.i18n.locales,
+        defaultLocale: config.i18n.defaultLocale,
         links: hrefs,
         siteFiles: [],
       }),
-      locales: config.locales,
+      locales: config.i18n.locales,
       failures: [],
       overrides: [],
       report: overviewReport(tree, reportSite),
@@ -135,8 +135,8 @@ describe('pantallas del panel con un pie propio (`Footer`)', () => {
       model: listingModel({
         tree,
         params,
-        locales: config.locales,
-        defaultLocale: config.defaultLocale,
+        locales: config.i18n.locales,
+        defaultLocale: config.i18n.defaultLocale,
         links: hrefs,
       }),
       failures: [],

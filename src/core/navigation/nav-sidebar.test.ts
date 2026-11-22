@@ -23,7 +23,7 @@ const context: NavContext = {
   pages,
   availability: buildAvailability(pages, url),
   locale: 'es',
-  config: { locales: ['es'], defaultLocale: 'es', nav },
+  config: { i18n: { locales: ['es'], defaultLocale: 'es' }, content: { nav } },
   policies: resolvePolicies(pages, MissingTranslation.LINK).policies,
   url,
   slug: 'guia/a',
@@ -74,7 +74,10 @@ describe('buildSectionSidebar: `tree.depth` de `folders`', () => {
           ...context,
           pages: deep,
           availability: buildAvailability(deep, url),
-          config: { ...context.config, nav: [section], folders: resolveFolders(folders) },
+          config: {
+            ...context.config,
+            content: { nav: [section], folders: resolveFolders(folders) },
+          },
           slug: 'sis/cloud/b',
         },
         { kind: 'section', position: 0 },
@@ -131,7 +134,7 @@ describe('buildSectionSidebar: grupos enlazados en una sección sin `dir`', () =
     pages: all,
     availability: buildAvailability(all, url),
     policies: resolvePolicies(all, MissingTranslation.LINK).policies,
-    config: { locales: ['es'], defaultLocale: 'es', nav: sistemas },
+    config: { i18n: { locales: ['es'], defaultLocale: 'es' }, content: { nav: sistemas } },
     slug: 'articulos/sistemas/ci-cd/github',
   };
 

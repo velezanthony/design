@@ -1,4 +1,4 @@
-import type { ResolvedConfig } from '../config/resolve';
+import type { ConfigPick } from '../config/resolve';
 import type { Label, SidebarItem } from '../config/schema';
 import { isNavSection } from '../config/nav';
 import type { Locale } from '../i18n/locale';
@@ -14,7 +14,7 @@ import { toSidebarSlug } from './sidebar-slugs';
    La misma regla dice qué grupo declarado es el de una carpeta (`folderOfGroup`). */
 
 /** Lo que hace falta de la config. */
-export type FolderLabelConfig = Pick<ResolvedConfig, 'nav' | 'sidebar' | 'defaultLocale'>;
+export type FolderLabelConfig = ConfigPick<never, 'defaultLocale', 'nav' | 'sidebar'>;
 
 /** Los slugs de las hojas de unos items, a cualquier profundidad. */
 function leafSlugs(items: readonly SidebarItem[]): string[] {
@@ -66,7 +66,7 @@ function groupCandidates(items: readonly SidebarItem[], wrappers: readonly objec
 /** Todo lo declarado que casa con alguna carpeta: las secciones de `nav`, sus grupos y los de `sidebar`. */
 function candidates(config: FolderLabelConfig): Candidate[] {
   const found: Candidate[] = [];
-  for (const item of config.nav ?? []) {
+  for (const item of config.content.nav ?? []) {
     if (!isNavSection(item)) continue;
     const folder = folderOfGroup(item.sidebar ?? []);
     if (folder !== undefined) {
@@ -74,7 +74,7 @@ function candidates(config: FolderLabelConfig): Candidate[] {
     }
     found.push(...groupCandidates(item.sidebar ?? [], [item]));
   }
-  return [...found, ...groupCandidates(config.sidebar ?? [], [])];
+  return [...found, ...groupCandidates(config.content.sidebar ?? [], [])];
 }
 
 /* «Si casan varios, el más interior»: el dueño de una carpeta es el candidato al que envuelven todos
@@ -131,13 +131,13 @@ export function folderLabels(config: FolderLabelConfig, locale: Locale): Map<str
     [...owners(config)].map(([folder, candidate]) => [folder, candidate.label]),
   );
   // Paso 1: la sección con `dir` nombra su carpeta siempre.
-  for (const item of config.nav ?? []) {
+  for (const item of config.content.nav ?? []) {
     if (isNavSection(item) && item.dir !== undefined) labels.set(item.dir, item.label);
   }
   return new Map(
     [...labels].map(([folder, label]) => [
       folder,
-      resolveLabel(label, locale, config.defaultLocale),
+      resolveLabel(label, locale, config.i18n.defaultLocale),
     ]),
   );
 }
@@ -149,7 +149,7 @@ export function sectionFolders(config: FolderLabelConfig): Map<object, string> {
       .filter(([, candidate]) => !candidate.group)
       .map(([folder, candidate]) => [candidate.owner, folder]),
   );
-  for (const item of config.nav ?? []) {
+  for (const item of config.content.nav ?? []) {
     if (isNavSection(item) && item.dir !== undefined) found.set(item, item.dir);
   }
   return found;

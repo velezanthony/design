@@ -41,7 +41,7 @@ function context(locale = 'es'): NavContext {
     pages,
     availability: buildAvailability(pages, url),
     locale,
-    config: { locales: ['es', 'en'], defaultLocale: 'es', nav },
+    config: { i18n: { locales: ['es', 'en'], defaultLocale: 'es' }, content: { nav } },
     policies: resolvePolicies(pages, MissingTranslation.FALLBACK).policies,
     url,
     slug: 'guia/a',

@@ -33,22 +33,26 @@ describe('resolveRepoRoot', () => {
   }
 
   it('sin editUrl no hace falta raíz y no se busca', async () => {
-    expect(await resolveRepoRoot({}, root())).toBeUndefined();
+    expect(await resolveRepoRoot({ content: {} }, root())).toBeUndefined();
   });
 
   it('con editUrl usa el ancestro con .git', async () => {
-    expect(await resolveRepoRoot({ editUrl: 'https://x/edit/main' }, root())).toBe(directory);
-  });
-
-  it('repoRoot explícito se resuelve contra la raíz del proyecto y manda', async () => {
-    expect(await resolveRepoRoot({ editUrl: 'https://x', repoRoot: '../..' }, root())).toBe(
+    expect(await resolveRepoRoot({ content: { editUrl: 'https://x/edit/main' } }, root())).toBe(
       directory,
     );
   });
 
+  it('repoRoot explícito se resuelve contra la raíz del proyecto y manda', async () => {
+    expect(
+      await resolveRepoRoot({ content: { editUrl: 'https://x', repoRoot: '../..' } }, root()),
+    ).toBe(directory);
+  });
+
   it('con editUrl y sin raíz lanza un error accionable', async () => {
     await expect(
-      resolveRepoRoot({ editUrl: 'https://x' }, path.parse(directory).root, ['__no_existe__']),
+      resolveRepoRoot({ content: { editUrl: 'https://x' } }, path.parse(directory).root, [
+        '__no_existe__',
+      ]),
     ).rejects.toSatisfy((error) => error instanceof DocsError && /repoRoot/.test(error.hint ?? ''));
   });
 });

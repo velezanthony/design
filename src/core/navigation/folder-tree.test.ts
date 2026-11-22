@@ -64,11 +64,8 @@ function context(
     availability: buildAvailability(pages, url),
     locale,
     config: {
-      locales: ['es', 'en'],
-      defaultLocale: 'es',
-      nav,
-      sidebar: ['index', 'articulos'],
-      folders: resolveFolders(folders),
+      i18n: { locales: ['es', 'en'], defaultLocale: 'es' },
+      content: { nav, sidebar: ['index', 'articulos'], folders: resolveFolders(folders) },
     },
     policies: resolvePolicies(pages, MissingTranslation.FALLBACK).policies,
     url,
