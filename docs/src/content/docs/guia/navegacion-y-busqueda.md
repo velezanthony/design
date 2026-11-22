@@ -57,7 +57,9 @@ aparecen en el menú móvil.
 ### Barra lateral (`sidebar`)
 
 - Entradas: slugs (`'guia/instalar'`) o grupos `{ label, slug?, items }`. La portada es `'index'`.
-- Lo que no declaras va **después**, ordenado por `order` del frontmatter y luego por slug. Este
+- Lo que no declaras va **después**, ordenado por `order` del frontmatter y luego por slug, y
+  agrupado por carpetas: un grupo por carpeta a cualquier profundidad (`a/b/c/d/pagina` da cuatro
+  grupos anidados), con el título del `index.md` de la carpeta si lo tiene. Este
   sitio declara la `sidebar` de cada sección: los grupos (`{ label, slug?, items }`) y el orden no son los de las
   carpetas, y un grupo con `slug` enlaza a su propia página (la del `index.md` o la que lo abre).
 - Un slug desconocido rompe el build con un único error que nombra todos (`sidebar[2].items[0]`).

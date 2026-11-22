@@ -51,14 +51,43 @@ function shape(nodes: SidebarNode[]): unknown[] {
 }
 
 describe('buildSidebar: árbol', () => {
-  it('anida hasta tres niveles', () => {
+  it('anida dos carpetas: sección, sección y hoja', () => {
     const tree = build([page('guide/api/a'), page('guide/api/b'), page('guide/c')]);
     expect(shape(tree)).toEqual([{ Guide: [{ Api: ['guide/api/a', 'guide/api/b'] }, 'guide/c'] }]);
   });
 
-  it('no pasa de tres niveles: lo más profundo se aplana en la sección del segundo nivel', () => {
-    const tree = build([page('a/b/c/d')]);
-    expect(shape(tree)).toEqual([{ A: [{ B: ['a/b/c/d'] }] }]);
+  it('anida a cualquier profundidad: un grupo por carpeta', () => {
+    const tree = build([page('a/b/c/d/page')]);
+    expect(shape(tree)).toEqual([{ A: [{ B: [{ C: [{ D: ['a/b/c/d/page'] }] }] }] }]);
+  });
+
+  it('páginas a varios niveles: cada una en el grupo de su carpeta', () => {
+    const tree = build([
+      page('docs/python/django/y'),
+      page('docs/python/x'),
+      page('docs/python/django/orm/z'),
+      page('docs/w'),
+    ]);
+    expect(shape(tree)).toEqual([
+      {
+        Docs: [
+          {
+            Python: [
+              { Django: [{ Orm: ['docs/python/django/orm/z'] }, 'docs/python/django/y'] },
+              'docs/python/x',
+            ],
+          },
+          'docs/w',
+        ],
+      },
+    ]);
+  });
+
+  it('los grupos profundos llevan `dir` y los retitula su página índice', () => {
+    const tree = build([page('a/b/c', 'en', { title: 'Index C' }), page('a/b/c/d/page')]);
+    const third = ((tree[0] as SidebarGroup).items[0] as SidebarGroup).items[0] as SidebarGroup;
+    expect(third).toMatchObject({ label: 'Index C', slug: 'a/b/c', dir: 'a/b/c' });
+    expect(third.items[0]).toMatchObject({ label: 'D', dir: 'a/b/c/d' });
   });
 
   it('una página índice hace de enlace de su sección', () => {
@@ -181,6 +210,15 @@ describe('flatten', () => {
   it('una sección sin página propia solo aporta sus hijas', () => {
     const tree = build([page('guide/a'), page('guide/b')]);
     expect(flatten(tree).map((leaf) => leaf.slug)).toEqual(['guide/a', 'guide/b']);
+  });
+
+  it('el `order` de una página profunda solo compite dentro de su carpeta', () => {
+    const tree = build([
+      page('g/b/c/deep', 'en', { order: 1 }),
+      page('g/b/shallow', 'en', { order: 2 }),
+    ]);
+    // La carpeta `c` no tiene `order`: va detrás de la hermana que sí lo tiene.
+    expect(flatten(tree).map((leaf) => leaf.slug)).toEqual(['g/b/shallow', 'g/b/c/deep']);
   });
 
   it('conserva las hojas link con su insignia (prevNext las salta)', () => {
@@ -335,6 +373,32 @@ describe('buildSidebar: casos límite', () => {
       const tree = build([page('guide', 'en'), page('guide/a', 'es')], 'es');
       expect(flatten(tree)[0]).toMatchObject({ slug: 'guide', badge: 'en' });
     });
+  });
+});
+
+describe('buildSidebar: carpeta raíz de una sección (`base`)', () => {
+  function buildIn(pages: Page[], base: string): SidebarNode[] {
+    const { policies } = resolvePolicies(pages, MissingTranslation.LINK);
+    const config = { locales: ['en'], defaultLocale: 'en' };
+    return buildSidebar(pages, buildAvailability(pages, url), 'en', config, policies, url, base);
+  }
+
+  it('la carpeta raíz no es un grupo y lo de debajo anida a cualquier profundidad', () => {
+    const tree = buildIn([page('root/a/b/c/d/page'), page('root/top')], 'root');
+    expect(shape(tree)).toEqual([
+      { A: [{ B: [{ C: [{ D: ['root/a/b/c/d/page'] }] }] }] },
+      'root/top',
+    ]);
+  });
+
+  it('una base de varios segmentos cuenta desde su final', () => {
+    const tree = buildIn(
+      [page('x/sistemas/cloud/aws/eu/a'), page('x/sistemas/cloud/b')],
+      'x/sistemas',
+    );
+    expect(shape(tree)).toEqual([
+      { Cloud: [{ Aws: [{ Eu: ['x/sistemas/cloud/aws/eu/a'] }] }, 'x/sistemas/cloud/b'] },
+    ]);
   });
 });
 

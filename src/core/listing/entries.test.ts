@@ -229,6 +229,27 @@ describe('buildListing: entradas', () => {
     expect(pathOf('tutoriales/suelto')).toEqual([]);
   });
 
+  it('cada carpeta por debajo de la del listado añade su grupo al camino, a cualquier profundidad', () => {
+    const deep = [page('blog/a/y'), page('blog/a/b/c/x'), page('blog/a/b/z')];
+    const { entries } = buildListing({
+      context: {
+        ...context('es', { nav: undefined, sidebar: undefined }),
+        pages: deep,
+        availability: buildAvailability(deep, url),
+        policies: resolvePolicies(deep, MissingTranslation.FALLBACK).policies,
+      },
+      contentLocale: 'es',
+      folder: 'blog/a',
+      details: none,
+    });
+    expect(entries.map((entry) => [entry.slug, entry.path])).toEqual([
+      // `Blog` es un grupo antepasado de la carpeta: cuenta, como cualquier grupo por encima.
+      ['blog/a/b/c/x', ['Blog', 'B', 'C']],
+      ['blog/a/b/z', ['Blog', 'B']],
+      ['blog/a/y', ['Blog']],
+    ]);
+  });
+
   it('una carpeta sin páginas en la navegación da un listado vacío', () => {
     expect(
       buildListing({ context: context(), contentLocale: 'es', folder: 'nada', details: none }),

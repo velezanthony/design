@@ -48,9 +48,6 @@ interface Entry {
   order?: number;
 }
 
-/** Secciones anidadas como máximo hasta aquí: sección → sección → hoja son tres niveles. */
-const MAX_SECTION_DEPTH = 2;
-
 function toEntries(
   pages: Page[],
   availability: Availability,
@@ -139,9 +136,9 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
 /** `base` es la carpeta raíz de una sección: no cuenta como nivel y sus páginas cuelgan de la raíz del árbol. */
 function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
+  // La sección de una página es su carpeta, a cualquier profundidad: un grupo por nivel.
   function sectionPath(slug: string) {
-    const segments = slug.split('/');
-    const path = segments.slice(0, Math.min(segments.length - 1, rootDepth + MAX_SECTION_DEPTH));
+    const path = slug.split('/').slice(0, -1);
     return path.length > rootDepth ? path : [];
   }
   function parentOf(path: string) {
@@ -246,7 +243,7 @@ function declaredTree(
   return nodes;
 }
 
-/** Árbol del sidebar de un idioma (hasta tres niveles): orden declarado, luego `order` y `Intl.Collator`; sin traducción aplica su política. */
+/** Árbol del sidebar de un idioma (un grupo por carpeta, a cualquier profundidad): orden declarado, luego `order` y `Intl.Collator`; sin traducción aplica su política. */
 export function buildSidebar(
   pages: Page[],
   availability: Availability,

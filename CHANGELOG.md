@@ -109,6 +109,14 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Arreglado
 
+- **El árbol automático de la barra lateral anida todas las carpetas.** Pasaba de dos carpetas por
+  debajo de la raíz del árbol y aplanaba el resto: con `articulos/desarrollo/python/django/x.md` y sin
+  `nav`, `x` salía suelta en «Desarrollo» y los grupos «Python» y «Django» desaparecían. En una sección
+  con `dir` el límite contaba desde `dir`, así que se notaba menos. Ahora hay un grupo por carpeta a
+  cualquier profundidad, en la barra general y en las de sección; con una o dos carpetas no cambia
+  nada. Lo que recorre el árbol lo sigue: `::nav-tree`, el camino de las entradas de un índice
+  generado (un grupo más por carpeta) y anterior / siguiente, donde el `order` de una página profunda
+  ya solo compite con las hermanas de su carpeta.
 - **Los diagramas mermaid se pintan en `astro dev` con la librería instalada.** Desde `node_modules`
   (instalada desde GitHub o npm), Astro saca la librería del pre-empaquetado de Vite porque trae
   `.astro`, y Vite no descubría `mermaid`: lo servía sin convertir y su dependencia dayjs, CommonJS,
