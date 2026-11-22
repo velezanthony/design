@@ -183,8 +183,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `ui`            | Sobrescritura de textos de UI por idioma, combinada clave a clave: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Las claves desconocidas rompen.     |
 | `external`      | Archivos fuera de la carpeta de contenido (`content`) publicados como páginas: `{ slug, file, locales?, seo?, translations? }`.                                          |
 | `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
-| `sidebarDepth`  | Niveles de grupos de carpeta del árbol automático de la barra lateral: `3` para todo el sidebar o `{ default?, overrides? }` con un límite por carpeta (`{ 'articulos/python': 1 }`), que cuenta desde ella. Por defecto sin límite. Lo más hondo va plano al último grupo permitido; los grupos escritos en `sidebar` no cambian. Ver [Navegación](docs/src/content/docs/guia/navegacion-y-busqueda.md#profundidad-del-árbol-automático-sidebardepth). |
-| `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar?, sidebarDepth? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
+| `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
 | `folders`       | Ajustes por carpeta, heredados de padre a hijo; `'*'` (`ALL_FOLDERS`) para todo el sitio: `{ articulos: { listing: { generate: true, view: ListingView.CARDS } } }`. Ver [`folders`](#folders). |
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
 | `components`    | Componentes propios que sustituyen a los de la librería: `{ Footer: './src/components/DocsFooter.astro' }` (un `.astro` desde la raíz del proyecto, debe existir). Ver abajo. |
@@ -316,22 +315,21 @@ import { NavIcon } from '@velezanthony/design/integration';
 
 nav: [
   { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // sección
-  { label: 'Artículos', dir: 'articulos', sidebarDepth: 2 }, // sección con su límite de carpetas
+  { label: 'Artículos', dir: 'articulos' }, // sección; su profundidad, en `folders.articulos.tree.depth`
   { label: 'Changelog', slug: 'changelog' }, // una sola página
   { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // externo, solo https
 ],
 ```
 
-- **Sección** `{ label, dir?, sidebar?, sidebarDepth? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
+- **Sección** `{ label, dir?, sidebar? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
   página (nativa o externa) cuyo slug sea `dir` o empiece por `dir/`, y también las que nombra su
   `sidebar`, vivan donde vivan: así una sección admite páginas sueltas y ficheros de fuera de `docs/`
   (`external`). Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y anterior /
   siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer nivel); lo
   de `dir` que no nombra sigue por `order` y luego por slug, agrupado bajo `dir` (la carpeta en sí no
   es un nivel), y **sin `sidebar` el orden es alfabético por slug**. Sin `dir`, la sección la forma
-  solo su `sidebar`. `sidebarDepth` limita los niveles de grupos de carpeta de su árbol automático,
-  contando desde `dir`, y gana al `sidebarDepth` global (una carpeta de `sidebarDepth.overrides` le
-  gana a él). El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
+  solo su `sidebar`. Los niveles de grupos de carpeta de su árbol automático los limita
+  `folders[dir].tree.depth`, contando desde `dir` (ver [`folders`](#folders)). El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
   página de la sección. Una página no puede ser de dos secciones.
 - **Página** `{ label, slug }`: un enlace a una sola página. Esa página no pertenece a ninguna
   sección.
@@ -403,8 +401,11 @@ es el botón que reabre el aviso de consentimiento. Rompe el build una ruta inex
 
 Ajustes por carpeta. Cada clave es la ruta de una carpeta del contenido (`articulos/python`, sin
 barras) o `'*'` (`ALL_FOLDERS`) para todo el sitio; cada ajuste se hereda por separado de la carpeta
-declarada más cercana, luego de `'*'`, luego del valor por defecto. Hoy lleva `listing`: si la carpeta
-tiene índice generado (la página que lista lo que cuelga de ella) y cómo se pinta.
+declarada más cercana, luego de `'*'`, luego del valor por defecto. Lleva `listing` (si la carpeta
+tiene índice generado, la página que lista lo que cuelga de ella, y cómo se pinta) y `tree.depth`
+(cuántos niveles de grupos de carpeta tiene el árbol automático de la barra lateral, contados desde
+la carpeta que lo declara; lo más hondo va plano al último grupo permitido y los grupos escritos en
+`sidebar` no cambian; ver [Navegación](docs/src/content/docs/guia/navegacion-y-busqueda.md#profundidad-del-árbol-automático-treedepth)).
 
 ```js
 import { ALL_FOLDERS, ListingView } from '@velezanthony/design/integration';

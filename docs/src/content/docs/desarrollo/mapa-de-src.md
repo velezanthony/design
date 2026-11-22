@@ -21,7 +21,6 @@ core/
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
 │   ├── folders.ts         `folders`: ListingView, TreeShow, ALL_FOLDERS, su esquema y la herencia por carpeta (folderSettings, con declaredAt); valida sus claves
-│   ├── sidebar-depth.ts   `sidebarDepth`: límites del árbol automático por defecto y por carpeta, y su validación
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
 ├── content/
@@ -52,7 +51,7 @@ core/
 │   ├── urls.ts            Dueño de las URLs de un listado: page/ y per-page/, posiciones y nombres reservados
 │   └── view.ts            ListingView (unión por disposición), el puerto ListingHrefs y buildListingView
 ├── navigation/
-│   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
+│   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas (profundidad: `tree.depth` de `folders`)
 │   ├── folder-labels.ts   Qué grupo declarado es dueño de cada carpeta (groupFolders: su etiqueta enlaza la página de la carpeta) y el título de una carpeta sin `_index.md`
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
 │   ├── nav-sections.ts    Secciones por dir, validación de nav

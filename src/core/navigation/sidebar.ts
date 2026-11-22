@@ -1,6 +1,6 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
-import type { SidebarDepth } from '../config/sidebar-depth';
+import { ALL_FOLDERS, folderSettings, type ResolvedFolders } from '../config/folders';
 import type { Page } from '../content/discovery';
 import { listsFolder } from '../content/generated-listings';
 import { urlSlugOf } from '../content/slug';
@@ -36,19 +36,30 @@ export interface SidebarGroup {
 }
 
 export type SidebarNode = SidebarLeaf | SidebarGroup;
-export type { SidebarDepth };
 
 export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
   return 'items' in node;
 }
 
 /** Lo que el árbol necesita de la config: idiomas, el orden declarado y el límite del árbol automático. `groupFolders` es la carpeta de cada grupo declarado que la enlaza (`folder-labels.ts`); sin él, se calcula solo con `sidebar`. */
-type SidebarConfig = Pick<
-  ResolvedConfig,
-  'locales' | 'defaultLocale' | 'sidebar' | 'sidebarDepth'
-> & {
+type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'> & {
+  /** Ajustes por carpeta: de ellos sale `tree.depth`. Sin ellos, sin límite. */
+  folders?: ResolvedFolders;
   groupFolders?: ReadonlyMap<object, string>;
 };
+
+/** Límite de niveles que rige a los grupos de debajo de `folder` y desde dónde cuenta (`undefined`: desde la raíz del árbol que se pinta, como `'*'`). */
+type DepthOf = (folder: string) => { limit: number; from: string | undefined } | undefined;
+
+/** `tree.depth` efectivo de una carpeta: la carpeta declarada más cercana (la propia incluida) o `'*'`. */
+function depthFrom(folders: ResolvedFolders | undefined): DepthOf {
+  return (folder) => {
+    if (!folders) return undefined;
+    const { value, declaredAt } = folderSettings(folders, folder).tree.depth;
+    if (value === undefined) return undefined;
+    return { limit: value, from: declaredAt === ALL_FOLDERS ? undefined : declaredAt };
+  };
+}
 
 /** El slug de la página que enlaza un grupo declarado: el que declara o, sin él, el de la carpeta de la que es dueño. */
 function groupSlug(
@@ -163,17 +174,17 @@ function autoTree(
   entries: Entry[],
   collator: Intl.Collator,
   base = '',
-  depth?: SidebarDepth,
+  depthOf: DepthOf = () => undefined,
 ): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
-  /* ¿Cabe la carpeta `folder` como grupo? La limita la carpeta de `overrides` más cercana por
-     encima, contando desde ella, o si no hay ninguna `default`, contando desde la raíz del árbol. */
+  /* ¿Cabe la carpeta `folder` como grupo? La rige el `tree.depth` de su padre (el de la carpeta
+     declarada más cercana por encima de ella, sin contarla: un ajuste no resucita su propia carpeta),
+     que cuenta desde la carpeta que lo declaró o, si viene de `'*'`, desde la raíz del árbol. */
   function allowed(folder: string[]) {
-    for (let anchor = folder.length - 1; anchor > 0; anchor--) {
-      const limit = depth?.overrides[folder.slice(0, anchor).join('/')];
-      if (limit !== undefined) return folder.length - anchor <= limit;
-    }
-    return depth?.default === undefined || folder.length - rootDepth <= depth.default;
+    const depth = depthOf(folder.slice(0, -1).join('/'));
+    if (!depth) return true;
+    const from = depth.from === undefined ? rootDepth : depth.from.split('/').length;
+    return folder.length - from <= depth.limit;
   }
   // La sección de una página es su carpeta, a cualquier profundidad: un grupo por nivel, hasta la
   // primera carpeta que no cabe; lo de debajo cuelga, plano, del último grupo permitido.
@@ -365,7 +376,7 @@ export function buildSidebar(
     entries.filter((entry) => !used.has(entry.slug) || folderPages.includes(entry.slug)),
     collator,
     base,
-    config.sidebarDepth,
+    depthFrom(config.folders),
   );
   const merged = new Map<string, SidebarNode>();
   for (const slug of folderPages) {

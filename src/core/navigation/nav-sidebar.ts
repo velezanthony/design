@@ -2,6 +2,7 @@ import type { NavItem } from '../config/nav';
 import { isNavSection } from '../config/nav';
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
+import type { ResolvedFolders } from '../config/folders';
 import type { Page } from '../content/discovery';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
@@ -11,11 +12,10 @@ import { sectionIndexOf, sectionOwns } from './nav-sections';
 import { buildSidebar, type SidebarNode } from './sidebar';
 
 /** Lo que el árbol y la cabecera necesitan de la config. */
-export type NavConfig = Pick<
-  ResolvedConfig,
-  'locales' | 'defaultLocale' | 'sidebar' | 'sidebarDepth'
-> & {
+export type NavConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'> & {
   nav?: NavItem[];
+  /** Ajustes por carpeta (`tree.depth`); sin ellos, sin límite. */
+  folders?: ResolvedFolders;
 };
 
 /** Todo lo que hace falta para construir árboles y entradas de cabecera de una página. */
@@ -32,17 +32,13 @@ export interface NavContext {
   urlSlug?: string;
 }
 
-/** Árbol de las páginas que cumplen `keep`, con el orden declarado en `sidebar`, la carpeta `base` como raíz y `depth` (el `sidebarDepth` de una sección) en vez del límite global. */
+/** Árbol de las páginas que cumplen `keep`, con el orden declarado en `sidebar` y la carpeta `base` como raíz; la profundidad sale de `folders` (`tree.depth`). */
 export function buildSidebarFor(
   context: NavContext,
   keep: (slug: string) => boolean,
   sidebar?: NavConfig['sidebar'],
   base = '',
-  depth?: number,
 ): SidebarNode[] {
-  const global = context.config.sidebarDepth;
-  const sidebarDepth =
-    depth === undefined ? global : { overrides: global?.overrides ?? {}, default: depth };
   // La carpeta de cada grupo declarado sale de toda la config (`nav` y `sidebar`), no solo de este
   // árbol. La página de la carpeta de un grupo entra aunque el ámbito no sea su dueño: el grupo la enlaza.
   const folders = groupFolders(context.config);
@@ -58,7 +54,7 @@ export function buildSidebarFor(
     pages,
     availability,
     context.locale,
-    { ...context.config, sidebar, sidebarDepth, groupFolders: folders },
+    { ...context.config, sidebar, groupFolders: folders },
     context.policies,
     context.url,
     base,
@@ -86,13 +82,7 @@ export function buildSectionSidebar(context: NavContext, scope: NavScope): Sideb
   const nav = context.config.nav;
   const item = scope.kind === 'section' ? nav?.[scope.position] : undefined;
   if (item && isNavSection(item)) {
-    return buildSidebarFor(
-      context,
-      (slug) => sectionOwns(item, slug),
-      item.sidebar,
-      item.dir,
-      item.sidebarDepth,
-    );
+    return buildSidebarFor(context, (slug) => sectionOwns(item, slug), item.sidebar, item.dir);
   }
   return buildSidebarFor(
     context,

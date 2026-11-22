@@ -12,7 +12,6 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { validateFolderKeys } from '../../core/config/folders';
-import { validateSidebarDepthFolders } from '../../core/config/sidebar-depth';
 import {
   contentFolders,
   generatedListingPages,
@@ -193,7 +192,6 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
       ...validateNav(config.nav ?? [], pageSlugs),
       ...validateFooter(config.footer?.links ?? [], pageSlugs),
       ...validateFolderKeys(config.folders, folders),
-      ...(config.sidebarDepth ? validateSidebarDepthFolders(config.sidebarDepth, folders) : []),
     );
   }
   for (const { slug, missing } of undeclaredMissing(

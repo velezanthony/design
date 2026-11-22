@@ -3,6 +3,7 @@ import type { NavItem } from '../config/nav';
 import type { Page } from '../content/discovery';
 import { buildAvailability, type UrlPolicy } from '../i18n/availability';
 import { MissingTranslation, resolvePolicies } from '../i18n/translation-policy';
+import { resolveFolders, type FoldersUserConfig } from '../config/folders';
 import { buildSectionSidebar, navScopeOf, type NavContext } from './nav-sidebar';
 import { flatten, isSidebarGroup, type SidebarNode } from './sidebar';
 
@@ -57,10 +58,10 @@ describe('navScopeOf', () => {
   });
 });
 
-describe('buildSectionSidebar: `sidebarDepth`', () => {
+describe('buildSectionSidebar: `tree.depth` de `folders`', () => {
   const deep = [page('sis/cloud/aws/eu/a'), page('sis/cloud/b')];
 
-  function tree(section: NavItem, sidebarDepth?: NavContext['config']['sidebarDepth']): unknown[] {
+  function tree(section: NavItem, folders: FoldersUserConfig = {}): unknown[] {
     // Cada grupo por su carpeta: el límite decide qué carpetas son grupo.
     function shape(nodes: SidebarNode[]): unknown[] {
       return nodes.map((node) =>
@@ -73,7 +74,7 @@ describe('buildSectionSidebar: `sidebarDepth`', () => {
           ...context,
           pages: deep,
           availability: buildAvailability(deep, url),
-          config: { ...context.config, nav: [section], ...(sidebarDepth && { sidebarDepth }) },
+          config: { ...context.config, nav: [section], folders: resolveFolders(folders) },
           slug: 'sis/cloud/b',
         },
         { kind: 'section', position: 0 },
@@ -81,21 +82,24 @@ describe('buildSectionSidebar: `sidebarDepth`', () => {
     );
   }
 
-  it('el límite de la sección cuenta desde su carpeta y gana al global', () => {
+  it("el `depth` de la carpeta de la sección cuenta desde ella y gana al de `'*'`", () => {
     expect(
-      tree({ label: 'S', dir: 'sis', sidebarDepth: 2 }, { default: 1, overrides: {} }),
+      tree(
+        { label: 'S', dir: 'sis' },
+        { '*': { tree: { depth: 1 } }, sis: { tree: { depth: 2 } } },
+      ),
     ).toEqual([{ 'sis/cloud': [{ 'sis/cloud/aws': ['sis/cloud/aws/eu/a'] }, 'sis/cloud/b'] }]);
   });
 
-  it('sin límite propio, la sección usa el global', () => {
-    expect(tree({ label: 'S', dir: 'sis' }, { default: 1, overrides: {} })).toEqual([
+  it("sin `depth` propio, la sección usa el de `'*'`, contado desde su carpeta", () => {
+    expect(tree({ label: 'S', dir: 'sis' }, { '*': { tree: { depth: 1 } } })).toEqual([
       { 'sis/cloud': ['sis/cloud/aws/eu/a', 'sis/cloud/b'] },
     ]);
   });
 
-  it('una carpeta de `overrides` gana al límite de la sección', () => {
-    const depth = { overrides: { 'sis/cloud': 2 } };
-    expect(tree({ label: 'S', dir: 'sis', sidebarDepth: 1 }, depth)).toEqual([
+  it('una carpeta por debajo con su `depth` gana al de la carpeta de la sección', () => {
+    const folders = { sis: { tree: { depth: 1 } }, 'sis/cloud': { tree: { depth: 2 } } };
+    expect(tree({ label: 'S', dir: 'sis' }, folders)).toEqual([
       {
         'sis/cloud': [
           { 'sis/cloud/aws': [{ 'sis/cloud/aws/eu': ['sis/cloud/aws/eu/a'] }] },

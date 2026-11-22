@@ -76,41 +76,48 @@ aparecen en el menú móvil.
   igual en `::nav-tree`. Sin página índice, la etiqueta es texto. Si algún día un grupo se pliega, el
   control será un botón aparte (`aria-expanded`), nunca la etiqueta: plegar y navegar no comparten clic.
 - Un slug desconocido rompe el build con un único error que nombra todos (`sidebar[2].items[0]`).
-- Los niveles de carpetas del árbol automático se pueden limitar con `sidebarDepth` (ver abajo).
+- Los niveles de carpetas del árbol automático se pueden limitar con `tree.depth` (ver abajo).
 - Las páginas fuera de toda sección (como la portada de este sitio) usan la `sidebar` de primer
   nivel o, sin ella, una lista automática de solo esas páginas.
 - La barra recuerda su desplazamiento entre páginas en `sessionStorage` (`docs:sidebar-scroll`,
   `client/layout/sidebar-scroll.ts`); sin posición guardada, deja a la vista la página actual.
 
 
-### Profundidad del árbol automático (`sidebarDepth`)
+### Profundidad del árbol automático (`tree.depth`)
 
-Sin límite, el árbol automático tiene un grupo por carpeta a cualquier profundidad. `sidebarDepth`
-lo recorta en tres sitios, y cada límite cuenta desde donde se declara:
+Sin límite, el árbol automático tiene un grupo por carpeta a cualquier profundidad. `tree.depth` en
+[`folders`](#ajustes-por-carpeta-folders) lo recorta, y cada límite cuenta desde la carpeta que lo
+declara:
 
 ```js
-// Todo el sidebar: como mucho tres niveles de grupos desde la raíz de cada árbol.
-sidebarDepth: 3,
-// O por carpeta: `python` conserva sus carpetas hijas y aplana lo que haya más hondo dentro.
-sidebarDepth: { default: 3, overrides: { 'articulos/desarrollo/python': 1 } },
-nav: [
-  // Una sección: dos niveles contando desde su `dir`.
-  { label: 'Sistemas', dir: 'articulos/sistemas', sidebarDepth: 2 },
-],
+import { ALL_FOLDERS } from '@velezanthony/design/integration';
+
+folders: {
+  // Todo el sitio: como mucho tres niveles de grupos desde la raíz de cada árbol que se pinta (el
+  // contenido o el `dir` de una sección).
+  [ALL_FOLDERS]: { tree: { depth: 3 } },
+  // Una sección: dos niveles contando desde su carpeta.
+  'articulos/sistemas': { tree: { depth: 2 } },
+  // `python` conserva sus carpetas hijas y aplana lo que haya más hondo dentro.
+  'articulos/desarrollo/python': { tree: { depth: 1 } },
+},
 ```
 
-- **Gana el más concreto:** la carpeta de `overrides` más cercana por encima, luego el de la sección,
-  luego `default` (o el número). Una carpeta de `overrides` cuenta desde ella, así que solo decide lo
-  que tiene debajo: no rescata su propia carpeta si un límite de más arriba ya la aplana.
+- **Gana la carpeta declarada más cercana**, luego `'*'`. Se hereda: `articulos/sistemas/cloud` usa el
+  `depth` de `articulos/sistemas`, contado desde `articulos/sistemas`. Un `depth` declarado por encima
+  del `dir` de una sección (`articulos: { tree: { depth: 3 } }` con una sección en
+  `articulos/sistemas`) cuenta desde `articulos`, aunque `articulos` no salga como nivel.
+- **Un ajuste no resucita su propia carpeta:** decide lo que tiene debajo. Si un límite de más arriba
+  ya aplana la carpeta, su propio `depth` no la vuelve a mostrar como grupo.
 - **Nada se oculta:** las páginas de una carpeta más honda que el límite van planas en el último
   grupo permitido, en el orden de siempre (`order` y luego slug). La página índice de una carpeta
   aplanada queda como una hoja más.
 - Solo afecta a los **grupos automáticos de carpeta**: los grupos escritos a mano en `sidebar`
   (`{ label, items }`) no cambian.
-- Solo enteros positivos. Una carpeta de `overrides` debe ser una carpeta del contenido, sin barras
-  al principio ni al final; si no tiene páginas, el build falla con su ruta
-  (`sidebarDepth.overrides['articulos/pyton']`). `sidebarDepth` en un elemento de `nav` que no es una
-  sección también falla.
+- Solo enteros positivos. Una carpeta que no tiene páginas rompe el build con su ruta
+  (`folders['articulos/pyton']`). `sidebarDepth` (global o en un elemento de `nav`) ya no existe: es
+  una opción desconocida.
+
 ### Índice generado (`::nav-tree`)
 
 Una página índice (la de un blog, la de una guía) no necesita copiar a mano el árbol de las

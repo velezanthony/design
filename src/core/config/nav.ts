@@ -9,8 +9,6 @@ export interface NavSection {
   label: Label;
   dir?: string;
   sidebar?: SidebarItem[];
-  /** Niveles de grupos de carpeta del árbol automático de la sección, desde `dir`; gana a `sidebarDepth.default`. */
-  sidebarDepth?: number;
 }
 
 /** Enlace a una sola página (`changelog`). Esa página no pertenece a ninguna sección. */

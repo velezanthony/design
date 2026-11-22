@@ -7,7 +7,6 @@ import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
 import { resolveFolders, type ResolvedFolders } from './folders';
 import { resolveLayout, type ResolvedLayout } from './layout';
-import { resolveSidebarDepth, type SidebarDepth } from './sidebar-depth';
 import type { NavItem } from './nav';
 import {
   DocsConfigSchema,
@@ -51,8 +50,6 @@ export interface ResolvedConfig {
   sidebar?: SidebarItem[];
   /** Items de la cabecera; sin definir, el sitio usa solo `sidebar`. */
   nav?: NavItem[];
-  /** Límites del árbol automático de la barra lateral; sin definir, sin límite. */
-  sidebarDepth?: SidebarDepth;
   /** Footer del sitio; sin definir, solo el autor por defecto. */
   footer?: FooterConfig;
   /** Componentes propios del sitio (rutas desde su raíz); sin definir, los de la librería. */
@@ -90,7 +87,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
       }),
     );
   }
-  const { sidebarDepth, folders, ...config } = result.data;
+  const { folders, ...config } = result.data;
   const locales = config.locales ?? DEFAULT_LOCALES;
   return {
     ...config,
@@ -107,7 +104,6 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     external: config.external ?? [],
     layout: resolveLayout(config.layout),
     folders: resolveFolders(folders),
-    ...(sidebarDepth !== undefined && { sidebarDepth: resolveSidebarDepth(sidebarDepth) }),
     sitemap: { include: config.sitemap?.include ?? [] },
   };
 }

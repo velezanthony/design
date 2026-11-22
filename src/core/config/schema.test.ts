@@ -620,61 +620,17 @@ describe('config: lo que el esquema promete rechazar', () => {
   });
 });
 
-describe('sidebarDepth de la config', () => {
-  it('sin definir no hay límite', () => {
-    expect(resolveConfig({ name: 'X' }).sidebarDepth).toBeUndefined();
+describe('sidebarDepth ya no existe', () => {
+  it('`sidebarDepth` es una opción desconocida: la profundidad es `folders[…].tree.depth`', () => {
+    expect(messages({ name: 'X', sidebarDepth: 3 })).toEqual([
+      expect.stringContaining('sidebarDepth: opción desconocida'),
+    ]);
   });
 
-  it('un número es el límite de todo el sidebar', () => {
-    expect(resolveConfig({ name: 'X', sidebarDepth: 3 }).sidebarDepth).toEqual({
-      default: 3,
-      overrides: {},
-    });
-  });
-
-  it('`default` y `overrides` por carpeta', () => {
-    const config = resolveConfig({
-      name: 'X',
-      sidebarDepth: { default: 3, overrides: { 'articulos/python': 1 } },
-    });
-    expect(config.sidebarDepth).toEqual({ default: 3, overrides: { 'articulos/python': 1 } });
-    expect(
-      resolveConfig({ name: 'X', sidebarDepth: { overrides: { a: 2 } } }).sidebarDepth,
-    ).toEqual({ overrides: { a: 2 } });
-  });
-
-  it('solo enteros positivos, cada fallo con su ruta', () => {
-    for (const bad of [0, -1, 1.5, '3']) {
-      expect(messages({ name: 'X', sidebarDepth: bad })[0]).toContain('sidebarDepth');
-    }
-    expect(messages({ name: 'X', sidebarDepth: { default: 0 } })[0]).toContain(
-      'sidebarDepth.default',
-    );
-    expect(messages({ name: 'X', sidebarDepth: { overrides: { a: 0 } } })[0]).toContain(
-      'sidebarDepth.overrides.a',
-    );
-  });
-
-  it('una opción desconocida o una carpeta con barras fallan con su ruta', () => {
-    expect(messages({ name: 'X', sidebarDepth: { defualt: 2 } })[0]).toContain(
-      'sidebarDepth.defualt: opción desconocida',
-    );
-    expect(messages({ name: 'X', sidebarDepth: { overrides: { '/a/': 2 } } })[0]).toContain(
-      "sidebarDepth.overrides['/a/']",
-    );
-  });
-
-  it('en `nav`, solo una sección lleva `sidebarDepth`', () => {
-    function nav(item: object) {
-      return messages({ name: 'X', nav: [item] });
-    }
-    expect(nav({ label: 'G', dir: 'guia', sidebarDepth: 2 })).toEqual([]);
-    expect(nav({ label: 'G', sidebar: ['a'], sidebarDepth: 2 })).toEqual([]);
-    expect(nav({ label: 'G', slug: 'x', sidebarDepth: 2 })[0]).toContain('nav[0].sidebarDepth');
-    expect(nav({ label: 'G', href: 'https://x.y', sidebarDepth: 2 })[0]).toContain(
-      'nav[0].sidebarDepth',
-    );
-    expect(nav({ label: 'G', dir: 'guia', sidebarDepth: 0 })[0]).toContain('nav[0].sidebarDepth');
+  it('`nav[n].sidebarDepth` es una opción desconocida', () => {
+    expect(messages({ name: 'X', nav: [{ label: 'G', dir: 'guia', sidebarDepth: 2 }] })).toEqual([
+      expect.stringContaining('nav[0].sidebarDepth: opción desconocida'),
+    ]);
   });
 });
 

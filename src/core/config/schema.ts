@@ -47,25 +47,6 @@ export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation)
 export const PanelStateSchema = z.enum(Object.values(PanelState));
 export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 
-/** Niveles de grupos de carpeta del árbol automático de la barra lateral: un entero positivo. */
-const SidebarDepthValueSchema = z.number().int().min(1);
-
-/* `sidebarDepth`: un número para todo el sidebar, o `{ default, overrides }` con un límite por
-   carpeta que cuenta desde ella. */
-const SidebarDepthSchema = z.union(
-  [
-    SidebarDepthValueSchema,
-    z.strictObject({
-      default: SidebarDepthValueSchema.optional(),
-      // Las claves se validan en `superRefine`: dentro de la unión, zod perdería su ruta.
-      overrides: z.record(z.string(), SidebarDepthValueSchema).optional(),
-    }),
-  ],
-  { error: 'Debe ser un entero positivo (3) o { default?, overrides? }.' },
-);
-/** Lo que escribe el consumidor en `sidebarDepth`. */
-export type SidebarDepthUserConfig = z.infer<typeof SidebarDepthSchema>;
-
 /** Sufijo del `<title>`: texto (o uno por idioma), o `false` para no llevar ninguno. */
 const TitleSuffixSchema = z.union([LabelSchema, z.literal(false)]);
 
@@ -155,7 +136,6 @@ const NavItemSchema = z.strictObject({
   slug: z.string().min(1).optional(),
   href: z.string().optional(),
   icon: NavIconSchema.optional(),
-  sidebarDepth: SidebarDepthValueSchema.optional(),
 }) as unknown as z.ZodType<NavItem, NavItem>;
 
 /* Igual que `nav`: forma plana y validación en `superRefine` para que cada fallo lleve su ruta
@@ -283,8 +263,6 @@ export const DocsConfigSchema = z
     sidebar: z.array(SidebarItemSchema).optional(),
     /** Cabecera: secciones, páginas sueltas y enlaces externos (`NavIcon`). */
     nav: z.array(NavItemSchema).optional(),
-    /** Niveles de grupos de carpeta del árbol automático: todo el sidebar o por carpeta. Sin él, sin límite. */
-    sidebarDepth: SidebarDepthSchema.optional(),
     /** Pie: licencia, autor y enlaces. */
     footer: FooterSchema.optional(),
     /** Ajustes por carpeta (listado, árbol) heredados de padre a hijo; `'*'` lleva los de todo el sitio. */
@@ -358,16 +336,6 @@ export const DocsConfigSchema = z
         }
       });
     });
-    if (typeof config.sidebarDepth === 'object') {
-      for (const folder of Object.keys(config.sidebarDepth.overrides ?? {})) {
-        if (folder === '' || folder.startsWith('/') || folder.endsWith('/')) {
-          issue(
-            ['sidebarDepth', 'overrides', folder],
-            'Carpeta sin barras al principio ni al final (articulos/python, no /articulos/python/).',
-          );
-        }
-      }
-    }
     validateStaticFolders(config.static ?? [], locales, issue);
     validateNavShape(config.nav ?? [], issue);
     validateFooterShape(config.footer, issue);
@@ -424,7 +392,6 @@ function validateNavShape(
       href?: string;
       sidebar?: unknown;
       icon?: unknown;
-      sidebarDepth?: unknown;
     };
     const kinds = (['dir', 'slug', 'href'] as const).filter((key) => item[key] !== undefined);
     // Una sección puede ser solo `sidebar`: sus páginas no tienen por qué compartir carpeta.
@@ -438,9 +405,6 @@ function validateNavShape(
     }
     if (item.sidebar !== undefined && item.dir === undefined) {
       issue(['nav', index, 'sidebar'], 'Solo una sección tiene `sidebar`.');
-    }
-    if (item.sidebarDepth !== undefined && item.dir === undefined && item.sidebar === undefined) {
-      issue(['nav', index, 'sidebarDepth'], 'Solo una sección tiene `sidebarDepth`.');
     }
     if (item.icon !== undefined && item.href === undefined) {
       issue(['nav', index, 'icon'], 'Solo un enlace (`href`) tiene `icon`.');

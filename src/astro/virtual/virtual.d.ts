@@ -3,7 +3,7 @@ declare module 'virtual:@velezanthony/design/config' {
   type Label = string | Record<string, string>;
   type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
   type NavItem =
-    | { label: Label; dir?: string; sidebar?: SidebarItem[]; sidebarDepth?: number }
+    | { label: Label; dir?: string; sidebar?: SidebarItem[] }
     | { label: Label; slug: string }
     | { label: Label; href: string; icon?: 'github' };
   type FooterLink = { label: Label; slug: string } | { label: Label; href: string };
@@ -33,7 +33,22 @@ declare module 'virtual:@velezanthony/design/config' {
     }[];
     sidebar?: SidebarItem[];
     nav?: NavItem[];
-    sidebarDepth?: { default?: number; overrides: Record<string, number> };
+    /** Ajustes por carpeta tal como se declararon (la herencia la resuelve `folderSettings`). */
+    folders: {
+      declared: Record<
+        string,
+        {
+          listing?: {
+            generate?: boolean;
+            view?: 'list' | 'table' | 'cards';
+            pageSize?: number;
+            perPageOptions?: number[];
+            covers?: boolean;
+          };
+          tree?: { show?: 'section' | 'all'; depth?: number };
+        }
+      >;
+    };
     footer?: FooterConfig;
     components?: { Footer?: string };
     editUrl?: string;
