@@ -62,6 +62,9 @@ aparecen en el menú móvil.
   grupos anidados), con el título del `index.md` de la carpeta si lo tiene. Este
   sitio declara la `sidebar` de cada sección: los grupos (`{ label, slug?, items }`) y el orden no son los de las
   carpetas, y un grupo con `slug` enlaza a su propia página (la del `index.md` o la que lo abre).
+- Declarar la página de una carpeta (`sidebar: ['articulos']`) coloca ahí **el grupo de esa
+  carpeta**, con el título y el enlace de la página y con las páginas que no declaras dentro; no sale
+  además un grupo automático «Articulos» al final. Vale a cualquier profundidad del `sidebar`.
 - Un slug desconocido rompe el build con un único error que nombra todos (`sidebar[2].items[0]`).
 - Los niveles de carpetas del árbol automático se pueden limitar con `sidebarDepth` (ver abajo).
 - Las páginas fuera de toda sección (como la portada de este sitio) usan la `sidebar` de primer

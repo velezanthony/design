@@ -229,6 +229,75 @@ describe('flatten', () => {
   });
 });
 
+/* Un slug declarado que es la página de una carpeta y el grupo automático de esa carpeta son la misma
+   cosa: sale un solo grupo, en la posición declarada, con el título y el enlace de la página. */
+describe('buildSidebar: slug declarado que es la página de una carpeta', () => {
+  const articles = [
+    page('articulos', 'en', { title: 'Artículos' }),
+    page('articulos/a/x'),
+    page('articulos/b'),
+    page('intro'),
+  ];
+
+  it('da un solo grupo, en la posición declarada, con el título y el href de la página', () => {
+    const tree = build(articles, 'en', ['intro', 'articulos']);
+    expect(shape(tree)).toEqual([
+      'intro',
+      { Artículos: [{ A: ['articulos/a/x'] }, 'articulos/b'] },
+    ]);
+    expect(tree[1]).toMatchObject({ slug: 'articulos', href: '/repo/articulos/' });
+  });
+
+  it('la posición declarada manda aunque el grupo automático fuera detrás', () => {
+    const tree = build([...articles, page('zeta')], 'en', ['articulos']);
+    expect(shape(tree)).toEqual([
+      { Artículos: [{ A: ['articulos/a/x'] }, 'articulos/b'] },
+      'intro',
+      'zeta',
+    ]);
+  });
+
+  it('lo mismo dentro de un grupo declarado', () => {
+    const tree = build(articles, 'en', [{ label: 'Blog', items: ['articulos'] }]);
+    expect(shape(tree)).toEqual([
+      { Blog: [{ Artículos: [{ A: ['articulos/a/x'] }, 'articulos/b'] }] },
+      'intro',
+    ]);
+    expect((tree[0] as SidebarGroup).items[0]).toMatchObject({ href: '/repo/articulos/' });
+  });
+
+  it('a cualquier profundidad de carpeta: el grupo sale de su padre automático', () => {
+    const tree = build(
+      [page('docs/python', 'en', { title: 'Python' }), page('docs/python/x'), page('docs/y')],
+      'en',
+      ['docs/python'],
+    );
+    expect(shape(tree)).toEqual([{ Python: ['docs/python/x'] }, { Docs: ['docs/y'] }]);
+  });
+
+  it('las páginas de la carpeta declaradas aparte se quedan donde se declaran', () => {
+    const tree = build(articles, 'en', ['articulos/b', 'articulos']);
+    expect(shape(tree)).toEqual([
+      'articulos/b',
+      { Artículos: [{ A: ['articulos/a/x'] }] },
+      'intro',
+    ]);
+  });
+
+  it('un slug declarado que no es carpeta sigue siendo hoja', () => {
+    const tree = build(articles, 'en', ['intro']);
+    expect(shape(tree)).toEqual([
+      'intro',
+      { Artículos: [{ A: ['articulos/a/x'] }, 'articulos/b'] },
+    ]);
+  });
+
+  it('una carpeta cuyas páginas ya están todas declaradas sigue siendo hoja', () => {
+    const tree = build([page('guide'), page('guide/a')], 'en', ['guide/a', 'guide']);
+    expect(shape(tree)).toEqual(['guide/a', 'guide']);
+  });
+});
+
 describe('buildSidebar: portada en la config', () => {
   it("'index' coloca la portada donde se declara", () => {
     const pages = [page(''), page('guide'), page('install')];

@@ -231,10 +231,51 @@ function autoTree(
   return root.sort(compare).map(({ node }) => node);
 }
 
+/** Slugs que reclama el `sidebar` declarado (`used`) y, de ellos, los escritos como hoja (`leaves`). */
+function claimedSlugs(
+  items: SidebarItem[],
+  bySlug: Map<string, Entry>,
+  claimed = { used: new Set<string>(), leaves: new Set<string>() },
+): { used: Set<string>; leaves: Set<string> } {
+  for (const item of items) {
+    if (typeof item === 'string') {
+      const slug = toSidebarSlug(item);
+      if (!bySlug.has(slug)) continue;
+      claimed.used.add(slug);
+      claimed.leaves.add(slug);
+      continue;
+    }
+    const own = item.slug === undefined ? undefined : toSidebarSlug(item.slug);
+    if (own !== undefined && bySlug.has(own)) claimed.used.add(own);
+    claimedSlugs(item.items ?? [], bySlug, claimed);
+  }
+  return claimed;
+}
+
+/** Saca del árbol el nodo de `slug` (grupo o hoja); el grupo que lo contenía se cierra si queda vacío. */
+function detach(nodes: SidebarNode[], slug: string): { node?: SidebarNode; nodes: SidebarNode[] } {
+  for (const [index, node] of nodes.entries()) {
+    function without(replacement?: SidebarNode) {
+      return [
+        ...nodes.slice(0, index),
+        ...(replacement ? [replacement] : []),
+        ...nodes.slice(index + 1),
+      ];
+    }
+    if (node.slug === slug) return { node, nodes: without() };
+    if (!isSidebarGroup(node)) continue;
+    const inner = detach(node.items, slug);
+    if (!inner.node) continue;
+    return { node: inner.node, nodes: without(closeGroup({ ...node, items: inner.nodes })) };
+  }
+  return { nodes };
+}
+
+/** `merged`: el grupo automático que ocupa el sitio de un slug declarado que es la página de una carpeta. */
 function declaredTree(
   items: SidebarItem[],
   bySlug: Map<string, Entry>,
-  used: Set<string>,
+  merged: Map<string, SidebarNode>,
   locale: Locale,
   defaultLocale: Locale,
 ): SidebarNode[] {
@@ -244,15 +285,13 @@ function declaredTree(
       const slug = toSidebarSlug(item);
       const entry = bySlug.get(slug);
       if (!entry) continue;
-      used.add(slug);
-      nodes.push(entry.leaf);
+      nodes.push(merged.get(slug) ?? entry.leaf);
       continue;
     }
     const own = item.slug === undefined ? undefined : bySlug.get(toSidebarSlug(item.slug));
-    if (own) used.add(own.slug);
     const group: SidebarGroup = {
       label: resolveLabel(item.label, locale, defaultLocale),
-      items: declaredTree(item.items ?? [], bySlug, used, locale, defaultLocale),
+      items: declaredTree(item.items ?? [], bySlug, merged, locale, defaultLocale),
       ...(own && { slug: own.slug, href: own.leaf.href }),
       ...(own?.leaf.badge && { badge: own.leaf.badge }),
     };
@@ -275,14 +314,29 @@ export function buildSidebar(
   const collator = new Intl.Collator(locale, { numeric: true });
   const entries = toEntries(pages, availability, locale, config, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
-  const used = new Set<string>();
-  const declared = declaredTree(config.sidebar ?? [], bySlug, used, locale, config.defaultLocale);
-  const rest = autoTree(
-    entries.filter((entry) => !used.has(entry.slug)),
+  const items = config.sidebar ?? [];
+  const { used, leaves } = claimedSlugs(items, bySlug);
+  /* Un slug declarado como hoja que es la página de una carpeta con páginas sin declarar se fusiona
+     con el grupo automático de esa carpeta: el árbol automático lo monta con ella dentro y el grupo
+     pasa a la posición declarada. */
+  const folderPages = [...leaves].filter(
+    (slug) =>
+      slug !== '' &&
+      entries.some((entry) => !used.has(entry.slug) && entry.slug.startsWith(`${slug}/`)),
+  );
+  let rest = autoTree(
+    entries.filter((entry) => !used.has(entry.slug) || folderPages.includes(entry.slug)),
     collator,
     base,
     config.sidebarDepth,
   );
+  const merged = new Map<string, SidebarNode>();
+  for (const slug of folderPages) {
+    const detached = detach(rest, slug);
+    rest = detached.nodes;
+    if (detached.node) merged.set(slug, detached.node);
+  }
+  const declared = declaredTree(items, bySlug, merged, locale, config.defaultLocale);
   return [...declared, ...rest];
 }
 
