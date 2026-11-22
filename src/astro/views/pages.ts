@@ -1,10 +1,7 @@
-import type { Page } from '../../core/content/discovery';
-import { buildAvailability } from '../../core/i18n/availability';
-import { noindexUrls } from '../../core/seo/indexable';
-import { pageLastmods } from '../../core/seo/lastmod';
+import { pagesOf } from '../../core/content/stored-page';
 import {
-  buildSitemap,
   buildSitemapIndex,
+  pagesSitemapXml,
   SITEMAP_PAGES,
   sitemapIncludes,
   type SitemapEntry,
@@ -15,39 +12,6 @@ import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { withBase } from '../../core/shared/urls';
 
-/** `Page` del núcleo a partir de los datos de la colección; el cuerpo no se arrastra. */
-export function pageOf(item: DocData): Page {
-  const index = entryIndexOf(item);
-  return {
-    slug: item.slug,
-    ...(item.urlSlug !== undefined && { urlSlug: item.urlSlug }),
-    locale: item.locale,
-    title: item.title,
-    kind: item.kind ?? 'native',
-    sourcePath: item.sourcePath,
-    body: '',
-    ...(item.order !== undefined && { order: item.order }),
-    ...(item.seo && { seo: item.seo }),
-    ...(item.translations && { translations: item.translations }),
-    ...(item.listing && { listing: item.listing }),
-    ...(index && { index }),
-  };
-}
-
-/** El bloque `index` que entiende el núcleo; la portada guardada se queda en los datos (la lee la vista del índice). */
-function entryIndexOf(item: DocData): Page['index'] {
-  const { summary, imageAlt } = item.index ?? {};
-  if (summary === undefined && imageAlt === undefined) return undefined;
-  return {
-    ...(summary !== undefined && { summary }),
-    ...(imageAlt !== undefined && { imageAlt }),
-  };
-}
-
-export function pagesOf(data: DocData[]): Page[] {
-  return data.map(pageOf);
-}
-
 /** Único `sitemap.xml`: solo páginas REALES e indexables, con alternates; un fallo del núcleo sale como `AstroError`. */
 export function sitemapXml(
   data: DocData[],
@@ -57,17 +21,9 @@ export function sitemapXml(
   /** Fecha de cada archivo de página por su `sourcePath`, para el `lastmod`. */
   dates: ReadonlyMap<string, string> = new Map(),
 ): string {
-  const pages = pagesOf(data);
   const url = urlPolicyOf(config, config.defaultLocale);
-  const availability = buildAvailability(pages, url);
   return orAstroError('No se puede generar sitemap.xml.', () =>
-    buildSitemap(
-      availability,
-      new URL(config.site),
-      noindexUrls(pages, url),
-      extra,
-      pageLastmods(pages, url, dates),
-    ),
+    pagesSitemapXml(pagesOf(data), { url, site: new URL(config.site), extra, dates }),
   );
 }
 

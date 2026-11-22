@@ -57,8 +57,8 @@ Dentro de `astro/` los datos y la presentación tampoco se importan entre sí: s
 - `data/` no importa `routes/`, `views/` ni `components/` (tampoco sus tipos). Si una ruta necesita
   datos y una vista, los lee de `data/` y se los pasa a `views/`: `routes/doc.astro` lee las fechas de
   commit y optimiza las portadas (`data/covers.ts`) y llama a `docListingView`.
-  Excepción acotada: el adaptador del panel (`data/seo-on-page/`, solo dev) aún lee `views/pages` y
-  `views/seo-on-page/hrefs`.
+  Sin excepciones: el adaptador del panel (`data/seo-on-page/`) tampoco; las rutas del panel arman
+  sus enlaces (`views/seo-on-page/hrefs`).
 - La ruta construye el contexto del sitio (`siteContext`) una vez por render y lo pasa a cada vista
   (`docView`, `docListingView`, `docNavTrees`); `docRoutes` resuelve el listado de cada ruta una vez.
 

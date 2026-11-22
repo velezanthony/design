@@ -7,16 +7,19 @@ import { inspectorModel } from '../../../core/seo-on-page/pages/inspector/model'
 import { findEntry } from '../../../core/seo-on-page/tree/keys';
 import InspectorPage from '../../../components/seo-on-page/pages/InspectorPage.astro';
 import { PANEL_LABELS, slugLabel } from '../../../core/seo-on-page/labels';
+import { urlPolicyOf } from '../../config';
 import { siteConfig } from '../../data/site-config';
 import { loadPanel } from '../../data/seo-on-page/adapter';
-import { assetHref } from '../../views/seo-on-page/hrefs';
+import { assetHref, devHrefs } from '../../views/seo-on-page/hrefs';
 import { fixPrompts, inspectorReport } from '../../views/seo-on-page/report';
 import { inspectorHeadings, panelView } from '../../views/seo-on-page/panel';
 
 const { searchParams } = Astro.url;
 const slug = searchParams.get('slug') ?? '';
 const locale = searchParams.get('locale') ?? siteConfig.defaultLocale;
-const { docs, tree, failures, hrefs } = await loadPanel(siteConfig, Astro.url.origin);
+const { docs, tree, failures } = await loadPanel(siteConfig, Astro.url.origin);
+/* Los enlaces del panel los arma la ruta: `data/` no conoce `views/`. */
+const hrefs = devHrefs(urlPolicyOf(siteConfig, siteConfig.defaultLocale));
 /* El enlace de edición, como el de las páginas de docs: `editUrl` de la config más la ruta del archivo
    respecto a la raíz del repo, que solo conoce el loader. */
 const editPath = docs.find((doc) => doc.slug === slug && doc.locale === locale)?.editPath;

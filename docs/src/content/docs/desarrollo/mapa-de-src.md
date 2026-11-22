@@ -30,6 +30,7 @@ core/
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
 │   ├── generated-listings.ts  Las páginas que genera `indexes`: carpetas, título y entradilla
+│   ├── stored-page.ts     Una entrada de la colección (su forma, sin Astro) → Page
 │   ├── slug.ts            guia/index → guia, index → '' (portada); qué es un _index y de qué carpeta
 │   ├── scrollable-tables.ts  Envuelve cada <table> del HTML en su .table-scroll (lo usa Article)
 │   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
@@ -69,7 +70,7 @@ core/
 │   ├── page-head.ts       El head de una página del sitio que no es de docs: meta, alternates y JSON-LD extra
 │   ├── seo-schema.ts      El bloque `seo` del frontmatter como fragmento zod reutilizable
 │   ├── json-ld.ts         Schemas JSON-LD del sitio y de cada página
-│   ├── sitemap.ts         XML con alternates y lastmod; límite de 50 000 URLs
+│   ├── sitemap.ts         XML con alternates y lastmod (también el de las páginas de docs); límite de 50 000 URLs
 │   ├── lastmod.ts         Salida de git log → fecha por archivo; fecha de cada URL del sitemap
 │   ├── indexable.ts       Qué URLs son noindex
 │   ├── client-pages.ts    Las páginas que el consumidor tiene en src/pages/ y sus rutas dinámicas
@@ -335,7 +336,7 @@ astro/
 │   ├── doc-listing.ts       El índice generado de una ruta: sus opciones, sus páginas, sus entradas y su paginación
 │   ├── index-covers.ts      Portadas del índice → URLs (con la base o con el `getImage` que pasa la ruta)
 │   ├── chrome.ts            Lo que cabecera y pie necesitan del sitio
-│   ├── pages.ts             DocData → Page y sitemap
+│   ├── pages.ts             El sitemap de las páginas y su índice, como error de Astro si falla
 │   └── seo-on-page/
 │       ├── hrefs.ts         Rutas del panel y enlaces entre pantallas
 │       ├── panel.ts         Lo que DocsLayout recibe en cada pantalla (como docView)

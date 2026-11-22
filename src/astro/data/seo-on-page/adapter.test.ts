@@ -287,6 +287,7 @@ describe('loadPanel', () => {
     expect(collectionReads.count).toBe(1);
     expect(panel.docs.map((doc) => doc.slug)).toEqual(['', 'guide']);
     expect(panel.tree.pages).toHaveLength(2);
-    expect(panel.hrefs.overview).toBeDefined();
+    // Los enlaces del panel los arma la ruta (`views/seo-on-page/hrefs`): `data/` no conoce `views/`.
+    expect(panel).not.toHaveProperty('hrefs');
   });
 });

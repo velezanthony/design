@@ -10,6 +10,7 @@ import {
   buildSitemap,
   clientSitemapEntries,
   buildSitemapIndex,
+  pagesSitemapXml,
   SITEMAP_PAGES,
   SITEMAP_STYLESHEET_PATH,
   sitemapFiles,
@@ -341,5 +342,38 @@ describe('lastmod', () => {
     const dates = new Map([['src/pages/cv.astro', '2026-09-07T00:06:43+02:00']]);
     expect(clientSitemapEntries([page], site, dates)[0]?.lastmod).toBe('2026-09-07T00:06:43+02:00');
     expect(clientSitemapEntries([page], site)[0]).not.toHaveProperty('lastmod');
+  });
+});
+
+describe('pagesSitemapXml', () => {
+  function page(slug: string, locale: string, extra: Partial<Page> = {}): Page {
+    return {
+      slug,
+      locale,
+      title: slug,
+      kind: 'native',
+      body: '',
+      sourcePath: `${slug}${locale === 'en' ? '' : `.${locale}`}.md`,
+      ...extra,
+    };
+  }
+
+  it('las páginas reales e indexables, con sus alternates y su fecha', () => {
+    const xml = pagesSitemapXml(
+      [page('guide', 'en'), page('guide', 'es'), page('hidden', 'en', { seo: { noindex: true } })],
+      { url, site, dates: new Map([['guide.md', '2026-01-02T00:00:00+00:00']]) },
+    );
+    expect(locs(xml)).toEqual(['https://x.dev/repo/guide/', 'https://x.dev/repo/es/guide/']);
+    expect(xml).toContain('hreflang="es" href="https://x.dev/repo/es/guide/"');
+    expect(xml).toContain('<lastmod>2026-01-02T00:00:00+00:00</lastmod>');
+  });
+
+  it('añade las páginas del cliente detrás', () => {
+    const xml = pagesSitemapXml([page('guide', 'en')], {
+      url,
+      site,
+      extra: [{ loc: 'https://x.dev/repo/blog/', alternates: [] }],
+    });
+    expect(locs(xml)).toEqual(['https://x.dev/repo/guide/', 'https://x.dev/repo/blog/']);
   });
 });

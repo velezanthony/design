@@ -60,6 +60,7 @@ const forbidden: [string, string, string][] = [
   ['data/ no importa views/', DATA, `import { x } from '../views/doc';`],
   ['data/ no importa tipos de views/', DATA, `import type { DocRoute } from '../views/doc';`],
   ['data/seo-on-page no importa routes/', PANEL_DATA, `import { x } from '../../routes/doc';`],
+  ['data/seo-on-page no importa views/', PANEL_DATA, `import { x } from '../../views/pages';`],
   ['views/ no importa astro:content', VIEWS, `import { getCollection } from 'astro:content';`],
   ['views/ no importa astro', VIEWS, `import { defineConfig } from 'astro';`],
   ['views/ no importa data/', VIEWS, `import { x } from '../data/site-config';`],
@@ -155,11 +156,6 @@ const allowed: [string, string, string][] = [
   ['views/ sí importa otra vista', VIEWS, `import { x } from './chrome';`],
   ['loader/ sí importa core/', ASTRO, `import { x } from '../../core/i18n/locale';`],
   ['data/ sí importa virtual/', DATA, `import { x } from '../virtual/data';`],
-  [
-    'data/seo-on-page (el adaptador del panel) aún importa views/',
-    PANEL_DATA,
-    `import { x } from '../../views/pages';`,
-  ],
   [
     'routes/ sí importa data/, views/ y components/',
     ROUTES,

@@ -7,7 +7,7 @@ import type { Page } from '../../core/content/discovery';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { urlPolicyOf } from '../config';
-import { pagesOf } from './pages';
+import { pagesOf } from '../../core/content/stored-page';
 
 /** Lo que cabecera y pie necesitan del sitio, calculado una sola vez por vista. */
 export interface SiteContext {
