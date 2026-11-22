@@ -23,28 +23,25 @@ describe('suggestConfig: idiomas', () => {
   it('toma los idiomas y el de por defecto de i18n, y la reserva de `fallback_to_default`', () => {
     const { config } = suggest(I18N);
     expect(config).toMatchObject({
-      locales: ['en', 'es'],
-      defaultLocale: 'en',
-      translations: { missing: 'fallback' },
+      i18n: { locales: ['en', 'es'], defaultLocale: 'en', missing: 'fallback' },
     });
   });
 
   it('sin i18n no declara idiomas', () => {
     const { config } = suggest('nav: []\n');
-    expect(config).not.toHaveProperty('locales');
-    expect(config).not.toHaveProperty('translations');
+    expect(config).not.toHaveProperty('i18n');
   });
 
   it('con i18n sin `fallback_to_default` no pide `fallback`', () => {
     const { config } = suggest(I18N.replace('fallback_to_default: true', 'build: true'));
-    expect(config).not.toHaveProperty('translations');
+    expect(config.i18n).not.toHaveProperty('missing');
   });
 });
 
 describe('suggestConfig: nav', () => {
   it('una página de primer nivel es un elemento `slug`; `x/index` colapsa a `x`', () => {
     const { config } = suggest('nav:\n  - Home: index.md\n  - Overview: dev/index.md\n');
-    expect(config.nav).toEqual([
+    expect(config.content?.nav).toEqual([
       { label: 'Home', slug: 'index' },
       { label: 'Overview', slug: 'dev' },
     ]);
@@ -54,7 +51,7 @@ describe('suggestConfig: nav', () => {
     const { config } = suggest(
       I18N + 'nav:\n  - Guide:\n      - A: g/a.md\n      - Deep:\n          - B: g/b.md\n',
     );
-    expect(config.nav).toEqual([
+    expect(config.content?.nav).toEqual([
       {
         label: { en: 'Guide', es: 'Guía' },
         sidebar: ['g/a', { label: 'Deep', items: ['g/b'] }],
@@ -64,14 +61,14 @@ describe('suggestConfig: nav', () => {
 
   it('una etiqueta igual en todos los idiomas es un texto', () => {
     const { config } = suggest(I18N + 'nav:\n  - Home: index.md\n');
-    expect(config.nav).toEqual([{ label: 'Home', slug: 'index' }]);
+    expect(config.content?.nav).toEqual([{ label: 'Home', slug: 'index' }]);
   });
 
   it('una URL de primer nivel es un enlace y una dentro de un grupo se avisa', () => {
     const { config, notes } = suggest(
       'nav:\n  - Code: https://github.com/o/r\n  - G:\n      - Ext: https://x.dev\n      - A: a.md\n',
     );
-    expect(config.nav).toEqual([
+    expect(config.content?.nav).toEqual([
       { label: 'Code', href: 'https://github.com/o/r' },
       { label: 'G', sidebar: ['a'] },
     ]);
@@ -80,7 +77,7 @@ describe('suggestConfig: nav', () => {
 
   it('una ruta suelta sin título se etiqueta con su nombre', () => {
     const { config } = suggest('nav:\n  - getting-started.md\n');
-    expect(config.nav).toEqual([{ label: 'Getting started', slug: 'getting-started' }]);
+    expect(config.content?.nav).toEqual([{ label: 'Getting started', slug: 'getting-started' }]);
   });
 });
 
@@ -99,7 +96,7 @@ describe('suggestConfig: ficheros de fuera de docs/', () => {
 
   it('con `docs_dir: .` lo de `docs/` es nativo y el resto se publica con `external`', () => {
     const { config, externals } = suggest(yaml);
-    expect(config.nav).toEqual([
+    expect(config.content?.nav).toEqual([
       { label: 'Home', slug: 'index' },
       {
         label: 'Users',
@@ -112,12 +109,12 @@ describe('suggestConfig: ficheros de fuera de docs/', () => {
       { slug: 'readme', file: '../src/providers/README.md' },
       { slug: 'views/readme', file: '../src/views/README.md' },
     ]);
-    expect(config.external).toEqual(externals);
+    expect(config.content?.external).toEqual(externals);
   });
 
   it("el README de la raíz de `docs_dir` es la portada: `slug: 'index'`, como en MkDocs", () => {
     const { config, externals } = suggest('docs_dir: .\nnav:\n  - Home: README.md\n');
-    expect(config.nav).toEqual([{ label: 'Home', slug: 'index' }]);
+    expect(config.content?.nav).toEqual([{ label: 'Home', slug: 'index' }]);
     expect(externals).toEqual([{ slug: 'index', file: '../README.md' }]);
   });
 
@@ -130,19 +127,19 @@ describe('suggestConfig: ficheros de fuera de docs/', () => {
 
   it('con `docs_dir: docs` no hay externos', () => {
     expect(suggest('nav:\n  - A: a.md\n').externals).toEqual([]);
-    expect(suggest('nav:\n  - A: a.md\n').config).not.toHaveProperty('external');
+    expect(suggest('nav:\n  - A: a.md\n').config.content).not.toHaveProperty('external');
   });
 });
 
 describe('suggestConfig: exclude', () => {
   it('copia `exclude_docs` sin los comentarios', () => {
     const { config } = suggest('exclude_docs: |\n  # nota\n  drafts/\n  *.local.md\n');
-    expect(config.exclude).toEqual(['drafts/', '*.local.md']);
+    expect(config.content?.exclude).toEqual(['drafts/', '*.local.md']);
   });
 
   it('con `docs_dir` distinto de docs no lo copia: sus patrones son de otra carpeta', () => {
     const { config, notes } = suggest('docs_dir: .\nexclude_docs: |\n  dist/\n');
-    expect(config).not.toHaveProperty('exclude');
+    expect(config).not.toHaveProperty('content');
     expect(notes.join('\n')).toContain('exclude_docs');
   });
 });
@@ -184,6 +181,8 @@ describe('formatConfigModule', () => {
     const text = formatConfigModule(suggest('nav:\n  - Home: index.md\n'));
     expect(text).toContain('mkdocs.yml');
     expect(text).toContain('export default {');
+    expect(text).toContain('"content": {');
     expect(text).toContain('"slug": "index"');
+    expect(text).toContain('site.name');
   });
 });

@@ -41,7 +41,7 @@ caliente**.
 
 Su contenido es un _snapshot_ de la documentación de snake-orm (inglés y español, referencia de API
 generada, un `CHANGELOG.md` externo), así que ejercita casi todo: dos idiomas con
-`MissingTranslation.LINK`, secciones de `nav`, un `external`, `editUrl` con `repoRoot` simulado, una
+`MissingTranslation.LINK`, secciones de `content.nav`, un `external`, `editUrl` con `repoRoot` simulado, una
 licencia en el pie y una imagen OG. La página `showcase/` existe solo en el playground para probar lo
 que snake-orm no usa (zoom de imágenes, pestañas, admonición plegada).
 
@@ -111,9 +111,10 @@ Al terminar imprime un resumen: ficheros cambiados, conversiones por tipo (admon
 iconos quitados, anclas reescritas…), stubs, restos y el siguiente paso (`git diff docs/`).
 
 **`mkdocs.yml` también en `--in-place`.** Si está en la raíz del repo se lee y se imprime una **config
-sugerida** (`--config-out <fichero>` la escribe, sin pisar nada más): `locales` y `defaultLocale` de
-`plugins.i18n.languages`, `translations.missing: 'fallback'` si hay `fallback_to_default: true`,
-`exclude` desde `exclude_docs` (sin comentarios) y `nav`: cada grupo de primer nivel es una
+sugerida**, ya en los grupos de la config (`--config-out <fichero>` la escribe, sin pisar nada más):
+`i18n.locales` e `i18n.defaultLocale` de `plugins.i18n.languages`, `i18n.missing: 'fallback'` si hay
+`fallback_to_default: true`, `content.exclude` desde `exclude_docs` (sin comentarios) y `content.nav`
+(falta `site.name`, que se pone a mano): cada grupo de primer nivel es una
 **sección con solo `sidebar`** (sin `dir`), con la etiqueta de cada idioma sacada de `nav_translations`.
 Con `docs_dir: .` lo que vive fuera de `docs/` (`README.md`, `CHANGELOG.md`…) va como `external`
 en esa misma sugerencia, y los slugs se reparten por el `nav`. El `README.md` de la raíz de

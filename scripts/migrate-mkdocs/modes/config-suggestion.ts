@@ -1,4 +1,4 @@
-/** Del `mkdocs.yml` a un trozo de `docs.config.mjs`: idiomas, política de traducción, exclusiones y nav (con ficheros de fuera de `docs/` como `external`). */
+/** Del `mkdocs.yml` a un trozo de `docs.config.mjs`, ya en sus grupos: `i18n` (idiomas y política de traducción) y `content` (exclusiones y nav, con los ficheros de fuera de `docs/` como `external`). */
 import path from 'node:path/posix';
 import type { Mkdocs, MkdocsLanguage } from './mkdocs.ts';
 import type { NavEntry } from './nav.ts';
@@ -17,8 +17,14 @@ export interface AstroSuggestion {
   base?: string;
 }
 
+/** La config sugerida, en sus grupos; `site.name` no sale de `mkdocs.yml` (se pone a mano). */
+export interface SuggestedConfig {
+  i18n?: Record<string, unknown>;
+  content?: Record<string, unknown>;
+}
+
 export interface ConfigSuggestion {
-  config: Record<string, unknown>;
+  config: SuggestedConfig;
   astro?: AstroSuggestion;
   externals: ExternalSuggestion[];
   /** Lo que no se ha podido convertir, para enseñarlo junto a la sugerencia. */
@@ -120,22 +126,28 @@ export function suggestConfig(mkdocs: Mkdocs): ConfigSuggestion {
     return { label, sidebar: sidebarOf(value ?? []) };
   });
 
-  const config: Record<string, unknown> = {};
+  // Con los grupos de la config (`i18n`, `content`); `site.name` lo pone quien migra.
+  const i18n: Record<string, unknown> = {};
+  const content: Record<string, unknown> = {};
   if (languages.length > 0) {
-    config.locales = languages.map((language) => language.locale);
-    config.defaultLocale = (languages.find((language) => language.default) ?? languages[0])!.locale;
+    i18n.locales = languages.map((language) => language.locale);
+    i18n.defaultLocale = (languages.find((language) => language.default) ?? languages[0])!.locale;
   }
-  if (mkdocs.fallbackToDefault) config.translations = { missing: 'fallback' };
+  if (mkdocs.fallbackToDefault) i18n.missing = 'fallback';
   if (mkdocs.excludePatterns.length > 0) {
-    if (mkdocs.docsDir === CONTENT_DIR) config.exclude = mkdocs.excludePatterns;
+    if (mkdocs.docsDir === CONTENT_DIR) content.exclude = mkdocs.excludePatterns;
     else {
       notes.push(
-        `exclude_docs: sus patrones son de «${mkdocs.docsDir}», no de docs/; no se copian a \`exclude\`.`,
+        `exclude_docs: sus patrones son de «${mkdocs.docsDir}», no de docs/; no se copian a \`content.exclude\`.`,
       );
     }
   }
-  if (externals.length > 0) config.external = externals;
-  if (nav.length > 0) config.nav = nav;
+  if (externals.length > 0) content.external = externals;
+  if (nav.length > 0) content.nav = nav;
+  const config: SuggestedConfig = {
+    ...(Object.keys(i18n).length > 0 && { i18n }),
+    ...(Object.keys(content).length > 0 && { content }),
+  };
   const astro = mkdocs.siteUrl === undefined ? undefined : astroFromSiteUrl(mkdocs.siteUrl);
   if (mkdocs.siteUrl !== undefined && !astro) {
     notes.push(
@@ -158,7 +170,8 @@ function astroLines(astro: AstroSuggestion | undefined): string[] {
 export function formatConfigModule({ config, astro, notes }: ConfigSuggestion): string {
   return [
     '// Sugerencia generada por scripts/migrate-mkdocs desde mkdocs.yml: pasa lo que quieras a docs.config.mjs.',
-    '// Las rutas de `external` suponen el proyecto de Astro en una carpeta del repo (docs-site/, astro/…; no `site/`, que es la salida de MkDocs).',
+    '// Falta `site.name` (`site: { name: … }`): el nombre del sitio, lo único obligatorio.',
+    '// Las rutas de `content.external` suponen el proyecto de Astro en una carpeta del repo (docs-site/, astro/…; no `site/`, que es la salida de MkDocs).',
     ...astroLines(astro),
     ...notes.map((note) => `// AVISO ${note}`),
     `export default ${JSON.stringify(config, null, 2)};`,
