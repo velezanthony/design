@@ -15,24 +15,38 @@ function settings(user: FoldersUserConfig | undefined, folder: string) {
 }
 
 describe('folderSettings: valores por defecto', () => {
-  it('sin `folders`, cada ajuste lleva su valor por defecto y `declaredAt: default`', () => {
+  it('sin `folders`, cada ajuste lleva su valor por defecto y nadie lo declara (`declaredAt` indefinido)', () => {
     expect(settings(undefined, 'articulos/python')).toEqual({
       listing: {
-        generate: { value: false, declaredAt: 'default' },
-        view: { value: ListingView.LIST, declaredAt: 'default' },
-        pageSize: { value: undefined, declaredAt: 'default' },
-        perPageOptions: { value: undefined, declaredAt: 'default' },
-        covers: { value: true, declaredAt: 'default' },
+        generate: { value: false, declaredAt: undefined },
+        view: { value: ListingView.LIST, declaredAt: undefined },
+        pageSize: { value: undefined, declaredAt: undefined },
+        perPageOptions: { value: undefined, declaredAt: undefined },
+        covers: { value: true, declaredAt: undefined },
       },
       tree: {
-        show: { value: TreeShow.SECTION, declaredAt: 'default' },
-        depth: { value: undefined, declaredAt: 'default' },
+        show: { value: TreeShow.SECTION, declaredAt: undefined },
+        depth: { value: undefined, declaredAt: undefined },
       },
     });
   });
 
   it("la carpeta raíz del contenido (`''`) también recibe los valores por defecto", () => {
-    expect(settings({}, '').listing.generate).toEqual({ value: false, declaredAt: 'default' });
+    expect(settings({}, '').listing.generate).toEqual({ value: false, declaredAt: undefined });
+  });
+});
+
+describe('folderSettings: una carpeta llamada `default`', () => {
+  it('lo que declara se distingue de lo que nadie declara', () => {
+    const user = { default: { listing: { generate: true } } };
+    expect(settings(user, 'default').listing.generate).toEqual({
+      value: true,
+      declaredAt: 'default',
+    });
+    expect(settings(user, 'default').listing.view).toEqual({
+      value: ListingView.LIST,
+      declaredAt: undefined,
+    });
   });
 });
 
@@ -75,7 +89,7 @@ describe('folderSettings: precedencia', () => {
 
   it('un prefijo de texto no es un antepasado (`articulos-viejos` no hereda de `articulos`)', () => {
     const user = { articulos: { listing: { generate: true } } };
-    expect(settings(user, 'articulos-viejos').listing.generate.declaredAt).toBe('default');
+    expect(settings(user, 'articulos-viejos').listing.generate.declaredAt).toBeUndefined();
   });
 });
 

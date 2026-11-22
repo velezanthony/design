@@ -57,8 +57,8 @@ describe('folderLabels', () => {
     expect(labels.get('articulos/sistemas/contenedores')).toBe('Containers');
   });
 
-  it('un grupo que solo envuelve a otro no titula ninguna carpeta («Cloud»)', () => {
-    expect(folderLabels(config, 'es').has('articulos/sistemas/cloud')).toBe(false);
+  it('un grupo que solo envuelve a otro titula la carpeta de encima de la del interior («Cloud»)', () => {
+    expect(folderLabels(config, 'es').get('articulos/sistemas/cloud')).toBe('Cloud');
   });
 
   it('si varios grupos casan con la misma carpeta, gana el más interior («AWS»)', () => {
@@ -104,7 +104,25 @@ describe('groupFolders', () => {
     expect(owned.get(ciCd!)).toBe('articulos/sistemas/ci-cd');
     expect(owned.get(aws)).toBe('articulos/sistemas/cloud/aws');
     expect(owned.get(contenedores!)).toBe('articulos/sistemas/contenedores');
-    expect(owned.has(cloud!)).toBe(false);
+    expect(owned.get(cloud!)).toBe('articulos/sistemas/cloud');
+  });
+
+  it('el grupo que envuelve sube solo hasta una carpeta libre: no le quita la suya a quien lo envuelve', () => {
+    // «Todo» envuelve a «Uno»; subir desde `a/b/c` daría `a/b`, que ya es de «Exterior», que envuelve a ambos.
+    const nested = {
+      sidebar: [
+        {
+          label: 'Exterior',
+          items: ['a/b/x', { label: 'Todo', items: [{ label: 'Uno', items: ['a/b/c/y'] }] }],
+        },
+      ],
+      defaultLocale: 'es',
+    };
+    const owned = groupFolders(nested);
+    const [outer] = nested.sidebar as Exclude<SidebarItem, string>[];
+    const all = outer!.items![1] as Exclude<SidebarItem, string>;
+    expect(owned.get(outer!)).toBe('a/b');
+    expect(owned.has(all)).toBe(false);
   });
 
   it('una sección no es un grupo de la barra lateral: no aparece', () => {

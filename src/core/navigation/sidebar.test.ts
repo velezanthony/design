@@ -402,13 +402,20 @@ describe('buildSidebar: grupos enlazados a la página de su carpeta', () => {
     ]);
   });
 
-  it('el grupo que solo envuelve a otro no la recibe: gana el interior', () => {
-    const tree = build(pages, 'en', [
+  it('el grupo que solo envuelve a otro enlaza la carpeta de encima si tiene página; el interior, la suya', () => {
+    const cloudPage = page('docs/cloud', 'en', {
+      kind: 'generated',
+      sourcePath: 'docs/cloud/_index.md',
+    });
+    const declared: SidebarItem[] = [
       { label: 'Cloud', items: [{ label: 'AWS', items: ['docs/cloud/aws/basica'] }] },
-    ]);
+    ];
+    const tree = build([...pages, cloudPage], 'en', declared);
     const cloud = tree[0] as SidebarGroup;
-    expect(cloud).not.toHaveProperty('href');
+    expect(cloud).toMatchObject({ label: 'Cloud', href: '/repo/docs/cloud/' });
     expect(cloud.items[0]).toMatchObject({ label: 'AWS', href: '/repo/docs/cloud/aws/' });
+    // Sin página en `docs/cloud`, «Cloud» sigue siendo texto.
+    expect(build(pages, 'en', declared)[0]).not.toHaveProperty('href');
   });
 
   it('un `slug` declarado a mano manda', () => {

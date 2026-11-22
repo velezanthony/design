@@ -69,8 +69,9 @@ aparecen en el menú móvil.
   o de un `index.md`), con el estilo de grupo y `aria-current` en esa página (también en sus páginas 2+
   de un listado). Un grupo automático la enlaza siempre; uno escrito en `sidebar` sin `slug`, cuando
   es el dueño de una carpeta: sus páginas tienen esa carpeta como carpeta común más profunda y no hay
-  otro grupo más interior que la reclame (el grupo «Cloud» que solo envuelve a «AWS» se la cede). Si
-  dos grupos que no se envuelven comparten carpeta (un sitio con todas las páginas en `tutoriales/`),
+  otro grupo más interior que la reclame. Un grupo que solo envuelve a otro («Cloud» › «AWS») sube a
+  la carpeta de encima (`articulos/sistemas/cloud`) y la enlaza si nadie más es su dueño. Si dos
+  grupos que no se envuelven comparten carpeta (un sitio con todas las páginas en `tutoriales/`),
   ninguno la enlaza. Un `slug` escrito a mano manda. Esa página no sale además como hoja suelta. Vale
   igual en `::nav-tree`. Sin página índice, la etiqueta es texto. Si algún día un grupo se pliega, el
   control será un botón aparte (`aria-expanded`), nunca la etiqueta: plegar y navegar no comparten clic.
@@ -211,8 +212,9 @@ texto original y las URLs de `/en/`.
   la de la sección o el grupo declarado (`nav[n].sidebar`, `sidebar`) cuyas páginas tienen esa carpeta
   como carpeta común más profunda, y si casan varios, el más interior; si no, el nombre de la carpeta
   (`notas-de-version` → «Notas de version»). Con `nav` como el de abajo, `articulos/sistemas` se
-  titula «Sistemas», `articulos/sistemas/ci-cd` «CI/CD» y `articulos/sistemas/cloud/aws` «AWS»;
-  `articulos/sistemas/cloud` se queda en «Cloud», porque el grupo «Cloud» solo envuelve a «AWS».
+  titula «Sistemas», `articulos/sistemas/ci-cd` «CI/CD», `articulos/sistemas/cloud/aws` «AWS» y
+  `articulos/sistemas/cloud` «Cloud»: el grupo «Cloud» solo envuelve a «AWS», así que sube a la
+  carpeta de encima de la suya.
 
   ```js
   nav: [

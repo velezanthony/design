@@ -56,10 +56,10 @@ export type FolderSettingsUser = z.infer<typeof FolderSettingsSchema>;
 export const FoldersSchema = z.record(z.string(), FolderSettingsSchema);
 export type FoldersUserConfig = z.input<typeof FoldersSchema>;
 
-/** Un ajuste efectivo y quién lo declaró: una carpeta, `'*'` o, sin nadie, `'default'`. */
+/** Un ajuste efectivo y quién lo declaró: una carpeta o `'*'`; `undefined` si nadie lo declaró (el valor por defecto). */
 export interface Effective<T> {
   value: T;
-  declaredAt: string;
+  declaredAt: string | undefined;
 }
 
 /** Los ajustes efectivos de una carpeta, cada uno con la carpeta que lo declaró. */
@@ -78,9 +78,6 @@ export interface FolderSettings {
 export interface ResolvedFolders {
   declared: Record<string, FolderSettingsUser>;
 }
-
-/** Quién declara un ajuste que nadie declaró. */
-const DEFAULT_DECLARER = 'default';
 
 /** Valores por defecto de cada ajuste (aquí y no en el esquema: los pone la resolución). */
 const DEFAULTS = {
@@ -125,7 +122,7 @@ export function folderSettings(folders: ResolvedFolders, folder: string): Folder
       if (value !== undefined) return { value, declaredAt: declarer } as FolderSettings[Group][Key];
     }
     const value = (DEFAULTS[group] as Record<Key, unknown>)[key];
-    return { value, declaredAt: DEFAULT_DECLARER } as FolderSettings[Group][Key];
+    return { value, declaredAt: undefined } as FolderSettings[Group][Key];
   }
   return {
     listing: {

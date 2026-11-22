@@ -78,22 +78,51 @@ function candidates(config: FolderLabelConfig): Candidate[] {
 }
 
 /* «Si casan varios, el más interior»: el dueño de una carpeta es el candidato al que envuelven todos
-   los demás (el grupo «Cloud» que solo envuelve a «AWS» se lo cede). Si hay candidatos que no se
-   envuelven entre sí (un sitio plano, con todas las páginas en la misma carpeta y el árbol hecho con
-   `sidebar`), «el más interior» no existe y la carpeta se queda sin dueño. */
-function owners(config: FolderLabelConfig): Map<string, Candidate> {
+   los demás. Si hay candidatos que no se envuelven entre sí (un sitio plano, con todas las páginas en
+   la misma carpeta y el árbol hecho con `sidebar`), «el más interior» no existe y la carpeta se queda
+   sin dueño. */
+function innermost(all: readonly Candidate[]): Map<string, Candidate> {
   const byFolder = new Map<string, Candidate[]>();
-  for (const candidate of candidates(config)) {
+  for (const candidate of all) {
     byFolder.set(candidate.folder, [...(byFolder.get(candidate.folder) ?? []), candidate]);
   }
   const found = new Map<string, Candidate>();
   for (const [folder, matches] of byFolder) {
-    const innermost = matches.find((candidate) =>
+    const owner = matches.find((candidate) =>
       matches.every((other) => other === candidate || candidate.wrappers.includes(other.owner)),
     );
-    if (innermost) found.set(folder, innermost);
+    if (owner) found.set(folder, owner);
   }
   return found;
+}
+
+/** Carpeta padre (`a/b/c` → `a/b`; la de un solo segmento no tiene: `''`). */
+function parentFolder(folder: string): string {
+  return folder.split('/').slice(0, -1).join('/');
+}
+
+/* Toda categoría con página índice es un enlace, también la que solo envuelve a otra («Cloud» › «AWS»):
+   si la carpeta de un grupo es de uno de sus descendientes, el grupo sube a la carpeta de encima (y
+   sigue subiendo mientras esa también sea de un descendiente) y la toma si nadie es su dueño; si la
+   reclaman varios grupos que suben, gana el más interior con la misma regla. */
+function owners(config: FolderLabelConfig): Map<string, Candidate> {
+  const primary = candidates(config);
+  const first = innermost(primary);
+  const lifted = primary.flatMap((candidate) => {
+    let folder = candidate.folder;
+    for (
+      let owner = first.get(folder);
+      owner && owner !== candidate && owner.wrappers.includes(candidate.owner);
+      owner = first.get(folder)
+    ) {
+      folder = parentFolder(folder);
+    }
+    // Solo una carpeta sin dueño: subir no le quita la suya a quien lo envuelve ni a otro grupo.
+    return folder === candidate.folder || folder === '' || first.has(folder)
+      ? []
+      : [{ ...candidate, folder }];
+  });
+  return innermost([...primary, ...lifted]);
 }
 
 /** Título de cada carpeta que tiene uno declarado (pasos 1 y 2), en `locale`. */

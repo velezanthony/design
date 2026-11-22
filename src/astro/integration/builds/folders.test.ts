@@ -55,7 +55,7 @@ describe('carpetas intermedias con `generate` heredado', () => {
   it.each([
     ['articulos/sistemas', 'Sistemas', 'la sección sin `dir` cuyas páginas cuelgan de ella'],
     ['articulos/sistemas/ci-cd', 'CI/CD', 'su grupo declarado'],
-    ['articulos/sistemas/cloud', 'Cloud', 'el nombre de la carpeta: «Cloud» solo envuelve a «AWS»'],
+    ['articulos/sistemas/cloud', 'Cloud', 'el grupo que envuelve a «AWS»'],
     ['articulos/sistemas/cloud/aws', 'AWS', 'el grupo más interior'],
     ['articulos/desarrollo', 'Desarrollo', 'su sección'],
     ['articulos/desarrollo/python', 'Python', 'su grupo declarado'],
@@ -155,9 +155,11 @@ describe('grupos enlazados a la página de su carpeta', () => {
     );
   });
 
-  it('«Cloud» solo envuelve a «AWS»: no es dueño de ninguna carpeta y sigue siendo texto', async () => {
+  it('«Cloud», que solo envuelve a «AWS», enlaza la página generada de su carpeta', async () => {
     const document = await page('articulos/sistemas/contenedores/docker/index.html');
-    expect(groupLabel(document, 'Cloud')?.tagName).toBe('SPAN');
+    expect(groupLabel(document, 'Cloud')?.getAttribute('href')).toBe(
+      '/fo/articulos/sistemas/cloud/',
+    );
   });
 
   it('los grupos con `_index.md` y con `index.md` también enlazan', async () => {
