@@ -118,6 +118,33 @@ folders: {
   (`folders['articulos/pyton']`). `sidebarDepth` (global o en un elemento de `nav`) ya no existe: es
   una opción desconocida.
 
+### Árbol completo de una carpeta (`tree.show`)
+
+`tree.show` en [`folders`](#ajustes-por-carpeta-folders) dice qué árbol lleva la barra lateral de las
+páginas de una carpeta:
+
+```js
+import { TreeShow } from '@velezanthony/design/integration';
+
+folders: {
+  articulos: { tree: { show: TreeShow.ALL } }, // SECTION (por defecto) | ALL
+},
+```
+
+- **`TreeShow.SECTION`** (por defecto): lo de siempre. Con `nav`, la barra de la sección de la página;
+  sin sección, la general.
+- **`TreeShow.ALL`**: en **todas** las páginas de la carpeta (la suya, las de cada sección y las de sus
+  subcarpetas), la barra es el árbol completo de la carpeta que lo declara. Arriba va la página de la
+  carpeta; después, cada sección de `nav` con páginas dentro de ella como grupo de primer nivel, con su
+  etiqueta, su árbol y, si existe, la página de su carpeta como destino («Sistemas» →
+  `/articulos/sistemas/`); al final, las páginas sin sección de la carpeta con su árbol automático. Las
+  páginas de fuera no salen, y su barra no cambia.
+- Se hereda: una subcarpeta usa el árbol de la carpeta que lo declaró.
+- La cabecera sigue marcando la sección de la página.
+- **Anterior y siguiente siguen el árbol que se pinta**: con `ALL`, saltan de una sección a otra.
+- `tree.depth` dentro del árbol completo cuenta igual: `'*'` desde la carpeta (o desde el `dir` de una
+  sección que lo tenga); los grupos de sección no cuentan como nivel.
+
 ### Índice generado (`::nav-tree`)
 
 Una página índice (la de un blog, la de una guía) no necesita copiar a mano el árbol de las

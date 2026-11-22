@@ -2,7 +2,8 @@ import type { NavItem } from '../config/nav';
 import { isNavSection } from '../config/nav';
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
-import type { ResolvedFolders } from '../config/folders';
+import { ALL_FOLDERS, folderSettings, TreeShow, type ResolvedFolders } from '../config/folders';
+import { buildFolderTree } from './folder-tree';
 import type { Page } from '../content/discovery';
 import type { Availability, UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
@@ -77,22 +78,37 @@ export function navScopeOf(nav: readonly NavItem[] | undefined, slug: string): N
   return position === -1 ? { kind: 'unsectioned' } : { kind: 'section', position };
 }
 
-/** Árbol de un ámbito: el de su sección de `nav` o el de las páginas sin sección. Una posición que no es una sección cuenta como «sin sección». */
-export function buildSectionSidebar(context: NavContext, scope: NavScope): SidebarNode[] {
+/** Árbol de un ámbito: el de su sección de `nav` o el de las páginas sin sección. Una posición que no es una sección cuenta como «sin sección». `base` es la raíz del árbol si el ámbito no tiene `dir` (la carpeta de un `tree.show: 'all'`). */
+export function buildSectionSidebar(
+  context: NavContext,
+  scope: NavScope,
+  base = '',
+): SidebarNode[] {
   const nav = context.config.nav;
   const item = scope.kind === 'section' ? nav?.[scope.position] : undefined;
   if (item && isNavSection(item)) {
-    return buildSidebarFor(context, (slug) => sectionOwns(item, slug), item.sidebar, item.dir);
+    return buildSidebarFor(
+      context,
+      (slug) => sectionOwns(item, slug),
+      item.sidebar,
+      item.dir ?? base,
+    );
   }
   return buildSidebarFor(
     context,
     (slug) => sectionIndexOf(nav, slug) === -1,
     context.config.sidebar,
+    base,
   );
 }
 
-/** Barra lateral de `context.slug`: con `nav`, la de su sección o la de las páginas sin sección. */
+/** Barra lateral de `context.slug`: el árbol completo de la carpeta que declara `tree.show: 'all'` si rige en la página; si no, con `nav`, la de su sección o la de las páginas sin sección. */
 export function buildScopedSidebar(context: NavContext): SidebarNode[] {
+  const { folders } = context.config;
+  const show = folders && folderSettings(folders, context.slug).tree.show;
+  if (show?.value === TreeShow.ALL && show.declaredAt !== undefined) {
+    return buildFolderTree(context, show.declaredAt === ALL_FOLDERS ? '' : show.declaredAt);
+  }
   if (!context.config.nav) {
     return buildSidebar(
       context.pages,

@@ -1,8 +1,9 @@
-import { defineDocsConfig, ListingView, MissingTranslation } from '../../../../index.ts';
+import { defineDocsConfig, ListingView, MissingTranslation, TreeShow } from '../../../../index.ts';
 
 /* Índices generados por carpeta (`folders`), como el sitio del autor, español por defecto e inglés con
    reserva:
-   - `articulos` enciende `generate` con tarjetas y lo heredan todas sus carpetas, también las
+   - `articulos` enciende `generate` con tarjetas y `tree.show: 'all'` (la barra de todas sus páginas
+     es su árbol completo, con Desarrollo y Sistemas como grupos); lo heredan todas sus carpetas, también las
      intermedias sin página propia (`articulos/sistemas`, `articulos/sistemas/cloud`…), que toman el
      título de su sección o grupo declarado o el nombre de la carpeta;
    - `articulos/borradores` lo apaga para su rama;
@@ -45,7 +46,10 @@ export default defineDocsConfig({
   ],
   sidebar: ['index', 'articulos'],
   folders: {
-    articulos: { listing: { generate: true, view: ListingView.CARDS } },
+    articulos: {
+      listing: { generate: true, view: ListingView.CARDS },
+      tree: { show: TreeShow.ALL },
+    },
     'articulos/borradores': { listing: { generate: false } },
     'articulos/privado': { listing: { view: ListingView.TABLE, pageSize: 1 } },
     guia: { listing: { generate: true } },

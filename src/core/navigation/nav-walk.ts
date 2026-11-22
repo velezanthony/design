@@ -38,17 +38,18 @@ export interface ScopeTrees {
   targets: ReadonlyMap<string, NavTarget>;
 }
 
-/** Árboles de `scope`: los textos en `contentLocale` y las URLs como las de la barra lateral de `context.locale`. Solo difieren en una ruta de reserva. */
+/** Árboles de `scope`: los textos en `contentLocale` y las URLs como las de la barra lateral de `context.locale`. Solo difieren en una ruta de reserva. `base`: la raíz si el ámbito no tiene `dir` (ver `buildSectionSidebar`). */
 export function scopeTrees(
   context: NavContext,
   contentLocale: Locale,
   scope: NavScope,
+  base?: string,
 ): ScopeTrees {
-  const route = buildSectionSidebar(context, scope);
+  const route = buildSectionSidebar(context, scope, base);
   const content =
     contentLocale === context.locale
       ? route
-      : buildSectionSidebar({ ...context, locale: contentLocale }, scope);
+      : buildSectionSidebar({ ...context, locale: contentLocale }, scope, base);
   const targets = new Map(
     flatten(route).map((leaf): [string, NavTarget] => [
       leaf.slug,

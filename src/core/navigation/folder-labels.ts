@@ -142,6 +142,19 @@ export function folderLabels(config: FolderLabelConfig, locale: Locale): Map<str
   );
 }
 
+/** La carpeta de cada sección de `nav`: su `dir` o, sin él, la carpeta de la que es dueña (la de sus páginas). En `tree.show: 'all'` el grupo de la sección enlaza la página de esa carpeta. */
+export function sectionFolders(config: FolderLabelConfig): Map<object, string> {
+  const found = new Map<object, string>(
+    [...owners(config)]
+      .filter(([, candidate]) => !candidate.group)
+      .map(([folder, candidate]) => [candidate.owner, folder]),
+  );
+  for (const item of config.nav ?? []) {
+    if (isNavSection(item) && item.dir !== undefined) found.set(item, item.dir);
+  }
+  return found;
+}
+
 /** La carpeta de cada grupo declarado que es su dueño (la misma regla que los títulos): su etiqueta enlaza la página de esa carpeta. Las secciones no cuentan: en su barra, la etiqueta es la cabecera. */
 export function groupFolders(config: FolderLabelConfig): Map<object, string> {
   return new Map(

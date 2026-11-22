@@ -184,3 +184,53 @@ describe('grupos enlazados a la página de su carpeta', () => {
     expect(elsewhere?.hasAttribute('aria-current')).toBe(false);
   });
 });
+
+/* `tree.show: 'all'` en `articulos`: la barra de todas las páginas de la carpeta es su árbol completo. */
+describe("`tree.show: 'all'`", () => {
+  function topLabels(document: Document) {
+    const list = sidebar(document).querySelector(':scope > ul, ul')!;
+    return [...list.querySelectorAll(':scope > li > a, :scope > li > span')].map((node) =>
+      text(node),
+    );
+  }
+
+  it('la barra de un artículo de sección contiene las dos secciones como grupos de primer nivel', async () => {
+    const document = await page('articulos/sistemas/contenedores/docker/index.html');
+    expect(topLabels(document)).toEqual(
+      expect.arrayContaining(['Artículos', 'Desarrollo', 'Sistemas']),
+    );
+    expect(groupLabel(document, 'Python')).toBeDefined();
+  });
+
+  it('el grupo «Sistemas» enlaza su página generada `/articulos/sistemas/`', async () => {
+    const document = await page('articulos/desarrollo/python/x/index.html');
+    expect(groupLabel(document, 'Sistemas')?.getAttribute('href')).toBe('/fo/articulos/sistemas/');
+    expect(groupLabel(document, 'Desarrollo')?.getAttribute('href')).toBe(
+      '/fo/articulos/desarrollo/',
+    );
+  });
+
+  it('la página generada de una carpeta de una sección sin `dir` lleva el mismo árbol', async () => {
+    const generated = topLabels(await page('articulos/sistemas/ci-cd/index.html'));
+    const article = topLabels(await page('articulos/sistemas/contenedores/docker/index.html'));
+    expect(generated).toEqual(article);
+    expect(
+      groupLabel(await page('articulos/sistemas/ci-cd/index.html'), 'CI/CD')?.getAttribute(
+        'aria-current',
+      ),
+    ).toBe('page');
+  });
+
+  it('la cabecera sigue marcando la sección de la página', async () => {
+    const document = await page('articulos/sistemas/contenedores/docker/index.html');
+    const header = document.querySelector('nav[aria-label="Secciones"]')!;
+    const current = [...header.querySelectorAll('a[aria-current]')].map((link) => text(link));
+    expect(current).toContain('Sistemas');
+  });
+
+  it('una página de fuera de la carpeta conserva su barra', async () => {
+    const document = await page('guia/a/index.html');
+    expect(groupLabel(document, 'Sistemas')).toBeUndefined();
+    expect(groupLabel(document, 'Desarrollo')).toBeUndefined();
+  });
+});
