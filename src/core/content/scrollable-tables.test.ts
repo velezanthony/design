@@ -12,7 +12,7 @@ describe('wrapScrollableTables', () => {
     );
   });
 
-  it('deja como está una tabla que ya va en su .table-scroll', () => {
+  it('deja como está una tabla que ya va en su .table-scroll (escrita a mano en el Markdown)', () => {
     const wrapped = `<div class="table-scroll" tabindex="0">\n${table}</div>`;
     expect(wrapScrollableTables(wrapped)).toBe(wrapped);
   });

@@ -1,4 +1,8 @@
 @utility prose {
+  /* Plazo del indicador de carga de los diagramas: pasado, el código vuelve a verse aunque el JS no
+     llegue (ver `.docs-mermaid:not([data-state])`). Un solo valor para sus tres animaciones. */
+  --docs-mermaid-timeout: 10s;
+
   /* Una palabra larga sin espacios (un código de error, un identificador, una URL) en un título o
      un párrafo se parte antes que empujar la página en horizontal en móvil. `break-word` solo
      corta cuando la palabra no cabe en la línea: el texto normal no cambia. */
@@ -10,14 +14,7 @@
     max-width: var(--prose-measure);
   }
 
-  &
-    > :is(
-      pre,
-      .docs-code,
-      .docs-tabs,
-      .docs-mermaid,
-      p:not(.docs-inline-images):has(> :is(img, .docs-zoom):only-child)
-    ) {
+  & > :is(pre, .docs-code, .docs-tabs, .docs-mermaid, .docs-screenshot) {
     max-width: var(--wide-max);
   }
 
@@ -242,34 +239,10 @@
     @apply inline h-auto max-w-full;
   }
 
-  /* Captura: una imagen sola en su párrafo; `.docs-inline-images` (astro/markdown/images.ts) marca los que además llevan texto, que el CSS no ve. En móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o todo el documento haría scroll lateral. */
-  & p:not(.docs-inline-images) > img:only-child,
-  & p:not(.docs-inline-images) > .docs-zoom:only-child > img {
-    display: block;
-    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
-    max-width: var(--img-max);
-    border: 1px solid var(--color-rule);
-    border-radius: 4px;
-  }
-
-  & p:not(.docs-inline-images):has(> :is(img, .docs-zoom):only-child) {
-    margin-top: 2em;
-  }
-
   /* Imagen ampliable (`client/content/zoom.ts`): el botón toma la medida de la imagen y esta lo rellena,
      así que el foco rodea la imagen y no cambia nada de la maquetación. */
   & .docs-zoom {
     @apply inline-block cursor-zoom-in p-0 align-middle;
-  }
-
-  & p:not(.docs-inline-images) > .docs-zoom:only-child {
-    @apply block rounded-[4px];
-    width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
-    max-width: var(--img-max);
-  }
-
-  & p:not(.docs-inline-images) > .docs-zoom:only-child > img {
-    @apply w-full max-w-none;
   }
 
   /* `align` de HTML, como en GitHub: si el zoom envuelve la imagen, el que flota es el botón. */
@@ -281,14 +254,42 @@
     @apply float-left mr-4;
   }
 
+  /* Captura: una imagen sola en su párrafo, que marca `astro/markdown/images.ts` (`p.docs-screenshot`)
+     porque el CSS no distingue un párrafo con texto de uno sin él. Sobresale de la medida del texto;
+     en móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o
+     todo el documento haría scroll lateral. */
+  & .docs-screenshot {
+    margin-top: 2em;
+
+    & > img,
+    & > .docs-zoom > img {
+      display: block;
+      width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+      max-width: var(--img-max);
+      border: 1px solid var(--color-rule);
+      border-radius: 4px;
+    }
+
+    /* Ampliable: el botón toma la medida de la captura y la imagen lo rellena. */
+    & > .docs-zoom {
+      @apply block rounded-[4px];
+      width: min(calc(100% + var(--img-bleed)), calc(100vw - 3rem));
+      max-width: var(--img-max);
+    }
+
+    & > .docs-zoom > img {
+      @apply w-full max-w-none;
+    }
+  }
+
   /* Dentro de una caja (pestaña, admonición) no hay margen al que sobresalir: la captura se ajusta
      a la caja o se sale de su borde. */
-  & :is(.docs-tab-panel, .admonition) p:not(.docs-inline-images) > :is(img, .docs-zoom):only-child {
+  & :is(.docs-tab-panel, .admonition) .docs-screenshot > :is(img, .docs-zoom) {
     @apply w-full max-w-full;
   }
 
   /* El aire extra sobre una captura separa del texto corrido; dentro de una caja ya lo da su padding. */
-  & .docs-tab-panel p:not(.docs-inline-images):has(> :is(img, .docs-zoom):only-child) {
+  & .docs-tab-panel .docs-screenshot {
     @apply mt-0;
   }
 
@@ -322,10 +323,10 @@
         grid-area: 2 / 1;
         min-height: 12rem;
         visibility: hidden;
-        /* Red de seguridad si el JS no llega a correr (bundle roto, script bloqueado): a los 10 s
-           el código vuelve a verse aunque nadie ponga `data-state`. Ese margen cubre la descarga de
+        /* Red de seguridad si el JS no llega a correr (bundle roto, script bloqueado): pasado
+           `--docs-mermaid-timeout` el código vuelve a verse aunque nadie ponga `data-state`. Ese margen cubre la descarga de
            Mermaid en una conexión lenta; con `data-state` esta regla deja de aplicarse antes. */
-        animation: docs-mermaid-reveal 0s 10s forwards;
+        animation: docs-mermaid-reveal 0s var(--docs-mermaid-timeout) forwards;
       }
 
       &::after {
@@ -342,7 +343,7 @@
         font-family: var(--font-sans);
         white-space: normal;
         text-align: center;
-        animation: docs-mermaid-dismiss 0s 10s forwards;
+        animation: docs-mermaid-dismiss 0s var(--docs-mermaid-timeout) forwards;
       }
     }
 
@@ -359,7 +360,7 @@
         background-size: 200% 100%;
         animation:
           docs-mermaid-shimmer 1.6s linear infinite,
-          docs-mermaid-dismiss 0s 10s forwards;
+          docs-mermaid-dismiss 0s var(--docs-mermaid-timeout) forwards;
       }
     }
   }

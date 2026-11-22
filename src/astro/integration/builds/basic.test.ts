@@ -440,6 +440,9 @@ describe('#19 tabla ancha', () => {
   it('una tabla Markdown sale dentro del contenedor desplazable `table-scroll`', async () => {
     const html = await site.read('guide/index.html');
     expect(html).toMatch(/<div class="table-scroll" tabindex="0"><table>[\s\S]*<\/table><\/div>/);
+    // La envuelve `Article` (ya no hay plugin de tablas): un solo nivel.
+    expect(html.match(/class="table-scroll"/g)).toHaveLength(1);
+    expect(html).not.toMatch(/table-scroll[^>]*>\s*<div class="table-scroll"/);
   });
 });
 

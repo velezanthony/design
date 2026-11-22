@@ -32,7 +32,7 @@ core/
 │   ├── generated-listings.ts  Las páginas que genera `indexes`: carpetas, título y entradilla
 │   ├── stored-page.ts     Una entrada de la colección (su forma, sin Astro) → Page
 │   ├── slug.ts            guia/index → guia, index → '' (portada); qué es un _index y de qué carpeta
-│   ├── scrollable-tables.ts  Envuelve cada <table> del HTML en su .table-scroll (lo usa Article)
+│   ├── scrollable-tables.ts  El único dueño del .table-scroll: envuelve cada <table> (lo usa Article) sin repetir uno escrito a mano
 │   └── title.ts           Primer h1 o title del frontmatter; sin ninguno, error
 ├── i18n/
 │   ├── locale.ts          Idiomas, sufijos de archivo, idioma de una URL
@@ -315,8 +315,7 @@ astro/
 │   ├── github-alerts.ts     Citas > [!NOTE] como admoniciones
 │   ├── tabs.ts              ::::tabs con :::tab[Etiqueta]
 │   ├── nav-tree.ts          ::nav-tree → un h2 por sección de nav y el hueco de su árbol
-│   ├── tables.ts            Envuelve cada tabla en un contenedor con scroll
-│   ├── images.ts            Marca los párrafos que mezclan texto e imágenes (no son capturas)
+│   ├── images.ts            Marca la captura: el párrafo con una sola imagen (`p.docs-screenshot`)
 │   ├── mermaid.ts           Bloques mermaid → .docs-mermaid
 │   ├── code-languages.ts    Alias de lenguajes que Shiki no trae
 │   └── restore-directives.ts  Devuelve a texto las directivas que nadie reclamó

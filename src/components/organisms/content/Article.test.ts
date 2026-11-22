@@ -127,7 +127,13 @@ describe('Article: tablas', () => {
     expect(wrappers[0]!.querySelector(':scope > table')).not.toBeNull();
   });
 
-  it('no envuelve otra vez una tabla que ya viene en su .table-scroll (Markdown de los docs)', async () => {
+  it('una tabla del Markdown de docs (sin plugin de tablas) sale una sola vez envuelta', async () => {
+    const doc = await article({}, { default: `<h2>T</h2>\n${table}\n<p>x</p>` });
+    expect(doc.querySelectorAll('.table-scroll')).toHaveLength(1);
+    expect(doc.querySelectorAll('.table-scroll .table-scroll')).toHaveLength(0);
+  });
+
+  it('no envuelve otra vez una tabla que ya viene en su .table-scroll (a mano, como en el sitio del autor)', async () => {
     const doc = await article(
       {},
       { default: `<div class="table-scroll" tabindex="0">${table}</div>` },

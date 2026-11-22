@@ -3,11 +3,10 @@ import { admonitions } from './admonitions';
 import { codeLanguages, SHIKI_LANG_ALIAS } from './code-languages';
 import type { MarkdownEnv } from './env';
 import { githubAlerts } from './github-alerts';
-import { inlineImages } from './images';
+import { screenshots } from './images';
 import { mermaid } from './mermaid';
 import { navTree } from './nav-tree';
 import { restoreDirectives } from './restore-directives';
-import { scrollableTables } from './tables';
 import { tabs } from './tabs';
 
 /** Nuestros plugins mdast en orden: los que reclaman directivas y citas primero, `restoreDirectives` al final; los `append` del consumidor van antes. */
@@ -20,8 +19,7 @@ export function markdownPlugins(
     admonitions(env),
     tabs(env),
     navTree(env),
-    scrollableTables(env),
-    inlineImages(env),
+    screenshots(env),
     mermaid(env),
     codeLanguages(env, langAlias),
     restoreDirectives,

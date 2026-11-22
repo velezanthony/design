@@ -34,9 +34,8 @@ flowchart TD
   ga --> ad["admonitions"]
   ad --> tb["tabs"]
   tb --> nt["navTree"]
-  nt --> st["scrollableTables"]
-  st --> ii["inlineImages"]
-  ii --> mm["mermaid"]
+  nt --> ss["screenshots"]
+  ss --> mm["mermaid"]
   mm --> cl["codeLanguages"]
   cl --> rd["restoreDirectives"]
   rd --> sh["Shiki<br/>github-light-default / github-dark-default"]
@@ -51,8 +50,7 @@ El orden lo fija `markdownPlugins` en `register.ts`, y no es arbitrario:
 | `admonitions` | `admonitions.ts` | `:::tip[Título]` → `<aside class="admonition" data-kind>`; con `{collapsed}`, un `<details>`. Un contenedor con nombre desconocido rompe el build. |
 | `tabs` | `tabs.ts` | `::::tabs` con `:::tab[Etiqueta]` dentro → pestañas. Sin JavaScript se ven apiladas con su etiqueta. |
 | `navTree` | `nav-tree.ts` | `::nav-tree` → un `##` por sección de `nav` y el hueco de su árbol, que rellena la ruta en el idioma que pinta. Ver [Índice generado](navegacion-y-busqueda.md#índice-generado-nav-tree). |
-| `scrollableTables` | `tables.ts` | Envuelve cada tabla en un `div.table-scroll` enfocable que se desplaza en horizontal. |
-| `inlineImages` | `images.ts` | Marca con `p.docs-inline-images` el párrafo que mezcla texto e imágenes: el CSS no ve el texto, y sin la marca una imagen única entre palabras se pintaría como captura. |
+| `screenshots` | `images.ts` | Marca con `p.docs-screenshot` el párrafo que solo tiene una imagen: es lo que el CSS pinta como captura. |
 | `mermaid` | `mermaid.ts` | Un bloque `mermaid` pasa a `.docs-mermaid[data-mermaid]` con el código dentro, sin Shiki. El cliente lo sustituye por el SVG; sin JavaScript se lee el código. |
 | `codeLanguages` | `code-languages.ts` | Avisa de bloques con fence sin lenguaje y de lenguajes que Shiki no conoce. |
 | `restoreDirectives` | `restore-directives.ts` | **El último**: devuelve a texto las directivas que nadie reclamó. |
@@ -106,9 +104,17 @@ demás conservan su tamaño natural, en línea y sin borde, con `max-width: 100%
 imágenes en el mismo párrafo, una imagen dentro del texto o de un enlace y un `<img width="300">`
 escrito en HTML. Un `<img align="right">` (o `left`) flota como en GitHub.
 
-El CSS no ve el texto de un párrafo, así que `inlineImages` marca los que mezclan texto e imágenes.
-Fuera de la documentación ese plugin no corre: allí una imagen que sea el único elemento entre
-palabras se sigue pintando como captura.
+El CSS no distingue un párrafo con texto de uno sin él, así que lo que no ve lo marca el Markdown en
+positivo: `screenshots` pone `p.docs-screenshot` en el párrafo que solo tiene una imagen, y el CSS
+pinta como captura solo ese párrafo. Fuera de la documentación ese plugin no corre, así que allí
+ninguna imagen se pinta como captura (antes, una imagen sola en su párrafo lo era también fuera).
+
+## Tablas
+
+Una tabla se desplaza en horizontal dentro de su `div.table-scroll`, enfocable con el teclado. Lo pone
+`Article`, también en las páginas propias del sitio que lo usan; una tabla que ya va en su
+`.table-scroll` (escrita a mano) no se envuelve otra vez. Quien pinte el HTML de la colección sin
+`Article` no tiene el envoltorio.
 
 ## Diagramas
 

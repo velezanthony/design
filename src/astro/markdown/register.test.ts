@@ -98,8 +98,16 @@ describe('markdownPlugins: integrados', () => {
     expect(html).toContain('<div align="center">x</div>');
   });
 
-  it('las tablas llevan contenedor desplazable', async () => {
-    expect(await full('| a |\n|---|\n| 1 |', docFileURL('a.md'))).toContain('table-scroll');
+  it('las tablas salen tal cual: el contenedor desplazable lo pone `Article`', async () => {
+    const html = await full('| a |\n|---|\n| 1 |', docFileURL('a.md'));
+    expect(html).toContain('<table>');
+    expect(html).not.toContain('table-scroll');
+  });
+
+  it('una imagen sola en su párrafo sale marcada como captura', async () => {
+    expect(await full('![c](https://x.test/c.png)', docFileURL('a.md'))).toContain(
+      '<p class="docs-screenshot">',
+    );
   });
 
   it('un plugin del consumidor convive con los nuestros', async () => {
