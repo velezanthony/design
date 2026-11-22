@@ -1,16 +1,158 @@
 ---
 seo:
-  title: "Mapa de src: qué hace cada archivo"
-  description: "Recorrido por las carpetas de src/ con el propósito de cada archivo importante, dónde viven sus tests y las rutas públicas que exporta el paquete."
+  title: "Estructura de src: capas, reglas y mapa de archivos"
+  description: "Las capas de src/ y qué puede importar cada una, las reglas numeradas, cómo las hace cumplir ESLint y el mapa de cada archivo, más el contrato público del paquete."
 ---
 
-# Mapa de `src/`
+# Estructura
+
+Esta página explica cómo se reparte `src/`, qué puede importar cada parte y qué hace cada archivo. Al
+terminarla sabrás dónde va un cambio nuevo y por qué ESLint rechaza ciertos imports.
+
+## Las capas
+
+| Capa | Qué contiene | Puede importar |
+| --- | --- | --- |
+| `core/` | Lógica pura: config, contenido, enlaces, navegación, i18n, SEO, analítica. | Solo `core/` y `astro/zod`. |
+| `client/` | JavaScript del navegador: tema, búsqueda, consentimiento, pestañas, zoom… | Solo **tipos** de `core/` (`import type`). |
+| `components/` | Componentes `.astro` presentacionales y estilos. Reciben props, no buscan datos. | `core/` y `client/`. Nada de `astro`, `astro:*`, `virtual:*` ni la carpeta `astro/`. |
+| `astro/` | El adaptador: integración, loader, plugins de Markdown, rutas, módulo virtual. | Todo, con las reglas de subcapa de más abajo. Es la única capa que conoce Astro. |
+| `testing/` | Utilidades de test (no se distribuye). | Todo. |
+
+```mermaid
+flowchart TD
+  astro["astro/<br/>integración · loader · markdown · rutas · virtual"]
+  components["components/<br/>átomos · moléculas · organismos · layouts · estilos"]
+  client["client/<br/>scripts de navegador"]
+  core["core/<br/>lógica pura"]
+  ext["astro, astro:*, virtual:*, node:*"]
+  zod["astro/zod"]
+
+  astro --> components
+  astro --> client
+  astro --> core
+  astro --> ext
+  components --> client
+  components --> core
+  client -. "solo import type" .-> core
+  core --> zod
+```
+
+Las flechas son las únicas direcciones permitidas. Fíjate en lo que **no** hay:
+
+- `core/` no apunta a nada salvo a zod: ni Node (`node:*`), ni Astro, ni el módulo virtual. Es puro.
+- `client/` no importa valores del núcleo. El código de navegador se empaqueta para el cliente, y
+  arrastrar valores de `core/` metería en el bundle código que no pinta nada en el navegador. Los
+  datos que necesita le llegan por atributos `data-*` del HTML.
+- `components/` no ve `astro/`: un componente no lee la colección ni el módulo virtual. Eso lo hacen las
+  **rutas** de `astro/routes/` (contenedores), que le pasan el modelo a las páginas de
+  `components/pages/` (presentacionales: solo pintan).
+
+## Las reglas numeradas
+
+Algunas reglas del repo llevan un código (`N1`, `N4`…) para poder citarlas en comentarios, en
+`eslint.config.mjs` y en los mensajes de commit. La numeración tiene huecos: son las reglas que siguen
+vigentes. Esta es la lista, con dónde se explica cada una:
+
+| Código | Regla | Dónde |
+| --- | --- | --- |
+| N1 | Un componente no deriva: recibe un modelo de vista ya calculado por una función pura, y las URLs le llegan por un puerto. | [Recetas](./mantenimiento.md#recetas) |
+| N2 | Toda URL que enlaza un listado sale de una sola función, y un test comprueba que cada enlace existe. | [Mantenimiento](./mantenimiento.md#tests) |
+| N3 | Dentro de `astro/`, `data/` no importa `routes/`, `views/` ni `components/`. | [Subcapas de `astro/`](#subcapas-de-astro) |
+| N4 | Dentro de `core/`, la config no depende de los dominios que la usan, y lo compartido no conoce ningún dominio. | [Dependencias dentro de `core/`](#dependencias-dentro-de-core-n4) |
+| N5 | Los tipos salen del esquema zod (`z.infer`), no de una interfaz que repita los campos. | [Recetas](./mantenimiento.md#recetas) |
+| N6 | Cada regla de URL tiene un único dueño: si una URL sale mal, se arregla ahí. | [Una página de principio a fin](./build.md#dónde-mirar-cuando-algo-falla) |
+| N8 | Lo que el CSS no distingue se marca en el HTML, en positivo (`p.docs-screenshot`). | [Mantenimiento](./mantenimiento.md#convenciones) |
+| N9 | Dos o más parámetros opcionales van en un objeto con nombre. | [Mantenimiento](./mantenimiento.md#convenciones) |
+| N10 | Un organismo solo compone moléculas y átomos. | [Recetas](./mantenimiento.md#recetas) |
+| N11 | Todo ajuste que cambia por carpeta vive en `content.folders` y se hereda en un solo sitio. | [Recetas](./mantenimiento.md#recetas) |
+| N12 | Toda opción de valores cerrados es una constante exportada. | [Recetas](./mantenimiento.md#recetas) |
+| N13 | La config tiene tres grupos, cada uno con su módulo. | [Recetas](./mantenimiento.md#recetas) |
+| N14 | El frontmatter solo lleva el contenido de la página. | [Recetas](./mantenimiento.md#recetas) |
+| N15 | Los tipos públicos de la config se comprueban con casos en `src/testing/config-types.ts`. | [Mantenimiento](./mantenimiento.md#tests) |
+
+### Dependencias dentro de `core/` (N4)
+
+Dentro del núcleo también hay direcciones:
+
+- **`core/config/`** no importa **valores** de `core/navigation/`, `core/listing/`, `core/seo/` ni
+  `core/seo-on-page/`: esos dominios leen la config, no al revés. Puede usar `core/content/`,
+  `core/i18n/` y `core/shared/`, y tipos de cualquiera con `import type`. Por eso
+  `DEFAULT_TOC_DEPTH` vive en `core/config/layout.ts` y `core/navigation/toc-entries.ts` lo importa
+  de ahí.
+- **`core/shared/`** no importa ningún dominio de `core/`: texto, paginación y URLs genéricas que
+  cualquiera puede usar (`paginate`, `humanize`, `folderLabel`, `withBase`).
+
+### Subcapas de `astro/`
+
+Dentro de `astro/` los datos y la presentación tampoco se importan entre sí: solo `routes/` conoce a los dos.
+
+- `views/` (modelos de vista) no importa `astro:*`, el paquete `astro` ni `data/`, y tampoco `components/`.
+- `loader/` no importa `integration/`.
+- `data/` no importa `routes/`, `views/` ni `components/` (tampoco sus tipos). Si una ruta necesita
+  datos y una vista, los lee de `data/` y se los pasa a `views/`: `routes/doc.astro` lee las fechas de
+  commit y optimiza las portadas (`data/covers.ts`) y llama a `docListingView`.
+  Sin excepciones: el adaptador del panel (`data/seo-on-page/`) tampoco; las rutas del panel arman
+  sus enlaces (`views/seo-on-page/hrefs`).
+- La ruta construye el contexto del sitio (`siteContext`) una vez por render y lo pasa a cada vista
+  (`docView`, `docListingView`, `docNavTrees`); `docRoutes` resuelve el listado de cada ruta una vez.
+
+### Valla del panel de desarrollo
+
+El panel `seo-on-page` solo existe en desarrollo, así que nada de lo publicado puede importarlo: ni
+`components/` (fuera de `components/seo-on-page/`), ni `client/` (fuera de `client/seo-on-page/`), ni
+`astro/routes/` (fuera de `routes/seo-on-page/`). Los textos del panel viven en
+`core/seo-on-page/labels.ts` para que tanto sus vistas como sus componentes los lean sin cruzarse.
+
+## Cómo lo hace cumplir ESLint
+
+`eslint.config.mjs` aplica `@typescript-eslint/no-restricted-imports` por carpeta con una función
+`layer(folder, paths, patterns)`:
+
+- Los imports relativos se detectan por el nombre de la carpeta (`relativeTo([...])`, o
+  `siblingOf([...])` para las subcapas de `astro/`), y `astro:*`, `virtual:*` y `node:*` por patrón.
+- El paquete `astro` va por `paths` (coincidencia exacta), para no atrapar también `astro/zod`.
+- En `client/` y en `core/config`, `allowTypeImports: true` deja pasar los `import type`.
+
+`src/testing/boundaries.test.ts` lintea fragmentos con la ruta de cada capa y comprueba que cada
+import prohibido **sigue saltando**: si alguien borra una regla, el test falla.
+
+## El resto de reglas de ESLint
+
+- **Sin `enum`.** El paquete publica `.ts` sin compilar y `enum` no es sintaxis borrable. En su
+  lugar, un objeto `as const` más un tipo derivado:
+
+  ```ts
+  export const MissingTranslation = { LINK: 'link', OMIT: 'omit', FALLBACK: 'fallback' } as const;
+  export type MissingTranslation = (typeof MissingTranslation)[keyof typeof MissingTranslation];
+  ```
+
+  Así están `MissingTranslation`, `PanelState`, `LayoutWidth` y `NavIcon`.
+- **Sin linting con tipos.** `astro check` ya es el dueño de los tipos, y el parser tendría que
+  generar un `.tsx` por cada `.astro`.
+- **Accesibilidad.** `eslint-plugin-astro` con su configuración `jsx-a11y-recommended`.
+- **Formato.** `eslint-config-prettier` va el último: el formato es solo cosa de Prettier.
+- `playground/` está en `ignores`: es un consumidor con sus propias comprobaciones.
+
+## Por qué así
+
+- **Tests rápidos y fiables.** Casi toda la lógica está en `core/` y se prueba con funciones puras.
+  Lo que necesita Astro se prueba con el contenedor de Astro (`testing/render.ts`) o con builds de
+  fixtures.
+- **Un solo sitio que cambia con Astro.** Cuando Astro cambia una API, el impacto queda en
+  `astro/`. El resto no lo nota.
+- **Componentes reutilizables.** Como `components/` solo recibe props, un componente se puede renderizar en
+  un test o en otra página sin montar la colección ni el módulo virtual.
+
+## El mapa de `src/`
 
 Los tests viven **junto a su archivo** (`slug.ts` y `slug.test.ts`), así que aquí solo aparece el
 código (tampoco las fixtures de los tests). Las rutas son relativas a `src/`. Un test, `src-map.test.ts`,
 comprueba que este mapa nombra cada archivo y cada carpeta.
 
-## `core/`: la lógica pura
+::::tabs
+:::tab[core/]
+**`core/`: la lógica pura**
 
 ```text
 core/
@@ -159,8 +301,9 @@ core/seo-on-page/
 ├── site-files.ts          Los archivos del sitio que el panel enseña (robots, sitemap…)
 └── labels.ts              Textos del panel: los comparten sus vistas y sus componentes
 ```
-
-## `client/`: el navegador
+:::
+:::tab[client/]
+**`client/`: el navegador**
 
 Cada archivo exporta funciones `init*` que reciben lo que necesitan (documento, `Storage`,
 `matchMedia`…) en vez de leer globales, para poder probarlas con dobles.
@@ -201,8 +344,9 @@ client/
 ├── search.ts           Pagefind: carga bajo la base, resultados, atajo «/»
 └── transition.ts       Envoltorio de la View Transitions API con movimiento reducido
 ```
-
-## `components/`: lo que se ve
+:::
+:::tab[components/]
+**`components/`: lo que se ve**
 
 Diseño atómico. Ningún componente lee datos por su cuenta: todo llega por props, incluidos los
 textos (`strings: UiStrings`).
@@ -268,11 +412,12 @@ components/
 │   └── sitemap.ts           Lee la paleta de tokens.css para la hoja del sitemap
 └── assets/favicon.png       Favicon por defecto
 ```
-
-## `astro/`: el adaptador
+:::
+:::tab[astro/]
+**`astro/`: el adaptador**
 
 Dentro de `astro/` los datos (`data/`) y la presentación (`views/`, `routes/`) no se importan entre sí:
-solo `routes/` conoce a los dos (ver [Capas](./index.md#subcapas-de-astro)).
+solo `routes/` conoce a los dos (ver [Capas](#subcapas-de-astro)).
 
 ```text
 astro/
@@ -319,7 +464,7 @@ astro/
 │   ├── env.ts               Lo que los plugins saben del sitio
 │   ├── path-filter.ts       Qué Markdown transforman nuestros plugins
 │   ├── admonitions.ts       Directivas :::tipo
-│   ├── github-alerts.ts     Citas > [!NOTE] como admoniciones
+│   ├── github-alerts.ts     Citas > [!NOTE] como cajas de aviso
 │   ├── tabs.ts              ::::tabs con :::tab[Etiqueta]
 │   ├── nav-tree.ts          ::nav-tree → un h2 por sección de nav y el hueco de su árbol
 │   ├── mermaid.ts           Bloques mermaid → .docs-mermaid
@@ -364,8 +509,9 @@ astro/
     ├── data.ts              Qué viaja en el módulo virtual
     └── virtual.d.ts         Sus tipos, copiados al .astro/ del consumidor
 ```
-
-## `testing/` y `pages/` (no se distribuyen)
+:::
+:::tab[testing/ y pages/]
+**`testing/` y `pages/` (no se distribuyen)**
 
 - `testing/render.ts`: renderiza un componente con el contenedor de Astro y lo devuelve como DOM
   (linkedom).
@@ -383,9 +529,11 @@ astro/
   `i18n`, `content`).
 - `testing/config-types.ts`: test de tipos de `defineDocsConfig` (un caso válido con las constantes y
   `@ts-expect-error` en lo que debe rechazar); no se ejecuta, lo comprueba `npm run check`.
-- `testing/boundaries.test.ts`: la regla de capas (ver [Capas](./index.md#cómo-lo-hace-cumplir-eslint)).
+- `testing/boundaries.test.ts`: la regla de capas (ver [Capas](#cómo-lo-hace-cumplir-eslint)).
 - `testing/src-map.test.ts`: comprueba que este mapa nombra cada archivo y cada carpeta de `src/`.
 - `pages/index.astro`: la página mínima que sirve `npm run dev` en la raíz.
+:::
+::::
 
 ## El contrato público
 
@@ -415,3 +563,7 @@ Lo que un consumidor puede importar está fijado en `"exports"` del `package.jso
 
 Mover un archivo a los que apunta una de estas subrutas es un cambio incompatible para los
 consumidores. `src/astro/integration/public-api.test.ts` sujeta lo que exporta la integración.
+
+## Siguiente paso
+
+Cómo se genera el sitio, paso a paso: [Cómo se genera el sitio](./build.md).

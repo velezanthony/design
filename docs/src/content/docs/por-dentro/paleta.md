@@ -10,7 +10,7 @@ Todos los colores, tamaños de texto y medidas son **tokens** de Tailwind 4 decl
 `@theme` de `src/components/styles/theme.css`. Un token `--color-accent` genera las utilidades
 `text-accent`, `bg-accent`, `border-accent`… y además existe como variable CSS. Ningún componente
 escribe colores literales: un test de `theme.test.ts` lo comprueba en las reglas de prosa,
-admoniciones y pestañas.
+cajas de aviso y pestañas.
 
 ## Superficies
 
@@ -112,13 +112,17 @@ arriba.
 ## Otros tokens
 
 - **Estados**: `state-live` (mantenido), `state-wip` (experimental), `danger` (error). Son los
-  colores de las admoniciones `tip`, `warning` y `danger`.
+  colores de las cajas de aviso `tip`, `warning` y `danger`.
 - **Tipografía**: `--font-sans` y `--font-mono` apuntan a las variables de IBM Plex que declara
   `fonts.ts`; `--text-display`, `--text-row`, `--text-label`.
 - **Medidas**: `--container-measure` (42rem, unos 78 caracteres), `--container-measure-full`
   (52rem, en ancho completo), `--container-page` (80rem). La disposición usa variables propias
   (`--col-left`, `--rail`, `--wide-max`…) que cambian con los atributos de `<html>` (ver
-  [Disposición](../guia/disposicion.md)).
+  [Aspecto](../guia/personalizar.md#aspecto)).
 - **Código**: los temas de Shiki son `github-light-default` y `github-dark-default`
   (`code-themes.ts`); en oscuro el fondo de los bloques es `--code-dark-bg`, porque el de GitHub es
   azulado.
+
+## Siguiente paso
+
+Cuando el cambio esté listo, publícalo: [Publicar una versión](./versiones.md).

@@ -1,14 +1,14 @@
 import { defineDocsConfig, NavIcon } from '@velezanthony/design/integration';
 
-/* La documentación de mantenimiento de la librería. La lee una sola persona (quien la mantiene),
-   así que va en un único idioma: español. */
+/* La documentación de la librería: para quien la usa en su sitio y, en «Por dentro», para quien la
+   mantiene o mantiene un fork. Va en un único idioma, español, y en dos secciones: Guía y Por dentro. */
 export default defineDocsConfig({
   site: {
     name: 'Design',
     social: { github: 'https://github.com/velezanthony/design' },
     seo: {
       description:
-        'Cómo funciona y cómo se mantiene @velezanthony/design: el sistema de diseño y el motor de documentación de los repositorios de velezanthony.',
+        'Cómo montar un sitio de documentación con @velezanthony/design, un sistema de diseño y un motor de documentación sobre Astro, y cómo está hecha la librería por dentro.',
     },
     analytics: { privacyUrl: 'https://velezanthony.github.io/privacidad/' },
   },
@@ -19,42 +19,30 @@ export default defineDocsConfig({
         label: 'Guía',
         dir: 'guia',
         sidebar: [
-          { label: 'Concepto', slug: 'guia', items: ['guia/fuera-del-paquete'] },
           {
-            label: 'Primeros pasos',
-            slug: 'guia/primeros-pasos',
+            label: 'Usar la librería',
             items: [
-              'guia/disposicion',
-              'guia/markdown',
-              'guia/navegacion-y-busqueda',
-              'guia/rutas-seo-idiomas',
-              'guia/analitica-y-privacidad',
+              'guia/primer-sitio',
+              'guia/escribir-paginas',
+              'guia/navegacion',
+              'guia/idiomas-seo-y-analitica',
+              'guia/personalizar',
             ],
           },
-          { label: 'Páginas propias', items: ['guia/layout-propio', 'guia/piezas-sueltas'] },
-          'guia/seo-on-page',
+          { label: 'Consulta', items: ['guia/opciones', 'guia/migrar-desde-mkdocs'] },
         ],
       },
       {
-        label: 'Desarrollo',
-        dir: 'desarrollo',
+        label: 'Por dentro',
+        dir: 'por-dentro',
         sidebar: [
-          {
-            label: 'Arquitectura',
-            slug: 'desarrollo',
-            items: ['desarrollo/una-pagina', 'desarrollo/herramientas', 'desarrollo/mapa-de-src'],
-          },
-          'desarrollo/por-dentro',
-          {
-            label: 'Mantenimiento',
-            slug: 'desarrollo/mantenimiento',
-            items: [
-              'desarrollo/tests',
-              'desarrollo/recetas',
-              'desarrollo/versiones',
-              'desarrollo/paleta',
-            ],
-          },
+          'por-dentro',
+          'por-dentro/hacer-un-fork',
+          'por-dentro/estructura',
+          'por-dentro/build',
+          'por-dentro/mantenimiento',
+          'por-dentro/paleta',
+          'por-dentro/versiones',
         ],
       },
       { label: 'GitHub', href: 'https://github.com/velezanthony/design', icon: NavIcon.GITHUB },

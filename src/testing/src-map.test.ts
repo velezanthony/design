@@ -2,11 +2,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-/* `mapa-de-src.md` describe el árbol real: cada carpeta y cada archivo que no sea un test ni una fixture
+/* `estructura.md` describe el árbol real: cada carpeta y cada archivo que no sea un test ni una fixture
    tiene que aparecer, y no puede quedar nombrado un archivo que ya no existe. */
 
 const SOURCE = 'src';
-const MAP = readFileSync('docs/src/content/docs/desarrollo/mapa-de-src.md', 'utf8');
+const MAP = readFileSync('docs/src/content/docs/por-dentro/estructura.md', 'utf8');
 
 /** Entradas de `src/` sin tests, fixtures ni archivos ocultos, con ruta relativa a `src/`. */
 function entries(directory: string, prefix = ''): { path: string; isDirectory: boolean }[] {
