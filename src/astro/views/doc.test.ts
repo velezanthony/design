@@ -537,7 +537,9 @@ describe('`slug` propio (URL traducida)', () => {
       covers: true,
     };
     expect(route(routes, 'tutorials', 'en').listing).toEqual(listing);
-    expect(routes.find((docRoute) => docRoute.param === 'tutorials/2')?.listing).toEqual(listing);
+    expect(routes.find((docRoute) => docRoute.param === 'tutorials/page/2')?.listing).toEqual(
+      listing,
+    );
     expect(route(routes, 'tutorials/a', 'en')).not.toHaveProperty('listing');
     expect(route(routes, '', 'en')).not.toHaveProperty('listing');
   });
@@ -558,8 +560,8 @@ describe('`slug` propio (URL traducida)', () => {
     const config = site({ locales: ['es', 'en'], defaultLocale: 'es' });
     const params = docRoutes(siteContext(config, listing)).map((docRoute) => docRoute.param);
     expect(params).toContain('en/tutorials');
-    expect(params).toContain('en/tutorials/2');
-    expect(params).toContain('tutoriales/2');
-    expect(params).not.toContain('en/tutoriales/2');
+    expect(params).toContain('en/tutorials/page/2');
+    expect(params).toContain('tutoriales/page/2');
+    expect(params).not.toContain('en/tutoriales/page/2');
   });
 });

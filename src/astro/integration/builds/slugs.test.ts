@@ -139,13 +139,14 @@ describe('`_index.en.md` con `slug`', () => {
   it('el listado de la carpeta vive en /en/tutorials/ y pagina debajo', async () => {
     for (const file of [
       'en/tutorials/index.html',
-      'en/tutorials/2/index.html',
-      'en/tutorials/3/index.html',
+      'en/tutorials/page/2/index.html',
+      'en/tutorials/page/3/index.html',
     ]) {
       expect(await exists(file)).toBe(true);
     }
     expect(await exists('en/tutoriales/index.html')).toBe(false);
-    expect(await exists('tutoriales/2/index.html')).toBe(true);
+    expect(await exists('en/tutorials/2/index.html')).toBe(false);
+    expect(await exists('tutoriales/page/2/index.html')).toBe(true);
   });
 
   it('sus entradas enlazan las URLs en inglés y la reserva de la que falta', async () => {

@@ -1,8 +1,8 @@
-import { pageUrl, type UrlPolicy } from '../../core/i18n/availability';
 import type { Locale } from '../../core/i18n/locale';
 import { pickLocalized } from '../../core/i18n/translation-policy';
 import { translate, type UiStrings } from '../../core/i18n/ui-strings';
 import { coverFor } from '../../core/listing/covers';
+import { listingPageUrl } from '../../core/listing/urls';
 import type { Page } from '../../core/content/discovery';
 import { isPagedListing, resolveListing, type ListingOptions } from '../../core/listing/options';
 import {
@@ -44,11 +44,6 @@ export function sizeHrefs(folderHref: string, perPage: number, pages: number): s
     const query = `${PER_PAGE_PARAM}=${perPage}${page === 1 ? '' : `&${PAGE_PARAM}=${page}`}`;
     return `${folderHref}?${query}`;
   });
-}
-
-/** URL de la página `page` del listado de `slug`: la 1 es la de la carpeta; las demás, `<carpeta>/<n>/`. */
-export function listingPageUrl(slug: string, locale: Locale, page: number, url: UrlPolicy): string {
-  return pageUrl(page === 1 ? slug : [slug, String(page)].filter(Boolean).join('/'), locale, url);
 }
 
 /** La portada y la fecha de cada página, de su entrada en el idioma del contenido o, sin ella, la del original (`pickLocalized`). */
@@ -151,7 +146,7 @@ export function docListingView({
     data.find((item) => item.slug === route.slug && item.locale === route.contentLocale)?.title ??
     '';
   const hrefs = Array.from({ length: pages }, (_item, index) =>
-    listingPageUrl(route.urlSlug ?? route.slug, route.locale, index + 1, site.url),
+    listingPageUrl(route.urlSlug, route.locale, { perPage, page: index + 1 }, perPage, site.url),
   );
   const sections = paged ? [] : listing.sections;
   return {

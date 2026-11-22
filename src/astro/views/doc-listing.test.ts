@@ -59,27 +59,27 @@ describe('docRoutes: índices paginados', () => {
     expect(params).toEqual(
       expect.arrayContaining([
         'tutoriales',
-        'tutoriales/2',
-        'tutoriales/3',
+        'tutoriales/page/2',
+        'tutoriales/page/3',
         'en/tutoriales',
-        'en/tutoriales/2',
-        'en/tutoriales/3',
+        'en/tutoriales/page/2',
+        'en/tutoriales/page/3',
       ]),
     );
-    expect(params).not.toContain('tutoriales/4');
+    expect(params).not.toContain('tutoriales/page/4');
   });
 
   it('cada ruta sabe su página y el total', () => {
     const routes = docRoutes(siteContext(site(), data));
     expect(routeOf(routes, 'tutoriales')).toMatchObject({ slug: 'tutoriales', pages: 3 });
     expect(routeOf(routes, 'tutoriales').page).toBeUndefined();
-    expect(routeOf(routes, 'tutoriales/2')).toMatchObject({
+    expect(routeOf(routes, 'tutoriales/page/2')).toMatchObject({
       slug: 'tutoriales',
       kind: 'page',
       page: 2,
       pages: 3,
     });
-    expect(routeOf(routes, 'en/tutoriales/3')).toMatchObject({ kind: 'fallback', page: 3 });
+    expect(routeOf(routes, 'en/tutoriales/page/3')).toMatchObject({ kind: 'fallback', page: 3 });
   });
 
   it('la lista no se pagina', () => {
@@ -87,12 +87,12 @@ describe('docRoutes: índices paginados', () => {
       item === listing ? { ...item, listing: { layout: 'list' as const, pageSize: 2 } } : item,
     );
     const params = docRoutes(siteContext(site(), list)).map((route) => route.param);
-    expect(params).not.toContain('tutoriales/2');
+    expect(params).not.toContain('tutoriales/page/2');
   });
 
   it('una página real que ocupa la URL de una página del listado rompe el build', () => {
-    expect(() => docRoutes(siteContext(site(), [...data, doc('tutoriales/2')]))).toThrow(
-      /tutoriales\/2/,
+    expect(() => docRoutes(siteContext(site(), [...data, doc('tutoriales/page/2')]))).toThrow(
+      /tutoriales\/page\/2/,
     );
   });
 });
@@ -110,14 +110,14 @@ describe('docView: páginas de un índice paginado', () => {
     const links = view.head.filter((tag) => tag.tag === 'link');
     expect(links).toContainEqual({
       tag: 'link',
-      attrs: { rel: 'next', href: 'https://x.dev/repo/tutoriales/2/' },
+      attrs: { rel: 'next', href: 'https://x.dev/repo/tutoriales/page/2/' },
     });
     expect(links.some((tag) => tag.attrs.rel === 'prev')).toBe(false);
   });
 
   it('la página 2: noindex, canonical a sí misma, título con la página y prev/next', () => {
     const view = docView({
-      route: routeOf(routes, 'tutoriales/2'),
+      route: routeOf(routes, 'tutoriales/page/2'),
       site: siteContext(site(), data),
       data,
     });
@@ -126,10 +126,10 @@ describe('docView: páginas de un índice paginado', () => {
     expect(attrs).toContainEqual({ name: 'robots', content: 'noindex' });
     expect(attrs).toContainEqual({
       rel: 'canonical',
-      href: 'https://x.dev/repo/tutoriales/2/',
+      href: 'https://x.dev/repo/tutoriales/page/2/',
     });
     expect(attrs).toContainEqual({ rel: 'prev', href: 'https://x.dev/repo/tutoriales/' });
-    expect(attrs).toContainEqual({ rel: 'next', href: 'https://x.dev/repo/tutoriales/3/' });
+    expect(attrs).toContainEqual({ rel: 'next', href: 'https://x.dev/repo/tutoriales/page/3/' });
     expect(attrs.some((tag) => tag.rel === 'alternate')).toBe(false);
     const title = view.head.find((tag) => tag.tag === 'title')!.content;
     expect(title).toBe('Tutoriales · Página 2 de 3 | Blog');
@@ -137,7 +137,7 @@ describe('docView: páginas de un índice paginado', () => {
 
   it('la página 2 marca en la barra lateral la entrada del índice', () => {
     const view = docView({
-      route: routeOf(routes, 'tutoriales/2'),
+      route: routeOf(routes, 'tutoriales/page/2'),
       site: siteContext(site(), data),
       data,
     });
@@ -183,7 +183,7 @@ describe('docListingView', () => {
       'tutoriales/a',
       'tutoriales/d',
     ]);
-    const third = view('tutoriales/3')!;
+    const third = view('tutoriales/page/3')!;
     expect(third.all).toBe(false);
     expect(third.items.map((item) => item.slug)).toEqual(['tutoriales/d']);
   });
@@ -197,14 +197,14 @@ describe('docListingView', () => {
       {
         perPage: 2,
         pages: 3,
-        hrefs: ['/repo/tutoriales/', '/repo/tutoriales/2/', '/repo/tutoriales/3/'],
+        hrefs: ['/repo/tutoriales/', '/repo/tutoriales/page/2/', '/repo/tutoriales/page/3/'],
       },
       { perPage: 12, pages: 1, hrefs: ['/repo/tutoriales/?por=12'] },
       { perPage: 24, pages: 1, hrefs: ['/repo/tutoriales/?por=24'] },
       { perPage: 48, pages: 1, hrefs: ['/repo/tutoriales/?por=48'] },
     ]);
     expect(view('en/tutoriales')!.sizes[1]!.hrefs).toEqual(['/repo/en/tutoriales/?por=12']);
-    expect(view('tutoriales/2')!.sizes).toEqual([]);
+    expect(view('tutoriales/page/2')!.sizes).toEqual([]);
   });
 
   it('cada entrada con su resumen, su fecha (sin fecha si no tiene commit) y su portada', () => {
@@ -215,17 +215,17 @@ describe('docListingView', () => {
   });
 
   it('las URLs de todas las páginas del listado, la 1 en la carpeta', () => {
-    expect(view('tutoriales/2')!.hrefs).toEqual([
+    expect(view('tutoriales/page/2')!.hrefs).toEqual([
       '/repo/tutoriales/',
-      '/repo/tutoriales/2/',
-      '/repo/tutoriales/3/',
+      '/repo/tutoriales/page/2/',
+      '/repo/tutoriales/page/3/',
     ]);
-    expect(view('en/tutoriales/2')!.hrefs[1]).toBe('/repo/en/tutoriales/2/');
+    expect(view('en/tutoriales/page/2')!.hrefs[1]).toBe('/repo/en/tutoriales/page/2/');
   });
 
   it('desde la página 2 lleva el título de la página (el cuerpo del _index.md no se repite)', () => {
     expect(view('tutoriales')!.heading).toBeUndefined();
-    expect(view('tutoriales/2')!.heading).toEqual({
+    expect(view('tutoriales/page/2')!.heading).toEqual({
       title: 'Tutoriales',
       page: 'Página 2 de 3',
     });
@@ -348,14 +348,14 @@ describe('docListingView: `_index.en.md` con `slug` propio', () => {
 
   it('sus páginas cuelgan de su URL y cada entrada enlaza su URL en inglés (o la reserva)', () => {
     const view = docListingView({
-      route: routeOf(routes, 'en/tutorials/2'),
+      route: routeOf(routes, 'en/tutorials/page/2'),
       site: siteContext(site(), translated),
       data: translated,
     });
     expect(view!.hrefs).toEqual([
       '/repo/en/tutorials/',
-      '/repo/en/tutorials/2/',
-      '/repo/en/tutorials/3/',
+      '/repo/en/tutorials/page/2/',
+      '/repo/en/tutorials/page/3/',
     ]);
     const first = docListingView({
       route: routeOf(routes, 'en/tutorials'),
@@ -369,11 +369,11 @@ describe('docListingView: `_index.en.md` con `slug` propio', () => {
 
   it('la página 2 del listado en inglés es canónica de sí misma bajo la URL traducida', () => {
     const view = docView({
-      route: routeOf(routes, 'en/tutorials/2'),
+      route: routeOf(routes, 'en/tutorials/page/2'),
       site: siteContext(site(), translated),
       data: translated,
     });
     const canonical = view.head.find((tag) => tag.attrs['rel'] === 'canonical');
-    expect(canonical?.attrs['href']).toBe('https://x.dev/repo/en/tutorials/2/');
+    expect(canonical?.attrs['href']).toBe('https://x.dev/repo/en/tutorials/page/2/');
   });
 });

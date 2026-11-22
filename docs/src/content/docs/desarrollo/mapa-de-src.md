@@ -46,6 +46,7 @@ core/
 │   ├── options.ts         resolveListing: el listado resuelto (lista o paginado) con su precedencia
 │   ├── entries.ts         buildListing (visitante de nav-walk): entradas, secciones y orden por fecha
 │   ├── covers.ts          Portada guardada, la que se pinta y el dibujo de la librería
+│   ├── urls.ts            Dueño de las URLs de un listado: page/ y per-page/, posiciones y nombres reservados
 │   └── view.ts            Lo que pinta el índice de una página y la fecha de cada entrada
 ├── navigation/
 │   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas

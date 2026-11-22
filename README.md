@@ -424,7 +424,7 @@ Una imagen que no existe avisa y deja la de la librería. Las portadas son decor
 con `imageAlt`.
 
 La tabla y las tarjetas van de la más reciente a la más antigua (fecha del último commit; lo que no
-tiene commit va primero y sin fecha) y se paginan en `/carpeta/2/`, `/carpeta/3/`…, que son
+tiene commit va primero y sin fecha) y se paginan en `/carpeta/page/2/`, `/carpeta/page/3/`… (`page` y `per-page` quedan reservados dentro de la carpeta), que son
 `noindex`, canónicas de sí mismas y fuera del sitemap. Con JavaScript, un selector «Por página»
 (`perPageOptions`; el `pageSize` se añade si falta) cambia el tamaño sin salir de la página 1, que
 trae todas las entradas: el estado va en la URL (`?por=18&pagina=2`) y se recuerda por índice en

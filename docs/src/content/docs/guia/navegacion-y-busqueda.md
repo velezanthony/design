@@ -177,11 +177,17 @@ insignia; `omit` no la lista). De cada página salen su título, su resumen (`in
   las tarjetas, va **delante**: es lo más nuevo. Sin git o en un clon superficial no hay fechas y el
   orden es el del árbol.
 - **Paginación** (tabla y tarjetas): la página 1 es la de la carpeta (`/tutoriales/`) y las demás,
-  `/tutoriales/2/`, `/tutoriales/3/`… con el `Pagination` de la librería. Desde la 2 se repite el
+  `/tutoriales/page/2/`, `/tutoriales/page/3/`… con el `Pagination` de la librería. El segmento
+  `page` es igual en todos los idiomas: con `slug: tutorials` en `_index.en.md`, la página 2 en inglés
+  es `/en/tutorials/page/2/`. Desde la 2 se repite el
   título del `_index.md` con «Página 2 de 3» y **no** la entradilla (no duplica contenido). Son
   `noindex` con `canonical` a sí mismas, llevan `rel="prev"`/`rel="next"`, no entran en el sitemap ni
-  en la búsqueda: lo que se indexa es la página 1 y cada página de la carpeta. Una
-  página real en `tutoriales/2.md` choca con esa URL y rompe el build.
+  en la búsqueda: lo que se indexa es la página 1 y cada página de la carpeta.
+- **Nombres reservados.** Dentro de una carpeta con listado (un `_index.md` o una generada, de
+  cualquier disposición), `page` y `per-page` son de la paginación: una página cuya URL sea
+  `<carpeta>/page`, `<carpeta>/per-page` o algo debajo (`tutoriales/page.md`, o un `slug:
+  tutorials/page` en inglés) rompe el build nombrando su archivo. Renombra el archivo o cambia su
+  `slug`.
 - **Tamaño de página por defecto:** 12 en las tarjetas (con 12, 24 o 48 las filas quedan completas
   tanto a dos como a tres columnas) y 10 en la tabla (la medida redonda de una tabla).
 - **Sitemap.** La página de la carpeta entra con `lastmod` = la fecha más reciente entre su
@@ -200,7 +206,7 @@ entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción
 más pequeña.
 
 - **Mejora progresiva.** Sin JavaScript el selector no se ve y el índice es el de siempre: rutas
-  estáticas (`/tutoriales/`, `/tutoriales/2/`…) del `pageSize` configurado, la 1 indexable y canónica.
+  estáticas (`/tutoriales/`, `/tutoriales/page/2/`…) del `pageSize` configurado, la 1 indexable y canónica.
   Lo enseña el script del artículo (`client/content/index-pager.ts`).
 - **Sin marcado duplicado ni red.** La página 1 trae todas las entradas de su carpeta (las de más,
   `hidden`) y un paginador por cada tamaño y página, pintados por los mismos componentes del

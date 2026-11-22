@@ -95,21 +95,23 @@ describe('_index.md: título, entradilla y disposición (tarjetas)', () => {
 });
 
 describe('paginación', () => {
-  it('la página 1 en la carpeta y las demás en /2/ y /3/, también en inglés', async () => {
+  it('la página 1 en la carpeta y las demás bajo `page/` (/page/2/, /page/3/), también en inglés', async () => {
     for (const file of [
-      'tutoriales/2/index.html',
-      'tutoriales/3/index.html',
-      'en/tutoriales/3/index.html',
-      'guia/2/index.html',
+      'tutoriales/page/2/index.html',
+      'tutoriales/page/3/index.html',
+      'en/tutoriales/page/3/index.html',
+      'guia/page/2/index.html',
     ]) {
       expect(await exists(file)).toBe(true);
     }
-    expect(await exists('tutoriales/4/index.html')).toBe(false);
-    expect(await exists('recetas/2/index.html')).toBe(false);
+    expect(await exists('tutoriales/page/4/index.html')).toBe(false);
+    expect(await exists('recetas/page/2/index.html')).toBe(false);
+    // La forma anterior (`<carpeta>/<n>/`) ya no existe.
+    expect(await exists('tutoriales/2/index.html')).toBe(false);
   });
 
   it('desde la página 2: el título y «Página 2 de 3», sin la entradilla, y noindex', async () => {
-    const document = await page('tutoriales/2/index.html');
+    const document = await page('tutoriales/page/2/index.html');
     const prose = document.querySelector('main .prose')!;
     expect(text(prose.querySelector('h1'))).toBe('Tutoriales');
     expect(text(prose)).toContain('Página 2 de 3');
@@ -117,13 +119,13 @@ describe('paginación', () => {
     expect(text(document.querySelector('title'))).toBe('Tutoriales · Página 2 de 3 | Indexes');
     expect(document.querySelector('meta[name="robots"]')!.getAttribute('content')).toBe('noindex');
     expect(document.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
-      'https://example.dev/idx/tutoriales/2/',
+      'https://example.dev/idx/tutoriales/page/2/',
     );
     expect(document.querySelector('link[rel="prev"]')!.getAttribute('href')).toBe(
       'https://example.dev/idx/tutoriales/',
     );
     expect(document.querySelector('link[rel="next"]')!.getAttribute('href')).toBe(
-      'https://example.dev/idx/tutoriales/3/',
+      'https://example.dev/idx/tutoriales/page/3/',
     );
     expect(document.querySelector('[data-pagefind-body]')).toBeNull();
   });
@@ -133,8 +135,10 @@ describe('paginación', () => {
     const pager = [...listing(document)!.querySelectorAll('nav a')].map((link) =>
       link.getAttribute('href'),
     );
-    expect(pager).toEqual(expect.arrayContaining(['/idx/tutoriales/2/', '/idx/tutoriales/3/']));
-    expect(await site.read('sitemap.xml')).not.toContain('/idx/tutoriales/2/');
+    expect(pager).toEqual(
+      expect.arrayContaining(['/idx/tutoriales/page/2/', '/idx/tutoriales/page/3/']),
+    );
+    expect(await site.read('sitemap.xml')).not.toContain('/idx/tutoriales/page/2/');
   });
 });
 
@@ -142,8 +146,8 @@ describe('portadas', () => {
   async function coverOf(slug: string) {
     for (const file of [
       'tutoriales/index.html',
-      'tutoriales/2/index.html',
-      'tutoriales/3/index.html',
+      'tutoriales/page/2/index.html',
+      'tutoriales/page/3/index.html',
     ]) {
       const card = cards(await page(file)).find(
         (item) => item.querySelector('h2 a')!.getAttribute('href') === `/idx/tutoriales/${slug}/`,
@@ -255,7 +259,7 @@ describe('selector «Por página»', () => {
     );
     expect(visible.map((pager) => pager.getAttribute('data-per'))).toEqual(['2']);
     expect(visible[0]!.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/idx/tutoriales/2/',
+      '/idx/tutoriales/page/2/',
     );
     const other = document.querySelector('[data-index-pagination][data-per="4"][data-page="1"]')!;
     expect(other.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
@@ -263,8 +267,8 @@ describe('selector «Por página»', () => {
     );
   });
 
-  it('las rutas estáticas no cambian: /2/ trae solo sus dos entradas y su paginador', async () => {
-    const document = await page('tutoriales/2/index.html');
+  it('las rutas estáticas no cambian: /page/2/ trae solo sus dos entradas y su paginador', async () => {
+    const document = await page('tutoriales/page/2/index.html');
     const root = document.querySelector('[data-index-pager]')!;
     expect(root.getAttribute('data-all')).toBe('false');
     expect(root.querySelectorAll('[data-index-item]')).toHaveLength(2);

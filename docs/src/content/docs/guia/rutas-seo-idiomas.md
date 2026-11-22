@@ -225,7 +225,7 @@ La página inglesa sale en `/en/tutorials/installation/`; la española sigue en
 | Config | `sidebar`, `nav` y `footer` nombran la página por su archivo (`'tutoriales/instalacion'`); un `slug` no obliga a cambiarla, y en `/en/` el enlace sale con la URL traducida. |
 | Lo que la usa | Selector de idioma, `hreflang`, sitemap, canonical, anterior/siguiente, barra lateral, cabecera, `::nav-tree`, índices generados, panel SEO y Pagefind. |
 | Enlaces | `[x](guia.md)` o `[x](guia.en.md)` desde la página inglesa llevan a la URL de su gemela inglesa, con su `slug`; las anclas se validan igual. |
-| `_index.en.md` | Con `slug: tutorials`, el listado de `tutoriales/` en inglés vive en `/en/tutorials/` y pagina en `/en/tutorials/2/`. Sus entradas enlazan sus URLs en inglés. |
+| `_index.en.md` | Con `slug: tutorials`, el listado de `tutoriales/` en inglés vive en `/en/tutorials/` y pagina en `/en/tutorials/page/2/`. Sus entradas enlazan sus URLs en inglés. |
 | Traducción ausente | La ruta de reserva (`fallback`) sigue como siempre: el prefijo del idioma más la URL del original (`/en/tutoriales/errores-comunes/`). |
 
 Rompen el build, con el archivo y una pista:

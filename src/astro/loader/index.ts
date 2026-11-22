@@ -13,6 +13,7 @@ import {
 } from '../../core/content/discovery';
 import { validateIndexFolders } from '../../core/config/indexes';
 import { contentFolders, generatedListingPages } from '../../core/content/generated-listings';
+import { reservedSegmentErrors } from '../../core/listing/urls';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
 import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
 import { excluder } from '../../core/content/exclude';
@@ -113,8 +114,9 @@ function discoverOrErrors(
   try {
     const pages = discoverPages(files, config);
     const all = [...pages, ...generatedListingPages(pages, config)];
-    // Las descubiertas ya no chocan entre sí: lo que choque ahora es con un índice generado.
-    const clashes = urlCollisions(all);
+    // Las descubiertas ya no chocan entre sí: lo que choque ahora es con un índice generado, o con
+    // los segmentos que reserva la paginación de un listado.
+    const clashes = [...urlCollisions(all), ...reservedSegmentErrors(all)];
     return clashes.length > 0 ? { pages: [], errors: clashes } : { pages: all, errors: [] };
   } catch (error) {
     if (error instanceof DocsErrors) return { pages: [], errors: error.errors };
