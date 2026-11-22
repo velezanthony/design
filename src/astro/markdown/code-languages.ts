@@ -1,6 +1,6 @@
 import { bundledLanguages, bundledLanguagesAlias } from 'shiki';
 import { defineMdastPlugin } from 'satteri';
-import { docsPlugin, type MarkdownEnv } from './env';
+import { markdownPlugin, type MarkdownEnv } from './env';
 
 /** Alias de autores que Shiki no trae → gramática soportada; `console` es `shellsession`. */
 export const SHIKI_LANG_ALIAS: Readonly<Record<string, string>> = {
@@ -32,7 +32,7 @@ function isFenced(node: {
 
 /** Avisa de lenguajes que Shiki no conoce y de fences sin lenguaje, sin romper la build; `langAlias` son los alias efectivos. */
 export function codeLanguages(env: MarkdownEnv, langAlias: Readonly<Record<string, string>>) {
-  return docsPlugin(env, ({ file }) =>
+  return markdownPlugin(env, ({ file }) =>
     defineMdastPlugin({
       name: 'code-languages',
       options: { position: true },

@@ -147,9 +147,9 @@ describe('codeLanguages', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('no avisa en Markdown que no es documentación', async () => {
+  it('también avisa en el Markdown que no es documentación', async () => {
     const { warn, render } = make();
     await render('```nopelang\nx\n```', nonDocFileURL('x.md'));
-    expect(warn).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledOnce();
   });
 });

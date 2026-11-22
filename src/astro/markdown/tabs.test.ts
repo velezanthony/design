@@ -73,7 +73,7 @@ describe('tabs', () => {
     expect(error).toBeInstanceOf(AstroError);
   });
 
-  it('no toca el Markdown que no es documentación', async () => {
-    expect(await render(two, nonDocFileURL('x.md'))).not.toContain('docs-tabs');
+  it('también convierte el Markdown que no es documentación', async () => {
+    expect(await render(two, nonDocFileURL('x.md'))).toContain('docs-tabs');
   });
 });

@@ -87,9 +87,9 @@ describe('admonitions: directivas', () => {
     expect(await fails('::::tabs\n:::tab[A]\na\n:::\n::::')).toBeUndefined();
   });
 
-  it('no toca el Markdown que no es documentación', async () => {
+  it('también convierte el Markdown que no es documentación', async () => {
     const html = await render(':::note\nx\n:::', nonDocFileURL('about.md'));
-    expect(html).not.toContain('admonition');
+    expect(html).toContain('class="admonition"');
   });
 });
 

@@ -94,9 +94,11 @@ describe('navTree (`::nav-tree`)', () => {
     await failure(':::nav-tree\nx\n:::');
   });
 
-  it('fuera de la documentación no se toca', async () => {
-    const html = await render('::nav-tree', nonDocFileURL('a.md'));
-    expect(html).not.toContain('data-docs-nav-tree');
-    expect(html).toContain('::nav-tree');
+  it('fuera de la documentación rompe el build: el árbol es el de la documentación', async () => {
+    const error = await render('::nav-tree', nonDocFileURL('a.md')).catch(
+      (caught: unknown) => caught as Error,
+    );
+    expect(error).toBeInstanceOf(AstroError);
+    expect((error as AstroError).message).toContain('solo funciona en la documentación');
   });
 });

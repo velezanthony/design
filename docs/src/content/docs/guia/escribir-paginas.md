@@ -7,8 +7,9 @@ seo:
 # Escribir páginas
 
 Esta página reúne lo que puedes escribir en una página: el frontmatter, el Markdown que entiende la
-librería y las reglas que comprueba el build. Todo vale igual en las páginas nativas y en los archivos
-`external`; el resto del Markdown de tu proyecto no se toca.
+librería y las reglas que comprueba el build. El Markdown vale en todo el proyecto: las páginas de la
+documentación, los `external` y cualquier otra colección que pintes con `Article`. Solo `::nav-tree`
+es exclusivo de la documentación.
 
 ## Frontmatter
 

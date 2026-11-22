@@ -1,7 +1,7 @@
 import { AstroError } from 'astro/errors';
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
 import { translate, type UiKey } from '../../core/i18n/ui-strings';
-import { docsPlugin, type MarkdownEnv } from './env';
+import { markdownPlugin, type MarkdownEnv } from './env';
 
 /** Tipos de directiva `:::tipo` (design-tokens da un color de estado a cada uno). */
 const ADMONITION_KINDS = ['note', 'info', 'tip', 'warning', 'danger', 'question'] as const;
@@ -57,7 +57,7 @@ export function kindTitle(strings: Parameters<typeof translate>[0], key: `admoni
 
 /** Directivas `:::tipo[Título]{collapsed}`: un tipo o atributo desconocido falla con archivo y nombre, porque sería contenido perdido. */
 export function admonitions(env: MarkdownEnv) {
-  return docsPlugin(env, ({ file, strings }) =>
+  return markdownPlugin(env, ({ file, strings }) =>
     defineMdastPlugin({
       name: 'admonitions',
       options: { position: true },
