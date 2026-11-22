@@ -5,6 +5,18 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ## 0.2.0
 
+### Cambios que rompen
+
+- **Las capturas se marcan en el Markdown.** Una imagen sola en su párrafo sale como
+  `<p class="docs-screenshot">` (plugin `screenshots`, `astro/markdown/images.ts`) y el CSS solo pinta
+  como captura ese párrafo. Se quita la clase `docs-inline-images`. Un párrafo con una sola imagen en
+  HTML que no pase por los plugins de la librería (Markdown propio, `<p><img></p>` escrito a mano) ya no
+  se pinta como captura: queda en línea y a su tamaño natural.
+- **Las tablas las envuelve `Article`, no un plugin de Markdown.** Se quita el plugin
+  `scrollableTables` (`astro/markdown/tables.ts`): el `.table-scroll` lo pone `Article`, en los docs y
+  en cualquier página propia que lo use, sin repetir uno escrito a mano. Quien pinte el HTML de la
+  colección sin `Article` pierde el envoltorio.
+
 ### Añadido
 
 - **Pie propio en las páginas de docs (`components.Footer`).** Como los `components` de Starlight,
@@ -29,28 +41,37 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   con el archivo y la línea.
 - **Índices de carpeta generados (`_index.md` e `indexes`).** Como en Hugo, un `_index.md` en una
   carpeta es la fuente de su página: `/tutoriales/` pinta su cuerpo (título y entradilla) y debajo el
-  listado de lo que cuelga de la carpeta, con la resolución de la barra lateral. Tres disposiciones:
-  `list` (el árbol por secciones de `nav`), `table` (título, resumen, sección y fecha; tarjetas
-  apiladas en móvil) y `cards` (tarjetas de blog con portada 16:9). La tabla y las tarjetas van de la
-  más reciente a la más antigua por fecha de commit (lo no publicado, primero y sin fecha) y se
-  paginan en `/tutoriales/2/`… (`noindex`, canónicas de sí mismas, con `rel=prev/next` y fuera del
-  sitemap). El `_index.md` no es una página propia y se traduce con `_index.en.md`; un `index.md` en
-  la misma carpeta gana y el `_index.md` se ignora con un aviso. La opción `indexes` (`layout`,
-  `pageSize`, `image`, `include`, `exclude`, `overrides`) pone los valores por defecto y genera la
-  página de las carpetas sin ninguno de los dos, titulada con la etiqueta de su sección de `nav` o
-  el nombre de la carpeta. Cada página puede llevar `index: { summary, image, imageAlt }`: una portada
-  relativa pasa por `astro:assets`, una de `public/` se sirve con la base, `false` la quita y una que
-  no existe avisa y deja la portada de la librería, un dibujo hecho con los tokens del tema
-  (`CoverPlaceholder`). Las tarjetas van de 12 en 12 y la tabla de 10 en 10 por defecto, con un
-  selector «Por página» (`perPageOptions`, por defecto 12/24/48 y 10/25/50), en la fila de pie
-  junto al rango y el paginador (la molécula `PaginationBar`, que también usa ahora el pie de la
-  tabla del panel SEO), que es una mejora
-  progresiva: sin JavaScript está oculto y valen las rutas estáticas; con él, la página 1 (que trae
-  todas las entradas) cambia el tamaño y la página sin recargar, con el estado en la URL
-  (`?por=18&pagina=2`), recordado por índice en `localStorage` y anunciado con `aria-live`.
-  Organismos nuevos: `IndexListing`, `IndexList`, `IndexTable` e
-  `IndexCards`; textos nuevos `index.*`. `docsSchema(image)` acepta el `image()` de Astro para las
-  portadas en la forma explícita del loader. Sin `_index.md` ni `indexes`, nada cambia.
+  listado de lo que cuelga de la carpeta, con la resolución de la barra lateral. El `_index.md` no es
+  una página propia y se traduce con `_index.en.md`; un `index.md` en la misma carpeta gana y el
+  `_index.md` se ignora con un aviso.
+  - **Dos bloques en el frontmatter.** `listing: { layout, pageSize, perPageOptions, covers }` dice cómo
+    es el listado y solo vale en un `_index.md` (en otro archivo rompe el build). `index: { summary,
+    image, imageAlt }` dice cómo sale una página en el listado de su carpeta y vale en cualquiera,
+    también en un `_index.md` (su ficha en el listado padre). `image` es una ruta relativa al `.md`
+    (pasa por `astro:assets`), de `public/` (con la base) o `false`; una que no existe avisa y deja la
+    portada de la librería, un dibujo hecho con los tokens del tema (`CoverPlaceholder`).
+  - **Tres disposiciones.** `list` (el árbol por secciones de `nav`), `table` (título, resumen, sección
+    y fecha; tarjetas apiladas en móvil) y `cards` (tarjetas de blog con portada 16:9). La tabla y las
+    tarjetas van de la más reciente a la más antigua por fecha de commit (lo no publicado, primero y
+    sin fecha), de 10 en 10 y de 12 en 12 por defecto.
+  - **Rutas estáticas.** El tamaño por defecto vive en la carpeta y en `/tutoriales/page/2/`…; cada
+    otro tamaño de `perPageOptions` (por defecto 12/24/48 y 10/25/50), en `/tutoriales/per-page/24/` y
+    sus páginas debajo (`/tutoriales/per-page/24/page/2/`). Los segmentos son iguales en todos los
+    idiomas y van detrás de la URL del listado en su idioma. Solo la página 1 del tamaño por defecto es
+    indexable; las demás son `noindex`, canónicas de sí mismas, con `rel=prev/next` dentro de su tamaño,
+    fuera del sitemap y de la búsqueda. Dentro de una carpeta con listado, `page` y `per-page` quedan
+    reservados: una página con esa URL rompe el build nombrando su archivo.
+  - **Selector «Por página».** En la fila de pie, junto al rango y el paginador (la molécula
+    `PaginationBar`, que también usa ahora el pie de la tabla del panel SEO): un `<select>` que lleva a
+    la ruta del tamaño elegido (`data-auto-navigate`) y, sin JavaScript, los tamaños como enlaces.
+  - **La opción `indexes`** (`layout`, `pageSize`, `perPageOptions`, `covers`, `include`, `exclude`,
+    `overrides`) pone los valores por defecto y genera la página de las carpetas sin `index.md` ni
+    `_index.md`, titulada con la etiqueta de su sección de `nav` o el nombre de la carpeta.
+  - **Componentes nuevos:** los organismos `Listing`, `ListingList`, `ListingTable` y `ListingCards`;
+    las moléculas `ListingCard`, `ListingTree`, `PageLink` (enlace con la insignia de idioma, también en
+    la barra lateral y en `::nav-tree`), `SectionPath` y `PerPageSelector`; el átomo `DateLabel`.
+    Textos nuevos `listing.*`. `docsSchema(image)` acepta el `image()` de Astro para las portadas en la
+    forma explícita del loader. Sin `_index.md` ni `indexes`, nada cambia.
 - **`static` puede dejar archivos fuera.** Cada entrada acepta `exclude`, con las reglas del
   `exclude` de la config pero relativas a `from`:
   `static: [{ from: '../htmlcov', to: 'coverage', exclude: ['assets/script/'] }]`. Lo excluido no se
@@ -73,7 +94,7 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   de idioma, `hreflang`, el sitemap, el canonical, anterior/siguiente, la barra lateral, la cabecera,
   `::nav-tree`, los índices generados, el panel SEO, Pagefind y los enlaces relativos entre `.md` usan
   la URL de cada idioma, y `sidebar`, `nav` y `footer` siguen nombrando la página por su archivo. Un `_index.en.md` con `slug: tutorials`
-  mueve el listado de su carpeta (y su paginación) a `/en/tutorials/`. También vale en el idioma por
+  mueve el listado de su carpeta (y su paginación, `/en/tutorials/page/2/`) a `/en/tutorials/`. También vale en el idioma por
   defecto. Las rutas de reserva no cambian. Rompen el build un `slug` mal formado (vacío, absoluto,
   con `..`, prefijo de idioma, `/index` final o caracteres no válidos), dos archivos con la misma URL
   en un idioma, un `slug` en una ruta de la librería o de `src/pages/` y una reserva que cae en una
@@ -92,11 +113,10 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   `.astro`, y Vite no descubría `mermaid`: lo servía sin convertir y su dependencia dayjs, CommonJS,
   fallaba en el navegador, así que el diagrama se quedaba como código. La integración pide ahora
   `optimizeDeps.include: ['@velezanthony/design > mermaid']`. En el build no pasaba.
-- **Las tablas hacen scroll en horizontal en cualquier página con `Article`.** Hasta ahora solo las
-  envolvía en su `.table-scroll` el plugin de Markdown de los docs, y una página propia que pinta su
-  Markdown con `Article` sacaba la tabla del ancho en móvil. `Article` envuelve cada `<table>` de su
-  contenido y no repite el envoltorio de las que ya lo traen. Con `prose={false}` el contenido queda
-  tal cual.
+- **Las tablas hacen scroll en horizontal en cualquier página con `Article`.** Una página propia que
+  pinta su Markdown con `Article` sacaba la tabla del ancho en móvil. `Article` envuelve cada `<table>`
+  de su contenido y no repite el envoltorio de las que ya lo traen (ver «Cambios que rompen»: es ahora
+  el único que lo hace). Con `prose={false}` el contenido queda tal cual.
 - **Una palabra larga ya no se sale de la página en móvil.** `prose` lleva
   `overflow-wrap: break-word`: un código de error, un identificador o una URL sin espacios en un
   título o un párrafo se parte cuando no cabe en la línea. Antes solo se partía el código en línea, y
@@ -111,7 +131,8 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
   en bloque, a todo el ancho y con borde: tres insignias de shields.io salían apiladas y de ~800 px y
   un `<img width="300">` se ignoraba. Ahora las insignias, varias imágenes en un párrafo, una imagen
   en el texto o en un enlace y un `<img>` en HTML conservan su tamaño natural, en línea y sin borde;
-  `<img align="right">` flota como en GitHub. Las capturas no cambian.
+  `<img align="right">` flota como en GitHub. Las capturas no cambian (ver «Cambios que rompen»: se
+  marcan en el Markdown).
 - **Un enlace relativo a un archivo de `static` lleva a su URL publicada.** `[x](coverage/index.html)`
   dentro de la carpeta `from` de una entrada de `static` fallaba con «no es una página ni un recurso
   publicado… declara el recurso», y no había nada que declarar. Ahora se reescribe a `base` + `to` + el

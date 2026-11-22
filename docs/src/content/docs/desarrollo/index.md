@@ -48,6 +48,35 @@ Las flechas son las únicas direcciones permitidas. Fíjate en lo que **no** hay
   **rutas** de `astro/routes/` (contenedores), que le pasan el modelo a las páginas de
   `components/pages/` (presentacionales: solo pintan).
 
+### Dependencias dentro de `core/` (N4)
+
+Dentro del núcleo también hay direcciones:
+
+- **`core/config/`** no importa **valores** de `core/navigation/`, `core/listing/`, `core/seo/` ni
+  `core/seo-on-page/`: esos dominios leen la config, no al revés. Puede usar `core/content/`,
+  `core/i18n/` y `core/shared/`, y tipos de cualquiera con `import type`. Por eso
+  `DEFAULT_TOC_DEPTH` vive en `core/config/layout.ts` y `core/navigation/toc-entries.ts` lo importa
+  de ahí.
+- **`core/shared/`** no importa ningún dominio de `core/`: texto, paginación y URLs genéricas que
+  cualquiera puede usar (`paginate`, `humanize`, `folderLabel`, `withBase`).
+
+### Modelos de vista (N1)
+
+Un componente no deriva: recibe el modelo ya calculado. El modelo de vista de un organismo con
+lógica es una función pura en `core/<dominio>/view.ts`, y las URLs le llegan por un **puerto** que
+implementa `astro/views/`. El listado de un índice es el ejemplo: `core/listing/view.ts`
+(`buildListingView`) devuelve un `ListingView` (una unión por disposición) y recibe las URLs por
+`ListingHrefs`, que implementa `astro/views/doc-listing.ts` con la base, el idioma y la barra final
+del sitio. Los componentes `Listing*` solo pintan lo que reciben: ni formatean fechas ni calculan
+rangos.
+
+### Organismos que solo componen (N10)
+
+Un organismo compone moléculas y átomos. Un marcado repetido en dos organismos (o en un organismo y
+una molécula) pasa a ser una molécula o un átomo, con su test y su línea en el mapa: la insignia de
+idioma es `PageLink` (barra lateral, listados y `::nav-tree`), la fecha es `DateLabel` y el camino
+«Sección › Grupo» es `SectionPath`.
+
 ### Subcapas de `astro/`
 
 Dentro de `astro/` los datos y la presentación tampoco se importan entre sí: solo `routes/` conoce a los dos.
@@ -81,6 +110,10 @@ carpeta mediante una función `layer(folder, paths, patterns)`:
   `astro/zod`, y un patrón no puede volver a permitir algo que cuelga de una carpeta ya excluida.
 - Las subcapas de `astro/` usan `siblingOf([...])`, que solo atrapa la carpeta hermana (`../data`) y no
   `../virtual/data`; la valla del panel usa `relativeTo(['seo-on-page'])` con `ignores` para el propio panel.
+  N3 es `siblingOf(['routes', 'components', 'views'])` en `astro/data`.
+- `core/config` y `core/shared` tienen su propia capa (N4), que repite las reglas de todo `core/`
+  (`corePatterns`) y suma las suyas: en la config, `siblingOf([...])` con `allowTypeImports: true`;
+  en lo compartido, cualquier `../`.
 - En `client/`, la regla de `core/` lleva `allowTypeImports: true`: los `import type` pasan, los
   valores no.
 

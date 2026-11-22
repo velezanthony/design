@@ -15,6 +15,11 @@ Cuatro cambios que harás a menudo, con todos los archivos que tocan. En todos e
    - `components/atoms/<tipo>/`: una pieza indivisible sin estado propio (`Link` en `actions/`, `Tag` e `Icon` en `display/`).
    - `components/molecules/<tipo>/`: unas pocas piezas con un propósito (`EditLink` y `PrevNext` en `navigation/`, `ThemeToggle` en `controls/`).
    - `components/organisms/<zona>/`: una zona de la página (`DocsHeader`, `Sidebar` y `ConsentBanner` en `chrome/`).
+
+   Un organismo **solo compone** moléculas y átomos (N10). Si el marcado que vas a escribir ya está
+   en otro organismo (una fecha, una insignia, un camino), extráelo antes a una molécula o un átomo,
+   con su test y su línea en `mapa-de-src.md`, y úsalo en los dos: así lo hicieron `DateLabel`,
+   `SectionPath` y `PageLink`.
 2. **Define sus `Props`** con comentarios. Todo lo que muestra llega por props, **textos incluidos**
    (`strings: UiStrings` y `translate(strings, 'clave')`). El componente no importa `astro:*`, ni
    `virtual:*`, ni nada de `src/astro/`: ESLint lo impide.
@@ -30,6 +35,10 @@ Cuatro cambios que harás a menudo, con todos los archivos que tocan. En todos e
 6. **Úsalo** desde el layout o el organismo que corresponda. Si necesita datos de la config o de las
    páginas, los calcula `docView` (`src/astro/views/doc.ts`) con funciones de `core/`, y el
    layout se los pasa.
+7. **Si tiene lógica** (qué entradas, qué rango, qué etiqueta), el componente no la deriva (N1): su
+   modelo de vista es una función pura en `core/<dominio>/view.ts` con su test, y las URLs le llegan
+   por un puerto que implementa `astro/views/`, como `buildListingView` y `ListingHrefs` en
+   `core/listing/view.ts`. El componente recibe el modelo y lo pinta.
 
 Los componentes se exportan solos: `@velezanthony/design/components/*` apunta a `src/components/*`, así que
 un consumidor puede importar `@velezanthony/design/components/atoms/display/Tag.astro` sin tocar
@@ -50,7 +59,10 @@ flowchart LR
    `strictObject`: hasta que no lo añadas, la clave rompe el build como desconocida. Si tiene valores
    cerrados, crea un objeto `as const` (como `PanelState` en `core/config/layout.ts`) y expórtalo en
    `src/astro/integration/index.ts`. Las validaciones que cruzan campos van en el `superRefine`, con
-   su ruta (`issue(['privacyUrl', locale], …)`). Test en `schema.test.ts`.
+   su ruta (`issue(['privacyUrl', locale], …)`). Test en `schema.test.ts`. **Los tipos salen del
+   esquema** (N5): `export type X = z.infer<typeof XSchema>`, no una interfaz escrita a mano que
+   repita los campos (así `ListingFrontmatter`, `IndexesUserConfig`, `Frontmatter`). Si varios
+   bloques comparten campos, un esquema base y `.extend()` (`ListingSchema`).
 2. **Resolución** (`src/core/config/resolve.ts`). Añádelo a `ResolvedConfig` y pon el valor por
    defecto en `resolveConfig`: los valores por defecto viven aquí, **no** en el esquema. Test en
    `resolve.test.ts`.

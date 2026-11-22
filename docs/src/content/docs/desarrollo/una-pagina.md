@@ -114,9 +114,13 @@ Tres decisiones que conviene conocer antes de tocarlo:
 
 ## Dónde mirar cuando algo falla
 
+Cada regla de URL tiene un dueño (N6): `pageUrl`/`pageUrlOf` para las páginas y `listingPageUrl` para
+las de un listado. Si una URL sale mal, se arregla ahí y en ningún otro sitio.
+
 | Síntoma | Empieza por |
 | --- | --- |
-| La página no existe o tiene otra URL | `core/content/discovery.ts`, `core/i18n/availability.ts` |
+| La página no existe o tiene otra URL | `core/content/discovery.ts`, `core/i18n/availability.ts` (`pageUrl`, `pageUrlOf`: las únicas que forman la URL de una página) |
+| Un listado: rutas, paginador o selector | `core/listing/urls.ts` (`listingPageUrl`: la única que forma sus URLs), `core/listing/view.ts`, `astro/views/doc-listing.ts` |
 | Un enlace interno roto o mal reescrito | `core/links/rewrite.ts` |
 | Algo raro en el HTML del Markdown | `astro/markdown/` (el plugin concreto) |
 | Barra lateral, cabecera o anterior/siguiente | `core/navigation/` |

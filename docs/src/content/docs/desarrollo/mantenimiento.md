@@ -60,6 +60,13 @@ Eso lo hace `docs.yml`, solo en push a `main`, y es lo que lo despliega.
 - **Estricto por defecto.** Si algo puede estar mal y no hay forma de que funcione bien, rompe el
   build (enlaces, títulos, claves desconocidas). Si funciona pero es mejorable, avisa (lenguajes de
   código, traducciones ausentes).
+- **Parámetros por objeto** (N9). Dos o más opcionales, o un opcional que no es el último, van en un
+  objeto con nombre: `fallbackRoutes({ availability, policies, config, url, pages })`,
+  `navContextOf(site, { locale, slug, urlSlug })`, `buildListing({ context, contentLocale, folder,
+  details })`. Así cada valor dice qué es en la llamada y añadir uno no mueve los demás.
+- **Lo que el CSS no distingue lo marca el Markdown, en positivo** (N8): una captura es
+  `p.docs-screenshot`, no «un párrafo que no lleva la marca contraria». Un plazo que se repite es una
+  propiedad personalizada (`--docs-mermaid-timeout`).
 - **Tailwind vía `@apply`** en `theme.css`; CSS plano solo donde Tailwind no llega.
 - `_local/` es para ficheros de trabajo que no se suben (está en `.gitignore`).
 

@@ -1,3 +1,5 @@
+import { DEFAULT_TOC_DEPTH } from '../config/layout';
+
 /** Un encabezado tal como lo da Astro al renderizar el Markdown. */
 export interface TocHeading {
   depth: number;
@@ -7,9 +9,6 @@ export interface TocHeading {
 
 /** Por debajo de esto el índice no orienta: se lee la página entera de un vistazo. */
 const MIN_ENTRIES = 3;
-
-/** El H1 es el título de la página, así que el índice empieza en H2; por defecto llega hasta H3. */
-export const DEFAULT_TOC_DEPTH = 3;
 
 /** Entradas de «En esta página»: de H2 a `maxDepth`, y ninguna si no llegan a tres; la regla la comparten el índice y el layout. */
 export function tocEntries<T extends TocHeading>(

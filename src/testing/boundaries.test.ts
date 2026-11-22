@@ -17,6 +17,8 @@ async function violations(filePath: string, code: string, rule = RULE): Promise<
 }
 
 const CORE = 'src/core/content/slug.ts';
+const CORE_CONFIG = 'src/core/config/x.ts';
+const CORE_SHARED = 'src/core/shared/x.ts';
 const CLIENT = 'src/client/theme.ts';
 const UI = 'src/components/organisms/Header.ts';
 const ASTRO = 'src/astro/loader/index.ts';
@@ -39,6 +41,34 @@ const forbidden: [string, string, string][] = [
   ['core/ no importa ../components', CORE, `import { x } from '../../components/atoms/Link';`],
   ['core/ no importa ../client', CORE, `import { x } from '../../client/theme';`],
   ['core/ no importa ../astro', CORE, `import { x } from '../../astro/loader';`],
+  [
+    'core/config no importa valores de core/navigation',
+    CORE_CONFIG,
+    `import { resolveLabel } from '../navigation/label';`,
+  ],
+  [
+    'core/config no importa valores de core/listing',
+    CORE_CONFIG,
+    `import { x } from '../listing/options';`,
+  ],
+  ['core/config no importa valores de core/seo', CORE_CONFIG, `import { x } from '../seo/meta';`],
+  [
+    'core/config no importa valores de core/seo-on-page',
+    CORE_CONFIG,
+    `import { x } from '../seo-on-page/labels';`,
+  ],
+  ['core/config sigue sin importar astro', CORE_CONFIG, `import { defineConfig } from 'astro';`],
+  [
+    'core/shared no importa ningún dominio',
+    CORE_SHARED,
+    `import { toSlug } from '../content/slug';`,
+  ],
+  ['core/shared no importa core/i18n', CORE_SHARED, `import { x } from '../i18n/locale';`],
+  [
+    'core/shared sigue sin importar node:*',
+    CORE_SHARED,
+    `import { readFile } from 'node:fs/promises';`,
+  ],
   ['client/ no importa valores de core/', CLIENT, `import { x } from '../core/i18n/locale';`],
   ['client/ no importa components/', CLIENT, `import { x } from '../components/atoms/Link';`],
   ['client/ no importa astro/ (carpeta)', CLIENT, `import { x } from '../astro/loader';`],
@@ -122,6 +152,23 @@ const forbidden: [string, string, string][] = [
 const allowed: [string, string, string][] = [
   ['core/ sí importa astro/zod', CORE, `import { z } from 'astro/zod';`],
   ['core/ sí importa otro archivo de core/', CORE, `import { x } from '../i18n/locale';`],
+  [
+    'core/config sí importa tipos de core/navigation',
+    CORE_CONFIG,
+    `import type { NavContext } from '../navigation/nav-sidebar';`,
+  ],
+  [
+    'core/config sí importa core/content e i18n',
+    CORE_CONFIG,
+    `import { x } from '../content/slug';
+import { y } from '../i18n/locale';`,
+  ],
+  ['core/config sí importa core/shared', CORE_CONFIG, `import { x } from '../shared/text';`],
+  [
+    'core/shared sí importa otro archivo de core/shared',
+    CORE_SHARED,
+    `import { x } from './text';`,
+  ],
   [
     'client/ sí importa tipos de core/',
     CLIENT,

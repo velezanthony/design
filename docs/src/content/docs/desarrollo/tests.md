@@ -33,9 +33,10 @@ flowchart TD
 | Núcleo puro | `core/navigation/prev-next.test.ts` | Solo Vitest: entra un dato, sale un dato. |
 | Cliente | `client/preferences/consent.test.ts` | Funciones con el entorno inyectado (`Storage`, `matchMedia`, documento de linkedom). |
 | Componentes | `components/molecules/navigation/EditLink.test.ts` | `render()` y `text()` de `testing/render.ts`; textos con `stringsFor()`. |
-| Plugins de Markdown | `astro/markdown/tables.test.ts` | `testing/markdown.ts`. |
+| Plugins de Markdown | `astro/markdown/images.test.ts` | `testing/markdown.ts`. |
 | Vistas de las páginas | `astro/views/doc.test.ts` | Funciones puras sobre una config resuelta con `resolveConfig`. Para lo que necesite `astro:content` hay un doble en `testing/astro-content.ts`. |
-| Build completo | `astro/integration/builds/` (`basic`, `short-form`, `outside`, `strict`, `content`) | Cada test se llama por el escenario que construye. Fixtures en `builds/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
+| Build completo | `astro/integration/builds/` (`basic`, `short-form`, `outside`, `strict`, `content`, `indexes`, `slugs`, `nav-tree`, `reserved`) | Cada test se llama por el escenario que construye. Fixtures en `builds/fixtures/` o casos descritos como datos (`testing/case.ts`) construidos con `testing/build.ts`. |
+| Enlaces de un listado (N2) | `astro/views/doc-listing.test.ts` (contrato) y `astro/integration/builds/indexes.test.ts` | Toda URL que enlaza un listado sale de `core/listing/urls.ts`. El contrato comprueba que cada `href` del paginador y del selector es la URL de una ruta de `docRoutes`; el build, que cada enlace del paginador, cada opción del `select` y cada enlace de `<noscript>` existe en `dist/`. |
 | Guardas del repo | `testing/boundaries.test.ts`, `testing/package-contents.test.ts`, `components/styles/theme.test.ts`, `components/coupling.test.ts` | Leen archivos de configuración o código y fallan si alguien relaja una regla. |
 | Migración | `scripts/migrate-mkdocs/**/*.test.ts` | Transformaciones puras de texto. |
 | Mutación | `scripts/mutation/**/*.test.ts` | Reparto en trozos y unión de informes: datos que entran, datos que salen. |
