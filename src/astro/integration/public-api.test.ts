@@ -4,10 +4,39 @@ import {
   defineDocsSite,
   docs,
   LayoutWidth,
+  ListingView,
   MissingTranslation,
   NavIcon,
   PanelState,
 } from './index';
+import { ListingViewSchema } from '../../core/config/indexes';
+import {
+  LayoutWidthSchema,
+  MissingTranslationSchema,
+  NavIconSchema,
+  PanelStateSchema,
+} from '../../core/config/schema';
+
+/* Cada opción cerrada es una constante exportada de la que sale su esquema: sus valores y las opciones
+   que zod acepta son los mismos (una sola definición). */
+describe('API pública de ./integration: constantes de las opciones cerradas', () => {
+  it.each([
+    ['ListingView', ListingView, ListingViewSchema.options],
+    ['PanelState', PanelState, PanelStateSchema.options],
+    ['LayoutWidth', LayoutWidth, LayoutWidthSchema.options],
+    ['MissingTranslation', MissingTranslation, MissingTranslationSchema.options],
+    ['NavIcon', NavIcon, NavIconSchema.options],
+  ] as const)(
+    '%s se exporta y sus valores son las opciones de su esquema',
+    (name, constant, options) => {
+      expect(Object.values(constant), name).toEqual([...options]);
+    },
+  );
+
+  it('exporta ListingView como objeto de valores', () => {
+    expect(ListingView).toEqual({ LIST: 'list', TABLE: 'table', CARDS: 'cards' });
+  });
+});
 
 describe('API pública de ./integration', () => {
   it('exporta MissingTranslation como objeto de valores', () => {

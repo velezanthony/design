@@ -20,7 +20,7 @@ core/
 │   ├── schema.ts          Esquema zod de la config pública; de aquí sale DocsUserConfig
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
-│   ├── indexes.ts         `indexes`: IndexLayout, sus valores por defecto, qué carpetas y su validación
+│   ├── indexes.ts         `indexes`: ListingView (y su esquema), sus valores por defecto, qué carpetas y su validación
 │   ├── sidebar-depth.ts   `sidebarDepth`: límites del árbol automático por defecto y por carpeta, y su validación
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
@@ -374,6 +374,8 @@ astro/
 - `testing/build.ts` y `testing/case.ts`: construyen proyectos consumidores mínimos descritos como
   datos, para los tests de integración (con un entorno limpio de variables de Vitest).
 - `testing/contrast.ts`: luminancia y contraste WCAG para los tests de la paleta.
+- `testing/config-types.ts`: test de tipos de `defineDocsConfig` (un caso válido con las constantes y
+  `@ts-expect-error` en lo que debe rechazar); no se ejecuta, lo comprueba `npm run check`.
 - `testing/boundaries.test.ts`: la regla de capas (ver [Capas](./index.md#cómo-lo-hace-cumplir-eslint)).
 - `testing/src-map.test.ts`: comprueba que este mapa nombra cada archivo y cada carpeta de `src/`.
 - `pages/index.astro`: la página mínima que sirve `npm run dev` en la raíz.

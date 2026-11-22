@@ -1,4 +1,4 @@
-import { IndexLayout, type ResolvedIndexes } from '../config/indexes';
+import { ListingView, type ResolvedIndexes } from '../config/indexes';
 import type { ListingFrontmatter } from '../config/schema';
 
 /* El listado ya resuelto de una página: de qué carpeta, con qué disposición, cuántas entradas por
@@ -6,7 +6,7 @@ import type { ListingFrontmatter } from '../config/schema';
    carpeta → `indexes` → valores por defecto. */
 
 /** Disposiciones que se paginan: la lista es el árbol entero. */
-type PagedLayout = Exclude<IndexLayout, typeof IndexLayout.LIST>;
+type PagedLayout = Exclude<ListingView, typeof ListingView.LIST>;
 
 /** Entradas por página de cada disposición paginada: las tarjetas de 12 en 12 (filas completas a 2 y a 3
     columnas) y la tabla de 10 en 10, la medida redonda de una tabla. La lista no se pagina. */
@@ -32,11 +32,11 @@ export interface PagedListingOptions {
 
 /** El listado de una página: una lista (sin paginar) o uno paginado. */
 export type ListingOptions =
-  { folder: string; layout: typeof IndexLayout.LIST; covers: boolean } | PagedListingOptions;
+  { folder: string; layout: typeof ListingView.LIST; covers: boolean } | PagedListingOptions;
 
 /** ¿Se pagina este listado? */
 export function isPagedListing(options: ListingOptions): options is PagedListingOptions {
-  return options.layout !== IndexLayout.LIST;
+  return options.layout !== ListingView.LIST;
 }
 
 /** Las opciones con el tamaño de las rutas estáticas siempre entre ellas, ordenadas y sin repetir. */
@@ -55,9 +55,9 @@ export interface ListingSource {
 /** El listado de la carpeta `folder` con la precedencia `own` → `overrides` → `indexes` → valores por defecto. */
 export function resolveListing({ folder, own, indexes }: ListingSource): ListingOptions {
   const override = indexes?.overrides[folder];
-  const layout = own.layout ?? override?.layout ?? indexes?.layout ?? IndexLayout.LIST;
+  const layout = own.layout ?? override?.layout ?? indexes?.layout ?? ListingView.LIST;
   const covers = own.covers ?? override?.covers ?? indexes?.covers ?? true;
-  if (layout === IndexLayout.LIST) return { folder, layout, covers };
+  if (layout === ListingView.LIST) return { folder, layout, covers };
   const pageSize =
     own.pageSize ?? override?.pageSize ?? indexes?.pageSize ?? DEFAULT_PAGE_SIZES[layout];
   const options =

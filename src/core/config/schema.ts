@@ -6,7 +6,7 @@ import {
   type StaticFolder,
 } from '../content/static-folders';
 import { MissingTranslation } from '../i18n/translation-policy';
-import { ALL_FOLDERS, IndexLayout } from './indexes';
+import { ALL_FOLDERS, ListingViewSchema } from './indexes';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
 import { NavIcon, type NavItem } from './nav';
@@ -47,9 +47,6 @@ export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation)
 export const PanelStateSchema = z.enum(Object.values(PanelState));
 export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 
-/** Disposiciones de un índice generado: zod las lista en el mensaje de error. */
-export const IndexLayoutSchema = z.enum(Object.values(IndexLayout));
-
 /** Páginas por página de un índice paginado: un entero positivo. */
 export const IndexPageSizeSchema = z.number().int().min(1).max(500);
 
@@ -69,7 +66,7 @@ const IndexFolderSchema = z
    portadas (`covers: true` pone la de la librería a quien no trae imagen). Lo escriben el bloque
    `listing:` de un `_index.md`, `indexes` y cada carpeta de `indexes.overrides`. */
 export const ListingSchema = z.strictObject({
-  layout: IndexLayoutSchema.optional(),
+  layout: ListingViewSchema.optional(),
   pageSize: IndexPageSizeSchema.optional(),
   perPageOptions: IndexPerPageOptionsSchema.optional(),
   covers: z.boolean().optional(),
@@ -271,7 +268,9 @@ export type ComponentsConfig = z.infer<typeof ComponentsSchema>;
 /** Esquema de la config pública y fuente de `DocsUserConfig`; los valores por defecto los pone `resolveConfig`. */
 export const DocsConfigSchema = z
   .strictObject({
+    /** Nombre del sitio: cabecera, `<title>` y datos estructurados. */
     name: z.string().min(1),
+    /** SEO de todo el sitio: sufijo del `<title>`, descripción e imagen por defecto y JSON-LD común. */
     seo: z
       .strictObject({
         titleSuffix: TitleSuffixSchema.optional(),
@@ -280,6 +279,7 @@ export const DocsConfigSchema = z
         schema: z.array(JsonLdSchema).optional(),
       })
       .optional(),
+    /** Icono del sitio: ruta de `public/` o URL https. */
     favicon: FaviconSchema.optional(),
     /** `og:locale` de cada idioma con territorio (`es_ES`); sin él, el propio idioma (`es`). */
     ogLocales: z
@@ -288,6 +288,7 @@ export const DocsConfigSchema = z
         z.string().regex(/^[a-z]{2,3}_[A-Z]{2}$/, 'Debe ser idioma_TERRITORIO: es_ES, en_GB.'),
       )
       .optional(),
+    /** Carpeta del contenido desde la raíz del proyecto (por defecto `src/content/docs`). */
     content: z
       .string()
       .superRefine((directory, context) => {
@@ -315,27 +316,41 @@ export const DocsConfigSchema = z
       .optional(),
     /** Patrones (estilo `.gitignore`) de los `.md` de `content` que no se publican; equivale a `exclude_docs` de MkDocs. */
     exclude: z.array(z.string().min(1)).optional(),
+    /** Idiomas del sitio; el primero es el de por defecto si no se declara `defaultLocale`. */
     locales: z.array(z.string().min(1)).min(1).optional(),
+    /** Idioma sin prefijo en la URL; debe estar en `locales`. */
     defaultLocale: z.string().optional(),
+    /** Qué hacer con una página sin traducción (`MissingTranslation`). */
     translations: z.strictObject({ missing: MissingTranslationSchema.optional() }).optional(),
+    /** Textos de interfaz propios por idioma; sustituyen a los del paquete. */
     ui: z.record(z.string(), UiLocaleSchema).optional(),
+    /** Archivos Markdown de fuera de `content` que se publican con un slug propio. */
     external: z.array(ExternalDocSchema).optional(),
+    /** Barra lateral general escrita a mano; sin ella, el árbol automático de carpetas. */
     sidebar: z.array(SidebarItemSchema).optional(),
+    /** Cabecera: secciones, páginas sueltas y enlaces externos (`NavIcon`). */
     nav: z.array(NavItemSchema).optional(),
     /** Niveles de grupos de carpeta del árbol automático: todo el sidebar o por carpeta. Sin él, sin límite. */
     sidebarDepth: SidebarDepthSchema.optional(),
+    /** Pie: licencia, autor y enlaces. */
     footer: FooterSchema.optional(),
     /** Índices generados: valores por defecto de los listados y carpetas sin `index.md` que reciben uno. */
     indexes: IndexesSchema.optional(),
     /** Componentes propios que sustituyen a los de la librería: `{ Footer: './src/…/Footer.astro' }`. */
     components: ComponentsSchema.optional(),
+    /** URL base del enlace «Editar esta página». */
     editUrl: z.string().optional(),
+    /** Raíz del repositorio relativa al proyecto (por defecto, el ancestro con `.git`): de ella cuelgan las rutas de `editUrl`. */
     repoRoot: z.string().optional(),
+    /** Página de privacidad que enlazan el pie y el aviso de consentimiento. */
     privacyUrl: z.union([PrivacyUrlSchema, z.record(z.string(), PrivacyUrlSchema)]).optional(),
+    /** Contenedor de Google Tag Manager; sin él no hay analítica. */
     gtmId: z.string().min(1).optional(),
+    /** Perfiles del sitio (GitHub). */
     social: z.strictObject({ github: z.string().optional() }).optional(),
     /** Otros sitemaps del dominio que el índice `sitemap.xml` declara (rutas o URLs del mismo origen). */
     sitemap: z.strictObject({ include: z.array(z.string().min(1)).optional() }).optional(),
+    /** Disposición de la página: columnas laterales (`PanelState`), ancho (`LayoutWidth`) e índice. */
     layout: z
       .strictObject({
         sidebar: PanelStateSchema.optional(),

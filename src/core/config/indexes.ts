@@ -1,3 +1,4 @@
+import { z } from 'astro/zod';
 import { DocsError, formatPath } from '../errors';
 import type { IndexesUserConfig, IndexOverride } from './schema';
 
@@ -5,15 +6,17 @@ import type { IndexesUserConfig, IndexOverride } from './schema';
    `_index.md` reciben una página generada. Resolver el listado de una página es de `core/listing/`;
    fabricar las páginas generadas, de `core/content/generated-listings.ts`. */
 
-/** Disposición del listado. Mismas cadenas en la config y en el frontmatter. */
-export const IndexLayout = { LIST: 'list', TABLE: 'table', CARDS: 'cards' } as const;
-export type IndexLayout = (typeof IndexLayout)[keyof typeof IndexLayout];
+/** Cómo se pinta el listado de una carpeta. Mismas cadenas en la config y en el frontmatter. */
+export const ListingView = { LIST: 'list', TABLE: 'table', CARDS: 'cards' } as const;
+export type ListingView = (typeof ListingView)[keyof typeof ListingView];
+/** Valores permitidos de `ListingView` como esquema: zod los lista en el mensaje de error. */
+export const ListingViewSchema = z.enum(Object.values(ListingView));
 
 /** `include: 'all'`: todas las carpetas sin `index.md`. */
 export const ALL_FOLDERS = 'all';
 
 export interface ResolvedIndexes {
-  layout: IndexLayout;
+  layout: ListingView;
   /** Sin él, el de la disposición (`DEFAULT_PAGE_SIZES` de `core/listing/options.ts`). */
   pageSize?: number;
   /** Sin él, las de la disposición (`DEFAULT_PER_PAGE_OPTIONS`). */
@@ -30,7 +33,7 @@ export interface ResolvedIndexes {
 /** Completa `indexes` con los valores por defecto. */
 export function resolveIndexes(user: IndexesUserConfig): ResolvedIndexes {
   return {
-    layout: user.layout ?? IndexLayout.LIST,
+    layout: user.layout ?? ListingView.LIST,
     ...(user.pageSize !== undefined && { pageSize: user.pageSize }),
     ...(user.perPageOptions !== undefined && { perPageOptions: user.perPageOptions }),
     covers: user.covers ?? true,

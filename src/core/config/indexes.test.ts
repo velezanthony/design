@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { generatesIndex, IndexLayout, resolveIndexes, validateIndexFolders } from './indexes';
+import { generatesIndex, ListingView, resolveIndexes, validateIndexFolders } from './indexes';
 
 describe('resolveIndexes', () => {
   it('sin nada declarado: lista, con portadas y todas las carpetas (el tamaño depende de la disposición)', () => {
     expect(resolveIndexes({})).toEqual({
-      layout: IndexLayout.LIST,
+      layout: ListingView.LIST,
       covers: true,
       include: 'all',
       exclude: [],
