@@ -104,10 +104,10 @@ describe('markdownPlugins: integrados', () => {
     expect(html).not.toContain('table-scroll');
   });
 
-  it('una imagen sola en su párrafo sale marcada como captura', async () => {
-    expect(await full('![c](https://x.test/c.png)', docFileURL('a.md'))).toContain(
-      '<p class="docs-screenshot">',
-    );
+  it('una imagen sola en su párrafo sale sin marcar: la captura la marca `Article`', async () => {
+    const html = await full('![c](https://x.test/c.png)', docFileURL('a.md'));
+    expect(html).toContain('<p><img');
+    expect(html).not.toContain('docs-screenshot');
   });
 
   it('un plugin del consumidor convive con los nuestros', async () => {

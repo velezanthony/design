@@ -446,6 +446,14 @@ describe('#19 tabla ancha', () => {
   });
 });
 
+describe('#19b captura', () => {
+  it('una imagen sola en su párrafo sale marcada una sola vez como captura (la marca `Article`)', async () => {
+    const html = await site.read('changelog/index.html');
+    expect(html.match(/class="docs-screenshot"/g)).toHaveLength(1);
+    expect(html).toMatch(/<p class="docs-screenshot"><img[^>]*alt="logo"/);
+  });
+});
+
 describe('#20 favicon por defecto', () => {
   it('toda página enlaza el favicon del paquete con la base, sin tocar public/', async () => {
     const link = '<link rel="icon" href="/repo/_design/favicon.png" type="image/png"';

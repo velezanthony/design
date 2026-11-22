@@ -3,7 +3,6 @@ import { admonitions } from './admonitions';
 import { codeLanguages, SHIKI_LANG_ALIAS } from './code-languages';
 import type { MarkdownEnv } from './env';
 import { githubAlerts } from './github-alerts';
-import { screenshots } from './images';
 import { mermaid } from './mermaid';
 import { navTree } from './nav-tree';
 import { restoreDirectives } from './restore-directives';
@@ -19,7 +18,6 @@ export function markdownPlugins(
     admonitions(env),
     tabs(env),
     navTree(env),
-    screenshots(env),
     mermaid(env),
     codeLanguages(env, langAlias),
     restoreDirectives,

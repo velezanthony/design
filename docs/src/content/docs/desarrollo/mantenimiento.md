@@ -64,7 +64,7 @@ Eso lo hace `docs.yml`, solo en push a `main`, y es lo que lo despliega.
   objeto con nombre: `fallbackRoutes({ availability, policies, config, url, pages })`,
   `navContextOf(site, { locale, slug, urlSlug })`, `buildListing({ context, contentLocale, folder,
   details })`. Así cada valor dice qué es en la llamada y añadir uno no mueve los demás.
-- **Lo que el CSS no distingue lo marca el Markdown, en positivo** (N8): una captura es
+- **Lo que el CSS no distingue se marca en el HTML, en positivo** (N8): una captura es
   `p.docs-screenshot`, no «un párrafo que no lleva la marca contraria». Un plazo que se repite es una
   propiedad personalizada (`--docs-mermaid-timeout`).
 - **Tailwind vía `@apply`** en `theme.css`; CSS plano solo donde Tailwind no llega.

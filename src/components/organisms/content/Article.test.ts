@@ -116,6 +116,27 @@ describe('Article: columna lateral', () => {
   });
 });
 
+describe('Article: capturas', () => {
+  const img = '<img src="/a.png" alt="A" width="10" height="10">';
+
+  it('marca con docs-screenshot el párrafo que solo tiene una imagen, también fuera de los docs', async () => {
+    const doc = await article({}, { default: `<p>${img}</p><p>Texto ${img}</p>` });
+    const marked = doc.querySelectorAll('.prose p.docs-screenshot');
+    expect(marked).toHaveLength(1);
+    expect(marked[0]!.querySelector('img')).not.toBeNull();
+  });
+
+  it('no marca dos veces un párrafo que ya viene marcado', async () => {
+    const doc = await article({}, { default: `<p class="docs-screenshot">${img}</p>` });
+    expect(doc.querySelector('p')!.getAttribute('class')).toBe('docs-screenshot');
+  });
+
+  it('con `prose={false}` el contenido queda tal cual', async () => {
+    const doc = await article({ prose: false }, { default: `<p>${img}</p>` });
+    expect(doc.querySelector('p.docs-screenshot')).toBeNull();
+  });
+});
+
 describe('Article: tablas', () => {
   const table = '<table><tr><td>a</td></tr></table>';
 

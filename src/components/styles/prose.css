@@ -254,7 +254,7 @@
     @apply float-left mr-4;
   }
 
-  /* Captura: una imagen sola en su párrafo, que marca `astro/markdown/images.ts` (`p.docs-screenshot`)
+  /* Captura: una imagen sola en su párrafo, que marca `Article` (`p.docs-screenshot`, `core/content/screenshots.ts`)
      porque el CSS no distingue un párrafo con texto de uno sin él. Sobresale de la medida del texto;
      en móvil no hay margen al que sobresalir: el exceso se limita al viewport menos el padding, o
      todo el documento haría scroll lateral. */

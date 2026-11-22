@@ -2,6 +2,7 @@
 import type { Locale } from '../../../core/i18n/locale';
 import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
 import { tocEntries } from '../../../core/navigation/toc-entries';
+import { markScreenshots } from '../../../core/content/screenshots';
 import { wrapScrollableTables } from '../../../core/content/scrollable-tables';
 import TableOfContents from '../../molecules/navigation/TableOfContents.astro';
 
@@ -51,9 +52,12 @@ const {
   indexable,
 } = Astro.props;
 
-/* Las tablas del contenido hacen scroll en horizontal en cualquier página, no solo en los docs: el
-   Markdown de una página propia del sitio que lo pinta con `Article` no pasa por el plugin de los docs. */
-const content = prose ? wrapScrollableTables(await Astro.slots.render('default')) : undefined;
+/* `Article` es el único dueño de lo que el HTML del contenido necesita para pintarse: cada tabla en
+   su `.table-scroll` y cada captura (un párrafo con una sola imagen) con `docs-screenshot`. Así lo
+   reciben los docs y cualquier página propia del sitio que pinte su Markdown con `Article`. */
+const content = prose
+  ? markScreenshots(wrapScrollableTables(await Astro.slots.render('default')))
+  : undefined;
 const hasToc = toc && tocEntries(headings, depth).length > 0;
 /* Sin índice ni aside no se reserva columna: el contenido usa ese ancho. */
 const hasColumn = hasToc || Astro.slots.has('aside');

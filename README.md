@@ -674,8 +674,8 @@ flowchart LR
 Imágenes: solo una imagen sola en su párrafo se pinta como captura (bloque, ancho de la columna,
 borde y esquinas). Las insignias, varias imágenes en un párrafo, una imagen dentro del texto o de un
 enlace y un `<img width="…">` en HTML conservan su tamaño natural, en línea y sin borde; un
-`<img align="right">` flota como en GitHub. La captura la marca el Markdown (`p.docs-screenshot`), así
-que fuera de los docs no hay capturas.
+`<img align="right">` flota como en GitHub. La captura la marca `Article` (`p.docs-screenshot`), así que
+vale en cualquier página que lo use.
 
 Tablas: `Article` envuelve cada `<table>` en un `div.table-scroll` que se desplaza en horizontal (no
 repite uno escrito a mano).

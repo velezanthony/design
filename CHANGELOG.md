@@ -7,11 +7,12 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Cambios que rompen
 
-- **Las capturas se marcan en el Markdown.** Una imagen sola en su párrafo sale como
-  `<p class="docs-screenshot">` (plugin `screenshots`, `astro/markdown/images.ts`) y el CSS solo pinta
-  como captura ese párrafo. Se quita la clase `docs-inline-images`. Un párrafo con una sola imagen en
-  HTML que no pase por los plugins de la librería (Markdown propio, `<p><img></p>` escrito a mano) ya no
-  se pinta como captura: queda en línea y a su tamaño natural.
+- **Las capturas las marca `Article`.** Al pintar el contenido, `Article` pone `docs-screenshot` en
+  cada párrafo cuyo único contenido es una imagen (`core/content/screenshots.ts`, junto al
+  `.table-scroll` de las tablas), en los docs y en cualquier página propia que lo use, y el CSS solo
+  pinta como captura ese párrafo. Se quita la clase `docs-inline-images` (y su plugin de Markdown). El
+  Markdown que se pinte sin `Article`, o con `prose={false}`, no tiene estilo de captura: sus imágenes
+  quedan en línea y a su tamaño natural.
 - **Las tablas las envuelve `Article`, no un plugin de Markdown.** Se quita el plugin
   `scrollableTables` (`astro/markdown/tables.ts`): el `.table-scroll` lo pone `Article`, en los docs y
   en cualquier página propia que lo use, sin repetir uno escrito a mano. Quien pinte el HTML de la
