@@ -2,6 +2,7 @@ import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
 import type { SidebarDepth } from '../config/sidebar-depth';
 import type { Page } from '../content/discovery';
+import { listsFolder } from '../content/generated-listings';
 import { urlSlugOf } from '../content/slug';
 import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
 import type { Locale } from '../i18n/locale';
@@ -48,6 +49,8 @@ interface Entry {
   slug: string;
   leaf: SidebarLeaf;
   order?: number;
+  /** Lista su carpeta (generada o de un `_index.md`): solo da título y destino al grupo de su carpeta. */
+  listing?: true;
 }
 
 function toEntries(
@@ -67,6 +70,7 @@ function toEntries(
         slug,
         leaf: { label: own.title, slug, href },
         ...(own.order !== undefined && { order: own.order }),
+        ...(listsFolder(own) && { listing: true }),
       });
       continue;
     }
@@ -85,7 +89,12 @@ function toEntries(
       urlSlugOf(original),
     );
     if (leaf) {
-      entries.push({ slug, leaf, ...(original.order !== undefined && { order: original.order }) });
+      entries.push({
+        slug,
+        leaf,
+        ...(original.order !== undefined && { order: original.order }),
+        ...(listsFolder(original) && { listing: true }),
+      });
     }
   }
   return entries;
@@ -173,7 +182,10 @@ function autoTree(
     }
   }
 
-  const groups = new Map<string, { group: SidebarGroup; sort: Sortable[]; order?: number }>();
+  const groups = new Map<
+    string,
+    { group: SidebarGroup; sort: Sortable[]; order?: number; listing?: true }
+  >();
   function groupFor(path: string) {
     let found = groups.get(path);
     if (!found) {
@@ -192,8 +204,12 @@ function autoTree(
       Object.assign(found.group, { label: leaf.label, slug, href: leaf.href });
       if (leaf.badge) found.group.badge = leaf.badge;
       if (entry.order !== undefined) found.order = entry.order;
+      if (entry.listing) found.listing = true;
       continue;
     }
+    // Una página que lista su carpeta nunca sale como hoja suelta: sin grupo, no sale. Salvo la de la
+    // raíz del árbol (el `dir` de una sección), que no tiene grupo propio y es el destino de la sección.
+    if (entry.listing && slug !== base) continue;
     const parent = sectionPath(slug).join('/');
     const target = parent ? groupFor(parent).sort : root;
     target.push({
@@ -218,7 +234,9 @@ function autoTree(
   for (const path of paths) {
     const found = groupFor(path);
     found.group.items = found.sort.sort(compare).map(({ node }) => node);
-    const closed = closeGroup(found.group);
+    // Un grupo vacío cuya página lista su carpeta no se vuelve hoja: no queda nada que listar en él.
+    const closed =
+      found.listing && found.group.items.length === 0 ? undefined : closeGroup(found.group);
     if (!closed) continue;
     const parent = parentOf(path);
     const sortable: Sortable = {

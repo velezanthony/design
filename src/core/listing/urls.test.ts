@@ -53,7 +53,7 @@ describe('listingPositions', () => {
     expect(
       listingPositions(25, {
         folder: 'a',
-        layout: 'cards',
+        view: 'cards',
         covers: true,
         pageSize: 12,
         perPageOptions: [12, 24],
@@ -71,7 +71,7 @@ describe('listingPositions', () => {
     expect(
       listingPositions(0, {
         folder: 'a',
-        layout: 'table',
+        view: 'table',
         covers: true,
         pageSize: 10,
         perPageOptions: [10],
@@ -93,7 +93,7 @@ function page(slug: string, extra: Partial<Page> = {}): Page {
 }
 
 describe('reservedSegmentErrors', () => {
-  const guia = page('guia', { listing: {}, sourcePath: 'guia/_index.md' });
+  const guia = page('guia', { sourcePath: 'guia/_index.md' });
 
   it.each(['guia/page', 'guia/per-page', 'guia/page/x'])(
     '«%s» dentro de una carpeta con listado es un error con su archivo y una pista',
@@ -108,15 +108,29 @@ describe('reservedSegmentErrors', () => {
 
   it('también un `slug` traducido que cae bajo la URL traducida del listado', () => {
     const errors = reservedSegmentErrors([
-      page('tutoriales', { locale: 'en', listing: {}, urlSlug: 'tutorials' }),
+      page('tutoriales', {
+        locale: 'en',
+        sourcePath: 'tutoriales/_index.en.md',
+        urlSlug: 'tutorials',
+      }),
       page('tutoriales/x', { locale: 'en', urlSlug: 'tutorials/page', sourcePath: 'x.en.md' }),
     ]);
     expect(errors.map((error) => error.file)).toEqual(['x.en.md']);
   });
 
   it('la portada con listado reserva `page` y `per-page` en la raíz', () => {
-    const errors = reservedSegmentErrors([page('', { listing: {} }), page('page')]);
+    const errors = reservedSegmentErrors([page('', { sourcePath: '_index.md' }), page('page')]);
     expect(errors.map((error) => error.file)).toEqual(['page.md']);
+  });
+
+  it('una página generada también reserva sus segmentos', () => {
+    const generated = page('guia', { kind: 'generated', sourcePath: 'guia/_index.md' });
+    expect(reservedSegmentErrors([generated, page('guia/page')])).toHaveLength(1);
+  });
+
+  it('un `index.md` no lista su carpeta: no reserva nada', () => {
+    const own = page('guia', { sourcePath: 'guia/index.md' });
+    expect(reservedSegmentErrors([own, page('guia/page')])).toEqual([]);
   });
 
   it('ningún error para `guia/pagina` ni para `otra/page` si `otra` no tiene listado', () => {

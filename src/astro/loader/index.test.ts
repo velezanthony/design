@@ -47,6 +47,7 @@ function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: 
     { id: string; data: Record<string, unknown>; filePath?: string }
   >();
   const warnings: string[] = [];
+  const infos: string[] = [];
   const errors: string[] = [];
   const rendered: string[] = [];
   const context = {
@@ -68,7 +69,7 @@ function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: 
     logger: {
       warn: (message: string) => warnings.push(message),
       error: (message: string) => errors.push(message),
-      info: () => {},
+      info: (message: string) => infos.push(message),
     },
     parseData: async ({ data }: { data: unknown }) => docsSchema().parse(data),
     renderMarkdown: async (body: string) => {
@@ -82,7 +83,7 @@ function makeContext(options: { base?: string; watcher?: FakeWatcher; project?: 
     },
     watcher: options.watcher,
   };
-  return { context: context as never, entries, warnings, errors, rendered };
+  return { context: context as never, entries, warnings, infos, errors, rendered };
 }
 
 async function load(config: DocsUserConfig, made = makeContext()) {
@@ -692,24 +693,44 @@ describe('docsLoaderFromResolved', () => {
 
 describe('docsLoader: índices generados', () => {
   const bilingual = { locales: ['es', 'en'], defaultLocale: 'es' };
+  const tutorials = { tutoriales: { listing: { generate: true } } };
 
-  it('un _index.md es la página de su carpeta, con su `listing` tal cual y su ficha `index`', async () => {
+  it('con `generate`, un _index.md es la página de su carpeta, con su ficha `index`', async () => {
     await write(
       'src/content/docs/tutoriales/_index.md',
-      '---\nlisting:\n  layout: cards\n  pageSize: 6\n  covers: false\nindex:\n  summary: Todos.\n---\n# Tutoriales\n\nNotas.\n',
+      '---\nindex:\n  summary: Todos.\n---\n# Tutoriales\n\nNotas.\n',
     );
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
-    const { entries } = await load({ name: 'T', ...bilingual });
+    const { entries } = await load({ name: 'T', ...bilingual, folders: tutorials });
     expect(entries.has('es/tutoriales/_index')).toBe(false);
     const entry = entries.get('es/tutoriales')!;
     expect(entry.data).toMatchObject({
       slug: 'tutoriales',
       title: 'Tutoriales',
       kind: 'native',
-      listing: { layout: 'cards', pageSize: 6, covers: false },
       index: { summary: 'Todos.' },
       sourcePath: path.join('src/content/docs', 'tutoriales/_index.md'),
     });
+    expect(entry.data).not.toHaveProperty('listing');
+  });
+
+  it('un _index.md con `generate` apagado rompe la carga con su archivo y la clave que lo enciende', async () => {
+    await write('src/content/docs/tutoriales/_index.md', '# Tutoriales\n');
+    await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
+    const message = await failure({ name: 'T' });
+    expect(message).toContain('tutoriales/_index.md');
+    expect(message).toContain('folders.tutoriales.listing.generate: true');
+  });
+
+  it('`listing:` en el frontmatter es una opción desconocida con la pista de `folders`', async () => {
+    await write(
+      'src/content/docs/tutoriales/_index.md',
+      '---\nlisting:\n  layout: cards\n---\n# T\n',
+    );
+    await write('src/content/docs/tutoriales/a.md', '# A\n');
+    const message = await failure({ name: 'T', folders: tutorials });
+    expect(message).toContain('listing: opción desconocida');
+    expect(message).toContain('folders.tutoriales.listing');
   });
 
   it('un index.md gana a su _index.md, que se ignora con un aviso', async () => {
@@ -718,18 +739,44 @@ describe('docsLoader: índices generados', () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries, warnings } = await load({ name: 'T', ...bilingual });
     expect(entries.get('es/tutoriales')!.data).toMatchObject({ title: 'Portada' });
-    expect(entries.get('es/tutoriales')!.data.listing).toBeUndefined();
     expect(warnings.join('\n')).toContain('tutoriales/_index.md');
   });
 
-  it('con `indexes`, una carpeta sin index.md ni _index.md recibe una página por idioma', async () => {
+  /* D14: un `index.md` en una carpeta con `generate` (aquí heredado de `'*'`) es una portada propia:
+     gana, el build sigue y se informa una vez por carpeta. */
+  it('un index.md con `generate` heredado gana, sin error, con una sola línea informativa', async () => {
+    await write('src/content/docs/guia/index.md', '# Mi guía\n');
+    await write('src/content/docs/guia/index.en.md', '# My guide\n');
+    await write('src/content/docs/guia/a.md', '# A\n');
+    const { entries, infos, warnings } = await load({
+      name: 'T',
+      ...bilingual,
+      folders: { '*': { listing: { generate: true } } },
+    });
+    const lines = infos.filter((line) => line.includes('guia'));
+    expect(lines).toEqual(['guia/index.md sustituye al índice generado de la carpeta guia.']);
+    expect(warnings.join('\n')).not.toContain('guia/index.md');
+    expect(entries.get('es/guia')!.data).toMatchObject({ title: 'Mi guía', kind: 'native' });
+    expect(entries.get('es/guia')!.data.sourcePath).toBe(
+      path.join('src/content/docs', 'guia/index.md'),
+    );
+  });
+
+  it('sin `generate`, un index.md no informa de nada', async () => {
+    await write('src/content/docs/guia/index.md', '# Mi guía\n');
+    await write('src/content/docs/guia/a.md', '# A\n');
+    const { infos } = await load({ name: 'T' });
+    expect(infos).toEqual([]);
+  });
+
+  it('con `generate`, una carpeta sin index.md ni _index.md recibe una página por idioma', async () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     await write('src/content/docs/notas-varias/a.md', '# A\n');
     const { entries, rendered } = await load({
       name: 'T',
       ...bilingual,
       nav: [{ label: { es: 'Tutoriales', en: 'Tutorials' }, dir: 'tutoriales' }],
-      indexes: { overrides: { tutoriales: { description: { es: 'Todo.', en: 'All.' } } } },
+      folders: { '*': { listing: { generate: true } } },
       editUrl: 'https://github.com/x/y/edit/main/',
       repoRoot: '.',
     });
@@ -738,37 +785,52 @@ describe('docsLoader: índices generados', () => {
       locale: 'en',
       title: 'Tutorials',
       kind: 'generated',
-      listing: {},
-      seo: { description: 'All.' },
+      seo: { description: 'All pages in Tutorials.' },
+    });
+    expect(entries.get('es/tutoriales')!.data).toMatchObject({
+      seo: { description: 'Todas las páginas de Tutoriales.' },
     });
     expect(entries.get('en/tutoriales')!.data.editPath).toBeUndefined();
     expect(entries.get('es/notas-varias')!.data.title).toBe('Notas varias');
-    expect(rendered).toContain('# Tutorials\n\nAll.\n');
+    expect(rendered).toContain('# Tutorials\n');
   });
 
-  it('el título y la entradilla generados no se leen como Markdown', async () => {
+  it('la descripción por defecto se sobrescribe con `ui`', async () => {
+    await write('src/content/docs/a/x.md', '# X\n');
+    const { entries } = await load({
+      name: 'T',
+      ui: { en: { 'listing.description': 'Everything about {title}.' } },
+      folders: { a: { listing: { generate: true } } },
+    });
+    expect(entries.get('en/a')!.data).toMatchObject({
+      seo: { description: 'Everything about A.' },
+    });
+  });
+
+  it('el título generado no se lee como Markdown', async () => {
     await write('src/content/docs/a/x.md', '# X\n');
     const { rendered } = await load({
       name: 'T',
-      indexes: { overrides: { a: { title: '*Uno* [dos]', description: '<b>tres</b>' } } },
+      nav: [{ label: '*Uno* [dos]', dir: 'a' }],
+      folders: { a: { listing: { generate: true } } },
     });
-    expect(rendered).toContain('# \\*Uno\\* \\[dos\\]\n\n\\<b\\>tres\\</b\\>\n');
+    expect(rendered).toContain('# \\*Uno\\* \\[dos\\]\n');
   });
 
-  it('sin `indexes` no se genera nada', async () => {
+  it('sin `folders` no se genera nada', async () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({ name: 'T' });
     expect([...entries.keys()]).toEqual(['en/tutoriales/instalacion']);
   });
 
-  it('`include` limita las carpetas y una carpeta que no existe es un error', async () => {
+  it('`generate` por carpeta limita las páginas y una carpeta que no existe es un error', async () => {
     await write('src/content/docs/a/x.md', '# X\n');
     await write('src/content/docs/b/y.md', '# Y\n');
-    const { entries } = await load({ name: 'T', indexes: { include: ['a'] } });
+    const { entries } = await load({ name: 'T', folders: { a: { listing: { generate: true } } } });
     expect(entries.has('en/a')).toBe(true);
     expect(entries.has('en/b')).toBe(false);
-    expect(await failure({ name: 'T', indexes: { include: ['c'] } })).toContain(
-      'indexes.include[0]',
+    expect(await failure({ name: 'T', folders: { c: { listing: { generate: true } } } })).toContain(
+      'folders.c: no hay ninguna carpeta «c» con páginas',
     );
   });
 
@@ -776,7 +838,7 @@ describe('docsLoader: índices generados', () => {
     await write('src/content/docs/tutoriales/instalacion.md', '# Instalación\n');
     const { entries } = await load({
       name: 'T',
-      indexes: {},
+      folders: tutorials,
       sidebar: ['tutoriales'],
       nav: [{ label: 'Tutoriales', slug: 'tutoriales' }],
     });
@@ -805,17 +867,15 @@ describe('docsLoader: índices generados', () => {
     expect(warnings).toEqual([expect.stringContaining('«./nada.png»')]);
   });
 
-  it('el `index` guardado no lleva opciones del listado; la portada de un _index.md también se comprueba', async () => {
+  it('la portada de un _index.md también se comprueba', async () => {
     await write('public/portadas/t.png', 'png');
     await write(
       'src/content/docs/tutoriales/_index.md',
-      '---\nlisting:\n  layout: table\nindex:\n  image: /portadas/t.png\n---\n# Tutoriales\n',
+      '---\nindex:\n  image: /portadas/t.png\n---\n# Tutoriales\n',
     );
     await write('src/content/docs/tutoriales/a.md', '# A\n');
-    const { entries } = await load({ name: 'T' });
-    const data = entries.get('en/tutoriales')!.data;
-    expect(data.index).toEqual({ cover: { src: '/portadas/t.png' } });
-    expect(data.listing).toEqual({ layout: 'table' });
+    const { entries } = await load({ name: 'T', folders: tutorials });
+    expect(entries.get('en/tutoriales')!.data.index).toEqual({ cover: { src: '/portadas/t.png' } });
   });
 });
 
@@ -855,7 +915,10 @@ describe('docsLoader: `slug` propio', () => {
   it('un `slug` que coincide con la URL de un índice generado rompe la carga', async () => {
     await write('src/content/docs/guia/a.md', '# A\n');
     await write('src/content/docs/otra.en.md', '---\nslug: guia\n---\n# Otra\n');
-    const message = await failure({ ...bilingual, indexes: { include: ['guia'] } });
+    const message = await failure({
+      ...bilingual,
+      folders: { guia: { listing: { generate: true } } },
+    });
     expect(message).toContain('otra.en.md (slug)');
     expect(message).toContain('guia/_index.md');
   });

@@ -97,7 +97,7 @@ describe('`::nav-tree` en la ruta de reserva (`/en/tutoriales/`)', () => {
   });
 });
 
-describe('sin `indexes` ni `_index.md`', () => {
+describe('sin `folders` ni `_index.md`', () => {
   it('ningún listado generado ni páginas de paginación: el sitio queda como estaba', async () => {
     for (const file of ['tutoriales/index.html', 'en/tutoriales/index.html', 'index.html']) {
       expect((await page(file)).querySelector('[data-listing]')).toBeNull();

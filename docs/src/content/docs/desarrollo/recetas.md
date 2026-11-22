@@ -61,8 +61,8 @@ flowchart LR
    `src/astro/integration/index.ts`. Las validaciones que cruzan campos van en el `superRefine`, con
    su ruta (`issue(['privacyUrl', locale], …)`). Test en `schema.test.ts`. **Los tipos salen del
    esquema** (N5): `export type X = z.infer<typeof XSchema>`, no una interfaz escrita a mano que
-   repita los campos (así `ListingFrontmatter`, `IndexesUserConfig`, `Frontmatter`). Si varios
-   bloques comparten campos, un esquema base y `.extend()` (`ListingSchema`).
+   repita los campos (así `FoldersUserConfig`, `FolderSettingsUser`, `Frontmatter`). Si varios
+   bloques comparten campos, un esquema base y `.extend()`.
 2. **Resolución** (`src/core/config/resolve.ts`). Añádelo a `ResolvedConfig` y pon el valor por
    defecto en `resolveConfig`: los valores por defecto viven aquí, **no** en el esquema. Test en
    `resolve.test.ts`.

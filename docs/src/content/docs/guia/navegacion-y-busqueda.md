@@ -146,21 +146,28 @@ nueva aparece en el índice en cuanto entra en un `sidebar`.
   que hay), un atributo desconocido, un `descriptions` que no es `true` ni `false`, la directiva sin
   secciones en `nav`, con texto (`::nav-tree[…]`) o como contenedor (`:::nav-tree`).
 
-### Índices de carpeta (`_index.md` e `indexes`)
+### Índices de carpeta (`folders` y `_index.md`)
 
-Un blog o una guía necesitan una página que liste lo que cuelga de su carpeta. La librería la
-genera, como Hugo, a partir de un `_index.md` en esa carpeta o, sin él, de la opción `indexes`.
+Un blog o una guía necesitan una página que liste lo que cuelga de su carpeta. **Si una carpeta tiene
+índice generado lo decide la config**, con `listing.generate` en `folders`; el `_index.md` de la
+carpeta solo pone los textos.
+
+```js
+import { defineDocsConfig, ListingView } from '@velezanthony/design/integration';
+
+export default defineDocsConfig({
+  // …
+  folders: {
+    tutoriales: { listing: { generate: true, view: ListingView.CARDS } },
+  },
+});
+```
 
 ```md
-<!-- tutoriales/_index.md -->
+<!-- tutoriales/_index.md (opcional) -->
 ---
 seo:
   description: "Tutoriales paso a paso, agrupados por nivel."
-listing:
-  layout: cards # list (por defecto) | table | cards
-  pageSize: 12 # por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
-  perPageOptions: [12, 24, 48] # selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
-  covers: true # política de portadas: true (la de la librería) | false
 ---
 
 # Tutoriales
@@ -174,24 +181,49 @@ debajo, el listado de la carpeta. **El `_index.md` no es una página propia:** n
 `sidebar: ['tutoriales']` o un `nav` con `slug: 'tutoriales'` lo enlazan, y un enlace del Markdown a
 `tutoriales/_index.md` lleva a `/tutoriales/`. Se traduce como cualquier página (`_index.en.md`), con
 la política de `translations` de siempre: sin traducción, `/en/tutoriales/` es una ruta de reserva con el
-texto original y las URLs de `/en/`. Cada traducción lleva su propio bloque `listing`.
+texto original y las URLs de `/en/`.
 
-Dos bloques, cada uno con un significado:
+- **`listing.generate`** se hereda de la carpeta padre (ver [Ajustes por carpeta](#ajustes-por-carpeta-folders)):
+  con `articulos: { listing: { generate: true } }`, también `articulos/sistemas` y
+  `articulos/sistemas/cloud` reciben su página, aunque no tengan ningún archivo propio.
+- **`index:`** (frontmatter) dice cómo sale una página en el listado de su carpeta (resumen y portada;
+  ver [Portadas](#portadas-tarjetas)). Lo admite cualquier página, también un `_index.md`: es su ficha
+  en el listado de la carpeta padre.
+- **`listing:` en el frontmatter ya no existe**: rompe el build con la pista de la clave de `folders`
+  que lo sustituye (`folders.tutoriales.listing`). El frontmatter solo lleva el contenido de la página.
 
-- **`listing:`** dice cómo es el listado de la carpeta. Solo vale en un `_index.md`; en cualquier otro
-  archivo (también en un `index.md`) rompe el build nombrando el campo.
-- **`index:`** dice cómo sale una página en el listado de su carpeta (resumen y portada; ver
-  [Portadas](#portadas-tarjetas)). Lo admite cualquier página, también un `_index.md`: es su ficha en
-  el listado de la carpeta padre.
+| En la carpeta | `generate` encendido | `generate` apagado (por defecto) |
+| --- | --- | --- |
+| `index.md` | Esa página, normal: gana a la generación y el build lo **informa** (una línea `info` por carpeta). Un `_index.md` al lado se ignora con un aviso. | Esa página, normal. |
+| `_index.md` | El índice, con el título, la entradilla y el `seo` del `_index.md`. | **Error de build** con el archivo y la pista `folders['<carpeta>'].listing.generate: true`. |
+| Ninguno | El índice: solo el título y el listado. | Nada. |
 
-**Es la forma recomendada de dar título y entradilla a un índice:** todo lo que se traduce vive en
-Markdown, no en la config.
+- **Título de una carpeta sin `_index.md`:** la etiqueta de la sección de `nav` con ese `dir`; si no,
+  la de la sección o el grupo declarado (`nav[n].sidebar`, `sidebar`) cuyas páginas tienen esa carpeta
+  como carpeta común más profunda, y si casan varios, el más interior; si no, el nombre de la carpeta
+  (`notas-de-version` → «Notas de version»). Con `nav` como el de abajo, `articulos/sistemas` se
+  titula «Sistemas», `articulos/sistemas/ci-cd` «CI/CD» y `articulos/sistemas/cloud/aws` «AWS»;
+  `articulos/sistemas/cloud` se queda en «Cloud», porque el grupo «Cloud» solo envuelve a «AWS».
 
-| En la carpeta | Qué se publica en `/carpeta/` |
-| --- | --- |
-| `index.md` | Esa página, normal (puede usar `::nav-tree`). Gana siempre: si también hay `_index.md`, se ignora con un aviso. |
-| `_index.md` (sin `index.md`) | El índice generado, con el título, la entradilla y el `seo` del `_index.md`. No hace falta config. |
-| Ninguno de los dos | El índice generado si `indexes` activa la carpeta; si no, nada (como hasta ahora). |
+  ```js
+  nav: [
+    {
+      label: { es: 'Sistemas', en: 'Systems' },
+      sidebar: [
+        { label: 'CI/CD', items: ['articulos/sistemas/ci-cd/github-actions'] },
+        { label: 'Cloud', items: [{ label: 'AWS', items: ['articulos/sistemas/cloud/aws/basica'] }] },
+      ],
+    },
+  ],
+  ```
+
+- **Descripción SEO de una carpeta sin `_index.md`:** «Todas las páginas de {title}.» (`listing.description`
+  de los textos de interfaz, sobrescribible en `ui`). Existe en todos los idiomas del sitio.
+- **Indexables.** Las páginas de carpeta son páginas: entran en el sitemap y en la búsqueda. Para
+  sacar una, `seo.noindex: true` en su `_index.md`, como en cualquier página; vale para la página y
+  todas sus rutas de paginación. Para no tenerla, `generate: false` en esa rama.
+- **No son entradas de la navegación.** El grupo de su carpeta las enlaza, pero nunca salen como hoja
+  suelta en la barra lateral ni como entrada en el listado de la carpeta padre.
 
 #### Qué lista y en qué orden
 
@@ -201,7 +233,7 @@ sección, con su orden, sus URLs y la política de traducción (`link` enlaza al
 insignia; `omit` no la lista). De cada página salen su título, su resumen (`index.summary` o, sin él,
 `seo.description`), su camino (sección › grupos) y la fecha de su último commit.
 
-| `layout` | Cómo se ve |
+| `view` (`ListingView`) | Cómo se ve |
 | --- | --- |
 | `list` | El árbol: un `##` por sección de `nav` (entra en «En esta página»), los grupos en negrita y cada página con su resumen y su fecha discreta a la derecha. Sin paginar. |
 | `table` | Título, resumen, sección y fecha, de la más reciente a la más antigua. En móvil, cada fila es una tarjeta apilada (`table-cards`). |
@@ -218,8 +250,8 @@ insignia; `omit` no la lista). De cada página salen su título, su resumen (`in
   título del `_index.md` con «Página 2 de 3» y **no** la entradilla (no duplica contenido). Son
   `noindex` con `canonical` a sí mismas, llevan `rel="prev"`/`rel="next"`, no entran en el sitemap ni
   en la búsqueda: lo que se indexa es la página 1 y cada página de la carpeta.
-- **Nombres reservados.** Dentro de una carpeta con listado (un `_index.md` o una generada, de
-  cualquier disposición), `page` y `per-page` son de la paginación: una página cuya URL sea
+- **Nombres reservados.** Dentro de una carpeta con listado (con `_index.md` o sin él, de
+  cualquier vista), `page` y `per-page` son de la paginación: una página cuya URL sea
   `<carpeta>/page`, `<carpeta>/per-page` o algo debajo (`tutoriales/page.md`, o un `slug:
   tutorials/page` en inglés) rompe el build nombrando su archivo. Renombra el archivo o cambia su
   `slug`.
@@ -235,8 +267,8 @@ Debajo del listado, una sola fila de pie lleva a la izquierda un `<select>` nati
 la fila se parte. Es la misma pieza que el pie de la tabla del panel SEO (`PaginationBar`). No hay
 copia arriba: con 12 entradas por página la fila queda cerca. El selector deja elegir cuántas
 entradas se ven: por defecto 12, 24 o 48 en las tarjetas y 10, 25 o 50 en la tabla. Las
-opciones salen de `perPageOptions` (en `indexes`, en `indexes.overrides[carpeta]` o en el `listing`
-del `_index.md`, con la precedencia de siempre) y deben ser enteros positivos; si el `pageSize` no está
+opciones salen de `perPageOptions` (en `folders`, heredado como cualquier ajuste) y deben ser enteros
+positivos; si el `pageSize` no está
 entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción ni si todo cabe en la
 más pequeña.
 
@@ -266,10 +298,10 @@ index:
   imageAlt: "Lo que muestra la imagen" # opcional
 ```
 
-Precedencia, de más a menos: `index.image` de la página → `listing.covers` del `_index.md` (o
-`covers` de `indexes.overrides[carpeta]`) → `indexes.covers` → la portada de la librería. `false` en
-un nivel quita la imagen salvo que uno más alto ponga una real. `index.image` es siempre la portada
-de la página (una ruta o `false`); la **política** del listado (`true`/`false`) es `covers`.
+Precedencia, de más a menos: `index.image` de la página → `listing.covers` de `folders` (heredado de
+la carpeta declarada más cercana o de `'*'`) → la portada de la librería. `false` quita la imagen salvo
+que la página ponga una real. `index.image` es siempre la portada de la página (una ruta o `false`); la
+**política** del listado (`true`/`false`) es `covers`.
 
 - La portada de la librería es un dibujo (rejilla, diagonales o puntos, estable por página) hecho
   solo con los tokens del tema, con el grupo de la página como etiqueta pequeña.
@@ -280,39 +312,42 @@ de la página (una ruta o `false`); la **política** del listado (`true`/`false`
 - **Texto alternativo:** decorativa por defecto (`alt=""`), porque el título enlazado va al lado y
   se anunciaría dos veces; `imageAlt` le da un `alt` real. La de la librería es `aria-hidden`.
 
-#### La opción `indexes`
+#### Ajustes por carpeta (`folders`)
 
-Pone los valores por defecto de todos los listados y activa el índice generado en las carpetas sin
-`index.md` ni `_index.md`. Lo que diga un `_index.md` gana.
+Cada clave es la ruta de una carpeta del contenido (sin barras: `articulos/python`) o `'*'`
+(`ALL_FOLDERS`) para todo el sitio. Cada ajuste se hereda **por separado** de la carpeta declarada más
+cercana (la propia, luego su padre…), luego de `'*'` y, sin nadie que lo declare, del valor por
+defecto: declarar `pageSize` en una carpeta hija no anula la `view` de su padre.
 
 ```js
-indexes: {
-  layout: 'list', // 'list' (por defecto) | 'table' | 'cards'
-  pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla
-  perPageOptions: [12, 24, 48], // por defecto [12, 24, 48] en tarjetas y [10, 25, 50] en tabla
-  covers: true, // política de portadas por defecto
-  include: 'all', // 'all' (por defecto) o las carpetas exactas: ['tutoriales', 'guia/avanzado']
-  exclude: ['borradores'], // carpetas que no, aunque `include` las abarque
-  overrides: {
-    guia: { layout: 'table', pageSize: 20, covers: false, title: { es: 'Guía', en: 'Guide' }, description: { es: '…', en: '…' } },
+import { ALL_FOLDERS, ListingView } from '@velezanthony/design/integration';
+
+folders: {
+  [ALL_FOLDERS]: { listing: { view: ListingView.LIST } },
+  articulos: {
+    listing: {
+      generate: true, // índice generado aquí y en todas sus subcarpetas (por defecto, false)
+      view: ListingView.CARDS, // LIST (por defecto) | TABLE | CARDS
+      pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla; la lista no se pagina
+      perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
+      covers: true, // política de portadas: true (por defecto, la de la librería) | false
+    },
   },
+  'articulos/borradores': { listing: { generate: false } }, // apaga una rama
 },
 ```
 
-- **Todas:** `indexes: {}`. **Todas menos unas:** `exclude`. **Solo unas:** `include: [...]`.
-  Las carpetas se nombran por su ruta en el contenido, exactas (`tutoriales` no incluye
-  `tutoriales/viejos`); una que no existe rompe el build con su ruta (`indexes.include[1]`).
-- La página generada de una carpeta sin `_index.md` se titula con el `title` de `overrides`, o con la
-  etiqueta de la sección de `nav` con ese `dir` (ya traducida), o con el nombre de la carpeta
-  (`notas-de-version` → «Notas de version»). Su entradilla y su `seo.description` son la
-  `description` de `overrides`, si la hay. Existe en todos los idiomas del sitio.
-- Sin `indexes`, todo queda como antes: solo los `_index.md` generan índices.
-- **Cómo funciona.** El descubrimiento convierte `carpeta/_index.md` en la página de `carpeta`
-  (`core/content/discovery.ts`) y el loader añade las generadas (`generatedListingPages`,
-  `core/content/generated-listings.ts`); la ruta de las páginas de docs resuelve el listado
-  (`resolveListing`) y lo calcula (`buildListing`), los dos en `core/listing/`, con `docListingView`, y `DocPage` lo pinta
-  debajo del contenido, fuera de `.prose`, con `Listing` (`ListingList`, `ListingTable`,
-  `ListingCards` y el átomo `CoverPlaceholder`). Los textos de la interfaz son las claves `listing.*`.
+- Una clave que no es `'*'` ni una carpeta con páginas rompe el build con su ruta
+  (`folders['articulos/pyton']`).
+- Los textos de una carpeta (título, entradilla, `seo`) no van aquí: van en su `_index.md`, que se
+  traduce.
+- **Cómo funciona.** `folderSettings` (`core/config/folders.ts`) resuelve la herencia; el loader añade
+  las páginas generadas (`generatedListingPages`, `core/content/generated-listings.ts`) con el título
+  de `folderTitles` (`core/navigation/folder-labels.ts`); la ruta de las páginas de docs resuelve el
+  listado (`resolveListing`) y lo calcula (`buildListing`), los dos en `core/listing/`, con
+  `docListingView`, y `DocPage` lo pinta debajo del contenido, fuera de `.prose`, con `Listing`
+  (`ListingList`, `ListingTable`, `ListingCards` y el átomo `CoverPlaceholder`). Los textos de la
+  interfaz son las claves `listing.*`.
 - **Forma explícita del loader:** las portadas relativas necesitan el `image()` de Astro:
   `schema: ({ image }) => docsSchema(image)`. Con `docsSchema()` a secas, una portada relativa cae a
   la de la librería.

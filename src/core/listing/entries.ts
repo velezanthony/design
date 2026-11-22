@@ -1,3 +1,4 @@
+import { listsFolder } from '../content/generated-listings';
 import type { Locale } from '../i18n/locale';
 import { pickLocalized } from '../i18n/translation-policy';
 import { resolveLabel } from '../navigation/label';
@@ -119,7 +120,8 @@ export function buildListing({
         return undefined;
       }
       seen.add(slug);
-      const summary = pageBlurb(pickLocalized(pages, slug, contentLocale, config), contentLocale, {
+      const own = pickLocalized(pages, slug, contentLocale, config);
+      const summary = pageBlurb(own, contentLocale, {
         defaultLocale: config.defaultLocale,
         preferSummary: true,
       });
@@ -135,7 +137,8 @@ export function buildListing({
         ...(extra?.cover !== undefined && { cover: extra.cover }),
         ...(extra?.imageAlt !== undefined && { imageAlt: extra.imageAlt }),
       };
-      entries.push(entry);
+      // La página que lista una subcarpeta solo enlaza su grupo: no es una entrada del listado.
+      if (!(own && listsFolder(own))) entries.push(entry);
       return entry;
     },
     group(group, own, items) {

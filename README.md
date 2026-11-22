@@ -185,6 +185,7 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
 | `sidebarDepth`  | Niveles de grupos de carpeta del árbol automático de la barra lateral: `3` para todo el sidebar o `{ default?, overrides? }` con un límite por carpeta (`{ 'articulos/python': 1 }`), que cuenta desde ella. Por defecto sin límite. Lo más hondo va plano al último grupo permitido; los grupos escritos en `sidebar` no cambian. Ver [Navegación](docs/src/content/docs/guia/navegacion-y-busqueda.md#profundidad-del-árbol-automático-sidebardepth). |
 | `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar?, sidebarDepth? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
+| `folders`       | Ajustes por carpeta, heredados de padre a hijo; `'*'` (`ALL_FOLDERS`) para todo el sitio: `{ articulos: { listing: { generate: true, view: ListingView.CARDS } } }`. Ver [`folders`](#folders). |
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
 | `components`    | Componentes propios que sustituyen a los de la librería: `{ Footer: './src/components/DocsFooter.astro' }` (un `.astro` desde la raíz del proyecto, debe existir). Ver abajo. |
 | `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
@@ -398,44 +399,57 @@ es el botón que reabre el aviso de consentimiento. Rompe el build una ruta inex
 `.astro` y cualquier otra clave en `components`. Detalle en
 [Pie propio](docs/src/content/docs/guia/navegacion-y-busqueda.md#pie-propio-componentsfooter).
 
-### `indexes`
+### `folders`
 
-Índices generados: la página de una carpeta que lista lo que cuelga de ella, en lista, tabla o
-tarjetas. La forma recomendada es un `_index.md` en la carpeta (como en Hugo), que pone el título, la
-entradilla, el `seo` y el bloque `listing`, y se traduce con `_index.en.md`; no necesita config. Un
-`index.md` en la misma carpeta gana siempre (y el `_index.md` se ignora con un aviso). La opción
-`indexes` pone los valores por defecto y activa el índice en las carpetas sin ninguno de los dos:
+Ajustes por carpeta. Cada clave es la ruta de una carpeta del contenido (`articulos/python`, sin
+barras) o `'*'` (`ALL_FOLDERS`) para todo el sitio; cada ajuste se hereda por separado de la carpeta
+declarada más cercana, luego de `'*'`, luego del valor por defecto. Hoy lleva `listing`: si la carpeta
+tiene índice generado (la página que lista lo que cuelga de ella) y cómo se pinta.
 
 ```js
-indexes: {
-  layout: 'list', // 'list' (por defecto) | 'table' | 'cards'
-  pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla (la lista no se pagina)
-  perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
-  covers: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
-  include: 'all', // 'all' (por defecto) | ['tutoriales', 'guia/avanzado']: carpetas exactas
-  exclude: [], // carpetas que no, aunque `include` las abarque
-  overrides: {
-    tutoriales: { layout: 'cards', pageSize: 12, perPageOptions: [12, 24, 48], covers: true, title: { es: 'Tutoriales', en: 'Tutorials' }, description: { es: '…', en: '…' } },
+import { ALL_FOLDERS, ListingView } from '@velezanthony/design/integration';
+
+folders: {
+  [ALL_FOLDERS]: { listing: { view: ListingView.LIST } },
+  articulos: {
+    listing: {
+      generate: true, // índice generado aquí y en sus subcarpetas; por defecto false
+      view: ListingView.CARDS, // LIST (por defecto) | TABLE | CARDS
+      pageSize: 12, // por defecto 12 en tarjetas y 10 en tabla (la lista no se pagina)
+      perPageOptions: [12, 24, 48], // selector «Por página»; por defecto [12, 24, 48] o [10, 25, 50]
+      covers: true, // portadas: true = la de la librería a quien no trae imagen | false = sin imagen
+    },
   },
+  'articulos/borradores': { listing: { generate: false } }, // apaga una rama
 },
 ```
 
-En el frontmatter, `_index.md` lleva `listing: { layout, pageSize, perPageOptions, covers }` (gana a la config) y cada
-página (también un `_index.md`, para su ficha en el listado padre) `index: { summary, image, imageAlt }`: `summary` sustituye a `seo.description` en el listado e
+- Con `generate`, la página de la carpeta toma el título, la entradilla y el `seo` de su `_index.md`
+  (que se traduce con `_index.en.md`). Sin `_index.md`, solo lleva el título (el de su sección o grupo
+  declarado, o el nombre de la carpeta) y el listado, con la descripción «Todas las páginas de
+  {title}.» (`listing.description` en `ui`).
+- Un `index.md` gana siempre a la generación: se pinta como página normal y el build lo informa. Un
+  `_index.md` en una carpeta sin `generate` rompe el build con la clave que lo enciende. `listing:` en
+  el frontmatter ya no existe: el frontmatter solo lleva el contenido de la página.
+- Las páginas de carpeta son indexables; `seo.noindex` en su `_index.md` las saca, con sus rutas de
+  paginación. No salen como hoja suelta en la barra lateral ni como entrada de un listado: las enlaza
+  el grupo de su carpeta.
+
+Cada página (también un `_index.md`, para su ficha en el listado padre) puede llevar en el frontmatter
+`index: { summary, image, imageAlt }`: `summary` sustituye a `seo.description` en el listado e
 `image` es una ruta relativa al `.md` (pasa por astro:assets), de `public/` o `false`. Precedencia de
-la portada: la página → la carpeta (`listing.covers` del `_index.md` u `overrides`) → `indexes.covers` → la de la librería. `listing:` fuera de un `_index.md` rompe el build.
-Una imagen que no existe avisa y deja la de la librería. Las portadas son decorativas (`alt=""`) salvo
-con `imageAlt`.
+la portada: la página → `listing.covers` de `folders` → la de la librería. Una imagen que no existe
+avisa y deja la de la librería. Las portadas son decorativas (`alt=""`) salvo con `imageAlt`.
 
 La tabla y las tarjetas van de la más reciente a la más antigua (fecha del último commit; lo que no
 tiene commit va primero y sin fecha) y se paginan en `/carpeta/page/2/`, `/carpeta/page/3/`… (`page` y `per-page` quedan reservados dentro de la carpeta), que son
 `noindex`, canónicas de sí mismas y fuera del sitemap. El selector «Por página» (`perPageOptions`; el
 `pageSize` se añade si falta) navega entre rutas estáticas: cada otro tamaño vive en
 `/carpeta/per-page/<n>/` (y sus páginas debajo), también `noindex`; sin JavaScript sus tamaños salen
-como enlaces. Sin `_index.md` ni `indexes`, nada cambia.
-Una carpeta de `include`, `exclude` u `overrides` que no existe, una disposición desconocida o una
-clave de más rompen el build con su ruta. Detalle en
-[Índices de carpeta](docs/src/content/docs/guia/navegacion-y-busqueda.md#índices-de-carpeta-_indexmd-e-indexes).
+como enlaces. Sin `folders`, nada cambia.
+Una carpeta de `folders` que no existe, una vista desconocida o una clave de más rompen el build con
+su ruta (`folders['articulos/pyton']`). Detalle en
+[Índices de carpeta](docs/src/content/docs/guia/navegacion-y-busqueda.md#índices-de-carpeta-folders-y-_indexmd).
 
 ### `layout`
 
@@ -641,8 +655,8 @@ en cualquier idioma o su `dir`) y `{descriptions="false"}` quita las descripcion
 reserva, el texto es el del original y las URLs las de la barra lateral de esa ruta. Una sección que
 no existe o un atributo desconocido rompen el build con el archivo y la línea. Detalle en
 [Índice generado](docs/src/content/docs/guia/navegacion-y-busqueda.md#índice-generado-nav-tree).
-Para una página que liste su carpeta con tarjetas o una tabla paginada, usa un `_index.md` (ver
-[`indexes`](#indexes)).
+Para una página que liste su carpeta con tarjetas o una tabla paginada, enciende su índice generado
+(ver [`folders`](#folders)).
 
 Los bloques de código usan Shiki (`github-light-default` / `github-dark-default`); Shiki ya
 entiende `console`, `py`, `js`, `ts`, `yml`, `sh`, `zsh`, `jsonc`, `dockerfile` y `docker`, y la

@@ -11,9 +11,22 @@ import {
   type Page,
   type SourceFile,
 } from '../../core/content/discovery';
-import { validateIndexFolders } from '../../core/config/indexes';
+import { validateFolderKeys } from '../../core/config/folders';
 import { validateSidebarDepthFolders } from '../../core/config/sidebar-depth';
-import { contentFolders, generatedListingPages } from '../../core/content/generated-listings';
+import {
+  contentFolders,
+  generatedListingPages,
+  listingSourceErrors,
+  replacedListings,
+} from '../../core/content/generated-listings';
+import {
+  siteStrings,
+  translate,
+  type UiOverrides,
+  type UiStrings,
+} from '../../core/i18n/ui-strings';
+import type { Locale } from '../../core/i18n/locale';
+import { folderTitles } from '../../core/navigation/folder-labels';
 import { reservedSegmentErrors } from '../../core/listing/urls';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
 import { DEFAULT_CONTENT_DIR } from '../../core/content/content-dir';
@@ -114,7 +127,16 @@ function discoverOrErrors(
 ): { pages: Page[]; errors: DocsError[] } {
   try {
     const pages = discoverPages(files, config);
-    const all = [...pages, ...generatedListingPages(pages, config)];
+    const strings = loaderStrings(config);
+    const all = [
+      ...pages,
+      ...generatedListingPages(pages, {
+        folders: config.folders,
+        locales: config.locales,
+        labelOf: folderTitles(config),
+        describe: (title, locale) => translate(strings[locale]!, 'listing.description', { title }),
+      }),
+    ];
     // Las descubiertas ya no chocan entre sí: lo que choque ahora es con un índice generado, o con
     // los segmentos que reserva la paginación de un listado.
     const clashes = [...urlCollisions(all), ...reservedSegmentErrors(all)];
@@ -155,6 +177,10 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
       `${file}: se ignora porque su carpeta tiene un index.md, que es una página normal y gana al índice generado.`,
     );
   }
+  for (const { folder, file } of replacedListings(pages, config.folders)) {
+    context.logger.info(`${file} sustituye al índice generado de la carpeta ${folder}.`);
+  }
+  errors.push(...listingSourceErrors(pages, config.folders));
 
   const policy = resolvePolicies(pages, config.translations.missing);
   errors.push(...policy.errors);
@@ -166,7 +192,7 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
       ...validateSidebarSlugs(config.sidebar ?? [], pageSlugs),
       ...validateNav(config.nav ?? [], pageSlugs),
       ...validateFooter(config.footer?.links ?? [], pageSlugs),
-      ...(config.indexes ? validateIndexFolders(config.indexes, folders) : []),
+      ...validateFolderKeys(config.folders, folders),
       ...(config.sidebarDepth ? validateSidebarDepthFolders(config.sidebarDepth, folders) : []),
     );
   }
@@ -225,7 +251,6 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
         ...(page.translations && { translations: page.translations }),
         ...(repoRoot !== undefined &&
           page.kind !== 'generated' && { editPath: path.relative(repoRoot, file) }),
-        ...(page.listing && { listing: page.listing }),
         ...(indexData && { index: indexData }),
       },
       filePath: path.relative(root, file),
@@ -267,8 +292,16 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
 
 export { docsSchema } from './schema';
 
-/** Lo que el loader necesita de la config resuelta, sin los overrides de `ui` (ya viajan fusionados en `strings`). */
-export type LoaderConfig = Omit<ResolvedConfig, 'ui'>;
+/** Lo que el loader necesita de la config resuelta: los textos de interfaz llegan fusionados en `strings` (módulo virtual) o como `ui` (config resuelta a mano). */
+export type LoaderConfig = Omit<ResolvedConfig, 'ui'> & {
+  ui?: UiOverrides;
+  strings?: Record<Locale, UiStrings>;
+};
+
+/** Textos de interfaz de cada idioma del sitio: los del módulo virtual o, si no, los del paquete con los `ui` de la config. */
+function loaderStrings(config: LoaderConfig): Record<Locale, UiStrings> {
+  return config.strings ?? siteStrings(config.ui, config.locales);
+}
 
 /** Loader a partir de una config YA resuelta (la del módulo virtual): una sola carga, sin segunda lectura. */
 export function docsLoaderFromResolved(docsConfig: LoaderConfig): Loader {

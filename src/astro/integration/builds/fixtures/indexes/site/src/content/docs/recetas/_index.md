@@ -1,6 +1,1 @@
----
-listing:
-  layout: list
----
-
 # Recetas

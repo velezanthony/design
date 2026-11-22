@@ -28,7 +28,7 @@ function page(slug: string, locale = 'es', extra: Partial<Page> = {}): Page {
 
 /* Un sitio de tutoriales: páginas planas en `tutoriales/`, el árbol lo forman los `sidebar`. */
 const pages = [
-  page('tutoriales', 'es', { listing: { layout: 'cards' } }),
+  page('tutoriales', 'es', { sourcePath: 'tutoriales/_index.md' }),
   page('tutoriales/configuracion', 'es', {
     seo: { description: 'Las opciones del archivo de configuración.' },
   }),
@@ -248,6 +248,32 @@ describe('buildListing: entradas', () => {
       ['blog/a/b/z', ['Blog', 'B']],
       ['blog/a/y', ['Blog']],
     ]);
+  });
+
+  it('una página generada de una subcarpeta no es una entrada, pero su grupo la enlaza', () => {
+    const deep = [
+      page('blog/a/x'),
+      page('blog/a', 'es', {
+        kind: 'generated',
+        title: 'Carpeta A',
+        sourcePath: 'blog/a/_index.md',
+      }),
+      page('blog/y'),
+    ];
+    const { entries, sections } = buildListing({
+      context: {
+        ...context('es', { nav: undefined, sidebar: undefined }),
+        pages: deep,
+        availability: buildAvailability(deep, url),
+        policies: resolvePolicies(deep, MissingTranslation.FALLBACK).policies,
+      },
+      contentLocale: 'es',
+      folder: 'blog',
+      details: none,
+    });
+    expect(entries.map((entry) => entry.slug)).toEqual(['blog/a/x', 'blog/y']);
+    const group = sections[0]!.nodes.find(isListingGroup);
+    expect(group).toMatchObject({ label: 'Carpeta A', href: '/repo/blog/a/' });
   });
 
   it('una carpeta sin páginas en la navegación da un listado vacío', () => {

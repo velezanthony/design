@@ -6,7 +6,6 @@ import type { MissingTranslation } from '../i18n/translation-policy';
 import type { UiOverrides } from '../i18n/ui-strings';
 import type { FooterConfig } from './footer';
 import { resolveFolders, type ResolvedFolders } from './folders';
-import { resolveIndexes, type ResolvedIndexes } from './indexes';
 import { resolveLayout, type ResolvedLayout } from './layout';
 import { resolveSidebarDepth, type SidebarDepth } from './sidebar-depth';
 import type { NavItem } from './nav';
@@ -68,8 +67,6 @@ export interface ResolvedConfig {
   /** Con `include`, `sitemap.xml` es un índice: las páginas propias y estos sitemaps del dominio. */
   sitemap: { include: string[] };
   layout: ResolvedLayout;
-  /** Índices generados; sin definir, solo los `index.md` con `index.layout` llevan listado. */
-  indexes?: ResolvedIndexes;
   /** Ajustes por carpeta tal como se declararon; `folderSettings` (`./folders`) resuelve la herencia. */
   folders: ResolvedFolders;
 }
@@ -93,7 +90,7 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
       }),
     );
   }
-  const { indexes, sidebarDepth, folders, ...config } = result.data;
+  const { sidebarDepth, folders, ...config } = result.data;
   const locales = config.locales ?? DEFAULT_LOCALES;
   return {
     ...config,
@@ -109,7 +106,6 @@ export function resolveConfig(user: DocsUserConfig): ResolvedConfig {
     ui: config.ui ?? {},
     external: config.external ?? [],
     layout: resolveLayout(config.layout),
-    ...(indexes && { indexes: resolveIndexes(indexes) }),
     folders: resolveFolders(folders),
     ...(sidebarDepth !== undefined && { sidebarDepth: resolveSidebarDepth(sidebarDepth) }),
     sitemap: { include: config.sitemap?.include ?? [] },

@@ -152,41 +152,34 @@ describe('parseFrontmatter: index', () => {
   });
 });
 
+/* El listado de una carpeta se configura en `folders`: `listing:` es una clave desconocida con su
+   propia pista (la del resto de claves ajenas se ignora: otras herramientas escriben las suyas). */
 describe('parseFrontmatter: listing', () => {
-  function messages(listing: unknown, file = 'a/_index.md') {
-    return parseFrontmatter({ listing }, file).errors.map((error) => error.message);
-  }
-
-  it('un _index.md: disposición, tamaño de página, opciones por página y portadas', () => {
-    const listing = { layout: 'cards', pageSize: 6, perPageOptions: [6, 12], covers: false };
-    for (const file of ['tutoriales/_index.md', 'tutoriales/_index.en.md', '_index.md']) {
-      expect(parseFrontmatter({ listing }, file)).toEqual({
-        frontmatter: { listing },
-        errors: [],
-      });
-    }
-  });
-
-  it('en una página normal es un error con su campo (un index.md también es una página normal)', () => {
-    expect(messages({ layout: 'list' }, 'tutoriales/instalacion.md').join('\n')).toContain(
-      'listing',
+  it('en un _index.md es una clave desconocida con la pista de `folders` de su carpeta', () => {
+    const { frontmatter, errors } = parseFrontmatter(
+      { title: 'T', listing: { layout: 'cards' } },
+      'articulos/python/_index.md',
     );
+    expect(frontmatter).toEqual({});
+    expect(errors).toHaveLength(1);
+    expect(errors[0]!.file).toBe('articulos/python/_index.md');
+    expect(errors[0]!.message).toBe('listing: opción desconocida.');
+    expect(errors[0]!.hint).toContain("folders['articulos/python'].listing");
+  });
+
+  it('también en su traducción y en el de la portada', () => {
+    expect(parseFrontmatter({ listing: {} }, 'guia/_index.en.md').errors[0]!.hint).toContain(
+      'folders.guia.listing',
+    );
+    expect(parseFrontmatter({ listing: {} }, '_index.md').errors[0]!.hint).toContain(
+      "folders['*'].listing",
+    );
+  });
+
+  it('en una página normal, lo mismo: la carpeta es la suya', () => {
     const [error] = parseFrontmatter({ listing: {} }, 'tutoriales/index.md').errors;
-    expect(error?.message).toContain('listing');
-    expect(error?.file).toBe('tutoriales/index.md');
-  });
-
-  it('`listing.image` es una clave desconocida: la política de portadas es `covers`', () => {
-    expect(messages({ image: false }).join('\n')).toContain('listing.image');
-  });
-
-  it('`perPageOptions` son enteros positivos y al menos uno', () => {
-    expect(messages({ perPageOptions: [0] }).join('\n')).toContain('listing.perPageOptions');
-    expect(messages({ perPageOptions: [] }).join('\n')).toContain('listing.perPageOptions');
-  });
-
-  it('una disposición desconocida falla con su ruta', () => {
-    expect(messages({ layout: 'grid' }).join('\n')).toContain('listing.layout');
+    expect(error?.message).toBe('listing: opción desconocida.');
+    expect(error?.hint).toContain('folders.tutoriales.listing');
   });
 });
 

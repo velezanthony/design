@@ -1,4 +1,4 @@
-import type { Page } from '../../core/content/discovery';
+import { listsFolder } from '../../core/content/generated-listings';
 import type { Locale } from '../../core/i18n/locale';
 import { pickLocalized } from '../../core/i18n/translation-policy';
 import type { UiStrings } from '../../core/i18n/ui-strings';
@@ -11,18 +11,18 @@ import type { VirtualConfig } from '../virtual/data';
 import { navContextOf, type SiteContext } from './chrome';
 import type { DocRoute } from './doc';
 
-/* El índice generado de una página con listado (un `_index.md` o una carpeta que `indexes` activa):
+/* El índice generado de una página con listado (un `_index.md` o una carpeta que `folders` activa):
    sus opciones (que `docRoutes` resuelve una vez por ruta), cuántas entradas tiene y su modelo de
    vista, que construye `core/listing/view.ts`; aquí se ensambla y se implementa el puerto de URLs.
    Las portadas salen como `EntryCover`; la ruta convierte las imágenes en URLs con `astro:assets`. */
 
 /** Opciones del listado de una página, o `undefined` si no lista su carpeta. */
 export function listingOptionsOf(
-  page: Pick<Page, 'slug' | 'listing'>,
-  config: Pick<VirtualConfig, 'indexes'>,
+  page: Pick<DocData, 'slug' | 'kind' | 'sourcePath'>,
+  config: Pick<VirtualConfig, 'folders'>,
 ): ListingOptions | undefined {
-  if (!page.listing) return undefined;
-  return resolveListing({ folder: page.slug, own: page.listing, indexes: config.indexes });
+  if (!listsFolder(page)) return undefined;
+  return resolveListing({ folder: page.slug, folders: config.folders });
 }
 
 /** La portada y la fecha de cada página, de su entrada en el idioma del contenido o, sin ella, la del original (`pickLocalized`). */

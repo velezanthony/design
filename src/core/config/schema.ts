@@ -6,8 +6,7 @@ import {
   type StaticFolder,
 } from '../content/static-folders';
 import { MissingTranslation } from '../i18n/translation-policy';
-import { ALL_FOLDERS } from './indexes';
-import { FoldersSchema, ListingViewSchema, PageSizeSchema } from './folders';
+import { FoldersSchema } from './folders';
 import { LayoutWidth, PanelState } from './layout';
 import type { FooterConfig, FooterLink } from './footer';
 import { NavIcon, type NavItem } from './nav';
@@ -48,58 +47,11 @@ export const MissingTranslationSchema = z.enum(Object.values(MissingTranslation)
 export const PanelStateSchema = z.enum(Object.values(PanelState));
 export const LayoutWidthSchema = z.enum(Object.values(LayoutWidth));
 
-/** Páginas por página de un índice paginado: un entero positivo. */
-export const IndexPageSizeSchema = PageSizeSchema;
-
-/** Opciones del selector «Por página»: al menos una, todas enteros positivos. */
-export const IndexPerPageOptionsSchema = z.array(IndexPageSizeSchema).min(1);
-
-/** Carpeta del contenido como la nombra `indexes`: sin barras al principio ni al final. */
-const IndexFolderSchema = z
-  .string()
-  .min(1)
-  .refine(
-    (folder) => !folder.startsWith('/') && !folder.endsWith('/'),
-    'Carpeta sin barras al principio ni al final (tutoriales, no /tutoriales/).',
-  );
-
-/* Cómo es un listado: disposición, tamaño de página, opciones del selector «Por página» y política de
-   portadas (`covers: true` pone la de la librería a quien no trae imagen). Lo escriben el bloque
-   `listing:` de un `_index.md`, `indexes` y cada carpeta de `indexes.overrides`. */
-export const ListingSchema = z.strictObject({
-  layout: ListingViewSchema.optional(),
-  pageSize: IndexPageSizeSchema.optional(),
-  perPageOptions: IndexPerPageOptionsSchema.optional(),
-  covers: z.boolean().optional(),
-});
-export type ListingFrontmatter = z.infer<typeof ListingSchema>;
-
-/* Una carpeta de `indexes.overrides`: su listado y, si se genera, el título y la entradilla. */
-const IndexOverrideSchema = ListingSchema.extend({
-  title: LabelSchema.optional(),
-  description: LabelSchema.optional(),
-});
-export type IndexOverride = z.infer<typeof IndexOverrideSchema>;
-
-/* Índices generados (`indexes`): el listado por defecto y qué carpetas sin `index.md` reciben una
-   página generada. */
-const IndexesSchema = ListingSchema.extend({
-  include: z
-    .union([z.literal(ALL_FOLDERS), z.array(IndexFolderSchema)], {
-      error: `Debe ser '${ALL_FOLDERS}' o una lista de carpetas (['tutoriales']).`,
-    })
-    .optional(),
-  exclude: z.array(IndexFolderSchema).optional(),
-  overrides: z.record(z.string(), IndexOverrideSchema).optional(),
-});
-/** Lo que escribe el consumidor en `indexes`: todo es opcional. */
-export type IndexesUserConfig = z.infer<typeof IndexesSchema>;
-
 /** Niveles de grupos de carpeta del árbol automático de la barra lateral: un entero positivo. */
 const SidebarDepthValueSchema = z.number().int().min(1);
 
 /* `sidebarDepth`: un número para todo el sidebar, o `{ default, overrides }` con un límite por
-   carpeta que cuenta desde ella (misma forma que `indexes.overrides`). */
+   carpeta que cuenta desde ella. */
 const SidebarDepthSchema = z.union(
   [
     SidebarDepthValueSchema,
@@ -335,8 +287,6 @@ export const DocsConfigSchema = z
     sidebarDepth: SidebarDepthSchema.optional(),
     /** Pie: licencia, autor y enlaces. */
     footer: FooterSchema.optional(),
-    /** Índices generados: valores por defecto de los listados y carpetas sin `index.md` que reciben uno. */
-    indexes: IndexesSchema.optional(),
     /** Ajustes por carpeta (listado, árbol) heredados de padre a hijo; `'*'` lleva los de todo el sitio. */
     folders: FoldersSchema.optional(),
     /** Componentes propios que sustituyen a los de la librería: `{ Footer: './src/…/Footer.astro' }`. */
@@ -408,20 +358,6 @@ export const DocsConfigSchema = z
         }
       });
     });
-    for (const [folder, override] of Object.entries(config.indexes?.overrides ?? {})) {
-      for (const key of ['title', 'description'] as const) {
-        const label = override[key];
-        if (typeof label !== 'object') continue;
-        for (const locale of Object.keys(label)) {
-          if (!locales.includes(locale)) {
-            issue(
-              ['indexes', 'overrides', folder, key, locale],
-              `«${locale}» no está en \`locales\` (${locales.join(', ')}).`,
-            );
-          }
-        }
-      }
-    }
     if (typeof config.sidebarDepth === 'object') {
       for (const folder of Object.keys(config.sidebarDepth.overrides ?? {})) {
         if (folder === '' || folder.startsWith('/') || folder.endsWith('/')) {

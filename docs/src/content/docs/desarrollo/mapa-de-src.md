@@ -21,7 +21,6 @@ core/
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
 │   ├── folders.ts         `folders`: ListingView, TreeShow, ALL_FOLDERS, su esquema y la herencia por carpeta (folderSettings, con declaredAt); valida sus claves
-│   ├── indexes.ts         `indexes`: sus valores por defecto, qué carpetas y su validación
 │   ├── sidebar-depth.ts   `sidebarDepth`: límites del árbol automático por defecto y por carpeta, y su validación
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
@@ -31,7 +30,7 @@ core/
 │   ├── exclude.ts         Patrones de `exclude` (estilo `.gitignore`) → qué `.md` no se publica
 │   ├── discovery.ts       Archivos → páginas (slug, idioma, título, orden); externos
 │   ├── frontmatter.ts     Separa y valida el frontmatter (conserva las líneas del cuerpo)
-│   ├── generated-listings.ts  Las páginas que genera `indexes`: carpetas, título y entradilla
+│   ├── generated-listings.ts  Índices generados según `folders`: qué carpetas, qué página lista (listsFolder), las generadas, el `index.md` que gana y el error de un `_index.md` sin `generate`
 │   ├── stored-page.ts     Una entrada de la colección (su forma, sin Astro) → Page
 │   ├── slug.ts            guia/index → guia, index → '' (portada); qué es un _index y de qué carpeta
 │   ├── screenshots.ts     El único dueño de la marca de captura: un párrafo con una sola imagen → p.docs-screenshot (lo usa Article)
@@ -47,13 +46,14 @@ core/
 │   ├── anchors.ts         Índice de encabezados y validación de #anclas
 │   └── fences.ts          No tocar enlaces dentro de bloques de código
 ├── listing/               El índice generado de una carpeta
-│   ├── options.ts         resolveListing: el listado resuelto (lista o paginado) con su precedencia
+│   ├── options.ts         resolveListing: el listado resuelto (lista o paginado) desde los ajustes de `folders`
 │   ├── entries.ts         buildListing (visitante de nav-walk): entradas, secciones y orden por fecha
 │   ├── covers.ts          Portada guardada, la que se pinta y el dibujo de la librería
 │   ├── urls.ts            Dueño de las URLs de un listado: page/ y per-page/, posiciones y nombres reservados
 │   └── view.ts            ListingView (unión por disposición), el puerto ListingHrefs y buildListingView
 ├── navigation/
 │   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
+│   ├── folder-labels.ts   Título de una carpeta sin `_index.md` (sección con `dir`, grupo declarado que casa, nombre humanizado) y carpeta de un grupo declarado
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
 │   ├── nav-sections.ts    Secciones por dir, validación de nav
 │   ├── nav-sidebar.ts     La barra lateral de un ámbito (NavScope: una sección o las páginas sin sección)

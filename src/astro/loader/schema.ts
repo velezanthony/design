@@ -1,9 +1,5 @@
 import { z } from 'astro/zod';
-import {
-  ListingSchema,
-  MissingTranslationSchema,
-  PageSeoOverrideSchema,
-} from '../../core/config/schema';
+import { MissingTranslationSchema, PageSeoOverrideSchema } from '../../core/config/schema';
 
 /** El `image()` que Astro pasa a un `schema` en forma de función: convierte una ruta relativa al `.md` en una imagen de `astro:assets`. */
 export type ImageHelper = () => z.ZodType;
@@ -20,7 +16,7 @@ function coverSchema(image?: ImageHelper) {
 
 /**
  * Esquema de la colección `docs`: lo que necesita el núcleo más `order`, `seo`, `translations`,
- * `editPath` (solo con `editUrl`) y lo de los listados (`listing`, `index`). Con el `image` de
+ * `editPath` (solo con `editUrl`) y la ficha de los listados (`index`). Con el `image` de
  * `schema: ({ image }) => docsSchema(image)`, la portada relativa de una página pasa por
  * `astro:assets`; sin él (`docsSchema()`) se queda en una ruta y el índice pone la de la librería.
  */
@@ -39,8 +35,6 @@ export function docsSchema(image?: ImageHelper) {
     seo: PageSeoOverrideSchema.optional(),
     translations: MissingTranslationSchema.optional(),
     editPath: z.string().optional(),
-    /** Presente si lista su carpeta (un `_index.md` o un índice generado): su bloque `listing:`. */
-    listing: ListingSchema.optional(),
     /** Cómo sale en un listado: resumen y portada ya comprobada, con su texto alternativo. */
     index: z
       .object({

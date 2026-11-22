@@ -1,4 +1,4 @@
-import { defineDocsConfig, MissingTranslation } from '../../../../index.ts';
+import { defineDocsConfig, ListingView, MissingTranslation } from '../../../../index.ts';
 
 /* URLs traducidas con `slug` en el frontmatter, español por defecto e inglés con reserva:
    - `tutoriales/instalacion.en.md` y `tutoriales/despliegue.en.md` fijan su URL en inglés;
@@ -21,4 +21,5 @@ export default defineDocsConfig({
     },
     'guia/a',
   ],
+  folders: { tutoriales: { listing: { generate: true, view: ListingView.CARDS, pageSize: 1 } } },
 });

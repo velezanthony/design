@@ -201,92 +201,22 @@ describe('resolveConfig: privacidad', () => {
   });
 });
 
-describe('resolveConfig: indexes', () => {
-  it('sin `indexes` no hay índices generados', () => {
-    expect(resolveConfig({ name: 'X' }).indexes).toBeUndefined();
-  });
-
-  it('`indexes: {}` activa los índices con los valores por defecto', () => {
-    expect(resolveConfig({ name: 'X', indexes: {} }).indexes).toEqual({
-      layout: 'list',
-      covers: true,
-      include: 'all',
-      exclude: [],
-      overrides: {},
-    });
-  });
-
-  it('acepta `perPageOptions` en `indexes` y en cada carpeta', () => {
-    const config = resolveConfig({
-      name: 'X',
-      indexes: { perPageOptions: [6, 12], overrides: { a: { perPageOptions: [4] } } },
-    });
-    expect(config.indexes?.perPageOptions).toEqual([6, 12]);
-    expect(config.indexes?.overrides.a?.perPageOptions).toEqual([4]);
-  });
-
-  it('acepta la forma completa', () => {
-    const config = resolveConfig({
-      name: 'X',
-      locales: ['es', 'en'],
-      indexes: {
-        layout: 'cards',
-        pageSize: 6,
-        covers: false,
-        include: ['tutoriales'],
-        overrides: {
-          tutoriales: {
-            layout: 'table',
-            title: { es: 'Tutoriales', en: 'Tutorials' },
-            description: 'Notas.',
-          },
-        },
-      },
-    });
-    expect(config.indexes?.overrides.tutoriales?.layout).toBe('table');
+describe('resolveConfig: folders', () => {
+  it('sin `folders`, un mapa vacío: ninguna carpeta tiene índice generado', () => {
+    expect(resolveConfig({ name: 'X' }).folders).toEqual({ declared: {} });
   });
 
   it.each([
-    [{ layout: 'grid' }, 'indexes.layout'],
-    [{ pageSize: 0 }, 'indexes.pageSize'],
-    [{ pageSize: 2.5 }, 'indexes.pageSize'],
-    [{ covers: 'yes' }, 'indexes.covers'],
-    [{ image: false }, 'indexes.image'],
-    [{ overrides: { a: { image: true } } }, 'indexes.overrides.a.image'],
-    [{ include: 'todas' }, 'indexes.include'],
-    [{ include: ['/tutoriales/'] }, 'indexes.include[0]'],
-    [{ exclude: [''] }, 'indexes.exclude[0]'],
-    [{ overrides: { a: { layaut: 'list' } } }, 'indexes.overrides.a.layaut'],
-    [{ colums: 3 }, 'indexes.colums'],
-    [{ perPageOptions: [] }, 'indexes.perPageOptions'],
-    [{ perPageOptions: [9, 0] }, 'indexes.perPageOptions[1]'],
-    [{ perPageOptions: [9.5] }, 'indexes.perPageOptions[0]'],
-    [{ overrides: { a: { perPageOptions: ['9'] } } }, 'indexes.overrides.a.perPageOptions[0]'],
-  ])('%j falla nombrando %s', (indexes, path) => {
-    expect(messages({ name: 'X', indexes }).join('\n')).toContain(path);
-  });
-
-  it('`covers` vale en `indexes` y en cada carpeta', () => {
-    const config = resolveConfig({
-      name: 'X',
-      indexes: { covers: false, overrides: { a: { covers: true } } },
-    });
-    expect(config.indexes?.covers).toBe(false);
-    expect(config.indexes?.overrides.a?.covers).toBe(true);
-  });
-
-  it('`image` ya no existe en `indexes`: es una opción desconocida', () => {
-    expect(messages({ name: 'X', indexes: { image: true } }).join('\n')).toContain(
-      'indexes.image: opción desconocida',
-    );
-  });
-
-  it('un idioma de `title` o `description` que no está en `locales` falla', () => {
-    const problems = messages({
-      name: 'X',
-      locales: ['es'],
-      indexes: { overrides: { a: { title: { fr: 'A' } } } },
-    });
-    expect(problems.join('\n')).toContain('indexes.overrides.a.title.fr');
+    [{ '*': { listing: { view: 'grid' } } }, "folders['*'].listing.view"],
+    [{ a: { listing: { pageSize: 0 } } }, 'folders.a.listing.pageSize'],
+    [{ a: { listing: { pageSize: 2.5 } } }, 'folders.a.listing.pageSize'],
+    [{ a: { listing: { covers: 'yes' } } }, 'folders.a.listing.covers'],
+    [{ a: { listing: { generate: 'yes' } } }, 'folders.a.listing.generate'],
+    [{ a: { listing: { layout: 'list' } } }, 'folders.a.listing.layout'],
+    [{ a: { listing: { perPageOptions: [] } } }, 'folders.a.listing.perPageOptions'],
+    [{ a: { listing: { perPageOptions: [9, 0] } } }, 'folders.a.listing.perPageOptions[1]'],
+    [{ 'a/b': { tree: { show: 'tree' } } }, "folders['a/b'].tree.show"],
+  ])('%j falla nombrando %s', (folders, path) => {
+    expect(messages({ name: 'X', folders }).join('\n')).toContain(path);
   });
 });

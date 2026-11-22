@@ -1,4 +1,4 @@
-import type { ListingFrontmatter, PageSeoOverride } from '../config/schema';
+import type { PageSeoOverride } from '../config/schema';
 import type { MissingTranslation } from '../i18n/translation-policy';
 import type { Page, PageKind } from './discovery';
 
@@ -17,7 +17,6 @@ export interface StoredPage {
   order?: number;
   seo?: PageSeoOverride;
   translations?: MissingTranslation;
-  listing?: ListingFrontmatter;
   /** Lo que se guarda del bloque `index` (la portada guardada se queda en los datos: la lee la vista del listado). */
   index?: { summary?: string; imageAlt?: string; cover?: unknown };
 }
@@ -36,7 +35,6 @@ export function pageOf(item: StoredPage): Page {
     ...(item.order !== undefined && { order: item.order }),
     ...(item.seo && { seo: item.seo }),
     ...(item.translations && { translations: item.translations }),
-    ...(item.listing && { listing: item.listing }),
     ...(index && { index }),
   };
 }

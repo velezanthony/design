@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from './resolve';
-import { DocsConfigSchema, ListingSchema, PageSeoOverrideSchema } from './schema';
+import { DocsConfigSchema, PageSeoOverrideSchema } from './schema';
 import { DocsErrors } from '../errors';
 import { NavIcon } from './nav';
 
@@ -92,28 +92,11 @@ describe('seo de la config', () => {
   });
 });
 
-describe('ListingSchema', () => {
-  it('acepta disposición, tamaño, opciones y portadas', () => {
-    const listing = { layout: 'cards', pageSize: 12, perPageOptions: [12, 24], covers: false };
-    expect(ListingSchema.parse(listing)).toEqual(listing);
-  });
-
-  it('`image` es una clave desconocida: la política de portadas es `covers`', () => {
-    const result = ListingSchema.safeParse({ image: true });
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0]?.code).toBe('unrecognized_keys');
-  });
-});
-
-describe('indexes de la config', () => {
-  it('`indexes.covers` vale', () => {
-    expect(messages({ name: 'X', indexes: { covers: false } })).toEqual([]);
-  });
-
-  it('`indexes.image` es una opción desconocida', () => {
-    expect(messages({ name: 'X', indexes: { image: false } }).join('\n')).toContain(
-      'indexes.image: opción desconocida',
-    );
+describe('indexes ya no existe', () => {
+  it('`indexes` es una opción desconocida: los listados se configuran en `folders`', () => {
+    expect(messages({ name: 'X', indexes: { layout: 'cards' } })).toEqual([
+      expect.stringContaining('indexes: opción desconocida'),
+    ]);
   });
 });
 

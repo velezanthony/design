@@ -59,6 +59,8 @@ const en = {
   'listing.page': 'Page {page}',
   'listing.pageOf': 'Page {page} of {pages}',
   'listing.empty': 'There are no pages here yet.',
+  /** Descripción SEO de un índice generado sin `_index.md`. */
+  'listing.description': 'All pages in {title}.',
   'listing.perPage': 'Per page',
   'listing.showing': 'Showing {from}–{to} of {total}',
   'admonition.note': 'Note',
@@ -138,6 +140,7 @@ const es: UiStrings = {
   'listing.page': 'Página {page}',
   'listing.pageOf': 'Página {page} de {pages}',
   'listing.empty': 'Aún no hay páginas aquí.',
+  'listing.description': 'Todas las páginas de {title}.',
   'listing.perPage': 'Por página',
   'listing.showing': 'Mostrando {from}–{to} de {total}',
   'admonition.note': 'Nota',

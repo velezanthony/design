@@ -35,17 +35,15 @@ describe('pagesOf: kind', () => {
 });
 
 describe('pagesOf: índices', () => {
-  it('conserva el listado y el bloque `index` (sin la portada, que es de la vista)', () => {
+  it('conserva que es generada y el bloque `index` (sin la portada, que es de la vista)', () => {
     const [page] = pagesOf([
       data('a', 'en', {
         kind: 'generated',
-        listing: { layout: 'cards' },
         index: { summary: 'Corto.', imageAlt: 'Un gato', cover: false },
       }),
     ]);
     expect(page).toMatchObject({
       kind: 'generated',
-      listing: { layout: 'cards' },
       index: { summary: 'Corto.', imageAlt: 'Un gato' },
     });
     expect(page!.index).not.toHaveProperty('cover');

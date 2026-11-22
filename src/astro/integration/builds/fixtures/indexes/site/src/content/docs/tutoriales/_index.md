@@ -1,10 +1,6 @@
 ---
 seo:
   description: "Tutoriales paso a paso, agrupados por nivel."
-listing:
-  layout: cards
-  pageSize: 2
-  perPageOptions: [2, 4]
 ---
 
 # Tutoriales

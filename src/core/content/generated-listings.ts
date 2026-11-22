@@ -1,12 +1,16 @@
-import { generatesIndex, type ResolvedIndexes } from '../config/indexes';
-import { isNavSection, type NavItem } from '../config/nav';
+import { folderKeyPath, folderSettings, type ResolvedFolders } from '../config/folders';
+import { DocsError } from '../errors';
 import type { Locale } from '../i18n/locale';
-import { resolveLabel } from '../navigation/label';
-import { folderLabel } from '../shared/text';
-import type { Page } from './discovery';
+import type { Page, PageKind } from './discovery';
+import { isListingFile } from './slug';
 
-/* Las páginas que genera `indexes`: una por idioma en cada carpeta que activa y que no tiene
-   `index.md` ni `_index.md`. Su cuerpo es el título y la entradilla; el listado lo añade la ruta. */
+/* Los índices generados. Si una carpeta tiene uno lo decide `folders` (`listing.generate`, heredable):
+   - con `index.md` (página escrita a mano), gana el `index.md` y el loader lo informa;
+   - con `_index.md`, la página del índice es la suya: pone el H1, la entradilla y el `seo`;
+   - sin ninguno, se genera una página por idioma: solo el título y el listado;
+   - un `_index.md` en una carpeta sin `generate` es un error (casi seguro, un olvido).
+   El título de una carpeta sin `_index.md` llega por un puerto (`labelOf`): sale de la navegación, que
+   este módulo no conoce. */
 
 /** Carpetas de las que cuelga alguna página (también las intermedias), en orden de aparición; la raíz no cuenta. */
 export function contentFolders(slugs: Iterable<string>): string[] {
@@ -20,77 +24,100 @@ export function contentFolders(slugs: Iterable<string>): string[] {
   return [...folders];
 }
 
-/** Título de la página generada de `folder`: el de `overrides`, la etiqueta de la sección de `nav` con ese `dir` o el nombre de la carpeta. */
-export function generatedTitle({
-  folder,
-  locale,
-  defaultLocale,
-  indexes,
-  nav,
-}: {
-  folder: string;
-  locale: Locale;
-  defaultLocale: Locale;
-  indexes: ResolvedIndexes | undefined;
-  nav: readonly NavItem[] | undefined;
-}): string {
-  const title = indexes?.overrides[folder]?.title;
-  if (title !== undefined) return resolveLabel(title, locale, defaultLocale);
-  const section = (nav ?? []).find((item) => isNavSection(item) && item.dir === folder);
-  if (section) return resolveLabel(section.label, locale, defaultLocale);
-  return folderLabel(folder);
+/** ¿Lista esta página su carpeta? Las generadas y las de un `_index.md` (en cualquier idioma). Sin `kind`, nativa (el valor por defecto de la colección). */
+export function listsFolder(page: { kind?: PageKind; sourcePath: string }): boolean {
+  const kind = page.kind ?? 'native';
+  return kind === 'generated' || (kind === 'native' && isListingFile(page.sourcePath));
 }
 
-/** Entradilla (y `seo.description`) de la página generada: solo la de `overrides`. */
-export function generatedDescription(
-  folder: string,
-  locale: Locale,
-  defaultLocale: Locale,
-  indexes: ResolvedIndexes | undefined,
-): string | undefined {
-  const description = indexes?.overrides[folder]?.description;
-  return description === undefined ? undefined : resolveLabel(description, locale, defaultLocale);
+/** ¿Tiene la carpeta `generate` encendido, propio o heredado? */
+function generates(folders: ResolvedFolders, folder: string): boolean {
+  return folderSettings(folders, folder).listing.generate.value;
 }
 
-/** Escapa lo que el Markdown leería como formato: el título y la entradilla generados son texto. */
+/** Páginas de cada carpeta (las que tienen por slug la propia carpeta), por carpeta. */
+function folderPages(pages: readonly Page[]): Map<string, Page[]> {
+  const byFolder = new Map<string, Page[]>();
+  for (const page of pages) byFolder.set(page.slug, [...(byFolder.get(page.slug) ?? []), page]);
+  return byFolder;
+}
+
+/** Carpetas con índice generado: `generate` efectivo y sin `index.md`. Incluye la raíz si tiene `_index.md`. */
+export function listingFolders(pages: readonly Page[], folders: ResolvedFolders): string[] {
+  const own = folderPages(pages);
+  const candidates = new Set(contentFolders(pages.map((page) => page.slug)));
+  if (own.get('')?.some(listsFolder)) candidates.add('');
+  return [...candidates].filter(
+    (folder) =>
+      generates(folders, folder) && !(own.get(folder) ?? []).some((page) => !listsFolder(page)),
+  );
+}
+
+/** Carpetas con `generate` efectivo cuyo índice es un `index.md` (o un README): una por carpeta, con el archivo del idioma por defecto. */
+export function replacedListings(
+  pages: readonly Page[],
+  folders: ResolvedFolders,
+): { folder: string; file: string }[] {
+  const own = folderPages(pages);
+  return contentFolders(pages.map((page) => page.slug)).flatMap((folder) => {
+    const handwritten = (own.get(folder) ?? []).filter((page) => !listsFolder(page));
+    if (handwritten.length === 0 || !generates(folders, folder)) return [];
+    // El archivo sin sufijo de idioma (`index.md`) antes que sus traducciones (`index.en.md`).
+    const [first] = handwritten
+      .map((page) => page.sourcePath)
+      .sort((left, right) => left.split('.').length - right.split('.').length);
+    return [{ folder, file: first! }];
+  });
+}
+
+/** Un error por cada `_index.md` de una carpeta sin `generate` efectivo, con la clave que lo enciende. */
+export function listingSourceErrors(pages: readonly Page[], folders: ResolvedFolders): DocsError[] {
+  return pages
+    .filter((page) => page.kind === 'native' && listsFolder(page))
+    .filter((page) => !generates(folders, page.slug))
+    .map(
+      (page) =>
+        new DocsError('Este `_index.md` no se publica: su carpeta no tiene índice generado.', {
+          file: page.sourcePath,
+          hint: `Enciéndelo en la config con \`${folderKeyPath(page.slug, 'listing', 'generate')}: true\`, o borra el archivo.`,
+        }),
+    );
+}
+
+/** Escapa lo que el Markdown leería como formato: el título generado es texto. */
 function plainMarkdown(text: string): string {
   return text.replace(/[\\`*_[\]<>#~|!]/g, (char) => `\\${char}`);
 }
 
 /** Lo que hace falta para generar las páginas de los índices. */
-type GeneratedConfig = {
+export interface GeneratedListingOptions {
+  folders: ResolvedFolders;
   locales: readonly Locale[];
-  defaultLocale: Locale;
-  nav?: readonly NavItem[];
-  indexes?: ResolvedIndexes;
-};
+  /** Título de una carpeta sin `_index.md` (`folderTitles`, de la navegación). */
+  labelOf: (folder: string, locale: Locale) => string;
+  /** Descripción SEO de un índice sin `_index.md` (`listing.description`, con `{title}`). */
+  describe: (title: string, locale: Locale) => string;
+}
 
-/** Páginas generadas, una por idioma, de cada carpeta que `indexes` activa y no tiene `index.md` ni `_index.md` (en ningún idioma). Su cuerpo es el título y la entradilla; el listado lo añade la ruta. `sourcePath` es el `_index.md` que tendría la carpeta. */
-export function generatedListingPages(pages: readonly Page[], config: GeneratedConfig): Page[] {
-  const { indexes } = config;
-  if (!indexes) return [];
+/** Páginas generadas, una por idioma, de cada carpeta con índice generado que no tiene `_index.md` (en ningún idioma). Su cuerpo es solo el título; el listado lo añade la ruta. `sourcePath` es el `_index.md` que tendría la carpeta. */
+export function generatedListingPages(
+  pages: readonly Page[],
+  { folders, locales, labelOf, describe }: GeneratedListingOptions,
+): Page[] {
   const taken = new Set(pages.map((page) => page.slug));
-  return contentFolders(pages.map((page) => page.slug))
-    .filter((folder) => !taken.has(folder) && generatesIndex(indexes, folder))
+  return listingFolders(pages, folders)
+    .filter((folder) => !taken.has(folder))
     .flatMap((folder) =>
-      config.locales.map((locale): Page => {
-        const title = generatedTitle({
-          folder,
-          locale,
-          defaultLocale: config.defaultLocale,
-          indexes,
-          nav: config.nav,
-        });
-        const description = generatedDescription(folder, locale, config.defaultLocale, indexes);
+      locales.map((locale): Page => {
+        const title = labelOf(folder, locale);
         return {
           slug: folder,
           locale,
           title,
           kind: 'generated',
           sourcePath: `${folder}/_index.md`,
-          body: `# ${plainMarkdown(title)}\n${description === undefined ? '' : `\n${plainMarkdown(description)}\n`}`,
-          listing: {},
-          ...(description !== undefined && { seo: { description } }),
+          body: `# ${plainMarkdown(title)}\n`,
+          seo: { description: describe(title, locale) },
         };
       }),
     );

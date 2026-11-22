@@ -1,4 +1,5 @@
 import type { Page } from '../content/discovery';
+import { listsFolder } from '../content/generated-listings';
 import { pageUrlOf, type UrlPolicy } from '../i18n/availability';
 
 /** Separador de commits en el formato de `git log`; no puede aparecer en un nombre de archivo. */
@@ -38,7 +39,7 @@ export function pageLastmods(
 ): Map<string, string> {
   const lastmods = new Map<string, string>();
   for (const page of pages) {
-    const inFolder = page.listing
+    const inFolder = listsFolder(page)
       ? pages.filter(
           (other) => other !== page && (page.slug === '' || other.slug.startsWith(`${page.slug}/`)),
         )

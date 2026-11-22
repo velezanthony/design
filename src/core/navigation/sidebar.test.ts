@@ -298,6 +298,68 @@ describe('buildSidebar: slug declarado que es la página de una carpeta', () => 
   });
 });
 
+/* Una página que lista su carpeta (generada o de un `_index.md`) no es una entrada de la navegación:
+   da título y destino al grupo de su carpeta, pero nunca sale como hoja suelta. */
+describe('buildSidebar: páginas que listan su carpeta', () => {
+  const generated = page('guia', 'en', {
+    kind: 'generated',
+    title: 'Guía',
+    sourcePath: 'guia/_index.md',
+  });
+
+  it('una página generada enlaza el grupo de su carpeta', () => {
+    const tree = build([generated, page('guia/a'), page('guia/b')]);
+    expect(shape(tree)).toEqual([{ Guía: ['guia/a', 'guia/b'] }]);
+    expect(tree[0]).toMatchObject({ slug: 'guia', href: '/repo/guia/' });
+  });
+
+  it('sin grupo (sus páginas están declaradas en otro sitio) no sale como hoja', () => {
+    expect(shape(build([generated, page('guia/a')], 'en', ['guia/a']))).toEqual(['guia/a']);
+  });
+
+  it('si su grupo se queda vacío (sus hijas también listan) no sale como hoja', () => {
+    const child = page('guia/avanzado', 'en', {
+      kind: 'generated',
+      sourcePath: 'guia/avanzado/_index.md',
+    });
+    expect(
+      shape(build([generated, child, page('guia/avanzado/x')], 'en', ['guia/avanzado/x'])),
+    ).toEqual(['guia/avanzado/x']);
+  });
+
+  it('la de la carpeta raíz del árbol (el `dir` de una sección) sí sale: es el destino de la sección', () => {
+    const pages = [generated, page('guia/a')];
+    const { policies } = resolvePolicies(pages, MissingTranslation.LINK);
+    const tree = buildSidebar(
+      pages,
+      buildAvailability(pages, url),
+      'en',
+      { locales: ['en', 'es'], defaultLocale: 'en' },
+      policies,
+      url,
+      'guia',
+    );
+    expect(shape(tree)).toEqual(['guia', 'guia/a']);
+  });
+
+  it('la de un `_index.md` tampoco sale como hoja', () => {
+    const own = page('guia', 'en', { sourcePath: 'guia/_index.md' });
+    expect(shape(build([own, page('guia/a')], 'en', ['guia/a']))).toEqual(['guia/a']);
+  });
+
+  it('un `index.md` sin grupo sigue siendo hoja', () => {
+    const own = page('guia', 'en', { sourcePath: 'guia/index.md' });
+    expect(shape(build([own, page('guia/a')], 'en', ['guia/a']))).toEqual(['guia/a', 'guia']);
+  });
+
+  it('declarada a mano en `sidebar` sale donde se declara', () => {
+    expect(shape(build([generated, page('guia/a')], 'en', ['guia/a', 'guia']))).toEqual([
+      'guia/a',
+      'guia',
+    ]);
+  });
+});
+
 describe('buildSidebar: portada en la config', () => {
   it("'index' coloca la portada donde se declara", () => {
     const pages = [page(''), page('guide'), page('install')];

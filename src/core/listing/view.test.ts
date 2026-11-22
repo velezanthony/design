@@ -26,7 +26,7 @@ const hrefs: ListingHrefs = {
 
 const table: ListingOptions = {
   folder: 'tutoriales',
-  layout: 'table',
+  view: 'table',
   covers: true,
   pageSize: 12,
   perPageOptions: [12],
@@ -110,7 +110,7 @@ describe('buildListingView: tabla y tarjetas', () => {
       sections: [],
       entries: [entry(1, { updated: '2026-11-21T10:00:00+00:00', cover: false })],
     };
-    const result = view({ ...table, layout: 'cards' }, { perPage: 12, page: 1 }, listing);
+    const result = view({ ...table, view: 'cards' }, { perPage: 12, page: 1 }, listing);
     if (result.layout === 'list') throw new Error('esperaba tarjetas');
     const [item] = result.items;
     expect(item!.updated).toEqual({ iso: '2026-11-21T10:00:00+00:00', label: '21 nov 2026' });
@@ -134,7 +134,7 @@ describe('buildListingView: tabla y tarjetas', () => {
 });
 
 describe('buildListingView: lista', () => {
-  const list: ListingOptions = { folder: 'tutoriales', layout: 'list', covers: true };
+  const list: ListingOptions = { folder: 'tutoriales', view: 'list', covers: true };
 
   it('no tiene entradas paginadas: sus secciones y los encabezados para el índice de la página', () => {
     const listing: Listing = {

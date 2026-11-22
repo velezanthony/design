@@ -1,5 +1,5 @@
 import type { ResolvedConfig } from '../config/resolve';
-import type { ListingFrontmatter, PageSeoOverride } from '../config/schema';
+import type { PageSeoOverride } from '../config/schema';
 import { collectErrors, DocsError } from '../errors';
 import { localizedPath, splitLocale, type Locale } from '../i18n/locale';
 import type { MissingTranslation } from '../i18n/translation-policy';
@@ -22,7 +22,7 @@ export interface SourceFile {
   frontmatter?: Frontmatter;
 }
 
-/** De dónde sale una página: un `.md` de `content`, una entrada de `external[]` o un índice generado (una carpeta sin `index.md`). */
+/** De dónde sale una página: un `.md` de `content`, una entrada de `external[]` o un índice generado (una carpeta sin `index.md` ni `_index.md`). */
 export type PageKind = SourceFile['kind'] | 'generated';
 
 /**
@@ -46,8 +46,6 @@ export interface Page {
   translations?: MissingTranslation;
   /** Su ficha en los listados (resumen, portada): el bloque `index:` del frontmatter. */
   index?: EntryIndex;
-  /** Presente si lista su carpeta: el bloque `listing:` de su `_index.md` (`{}` sin él, y en las generadas). */
-  listing?: ListingFrontmatter;
 }
 
 /** `./x.md` y `x.md` son el mismo archivo. */
@@ -176,7 +174,6 @@ function nativePage(
   return {
     slug: folder ?? toSlug(readmeAsIndex(located.stem, located.locale, indexes.keys)),
     ...(urlSlug !== undefined && { urlSlug }),
-    ...(folder !== undefined && { listing: file.frontmatter?.listing ?? {} }),
     locale: located.locale,
     title,
     kind: 'native',

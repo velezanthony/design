@@ -1,10 +1,11 @@
-import { defineDocsConfig, MissingTranslation } from '../../../../index.ts';
+import { defineDocsConfig, ListingView, MissingTranslation } from '../../../../index.ts';
 
-/* Índices generados en un sitio real, español por defecto e inglés con reserva:
+/* Índices generados en un sitio real, español por defecto e inglés con reserva; `folders` decide
+   qué carpetas tienen índice y cómo se pinta:
    - `tutoriales/_index.md` (con `_index.en.md`): tarjetas de dos en dos y portadas de cada tipo;
-   - `guia/`: sin `_index.md`, la genera `indexes` (tabla de dos en dos, título de su sección);
+   - `guia/`: sin `_index.md`, página generada (tabla de dos en dos, título de su sección);
    - `recetas/_index.md`: lista;
-   - `notas/`: su `index.md` gana a su `_index.md`, que se ignora con un aviso;
+   - `notas/`: su `index.md` gana al índice (aviso informativo) y a su `_index.md` (aviso);
    - `sueltos/`: nada la activa, así que no tiene página. */
 export default defineDocsConfig({
   name: 'Indexes',
@@ -34,15 +35,12 @@ export default defineDocsConfig({
     { label: { es: 'Guía', en: 'Guide' }, dir: 'guia' },
   ],
   sidebar: ['index', 'tutoriales', 'recetas', 'notas'],
-  indexes: {
-    covers: true,
-    include: ['guia'],
-    overrides: {
-      guia: {
-        layout: 'table',
-        pageSize: 2,
-        description: { es: 'Todo lo de la guía.', en: 'Everything in the guide.' },
-      },
+  folders: {
+    tutoriales: {
+      listing: { generate: true, view: ListingView.CARDS, pageSize: 2, perPageOptions: [2, 4] },
     },
+    guia: { listing: { generate: true, view: ListingView.TABLE, pageSize: 2 } },
+    recetas: { listing: { generate: true } },
+    notas: { listing: { generate: true, view: ListingView.CARDS } },
   },
 });

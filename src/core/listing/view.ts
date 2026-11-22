@@ -169,7 +169,7 @@ export function buildListingView(input: ListingViewInput, hrefs: ListingHrefs): 
   const [smallest] = options.perPageOptions;
   const choosable = options.perPageOptions.length > 1 && smallest !== undefined && total > smallest;
   return {
-    layout: options.layout,
+    layout: options.view,
     items,
     total,
     range: { from: paged.from, to: paged.to },

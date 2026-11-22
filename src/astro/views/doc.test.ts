@@ -524,14 +524,17 @@ describe('`slug` propio (URL traducida)', () => {
   it('las rutas con listado llevan sus opciones ya resueltas; las demás, no', () => {
     const items = [
       doc('', 'en'),
-      doc('tutorials', 'en', { listing: { layout: 'cards', pageSize: 1 } }),
+      doc('tutorials', 'en', { sourcePath: 'tutorials/_index.md' }),
       doc('tutorials/a', 'en'),
       doc('tutorials/b', 'en'),
     ];
-    const routes = docRoutes(siteContext(site(), items));
+    const config = site({
+      folders: { tutorials: { listing: { generate: true, view: 'cards', pageSize: 1 } } },
+    });
+    const routes = docRoutes(siteContext(config, items));
     const listing = {
       folder: 'tutorials',
-      layout: 'cards',
+      view: 'cards',
       pageSize: 1,
       perPageOptions: [1, 12, 24, 48],
       covers: true,
@@ -547,17 +550,18 @@ describe('`slug` propio (URL traducida)', () => {
   it('un listado con `slug` propio pagina bajo su URL (`en/tutorials/2`)', () => {
     const listing = [
       doc('', 'es'),
-      doc('tutoriales', 'es', { listing: { layout: 'cards', pageSize: 1 } }),
-      doc('tutoriales', 'en', {
-        listing: { layout: 'cards', pageSize: 1 },
-        urlSlug: 'tutorials',
-      }),
+      doc('tutoriales', 'es', { sourcePath: 'tutoriales/_index.md' }),
+      doc('tutoriales', 'en', { sourcePath: 'tutoriales/_index.en.md', urlSlug: 'tutorials' }),
       doc('tutoriales/a', 'es'),
       doc('tutoriales/a', 'en', { urlSlug: 'tutorials/a' }),
       doc('tutoriales/b', 'es'),
       doc('tutoriales/b', 'en'),
     ];
-    const config = site({ locales: ['es', 'en'], defaultLocale: 'es' });
+    const config = site({
+      locales: ['es', 'en'],
+      defaultLocale: 'es',
+      folders: { tutoriales: { listing: { generate: true, view: 'cards', pageSize: 1 } } },
+    });
     const params = docRoutes(siteContext(config, listing)).map((docRoute) => docRoute.param);
     expect(params).toContain('en/tutorials');
     expect(params).toContain('en/tutorials/page/2');

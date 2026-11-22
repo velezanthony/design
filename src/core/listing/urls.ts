@@ -1,4 +1,5 @@
 import type { Page } from '../content/discovery';
+import { listsFolder } from '../content/generated-listings';
 import { urlSlugOf } from '../content/slug';
 import { DocsError } from '../errors';
 import { pageUrl, type UrlPolicy } from '../i18n/availability';
@@ -70,7 +71,7 @@ function isReserved(slug: string, folder: string): boolean {
 
 /** Un error por cada página cuya URL cae en `<carpeta>/page` o `<carpeta>/per-page` (o debajo) de un listado de su idioma. */
 export function reservedSegmentErrors(pages: readonly Page[]): DocsError[] {
-  const listings = pages.filter((page) => page.listing !== undefined);
+  const listings = pages.filter(listsFolder);
   return pages.flatMap((page) => {
     const slug = urlSlugOf(page);
     const listing = listings.find(

@@ -5,8 +5,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { buildFixture, type BuiltSite } from '../../../testing/build';
 
 /* Índices generados en un sitio real (`fixtures/indexes`): `_index.md` con tarjetas y su traducción,
-   una carpeta que genera `indexes` (tabla), una lista, un `index.md` que gana a su `_index.md` y una
-   carpeta que nadie activa. */
+   una carpeta sin `_index.md` que genera `folders` (tabla), una lista, un `index.md` que gana a su
+   `_index.md` y una carpeta que nadie activa. */
 
 const root = resolve('src/astro/integration/builds/fixtures/indexes/site');
 let site: BuiltSite;
@@ -192,13 +192,13 @@ describe('portadas', () => {
   });
 });
 
-describe('carpeta sin _index.md que activa `indexes` (tabla)', () => {
-  it('título de su sección de `nav`, entradilla de `overrides` y la tabla paginada', async () => {
+describe('carpeta sin _index.md que activa `folders` (tabla)', () => {
+  it('título de su sección de `nav`, solo el listado y la descripción por defecto', async () => {
     const document = await page('guia/index.html');
     expect(text(document.querySelector('main .prose h1'))).toBe('Guía');
-    expect(text(document.querySelector('main .prose'))).toContain('Todo lo de la guía.');
+    expect(text(document.querySelector('main .prose'))).toBe('Guía');
     expect(document.querySelector('meta[name="description"]')!.getAttribute('content')).toBe(
-      'Todo lo de la guía.',
+      'Todas las páginas de Guía.',
     );
     const rows = listing(document)!.querySelectorAll(
       'table.table-cards tbody tr[data-card]:not([hidden])',
@@ -206,10 +206,12 @@ describe('carpeta sin _index.md que activa `indexes` (tabla)', () => {
     expect(rows).toHaveLength(2);
   });
 
-  it('en inglés, con los textos de la config en inglés', async () => {
+  it('en inglés, con el título de la sección y la descripción en inglés', async () => {
     const document = await page('en/guia/index.html');
     expect(text(document.querySelector('main .prose h1'))).toBe('Guide');
-    expect(text(document.querySelector('main .prose'))).toContain('Everything in the guide.');
+    expect(document.querySelector('meta[name="description"]')!.getAttribute('content')).toBe(
+      'All pages in Guide.',
+    );
     expect(text(document.querySelector('thead'))).toContain('Title');
   });
 
@@ -237,6 +239,12 @@ describe('index.md gana a _index.md', () => {
     expect(listing(document)).toBeNull();
     expect(text(document.querySelector('main'))).not.toContain('No debe salir');
     expect(site.output).toContain('notas/_index.md: se ignora');
+  });
+
+  it('con `generate` encendido, el build informa (sin avisar) de que el index.md sustituye al índice', () => {
+    expect(site.output).toContain(
+      'notas/index.md sustituye al índice generado de la carpeta notas.',
+    );
   });
 });
 
@@ -324,7 +332,7 @@ describe('selector «Por página»', () => {
     expect(await site.read('sitemap.xml')).not.toContain('per-page');
   });
 
-  it('la tabla generada por `indexes` lleva las opciones por defecto con su tamaño', async () => {
+  it('la tabla generada lleva las opciones por defecto con su tamaño', async () => {
     const document = await page('guia/index.html');
     const values = [...document.querySelectorAll('select[data-auto-navigate] option')].map(
       (option) => text(option),

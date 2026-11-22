@@ -322,30 +322,29 @@ describe('externalPath', () => {
 });
 
 describe('discoverPages: _index.md', () => {
-  it('es la fuente del índice de su carpeta: su slug es la carpeta, nunca `_index`', () => {
-    const listing = { layout: 'cards' as const, pageSize: 6 };
+  it('es la fuente de textos del índice de su carpeta: su slug es la carpeta, nunca `_index`', () => {
     const index = { summary: 'Todos los tutoriales.' };
+    const seo = { description: 'Paso a paso.' };
     const pages = discoverPages(
       [
-        native('tutoriales/_index.md', '# Tutoriales', { listing, index }),
+        native('tutoriales/_index.md', '# Tutoriales', { index, seo }),
         native('tutoriales/_index.en.md', '# Tutorials'),
         native('tutoriales/instalacion.md'),
       ],
       config({ locales: ['es', 'en'], defaultLocale: 'es' }),
     );
-    const listings = pages.filter((page) => page.listing);
+    const listings = pages.filter((page) => page.slug === 'tutoriales');
     expect(listings.map((page) => [page.slug, page.locale, page.title])).toEqual([
       ['tutoriales', 'es', 'Tutoriales'],
       ['tutoriales', 'en', 'Tutorials'],
     ]);
     expect(listings[0]).toMatchObject({
       kind: 'native',
-      listing,
       index,
+      seo,
       sourcePath: 'tutoriales/_index.md',
     });
-    // Sin bloque `listing:`, el `_index.md` lista igual su carpeta con las opciones por defecto.
-    expect(listings[1]!.listing).toEqual({});
+    expect(listings[0]).not.toHaveProperty('listing');
     expect(pages.some((page) => page.slug.includes('_index'))).toBe(false);
   });
 
@@ -357,8 +356,8 @@ describe('discoverPages: _index.md', () => {
     ];
     const settings = config({ locales: ['es', 'en'], defaultLocale: 'es' });
     const pages = discoverPages(files, settings);
-    expect(pages.map((page) => [page.slug, page.title, page.listing])).toEqual([
-      ['tutoriales', 'Portada', undefined],
+    expect(pages.map((page) => [page.slug, page.title, page.sourcePath])).toEqual([
+      ['tutoriales', 'Portada', 'tutoriales/index.md'],
     ]);
     expect(ignoredListings(files, settings)).toEqual([
       'tutoriales/_index.md',
@@ -368,12 +367,7 @@ describe('discoverPages: _index.md', () => {
 
   it('el _index.md de la raíz es el de la portada', () => {
     const [page] = discoverPages([native('_index.md', '# Inicio')], config());
-    expect(page).toMatchObject({ slug: '', listing: {} });
-  });
-
-  it('una página normal no lleva `listing`', () => {
-    const [page] = discoverPages([native('tutoriales/instalacion.md')], config());
-    expect(page).not.toHaveProperty('listing');
+    expect(page).toMatchObject({ slug: '', sourcePath: '_index.md' });
   });
 });
 
@@ -414,9 +408,9 @@ describe('discoverPages: `slug` propio (URL traducida)', () => {
       ],
       bilingual(),
     );
-    expect(pages.map((page) => [page.slug, page.locale, page.urlSlug, page.listing])).toEqual([
-      ['tutoriales', 'es', undefined, {}],
-      ['tutoriales', 'en', 'tutorials', {}],
+    expect(pages.map((page) => [page.slug, page.locale, page.urlSlug])).toEqual([
+      ['tutoriales', 'es', undefined],
+      ['tutoriales', 'en', 'tutorials'],
     ]);
   });
 

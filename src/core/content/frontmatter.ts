@@ -1,7 +1,7 @@
 import { z } from 'astro/zod';
-import { ListingSchema, MissingTranslationSchema, PageSeoOverrideSchema } from '../config/schema';
+import { folderKeyPath } from '../config/folders';
+import { MissingTranslationSchema, PageSeoOverrideSchema } from '../config/schema';
 import { DocsError, formatPath } from '../errors';
-import { isListingFile } from './slug';
 
 const FRONTMATTER_OPEN = /^---[ \t]*\r?\n/;
 const FRONTMATTER_CLOSE = /^(---|\.\.\.)[ \t]*$/;
@@ -38,7 +38,7 @@ const EntryIndexSchema = z.strictObject({
 export type EntryIndex = z.infer<typeof EntryIndexSchema>;
 
 /* Las claves ajenas se ignoran (otras herramientas escriben las suyas); las nuestras son estrictas.
-   `listing` solo vale en un `_index.md`: lo comprueba `fileProblems`, que conoce el archivo. */
+   `listing` era nuestra y ya no lo es: `retiredKeys` la rechaza con la pista de dónde se configura. */
 const FrontmatterSchema = z.object({
   title: z.string().optional(),
   /** URL propia de la página; la forma la valida el descubrimiento, que conoce los idiomas. */
@@ -47,7 +47,6 @@ const FrontmatterSchema = z.object({
   seo: PageSeoOverrideSchema.optional(),
   translations: MissingTranslationSchema.optional(),
   index: EntryIndexSchema.optional(),
-  listing: ListingSchema.optional(),
 });
 
 /** Frontmatter de una página nativa que el núcleo entiende, ya validado. */
@@ -58,16 +57,25 @@ function isLocalImage(image: string): boolean {
   return image !== '' && !image.startsWith('//') && !/^[a-z][a-z0-9+.-]*:/i.test(image);
 }
 
-/** Lo que la forma no ve: `listing` fuera de un `_index.md` y una portada que no es una ruta local. */
+/** Carpeta de un archivo del contenido (`guia/avanzado/_index.md` → `guia/avanzado`; la raíz es `''`). */
+function folderOf(file: string): string {
+  return file.split('/').slice(0, -1).join('/');
+}
+
+/** Claves que el frontmatter tuvo y ya no: un error con la pista de dónde se configuran ahora. */
+function retiredKeys(data: unknown, file: string): DocsError[] {
+  if (typeof data !== 'object' || data === null || !('listing' in data)) return [];
+  return [
+    new DocsError('listing: opción desconocida.', {
+      file,
+      hint: `El listado de una carpeta se configura en la config: \`${folderKeyPath(folderOf(file), 'listing')}\` (docs.config.mjs).`,
+    }),
+  ];
+}
+
+/** Lo que la forma no ve: una portada que no es una ruta local. */
 function fileProblems(frontmatter: Frontmatter, file: string): DocsError[] {
   const problems: { field: string; message: string }[] = [];
-  if (frontmatter.listing !== undefined && !isListingFile(file)) {
-    problems.push({
-      field: 'listing',
-      message:
-        'solo en un `_index.md`, el que pide el listado de su carpeta (un `index.md` es una página normal).',
-    });
-  }
   const image = frontmatter.index?.image;
   if (typeof image === 'string' && !isLocalImage(image)) {
     problems.push({
@@ -87,9 +95,10 @@ export function parseFrontmatter(
   file: string,
 ): { frontmatter: Frontmatter; errors: DocsError[] } {
   if (data === undefined || data === null) return { frontmatter: {}, errors: [] };
+  const retired = retiredKeys(data, file);
   const result = FrontmatterSchema.safeParse(data);
   if (result.success) {
-    const problems = fileProblems(result.data, file);
+    const problems = [...retired, ...fileProblems(result.data, file)];
     if (problems.length > 0) return { frontmatter: {}, errors: problems };
     return { frontmatter: stripUndefined(result.data), errors: [] };
   }
@@ -111,7 +120,7 @@ export function parseFrontmatter(
       }),
     ];
   });
-  return { frontmatter: {}, errors };
+  return { frontmatter: {}, errors: [...retired, ...errors] };
 }
 
 function stripUndefined(data: Frontmatter): Frontmatter {

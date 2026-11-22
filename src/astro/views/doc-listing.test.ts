@@ -8,13 +8,20 @@ import { siteContext } from './chrome';
 import { docListingView } from './doc-listing';
 import type { DocData } from '../loader/schema';
 
-function site(user: Partial<DocsUserConfig> = {}) {
+type ListingSettings = NonNullable<NonNullable<DocsUserConfig['folders']>[string]['listing']>;
+
+/** El sitio, con el listado de `tutoriales` encendido: tarjetas de dos en dos salvo que se diga otra cosa. */
+function site(
+  user: Partial<DocsUserConfig> = {},
+  listing: ListingSettings = { view: 'cards', pageSize: 2 },
+) {
   return createVirtualData(
     resolveConfig({
       name: 'Blog',
       locales: ['es', 'en'],
       defaultLocale: 'es',
       translations: { missing: 'fallback' },
+      folders: { tutoriales: { listing: { generate: true, ...listing } } },
       ...user,
     }),
     {
@@ -44,7 +51,6 @@ const tutorials = ['a', 'b', 'c', 'd', 'e'].map((name) =>
 );
 const listing = doc('tutoriales', 'es', {
   title: 'Tutoriales',
-  listing: { layout: 'cards', pageSize: 2 },
   sourcePath: 'docs/tutoriales/_index.md',
 });
 const data = [doc(''), listing, ...tutorials];
@@ -97,10 +103,7 @@ describe('docRoutes: índices paginados', () => {
   });
 
   it('la lista no se pagina', () => {
-    const list = data.map((item) =>
-      item === listing ? { ...item, listing: { layout: 'list' as const, pageSize: 2 } } : item,
-    );
-    const routes = docRoutes(siteContext(site(), list));
+    const routes = docRoutes(siteContext(site({}, { view: 'list', pageSize: 2 }), data));
     const params = routes.map((route) => route.param);
     expect(params).not.toContain('tutoriales/page/2');
     expect(params.some((param) => param?.includes('per-page'))).toBe(false);
@@ -166,15 +169,12 @@ describe('docView: páginas de un índice paginado', () => {
 
   it('las páginas de otro tamaño enlazan prev/next dentro de su tamaño', () => {
     const one = [doc('')];
-    const many = [
-      ...one,
-      { ...listing, listing: { layout: 'cards' as const, pageSize: 2, perPageOptions: [2, 3] } },
-      ...tutorials,
-    ];
-    const pagedRoutes = docRoutes(siteContext(site(), many));
+    const many = [...one, listing, ...tutorials];
+    const config = site({}, { view: 'cards', pageSize: 2, perPageOptions: [2, 3] });
+    const pagedRoutes = docRoutes(siteContext(config, many));
     const view = docView({
       route: routeOf(pagedRoutes, 'tutoriales/per-page/3/page/2'),
-      site: siteContext(site(), many),
+      site: siteContext(config, many),
       data: many,
     });
     const attrs = view.head.map((tag) => tag.attrs);
@@ -191,6 +191,19 @@ describe('docView: páginas de un índice paginado', () => {
 });
 
 describe('docListingView', () => {
+  it('un `index.md` en la carpeta no lista nada aunque `generate` esté encendido', () => {
+    const own = doc('tutoriales', 'es', { sourcePath: 'docs/tutoriales/index.md' });
+    const items = [doc(''), own, ...tutorials];
+    const config = site();
+    expect(
+      docListingView({
+        route: routeOf(docRoutes(siteContext(config, items)), 'tutoriales'),
+        site: siteContext(config, items),
+        data: items,
+      }),
+    ).toBeUndefined();
+  });
+
   const routes = docRoutes(siteContext(site(), data));
   const dates = new Map([
     ['docs/tutoriales/a.md', '2026-01-01T00:00:00+00:00'],
@@ -283,13 +296,12 @@ describe('docListingView', () => {
       if (item.slug === 'tutoriales/e') return { ...item, index: { cover: false as const } };
       if (item.slug === 'tutoriales/b')
         return { ...item, index: { cover: { src: '/b.png' }, imageAlt: 'B' } };
-      if (item === listing)
-        return { ...item, listing: { layout: 'cards' as const, covers: false, pageSize: 12 } };
       return item;
     });
+    const config = site({}, { view: 'cards', covers: false, pageSize: 12 });
     const result = docListingView({
-      route: routeOf(docRoutes(siteContext(site(), covered)), 'tutoriales'),
-      site: siteContext(site(), covered),
+      route: routeOf(docRoutes(siteContext(config, covered)), 'tutoriales'),
+      site: siteContext(config, covered),
       data: covered,
       dates,
     })!;
@@ -308,13 +320,11 @@ describe('docListingView', () => {
     const user: Partial<DocsUserConfig> = {
       nav: [{ label: { es: 'Esenciales', en: 'Essentials' }, sidebar: ['tutoriales/a'] }],
     };
-    const list = data.map((item) =>
-      item === listing ? { ...item, listing: { layout: 'list' as const } } : item,
-    );
+    const config = site(user, { view: 'list' });
     const result = docListingView({
-      route: routeOf(docRoutes(siteContext(site(user), list)), 'tutoriales'),
-      site: siteContext(site(user), list),
-      data: list,
+      route: routeOf(docRoutes(siteContext(config, data)), 'tutoriales'),
+      site: siteContext(config, data),
+      data,
       dates,
       headings: [{ depth: 2, slug: 'esenciales', text: 'Otra' }],
     })!;
@@ -323,14 +333,18 @@ describe('docListingView', () => {
     expect(result.headings).toEqual([{ depth: 2, slug: 'esenciales-1', text: 'Esenciales' }]);
   });
 
-  it('un índice generado por `indexes` usa las opciones de la config', () => {
+  it('un índice generado (sin `_index.md`) usa las opciones de `folders`, también heredadas', () => {
     const generated = doc('tutoriales', 'es', {
       title: 'Tutoriales',
       kind: 'generated',
-      listing: {},
       sourcePath: 'docs/tutoriales/_index.md',
     });
-    const config = site({ indexes: { layout: 'table', pageSize: 10 } });
+    const config = site({
+      folders: {
+        '*': { listing: { view: 'table', pageSize: 10 } },
+        tutoriales: { listing: { generate: true } },
+      },
+    });
     const items = [doc(''), generated, ...tutorials];
     const result = docListingView({
       route: routeOf(docRoutes(siteContext(config, items)), 'tutoriales'),
@@ -350,7 +364,7 @@ describe('docListingView: tres idiomas', () => {
     const config = { ...site({ translations: { missing: 'link' } }), locales: ['es', 'en', 'fr'] };
     const items = [
       doc(''),
-      doc('tutoriales', 'es', { listing: { layout: 'cards' } }),
+      doc('tutoriales', 'es', { sourcePath: 'docs/tutoriales/_index.md' }),
       // Sin versión en español (el idioma por defecto): la francesa aparece antes que la inglesa.
       doc('tutoriales/x', 'fr', { index: { cover: { src: '/fr.png' } } }),
       doc('tutoriales/x', 'en', { index: { cover: { src: '/en.png' } } }),
@@ -377,7 +391,6 @@ describe('docListingView: `_index.en.md` con `slug` propio', () => {
     listing,
     doc('tutoriales', 'en', {
       title: 'Tutorials',
-      listing: { layout: 'cards', pageSize: 2 },
       urlSlug: 'tutorials',
       sourcePath: 'docs/tutoriales/_index.en.md',
     }),
