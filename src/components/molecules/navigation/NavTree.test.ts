@@ -78,3 +78,26 @@ describe('NavTree', () => {
     expect(badge.classList.contains('border-current')).toBe(true);
   });
 });
+
+describe('NavTree: grupo enlazado a la página de su carpeta', () => {
+  it('un grupo con página sale como <strong><a>; sin ella, <strong> con texto', async () => {
+    const document = await render(NavTree, {
+      nodes: [
+        {
+          label: 'CI/CD',
+          href: '/articulos/sistemas/ci-cd/',
+          items: [{ label: 'GitHub Actions', href: '/articulos/sistemas/ci-cd/github/' }],
+        },
+        { label: 'Cloud', items: [{ label: 'AWS', href: '/articulos/sistemas/cloud/aws/' }] },
+      ],
+      descriptions: false,
+      strings: stringsFor('es'),
+    });
+    const [ciCd, cloud] = document.querySelectorAll('ul.docs-nav-tree > li');
+    expect(ciCd!.querySelector(':scope > strong > a')!.getAttribute('href')).toBe(
+      '/articulos/sistemas/ci-cd/',
+    );
+    expect(cloud!.querySelector(':scope > strong > a')).toBeNull();
+    expect(cloud!.querySelector(':scope > strong')!.textContent).toBe('Cloud');
+  });
+});

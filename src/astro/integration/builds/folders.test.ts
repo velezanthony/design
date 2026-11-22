@@ -34,6 +34,19 @@ function description(document: Document) {
   return document.querySelector('meta[name="description"]')?.getAttribute('content');
 }
 
+function sidebar(document: Document) {
+  return document.querySelector(
+    'nav[aria-label="Documentación"], nav[aria-label="Documentation"]',
+  )!;
+}
+
+/** La etiqueta de un grupo de la barra lateral: su enlace o, sin página, su texto. */
+function groupLabel(document: Document, label: string) {
+  return [...sidebar(document).querySelectorAll('li > a, li > span')].find(
+    (node) => text(node) === label,
+  );
+}
+
 function robots(document: Document) {
   return document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? '';
 }
@@ -124,5 +137,48 @@ describe('`index.md` con `generate` encendido', () => {
   it('el log del build lo informa una vez', () => {
     const line = 'guia/index.md sustituye al índice generado de la carpeta guia.';
     expect(site.output.split(line)).toHaveLength(2);
+  });
+});
+
+/* Las carpetas son categorías: la etiqueta de un grupo lleva a la página de su carpeta si existe. */
+describe('grupos enlazados a la página de su carpeta', () => {
+  it('en la barra de un artículo, los grupos declarados enlazan su carpeta generada', async () => {
+    const document = await page('articulos/sistemas/contenedores/docker/index.html');
+    expect(groupLabel(document, 'CI/CD')?.getAttribute('href')).toBe(
+      '/fo/articulos/sistemas/ci-cd/',
+    );
+    expect(groupLabel(document, 'AWS')?.getAttribute('href')).toBe(
+      '/fo/articulos/sistemas/cloud/aws/',
+    );
+    expect(groupLabel(document, 'Contenedores')?.getAttribute('href')).toBe(
+      '/fo/articulos/sistemas/contenedores/',
+    );
+  });
+
+  it('«Cloud» solo envuelve a «AWS»: no es dueño de ninguna carpeta y sigue siendo texto', async () => {
+    const document = await page('articulos/sistemas/contenedores/docker/index.html');
+    expect(groupLabel(document, 'Cloud')?.tagName).toBe('SPAN');
+  });
+
+  it('los grupos con `_index.md` y con `index.md` también enlazan', async () => {
+    const document = await page('articulos/borradores/z/index.html');
+    expect(groupLabel(document, 'Privado')?.getAttribute('href')).toBe('/fo/articulos/privado/');
+    expect(groupLabel(document, 'Notas sueltas')?.getAttribute('href')).toBe(
+      '/fo/articulos/notas/',
+    );
+  });
+
+  it('sin página índice, la etiqueta del grupo es texto', async () => {
+    const document = await page('articulos/borradores/z/index.html');
+    expect(groupLabel(document, 'Borradores')?.tagName).toBe('SPAN');
+  });
+
+  it('en la página de la carpeta, y en su página 2, el enlace del grupo lleva aria-current', async () => {
+    for (const file of ['articulos/privado/index.html', 'articulos/privado/page/2/index.html']) {
+      const link = groupLabel(await page(file), 'Privado');
+      expect(link?.getAttribute('aria-current'), file).toBe('page');
+    }
+    const elsewhere = groupLabel(await page('articulos/borradores/z/index.html'), 'Privado');
+    expect(elsewhere?.hasAttribute('aria-current')).toBe(false);
   });
 });

@@ -210,6 +210,29 @@ describe('buildListing: entradas', () => {
   });
 
   it('un grupo de `sidebar` con la etiqueta humanizada de la carpeta sí cuenta en el camino', () => {
+    // Dos grupos que no se envuelven comparten la carpeta: ninguno es su dueño, así que son grupos
+    // normales aunque uno se llame como ella.
+    const { entries } = buildListing({
+      context: context('es', {
+        nav: undefined,
+        sidebar: [
+          { label: 'Tutoriales', items: ['tutoriales/instalacion'] },
+          { label: 'Otros', items: ['tutoriales/despliegue'] },
+        ],
+      }),
+      contentLocale: 'es',
+      folder: 'tutoriales',
+      details: none,
+    });
+    function pathOf(slug: string) {
+      return entries.find((entry) => entry.slug === slug)?.path;
+    }
+    expect(pathOf('tutoriales/instalacion')).toEqual(['Tutoriales']);
+    expect(pathOf('tutoriales/despliegue')).toEqual(['Otros']);
+    expect(pathOf('tutoriales/suelto')).toEqual([]);
+  });
+
+  it('un grupo de `sidebar` dueño de la carpeta del listado la enlaza y no añade nada al camino', () => {
     const { entries } = buildListing({
       context: context('es', {
         nav: undefined,
@@ -221,12 +244,7 @@ describe('buildListing: entradas', () => {
       folder: 'tutoriales',
       details: none,
     });
-    function pathOf(slug: string) {
-      return entries.find((entry) => entry.slug === slug)?.path;
-    }
-    expect(pathOf('tutoriales/instalacion')).toEqual(['Tutoriales']);
-    expect(pathOf('tutoriales/despliegue')).toEqual(['Tutoriales']);
-    expect(pathOf('tutoriales/suelto')).toEqual([]);
+    expect(entries.every((entry) => entry.path.length === 0)).toBe(true);
   });
 
   it('cada carpeta por debajo de la del listado añade su grupo al camino, a cualquier profundidad', () => {

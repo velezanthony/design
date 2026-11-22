@@ -65,6 +65,15 @@ aparecen en el menú móvil.
 - Declarar la página de una carpeta (`sidebar: ['articulos']`) coloca ahí **el grupo de esa
   carpeta**, con el título y el enlace de la página y con las páginas que no declaras dentro; no sale
   además un grupo automático «Articulos» al final. Vale a cualquier profundidad del `sidebar`.
+- **Las etiquetas de grupo llevan a la página de su carpeta** si existe (generada, de un `_index.md`
+  o de un `index.md`), con el estilo de grupo y `aria-current` en esa página (también en sus páginas 2+
+  de un listado). Un grupo automático la enlaza siempre; uno escrito en `sidebar` sin `slug`, cuando
+  es el dueño de una carpeta: sus páginas tienen esa carpeta como carpeta común más profunda y no hay
+  otro grupo más interior que la reclame (el grupo «Cloud» que solo envuelve a «AWS» se la cede). Si
+  dos grupos que no se envuelven comparten carpeta (un sitio con todas las páginas en `tutoriales/`),
+  ninguno la enlaza. Un `slug` escrito a mano manda. Esa página no sale además como hoja suelta. Vale
+  igual en `::nav-tree`. Sin página índice, la etiqueta es texto. Si algún día un grupo se pliega, el
+  control será un botón aparte (`aria-expanded`), nunca la etiqueta: plegar y navegar no comparten clic.
 - Un slug desconocido rompe el build con un único error que nombra todos (`sidebar[2].items[0]`).
 - Los niveles de carpetas del árbol automático se pueden limitar con `sidebarDepth` (ver abajo).
 - Las páginas fuera de toda sección (como la portada de este sitio) usan la `sidebar` de primer

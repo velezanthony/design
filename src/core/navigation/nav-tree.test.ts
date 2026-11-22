@@ -249,3 +249,32 @@ describe('hasNavTreeSlots', () => {
     expect(hasNavTreeSlots('<p>x</p>')).toBe(false);
   });
 });
+
+/* El árbol de `::nav-tree` sale de la barra lateral: un grupo declarado dueño de una carpeta con página
+   la enlaza también aquí. */
+describe('buildNavTree: grupo declarado enlazado a su carpeta', () => {
+  it('el grupo cuya carpeta tiene página índice lleva su `href`', () => {
+    const folderPages = [
+      page('blog/notas', 'es', {
+        kind: 'generated',
+        title: 'Notas',
+        sourcePath: 'blog/notas/_index.md',
+      }),
+      page('blog/notas/a'),
+    ];
+    const blogNav: NavItem[] = [
+      { label: 'Blog', sidebar: [{ label: 'Notas', items: ['blog/notas/a'] }] },
+    ];
+    const context: NavContext = {
+      pages: folderPages,
+      availability: buildAvailability(folderPages, url),
+      locale: 'es',
+      config: { locales: ['es'], defaultLocale: 'es', nav: blogNav },
+      policies: resolvePolicies(folderPages, MissingTranslation.LINK).policies,
+      url,
+      slug: 'blog/notas/a',
+    };
+    const [group] = buildNavTree(context, 'es', 0);
+    expect(group).toMatchObject({ label: 'Notas', href: '/repo/blog/notas/' });
+  });
+});

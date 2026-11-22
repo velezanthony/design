@@ -7,7 +7,8 @@ import { defineDocsConfig, ListingView, MissingTranslation } from '../../../../i
      título de su sección o grupo declarado o el nombre de la carpeta;
    - `articulos/borradores` lo apaga para su rama;
    - `articulos/privado` tiene `_index.md` con `seo.noindex` y una tabla de uno en uno (paginada);
-   - `guia` enciende `generate`, pero su `index.md` gana (aviso informativo en el build). */
+   - `guia` enciende `generate`, pero su `index.md` gana (aviso informativo en el build);
+   - `articulos/notas` tiene `index.md`: su grupo enlaza esa página. */
 export default defineDocsConfig({
   name: 'Folders',
   locales: ['es', 'en'],

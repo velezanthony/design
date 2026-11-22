@@ -360,6 +360,96 @@ describe('buildSidebar: páginas que listan su carpeta', () => {
   });
 });
 
+/* Las carpetas son categorías: la etiqueta de un grupo lleva a la página de su carpeta si existe,
+   venga de donde venga (generada, `_index.md` o `index.md`). */
+describe('buildSidebar: grupos enlazados a la página de su carpeta', () => {
+  it.each([
+    ['generada', { kind: 'generated' as const, sourcePath: 'guia/_index.md' }],
+    ['de un `_index.md`', { sourcePath: 'guia/_index.md' }],
+    ['de un `index.md`', { sourcePath: 'guia/index.md' }],
+  ])('un grupo automático enlaza la página %s de su carpeta', (_kind, extra) => {
+    const tree = build([page('guia', 'en', { title: 'Guía', ...extra }), page('guia/a')]);
+    expect(tree[0]).toMatchObject({ label: 'Guía', href: '/repo/guia/', slug: 'guia' });
+  });
+
+  it('sin página índice, el grupo no lleva `href`', () => {
+    const [group] = build([page('guia/a'), page('guia/b')]);
+    expect(group).not.toHaveProperty('href');
+  });
+
+  const folderPage = page('docs/cloud/aws', 'en', {
+    kind: 'generated',
+    title: 'AWS (carpeta)',
+    sourcePath: 'docs/cloud/aws/_index.md',
+  });
+  const pages = [folderPage, page('docs/cloud/aws/basica'), page('docs/ci/github')];
+
+  it('un grupo declarado sin `slug` cuyas hojas comparten una carpeta con página la enlaza', () => {
+    const tree = build(pages, 'en', [{ label: 'AWS', items: ['docs/cloud/aws/basica'] }]);
+    expect(tree[0]).toMatchObject({
+      label: 'AWS',
+      slug: 'docs/cloud/aws',
+      href: '/repo/docs/cloud/aws/',
+    });
+  });
+
+  it('la página destino no sale además como hoja ni en el árbol automático', () => {
+    const tree = build(pages, 'en', [{ label: 'AWS', items: ['docs/cloud/aws/basica'] }]);
+    expect(flatten(tree).filter((leaf) => leaf.slug === 'docs/cloud/aws')).toHaveLength(1);
+    expect(shape(tree)).toEqual([
+      { AWS: ['docs/cloud/aws/basica'] },
+      { Docs: [{ Ci: ['docs/ci/github'] }] },
+    ]);
+  });
+
+  it('el grupo que solo envuelve a otro no la recibe: gana el interior', () => {
+    const tree = build(pages, 'en', [
+      { label: 'Cloud', items: [{ label: 'AWS', items: ['docs/cloud/aws/basica'] }] },
+    ]);
+    const cloud = tree[0] as SidebarGroup;
+    expect(cloud).not.toHaveProperty('href');
+    expect(cloud.items[0]).toMatchObject({ label: 'AWS', href: '/repo/docs/cloud/aws/' });
+  });
+
+  it('un `slug` declarado a mano manda', () => {
+    const tree = build([...pages, page('docs/ci/github')], 'en', [
+      { label: 'AWS', slug: 'docs/ci/github', items: ['docs/cloud/aws/basica'] },
+    ]);
+    expect(tree[0]).toMatchObject({ slug: 'docs/ci/github', href: '/repo/docs/ci/github/' });
+  });
+
+  it('grupos que no se envuelven y comparten carpeta (un sitio plano): ninguno la enlaza', () => {
+    const flat = [
+      page('tutoriales', 'en', { sourcePath: 'tutoriales/index.md' }),
+      page('tutoriales/a'),
+      page('tutoriales/b'),
+    ];
+    const tree = build(flat, 'en', [
+      { label: 'Uno', items: ['tutoriales/a'] },
+      { label: 'Dos', items: ['tutoriales/b'] },
+    ]);
+    expect(tree[0]).not.toHaveProperty('href');
+    expect(tree[1]).not.toHaveProperty('href');
+    expect(shape(tree)).toEqual([
+      { Uno: ['tutoriales/a'] },
+      { Dos: ['tutoriales/b'] },
+      'tutoriales',
+    ]);
+  });
+
+  it('el destino pasa por la política: `omit` sin traducción, sin enlace; `link`, al original con insignia', () => {
+    const source = [
+      page('docs/cloud/aws', 'es', { kind: 'generated', sourcePath: 'docs/cloud/aws/_index.md' }),
+      page('docs/cloud/aws/basica'),
+    ];
+    const declared: SidebarItem[] = [{ label: 'AWS', items: ['docs/cloud/aws/basica'] }];
+    const omitted = build(source, 'en', declared, MissingTranslation.OMIT);
+    expect(omitted[0]).not.toHaveProperty('href');
+    const linked = build(source, 'en', declared, MissingTranslation.LINK);
+    expect(linked[0]).toMatchObject({ href: '/repo/es/docs/cloud/aws/', badge: 'es' });
+  });
+});
+
 describe('buildSidebar: portada en la config', () => {
   it("'index' coloca la portada donde se declara", () => {
     const pages = [page(''), page('guide'), page('install')];

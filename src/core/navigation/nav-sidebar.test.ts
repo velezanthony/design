@@ -105,3 +105,38 @@ describe('buildSectionSidebar: `sidebarDepth`', () => {
     ]);
   });
 });
+
+/* Una sección sin `dir` solo es dueña de las páginas de su `sidebar`; aun así, sus grupos enlazan la
+   página de su carpeta (una página generada que no está en ningún `sidebar`). */
+describe('buildSectionSidebar: grupos enlazados en una sección sin `dir`', () => {
+  const generated: Page = {
+    ...page('articulos/sistemas/ci-cd'),
+    kind: 'generated',
+    title: 'CI/CD',
+    sourcePath: 'articulos/sistemas/ci-cd/_index.md',
+  };
+  const all = [generated, page('articulos/sistemas/ci-cd/github'), page('suelta')];
+  const sistemas: NavItem[] = [
+    {
+      label: 'Sistemas',
+      sidebar: [{ label: 'CI/CD', items: ['articulos/sistemas/ci-cd/github'] }],
+    },
+  ];
+  const withSection: NavContext = {
+    ...context,
+    pages: all,
+    availability: buildAvailability(all, url),
+    policies: resolvePolicies(all, MissingTranslation.LINK).policies,
+    config: { locales: ['es'], defaultLocale: 'es', nav: sistemas },
+    slug: 'articulos/sistemas/ci-cd/github',
+  };
+
+  it('el grupo enlaza la página de su carpeta aunque la sección no sea su dueña', () => {
+    const [group] = buildSectionSidebar(withSection, { kind: 'section', position: 0 });
+    expect(group).toMatchObject({ label: 'CI/CD', href: '/articulos/sistemas/ci-cd/' });
+  });
+
+  it('esa página sigue fuera de la sección (no cambia a qué sección pertenece)', () => {
+    expect(navScopeOf(sistemas, 'articulos/sistemas/ci-cd')).toEqual({ kind: 'unsectioned' });
+  });
+});

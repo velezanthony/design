@@ -37,49 +37,88 @@ export function folderOfGroup(items: readonly SidebarItem[]): string | undefined
   return length > 0 ? first.slice(0, length).join('/') : undefined;
 }
 
-/** Un grupo declarado que casa con una carpeta: su etiqueta y lo hondo que está en lo declarado. */
-interface Match {
+/** Un grupo declarado (o una sección) que casa con una carpeta, con los que lo envuelven. */
+interface Candidate {
+  /** El objeto declarado: un grupo de un `sidebar` o una sección de `nav`. */
+  owner: object;
   label: Label;
-  depth: number;
+  folder: string;
+  /** Las secciones y los grupos que lo envuelven, del más exterior al más cercano. */
+  wrappers: readonly object[];
+  /** Es un grupo de un `sidebar` (no una sección): el único que puede enlazar su carpeta. */
+  group: boolean;
 }
 
-/** Los grupos de `items` (y sus subgrupos) que casan con una carpeta, con su profundidad. */
-function groupMatches(items: readonly SidebarItem[], depth: number, found: Map<string, Match>) {
-  for (const item of items) {
-    if (typeof item === 'string') continue;
+/** Los grupos de `items` (y sus subgrupos) que casan con alguna carpeta. */
+function groupCandidates(items: readonly SidebarItem[], wrappers: readonly object[]): Candidate[] {
+  return items.flatMap((item) => {
+    if (typeof item === 'string') return [];
     const children = item.items ?? [];
-    keepInnermost(found, folderOfGroup(children), { label: item.label, depth });
-    groupMatches(children, depth + 1, found);
-  }
+    const folder = folderOfGroup(children);
+    const own: Candidate[] =
+      folder === undefined
+        ? []
+        : [{ owner: item, label: item.label, folder, wrappers, group: true }];
+    return [...own, ...groupCandidates(children, [...wrappers, item])];
+  });
 }
 
-/** Guarda `match` para `folder` si no hay otro más interior (a igual profundidad, el primero). */
-function keepInnermost(found: Map<string, Match>, folder: string | undefined, match: Match) {
-  if (folder === undefined) return;
-  const current = found.get(folder);
-  if (!current || match.depth > current.depth) found.set(folder, match);
+/** Todo lo declarado que casa con alguna carpeta: las secciones de `nav`, sus grupos y los de `sidebar`. */
+function candidates(config: FolderLabelConfig): Candidate[] {
+  const found: Candidate[] = [];
+  for (const item of config.nav ?? []) {
+    if (!isNavSection(item)) continue;
+    const folder = folderOfGroup(item.sidebar ?? []);
+    if (folder !== undefined) {
+      found.push({ owner: item, label: item.label, folder, wrappers: [], group: false });
+    }
+    found.push(...groupCandidates(item.sidebar ?? [], [item]));
+  }
+  return [...found, ...groupCandidates(config.sidebar ?? [], [])];
+}
+
+/* «Si casan varios, el más interior»: el dueño de una carpeta es el candidato al que envuelven todos
+   los demás (el grupo «Cloud» que solo envuelve a «AWS» se lo cede). Si hay candidatos que no se
+   envuelven entre sí (un sitio plano, con todas las páginas en la misma carpeta y el árbol hecho con
+   `sidebar`), «el más interior» no existe y la carpeta se queda sin dueño. */
+function owners(config: FolderLabelConfig): Map<string, Candidate> {
+  const byFolder = new Map<string, Candidate[]>();
+  for (const candidate of candidates(config)) {
+    byFolder.set(candidate.folder, [...(byFolder.get(candidate.folder) ?? []), candidate]);
+  }
+  const found = new Map<string, Candidate>();
+  for (const [folder, matches] of byFolder) {
+    const innermost = matches.find((candidate) =>
+      matches.every((other) => other === candidate || candidate.wrappers.includes(other.owner)),
+    );
+    if (innermost) found.set(folder, innermost);
+  }
+  return found;
 }
 
 /** Título de cada carpeta que tiene uno declarado (pasos 1 y 2), en `locale`. */
 export function folderLabels(config: FolderLabelConfig, locale: Locale): Map<string, string> {
-  const found = new Map<string, Match>();
+  const labels = new Map<string, Label>(
+    [...owners(config)].map(([folder, candidate]) => [folder, candidate.label]),
+  );
+  // Paso 1: la sección con `dir` nombra su carpeta siempre.
   for (const item of config.nav ?? []) {
-    if (!isNavSection(item)) continue;
-    // La sección es el grupo más exterior; la que tiene `dir` lo nombra siempre (paso 1).
-    keepInnermost(found, folderOfGroup(item.sidebar ?? []), { label: item.label, depth: 0 });
-    groupMatches(item.sidebar ?? [], 1, found);
-  }
-  groupMatches(config.sidebar ?? [], 1, found);
-  for (const item of config.nav ?? []) {
-    if (isNavSection(item) && item.dir !== undefined) {
-      found.set(item.dir, { label: item.label, depth: Infinity });
-    }
+    if (isNavSection(item) && item.dir !== undefined) labels.set(item.dir, item.label);
   }
   return new Map(
-    [...found].map(([folder, { label }]) => [
+    [...labels].map(([folder, label]) => [
       folder,
       resolveLabel(label, locale, config.defaultLocale),
     ]),
+  );
+}
+
+/** La carpeta de cada grupo declarado que es su dueño (la misma regla que los títulos): su etiqueta enlaza la página de esa carpeta. Las secciones no cuentan: en su barra, la etiqueta es la cabecera. */
+export function groupFolders(config: FolderLabelConfig): Map<object, string> {
+  return new Map(
+    [...owners(config)]
+      .filter(([, candidate]) => candidate.group)
+      .map(([folder, candidate]) => [candidate.owner, folder]),
   );
 }
 

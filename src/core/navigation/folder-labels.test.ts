@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { NavItem } from '../config/nav';
 import type { SidebarItem } from '../config/schema';
-import { folderLabels, folderOfGroup, folderTitles } from './folder-labels';
+import { folderLabels, folderOfGroup, folderTitles, groupFolders } from './folder-labels';
 
 /* Como el sitio del autor: la sección «Sistemas» no tiene `dir`, pero todas sus páginas cuelgan de
    `articulos/sistemas`; dentro, «CI/CD» envuelve una carpeta, «Cloud» solo envuelve al grupo «AWS». */
@@ -82,6 +82,33 @@ describe('folderLabels', () => {
       'es',
     );
     expect(labels.get('cocina/recetas')).toBe('Recetas');
+  });
+  it('varios grupos que no se envuelven entre sí y casan con la misma carpeta: ninguno la titula', () => {
+    // Un sitio plano: todas las páginas en `tutoriales/`, el árbol lo forman los `sidebar`.
+    const flat = {
+      nav: [
+        { label: 'Esenciales', sidebar: [{ label: 'Vite', items: ['tutoriales/configuracion'] }] },
+        { label: 'Avanzado', sidebar: [{ label: 'Scripts', items: ['tutoriales/scripts'] }] },
+      ],
+      defaultLocale: 'es',
+    };
+    expect(folderLabels(flat, 'es').has('tutoriales')).toBe(false);
+  });
+});
+
+describe('groupFolders', () => {
+  it('cada grupo declarado que es dueño de una carpeta, con la regla de los títulos', () => {
+    const owned = groupFolders(config);
+    const [ciCd, cloud, contenedores] = sistemas as Exclude<SidebarItem, string>[];
+    const aws = cloud!.items![0] as Exclude<SidebarItem, string>;
+    expect(owned.get(ciCd!)).toBe('articulos/sistemas/ci-cd');
+    expect(owned.get(aws)).toBe('articulos/sistemas/cloud/aws');
+    expect(owned.get(contenedores!)).toBe('articulos/sistemas/contenedores');
+    expect(owned.has(cloud!)).toBe(false);
+  });
+
+  it('una sección no es un grupo de la barra lateral: no aparece', () => {
+    expect([...groupFolders(config).values()]).not.toContain('articulos/sistemas');
   });
 });
 

@@ -12,6 +12,7 @@ import {
   type TranslationPolicies,
 } from '../i18n/translation-policy';
 import { folderLabel } from '../shared/text';
+import { groupFolders } from './folder-labels';
 import { resolveLabel } from './label';
 import { toSidebarSlug } from './sidebar-slugs';
 
@@ -41,8 +42,21 @@ export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
   return 'items' in node;
 }
 
-/** Lo que el árbol necesita de la config: idiomas, el orden declarado y el límite del árbol automático. */
-type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar' | 'sidebarDepth'>;
+/** Lo que el árbol necesita de la config: idiomas, el orden declarado y el límite del árbol automático. `groupFolders` es la carpeta de cada grupo declarado que la enlaza (`folder-labels.ts`); sin él, se calcula solo con `sidebar`. */
+type SidebarConfig = Pick<
+  ResolvedConfig,
+  'locales' | 'defaultLocale' | 'sidebar' | 'sidebarDepth'
+> & {
+  groupFolders?: ReadonlyMap<object, string>;
+};
+
+/** El slug de la página que enlaza un grupo declarado: el que declara o, sin él, el de la carpeta de la que es dueño. */
+function groupSlug(
+  item: Exclude<SidebarItem, string>,
+  folders: ReadonlyMap<object, string>,
+): string | undefined {
+  return item.slug === undefined ? folders.get(item) : toSidebarSlug(item.slug);
+}
 
 /** Entrada de un slug en el idioma del árbol (`leaf` es `null` si la política la omite). */
 interface Entry {
@@ -253,6 +267,7 @@ function autoTree(
 function claimedSlugs(
   items: SidebarItem[],
   bySlug: Map<string, Entry>,
+  folders: ReadonlyMap<object, string>,
   claimed = { used: new Set<string>(), leaves: new Set<string>() },
 ): { used: Set<string>; leaves: Set<string> } {
   for (const item of items) {
@@ -263,9 +278,9 @@ function claimedSlugs(
       claimed.leaves.add(slug);
       continue;
     }
-    const own = item.slug === undefined ? undefined : toSidebarSlug(item.slug);
+    const own = groupSlug(item, folders);
     if (own !== undefined && bySlug.has(own)) claimed.used.add(own);
-    claimedSlugs(item.items ?? [], bySlug, claimed);
+    claimedSlugs(item.items ?? [], bySlug, folders, claimed);
   }
   return claimed;
 }
@@ -294,6 +309,7 @@ function declaredTree(
   items: SidebarItem[],
   bySlug: Map<string, Entry>,
   merged: Map<string, SidebarNode>,
+  folders: ReadonlyMap<object, string>,
   locale: Locale,
   defaultLocale: Locale,
 ): SidebarNode[] {
@@ -306,10 +322,11 @@ function declaredTree(
       nodes.push(merged.get(slug) ?? entry.leaf);
       continue;
     }
-    const own = item.slug === undefined ? undefined : bySlug.get(toSidebarSlug(item.slug));
+    const slug = groupSlug(item, folders);
+    const own = slug === undefined ? undefined : bySlug.get(slug);
     const group: SidebarGroup = {
       label: resolveLabel(item.label, locale, defaultLocale),
-      items: declaredTree(item.items ?? [], bySlug, merged, locale, defaultLocale),
+      items: declaredTree(item.items ?? [], bySlug, merged, folders, locale, defaultLocale),
       ...(own && { slug: own.slug, href: own.leaf.href }),
       ...(own?.leaf.badge && { badge: own.leaf.badge }),
     };
@@ -333,7 +350,9 @@ export function buildSidebar(
   const entries = toEntries(pages, availability, locale, config, policies, url);
   const bySlug = new Map(entries.map((entry) => [entry.slug, entry]));
   const items = config.sidebar ?? [];
-  const { used, leaves } = claimedSlugs(items, bySlug);
+  const folders =
+    config.groupFolders ?? groupFolders({ sidebar: items, defaultLocale: config.defaultLocale });
+  const { used, leaves } = claimedSlugs(items, bySlug, folders);
   /* Un slug declarado como hoja que es la página de una carpeta con páginas sin declarar se fusiona
      con el grupo automático de esa carpeta: el árbol automático lo monta con ella dentro y el grupo
      pasa a la posición declarada. */
@@ -354,7 +373,7 @@ export function buildSidebar(
     rest = detached.nodes;
     if (detached.node) merged.set(slug, detached.node);
   }
-  const declared = declaredTree(items, bySlug, merged, locale, config.defaultLocale);
+  const declared = declaredTree(items, bySlug, merged, folders, locale, config.defaultLocale);
   return [...declared, ...rest];
 }
 

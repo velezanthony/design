@@ -53,7 +53,7 @@ core/
 │   └── view.ts            ListingView (unión por disposición), el puerto ListingHrefs y buildListingView
 ├── navigation/
 │   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
-│   ├── folder-labels.ts   Título de una carpeta sin `_index.md` (sección con `dir`, grupo declarado que casa, nombre humanizado) y carpeta de un grupo declarado
+│   ├── folder-labels.ts   Qué grupo declarado es dueño de cada carpeta (groupFolders: su etiqueta enlaza la página de la carpeta) y el título de una carpeta sin `_index.md`
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
 │   ├── nav-sections.ts    Secciones por dir, validación de nav
 │   ├── nav-sidebar.ts     La barra lateral de un ámbito (NavScope: una sección o las páginas sin sección)
