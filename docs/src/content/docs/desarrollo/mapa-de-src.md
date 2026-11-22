@@ -21,6 +21,7 @@ core/
 │   ├── resolve.ts         Valida y rellena valores por defecto → ResolvedConfig
 │   ├── layout.ts          PanelState, LayoutWidth y la disposición por defecto
 │   ├── indexes.ts         `indexes`: IndexLayout, sus valores por defecto, qué carpetas y su validación
+│   ├── sidebar-depth.ts   `sidebarDepth`: límites del árbol automático por defecto y por carpeta, y su validación
 │   ├── nav.ts             NavIcon y los tipos de los elementos de nav
 │   └── footer.ts          Tipos del pie
 ├── content/

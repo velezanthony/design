@@ -20,6 +20,14 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Añadido
 
+- **`sidebarDepth` limita cuánto anida el árbol automático de la barra lateral.** Un número para todo
+  el sidebar (`sidebarDepth: 3`), un límite por sección (`nav[n].sidebarDepth`, contando desde su
+  `dir`) o por carpeta (`sidebarDepth: { default, overrides: { 'articulos/python': 1 } }`, contando
+  desde ella). Gana el más concreto: la carpeta más cercana, luego la sección, luego el global. Lo que
+  queda por debajo del límite va plano en el último grupo permitido, en el orden de siempre; nunca se
+  oculta. Por defecto no hay límite, y los grupos escritos a mano en `sidebar` no cambian. Una carpeta
+  de `overrides` sin páginas rompe el build con su ruta, y en `nav` solo una sección lo admite.
+
 - **Pie propio en las páginas de docs (`components.Footer`).** Como los `components` de Starlight,
   `components: { Footer: './src/components/DocsFooter.astro' }` sustituye el pie de la librería por un
   `.astro` del sitio, que recibe las props de `DocsFooter` más el idioma de la página (el tipo

@@ -1,5 +1,6 @@
 import type { ResolvedConfig } from '../config/resolve';
 import type { SidebarItem } from '../config/schema';
+import type { SidebarDepth } from '../config/sidebar-depth';
 import type { Page } from '../content/discovery';
 import { urlSlugOf } from '../content/slug';
 import { pageUrl, type Availability, type UrlPolicy } from '../i18n/availability';
@@ -33,13 +34,14 @@ export interface SidebarGroup {
 }
 
 export type SidebarNode = SidebarLeaf | SidebarGroup;
+export type { SidebarDepth };
 
 export function isSidebarGroup(node: SidebarNode): node is SidebarGroup {
   return 'items' in node;
 }
 
-/** Lo que el árbol necesita de la config: idiomas y el orden declarado. */
-type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'>;
+/** Lo que el árbol necesita de la config: idiomas, el orden declarado y el límite del árbol automático. */
+type SidebarConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar' | 'sidebarDepth'>;
 
 /** Entrada de un slug en el idioma del árbol (`leaf` es `null` si la política la omite). */
 interface Entry {
@@ -134,12 +136,29 @@ function closeGroup(group: SidebarGroup): SidebarNode | undefined {
 }
 
 /** `base` es la carpeta raíz de una sección: no cuenta como nivel y sus páginas cuelgan de la raíz del árbol. */
-function autoTree(entries: Entry[], collator: Intl.Collator, base = ''): SidebarNode[] {
+function autoTree(
+  entries: Entry[],
+  collator: Intl.Collator,
+  base = '',
+  depth?: SidebarDepth,
+): SidebarNode[] {
   const rootDepth = base === '' ? 0 : base.split('/').length;
-  // La sección de una página es su carpeta, a cualquier profundidad: un grupo por nivel.
+  /* ¿Cabe la carpeta `folder` como grupo? La limita la carpeta de `overrides` más cercana por
+     encima, contando desde ella, o si no hay ninguna `default`, contando desde la raíz del árbol. */
+  function allowed(folder: string[]) {
+    for (let anchor = folder.length - 1; anchor > 0; anchor--) {
+      const limit = depth?.overrides[folder.slice(0, anchor).join('/')];
+      if (limit !== undefined) return folder.length - anchor <= limit;
+    }
+    return depth?.default === undefined || folder.length - rootDepth <= depth.default;
+  }
+  // La sección de una página es su carpeta, a cualquier profundidad: un grupo por nivel, hasta la
+  // primera carpeta que no cabe; lo de debajo cuelga, plano, del último grupo permitido.
   function sectionPath(slug: string) {
     const path = slug.split('/').slice(0, -1);
-    return path.length > rootDepth ? path : [];
+    let length = rootDepth;
+    while (length < path.length && allowed(path.slice(0, length + 1))) length++;
+    return length > rootDepth ? path.slice(0, length) : [];
   }
   function parentOf(path: string) {
     const parent = path.split('/').slice(0, -1);
@@ -262,6 +281,7 @@ export function buildSidebar(
     entries.filter((entry) => !used.has(entry.slug)),
     collator,
     base,
+    config.sidebarDepth,
   );
   return [...declared, ...rest];
 }

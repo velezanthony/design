@@ -12,6 +12,7 @@ import {
   type SourceFile,
 } from '../../core/content/discovery';
 import { validateIndexFolders } from '../../core/config/indexes';
+import { validateSidebarDepthFolders } from '../../core/config/sidebar-depth';
 import { contentFolders, generatedListingPages } from '../../core/content/generated-listings';
 import { reservedSegmentErrors } from '../../core/listing/urls';
 import { collectErrors, DocsError, DocsErrors } from '../../core/errors';
@@ -160,13 +161,13 @@ async function sync(context: LoaderContext, config: LoaderConfig): Promise<void>
   // Si el descubrimiento falló no hay páginas fiables: el sidebar se juzgaría contra una lista vacía.
   if (discovered.errors.length === 0) {
     const pageSlugs = new Set(pages.map((page) => page.slug));
+    const folders = new Set(contentFolders(pageSlugs));
     errors.push(
       ...validateSidebarSlugs(config.sidebar ?? [], pageSlugs),
       ...validateNav(config.nav ?? [], pageSlugs),
       ...validateFooter(config.footer?.links ?? [], pageSlugs),
-      ...(config.indexes
-        ? validateIndexFolders(config.indexes, new Set(contentFolders(pageSlugs)))
-        : []),
+      ...(config.indexes ? validateIndexFolders(config.indexes, folders) : []),
+      ...(config.sidebarDepth ? validateSidebarDepthFolders(config.sidebarDepth, folders) : []),
     );
   }
   for (const { slug, missing } of undeclaredMissing(

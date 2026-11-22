@@ -3,7 +3,7 @@ declare module 'virtual:@velezanthony/design/config' {
   type Label = string | Record<string, string>;
   type SidebarItem = string | { label: Label; slug?: string; items?: SidebarItem[] };
   type NavItem =
-    | { label: Label; dir?: string; sidebar?: SidebarItem[] }
+    | { label: Label; dir?: string; sidebar?: SidebarItem[]; sidebarDepth?: number }
     | { label: Label; slug: string }
     | { label: Label; href: string; icon?: 'github' };
   type FooterLink = { label: Label; slug: string } | { label: Label; href: string };
@@ -33,6 +33,7 @@ declare module 'virtual:@velezanthony/design/config' {
     }[];
     sidebar?: SidebarItem[];
     nav?: NavItem[];
+    sidebarDepth?: { default?: number; overrides: Record<string, number> };
     footer?: FooterConfig;
     components?: { Footer?: string };
     editUrl?: string;

@@ -63,11 +63,41 @@ aparecen en el menú móvil.
   sitio declara la `sidebar` de cada sección: los grupos (`{ label, slug?, items }`) y el orden no son los de las
   carpetas, y un grupo con `slug` enlaza a su propia página (la del `index.md` o la que lo abre).
 - Un slug desconocido rompe el build con un único error que nombra todos (`sidebar[2].items[0]`).
+- Los niveles de carpetas del árbol automático se pueden limitar con `sidebarDepth` (ver abajo).
 - Las páginas fuera de toda sección (como la portada de este sitio) usan la `sidebar` de primer
   nivel o, sin ella, una lista automática de solo esas páginas.
 - La barra recuerda su desplazamiento entre páginas en `sessionStorage` (`docs:sidebar-scroll`,
   `client/layout/sidebar-scroll.ts`); sin posición guardada, deja a la vista la página actual.
 
+
+### Profundidad del árbol automático (`sidebarDepth`)
+
+Sin límite, el árbol automático tiene un grupo por carpeta a cualquier profundidad. `sidebarDepth`
+lo recorta en tres sitios, y cada límite cuenta desde donde se declara:
+
+```js
+// Todo el sidebar: como mucho tres niveles de grupos desde la raíz de cada árbol.
+sidebarDepth: 3,
+// O por carpeta: `python` conserva sus carpetas hijas y aplana lo que haya más hondo dentro.
+sidebarDepth: { default: 3, overrides: { 'articulos/desarrollo/python': 1 } },
+nav: [
+  // Una sección: dos niveles contando desde su `dir`.
+  { label: 'Sistemas', dir: 'articulos/sistemas', sidebarDepth: 2 },
+],
+```
+
+- **Gana el más concreto:** la carpeta de `overrides` más cercana por encima, luego el de la sección,
+  luego `default` (o el número). Una carpeta de `overrides` cuenta desde ella, así que solo decide lo
+  que tiene debajo: no rescata su propia carpeta si un límite de más arriba ya la aplana.
+- **Nada se oculta:** las páginas de una carpeta más honda que el límite van planas en el último
+  grupo permitido, en el orden de siempre (`order` y luego slug). La página índice de una carpeta
+  aplanada queda como una hoja más.
+- Solo afecta a los **grupos automáticos de carpeta**: los grupos escritos a mano en `sidebar`
+  (`{ label, items }`) no cambian.
+- Solo enteros positivos. Una carpeta de `overrides` debe ser una carpeta del contenido, sin barras
+  al principio ni al final; si no tiene páginas, el build falla con su ruta
+  (`sidebarDepth.overrides.articulos/pyton`). `sidebarDepth` en un elemento de `nav` que no es una
+  sección también falla.
 ### Índice generado (`::nav-tree`)
 
 Una página índice (la de un blog, la de una guía) no necesita copiar a mano el árbol de las

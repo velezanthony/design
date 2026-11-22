@@ -220,6 +220,16 @@ describe('docsLoader: frontmatter, seo y translations', () => {
     expect(message).toContain('guide.md');
     expect(message).toContain('translations');
   });
+
+  it('una carpeta de `sidebarDepth.overrides` sin páginas rompe con su ruta', async () => {
+    await write('src/content/docs/articulos/python/x.md', '# X\n');
+    const message = await failure({
+      name: 'T',
+      sidebarDepth: { overrides: { 'articulos/python': 1, 'articulos/pyton': 1 } },
+    });
+    expect(message).toContain('sidebarDepth.overrides.articulos/pyton');
+    expect(message).not.toContain('sidebarDepth.overrides.articulos/python');
+  });
 });
 
 describe('docsLoader: enlaces y anclas', () => {

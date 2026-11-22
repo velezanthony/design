@@ -7,6 +7,7 @@ import {
   flatten,
   isSidebarGroup,
   missingEntry,
+  type SidebarDepth,
   type SidebarGroup,
   type SidebarNode,
 } from './sidebar';
@@ -453,5 +454,108 @@ describe('buildSidebar: `slug` propio', () => {
   it('fallback: la reserva va al `slug` del original con el prefijo del idioma', () => {
     const tree = flatten(build(pages, 'es', undefined, MissingTranslation.FALLBACK));
     expect(tree).toContainEqual({ label: 'b', slug: 'tutoriales/b', href: '/repo/es/blog/b/' });
+  });
+});
+
+describe('buildSidebar: `sidebarDepth`', () => {
+  const deep = [
+    page('a/x'),
+    page('a/b/y'),
+    page('a/b/c/z'),
+    page('a/b/c/d/w'),
+    page('a/b/c/d/v', 'en', { order: 1 }),
+  ];
+
+  function capped(
+    pages: Page[],
+    sidebarDepth: SidebarDepth | undefined,
+    base = '',
+    sidebar?: SidebarItem[],
+  ): unknown[] {
+    const { policies } = resolvePolicies(pages, MissingTranslation.LINK);
+    const config = { locales: ['en'], defaultLocale: 'en', sidebar, sidebarDepth };
+    return shape(
+      buildSidebar(pages, buildAvailability(pages, url), 'en', config, policies, url, base),
+    );
+  }
+
+  const unlimited = [
+    {
+      A: [{ B: [{ C: [{ D: ['a/b/c/d/v', 'a/b/c/d/w'] }, 'a/b/c/z'] }, 'a/b/y'] }, 'a/x'],
+    },
+  ];
+
+  it('sin límite (por defecto) anida todas las carpetas', () => {
+    expect(capped(deep, undefined)).toEqual(unlimited);
+    expect(capped(deep, { overrides: {} })).toEqual(unlimited);
+  });
+
+  it('un límite igual o mayor que la profundidad no cambia nada', () => {
+    expect(capped(deep, { default: 4, overrides: {} })).toEqual(unlimited);
+    expect(capped(deep, { default: 9, overrides: {} })).toEqual(unlimited);
+  });
+
+  it('límite 1: un solo nivel de grupos, lo de debajo plano en él y en el orden de siempre', () => {
+    expect(capped(deep, { default: 1, overrides: {} })).toEqual([
+      { A: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z', 'a/b/y', 'a/x'] },
+    ]);
+  });
+
+  it('límite global: lo más profundo va al grupo más hondo permitido', () => {
+    expect(capped(deep, { default: 2, overrides: {} })).toEqual([
+      { A: [{ B: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z', 'a/b/y'] }, 'a/x'] },
+    ]);
+  });
+
+  it('una página índice de una carpeta aplanada queda como hoja, nunca se oculta', () => {
+    const pages = [...deep, page('a/b/c', 'en', { title: 'Index C' })];
+    expect(capped(pages, { default: 2, overrides: {} })).toEqual([
+      { A: [{ B: ['a/b/c/d/v', 'a/b/c', 'a/b/c/d/w', 'a/b/c/z', 'a/b/y'] }, 'a/x'] },
+    ]);
+  });
+
+  it('el límite global cuenta desde la carpeta raíz de una sección', () => {
+    const pages = deep.map((item) => page(`root/${item.slug}`, 'en', { order: item.order }));
+    expect(capped(pages, { default: 1, overrides: {} }, 'root')).toEqual([
+      { A: ['root/a/b/c/d/v', 'root/a/b/c/d/w', 'root/a/b/c/z', 'root/a/b/y', 'root/a/x'] },
+    ]);
+  });
+
+  it('una carpeta de `overrides` cuenta desde ella y gana al límite global', () => {
+    // El global (2) aplanaría `a/b/c`; `a/b: 1`, contando desde `a/b`, la deja y aplana lo de debajo.
+    expect(capped(deep, { default: 2, overrides: { 'a/b': 1 } })).toEqual([
+      { A: [{ B: [{ C: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z'] }, 'a/b/y'] }, 'a/x'] },
+    ]);
+    // Sin límite global, solo frena por debajo de su carpeta.
+    expect(capped(deep, { overrides: { a: 1 } })).toEqual([
+      { A: [{ B: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z', 'a/b/y'] }, 'a/x'] },
+    ]);
+  });
+
+  it('una carpeta de `overrides` no rescata su propia carpeta si un límite de arriba ya la aplana', () => {
+    expect(capped(deep, { default: 1, overrides: { 'a/b': 3 } })).toEqual([
+      { A: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z', 'a/b/y', 'a/x'] },
+    ]);
+  });
+
+  it('con `overrides` anidados manda el más cercano', () => {
+    expect(capped(deep, { overrides: { a: 1, 'a/b': 9 } })).toEqual(unlimited);
+    expect(capped(deep, { overrides: { a: 9, 'a/b/c': 1, 'a/b/c/d': 5 } })).toEqual(unlimited);
+    expect(capped(deep, { overrides: { a: 9, 'a/b': 1 } })).toEqual([
+      { A: [{ B: [{ C: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z'] }, 'a/b/y'] }, 'a/x'] },
+    ]);
+  });
+
+  it('los grupos escritos a mano en `sidebar` no cambian', () => {
+    const sidebar: SidebarItem[] = [
+      {
+        label: 'Hand',
+        items: [{ label: 'Deeper', items: [{ label: 'Deepest', items: ['a/x'] }] }],
+      },
+    ];
+    expect(capped(deep, { default: 1, overrides: {} }, '', sidebar)).toEqual([
+      { Hand: [{ Deeper: [{ Deepest: ['a/x'] }] }] },
+      { A: ['a/b/c/d/v', 'a/b/c/d/w', 'a/b/c/z', 'a/b/y'] },
+    ]);
   });
 });

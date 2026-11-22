@@ -9,7 +9,10 @@ import { sectionIndexOf, sectionOwns } from './nav-sections';
 import { buildSidebar, type SidebarNode } from './sidebar';
 
 /** Lo que el árbol y la cabecera necesitan de la config. */
-export type NavConfig = Pick<ResolvedConfig, 'locales' | 'defaultLocale' | 'sidebar'> & {
+export type NavConfig = Pick<
+  ResolvedConfig,
+  'locales' | 'defaultLocale' | 'sidebar' | 'sidebarDepth'
+> & {
   nav?: NavItem[];
 };
 
@@ -27,13 +30,17 @@ export interface NavContext {
   urlSlug?: string;
 }
 
-/** Árbol de las páginas que cumplen `keep`, con el orden declarado en `sidebar` y la carpeta `base` como raíz. */
+/** Árbol de las páginas que cumplen `keep`, con el orden declarado en `sidebar`, la carpeta `base` como raíz y `depth` (el `sidebarDepth` de una sección) en vez del límite global. */
 export function buildSidebarFor(
   context: NavContext,
   keep: (slug: string) => boolean,
   sidebar?: NavConfig['sidebar'],
   base = '',
+  depth?: number,
 ): SidebarNode[] {
+  const global = context.config.sidebarDepth;
+  const sidebarDepth =
+    depth === undefined ? global : { overrides: global?.overrides ?? {}, default: depth };
   const availability: Availability = new Map(
     [...context.availability].filter(([slug]) => keep(slug)),
   );
@@ -42,7 +49,7 @@ export function buildSidebarFor(
     pages,
     availability,
     context.locale,
-    { ...context.config, sidebar },
+    { ...context.config, sidebar, sidebarDepth },
     context.policies,
     context.url,
     base,
@@ -63,7 +70,13 @@ export function buildSectionSidebar(context: NavContext, scope: NavScope): Sideb
   const nav = context.config.nav;
   const item = scope.kind === 'section' ? nav?.[scope.position] : undefined;
   if (item && isNavSection(item)) {
-    return buildSidebarFor(context, (slug) => sectionOwns(item, slug), item.sidebar, item.dir);
+    return buildSidebarFor(
+      context,
+      (slug) => sectionOwns(item, slug),
+      item.sidebar,
+      item.dir,
+      item.sidebarDepth,
+    );
   }
   return buildSidebarFor(
     context,

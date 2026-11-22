@@ -183,7 +183,8 @@ Las claves desconocidas rompen el build indicando la ruta de la clave (`ui.es.se
 | `ui`            | Sobrescritura de textos de UI por idioma, combinada clave a clave: `ui: { es: { 'search.placeholder': 'Buscar' } }`. Las claves desconocidas rompen.     |
 | `external`      | Archivos fuera de la carpeta de contenido (`content`) publicados como páginas: `{ slug, file, locales?, seo?, translations? }`.                                          |
 | `sidebar`       | Orden de la barra lateral: slugs y grupos `{ label, slug?, items }`. La home es `'index'`. Los slugs desconocidos rompen el build. El resto va después. |
-| `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
+| `sidebarDepth`  | Niveles de grupos de carpeta del árbol automático de la barra lateral: `3` para todo el sidebar o `{ default?, overrides? }` con un límite por carpeta (`{ 'articulos/python': 1 }`), que cuenta desde ella. Por defecto sin límite. Lo más hondo va plano al último grupo permitido; los grupos escritos en `sidebar` no cambian. Ver [Navegación](docs/src/content/docs/guia/navegacion-y-busqueda.md#profundidad-del-árbol-automático-sidebardepth). |
+| `nav`           | Elementos de la cabecera, cada sección con su propia barra lateral: `{ label, dir, sidebar?, sidebarDepth? }`, `{ label, slug }`, `{ label, href, icon? }`. Ver abajo. |
 | `footer`        | Licencia, autor y enlaces extra del pie: `{ license?, author?, links? }`. Ver abajo.                                                                     |
 | `components`    | Componentes propios que sustituyen a los de la librería: `{ Footer: './src/components/DocsFooter.astro' }` (un `.astro` desde la raíz del proyecto, debe existir). Ver abajo. |
 | `editUrl`       | Base de edición del repo (`https://github.com/o/r/edit/main`). Añade "Edit this page" apuntando al archivo fuente real.                                  |
@@ -314,19 +315,22 @@ import { NavIcon } from '@velezanthony/design/integration';
 
 nav: [
   { label: { en: 'Guide', es: 'Guía' }, dir: 'users', sidebar: ['users/install'] }, // sección
+  { label: 'Artículos', dir: 'articulos', sidebarDepth: 2 }, // sección con su límite de carpetas
   { label: 'Changelog', slug: 'changelog' }, // una sola página
   { label: 'GitHub', href: 'https://github.com/o/r', icon: NavIcon.GITHUB }, // externo, solo https
 ],
 ```
 
-- **Sección** `{ label, dir?, sidebar? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
+- **Sección** `{ label, dir?, sidebar?, sidebarDepth? }` (al menos uno de `dir` o `sidebar`): pertenece a ella toda
   página (nativa o externa) cuyo slug sea `dir` o empiece por `dir/`, y también las que nombra su
   `sidebar`, vivan donde vivan: así una sección admite páginas sueltas y ficheros de fuera de `docs/`
   (`external`). Sus páginas muestran SOLO el árbol de esa sección a la izquierda, y anterior /
   siguiente nunca salen de ella. `sidebar` ordena la sección (misma forma que la de primer nivel); lo
   de `dir` que no nombra sigue por `order` y luego por slug, agrupado bajo `dir` (la carpeta en sí no
   es un nivel), y **sin `sidebar` el orden es alfabético por slug**. Sin `dir`, la sección la forma
-  solo su `sidebar`. El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
+  solo su `sidebar`. `sidebarDepth` limita los niveles de grupos de carpeta de su árbol automático,
+  contando desde `dir`, y gana al `sidebarDepth` global (una carpeta de `sidebarDepth.overrides` le
+  gana a él). El elemento enlaza a la página índice de `dir` si existe y, si no, a la primera
   página de la sección. Una página no puede ser de dos secciones.
 - **Página** `{ label, slug }`: un enlace a una sola página. Esa página no pertenece a ninguna
   sección.
