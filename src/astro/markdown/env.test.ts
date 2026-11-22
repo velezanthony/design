@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { resolveConfig } from '../../core/config/resolve';
-import { docFileURL, externalFileURL, project } from '../../testing/markdown';
+import { docFileURL, externalFileURL, nonDocFileURL, project } from '../../testing/markdown';
 import { createMarkdownEnv, fileLabel, localeOf, stringsOf } from './env';
 
 const env = createMarkdownEnv(
@@ -18,6 +18,17 @@ describe('localeOf', () => {
     expect(localeOf(env, docFileURL('a/guide.md'))).toBe('en');
     expect(localeOf(env, externalFileURL('CHANGELOG.es.md'))).toBe('es');
     expect(localeOf(env, externalFileURL('CHANGELOG.md'))).toBe('en');
+  });
+
+  it('fuera de la documentación, sin sufijo, lee el idioma de la carpeta más cercana', () => {
+    expect(localeOf(env, nonDocFileURL('projects/es/design.md'))).toBe('es');
+    expect(localeOf(env, nonDocFileURL('projects/en/design.md'))).toBe('en');
+    expect(localeOf(env, nonDocFileURL('es/projects/design.en.md'))).toBe('en');
+    expect(localeOf(env, nonDocFileURL('projects/design.md'))).toBe('en');
+  });
+
+  it('en la documentación la carpeta no cuenta: solo el sufijo', () => {
+    expect(localeOf(env, docFileURL('es/guide.md'))).toBe('en');
   });
 
   it('un sufijo no declarado, o la ausencia de fileURL, cae al idioma por defecto', () => {

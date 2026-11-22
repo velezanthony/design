@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Migrar desde MkDocs Material"
-  description: "Cómo convertir la documentación de un repo con MkDocs Material sin mover sus .md: el migrador, su modo --in-place, la config sugerida, las anclas y lo que no traduce."
+  title: "Migrar de MkDocs Material a Astro"
+  description: "Convierte un repo con MkDocs Material a Astro sin mover sus .md: el migrador, el modo --in-place, la config sugerida, las anclas y lo que no traduce."
 ---
 
 # Migrar desde MkDocs

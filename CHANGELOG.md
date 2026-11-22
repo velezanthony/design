@@ -188,6 +188,13 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 
 ### Arreglado
 
+- **El Markdown enriquecido funciona en cualquier colección, no solo en la documentación.** Las cajas
+  de aviso, las alertas de GitHub, las pestañas, Mermaid y el aviso de lenguajes de código se aplican a
+  todo el Markdown del proyecto, así que una colección propia que pinta `Article` (un blog, unas
+  fichas) recibe lo mismo que los docs. Antes, fuera de `content.dir` y `content.external`, un bloque
+  `:::` desaparecía sin avisar; ahora uno desconocido rompe el build, como en los docs. Sin sufijo de
+  idioma, los textos por defecto salen de la carpeta (`projects/en/x.md`). `::nav-tree` sigue siendo
+  solo de la documentación y fuera de ella rompe el build.
 - **La página de una carpeta declarada en `sidebar` sale una vez.** `sidebar: ['articulos']` con
   páginas en `articulos/…` pintaba la hoja «Artículos» y, al final, un grupo automático «Articulos» sin
   enlace. Ahora el grupo de la carpeta ocupa la posición declarada, con el título y el enlace de la

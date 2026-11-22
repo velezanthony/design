@@ -85,7 +85,7 @@ describe('mermaid', () => {
     expect(html).not.toContain('data-mermaid');
   });
 
-  it('no toca Markdown que no es documentación', async () => {
-    expect(await render(diagram, nonDocFileURL('x.md'))).not.toContain('data-mermaid');
+  it('también convierte el Markdown que no es documentación', async () => {
+    expect(await render(diagram, nonDocFileURL('x.md'))).toContain('data-mermaid');
   });
 });

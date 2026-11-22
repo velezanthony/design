@@ -1,6 +1,6 @@
 ---
 seo:
-  title: "Estructura de src: capas, reglas y mapa de archivos"
+  title: "Estructura de src: capas, reglas y mapa"
   description: "Las capas de src/ y qué puede importar cada una, las reglas numeradas, cómo las hace cumplir ESLint y el mapa de cada archivo, más el contrato público del paquete."
 ---
 

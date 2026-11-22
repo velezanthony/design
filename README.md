@@ -6,6 +6,8 @@ búsqueda, idiomas, SEO, `sitemap.xml` y aviso de cookies. Es una librería, no 
 
 Documentación completa: **<https://velezanthony.github.io/design/>**
 
+La documentación también está en inglés: **<https://velezanthony.github.io/design/en/>**
+
 ## Requisitos
 
 - Node `>=22.23.4`

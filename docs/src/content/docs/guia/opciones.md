@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Todas las opciones: site, i18n y content"
-  description: "Todas las opciones de defineDocsConfig, grupo a grupo, con su tipo, su valor por defecto y dónde se explican; las opciones de defineDocsSite y la forma explícita del loader."
+  title: "Referencia de configuración: todas las opciones"
+  description: "Todas las opciones de defineDocsConfig para site, i18n y content, con su tipo y valor por defecto, más defineDocsSite y la forma explícita del loader."
 ---
 
 # Todas las opciones

@@ -1,14 +1,15 @@
 ---
 seo:
-  title: "Referencia de páginas: frontmatter, Markdown y reglas del build"
-  description: "Las claves del frontmatter, todo lo que puedes escribir en el cuerpo (cajas de aviso, pestañas, código, Mermaid, imágenes y enlaces) y lo que rompe el build o solo avisa."
+  title: "Escribir páginas: frontmatter, Markdown y reglas"
+  description: "Claves del frontmatter y el Markdown que entiende la librería: cajas de aviso, pestañas, código, diagramas Mermaid, imágenes, enlaces y qué rompe el build."
 ---
 
 # Escribir páginas
 
 Esta página reúne lo que puedes escribir en una página: el frontmatter, el Markdown que entiende la
-librería y las reglas que comprueba el build. Todo vale igual en las páginas nativas y en los archivos
-`external`; el resto del Markdown de tu proyecto no se toca.
+librería y las reglas que comprueba el build. El Markdown vale en todo el proyecto: las páginas de la
+documentación, los `external` y cualquier otra colección que pintes con `Article`. Solo `::nav-tree`
+es exclusivo de la documentación.
 
 ## Frontmatter
 

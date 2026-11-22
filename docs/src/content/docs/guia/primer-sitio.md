@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Tu primer sitio de documentación"
-  description: "Paso a paso para documentar un proyecto: crear el subproyecto de Astro, instalar la librería, escribir los tres archivos de configuración, añadir páginas y desplegar en GitHub Pages."
+  title: "Crear un sitio de documentación con Astro"
+  description: "Paso a paso para documentar un proyecto con Astro: instalar la librería, escribir tres archivos de configuración, añadir páginas Markdown y publicar en GitHub Pages."
 ---
 
 # Tu primer sitio

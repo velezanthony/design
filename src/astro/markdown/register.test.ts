@@ -72,10 +72,22 @@ describe('markdownPlugins: integrados', () => {
     }
   });
 
-  it('el Markdown ajeno a la documentación queda intacto, con los literales restaurados', async () => {
-    const html = await full('> [!NOTE]\n> x\n\nA las 12:30', nonDocFileURL('x.md'));
-    expect(html).toContain('<blockquote>');
-    expect(html).toContain('12:30');
+  it('fuera de la documentación también convierte alertas, cajas, pestañas y Mermaid', async () => {
+    const file = nonDocFileURL('x.md');
+    expect(await full('> [!NOTE]\n> x\n\nA las 12:30', file)).toBe(
+      await full('> [!NOTE]\n> x\n\nA las 12:30', docFileURL('x.md')),
+    );
+    expect(await full(':::tip\nx\n:::', file)).toContain('class="admonition"');
+    expect(await full('::::tabs\n:::tab[a]\nx\n:::\n::::', file)).toContain('docs-tabs');
+    expect(await full('```mermaid\ngraph TD; a-->b\n```', file)).toContain('docs-mermaid');
+    expect(await full('A las 12:30', file)).toContain('12:30');
+  });
+
+  it('un contenedor desconocido fuera de la documentación rompe el build: no se pierde en silencio', async () => {
+    const error = await full(':::foo\nx\n:::', nonDocFileURL('x.md')).catch(
+      (caught: unknown) => caught as Error,
+    );
+    expect(error).toBeInstanceOf(Error);
   });
 
   it('sintaxis fuera de alcance: `{ #usage }` no crea id y los iconos salen literales', async () => {

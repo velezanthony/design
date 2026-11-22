@@ -1,6 +1,6 @@
 import { AstroError } from 'astro/errors';
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
-import { docsPlugin, type MarkdownEnv } from './env';
+import { markdownPlugin, type MarkdownEnv } from './env';
 
 function element(hName: string, className: string, children: (MdastNode | Custom)[]): Custom {
   return {
@@ -12,7 +12,7 @@ function element(hName: string, className: string, children: (MdastNode | Custom
 
 /** `::::tabs` con `:::tab[Etiqueta]`; sin JS son paneles apilados y `client/content/tabs.ts` crea la `tablist`; sin etiqueta o fuera de un grupo falla. */
 export function tabs(env: MarkdownEnv) {
-  return docsPlugin(env, ({ file }) =>
+  return markdownPlugin(env, ({ file }) =>
     defineMdastPlugin({
       name: 'tabs',
       options: { position: true },

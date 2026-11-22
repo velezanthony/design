@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Por dentro: cómo está hecha y cómo se mantiene la librería"
-  description: "Qué hay en el repositorio (la librería, el playground, este sitio y el migrador), cómo se relacionan y por qué solo src/ llega al paquete. Documentación para mantenerla o mantener un fork."
+  title: "Por dentro: cómo está hecha la librería"
+  description: "Qué hay en el repositorio (la librería, el playground, este sitio y el migrador), cómo se relacionan y por qué solo src/ llega al paquete. Para mantener un fork."
 ---
 
 # Por dentro
@@ -45,7 +45,7 @@ flowchart LR
   `scripts/playground-snapshot/refresh.sh <checkout de snake-orm> <python con griffe2md>`, que solo
   etiqueta un bloque de código sin lenguaje cuando es inequívoco (`console` o `sql`). Está fuera de
   ESLint, Prettier y del `tsconfig.json` de la raíz.
-- **`docs/`** es este sitio: un solo idioma, dos secciones y analítica solo en el despliegue. Es el
+- **`docs/`** es este sitio: en español e inglés, dos secciones y analítica solo en el despliegue. Es el
   mejor test de humo: si un cambio en `src/` rompe algo que se usa aquí, `npm run docs:build` falla. Se
   publica con `.github/workflows/docs.yml` (ver [Publicar una versión](./versiones.md#el-sitio-de-documentación)).
 

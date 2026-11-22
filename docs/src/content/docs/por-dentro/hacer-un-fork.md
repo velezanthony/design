@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Hacer un fork de la librería"
-  description: "Qué cambiar para mantener tu propia copia: los datos personales del autor, el nombre del paquete, las URLs del sitio y cómo publicar tus propias versiones."
+  title: "Hacer un fork y mantener tu propia copia"
+  description: "Qué cambiar para mantener tu propia copia de la librería: los datos personales del autor, el nombre del paquete, las URLs del sitio y cómo publicar tus versiones."
 ---
 
 # Hacer un fork

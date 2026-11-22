@@ -8,7 +8,7 @@ import {
   NAV_TREE_DESCRIPTIONS_ATTRIBUTE,
   navSectionNames,
 } from '../../core/navigation/nav-tree';
-import { docsPlugin, localeOf, type MarkdownEnv } from './env';
+import { markdownPlugin, localeOf, type MarkdownEnv } from './env';
 
 const NAME = 'nav-tree';
 const ATTRIBUTES = new Set(['section', 'descriptions']);
@@ -30,7 +30,7 @@ function slot(section: number, descriptions: boolean): Custom {
 
 /** `::nav-tree` → por cada sección de `nav`, un h2 con su etiqueta (entra en el índice y tiene ancla) y el hueco de su árbol. `{section="…"}` deja una sola; `{descriptions="false"}` quita las descripciones. Una sección, un atributo o un valor que no existen rompen el build. */
 export function navTree(env: MarkdownEnv) {
-  return docsPlugin(env, ({ file, fileURL }) => {
+  return markdownPlugin(env, ({ file, fileURL, inDocs }) => {
     const locale = localeOf(env, fileURL);
     const names = navSectionNames(env.nav, locale, env.defaultLocale);
     function fail(message: string, line: number | undefined, hint: string): never {
@@ -50,6 +50,13 @@ export function navTree(env: MarkdownEnv) {
       leafDirective(node, context) {
         if (node.name !== NAME) return;
         const line = node.position?.start.line;
+        if (!inDocs) {
+          fail(
+            '«::nav-tree» solo funciona en la documentación',
+            line,
+            'Pinta el árbol de `content.nav`: úsalo en una página de `content.dir`.',
+          );
+        }
         if (node.children.length > 0) {
           fail('«::nav-tree» no lleva texto', line, 'Quita los corchetes: `::nav-tree`.');
         }

@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Navegación e índices: cabecera, barra lateral y listados"
-  description: "Cómo organizar la cabecera y la barra lateral, generar los índices de carpeta y publicar archivos externos, carpetas estáticas y páginas de fuera del proyecto."
+  title: "Navegación, barra lateral e índices de carpeta"
+  description: "Organiza la cabecera y la barra lateral de tu documentación en Astro, genera índices de carpeta con paginación y publica archivos externos y carpetas estáticas."
 ---
 
 # Navegación e índices

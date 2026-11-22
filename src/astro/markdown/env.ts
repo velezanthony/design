@@ -41,14 +41,23 @@ export function createMarkdownEnv(
   };
 }
 
-/** Idioma de un archivo por el sufijo de su nombre (`guide.es.md`); sin sufijo o no declarado, el idioma por defecto. */
+/** Idioma de un archivo por el sufijo de su nombre (`guide.es.md`). Fuera de la documentación, sin sufijo, vale la carpeta más cercana con el nombre de un idioma (`projects/en/x.md`); si no, el idioma por defecto. */
 export function localeOf(env: MarkdownEnv, fileURL: URL | undefined): Locale {
-  const name = fileURL ? decodeURIComponent(fileURL.pathname.split('/').pop() ?? '') : '';
-  try {
-    return splitLocale(name, env.locales, env.defaultLocale).locale;
-  } catch {
-    return env.defaultLocale;
+  if (!fileURL) return env.defaultLocale;
+  const segments = decodeURIComponent(fileURL.pathname).split('/');
+  const name = segments.pop() ?? '';
+  function isLocale(part: string): part is Locale {
+    return env.locales.includes(part as Locale);
   }
+  if (name.split('.').slice(1, -1).some(isLocale)) {
+    try {
+      return splitLocale(name, env.locales, env.defaultLocale).locale;
+    } catch {
+      return env.defaultLocale;
+    }
+  }
+  if (shouldTransform(fileURL, env.scope)) return env.defaultLocale;
+  return segments.reverse().find(isLocale) ?? env.defaultLocale;
 }
 
 /** Catálogo de UI en el idioma del archivo. */
@@ -65,21 +74,29 @@ export function fileLabel(env: MarkdownEnv, fileURL: URL | undefined): string {
   return path.relative(fileURLToPath(env.root), fileURLToPath(fileURL)).split(path.sep).join('/');
 }
 
-/** Lo que recibe un plugin ya gateado: archivo, catálogo del idioma y ruta legible. */
+/** Lo que recibe un plugin: archivo, catálogo del idioma, ruta legible y si es documentación. */
 export interface DocContext {
   fileURL: URL;
   file: string;
   strings: UiStrings;
   env: MarkdownEnv;
+  /** `true` en la documentación (`content.dir` y `content.external`); `false` en el resto del Markdown del sitio. */
+  inDocs: boolean;
 }
 
-/** Plugin que solo participa en la documentación; para otro Markdown devuelve `null` y Sätteri lo deja fuera. */
-export function docsPlugin(
+/** Plugin para todo el Markdown del sitio que tenga archivo: así cualquier página que pinte `Article` recibe lo mismo que la documentación. */
+export function markdownPlugin(
   env: MarkdownEnv,
   build: (doc: DocContext) => MdastPluginDefinition,
 ): (context: PluginFactoryContext) => MdastPluginDefinition | null {
   return ({ fileURL }) => {
-    if (!fileURL || !shouldTransform(fileURL, env.scope)) return null;
-    return build({ fileURL, file: fileLabel(env, fileURL), strings: stringsOf(env, fileURL), env });
+    if (!fileURL) return null;
+    return build({
+      fileURL,
+      file: fileLabel(env, fileURL),
+      strings: stringsOf(env, fileURL),
+      env,
+      inDocs: shouldTransform(fileURL, env.scope),
+    });
   };
 }

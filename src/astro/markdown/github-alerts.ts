@@ -1,6 +1,6 @@
 import { defineMdastPlugin, type Custom, type MdastNode } from 'satteri';
 import { admonitionNode, kindTitle, type AdmonitionKind } from './admonitions';
-import { docsPlugin, type MarkdownEnv } from './env';
+import { markdownPlugin, type MarkdownEnv } from './env';
 
 /** Marcador de GitHub → [tipo visual, clave del título localizado]. `IMPORTANT` pinta como info. */
 const ALERTS = {
@@ -16,7 +16,7 @@ const MARKER = /^\[!([A-Za-z]+)\][ \t]*(?:\r?\n([\s\S]*))?$/;
 
 /** Alertas `> [!NOTE]` → la misma admonición que la directiva; un marcador desconocido o con texto detrás deja el `<blockquote>`. */
 export function githubAlerts(env: MarkdownEnv) {
-  return docsPlugin(env, ({ strings }) =>
+  return markdownPlugin(env, ({ strings }) =>
     defineMdastPlugin({
       name: 'github-alerts',
       blockquote(node, context) {

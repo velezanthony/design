@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Sistema de diseño y documentación para Astro"
-  description: "Una librería que convierte una carpeta de Markdown y un archivo de configuración en un sitio de documentación completo sobre Astro. Cómo se monta y cómo está hecha por dentro."
+  title: "Librería de documentación para Astro con Markdown"
+  description: "Convierte una carpeta de Markdown y un archivo de configuración en un sitio de documentación completo sobre Astro, con búsqueda, idiomas y SEO."
 ---
 
 # Design

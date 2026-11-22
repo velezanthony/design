@@ -1,7 +1,7 @@
 ---
 seo:
-  title: "Cómo se genera el sitio: la integración de Astro paso a paso"
-  description: "Qué hace la integración en cada hook de Astro, el módulo virtual, las rutas inyectadas y el loader de contenido, siguiendo un astro build de principio a fin."
+  title: "Cómo se genera el sitio con la integración"
+  description: "Qué hace la integración de Astro en cada hook, el módulo virtual, las rutas inyectadas y el loader de contenido, siguiendo un astro build de principio a fin."
 ---
 
 # Cómo se genera el sitio
@@ -406,9 +406,12 @@ El orden lo fija `markdownPlugins` en `register.ts`, y no es arbitrario:
 para todo lo que ningún plugin anterior reclamó. ¿Y por qué `mermaid` antes de `codeLanguages`?
 Porque `mermaid` no es un lenguaje de Shiki, y no queremos un aviso por algo que es intencionado.
 
-Todos los plugins se crean con `docsPlugin` (`env.ts`), que los **limita a la documentación**: solo
-participan en archivos de la carpeta de contenido (`content`, `src/content/docs/` por defecto) y en los `external` declarados
-(`path-filter.ts`). Cualquier otro Markdown del proyecto del consumidor queda intacto.
+Todos los plugins se crean con `markdownPlugin` (`env.ts`) y participan en **todo el Markdown del
+proyecto** que tenga archivo, no solo en la documentación: así una colección propia que pinta
+`Article` (un blog, las fichas de un portfolio) recibe lo mismo. Cada plugin sabe si el archivo es
+documentación (`inDocs`, de `path-filter.ts`); solo `::nav-tree` lo usa, porque pinta el árbol de
+`content.nav`, y fuera de la documentación rompe el build. Fuera de la documentación, sin sufijo de
+idioma, el idioma de los textos sale de la carpeta (`projects/en/x.md`).
 
 **Capturas y tablas**
 
