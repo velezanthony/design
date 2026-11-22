@@ -1,8 +1,7 @@
 ---
-import type { Locale } from '../../../core/i18n/locale';
 import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
 import { type CoverView } from '../../../core/listing/covers';
-import { formatListingDate, type IndexItem } from '../../../core/listing/view';
+import type { ListingItem } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
 import DateLabel from '../../atoms/display/DateLabel.astro';
 import PageLink from '../../molecules/navigation/PageLink.astro';
@@ -13,14 +12,12 @@ import SectionPath from '../../molecules/navigation/SectionPath.astro';
    celda vacía (sin fecha, sin resumen) no se apila, para no dejar una etiqueta sin valor (con `!`:
    la regla de `table-cards` que vuelve bloque cada celda es más específica). */
 interface Props {
-  items: IndexItem<CoverView>[];
+  /** Las entradas de esta página, ya en orden y con su fecha formateada. */
+  items: ListingItem<CoverView>[];
   strings: UiStrings;
-  lang: Locale;
-  /** Cuántas se ven sin JavaScript; las demás van `hidden` y las enseña el selector «Por página». */
-  visible?: number;
 }
 
-const { items, strings, lang, visible } = Astro.props;
+const { items, strings } = Astro.props;
 const columns = {
   title: translate(strings, 'listing.title'),
   summary: translate(strings, 'listing.summary'),
@@ -50,13 +47,8 @@ const head = `${cell} border-b border-ink font-normal`;
     </tr>
   </thead>
   <tbody>
-    {items.map((item, position) => (
-      <tr
-        data-card
-        data-index-item
-        hidden={visible !== undefined && position >= visible}
-        class="md:border-b md:border-rule md:hover:bg-raised"
-      >
+    {items.map((item) => (
+      <tr data-card class="md:border-b md:border-rule md:hover:bg-raised">
         <td data-cell={columns.title} class:list={[cell, 'md:w-[26%]']}>
           <PageLink
             href={item.href}
@@ -86,9 +78,7 @@ const head = `${cell} border-b border-ink font-normal`;
             !item.updated && 'max-md:hidden!',
           ]}
         >
-          {item.updated && (
-            <DateLabel iso={item.updated} label={formatListingDate(item.updated, lang)} />
-          )}
+          {item.updated && <DateLabel iso={item.updated.iso} label={item.updated.label} />}
         </td>
       </tr>
     ))}

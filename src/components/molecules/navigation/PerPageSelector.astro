@@ -1,0 +1,51 @@
+---
+import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
+import type { SizeChoice } from '../../../core/listing/view';
+import Select from '../../atoms/form/Select.astro';
+
+/* El selector «Por página» de un listado: navegación entre rutas estáticas, no un formulario (un GET
+   añadiría una query que el HTML estático ignora). Cada opción lleva como valor la URL de la página 1
+   de su tamaño y `client/content/auto-navigate.ts` va a ella al cambiar. Sin JavaScript el campo se
+   oculta y `<noscript>` pinta los tamaños como enlaces. Sin tamaños (una sola opción útil) no pinta
+   nada. */
+interface Props {
+  sizes?: SizeChoice[];
+  strings: UiStrings;
+}
+
+const { sizes = [], strings } = Astro.props;
+const label = translate(strings, 'listing.perPage');
+const current = sizes.find((size) => size.current);
+---
+
+{sizes.length > 0 && (
+  <div class="flex flex-wrap items-center gap-2">
+    <Select
+      id="listing-per-page"
+      name="per-page"
+      label={label}
+      options={sizes.map((size) => ({ value: size.href, label: String(size.size) }))}
+      value={current?.href}
+      inline
+      class="[@media(scripting:none)]:hidden"
+      data-auto-navigate
+    />
+    <noscript>
+      <p class="flex flex-wrap items-center gap-x-2 text-sm">
+        <span class="label text-muted">{label}</span>
+        {sizes.map((size) => (
+          <a
+            href={size.href}
+            aria-current={size.current ? 'page' : undefined}
+            class:list={[
+              'min-h-6 inline-flex items-center px-1',
+              size.current ? 'font-semibold text-ink' : 'text-accent underline',
+            ]}
+          >
+            {size.size}
+          </a>
+        ))}
+      </p>
+    </noscript>
+  </div>
+)}

@@ -20,8 +20,13 @@ import { urlSlugOf } from '../../core/content/slug';
 import { translate } from '../../core/i18n/ui-strings';
 import type { ListingOptions } from '../../core/listing/options';
 import { isPagedListing } from '../../core/listing/options';
-import { listingPageSlug, listingPageUrl } from '../../core/listing/urls';
-import { listingOptionsOf, listingPageCount } from './doc-listing';
+import {
+  listingPageSlug,
+  listingPageUrl,
+  listingPositions,
+  type ListingPosition,
+} from '../../core/listing/urls';
+import { listingEntryCount, listingOptionsOf } from './doc-listing';
 
 /** Una ruta que sirve `doc.astro`: una página real o una ruta de reserva (`fallback`). */
 export interface DocRoute {
@@ -40,10 +45,8 @@ export interface DocRoute {
   canonical?: string;
   /** Opciones del listado de su página, ya resueltas; solo en las rutas de una página con listado. */
   listing?: ListingOptions;
-  /** Solo en las páginas 2 y siguientes de un índice paginado: cuál es. */
-  page?: number;
-  /** En un índice paginado (más de una página): cuántas tiene. */
-  pages?: number;
+  /** Solo en un listado paginado: el tamaño y la página que sirve esta ruta, y cuántas tiene ese tamaño. */
+  listingPosition?: ListingPosition & { pages: number };
 }
 
 function paramOf(slug: string, locale: Locale, defaultLocale: Locale) {
@@ -109,51 +112,53 @@ function assertFreeFallbacks(real: DocRoute[], fallback: DocRoute[], site: SiteC
   }
 }
 
-/** Las rutas con un índice paginado saben cuántas páginas tiene y suman las suyas (`<carpeta>/page/2/`…); una página real en esa URL rompe el build (segunda red: el loader ya rechaza los nombres reservados). */
+/** Una ruta por posición de cada listado paginado: cada tamaño de `perPageOptions` × cada una de sus páginas (`<carpeta>/page/2/`, `<carpeta>/per-page/24/`…). Una página real en una de esas URLs rompe el build (segunda red: el loader ya rechaza los nombres reservados). */
 function withListingPages(routes: DocRoute[], site: SiteContext): DocRoute[] {
   const taken = new Set(routes.map((route) => route.param));
   return routes.flatMap((route) => {
     const listing = route.listing && isPagedListing(route.listing) ? route.listing : undefined;
-    const pages = listing ? listingPageCount(site, route, listing) : 1;
-    if (!listing || pages === 1) return [route];
-    const extra = Array.from({ length: pages - 1 }, (_item, index): DocRoute => {
-      const page = index + 2;
+    if (!listing) return [route];
+    const positions = listingPositions(listingEntryCount(site, route, listing), listing);
+    return positions.map((position): DocRoute => {
+      const pages = positions.filter((other) => other.perPage === position.perPage).length;
+      const listingPosition = { ...position, pages };
+      const first = position.perPage === listing.pageSize && position.page === 1;
+      if (first) return { ...route, listingPosition };
       const param = paramOf(
-        listingPageSlug(route.urlSlug, { perPage: listing.pageSize, page }, listing.pageSize),
+        listingPageSlug(route.urlSlug, position, listing.pageSize),
         route.locale,
         site.config.defaultLocale,
       );
       if (taken.has(param)) {
         throw new DocsError(
-          `La página ${page} del índice de «${route.slug || '(portada)'}» (/${param}/) coincide con una página real.`,
+          `La URL /${param}/ del listado de «${route.slug || '(portada)'}» coincide con una página real.`,
           {
-            hint: 'Renombra esa página: las URLs `<carpeta>/page/<número>/` son de la paginación del índice.',
+            hint: 'Renombra esa página o cambia su `slug`: `page` y `per-page` son de la paginación del listado.',
           },
         );
       }
       return {
         ...route,
         param,
-        page,
-        pages,
+        listingPosition,
         ...(route.kind === 'fallback' && {
-          canonical: positionUrl(route, route.contentLocale, page, site.url),
+          canonical: positionUrl(route, route.contentLocale, position, site.url),
         }),
       };
     });
-    return [{ ...route, pages }, ...extra];
   });
 }
 
-/** URL de la página `page` del listado de la ruta en su tamaño por defecto (la 1 es la de la carpeta). */
+/** URL de una posición del listado de la ruta (sin listado paginado, la de la ruta). */
 function positionUrl(
   route: DocRoute,
   locale: Locale,
-  page: number,
+  position: ListingPosition | undefined,
   url: Parameters<typeof pageUrl>[2],
 ): string {
-  const perPage = route.listing && isPagedListing(route.listing) ? route.listing.pageSize : 1;
-  return listingPageUrl(route.urlSlug, locale, { perPage, page }, perPage, url);
+  const listing = route.listing && isPagedListing(route.listing) ? route.listing : undefined;
+  if (!listing || !position) return pageUrl(route.urlSlug, locale, url);
+  return listingPageUrl(route.urlSlug, locale, position, listing.pageSize, url);
 }
 
 /** Todo lo que `DocsLayout` necesita, ya calculado por el núcleo: el contenedor solo lo pasa. */
@@ -201,26 +206,33 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
 
   const isFallback = route.kind === 'fallback';
   const strings = config.strings[route.locale] as UiStrings;
-  const page = route.page ?? 1;
+  const position = route.listingPosition;
+  const page = position?.page ?? 1;
+  /* Fuera de la página 1 del tamaño por defecto: `noindex`, canónica de sí misma. */
+  const secondary =
+    position !== undefined &&
+    route.listing !== undefined &&
+    isPagedListing(route.listing) &&
+    (page > 1 || position.perPage !== route.listing.pageSize);
   const resolved = withImageSize(
     resolveMeta(config.seo, original.seo, { title: original.title }, route.locale),
     sizes,
   );
-  /* Desde la página 2 de un índice: su propio título, fuera del índice y canónica de sí misma. */
-  const meta =
+  /* Desde la página 2 de un listado, su propio título; fuera de la página 1 del tamaño por defecto, fuera del índice. */
+  const titled =
     page > 1
       ? {
           ...resolved,
-          title: `${resolved.title} · ${translate(strings, 'listing.pageOf', { page: String(page), pages: String(route.pages ?? page) })}`,
-          noindex: true,
+          title: `${resolved.title} · ${translate(strings, 'listing.pageOf', { page: String(page), pages: String(position?.pages ?? page) })}`,
         }
       : resolved;
+  const meta = secondary ? { ...titled, noindex: true } : titled;
   const pageUrlOfRoute = pageUrl(route.urlSlug, route.locale, url);
   const pageData: PageData = {
     kind: route.kind,
     slug: route.slug,
     locale: route.locale,
-    url: positionUrl(route, route.locale, page, url),
+    url: positionUrl(route, route.locale, position, url),
     ...(route.canonical !== undefined && { canonical: route.canonical }),
   };
   const head = [
@@ -232,7 +244,7 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
       config,
       url,
     ),
-    ...paginationLinks(route, page, url, new URL(config.site)),
+    ...paginationLinks(route, url, new URL(config.site)),
   ];
 
   const navContext = navContextOf(site, route);
@@ -268,21 +280,22 @@ export function docView({ route, site, data, sizes = new Map() }: DocViewInput):
   };
 }
 
-/** `<link rel="prev|next">` entre las páginas de un índice paginado. */
+/** `<link rel="prev|next">` entre las páginas de un listado paginado, sin salir de su tamaño. */
 function paginationLinks(
   route: DocRoute,
-  page: number,
   url: Parameters<typeof pageUrl>[2],
   site: URL,
 ): HeadConfig[] {
-  const pages = route.pages ?? 1;
+  const position = route.listingPosition;
+  if (!position) return [];
   const links: HeadConfig[] = [];
   for (const [rel, target] of [
-    ['prev', page - 1],
-    ['next', page + 1],
+    ['prev', position.page - 1],
+    ['next', position.page + 1],
   ] as const) {
-    if (target < 1 || target > pages) continue;
-    const href = new URL(positionUrl(route, route.locale, target, url), site).href;
+    if (target < 1 || target > position.pages) continue;
+    const at = { perPage: position.perPage, page: target };
+    const href = new URL(positionUrl(route, route.locale, at, url), site).href;
     links.push({ tag: 'link', attrs: { rel, href } });
   }
   return links;

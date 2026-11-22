@@ -205,29 +205,20 @@ del `_index.md`, con la precedencia de siempre) y deben ser enteros positivos; s
 entre ellas, se añade (y se ordenan). No sale en la lista, con una sola opción ni si todo cabe en la
 más pequeña.
 
-- **Mejora progresiva.** Sin JavaScript el selector no se ve y el índice es el de siempre: rutas
-  estáticas (`/tutoriales/`, `/tutoriales/page/2/`…) del `pageSize` configurado, la 1 indexable y canónica.
-  Lo enseña el script del artículo (`client/content/index-pager.ts`).
-- **Sin marcado duplicado ni red.** La página 1 trae todas las entradas de su carpeta (las de más,
-  `hidden`) y un paginador por cada tamaño y página, pintados por los mismos componentes del
-  servidor; el script solo decide qué se ve. Con 200 entradas la página 1 pesa más (cada tarjeta
-  son unos cientos de bytes comprimidos), pero no hay un JSON aparte que mantener ni plantillas que
-  imiten a los componentes. El listado queda fuera de la búsqueda (`data-pagefind-ignore`): cada
-  entrada ya está indexada en su página.
-- **La URL manda:** `?por=18&pagina=2` (los mismos nombres en todos los idiomas), así que se puede
-  compartir y sobrevive a recargar; atrás y adelante vuelven a cada estado. Cambiar el tamaño vuelve
-  a la página 1. Con el tamaño de la config, el paginador enlaza las rutas estáticas: es lo que ven
-  los buscadores y quien no tiene JavaScript. Los enlaces con query cambian de página sin recargar.
-- **Se recuerda por índice** en `localStorage` (`docs:index-per-page:<URL de la carpeta>`): al volver
-  a la página 1 sin query se aplica lo elegido. Si el navegador bloquea el almacenamiento, funciona
-  igual, sin recordar.
-- **Desde la página 2** (que solo trae sus entradas), cambiar el tamaño lleva a la página de la
-  carpeta con `?por=…`.
-- **Accesibilidad.** El rango es una región `aria-live="polite"`: se ve siempre (también sin
-  JavaScript, con el de la página estática) y anuncia «Mostrando 1–18 de 18» tras cada cambio de
-  quien lee; el ajuste al cargar (por la URL o lo recordado) se hace sin anunciar. Al cambiar de
-  página el foco va al principio del listado. Todo es nativo:
-  `<select>` y enlaces, con teclado.
+- **Cada tamaño es una ruta estática.** El tamaño por defecto vive en la carpeta y en `page/<n>/`;
+  cada otro tamaño, en `per-page/<n>/` y sus páginas debajo: `/tutoriales/per-page/24/`,
+  `/tutoriales/per-page/24/page/2/`. Los segmentos son iguales en todos los idiomas y van detrás de
+  la URL del listado en su idioma (`/en/tutorials/per-page/24/`). Elegir un tamaño **recarga** la
+  página: no hay estado en el cliente ni nada que recordar.
+- **SEO.** Solo la página 1 del tamaño por defecto es indexable. Las demás páginas y todos los otros
+  tamaños son `noindex`, canónicas de sí mismas y llevan `rel="prev"`/`rel="next"` dentro de su
+  tamaño; no entran en el sitemap ni en la búsqueda. El listado entero queda fuera de Pagefind
+  (`data-pagefind-ignore`): cada entrada ya está indexada en su página.
+- **Con JavaScript**, el `<select>` (`data-auto-navigate`) lleva a la página 1 del tamaño elegido
+  (`client/content/auto-navigate.ts`). **Sin JavaScript**, el campo se oculta y en su lugar salen los
+  tamaños como enlaces (`2 · 12 · 24`), con el actual marcado.
+- **Accesibilidad.** Todo es nativo: `<select>` con su etiqueta y enlaces, con teclado. El rango
+  («Mostrando 13–18 de 18») es el de la página que se ve.
 
 #### Portadas (tarjetas)
 

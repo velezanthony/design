@@ -6,8 +6,6 @@ export const THEME_KEY = 'theme';
 export const LAYOUT_KEY = 'docs:layout';
 /** La respuesta del visitante al banner de cookies, en `localStorage`. */
 export const CONSENT_KEY = 'consent';
-/** Prefijo del tamaño elegido en el selector «Por página» de un índice: `docs:index-per-page:<URL de la carpeta>`. */
-export const INDEX_PER_PAGE_KEY = 'docs:index-per-page';
 /** Desplazamiento de la barra lateral, en `sessionStorage`: solo vale para esta pestaña. */
 export const SIDEBAR_SCROLL_KEY = 'docs:sidebar-scroll';
 

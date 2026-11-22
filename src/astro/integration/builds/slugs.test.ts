@@ -150,8 +150,10 @@ describe('`_index.en.md` con `slug`', () => {
   });
 
   it('sus entradas enlazan las URLs en inglés y la reserva de la que falta', async () => {
+    // Cada página trae solo las suyas: el tamaño de 12 las enseña todas en una.
+    const all = await page('en/tutorials/per-page/12/index.html');
+    const links = hrefs(all.querySelectorAll('[data-listing-card] h2 a'));
     const document = await page('en/tutorials/index.html');
-    const links = hrefs(document.querySelectorAll('[data-index-card] h2 a'));
     expect(links).toEqual(
       expect.arrayContaining([
         '/sl/en/tutorials/installation/',

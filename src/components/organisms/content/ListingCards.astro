@@ -1,33 +1,25 @@
 ---
-import type { Locale } from '../../../core/i18n/locale';
 import type { UiStrings } from '../../../core/i18n/ui-strings';
 import type { CoverView } from '../../../core/listing/covers';
-import { formatListingDate, type IndexItem } from '../../../core/listing/view';
+import type { ListingItem } from '../../../core/listing/view';
 import ListingCard from '../../molecules/content/ListingCard.astro';
 
 /* Índice en tarjetas (`layout: 'cards'`): la rejilla que repite `ListingCard`. Las columnas dependen
    del ancho del contenedor (1 en móvil, 2 y luego 3), no de la ventana: la columna de docs cambia con
    la barra lateral. */
 interface Props {
-  items: IndexItem<CoverView>[];
+  /** Las entradas de esta página, ya en orden y con su fecha formateada. */
+  items: ListingItem<CoverView>[];
   strings: UiStrings;
-  lang: Locale;
-  /** Cuántas se ven sin JavaScript; las demás van `hidden` y las enseña el selector «Por página». */
-  visible?: number;
 }
 
-const { items, strings, lang, visible } = Astro.props;
+const { items, strings } = Astro.props;
 ---
 
 <div class="@container">
   <ul class="grid gap-6 @lg:grid-cols-2 @3xl:grid-cols-3">
-    {items.map((item, position) => (
-      <ListingCard
-        item={item}
-        strings={strings}
-        dateLabel={item.updated && formatListingDate(item.updated, lang)}
-        hidden={visible !== undefined && position >= visible}
-      />
+    {items.map((item) => (
+      <ListingCard item={item} strings={strings} />
     ))}
   </ul>
 </div>

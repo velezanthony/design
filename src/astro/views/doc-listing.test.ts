@@ -5,7 +5,7 @@ import type { DocsUserConfig } from '../../core/config/schema';
 import { createVirtualData } from '../virtual/data';
 import { docRoutes, docView, type DocRoute } from './doc';
 import { siteContext } from './chrome';
-import { docListingView, sizeHrefs } from './doc-listing';
+import { docListingView } from './doc-listing';
 import type { DocData } from '../loader/schema';
 
 function site(user: Partial<DocsUserConfig> = {}) {
@@ -54,43 +54,60 @@ function routeOf(routes: DocRoute[], param: string | undefined) {
 }
 
 describe('docRoutes: índices paginados', () => {
-  it('la página 1 en la URL de la carpeta y las demás en /2/, /3/…, también en la reserva', () => {
+  it('una ruta por posición: las páginas del tamaño por defecto bajo `page/` y cada otro tamaño bajo `per-page/`', () => {
     const params = docRoutes(siteContext(site(), data)).map((route) => route.param);
     expect(params).toEqual(
       expect.arrayContaining([
         'tutoriales',
         'tutoriales/page/2',
         'tutoriales/page/3',
+        'tutoriales/per-page/12',
+        'tutoriales/per-page/24',
+        'tutoriales/per-page/48',
         'en/tutoriales',
         'en/tutoriales/page/2',
-        'en/tutoriales/page/3',
+        'en/tutoriales/per-page/12',
       ]),
     );
     expect(params).not.toContain('tutoriales/page/4');
+    expect(params).not.toContain('tutoriales/per-page/12/page/2');
   });
 
-  it('cada ruta sabe su página y el total', () => {
+  it('cada ruta sabe su posición: tamaño, página y total de páginas de ese tamaño', () => {
     const routes = docRoutes(siteContext(site(), data));
-    expect(routeOf(routes, 'tutoriales')).toMatchObject({ slug: 'tutoriales', pages: 3 });
-    expect(routeOf(routes, 'tutoriales').page).toBeUndefined();
+    expect(routeOf(routes, 'tutoriales').listingPosition).toEqual({
+      perPage: 2,
+      page: 1,
+      pages: 3,
+    });
     expect(routeOf(routes, 'tutoriales/page/2')).toMatchObject({
       slug: 'tutoriales',
       kind: 'page',
-      page: 2,
-      pages: 3,
+      listingPosition: { perPage: 2, page: 2, pages: 3 },
     });
-    expect(routeOf(routes, 'en/tutoriales/page/3')).toMatchObject({ kind: 'fallback', page: 3 });
+    expect(routeOf(routes, 'tutoriales/per-page/12').listingPosition).toEqual({
+      perPage: 12,
+      page: 1,
+      pages: 1,
+    });
+    expect(routeOf(routes, 'en/tutoriales/page/3')).toMatchObject({
+      kind: 'fallback',
+      listingPosition: { page: 3 },
+    });
   });
 
   it('la lista no se pagina', () => {
     const list = data.map((item) =>
       item === listing ? { ...item, listing: { layout: 'list' as const, pageSize: 2 } } : item,
     );
-    const params = docRoutes(siteContext(site(), list)).map((route) => route.param);
+    const routes = docRoutes(siteContext(site(), list));
+    const params = routes.map((route) => route.param);
     expect(params).not.toContain('tutoriales/page/2');
+    expect(params.some((param) => param?.includes('per-page'))).toBe(false);
+    expect(routeOf(routes, 'tutoriales')).not.toHaveProperty('listingPosition');
   });
 
-  it('una página real que ocupa la URL de una página del listado rompe el build', () => {
+  it('una página real que ocupa la URL de una página del listado rompe el build (segunda red)', () => {
     expect(() => docRoutes(siteContext(site(), [...data, doc('tutoriales/page/2')]))).toThrow(
       /tutoriales\/page\/2/,
     );
@@ -100,12 +117,16 @@ describe('docRoutes: índices paginados', () => {
 describe('docView: páginas de un índice paginado', () => {
   const routes = docRoutes(siteContext(site(), data));
 
-  it('la página 1: indexable, canonical a sí misma y `rel=next`', () => {
-    const view = docView({
-      route: routeOf(routes, 'tutoriales'),
-      site: siteContext(site(), data),
-      data,
-    });
+  function viewOf(param: string) {
+    return docView({ route: routeOf(routes, param), site: siteContext(site(), data), data });
+  }
+
+  function attrsOf(param: string) {
+    return viewOf(param).head.map((tag) => tag.attrs);
+  }
+
+  it('la página 1 del tamaño por defecto: indexable, canonical a sí misma y `rel=next`', () => {
+    const view = viewOf('tutoriales');
     expect(view.indexable).toBe(true);
     const links = view.head.filter((tag) => tag.tag === 'link');
     expect(links).toContainEqual({
@@ -116,13 +137,9 @@ describe('docView: páginas de un índice paginado', () => {
   });
 
   it('la página 2: noindex, canonical a sí misma, título con la página y prev/next', () => {
-    const view = docView({
-      route: routeOf(routes, 'tutoriales/page/2'),
-      site: siteContext(site(), data),
-      data,
-    });
+    const view = viewOf('tutoriales/page/2');
     expect(view.indexable).toBe(false);
-    const attrs = view.head.map((tag) => tag.attrs);
+    const attrs = attrsOf('tutoriales/page/2');
     expect(attrs).toContainEqual({ name: 'robots', content: 'noindex' });
     expect(attrs).toContainEqual({
       rel: 'canonical',
@@ -135,13 +152,41 @@ describe('docView: páginas de un índice paginado', () => {
     expect(title).toBe('Tutoriales · Página 2 de 3 | Blog');
   });
 
-  it('la página 2 marca en la barra lateral la entrada del índice', () => {
-    const view = docView({
-      route: routeOf(routes, 'tutoriales/page/2'),
-      site: siteContext(site(), data),
-      data,
+  it('otro tamaño: noindex, canonical a sí mismo y sin `rel=prev/next` fuera de su tamaño', () => {
+    const view = viewOf('tutoriales/per-page/12');
+    expect(view.indexable).toBe(false);
+    const attrs = attrsOf('tutoriales/per-page/12');
+    expect(attrs).toContainEqual({ name: 'robots', content: 'noindex' });
+    expect(attrs).toContainEqual({
+      rel: 'canonical',
+      href: 'https://x.dev/repo/tutoriales/per-page/12/',
     });
-    expect(view.current).toBe('/repo/tutoriales/');
+    expect(attrs.some((tag) => tag.rel === 'prev' || tag.rel === 'next')).toBe(false);
+  });
+
+  it('las páginas de otro tamaño enlazan prev/next dentro de su tamaño', () => {
+    const one = [doc('')];
+    const many = [
+      ...one,
+      { ...listing, listing: { layout: 'cards' as const, pageSize: 2, perPageOptions: [2, 3] } },
+      ...tutorials,
+    ];
+    const pagedRoutes = docRoutes(siteContext(site(), many));
+    const view = docView({
+      route: routeOf(pagedRoutes, 'tutoriales/per-page/3/page/2'),
+      site: siteContext(site(), many),
+      data: many,
+    });
+    const attrs = view.head.map((tag) => tag.attrs);
+    expect(attrs).toContainEqual({
+      rel: 'prev',
+      href: 'https://x.dev/repo/tutoriales/per-page/3/',
+    });
+    expect(attrs.some((tag) => tag.rel === 'next')).toBe(false);
+  });
+
+  it('la página 2 marca en la barra lateral la entrada del índice', () => {
+    expect(viewOf('tutoriales/page/2').current).toBe('/repo/tutoriales/');
   });
 });
 
@@ -154,81 +199,83 @@ describe('docListingView', () => {
     ['docs/tutoriales/d.md', '2025-01-01T00:00:00+00:00'],
   ]);
 
-  function view(
-    param: string | undefined,
-    extra: Partial<Parameters<typeof docListingView>[0]> = {},
-  ) {
+  function view(param: string | undefined) {
     return docListingView({
       route: routeOf(routes, param),
       site: siteContext(site(), data),
       data,
       dates,
-      ...extra,
     });
+  }
+
+  function paged(param: string) {
+    const result = view(param);
+    if (!result || result.layout === 'list') throw new Error(`${param} no es un listado paginado`);
+    return result;
   }
 
   it('una página sin listado no lleva índice', () => {
     expect(view(undefined)).toBeUndefined();
   });
 
-  it('tarjetas: lo sin publicar primero, luego lo más reciente; la página 1 lleva todas las entradas', () => {
-    const first = view('tutoriales')!;
-    expect(first).toMatchObject({ layout: 'cards', page: 1, pages: 3, total: 5, perPage: 2 });
-    // La página 1 trae todas: sin JavaScript se ven las `perPage` primeras y el selector cambia cuántas.
-    expect(first.all).toBe(true);
-    expect(first.items.map((item) => item.slug)).toEqual([
-      'tutoriales/e',
-      'tutoriales/b',
-      'tutoriales/c',
-      'tutoriales/a',
-      'tutoriales/d',
+  it('tarjetas: lo sin publicar primero, luego lo más reciente; cada página solo trae las suyas', () => {
+    const first = paged('tutoriales');
+    expect(first).toMatchObject({ layout: 'cards', total: 5, range: { from: 1, to: 2 } });
+    expect(first.items.map((item) => item.slug)).toEqual(['tutoriales/e', 'tutoriales/b']);
+    expect(paged('tutoriales/page/3').items.map((item) => item.slug)).toEqual(['tutoriales/d']);
+    expect(paged('tutoriales/per-page/12').items).toHaveLength(5);
+  });
+
+  it('el selector: un tamaño por opción con la URL de su página 1 y el actual marcado', () => {
+    expect(paged('tutoriales').sizes).toEqual([
+      { size: 2, href: '/repo/tutoriales/', current: true },
+      { size: 12, href: '/repo/tutoriales/per-page/12/', current: false },
+      { size: 24, href: '/repo/tutoriales/per-page/24/', current: false },
+      { size: 48, href: '/repo/tutoriales/per-page/48/', current: false },
     ]);
-    const third = view('tutoriales/page/3')!;
-    expect(third.all).toBe(false);
-    expect(third.items.map((item) => item.slug)).toEqual(['tutoriales/d']);
+    expect(paged('tutoriales/per-page/24').sizes?.find((size) => size.current)?.size).toBe(24);
+    expect(paged('en/tutoriales').sizes?.[1]?.href).toBe('/repo/en/tutoriales/per-page/12/');
   });
 
-  it('las opciones «Por página» llevan el tamaño de las rutas estáticas', () => {
-    expect(view('tutoriales')!.perPageOptions).toEqual([2, 12, 24, 48]);
-  });
-
-  it('la página 1 sabe las URLs de cada tamaño: el de la config, las estáticas; los demás, con la query', () => {
-    expect(view('tutoriales')!.sizes).toEqual([
-      {
-        perPage: 2,
-        pages: 3,
-        hrefs: ['/repo/tutoriales/', '/repo/tutoriales/page/2/', '/repo/tutoriales/page/3/'],
-      },
-      { perPage: 12, pages: 1, hrefs: ['/repo/tutoriales/?por=12'] },
-      { perPage: 24, pages: 1, hrefs: ['/repo/tutoriales/?por=24'] },
-      { perPage: 48, pages: 1, hrefs: ['/repo/tutoriales/?por=48'] },
-    ]);
-    expect(view('en/tutoriales')!.sizes[1]!.hrefs).toEqual(['/repo/en/tutoriales/?por=12']);
-    expect(view('tutoriales/page/2')!.sizes).toEqual([]);
-  });
-
-  it('cada entrada con su resumen, su fecha (sin fecha si no tiene commit) y su portada', () => {
-    const [unpublished, latest] = view('tutoriales')!.items;
+  it('cada entrada con su resumen, su fecha formateada (sin fecha si no tiene commit) y su portada', () => {
+    const [unpublished, latest] = paged('tutoriales').items;
     expect(unpublished).toMatchObject({ summary: 'Sobre e.', cover: { kind: 'placeholder' } });
     expect(unpublished!.updated).toBeUndefined();
-    expect(latest!.updated).toBe('2026-03-01T00:00:00+00:00');
+    expect(latest!.updated).toEqual({ iso: '2026-03-01T00:00:00+00:00', label: '1 mar 2026' });
   });
 
-  it('las URLs de todas las páginas del listado, la 1 en la carpeta', () => {
-    expect(view('tutoriales/page/2')!.hrefs).toEqual([
-      '/repo/tutoriales/',
-      '/repo/tutoriales/page/2/',
-      '/repo/tutoriales/page/3/',
-    ]);
-    expect(view('en/tutoriales/page/2')!.hrefs[1]).toBe('/repo/en/tutoriales/page/2/');
+  it('el paginador enlaza las páginas de su tamaño, la 1 en la carpeta', () => {
+    expect(paged('tutoriales/page/2').pager).toEqual({
+      page: 2,
+      pages: 3,
+      hrefs: ['/repo/tutoriales/', '/repo/tutoriales/page/2/', '/repo/tutoriales/page/3/'],
+    });
+    expect(paged('en/tutoriales/page/2').pager?.hrefs[1]).toBe('/repo/en/tutoriales/page/2/');
+    expect(paged('tutoriales/per-page/12').pager).toBeUndefined();
   });
 
   it('desde la página 2 lleva el título de la página (el cuerpo del _index.md no se repite)', () => {
-    expect(view('tutoriales')!.heading).toBeUndefined();
-    expect(view('tutoriales/page/2')!.heading).toEqual({
+    expect(paged('tutoriales').pageHeading).toBeUndefined();
+    expect(paged('tutoriales/page/2').pageHeading).toEqual({
       title: 'Tutoriales',
       page: 'Página 2 de 3',
     });
+  });
+
+  it('contrato con las rutas: todo `href` del paginador y del selector es la URL de una ruta', () => {
+    const site_ = siteContext(site(), data);
+    const urls = new Set(
+      routes.map((route) => `/repo/${route.param === undefined ? '' : `${route.param}/`}`),
+    );
+    for (const route of routes.filter((candidate) => candidate.listing)) {
+      const result = docListingView({ route, site: site_, data, dates });
+      if (!result || result.layout === 'list') continue;
+      const linked = [
+        ...(result.pager?.hrefs ?? []),
+        ...(result.sizes ?? []).map((size) => size.href),
+      ];
+      for (const href of linked) expect(urls, `${route.param} → ${href}`).toContain(href);
+    }
   });
 
   it('la portada: `false` de la página, imagen con alt y política `covers: false` del listado', () => {
@@ -237,15 +284,17 @@ describe('docListingView', () => {
       if (item.slug === 'tutoriales/b')
         return { ...item, index: { cover: { src: '/b.png' }, imageAlt: 'B' } };
       if (item === listing)
-        return { ...item, listing: { layout: 'cards' as const, covers: false } };
+        return { ...item, listing: { layout: 'cards' as const, covers: false, pageSize: 12 } };
       return item;
     });
-    const items = docListingView({
+    const result = docListingView({
       route: routeOf(docRoutes(siteContext(site(), covered)), 'tutoriales'),
       site: siteContext(site(), covered),
       data: covered,
       dates,
-    })!.items;
+    })!;
+    if (result.layout === 'list') throw new Error('esperaba tarjetas');
+    const { items } = result;
     expect(items.find((item) => item.slug === 'tutoriales/e')!.cover).toEqual({ kind: 'none' });
     expect(items.find((item) => item.slug === 'tutoriales/b')!.cover).toEqual({
       kind: 'image',
@@ -269,10 +318,9 @@ describe('docListingView', () => {
       dates,
       headings: [{ depth: 2, slug: 'esenciales', text: 'Otra' }],
     })!;
-    expect(result.layout).toBe('list');
+    if (result.layout !== 'list') throw new Error('esperaba una lista');
     expect(result.sections.map((section) => section.label)).toEqual(['Esenciales', undefined]);
     expect(result.headings).toEqual([{ depth: 2, slug: 'esenciales-1', text: 'Esenciales' }]);
-    expect(result.pages).toBe(1);
   });
 
   it('un índice generado por `indexes` usa las opciones de la config', () => {
@@ -290,7 +338,8 @@ describe('docListingView', () => {
       data: items,
       dates,
     })!;
-    expect(result).toMatchObject({ layout: 'table', pages: 1, total: 5 });
+    expect(result).toMatchObject({ layout: 'table', total: 5 });
+    expect(result).not.toHaveProperty('pager');
   });
 });
 
@@ -315,19 +364,10 @@ describe('docListingView: tres idiomas', () => {
         ['docs/tutoriales/x.en.md', '2026-02-02T00:00:00+00:00'],
       ]),
     })!;
+    if (result.layout === 'list') throw new Error('esperaba tarjetas');
     const entry = result.items.find((item) => item.slug === 'tutoriales/x')!;
     expect(entry.cover).toMatchObject({ kind: 'image', source: { src: '/en.png' } });
-    expect(entry.updated).toBe('2026-02-02T00:00:00+00:00');
-  });
-});
-
-describe('sizeHrefs', () => {
-  it('con otro tamaño, la página 1 lleva solo `por` y las demás también `pagina`', () => {
-    expect(sizeHrefs('/repo/tutoriales/', 9, 3)).toEqual([
-      '/repo/tutoriales/?por=9',
-      '/repo/tutoriales/?por=9&pagina=2',
-      '/repo/tutoriales/?por=9&pagina=3',
-    ]);
+    expect(entry.updated?.iso).toBe('2026-02-02T00:00:00+00:00');
   });
 });
 
@@ -346,23 +386,24 @@ describe('docListingView: `_index.en.md` con `slug` propio', () => {
   ];
   const routes = docRoutes(siteContext(site(), translated));
 
-  it('sus páginas cuelgan de su URL y cada entrada enlaza su URL en inglés (o la reserva)', () => {
-    const view = docListingView({
-      route: routeOf(routes, 'en/tutorials/page/2'),
+  function paged(param: string) {
+    const result = docListingView({
+      route: routeOf(routes, param),
       site: siteContext(site(), translated),
       data: translated,
     });
-    expect(view!.hrefs).toEqual([
+    if (!result || result.layout === 'list') throw new Error(`${param} no es un listado paginado`);
+    return result;
+  }
+
+  it('sus páginas cuelgan de su URL y cada entrada enlaza su URL en inglés (o la reserva)', () => {
+    expect(paged('en/tutorials/page/2').pager?.hrefs).toEqual([
       '/repo/en/tutorials/',
       '/repo/en/tutorials/page/2/',
       '/repo/en/tutorials/page/3/',
     ]);
-    const first = docListingView({
-      route: routeOf(routes, 'en/tutorials'),
-      site: siteContext(site(), translated),
-      data: translated,
-    });
-    const hrefs = first!.items.map((item) => item.href);
+    expect(paged('en/tutorials').sizes?.[1]?.href).toBe('/repo/en/tutorials/per-page/12/');
+    const hrefs = paged('en/tutorials/per-page/12').items.map((item) => item.href);
     expect(hrefs).toContain('/repo/en/tutorials/a-in-english/');
     expect(hrefs).toContain('/repo/en/tutoriales/b/');
   });

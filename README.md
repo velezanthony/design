@@ -425,10 +425,10 @@ con `imageAlt`.
 
 La tabla y las tarjetas van de la más reciente a la más antigua (fecha del último commit; lo que no
 tiene commit va primero y sin fecha) y se paginan en `/carpeta/page/2/`, `/carpeta/page/3/`… (`page` y `per-page` quedan reservados dentro de la carpeta), que son
-`noindex`, canónicas de sí mismas y fuera del sitemap. Con JavaScript, un selector «Por página»
-(`perPageOptions`; el `pageSize` se añade si falta) cambia el tamaño sin salir de la página 1, que
-trae todas las entradas: el estado va en la URL (`?por=18&pagina=2`) y se recuerda por índice en
-`localStorage`; sin JavaScript queda oculto. Sin `_index.md` ni `indexes`, nada cambia.
+`noindex`, canónicas de sí mismas y fuera del sitemap. El selector «Por página» (`perPageOptions`; el
+`pageSize` se añade si falta) navega entre rutas estáticas: cada otro tamaño vive en
+`/carpeta/per-page/<n>/` (y sus páginas debajo), también `noindex`; sin JavaScript sus tamaños salen
+como enlaces. Sin `_index.md` ni `indexes`, nada cambia.
 Una carpeta de `include`, `exclude` u `overrides` que no existe, una disposición desconocida o una
 clave de más rompen el build con su ruta. Detalle en
 [Índices de carpeta](docs/src/content/docs/guia/navegacion-y-busqueda.md#índices-de-carpeta-_indexmd-e-indexes).

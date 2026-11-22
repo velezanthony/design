@@ -5,7 +5,7 @@ import {
   failPendingDiagrams,
   markDiagramsBusy,
 } from '../../client/diagrams/selector';
-import { initIndexPager } from '../../client/content/index-pager';
+import { initAutoNavigate } from '../../client/content/auto-navigate';
 import { initTabs } from '../../client/content/tabs';
 import { initZoom } from '../../client/content/zoom';
 import { trackSections } from '../../client/layout/toc';
@@ -94,15 +94,8 @@ export function bootArticle(env: BootEnv = browserEnv()): void {
   /* Sin `<main>` con los textos o sin cargador no habrá dibujo: el código, sin esperar al CSS. */
   if (!drawing) failPendingDiagrams(htmlDocument);
 
-  /* El selector «Por página» de un índice generado: sin JavaScript se queda oculto. */
-  if (env.location) {
-    initIndexPager(htmlDocument, {
-      storage: env.storage,
-      location: env.location,
-      history: env.history,
-      browserWindow: env.browserWindow,
-    });
-  }
+  /* El selector «Por página» de un listado: elegir un tamaño lleva a su ruta. */
+  if (env.location) initAutoNavigate(htmlDocument, env.location);
 
   const toc = htmlDocument.querySelector('nav.toc');
   if (toc) trackSections(toc, { htmlDocument });

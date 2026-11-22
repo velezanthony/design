@@ -19,7 +19,7 @@ describe('SectionPath', () => {
   });
 
   it('pasa los atributos que recibe', async () => {
-    const document = await render(SectionPath, { path: ['A'], 'data-index-path': '' });
-    expect(document.querySelector('[data-index-path]')).not.toBeNull();
+    const document = await render(SectionPath, { path: ['A'], 'data-listing-path': '' });
+    expect(document.querySelector('[data-listing-path]')).not.toBeNull();
   });
 });

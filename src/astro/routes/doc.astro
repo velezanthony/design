@@ -51,7 +51,7 @@ const navTrees = hasNavTreeSlots(entry.rendered?.html ?? '')
   : undefined;
 /* Un `_index.md` o una carpeta de `indexes`: su listado, debajo del cuerpo (o solo, desde la página 2). */
 const listing = docListingView({ route, site, data, ...(dates && { dates }), headings });
-const index = listing && (await resolveCovers(listing, siteConfig.base, optimizeCover));
+const listingView = listing && (await resolveCovers(listing, siteConfig.base, optimizeCover));
 const view = docView({ route, site, data, sizes });
 ---
 
@@ -61,7 +61,7 @@ const view = docView({ route, site, data, sizes });
   year={new Date().getFullYear()}
   Footer={Footer}
   navTrees={navTrees}
-  index={index}
+  listing={listingView}
 >
   <Fonts slot="head" />
   <Content />

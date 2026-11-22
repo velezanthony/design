@@ -197,20 +197,14 @@ describe('bootArticle', () => {
     expect(bootEnv.htmlDocument.querySelector('button.docs-copy')).toBeNull();
   });
 
-  it('revela el selector «Por página» de un índice cuando hay navegación', () => {
-    const html = `<div data-index-pager data-per-page="9" data-options="9,18" data-total="3" data-all="true" data-folder="/a/">
-      <div data-index-per-page-field hidden><select data-index-per-page><option value="9">9</option><option value="18">18</option></select></div>
-      <ul><li data-index-item>1</li></ul></div>`;
-    const location = { href: 'https://x.dev/a/', pathname: '/a/', search: '', assign: vi.fn() };
-    const booted = env(html, { location, history: { pushState: vi.fn(), replaceState: vi.fn() } });
+  it('cablea el selector «Por página» de un listado cuando hay `location`', () => {
+    const html = `<select data-auto-navigate><option value="/a/">12</option><option value="/a/per-page/24/" selected>24</option></select>`;
+    const location = { assign: vi.fn() };
+    const booted = env(html, { location });
     bootArticle(booted);
-    const field = booted.htmlDocument.querySelector('[data-index-per-page-field]')!;
-    expect(field.hasAttribute('hidden')).toBe(false);
-    // Sin `location` en el entorno no se toca: el selector sigue oculto.
-    const bare = env(html);
-    bootArticle(bare);
-    expect(
-      bare.htmlDocument.querySelector('[data-index-per-page-field]')!.hasAttribute('hidden'),
-    ).toBe(true);
+    const select = booted.htmlDocument.querySelector('select')!;
+    const { Event } = booted.htmlDocument.defaultView as unknown as typeof globalThis;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(location.assign).toHaveBeenCalledWith('/a/per-page/24/');
   });
 });

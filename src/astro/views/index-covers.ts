@@ -1,5 +1,5 @@
 import type { CoverView, EntryCover } from '../../core/listing/covers';
-import type { IndexView } from '../../core/listing/view';
+import type { ListingView } from '../../core/listing/view';
 import { withBase } from '../../core/shared/urls';
 
 /** Lo que `astro:assets` sabe de una imagen importada; aquí basta con reconocerla. */
@@ -29,12 +29,13 @@ async function coverView(
   return { kind: 'image', src: await optimize(source.asset), alt };
 }
 
-/** El índice con cada portada lista para pintar: las de `public/` con la base y las procesadas con `optimize`. */
+/** El listado con cada portada lista para pintar: las de `public/` con la base y las procesadas con `optimize`. Una lista no tiene portadas. */
 export async function resolveCovers(
-  view: IndexView,
+  view: ListingView,
   base: string,
   optimize: OptimizeImage,
-): Promise<IndexView<CoverView>> {
+): Promise<ListingView<CoverView>> {
+  if (view.layout === 'list') return view;
   const items = await Promise.all(
     view.items.map(async (item) => ({
       ...item,

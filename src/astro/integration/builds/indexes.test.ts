@@ -24,11 +24,11 @@ function text(node: { textContent: string | null } | null) {
 }
 
 function listing(document: Document) {
-  return document.querySelector('main [data-index-listing]');
+  return document.querySelector('main [data-listing]');
 }
 
 function cards(document: Document) {
-  return [...document.querySelectorAll('[data-index-card]')];
+  return [...document.querySelectorAll('[data-listing-card]')];
 }
 
 async function exists(file: string) {
@@ -45,8 +45,9 @@ describe('_index.md: título, entradilla y disposición (tarjetas)', () => {
     expect(text(prose.querySelector('h1'))).toBe('Tutoriales');
     expect(text(prose)).toContain('Tutoriales paso a paso.');
     expect(listing(document)!.closest('.prose')).toBeNull();
-    // Sin JavaScript se ven las dos primeras; las demás van ocultas para el selector «Por página».
-    expect(cards(document).filter((card) => !card.hasAttribute('hidden'))).toHaveLength(2);
+    // Solo las de su página: sin entradas ocultas.
+    expect(cards(document)).toHaveLength(2);
+    expect(listing(document)!.querySelector('[hidden]')).toBeNull();
   });
 
   it('su seo: título y descripción del _index.md, indexable y canónica de sí misma', async () => {
@@ -65,10 +66,10 @@ describe('_index.md: título, entradilla y disposición (tarjetas)', () => {
     const document = await page('en/tutoriales/index.html');
     expect(text(document.querySelector('main .prose h1'))).toBe('Tutorials');
     expect(text(document.querySelector('main .prose'))).toContain('Step-by-step tutorials.');
-    expect(text(document.querySelector('[data-index-card] [data-index-path]'))).toBe(
+    expect(text(document.querySelector('[data-listing-card] [data-listing-path]'))).toBe(
       'Essentials › Getting started',
     );
-    expect(document.querySelector('[data-index-card] h2 a')!.getAttribute('href')).toBe(
+    expect(document.querySelector('[data-listing-card] h2 a')!.getAttribute('href')).toBe(
       '/idx/en/tutoriales/instalacion/',
     );
   });
@@ -174,7 +175,7 @@ describe('portadas', () => {
   });
 
   it('`image: false`: sin portada', async () => {
-    expect((await coverOf('configuracion')).querySelector('[data-index-cover]')).toBeNull();
+    expect((await coverOf('configuracion')).querySelector('[data-listing-cover]')).toBeNull();
   });
 
   it('una imagen que no existe: aviso en el build y la portada de la librería', async () => {
@@ -220,7 +221,7 @@ describe('carpeta sin _index.md que activa `indexes` (tabla)', () => {
 describe('lista', () => {
   it('el árbol de la carpeta debajo del cuerpo del _index.md, sin paginar', async () => {
     const document = await page('recetas/index.html');
-    const list = listing(document)!.querySelector('[data-index-list]')!;
+    const list = listing(document)!.querySelector('[data-listing-list]')!;
     expect([...list.querySelectorAll('a')].map((link) => link.getAttribute('href'))).toEqual([
       '/idx/recetas/pan/',
       '/idx/recetas/sopa/',
@@ -240,50 +241,98 @@ describe('index.md gana a _index.md', () => {
 });
 
 describe('selector «Por página»', () => {
-  it('página 1: oculto sin JavaScript, con las opciones del _index.md y todas las entradas', async () => {
+  /** Ruta de `dist/` del `index.html` de una URL del sitio (sin la base `/idx/`). */
+  function fileOf(href: string) {
+    expect(href.startsWith('/idx/'), href).toBe(true);
+    return `${href.slice('/idx/'.length)}index.html`;
+  }
+
+  /** Lo que pinta `<noscript>`: linkedom lo deja como texto, así que se vuelve a leer. */
+  function noscriptHrefs(document: Document) {
+    return [...document.querySelectorAll('[data-pagination-bar] noscript')].flatMap((noscript) =>
+      [...parseHTML(`<div>${noscript.innerHTML}</div>`).document.querySelectorAll('a')].map(
+        (link) => link.getAttribute('href')!,
+      ),
+    );
+  }
+
+  /** Cada `href` del paginador, cada `value` del `select` y cada enlace de `<noscript>`. */
+  function linkedHrefs(document: Document) {
+    const bar = document.querySelector('[data-pagination-bar]');
+    if (!bar) return [];
+    return [
+      ...[...bar.querySelectorAll('nav a')].map((link) => link.getAttribute('href')!),
+      ...[...bar.querySelectorAll('select[data-auto-navigate] option')].map((option) =>
+        option.getAttribute('value')!,
+      ),
+      ...noscriptHrefs(document),
+    ];
+  }
+
+  it('página 1: el select navega entre los tamaños del _index.md, con el actual elegido', async () => {
     const document = await page('tutoriales/index.html');
-    const root = document.querySelector('[data-index-pager]')!;
-    expect(root.getAttribute('data-options')).toBe('2,4');
-    expect(root.getAttribute('data-per-page')).toBe('2');
-    expect(root.getAttribute('data-all')).toBe('true');
-    expect(root.querySelector('[data-index-per-page-field]')!.hasAttribute('hidden')).toBe(true);
-    const items = [...root.querySelectorAll('[data-index-item]')];
-    expect(items).toHaveLength(5);
-    expect(items.filter((item) => !item.hasAttribute('hidden'))).toHaveLength(2);
+    const select = document.querySelector('select[data-auto-navigate]')!;
+    const options = [...select.querySelectorAll('option')];
+    expect(options.map((option) => [option.getAttribute('value'), text(option)])).toEqual([
+      ['/idx/tutoriales/', '2'],
+      ['/idx/tutoriales/per-page/4/', '4'],
+    ]);
+    expect(options[0]!.hasAttribute('selected')).toBe(true);
+    expect(noscriptHrefs(document)).toEqual(['/idx/tutoriales/', '/idx/tutoriales/per-page/4/']);
   });
 
-  it('un paginador por tamaño: el de la config con las rutas estáticas, el otro con la query', async () => {
-    const document = await page('tutoriales/index.html');
-    const visible = [...document.querySelectorAll('[data-index-pagination]')].filter(
-      (pager) => !pager.hasAttribute('hidden'),
+  it('cada tamaño es una ruta estática: /per-page/4/ trae cuatro entradas y pagina debajo', async () => {
+    const document = await page('tutoriales/per-page/4/index.html');
+    expect(cards(document)).toHaveLength(4);
+    expect(document.querySelector('nav a[rel="next"]')!.getAttribute('href')).toBe(
+      '/idx/tutoriales/per-page/4/page/2/',
     );
-    expect(visible.map((pager) => pager.getAttribute('data-per'))).toEqual(['2']);
-    expect(visible[0]!.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/idx/tutoriales/page/2/',
-    );
-    const other = document.querySelector('[data-index-pagination][data-per="4"][data-page="1"]')!;
-    expect(other.querySelector('a[rel="next"]')!.getAttribute('href')).toBe(
-      '/idx/tutoriales/?por=4&pagina=2',
-    );
+    expect(await exists('tutoriales/per-page/4/page/2/index.html')).toBe(true);
+    expect(await exists('tutoriales/per-page/4/page/3/index.html')).toBe(false);
   });
 
-  it('las rutas estáticas no cambian: /page/2/ trae solo sus dos entradas y su paginador', async () => {
-    const document = await page('tutoriales/page/2/index.html');
-    const root = document.querySelector('[data-index-pager]')!;
-    expect(root.getAttribute('data-all')).toBe('false');
-    expect(root.querySelectorAll('[data-index-item]')).toHaveLength(2);
-    expect(root.querySelectorAll('[data-index-item][hidden]')).toHaveLength(0);
-    expect(root.querySelectorAll('[data-index-pagination]')).toHaveLength(1);
+  it('todo enlace del paginador y del selector existe en dist/', async () => {
+    const pages = [
+      'tutoriales/index.html',
+      'tutoriales/page/2/index.html',
+      'tutoriales/page/3/index.html',
+      'tutoriales/per-page/4/index.html',
+      'tutoriales/per-page/4/page/2/index.html',
+      'en/tutoriales/index.html',
+      'en/tutoriales/per-page/4/index.html',
+      'guia/index.html',
+      'guia/page/2/index.html',
+    ];
+    let checked = 0;
+    for (const file of pages) {
+      for (const href of linkedHrefs(await page(file))) {
+        expect(await exists(fileOf(href)), `${file} → ${href}`).toBe(true);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(20);
+  });
+
+  it('los otros tamaños: noindex, data-pagefind-ignore en el Article, canónica propia y fuera del sitemap', async () => {
+    const document = await page('tutoriales/per-page/4/index.html');
+    expect(document.querySelector('meta[name="robots"]')!.getAttribute('content')).toBe('noindex');
+    expect(document.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(
+      'https://example.dev/idx/tutoriales/per-page/4/',
+    );
+    // El contenedor del `Article` (el que lleva los textos de copiar) queda fuera de Pagefind.
+    expect(document.querySelector('[data-copy-label][data-pagefind-ignore]')).not.toBeNull();
+    expect(await site.read('sitemap.xml')).not.toContain('per-page');
   });
 
   it('la tabla generada por `indexes` lleva las opciones por defecto con su tamaño', async () => {
     const document = await page('guia/index.html');
-    expect(document.querySelector('[data-index-pager]')!.getAttribute('data-options')).toBe(
-      '2,10,25,50',
+    const values = [...document.querySelectorAll('select[data-auto-navigate] option')].map(
+      (option) => text(option),
     );
+    expect(values).toEqual(['2', '10', '25', '50']);
   });
 
   it('la lista no lleva selector', async () => {
-    expect((await page('recetas/index.html')).querySelector('[data-index-pager]')).toBeNull();
+    expect((await page('recetas/index.html')).querySelector('[data-auto-navigate]')).toBeNull();
   });
 });

@@ -56,17 +56,6 @@ describe('ListingTable', () => {
     expect(dated.getAttribute('class')).not.toContain('max-md:hidden!');
   });
 
-  it('con `visible`, las entradas de más van ocultas (las enseña el selector «Por página»)', async () => {
-    const document = await render(ListingTable, {
-      items,
-      strings: stringsFor('es'),
-      lang: 'es',
-      visible: 2,
-    });
-    const entries = [...document.querySelectorAll('[data-index-item]')];
-    expect(entries.map((entry) => entry.hasAttribute('hidden'))).toEqual([false, false, true]);
-  });
-
   it('el enlace del título usa la variante `inline` de Link', async () => {
     const document = await render(ListingTable, { items, strings: stringsFor('es'), lang: 'es' });
     const anchor = document.querySelector('tbody td a')!;

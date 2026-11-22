@@ -1,7 +1,7 @@
 ---
 import type { ComponentProps } from 'astro/types';
 import type { CoverView } from '../../core/listing/covers';
-import type { IndexView } from '../../core/listing/view';
+import type { ListingView } from '../../core/listing/view';
 import { splitNavTrees, type NavTreeNode } from '../../core/navigation/nav-tree';
 import DocsLayout from '../layouts/DocsLayout.astro';
 import NavTree from '../molecules/navigation/NavTree.astro';
@@ -12,22 +12,24 @@ type Props = ComponentProps<typeof DocsLayout> & {
   /** Árboles de `::nav-tree`, uno por posición de `nav`: cada hueco del Markdown se rellena con el suyo. */
   navTrees?: NavTreeNode[][];
   /** Índice generado (un `_index.md` o una carpeta de `indexes`): su listado va debajo del contenido, fuera de `.prose`. */
-  index?: IndexView<CoverView>;
+  listing?: ListingView<CoverView>;
 };
 
-const { navTrees, index, ...layout } = Astro.props;
-/* Desde la página 2 de un índice el cuerpo no se repite: solo el título y en qué página se está. */
-const heading = index?.heading;
+const { navTrees, listing, ...layout } = Astro.props;
+/* Desde la página 2 de un listado el cuerpo no se repite: solo el título y en qué página se está. */
+const heading = listing?.layout !== 'list' ? listing?.pageHeading : undefined;
 const segments = !heading && navTrees && splitNavTrees(await Astro.slots.render('default'));
-const headings = heading ? index.headings : [...layout.headings, ...(index?.headings ?? [])];
+/* Los encabezados de las secciones de una lista entran en «En esta página». */
+const listingHeadings = listing?.layout === 'list' ? listing.headings : [];
+const headings = heading ? [] : [...layout.headings, ...listingHeadings];
 ---
 
 <DocsLayout {...layout} headings={headings}>
   <slot name="head" slot="head" />
   <slot name="scripts" slot="scripts" />
-  {index && (
+  {listing && (
     <div slot="below" class="mt-12">
-      <Listing index={index} strings={layout.strings} lang={layout.lang} />
+      <Listing view={listing} strings={layout.strings} />
     </div>
   )}
   {heading ? (

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ListingSection } from '../../../core/listing/entries';
+import type { ListingViewSection } from '../../../core/listing/view';
 import { render, text } from '../../../testing/render';
 import { stringsFor } from '../../../testing/strings';
 import { linkVariants } from '../../atoms/actions/variants';
@@ -15,7 +15,7 @@ function entry(title: string, slug: string, extra = {}) {
   return { slug, title, href: `/repo/${slug}/`, path: [], ...extra };
 }
 
-const sections: ListingSection[] = [
+const sections: ListingViewSection[] = [
   {
     label: 'Esenciales',
     id: 'esenciales',
@@ -26,7 +26,11 @@ const sections: ListingSection[] = [
           entry('Tipado', 'tipado', { summary: 'Sin generar código.' }),
           {
             label: 'Vite',
-            items: [entry('Plugins', 'plugins', { updated: '2026-03-02T00:00:00+00:00' })],
+            items: [
+              entry('Plugins', 'plugins', {
+                updated: { iso: '2026-03-02T00:00:00+00:00', label: '2 mar 2026' },
+              }),
+            ],
           },
         ],
       },
@@ -47,7 +51,7 @@ describe('ListingList', () => {
 
   it('grupos anidados en negrita y cada página con su enlace, su resumen y su fecha', async () => {
     const document = await render(ListingList, { sections, strings: stringsFor('es'), lang: 'es' });
-    const groups = [...document.querySelectorAll('[data-index-group]')].map((group) =>
+    const groups = [...document.querySelectorAll('[data-listing-group]')].map((group) =>
       text(group.querySelector(':scope > p')),
     );
     expect(groups).toEqual(['Astro', 'Vite']);

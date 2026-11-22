@@ -1,134 +1,70 @@
 ---
-import type { Locale } from '../../../core/i18n/locale';
 import { translate, type UiStrings } from '../../../core/i18n/ui-strings';
-import { type CoverView } from '../../../core/listing/covers';
-import { PAGE_PARAM, PER_PAGE_PARAM, type IndexView } from '../../../core/listing/view';
-import Select from '../../atoms/form/Select.astro';
+import type { CoverView } from '../../../core/listing/covers';
+import type { ListingView } from '../../../core/listing/view';
 import Pagination from '../../molecules/navigation/Pagination.astro';
 import PaginationBar from '../../molecules/navigation/PaginationBar.astro';
+import PerPageSelector from '../../molecules/navigation/PerPageSelector.astro';
 import ListingCards from './ListingCards.astro';
 import ListingList from './ListingList.astro';
 import ListingTable from './ListingTable.astro';
 
-/* El listado de un índice generado en su disposición y, si tiene varias páginas, el paginador de la
-   librería con enlaces de verdad (`/carpeta/`, `/carpeta/2/`…).
-
-   Tabla y tarjetas llevan además el selector «Por página», una mejora progresiva: va oculto y solo lo
-   enseña el script (`client/content/index-pager.ts`). En la página 1 se pintan todas las entradas (las
-   de más, `hidden`) y un paginador por cada tamaño y página; el script solo decide cuál se ve, así que
-   el marcado es siempre el de estos componentes. Sin JavaScript se ve lo de siempre: las `perPage`
-   primeras y el paginador de las rutas estáticas.
-
-   Selector, rango («Mostrando 1–12 de 18») y paginador comparten la fila de pie de `PaginationBar`,
-   debajo del listado: el mismo patrón que la tabla del panel SEO. */
+/* El listado de un índice generado: elige la disposición y, en la tabla y las tarjetas, pinta la fila
+   de pie de `PaginationBar` con el selector «Por página», el rango y el paginador. Todo llega
+   derivado en el modelo (`core/listing/view.ts`): aquí no se calcula nada. */
 interface Props {
-  index: IndexView<CoverView>;
+  view: ListingView<CoverView>;
   strings: UiStrings;
-  lang: Locale;
 }
 
-const { index, strings, lang } = Astro.props;
-const empty = index.layout === 'list' ? index.sections.length === 0 : index.items.length === 0;
+const { view, strings } = Astro.props;
 const labels = {
   nav: translate(strings, 'pagination.label'),
   previous: `← ${translate(strings, 'pagination.prev')}`,
   next: `${translate(strings, 'pagination.next')} →`,
   page: (page: number) => translate(strings, 'listing.page', { page: String(page) }),
 };
-/* Con una sola opción, o si todo cabe en la más pequeña, elegir no cambia nada. */
-const [smallest] = index.perPageOptions;
-const selector =
-  index.layout !== 'list' &&
-  index.perPageOptions.length > 1 &&
-  smallest !== undefined &&
-  index.total > smallest;
-const visible = index.all ? index.perPage : undefined;
-/* Los paginadores: en la página 1, uno por tamaño y página; en las demás, el suyo. */
-const pagers = index.all
-  ? index.sizes.flatMap((size) =>
-      size.hrefs.map((_href, position) => ({
-        perPage: size.perPage,
-        page: position + 1,
-        pages: size.pages,
-        hrefs: size.hrefs,
-      })),
-    )
-  : [{ perPage: index.perPage, page: index.page, pages: index.pages, hrefs: index.hrefs }];
-/* El rango que se ve: el de la página estática; el script lo cambia y la región lo anuncia. */
-const first = index.total === 0 ? 0 : (index.page - 1) * index.perPage + 1;
-const last = Math.min(index.page * index.perPage, index.total);
-const range = translate(strings, 'listing.showing', {
-  from: String(first),
-  to: String(last),
-  total: String(index.total),
-});
-const bar = index.layout !== 'list' && !empty && (selector || index.pages > 1);
-const pager = selector
-  ? {
-      'data-index-pager': '',
-      tabindex: '-1',
-      'data-per-page': String(index.perPage),
-      'data-options': index.perPageOptions.join(','),
-      'data-total': String(index.total),
-      'data-all': String(index.all),
-      'data-folder': index.hrefs[0],
-      'data-key': index.hrefs[0],
-      'data-param-per': PER_PAGE_PARAM,
-      'data-param-page': PAGE_PARAM,
-      'data-showing': translate(strings, 'listing.showing'),
-    }
-  : {};
 ---
 
 {/* Fuera de la búsqueda: cada entrada ya está indexada en su página y aquí se repetiría. */}
-<div data-index-listing data-pagefind-ignore {...pager} class="outline-none">
-  {empty ? (
+<div data-listing data-pagefind-ignore>
+  {view.layout === 'list' ? (
+    view.empty ? (
+      <p class="text-muted">{translate(strings, 'listing.empty')}</p>
+    ) : (
+      <ListingList sections={view.sections} strings={strings} />
+    )
+  ) : view.total === 0 ? (
     <p class="text-muted">{translate(strings, 'listing.empty')}</p>
-  ) : index.layout === 'list' ? (
-    <ListingList sections={index.sections} strings={strings} lang={lang} />
-  ) : index.layout === 'table' ? (
-    <ListingTable items={index.items} strings={strings} lang={lang} visible={visible} />
   ) : (
-    <ListingCards items={index.items} strings={strings} lang={lang} visible={visible} />
-  )}
-  {bar && (
-    <PaginationBar class="mt-10">
-      {selector && (
-        <div slot="start" data-index-per-page-field hidden>
-          <Select
-            id="index-per-page"
-            name="por"
-            label={translate(strings, 'listing.perPage')}
-            options={index.perPageOptions.map((option) => ({
-              value: String(option),
-              label: String(option),
-            }))}
-            value={String(index.perPage)}
-            inline
-            data-index-per-page
-          />
-        </div>
+    <Fragment>
+      {view.layout === 'table' ? (
+        <ListingTable items={view.items} strings={strings} />
+      ) : (
+        <ListingCards items={view.items} strings={strings} />
       )}
-      <p slot="status" data-index-status aria-live="polite" class="text-sm text-muted">
-        {range}
-      </p>
-      {pagers.map((item) => (
-        <div
-          data-index-pagination
-          data-per={item.perPage}
-          data-page={item.page}
-          hidden={index.all && !(item.perPage === index.perPage && item.page === 1)}
-        >
-          {item.pages > 1 && (
+      {(view.pager || view.sizes) && (
+        <PaginationBar class="mt-10">
+          <div slot="start">
+            <PerPageSelector sizes={view.sizes} strings={strings} />
+          </div>
+          <p slot="status" class="text-sm text-muted">
+            {translate(strings, 'listing.showing', {
+              from: String(view.range.from),
+              to: String(view.range.to),
+              total: String(view.total),
+            })}
+          </p>
+          {view.pager && (
             <Pagination
-              page={item.page}
-              pages={item.pages}
-              href={(page: number) => item.hrefs[page - 1] ?? item.hrefs[0]!}
+              page={view.pager.page}
+              pages={view.pager.pages}
+              href={(page: number) => view.pager!.hrefs[page - 1] ?? view.pager!.hrefs[0]!}
               labels={labels}
             />
           )}
-        </div>
-      ))}
-    </PaginationBar>
+        </PaginationBar>
+      )}
+    </Fragment>
   )}
 </div>

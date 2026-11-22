@@ -1,7 +1,7 @@
 ---
 import type { UiStrings } from '../../../core/i18n/ui-strings';
-import { coverPattern, type CoverView } from '../../../core/listing/covers';
-import type { IndexItem } from '../../../core/listing/view';
+import type { CoverView } from '../../../core/listing/covers';
+import type { ListingItem } from '../../../core/listing/view';
 import CoverPlaceholder from '../../atoms/display/CoverPlaceholder.astro';
 import DateLabel from '../../atoms/display/DateLabel.astro';
 import Heading from '../../atoms/display/Heading.astro';
@@ -13,32 +13,23 @@ import SectionPath from '../navigation/SectionPath.astro';
    librería), camino, título, resumen de tres líneas y fecha abajo. Toda la tarjeta lleva al
    artículo con el `::after` estirado del enlace del título. */
 interface Props {
-  item: IndexItem<CoverView>;
+  /** La entrada ya derivada: portada decidida, dibujo elegido y fecha formateada. */
+  item: ListingItem<CoverView>;
   strings: UiStrings;
-  /** La fecha ya formateada; sin ella (o sin `item.updated`) no hay fecha. */
-  dateLabel?: string;
-  /** Oculta sin JavaScript (la enseña el selector «Por página»). */
-  hidden?: boolean;
 }
 
-const { item, strings, dateLabel, hidden = false } = Astro.props;
+const { item, strings } = Astro.props;
 ---
 
 {/* Un elemento de la rejilla de `ListingCards`: su raíz es el `<li>`. */}
 <li
-  data-index-card
-  data-index-item
-  hidden={hidden}
+  data-listing-card
   class="group relative flex flex-col border border-rule bg-canvas transition-colors hover:border-accent"
 >
   {item.cover.kind !== 'none' && (
-    <div data-index-cover class="relative aspect-[16/9] overflow-hidden border-b border-rule">
+    <div data-listing-cover class="relative aspect-[16/9] overflow-hidden border-b border-rule">
       {/* La de la librería siempre debajo: si la imagen no carga (alt vacío), se ve ella. */}
-      <CoverPlaceholder
-        pattern={coverPattern(item.slug)}
-        label={item.path.at(-1)}
-        class="absolute inset-0"
-      />
+      <CoverPlaceholder pattern={item.pattern} label={item.path.at(-1)} class="absolute inset-0" />
       {item.cover.kind === 'image' && (
         <img
           src={item.cover.src}
@@ -51,7 +42,7 @@ const { item, strings, dateLabel, hidden = false } = Astro.props;
     </div>
   )}
   <div class="flex flex-1 flex-col p-5">
-    <SectionPath path={item.path} data-index-path="" class="label block text-faint" />
+    <SectionPath path={item.path} data-listing-path="" class="label block text-faint" />
     <Heading level={2} size="md" class="mt-2">
       <PageLink
         href={item.href}
@@ -66,10 +57,10 @@ const { item, strings, dateLabel, hidden = false } = Astro.props;
         {item.summary}
       </Text>
     )}
-    {item.updated && dateLabel !== undefined && (
+    {item.updated && (
       <DateLabel
-        iso={item.updated}
-        label={dateLabel}
+        iso={item.updated.iso}
+        label={item.updated.label}
         class="mt-auto pt-4 text-xs text-faint tabular-nums"
       />
     )}

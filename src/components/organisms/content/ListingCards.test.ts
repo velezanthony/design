@@ -7,13 +7,13 @@ import ListingCards from './ListingCards.astro';
 
 async function cards() {
   const document = await render(ListingCards, { items, strings: stringsFor('es'), lang: 'es' });
-  return [...document.querySelectorAll('[data-index-card]')];
+  return [...document.querySelectorAll('[data-listing-card]')];
 }
 
 describe('ListingCards', () => {
   it('una tarjeta por entrada: camino, título enlazado, resumen y fecha', async () => {
     const [deploy, install] = await cards();
-    expect(text(deploy!.querySelector('[data-index-path]'))).toBe('Avanzado › Despliegue');
+    expect(text(deploy!.querySelector('[data-listing-path]'))).toBe('Avanzado › Despliegue');
     const link = install!.querySelector('h2 a')!;
     expect(link.getAttribute('href')).toBe('/repo/tutoriales/instalacion/');
     expect(text(link)).toBe('Instalación');
@@ -48,21 +48,10 @@ describe('ListingCards', () => {
 
   it('sin portada no hay caja de imagen; el enlace al original lleva su insignia', async () => {
     const [, , scripts] = await cards();
-    expect(scripts!.querySelector('[data-index-cover]')).toBeNull();
+    expect(scripts!.querySelector('[data-listing-cover]')).toBeNull();
     expect(scripts!.querySelector('a')!.getAttribute('hreflang')).toBe('en');
     expect(scripts!.querySelector('[role="img"]')!.getAttribute('aria-label')).toBe(
       'Disponible en English',
     );
-  });
-
-  it('con `visible`, las entradas de más van ocultas (las enseña el selector «Por página»)', async () => {
-    const document = await render(ListingCards, {
-      items,
-      strings: stringsFor('es'),
-      lang: 'es',
-      visible: 2,
-    });
-    const entries = [...document.querySelectorAll('[data-index-item]')];
-    expect(entries.map((entry) => entry.hasAttribute('hidden'))).toEqual([false, false, true]);
   });
 });

@@ -1,32 +1,20 @@
+import type { Page } from '../../core/content/discovery';
 import type { Locale } from '../../core/i18n/locale';
 import { pickLocalized } from '../../core/i18n/translation-policy';
-import { translate, type UiStrings } from '../../core/i18n/ui-strings';
-import { coverFor } from '../../core/listing/covers';
-import { listingPageUrl } from '../../core/listing/urls';
-import type { Page } from '../../core/content/discovery';
+import type { UiStrings } from '../../core/i18n/ui-strings';
+import { buildListing, type EntryDetails, type Listing } from '../../core/listing/entries';
 import { isPagedListing, resolveListing, type ListingOptions } from '../../core/listing/options';
-import {
-  buildListing,
-  sortByUpdated,
-  type EntryDetails,
-  type Listing,
-} from '../../core/listing/entries';
-import {
-  PAGE_PARAM,
-  PER_PAGE_PARAM,
-  type IndexItem,
-  type IndexView,
-} from '../../core/listing/view';
-import { pageCount, paginate } from '../../core/shared/paginate';
+import { listingPageUrl } from '../../core/listing/urls';
+import { buildListingView, type ListingHrefs, type ListingView } from '../../core/listing/view';
 import type { DocData } from '../loader/schema';
 import type { VirtualConfig } from '../virtual/data';
 import { navContextOf, type SiteContext } from './chrome';
 import type { DocRoute } from './doc';
 
 /* El índice generado de una página con listado (un `_index.md` o una carpeta que `indexes` activa):
-   sus opciones (que `docRoutes` resuelve una vez por ruta), cuántas páginas tiene y lo que pinta cada
-   una. Las portadas salen como `EntryCover`; la ruta convierte las imágenes en URLs con
-   `astro:assets`. */
+   sus opciones (que `docRoutes` resuelve una vez por ruta), cuántas entradas tiene y su modelo de
+   vista, que construye `core/listing/view.ts`; aquí se ensambla y se implementa el puerto de URLs.
+   Las portadas salen como `EntryCover`; la ruta convierte las imágenes en URLs con `astro:assets`. */
 
 /** Opciones del listado de una página, o `undefined` si no lista su carpeta. */
 export function listingOptionsOf(
@@ -35,15 +23,6 @@ export function listingOptionsOf(
 ): ListingOptions | undefined {
   if (!page.listing) return undefined;
   return resolveListing({ folder: page.slug, own: page.listing, indexes: config.indexes });
-}
-
-/** URLs de las páginas de un tamaño que no es el de las rutas estáticas: la carpeta con la query. */
-export function sizeHrefs(folderHref: string, perPage: number, pages: number): string[] {
-  return Array.from({ length: pages }, (_item, index) => {
-    const page = index + 1;
-    const query = `${PER_PAGE_PARAM}=${perPage}${page === 1 ? '' : `&${PAGE_PARAM}=${page}`}`;
-    return `${folderHref}?${query}`;
-  });
 }
 
 /** La portada y la fecha de cada página, de su entrada en el idioma del contenido o, sin ella, la del original (`pickLocalized`). */
@@ -88,15 +67,22 @@ function listingOf(
   });
 }
 
-/** Páginas de un listado paginado; solo cuenta entradas, sin fechas ni portadas. */
-export function listingPageCount(
+/** Entradas de un listado; solo las cuenta, sin fechas ni portadas. */
+export function listingEntryCount(
   site: SiteContext,
   route: RouteFields,
   options: ListingOptions,
 ): number {
-  if (!isPagedListing(options)) return 1;
-  const total = listingOf(site, route, options, () => undefined).entries.length;
-  return pageCount(total, options.pageSize);
+  return listingOf(site, route, options, () => undefined).entries.length;
+}
+
+/** Las URLs del listado de la ruta: su carpeta en su idioma, con la base y la barra final del sitio. */
+function hrefsOf(route: RouteFields, options: ListingOptions, site: SiteContext): ListingHrefs {
+  const defaultPerPage = isPagedListing(options) ? options.pageSize : 1;
+  return {
+    at: (position) =>
+      listingPageUrl(route.urlSlug, route.locale, position, defaultPerPage, site.url),
+  };
 }
 
 interface ListingViewInput {
@@ -108,14 +94,14 @@ interface ListingViewInput {
   headings?: { depth: number; slug: string; text: string }[];
 }
 
-/** El índice de la ruta, o `undefined` si su página no lleva listado. */
+/** El modelo de vista del listado de la ruta, o `undefined` si su página no lleva listado. */
 export function docListingView({
   route,
   site,
   data,
   dates = new Map(),
   headings = [],
-}: ListingViewInput): IndexView | undefined {
+}: ListingViewInput): ListingView | undefined {
   const options = route.listing;
   if (!options) return undefined;
   const listing = listingOf(
@@ -125,61 +111,19 @@ export function docListingView({
     detailsOf(data, route.contentLocale, site.config, dates),
     headings.map((heading) => heading.slug),
   );
-  const strings = site.config.strings[route.locale] as UiStrings;
-  const paged = isPagedListing(options) ? options : undefined;
-  const total = listing.entries.length;
-  /* La lista no se pagina: todo cabe en su única página. */
-  const perPage = paged?.pageSize ?? total;
-  const perPageOptions = paged?.perPageOptions ?? [];
-  const pages = paged ? pageCount(total, paged.pageSize) : 1;
-  const page = route.page ?? 1;
-  const sorted = paged ? sortByUpdated(listing.entries) : [];
-  /* La página 1 trae todas las entradas (las de más, ocultas) para que el selector no necesite red. */
-  const all = paged !== undefined && page === 1;
-  const items = (all ? sorted : paginate(sorted, page, perPage).rows).map(
-    ({ cover, imageAlt, ...entry }): IndexItem => ({
-      ...entry,
-      cover: coverFor(cover, options.covers, imageAlt),
-    }),
-  );
   const title =
     data.find((item) => item.slug === route.slug && item.locale === route.contentLocale)?.title ??
     '';
-  const hrefs = Array.from({ length: pages }, (_item, index) =>
-    listingPageUrl(route.urlSlug, route.locale, { perPage, page: index + 1 }, perPage, site.url),
+  const position = route.listingPosition;
+  return buildListingView(
+    {
+      listing,
+      options,
+      ...(position && { position: { perPage: position.perPage, page: position.page } }),
+      locale: route.locale,
+      strings: site.config.strings[route.locale] as UiStrings,
+      title,
+    },
+    hrefsOf(route, options, site),
   );
-  const sections = paged ? [] : listing.sections;
-  return {
-    layout: options.layout,
-    sections,
-    items,
-    page,
-    pages,
-    total,
-    hrefs,
-    all,
-    perPage,
-    perPageOptions,
-    sizes: all
-      ? perPageOptions.map((size) => {
-          const count = pageCount(total, size);
-          return {
-            perPage: size,
-            pages: count,
-            hrefs: size === perPage ? hrefs : sizeHrefs(hrefs[0]!, size, count),
-          };
-        })
-      : [],
-    headings: sections.flatMap((section) =>
-      section.id === undefined || section.label === undefined
-        ? []
-        : [{ depth: 2, slug: section.id, text: section.label }],
-    ),
-    ...(page > 1 && {
-      heading: {
-        title,
-        page: translate(strings, 'listing.pageOf', { page: String(page), pages: String(pages) }),
-      },
-    }),
-  };
 }

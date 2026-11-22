@@ -47,7 +47,7 @@ core/
 │   ├── entries.ts         buildListing (visitante de nav-walk): entradas, secciones y orden por fecha
 │   ├── covers.ts          Portada guardada, la que se pinta y el dibujo de la librería
 │   ├── urls.ts            Dueño de las URLs de un listado: page/ y per-page/, posiciones y nombres reservados
-│   └── view.ts            Lo que pinta el índice de una página y la fecha de cada entrada
+│   └── view.ts            ListingView (unión por disposición), el puerto ListingHrefs y buildListingView
 ├── navigation/
 │   ├── sidebar.ts         Árbol de la barra lateral desde la config y las páginas
 │   ├── sidebar-slugs.ts   Valida los slugs de sidebar
@@ -176,7 +176,7 @@ client/
 │   ├── anchors.ts        Enlace a cada encabezado
 │   ├── zoom.ts           Ampliación de imágenes en un <dialog>
 │   ├── copy-code.ts      Botón de copiar en los bloques de código
-│   ├── index-pager.ts    Selector «Por página» de un índice: URL, localStorage y qué se ve
+│   ├── auto-navigate.ts  Un select[data-auto-navigate] lleva a la URL elegida (el «Por página» de un listado)
 │   └── tabs.ts           Pestañas accesibles con teclado
 ├── preferences/        Lo que elige el visitante y se guarda
 │   ├── theme.ts          Tema claro/oscuro, script previo al pintado, revelado circular
@@ -211,7 +211,8 @@ components/
 │   ├── form/        FormField, RadioGroup y describedby.ts (el aria-describedby de un campo)
 │   ├── navigation/  EditLink, LocaleSwitch, NavList, NavTree, Pagination, PrevNext, TableOfContents,
 │   │                PageLink (enlace con la insignia de idioma), SectionPath (camino «Sección › Grupo»),
-│   │                ListingTree (árbol de un índice generado), PaginationBar
+│   │                ListingTree (árbol de un índice generado), PerPageSelector (el «Por página» de un
+│   │                listado: navegación, con enlaces en <noscript>), PaginationBar
 │   │                (fila de pie: por página a un lado, rango y paginador al otro)
 │   ├── content/     Admonition, FallbackNotice, SectionHead, Tabs, ListingCard (una tarjeta de un índice)
 │   └── controls/    PanelToggle, ThemeToggle

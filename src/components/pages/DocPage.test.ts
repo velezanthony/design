@@ -88,49 +88,42 @@ describe('DocPage: árboles de `::nav-tree`', () => {
 });
 
 describe('DocPage: índice generado', () => {
-  const index = {
+  const item = {
+    slug: 'tutoriales/instalacion',
+    title: 'Instalación',
+    href: '/repo/tutoriales/instalacion/',
+    path: ['Esenciales'],
+    cover: { kind: 'placeholder' },
+    pattern: 'grid',
+  };
+  const listing = {
     layout: 'cards',
-    sections: [],
-    items: [
-      {
-        slug: 'tutoriales/instalacion',
-        title: 'Instalación',
-        href: '/repo/tutoriales/instalacion/',
-        path: ['Esenciales'],
-        cover: { kind: 'placeholder' },
-      },
-    ],
-    page: 1,
-    pages: 2,
+    items: [item],
     total: 3,
-    hrefs: ['/repo/tutoriales/', '/repo/tutoriales/2/'],
-    headings: [],
-    all: false,
-    perPage: 1,
-    perPageOptions: [],
-    sizes: [],
+    range: { from: 1, to: 1 },
+    pager: { page: 1, pages: 2, hrefs: ['/repo/tutoriales/', '/repo/tutoriales/page/2/'] },
   };
   const body = '<h1>Tutoriales</h1><p>Tutoriales paso a paso.</p>';
 
   it('página 1: el cuerpo del _index.md en `.prose` y debajo el listado, fuera de `.prose`', async () => {
-    const document = await renderDocument(DocPage, props({ index }), { default: body });
+    const document = await renderDocument(DocPage, props({ listing }), { default: body });
     const main = document.querySelector('main')!;
     const prose = main.querySelector('.prose')!;
     expect(text(prose.querySelector('h1'))).toBe('Tutoriales');
     expect(text(prose.querySelector('p'))).toBe('Tutoriales paso a paso.');
-    const listing = main.querySelector('[data-index-listing]')!;
-    expect(listing.closest('.prose')).toBeNull();
-    expect(listing.querySelector('a[href="/repo/tutoriales/instalacion/"]')).not.toBeNull();
+    const rendered = main.querySelector('[data-listing]')!;
+    expect(rendered.closest('.prose')).toBeNull();
+    expect(rendered.querySelector('a[href="/repo/tutoriales/instalacion/"]')).not.toBeNull();
     // Antes del pie del artículo (anterior/siguiente).
     const after = [...main.children];
-    expect(after.indexOf(listing.parentElement!)).toBeGreaterThan(after.indexOf(prose));
+    expect(after.indexOf(rendered.parentElement!)).toBeGreaterThan(after.indexOf(prose));
   });
 
   it('desde la página 2: el título y «Página n de m» en lugar del cuerpo', async () => {
     const heading = { title: 'Tutoriales', page: 'Página 2 de 2' };
     const document = await renderDocument(
       DocPage,
-      props({ index: { ...index, page: 2, heading } }),
+      props({ listing: { ...listing, pageHeading: heading } }),
       {
         default: body,
       },
@@ -143,14 +136,12 @@ describe('DocPage: índice generado', () => {
 
   it('las secciones de la lista entran en «En esta página»', async () => {
     const list = {
-      ...index,
       layout: 'list',
-      items: [],
-      pages: 1,
+      empty: false,
       sections: [
-        { label: 'Esenciales', id: 'esenciales', nodes: index.items },
-        { label: 'Avanzado', id: 'avanzado', nodes: index.items },
-        { label: 'Despliegue', id: 'despliegue', nodes: index.items },
+        { label: 'Esenciales', id: 'esenciales', nodes: [item] },
+        { label: 'Avanzado', id: 'avanzado', nodes: [item] },
+        { label: 'Despliegue', id: 'despliegue', nodes: [item] },
       ],
       headings: [
         { depth: 2, slug: 'esenciales', text: 'Esenciales' },
@@ -158,7 +149,7 @@ describe('DocPage: índice generado', () => {
         { depth: 2, slug: 'despliegue', text: 'Despliegue' },
       ],
     };
-    const document = await renderDocument(DocPage, props({ index: list }), { default: body });
+    const document = await renderDocument(DocPage, props({ listing: list }), { default: body });
     expect(document.querySelector('[data-toc-column] a[href="#esenciales"]')).not.toBeNull();
     expect(document.querySelector('h2#esenciales')).not.toBeNull();
   });

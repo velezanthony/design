@@ -1,22 +1,20 @@
 ---
-import type { Locale } from '../../../core/i18n/locale';
 import type { UiStrings } from '../../../core/i18n/ui-strings';
-import type { ListingSection } from '../../../core/listing/entries';
+import type { ListingViewSection } from '../../../core/listing/view';
 import Heading from '../../atoms/display/Heading.astro';
 import ListingTree from '../../molecules/navigation/ListingTree.astro';
 
 /* Índice en lista (`layout: 'list'`): el árbol de la navegación, sin paginar. Cada sección de `nav`
    es un h2 (entra en «En esta página»); las páginas sin sección van al final, sin encabezado. */
 interface Props {
-  sections: ListingSection[];
+  sections: ListingViewSection[];
   strings: UiStrings;
-  lang: Locale;
 }
 
-const { sections, strings, lang } = Astro.props;
+const { sections, strings } = Astro.props;
 ---
 
-<div data-index-list class="space-y-12">
+<div data-listing-list class="space-y-12">
   {sections.map((section) => (
     <section>
       {section.label && (
@@ -24,7 +22,7 @@ const { sections, strings, lang } = Astro.props;
           {section.label}
         </Heading>
       )}
-      <ListingTree nodes={section.nodes} strings={strings} lang={lang} />
+      <ListingTree nodes={section.nodes} strings={strings} />
     </section>
   ))}
 </div>

@@ -24,9 +24,8 @@ export interface BootEnv {
   clipboard: Pick<Clipboard, 'writeText'> | undefined;
   hostname: string;
   reload: () => void;
-  /** La URL y el historial, para el selector «Por página» de los índices. Sin ellos, no se cablea. */
-  location?: Pick<Location, 'href' | 'pathname' | 'search' | 'assign'>;
-  history?: Pick<History, 'pushState' | 'replaceState'>;
+  /** Para ir a otra ruta desde el selector «Por página» de un listado. Sin ella, no se cablea. */
+  location?: Pick<Location, 'assign'>;
 }
 
 /** El entorno real. Se lee al ejecutar el script, nunca al importar el módulo. */
@@ -48,6 +47,5 @@ export function browserEnv(): BootEnv {
     hostname: location.hostname,
     reload: () => location.reload(),
     location,
-    history,
   };
 }

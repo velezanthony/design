@@ -1,8 +1,6 @@
 ---
-import type { Locale } from '../../../core/i18n/locale';
 import type { UiStrings } from '../../../core/i18n/ui-strings';
-import { isListingGroup, type ListingNode } from '../../../core/listing/entries';
-import { formatListingDate } from '../../../core/listing/view';
+import { isListingTreeGroup, type ListingTreeNode } from '../../../core/listing/view';
 import { linkVariants } from '../../atoms/actions/variants';
 import DateLabel from '../../atoms/display/DateLabel.astro';
 import Text from '../../atoms/display/Text.astro';
@@ -11,21 +9,20 @@ import PageLink from './PageLink.astro';
 /* Las páginas y los grupos de una sección del índice en lista: cada grupo con su etiqueta en negrita
    y lo suyo dentro; cada página con su enlace, su fecha discreta a la derecha y su resumen. */
 interface Props {
-  nodes: ListingNode[];
+  nodes: ListingTreeNode[];
   strings: UiStrings;
-  lang: Locale;
   /** Profundidad del grupo que contiene estos nodos (1 en la raíz de la sección). */
   depth?: number;
 }
 
-const { nodes, strings, lang, depth = 1 } = Astro.props;
+const { nodes, strings, depth = 1 } = Astro.props;
 const link = `font-medium ${linkVariants.inline}`;
 ---
 
 <ul class="space-y-5">
   {nodes.map((node) =>
-    isListingGroup(node) ? (
-      <li data-index-group class:list={[depth > 1 && 'border-l border-rule pl-4']}>
+    isListingTreeGroup(node) ? (
+      <li data-listing-group class:list={[depth > 1 && 'border-l border-rule pl-4']}>
         <p class:list={['font-semibold text-ink', depth === 1 ? 'text-base' : 'text-sm']}>
           {node.href ? (
             <a href={node.href} class="hover:text-accent">
@@ -36,7 +33,7 @@ const link = `font-medium ${linkVariants.inline}`;
           )}
         </p>
         <div class="mt-3">
-          <Astro.self nodes={node.items} strings={strings} lang={lang} depth={depth + 1} />
+          <Astro.self nodes={node.items} strings={strings} depth={depth + 1} />
         </div>
       </li>
     ) : (
@@ -51,8 +48,8 @@ const link = `font-medium ${linkVariants.inline}`;
           />
           {node.updated && (
             <DateLabel
-              iso={node.updated}
-              label={formatListingDate(node.updated, lang)}
+              iso={node.updated.iso}
+              label={node.updated.label}
               class="shrink-0 text-xs text-faint tabular-nums"
             />
           )}

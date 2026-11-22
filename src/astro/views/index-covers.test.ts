@@ -1,29 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import type { EntryCover } from '../../core/listing/covers';
-import type { IndexView } from '../../core/listing/view';
+import type { ListingView } from '../../core/listing/view';
 import { resolveCovers } from './index-covers';
 
-function view(covers: EntryCover[]): IndexView {
+function view(covers: EntryCover[]): ListingView {
   return {
     layout: 'cards',
-    sections: [],
     items: covers.map((cover, index) => ({
       slug: `a/${index}`,
       title: `${index}`,
       href: `/a/${index}/`,
       path: [],
       cover,
+      pattern: 'grid' as const,
     })),
-    page: 1,
-    pages: 1,
     total: covers.length,
-    hrefs: ['/a/'],
-    headings: [],
-    all: false,
-    perPage: 9,
-    perPageOptions: [9],
-    sizes: [],
+    range: { from: 1, to: covers.length },
   };
+}
+
+/** Las portadas del resultado; falla si no es una tabla o unas tarjetas. */
+function coversOf(result: ListingView<unknown>) {
+  if (result.layout === 'list') throw new Error('esperaba tarjetas');
+  return result.items.map((item) => item.cover);
 }
 
 async function optimize(asset: { src: string }) {
@@ -40,7 +39,7 @@ describe('resolveCovers', () => {
       '/repo',
       optimize,
     );
-    expect(result.items.map((item) => item.cover)).toEqual([
+    expect(coversOf(result)).toEqual([
       { kind: 'image', src: '/_astro/x.png', alt: '' },
       { kind: 'image', src: '/repo/portadas/y.png', alt: 'Y' },
     ]);
@@ -52,10 +51,7 @@ describe('resolveCovers', () => {
       '/',
       optimize,
     );
-    expect(result.items.map((item) => item.cover)).toEqual([
-      { kind: 'none' },
-      { kind: 'placeholder' },
-    ]);
+    expect(coversOf(result)).toEqual([{ kind: 'none' }, { kind: 'placeholder' }]);
   });
 
   it('una ruta que no llegó a imagen (`docsSchema()` sin `image`) cae a la de la librería', async () => {
@@ -64,6 +60,11 @@ describe('resolveCovers', () => {
       '/',
       optimize,
     );
-    expect(result.items[0]!.cover).toEqual({ kind: 'placeholder' });
+    expect(coversOf(result)[0]).toEqual({ kind: 'placeholder' });
+  });
+
+  it('una lista no tiene portadas: sale tal cual', async () => {
+    const list: ListingView = { layout: 'list', sections: [], headings: [], empty: true };
+    expect(await resolveCovers(list, '/repo', optimize)).toBe(list);
   });
 });
