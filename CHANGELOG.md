@@ -176,6 +176,15 @@ su sección; la de la versión publicada es la que se pega como notas de su Rele
 - **El migrador de MkDocs sugiere el `README.md` de la raíz de `docs_dir` como portada.** Con
   `docs_dir: .` o `Home: README.md` en el `nav`, el externo sale con `slug: 'index'` y no
   `'readme'`, así que el sitio tiene portada. Si el `nav` trae un `docs/index.md`, la portada es esa.
+- **Arquitectura interna por capas.** `core/` (reglas puras) → `astro/` (carga, datos, vistas y
+  rutas) → `components/` (solo pintan, en átomos, moléculas y organismos) → `client/`. Cada regla
+  (URLs, etiquetas de carpeta, paginación, recorrido de `nav`) tiene un único dueño, y ESLint y los
+  tests vigilan las fronteras. El listado se compone de piezas (`ListingCard`, `PageLink`,
+  `SectionPath`, `DateLabel`) y el panel SEO comparte `PaginationBar` con los índices. Las subrutas
+  públicas del paquete no cambian.
+- **Documentado que `accTitle` y `accDescr` rompen los diagramas `block` de Mermaid.** Con Mermaid
+  11.17.2 el diagrama da un error de sintaxis y se ve el código; la guía de Markdown lo avisa y
+  propone usar otro tipo de diagrama, como `flowchart`, o quitar esas líneas.
 
 ### Arreglado
 
